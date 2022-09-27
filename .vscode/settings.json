@@ -1,0 +1,18 @@
+{
+  "sqlfluff.dialect": "postgres",
+  "sqlfluff.linter.run": "onSave",
+  "files.trimTrailingWhitespace": true,
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": false // managed by prettier plugin
+  },
+  "sonarlint.disableTelemetry": true
+}

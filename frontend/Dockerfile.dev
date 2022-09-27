@@ -1,0 +1,17 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY ./shared /app/shared
+
+COPY ./frontend /app/frontend
+
+RUN cd /app/shared && npm install && npm run build
+
+RUN cd /app/frontend && npm install
+
+EXPOSE 8080
+
+WORKDIR /app/frontend
+
+CMD npm run dev

@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "lib": ["es2022"],
+    "target": "es2022",
+    "module": "commonjs",
+    "strict": true,
+    "allowJs": false,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "outDir": "dist",
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    "paths": {
+      "@src/*": ["src/*", "dist/*"],
+      "@shared/*": ["node_modules/shared/*"]
+    }
+  },
+  "include": ["types", "src"],
+  "ts-node": {
+    "files": true
+  }
+}

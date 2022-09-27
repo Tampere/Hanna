@@ -1,0 +1,20 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY ./shared /app/shared
+
+COPY ./backend /app/backend
+
+RUN cd /app/shared && npm install && npm run build
+
+RUN cd /app/backend && npm install
+
+EXPOSE 3003
+
+WORKDIR /app/backend
+
+# /src could conflict due to tsconfig paths on production
+RUN rm -rf src/
+
+CMD npm run dev

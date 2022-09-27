@@ -1,0 +1,57 @@
+version: '3.8'
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.dev
+    volumes:
+      # For container based development to show git changes in the whole workspace
+      - .git:/app/.git:cached
+      - ./:/app/
+      - /app/frontend/node_modules
+      - /app/shared/node_modules
+    ports:
+      - '127.0.0.1:8080:8080'
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .git:/app/.git:cached
+      - ./:/app/
+      - /app/backend/node_modules
+      - /app/shared/node_modules
+    ports:
+      - '127.0.0.1:3003:3003'
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgis/postgis:14-3.3
+    restart: always
+    environment:
+      POSTGRES_USER: app_user_dev
+      POSTGRES_PASSWORD: DevPassword
+      POSTGRES_DB: app_dev_db
+    volumes:
+      - db-volume:/var/lib/postgresql/data
+      - ./docker/db/init/:/docker-entrypoint-initdb.d/
+    ports:
+      - '127.0.0.1:5432:5432'
+    healthcheck:
+      test: psql -U app_user_dev -d app_dev_db -c "SELECT 1"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  proxy:
+    image: caddy:2-alpine
+    ports:
+      - '127.0.0.1:443:443'
+    volumes:
+      - ./docker/proxy/Caddyfile:/etc/caddy/Caddyfile
+      - ./docker/proxy/data:/data
+
+volumes:
+  db-volume:
