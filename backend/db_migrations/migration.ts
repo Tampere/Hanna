@@ -5,11 +5,11 @@ import { logger } from '../src/logging';
 
 async function runMigrations() {
   const dbConfig = {
-    database: env.pgDatabase,
-    user: env.pgUser,
-    password: env.pgPass,
-    host: env.pgHost,
-    port: env.pgPort,
+    database: env.db.database,
+    host: env.db.host,
+    port: env.db.port,
+    user: env.db.username,
+    password: env.db.password,
   };
   await migrate(dbConfig, './db_migrations', {
     logger: (msg: string) => logger.info(msg),
