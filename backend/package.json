@@ -48,7 +48,7 @@
     "@trpc/server": "^9.27.4",
     "connect-pg-simple": "^7.0.0",
     "dotenv": "^16.0.3",
-    "fastify": "^4.6.0",
+    "fastify": "^4.7.0",
     "openid-client": "^5.1.10",
     "pino": "^8.6.1",
     "postgres-migrations": "^5.3.0",
