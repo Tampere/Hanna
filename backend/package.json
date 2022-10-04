@@ -45,7 +45,7 @@
     "@fastify/formbody": "^7.3.0",
     "@fastify/passport": "^2.2.0",
     "@fastify/session": "^10.0.0",
-    "@trpc/server": "^9.27.2",
+    "@trpc/server": "^9.27.4",
     "connect-pg-simple": "^7.0.0",
     "dotenv": "^16.0.2",
     "fastify": "^4.6.0",
