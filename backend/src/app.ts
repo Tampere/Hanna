@@ -83,8 +83,8 @@ async function run() {
 
   server.setNotFoundHandler((req, reply) => {
     const url = req.raw.url;
-    // For not found /api routes -> throw a 404 error
-    if (url?.startsWith('/api')) {
+    // For not found /api or /trpc routes -> throw a 404 error
+    if (url?.startsWith('/api') || url?.startsWith('/trpc')) {
       throw server.httpErrors.notFound(`${url} not found`);
     }
     // For other routes -> let the frontend handle the client-side routing
