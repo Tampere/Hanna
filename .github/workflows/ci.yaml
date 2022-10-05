@@ -41,7 +41,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: ./backend/package-lock.json
-      - name: Build 6 test
+      - name: Build & test
         working-directory: backend
         run: npm i && npm test && npm run build
 
