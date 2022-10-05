@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "build": "vite build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -49,6 +50,7 @@
     "react-dom": "^18.2.0",
     "react-router": "^6.4.1",
     "react-router-dom": "^6.4.1",
-    "superjson": "^1.10.0"
+    "superjson": "^1.10.0",
+    "tre-hanna-shared": "file:../shared"
   }
 }
