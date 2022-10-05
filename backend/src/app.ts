@@ -1,11 +1,14 @@
 import fastifyCookie from '@fastify/cookie';
 import formBody from '@fastify/formbody';
 import { Authenticator } from '@fastify/passport';
+import fastifySensible from '@fastify/sensible';
 import fastifySession from '@fastify/session';
+import fastifyStatic from '@fastify/static';
 import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
 import pgStore from 'connect-pg-simple';
 import fastify, { PassportUser } from 'fastify';
 import { Strategy, TokenSet, UserinfoResponse } from 'openid-client';
+import { join } from 'path';
 
 import { SharedPool, createDatabasePool } from '@src/db';
 import { env } from '@src/env';
@@ -19,6 +22,7 @@ async function run() {
 
   const server = fastify({ logger });
 
+  server.register(fastifySensible);
   server.register(formBody);
   server.register(fastifyCookie);
 
@@ -69,6 +73,22 @@ async function run() {
 
   fastifyPassport.registerUserDeserializer(async (id) => {
     return id;
+  });
+
+  // Serve frontend files as static files from the root URL
+  server.register(fastifyStatic, {
+    root: join(__dirname, '../static'),
+    prefix: '/',
+  });
+
+  server.setNotFoundHandler((req, reply) => {
+    const url = req.raw.url;
+    // For not found /api or /trpc routes -> throw a 404 error
+    if (url?.startsWith('/api') || url?.startsWith('/trpc')) {
+      throw server.httpErrors.notFound(`${url} not found`);
+    }
+    // For other routes -> let the frontend handle the client-side routing
+    reply.sendFile('index.html');
   });
 
   server.register(fastifyTRPCPlugin, {

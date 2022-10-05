@@ -10,7 +10,7 @@
     "baseUrl": ".",
     "paths": {
       "@src/*": ["src/*"],
-      "@shared/*": ["node_modules/shared/*"]
+      "@shared/*": ["node_modules/tre-hanna-shared/*"]
     }
   }
 }

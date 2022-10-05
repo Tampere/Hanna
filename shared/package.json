@@ -8,8 +8,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^3.3.0",
     "@types/node": "^18.7.18",

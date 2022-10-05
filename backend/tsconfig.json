@@ -12,8 +12,8 @@
     "baseUrl": ".",
     "skipLibCheck": true,
     "paths": {
-      "@src/*": ["src/*", "dist/*"],
-      "@shared/*": ["node_modules/shared/*"]
+      "@src/*": ["dist/*", "src/*"],
+      "@shared/*": ["node_modules/tre-hanna-shared/*"]
     }
   },
   "include": ["types", "src"],
