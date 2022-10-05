@@ -5,6 +5,12 @@ Minimum implementation is planned to be finished by 2023 and the software with f
 
 ## Development
 
+- Steps required when running for the first time
+  * `cp backend/.env.template backend/.env`
+  * See the `.env.template` file to check if you need to replace or fill some initial values
+
+When `backend/.env` is properly set, start the development by running:
+
 ```sh
 $ docker compose up -d
 ```
