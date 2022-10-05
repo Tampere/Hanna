@@ -25,9 +25,15 @@ services:
       - /app/shared/node_modules
     ports:
       - '127.0.0.1:3003:3003'
+      - '127.0.0.1:9090:9090'
     depends_on:
       db:
         condition: service_healthy
+  oidc-provider:
+    build:
+      context: ./docker/oidc-provider/
+      dockerfile: Dockerfile
+    network_mode: service:backend
   db:
     image: postgis/postgis:14-3.3
     restart: always
