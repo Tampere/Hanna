@@ -3,7 +3,7 @@ name: CI
 on:
   # Open any PR -> run tests
   pull_request:
-    types: [opened]
+    types: [opened, synchronize, reopened]
   # Push to main branch -> run tests, build & deploy to test
   push:
     branches: [main]
