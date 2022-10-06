@@ -12,7 +12,7 @@
     "baseUrl": ".",
     "skipLibCheck": true,
     "paths": {
-      "@src/*": ["dist/*", "src/*"],
+      "@src/*": ["src/*", "dist/*"],
       "@shared/*": ["node_modules/tre-hanna-shared/*"]
     }
   },

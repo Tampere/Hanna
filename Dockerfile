@@ -15,6 +15,7 @@ COPY shared/package*.json ./
 RUN npm ci
 
 COPY shared ./
+RUN npm run build
 
 ###
 # Frontend build stage
@@ -43,16 +44,13 @@ RUN npm ci
 COPY backend ./
 
 RUN npm run build
+# Remove src directory so the "@src" path always falls back to dist/ directory
+RUN rm -rf src
 
 ###
 # Main image build
 ###
 FROM base AS main
-
-# Shared package needs to be built for the runtime production image.
-# Cannot be built in the base image, because Vite build doesn't work well with CommonJS.
-WORKDIR ${APPDIR}/shared
-RUN npm run build
 
 WORKDIR ${APPDIR}/backend
 
@@ -61,4 +59,4 @@ COPY --from=frontend-build ${APPDIR}/frontend/dist ./static/
 
 ENV TZ=Europe/Helsinki
 
-CMD npm run db-migrate && npm start
+CMD npm run db-migrate:prod && npm start
