@@ -1,13 +1,13 @@
 # Hanna
-Hanna is a project management application. It is designed and built initially for the needs of KAPA and KITIA, but with capabilities of expanding to other departments' needs in the future. 
+Hanna is a project management application. It is designed and built initially for the needs of KAPA and KITIA, but with capabilities of expanding to other departments' needs in the future.
 
-Minimum implementation is planned to be finished by 2023 and the software with full functionality and integration list by July 2023. 
+Minimum implementation is planned to be finished by 2023 and the software with full functionality and integration list by July 2023.
 
 ## Development
 
 - Steps required when running for the first time
-  * `cp backend/.env.template backend/.env`
-  * See the `.env.template` file to check if you need to replace or fill some initial values
+  * `cp backend/.template.env backend/.env`
+  * See the `.template.env` file to check if you need to replace or fill some initial values
 
 When `backend/.env` is properly set, start the development by running:
 
@@ -44,4 +44,4 @@ NOTE! Due to using https on development at localhost, Caddy Root Certificate nee
 - After starting the Caddy proxy (via docker compose) for the first time, root certificate can be found from `PROJECT_ROOT/docker/proxy/data/caddy/pki/authorities/local/root.crt`
 - MacOS users:  ```open ./docker/proxy/data/caddy/pki/authorities/local/root.crt```
   - Open the root file in Keychain Access
-  - Find the Caddy Root CA using the search and right-clicking it, then select *Get Info* and expand  the *Trust* section. Finally set SSL setting to *Always Trust* 
+  - Find the Caddy Root CA using the search and right-clicking it, then select *Get Info* and expand  the *Trust* section. Finally set SSL setting to *Always Trust*

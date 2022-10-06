@@ -4,7 +4,9 @@ import { z } from 'zod';
 if (process.env.NODE_ENV === 'development') {
   try {
     require('../.env');
-  } catch (err) {}
+  } catch (err) {
+    // Ignore errors - only used for restarting server on .env changes
+  }
 }
 
 const schema = z.object({
@@ -18,6 +20,7 @@ const schema = z.object({
     database: z.string(),
     username: z.string(),
     password: z.string(),
+    sslMode: z.enum(['disable', 'no-verify', 'require']),
   }),
   oidc: z.object({
     discovery_url: z.string(),
@@ -39,6 +42,7 @@ function getEnv() {
       database: process.env.PG_DATABASE,
       username: process.env.PG_USER,
       password: process.env.PG_PASS,
+      sslMode: process.env.PG_SSLMODE || 'disable',
     },
     oidc: {
       discovery_url: process.env.OIDC_CLIENT_DISCOVERY_URL,
