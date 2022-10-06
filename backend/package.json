@@ -11,7 +11,8 @@
     "start": "node -r tsconfig-paths/register dist/app.js",
     "dev": "node-dev -r tsconfig-paths/register src/app.ts",
     "test": "echo \"No tests specified\"",
-    "db-migrate": "PGOPTIONS='-c search_path=app' ts-node db_migrations/migration.ts"
+    "db-migrate": "PGOPTIONS='-c search_path=app' ts-node -r tsconfig-paths/register src/migration.ts",
+    "db-migrate:prod": "PGOPTIONS='-c search_path=app' node -r tsconfig-paths/register dist/migration.js"
   },
   "repository": {
     "type": "git",
