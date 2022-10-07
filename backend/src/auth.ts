@@ -23,9 +23,10 @@ interface AuthPluginOpts extends FastifyPluginOptions {
   oidcOpts: OIDCOpts;
   sessionOpts: SessionOpts;
   pgPool: Pool;
+  publicRouterPaths: Set<string>;
 }
 
-export async function authPlugin(fastify: FastifyInstance, opts: AuthPluginOpts, done: () => void) {
+export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
   fastify.register(formBody);
   fastify.register(fastifyCookie);
 
@@ -78,6 +79,21 @@ export async function authPlugin(fastify: FastifyInstance, opts: AuthPluginOpts,
     return id;
   });
 
+  fastify.addHook('preValidation', async (req) => {
+    if (opts.publicRouterPaths.has(req.routerPath)) {
+      return;
+    }
+    if (!req.user) {
+      throw fastify.httpErrors.unauthorized();
+    }
+  });
+
+  fastify.get('/api/v1/auth/user', async (req, reply) => {
+    if (req.user) {
+      reply.header('Content-Type', 'application/json').send(req.user);
+    }
+  });
+
   fastify.get(opts.oidcOpts.loginPath, fastifyPassport.authenticate('oidc'));
 
   fastify.get(
@@ -87,6 +103,4 @@ export async function authPlugin(fastify: FastifyInstance, opts: AuthPluginOpts,
       failureRedirect: '/',
     })
   );
-
-  done();
 }
