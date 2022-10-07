@@ -4,15 +4,13 @@ import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
 import fastify from 'fastify';
 import { join } from 'path';
 
-import { createDatabasePool } from '@src/db';
+import { registerAuth } from '@src/auth';
+import { createDatabasePool, SharedPool } from '@src/db';
 import { env } from '@src/env';
 import { logger } from '@src/logging';
+import { getClient } from '@src/oidc';
 import { appRouter } from '@src/router';
 import { createContext } from '@src/router/context';
-
-import { authPlugin } from './authPlugin';
-import { SharedPool } from './db';
-import { getClient } from './oidc';
 
 async function run() {
   await createDatabasePool();
@@ -20,7 +18,8 @@ async function run() {
   const server = fastify({ logger });
   const oidcClient = await getClient();
 
-  server.register(authPlugin, {
+  // Register auth-related functionality for server instance
+  registerAuth(server, {
     oidcOpts: {
       loginPath: '/api/v1/auth/login',
       callbackPath: '/api/v1/auth/callback',
@@ -32,6 +31,12 @@ async function run() {
       cookieSecret: env.cookieSecret,
       cookieMaxAge: 1000 * 60 * 60,
     },
+    publicRouterPaths: new Set([
+      '/api/v1/auth/login',
+      '/api/v1/auth/callback',
+      '/api/v1/ping',
+      '/*',
+    ]),
   });
 
   server.register(fastifySensible);
@@ -56,7 +61,7 @@ async function run() {
     prefix: '/',
   });
 
-  server.get('/api/v1/ping', async (req) => {
+  server.get('/api/v1/ping', async () => {
     return { ping: 'pong', now: new Date() };
   });
 
