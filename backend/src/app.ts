@@ -4,13 +4,13 @@ import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
 import fastify from 'fastify';
 import { join } from 'path';
 
-import { registerAuth } from '@src/auth';
-import { createDatabasePool, SharedPool } from '@src/db';
-import { env } from '@src/env';
-import { logger } from '@src/logging';
-import { getClient } from '@src/oidc';
-import { appRouter } from '@src/router';
-import { createContext } from '@src/router/context';
+import { registerAuth } from '@backend/auth';
+import { SharedPool, createDatabasePool } from '@backend/db';
+import { env } from '@backend/env';
+import { logger } from '@backend/logging';
+import { getClient } from '@backend/oidc';
+import { appRouter } from '@backend/router';
+import { createContext } from '@backend/router/context';
 
 async function run() {
   await createDatabasePool();

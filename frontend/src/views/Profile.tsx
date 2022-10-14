@@ -2,7 +2,7 @@ import { Box, Button, Typography } from '@mui/material';
 import { useAtom } from 'jotai';
 import React from 'react';
 
-import { loginAtom, logoutAtom } from '@src/stores/auth';
+import { loginAtom, logoutAtom } from '@frontend/stores/auth';
 
 export function Profile() {
   const [login, performLogin] = useAtom(loginAtom);

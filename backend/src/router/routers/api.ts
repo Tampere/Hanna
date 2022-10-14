@@ -1,4 +1,4 @@
-import { createRouter } from '@src/router/createRouter';
+import { createRouter } from '@backend/router/createRouter';
 
 export const apiRouter = createRouter().query('ping', {
   resolve() {

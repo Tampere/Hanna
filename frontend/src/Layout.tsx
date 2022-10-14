@@ -17,7 +17,7 @@ import { useAtom } from 'jotai';
 import React from 'react';
 import { Link, Outlet } from 'react-router-dom';
 
-import { authAtom } from '@src/stores/auth';
+import { authAtom } from '@frontend/stores/auth';
 
 const theme = createTheme({
   palette: {

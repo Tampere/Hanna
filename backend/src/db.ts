@@ -1,8 +1,8 @@
 import { Pool, PoolConfig } from 'pg';
 import { DatabasePool, createPool, stringifyDsn } from 'slonik';
 
-import { env } from '@src/env';
-import { logger } from '@src/logging';
+import { env } from '@backend/env';
+import { logger } from '@backend/logging';
 
 // * fastify session plugin requires a 'pg' connection pool
 // * slonik pool can be created with custom class.
