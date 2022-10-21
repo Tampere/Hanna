@@ -66,7 +66,7 @@ export function Layout() {
                 </Button>
               </Box>
               <Box>
-                <Typography variant="caption">{auth.username}</Typography>
+                <Typography variant="caption">{auth.userId}</Typography>
                 <IconButton
                   component={Link}
                   to="/profile"
