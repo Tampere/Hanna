@@ -45,7 +45,7 @@
     "@mui/material": "^5.10.8",
     "@trpc/client": "^9.27.4",
     "@trpc/server": "^9.27.4",
-    "jotai": "^1.8.4",
+    "jotai": "^1.8.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router": "^6.4.1",
