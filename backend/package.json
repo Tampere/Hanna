@@ -34,7 +34,7 @@
     "@types/connect-pg-simple": "^7.0.0",
     "@types/node": "^18.7.23",
     "@typescript-eslint/eslint-plugin": "^5.39.0",
-    "@typescript-eslint/parser": "^5.38.1",
+    "@typescript-eslint/parser": "^5.40.1",
     "eslint": "^8.24.0",
     "node-dev": "^7.4.3",
     "pino-pretty": "^9.1.0",
