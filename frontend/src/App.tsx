@@ -1,12 +1,12 @@
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
-import { Layout } from '@src/Layout';
-import { NotFound } from '@src/views/NotFound';
-import { Profile } from '@src/views/Profile';
-import { Projects } from '@src/views/Projects';
-import { Search } from '@src/views/Search';
-import { Settings } from '@src/views/Settings';
+import { Layout } from '@frontend/Layout';
+import { NotFound } from '@frontend/views/NotFound';
+import { Profile } from '@frontend/views/Profile';
+import { Projects } from '@frontend/views/Projects';
+import { Search } from '@frontend/views/Search';
+import { Settings } from '@frontend/views/Settings';
 
 export function App() {
   return (

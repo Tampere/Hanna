@@ -1,7 +1,7 @@
 {
   "printWidth": 100,
   "singleQuote": true,
-  "importOrder": ["^@src/(.*)$", "^@shared/(.*)$", "^[./]"],
+  "importOrder": ["^@backend/(.*)$", "^@frontend/(.*)$", "^@shared/(.*)$", "^[./]"],
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true
 }

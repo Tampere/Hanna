@@ -9,8 +9,9 @@
     "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {
-      "@src/*": ["src/*"],
+      "@frontend/*": ["src/*"],
       "@shared/*": ["node_modules/tre-hanna-shared/*"]
     }
-  }
+  },
+  "references": [{ "path": "../backend" }]
 }
