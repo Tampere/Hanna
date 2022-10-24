@@ -28,4 +28,5 @@ export const appRouter = t.router({
   project: createProjectRouter(t),
 });
 
+export type TRPC = typeof t;
 export type AppRouter = typeof appRouter;
