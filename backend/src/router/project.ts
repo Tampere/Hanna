@@ -6,8 +6,8 @@ import { TRPC } from '@backend/router';
 
 export const createProjectRouter = (t: TRPC) =>
   t.router({
-    getAll: t.procedure.input(z.object({ asdf: z.string() })).query(() => {
-      return { foo: 'bar' };
+    getAll: t.procedure.input(z.object({ asdf: z.string() })).query(async () => {
+      return await getPool().many(sql`SELECT * FROM app.project`);
     }),
     create: t.procedure
       .input(z.object({ description: z.string(), name: z.string() }))
