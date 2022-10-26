@@ -7,7 +7,6 @@ import { NotFound } from '@frontend/views/NotFound';
 import { Profile } from '@frontend/views/Profile';
 import { Project } from '@frontend/views/Project/Project';
 import { Projects } from '@frontend/views/Project/Projects';
-import { Search } from '@frontend/views/Search';
 import { Settings } from '@frontend/views/Settings';
 
 import { authAtom, getUserAtom } from './stores/auth';
@@ -29,7 +28,6 @@ export function App() {
             <Route index element={<Projects />} />
             <Route path="hanke" element={<Projects />} />
             <Route path="hanke/luo" element={<Project />} />
-            <Route path="haku" element={<Search />} />
             <Route path="profiili" element={<Profile />} />
             <Route path="asetukset" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
