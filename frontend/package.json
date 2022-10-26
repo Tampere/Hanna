@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/Tampere/Hanna",
   "devDependencies": {
+    "@emotion/babel-plugin": "^11.10.2",
     "@trivago/prettier-plugin-sort-imports": "^3.4.0",
     "@types/react": "^18.0.21",
     "@types/react-dom": "^18.0.6",
@@ -43,8 +44,10 @@
     "@fontsource/roboto": "^4.5.8",
     "@mui/icons-material": "^5.10.9",
     "@mui/material": "^5.10.10",
+    "@mui/x-date-pickers": "^5.0.5",
     "@trpc/client": "^10.0.0-proxy-beta.26",
     "@trpc/server": "^10.0.0-proxy-beta.26",
+    "dayjs": "^1.11.6",
     "jotai": "^1.8.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

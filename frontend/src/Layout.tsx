@@ -1,6 +1,6 @@
+import { css } from '@emotion/react';
 import AccountCircleOutlined from '@mui/icons-material/AccountCircleOutlined';
 import AccountTreeOutlined from '@mui/icons-material/AccountTreeOutlined';
-import SearchIcon from '@mui/icons-material/Search';
 import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
 import {
   AppBar,
@@ -35,21 +35,19 @@ const theme = createTheme({
 function Navbar() {
   const [auth] = useAtom(authAtom);
   const tr = useTranslations();
+
+  const logoStyle = css`
+    font-family: monospace;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 0.3rem;
+  `;
+
   return (
     <AppBar position="static">
       <Toolbar>
         <Box sx={{ mr: 2 }}>
-          <Typography
-            variant="h6"
-            noWrap
-            component="div"
-            sx={{
-              fontFamily: 'monospace',
-              textTransform: 'uppercase',
-              fontWeight: 'bold',
-              letterSpacing: '0.3rem',
-            }}
-          >
+          <Typography variant="h6" noWrap component="div" css={logoStyle}>
             Hanna|TRE
           </Typography>
         </Box>
@@ -57,10 +55,6 @@ function Navbar() {
           <Button component={Link} to="/hanke" sx={{ color: 'white' }}>
             <AccountTreeOutlined sx={{ mr: 1 }} />
             {tr['menubar.projects']}
-          </Button>
-          <Button component={Link} to="/haku" sx={{ color: 'white' }}>
-            <SearchIcon sx={{ mr: 1 }} />
-            {tr['menubar.search']}
           </Button>
         </Box>
         <Box>
@@ -90,13 +84,25 @@ function Navbar() {
 }
 
 export function Layout() {
+  const mainLayoutStyle = css`
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  `;
+
+  const mainContentStyle = css`
+    padding: 16px;
+    overflow-y: auto;
+    flex-grow: 1;
+  `;
+
   return (
     <>
       <CssBaseline />
-      <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Box css={mainLayoutStyle}>
         <ThemeProvider theme={theme}>
           <Navbar />
-          <Box sx={{ padding: '16px', overflowY: 'auto', flexGrow: 1 }}>
+          <Box css={mainContentStyle}>
             <Outlet />
           </Box>
         </ThemeProvider>
