@@ -28,6 +28,7 @@
   "homepage": "https://github.com/Tampere/Hanna",
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^3.4.0",
+    "@types/proj4": "^2.5.2",
     "@types/react": "^18.0.22",
     "@types/react-dom": "^18.0.7",
     "@typescript-eslint/eslint-plugin": "^5.41.0",
@@ -46,6 +47,8 @@
     "@trpc/client": "^10.0.0-proxy-beta.26",
     "@trpc/server": "^10.0.0-proxy-beta.26",
     "jotai": "^1.8.6",
+    "ol": "^7.1.0",
+    "proj4": "^2.8.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router": "^6.4.2",

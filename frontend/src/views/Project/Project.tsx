@@ -1,7 +1,8 @@
-import { Button } from '@mui/material';
+import { Button, Paper } from '@mui/material';
 import React from 'react';
 
 import { client } from '@frontend/client';
+import { Map } from '@frontend/components/Map/Map';
 
 export function Project() {
   return (
@@ -18,7 +19,9 @@ export function Project() {
           Luo uusi hanke
         </Button>
       </div>
-      <div>Kartta</div>
+      <Paper elevation={2} style={{ height: '600px' }}>
+        <Map />
+      </Paper>
     </div>
   );
 }
