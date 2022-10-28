@@ -1,23 +1,33 @@
 import OLMap from 'ol/Map';
 import View from 'ol/View';
+import { Projection, ProjectionLike } from 'ol/proj';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { createWMTSLayer } from '@frontend/components/Map/mapFunctions';
-import { EPSG3067 } from '@frontend/components/Map/projection';
+import {
+  createWMTSLayer,
+  getMapProjection,
+  registerProjection,
+} from '@frontend/components/Map/mapFunctions';
 
 import { mapOptions } from './mapOptions';
 
-export function Map() {
-  const baseMapLayers = mapOptions.baseMaps.map((baseMap) => createWMTSLayer(baseMap));
+const { code, extent, units, proj4String } = mapOptions.projection;
+registerProjection(code, extent, proj4String);
 
+export function Map() {
   const mapRef = useRef<HTMLDivElement>(null);
+  const [projection] = useState(() => getMapProjection(code, extent, units));
+  const baseMapLayers = mapOptions.baseMaps.map((baseMap) =>
+    createWMTSLayer(baseMap.options, projection as Projection)
+  );
+
   /**
    * OpenLayers View: @see https://openlayers.org/en/latest/apidoc/module-ol_View-View.html
    * View's projection is defined based on the target country (area): E.g. EPSG:3067 in Finland
    */
   const [olView] = useState(() => {
     return new View({
-      projection: EPSG3067,
+      projection: projection as ProjectionLike,
       center: [327000, 6822500],
       zoom: 10,
     });
