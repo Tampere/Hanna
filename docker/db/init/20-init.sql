@@ -1,0 +1,2 @@
+CREATE SCHEMA app;
+ALTER SCHEMA app OWNER TO app_user_dev;

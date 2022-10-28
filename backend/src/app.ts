@@ -10,8 +10,7 @@ import { SharedPool, createDatabasePool } from '@backend/db';
 import { env } from '@backend/env';
 import { logger } from '@backend/logging';
 import { getClient } from '@backend/oidc';
-import { appRouter } from '@backend/router';
-import { createContext } from '@backend/router/context';
+import { appRouter, createContext } from '@backend/router';
 
 async function run() {
   await createDatabasePool();

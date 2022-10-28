@@ -43,7 +43,7 @@ services:
       POSTGRES_DB: app_dev_db
     volumes:
       - db-volume:/var/lib/postgresql/data
-      - ./docker/db/init/:/docker-entrypoint-initdb.d/
+      - ./docker/db/init/20-init.sql:/docker-entrypoint-initdb.d/20-init.sql
     ports:
       - '127.0.0.1:5432:5432'
     healthcheck:

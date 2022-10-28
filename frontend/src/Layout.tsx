@@ -54,23 +54,29 @@ function Navbar() {
           </Typography>
         </Box>
         <Box sx={{ flexGrow: 1 }}>
-          <Button component={Link} to="/projects" sx={{ color: 'white' }}>
+          <Button component={Link} to="/hanke" sx={{ color: 'white' }}>
             <AccountTreeOutlined sx={{ mr: 1 }} />
             {tr['menubar.projects']}
           </Button>
-          <Button component={Link} to="/search" sx={{ color: 'white' }}>
+          <Button component={Link} to="/haku" sx={{ color: 'white' }}>
             <SearchIcon sx={{ mr: 1 }} />
             {tr['menubar.search']}
           </Button>
         </Box>
         <Box>
           <Typography variant="caption">{auth.userId}</Typography>
-          <IconButton component={Link} to="/profile" size="large" aria-label="user" color="inherit">
+          <IconButton
+            component={Link}
+            to="/profiili"
+            size="large"
+            aria-label="user"
+            color="inherit"
+          >
             <AccountCircleOutlined />
           </IconButton>
           <IconButton
             component={Link}
-            to="/settings"
+            to="/asetukset"
             size="large"
             aria-label="settings"
             color="inherit"
@@ -87,10 +93,10 @@ export function Layout() {
   return (
     <>
       <CssBaseline />
-      <Box sx={{ height: '100vh' }}>
+      <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
         <ThemeProvider theme={theme}>
           <Navbar />
-          <Box sx={{ margin: '16px' }}>
+          <Box sx={{ padding: '16px', overflowY: 'auto', flexGrow: 1 }}>
             <Outlet />
           </Box>
         </ThemeProvider>

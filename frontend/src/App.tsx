@@ -5,7 +5,8 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Layout } from '@frontend/Layout';
 import { NotFound } from '@frontend/views/NotFound';
 import { Profile } from '@frontend/views/Profile';
-import { Projects } from '@frontend/views/Projects';
+import { Project } from '@frontend/views/Project/Project';
+import { Projects } from '@frontend/views/Project/Projects';
 import { Search } from '@frontend/views/Search';
 import { Settings } from '@frontend/views/Settings';
 
@@ -26,10 +27,11 @@ export function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Projects />} />
-            <Route path="projects" element={<Projects />} />
-            <Route path="search" element={<Search />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="settings" element={<Settings />} />
+            <Route path="hanke" element={<Projects />} />
+            <Route path="hanke/luo" element={<Project />} />
+            <Route path="haku" element={<Search />} />
+            <Route path="profiili" element={<Profile />} />
+            <Route path="asetukset" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

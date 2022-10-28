@@ -11,8 +11,8 @@
     "start": "node -r tsconfig-paths/register dist/app.js",
     "dev": "node-dev -r tsconfig-paths/register src/app.ts",
     "test": "echo \"No tests specified\"",
-    "db-migrate": "PGOPTIONS='-c search_path=app' ts-node -r tsconfig-paths/register src/migration.ts",
-    "db-migrate:prod": "PGOPTIONS='-c search_path=app' node -r tsconfig-paths/register dist/migration.js"
+    "db-migrate": "PGOPTIONS='-c search_path=app,public' ts-node -r tsconfig-paths/register src/migration.ts",
+    "db-migrate:prod": "PGOPTIONS='-c search_path=app,public' node -r tsconfig-paths/register dist/migration.js"
   },
   "repository": {
     "type": "git",
@@ -49,8 +49,8 @@
     "@fastify/sensible": "^5.1.1",
     "@fastify/session": "^10.0.2",
     "@fastify/static": "^6.5.0",
-    "@trpc/client": "^9.27.4",
-    "@trpc/server": "^9.27.4",
+    "@trpc/client": "^10.0.0-proxy-beta.26",
+    "@trpc/server": "^10.0.0-proxy-beta.26",
     "axios": "^1.0.0",
     "connect-pg-simple": "^7.0.0",
     "dotenv": "^16.0.3",
