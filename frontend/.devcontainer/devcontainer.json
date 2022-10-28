@@ -17,11 +17,12 @@
   "workspaceFolder": "/app/frontend",
 
   "extensions": [
-    "esbenp.prettier-vscode",
-    "editorconfig.editorconfig",
-    "dbaeumer.vscode-eslint",
-    "SonarSource.sonarlint-vscode"
-  ],
+	"esbenp.prettier-vscode",
+	"editorconfig.editorconfig",
+	"dbaeumer.vscode-eslint",
+	"SonarSource.sonarlint-vscode",
+	"styled-components.vscode-styled-components"
+],
 
   "postCreateCommand": "apk add git openjdk17", // openjdk for sonarlint
 
