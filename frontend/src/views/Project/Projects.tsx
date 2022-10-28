@@ -10,11 +10,14 @@ import {
   Paper,
   Select,
   TextField,
-  Typography,
+  Typography
 } from '@mui/material';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { DateRange } from '@frontend/components/DateRange';
+import { client } from '@frontend/client';
+
+import { ProjectSearch, SearchResult } from '@shared/schema/project';
 
 const toolbarContainerStyle = css`
   padding: 16px;
@@ -76,7 +79,6 @@ function SearchControls() {
       </FormControl>
       <FormControl>
         <FormLabel>Toteutusaikaväli</FormLabel>
-        <DateRange />
       </FormControl>
       <FormControl>
         <FormLabel>Rahoitusmalli</FormLabel>
@@ -97,14 +99,6 @@ function SearchControls() {
   );
 }
 
-interface Project {
-  projectName: string;
-}
-
-interface ProjectListingProps {
-  projects: Project[];
-}
-
 const projectCardStyle = css`
   margin-top: 8px;
   padding: 16px;
@@ -117,44 +111,36 @@ const projectCardStyle = css`
   transition: background 0.5s;
 `;
 
-function ProjectListing(props: ProjectListingProps) {
-  return (
-    <Box>
-      {props.projects.map((project) => {
-        return (
-          <Card variant="outlined" css={projectCardStyle}>
-            <NavigateNext sx={{ color: '#aaa', mr: 1 }} />
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography sx={{ lineHeight: '120%' }} variant="button">
-                {project.projectName}
-              </Typography>
-              <Typography sx={{ lineHeight: '120%' }} variant="overline">
-                01.01.2023 — 31.12.2023
-              </Typography>
-            </Box>
-          </Card>
-        );
-      })}
-    </Box>
-  );
-}
-
 const searchResultContainerStyle = css`
   min-width: 256px;
   padding: 16px;
 `;
 
-function SearchResults() {
-  const placeHolderResults = [
-    { projectName: 'Santalahden rakentaminen' },
-    { projectName: 'Pisparannan asuinrakentaminen' },
-    { projectName: 'Pahvitehtaan asuinrakentaminen' },
-  ];
+interface SearchResultsProps {
+  results: SearchResult;
+}
 
+function SearchResults({ results }: SearchResultsProps) {
   return (
     <Paper css={searchResultContainerStyle} elevation={1}>
       <Typography variant="h5">Hakutulokset</Typography>
-      <ProjectListing projects={placeHolderResults} />
+      <Box>
+        {results.map((result) => {
+          return (
+            <Card variant="outlined" css={projectCardStyle}>
+              <NavigateNext sx={{ color: '#aaa', mr: 1 }} />
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography sx={{ lineHeight: '120%' }} variant="button">
+                  {result.projectName}
+                </Typography>
+                <Typography sx={{ lineHeight: '120%' }} variant="overline">
+                  {result.startDate.toLocaleDateString()} — {result.endDate.toLocaleDateString()}
+                </Typography>
+              </Box>
+            </Card>
+          );
+        })}
+      </Box>
     </Paper>
   );
 }
@@ -184,12 +170,23 @@ const resultsContainerStyle = css`
 `;
 
 export function Projects() {
+  const [search, setSearch] = useState<ProjectSearch>({ text: '' });
+  const [results, setResults] = useState<SearchResult | null>(null);
+
+  useEffect(() => {
+    async function doSearch() {
+      const searchResult = await client.project.search.query(search);
+      setResults(searchResult);
+    }
+    doSearch();
+  }, [search]);
+
   return (
     <Box css={projectPageStyle}>
       <Toolbar />
       <SearchControls />
       <div css={resultsContainerStyle}>
-        <SearchResults />
+        {results ? <SearchResults results={results} /> : null}
         <ResultsMap />
       </div>
     </Box>
