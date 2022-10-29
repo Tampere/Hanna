@@ -1,5 +1,8 @@
+import { Layers } from '@mui/icons-material';
+import { IconButton } from '@mui/material';
 import OLMap from 'ol/Map';
 import View from 'ol/View';
+import { defaults as defaultInteractions } from 'ol/interaction';
 import { Projection, ProjectionLike } from 'ol/proj';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -29,7 +32,10 @@ export function Map() {
     return new View({
       projection: projection as ProjectionLike,
       center: [327000, 6822500],
+      extent: [313753, 6812223, 351129, 6861143],
       zoom: 10,
+      multiWorld: false,
+      enableRotation: false,
     });
   });
 
@@ -43,6 +49,12 @@ export function Map() {
       controls: [],
       view: olView,
       layers: [baseMapLayers[0]],
+      interactions: defaultInteractions({
+        altShiftDragRotate: false,
+        pinchRotate: false,
+        doubleClickZoom: false,
+        shiftDragZoom: false,
+      }),
     });
   });
 
@@ -52,7 +64,13 @@ export function Map() {
 
   return (
     <div style={{ width: '100%', height: '100%' }}>
-      <div style={{ width: '100%', height: '100%' }} ref={mapRef} />
+      <div style={{ width: '100%', height: '100%', position: 'relative' }} ref={mapRef}>
+        <div style={{ position: 'absolute', bottom: '1rem', left: '1rem', zIndex: 999 }}>
+          <IconButton size="large" color="primary">
+            <Layers />
+          </IconButton>
+        </div>
+      </div>
     </div>
   );
 }
