@@ -1,10 +1,8 @@
-import { Layers } from '@mui/icons-material';
-import { IconButton } from '@mui/material';
 import OLMap from 'ol/Map';
 import View from 'ol/View';
 import { defaults as defaultInteractions } from 'ol/interaction';
 import { Projection, ProjectionLike } from 'ol/proj';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 
 import {
   createWMTSLayer,
@@ -14,15 +12,21 @@ import {
 
 import { mapOptions } from './mapOptions';
 
+interface Props {
+  children?: ReactNode;
+  baseLayer?: string;
+}
+
 const { code, extent, units, proj4String } = mapOptions.projection;
 registerProjection(code, extent, proj4String);
 
-export function Map() {
+export function Map({ baseLayer, children }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [projection] = useState(() => getMapProjection(code, extent, units));
-  const baseMapLayers = mapOptions.baseMaps.map((baseMap) =>
-    createWMTSLayer(baseMap.options, projection as Projection)
-  );
+
+  const baseMapLayer = mapOptions.baseMaps
+    .filter((baseMap) => baseMap.id === (baseLayer ? baseLayer : 'opaskartta'))
+    .map((baseMap) => createWMTSLayer(baseMap.options, projection as Projection));
 
   /**
    * OpenLayers View: @see https://openlayers.org/en/latest/apidoc/module-ol_View-View.html
@@ -48,7 +52,7 @@ export function Map() {
       target: '',
       controls: [],
       view: olView,
-      layers: [baseMapLayers[0]],
+      layers: [...baseMapLayer],
       interactions: defaultInteractions({
         altShiftDragRotate: false,
         pinchRotate: false,
@@ -62,14 +66,17 @@ export function Map() {
     olMap.setTarget(mapRef.current as HTMLElement);
   }, [olMap]);
 
+  useEffect(() => {
+    if (!baseLayer) return;
+
+    olMap.getAllLayers().map((layer) => olMap.removeLayer(layer));
+    olMap.setLayers(baseMapLayer);
+  }, [baseLayer]);
+
   return (
     <div style={{ width: '100%', height: '100%' }}>
       <div style={{ width: '100%', height: '100%', position: 'relative' }} ref={mapRef}>
-        <div style={{ position: 'absolute', bottom: '1rem', left: '1rem', zIndex: 999 }}>
-          <IconButton size="large" color="primary">
-            <Layers />
-          </IconButton>
-        </div>
+        {children}
       </div>
     </div>
   );

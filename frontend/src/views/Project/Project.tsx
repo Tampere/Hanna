@@ -2,7 +2,7 @@ import { Button, Paper } from '@mui/material';
 import React from 'react';
 
 import { client } from '@frontend/client';
-import { Map } from '@frontend/components/Map/Map';
+import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 
 export function Project() {
   return (
@@ -20,7 +20,7 @@ export function Project() {
         </Button>
       </div>
       <Paper elevation={2} style={{ height: '600px' }}>
-        <Map />
+        <MapWrapper />
       </Paper>
     </div>
   );
