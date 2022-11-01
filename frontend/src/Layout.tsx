@@ -19,6 +19,7 @@ import { Link, Outlet } from 'react-router-dom';
 
 import { useTranslations } from '@frontend/stores/lang';
 
+import NotificationList from './services/notification';
 import { authAtom } from './stores/auth';
 
 const theme = createTheme({
@@ -54,7 +55,7 @@ function Navbar() {
         <Box sx={{ flexGrow: 1 }}>
           <Button component={Link} to="/hanke" sx={{ color: 'white' }}>
             <AccountTreeOutlined sx={{ mr: 1 }} />
-            {tr['menubar.projects']}
+            {tr['pages.projectsTitle']}
           </Button>
         </Box>
         <Box>
@@ -102,6 +103,7 @@ export function Layout() {
       <Box css={mainLayoutStyle}>
         <ThemeProvider theme={theme}>
           <Navbar />
+          <NotificationList />
           <Box css={mainContentStyle}>
             <Outlet />
           </Box>

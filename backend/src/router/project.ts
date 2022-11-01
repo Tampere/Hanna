@@ -9,7 +9,7 @@ import { newProjectSchema, projectSearchSchema, searchResultSchema } from '@shar
 export const createProjectRouter = (t: TRPC) =>
   t.router({
     search: t.procedure.input(projectSearchSchema).query(async () => {
-      const results = await getPool().many(sql`
+      const results = await getPool().query(sql`
         SELECT
           id,
           project_name AS "projectName",
@@ -19,7 +19,7 @@ export const createProjectRouter = (t: TRPC) =>
         FROM app.project
         ORDER BY start_date DESC
       `);
-      return searchResultSchema.parse(results);
+      return searchResultSchema.parse(results.rows);
     }),
 
     create: t.procedure.input(newProjectSchema).mutation(async ({ input }) => {

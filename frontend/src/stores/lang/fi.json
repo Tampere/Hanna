@@ -1,10 +1,11 @@
 {
   "date.inputFormat": "DD.MM.YYYY",
-  "menubar.projects": "Hankkeet",
+  "pages.projectsTitle": "Hankkeet",
   "newProject.btnLabel": "Luo uusi hanke",
   "projectSearch.textSearchLabel": "Haku",
   "projectSearch.textSearchTip": "Hae...",
   "projectSearch.showMoreBtnLabel": "Näytä lisää hakuehtoja",
+  "projectSearch.noResults": "Ei hakutuloksia",
   "projectListing.searchResultsTitle": "Hakutulokset",
   "project.projectNameLabel": "Hankkeen nimi",
   "project.descriptionLabel": "Kuvaus",
@@ -14,7 +15,7 @@
   "project.startDateLabel": "Alkuajankohta",
   "project.endDateLabel": "Loppuajankohta",
   "project.financingTypeLabel": "Rahoitusmalli",
-  "project.lautakuntaLabel": "Lautakunta",
+  "project.committeeLabel": "Lautakunta",
   "project.ownerLabel": "Omistaja",
   "newProject.formTitle": "Uusi hanke",
   "newProject.projectNameTooltip": "Syötä hankkeelle nimi",
@@ -25,5 +26,9 @@
   "newProject.createBtnLabel": "Lisää hanke",
   "newProject.linksSectionTitle": "Liitokset",
   "newProject.documentsSectionTitle": "Asiakirjat",
-  "newProject.decisionsSectionTitle": "Päätökset"
+  "newProject.decisionsSectionTitle": "Päätökset",
+  "newProject.notifyCreatedTitle": "Hanke luotu",
+  "newProject.notifyCreatedMsg": "Hanke on luotu onnistuneesti",
+  "newProject.notifyCreateFailedTitle": "Luonti epäonnistui",
+  "newProject.notifyCreateFailedMsg": "Hankkeen luonti epäonnistui"
 }
