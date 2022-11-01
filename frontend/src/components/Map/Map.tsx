@@ -1,6 +1,7 @@
 import { useAtom } from 'jotai';
 import OLMap from 'ol/Map';
 import View from 'ol/View';
+import { ScaleLine } from 'ol/control';
 import { defaults as defaultInteractions } from 'ol/interaction';
 import { Projection, ProjectionLike } from 'ol/proj';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
@@ -53,7 +54,11 @@ export function Map({ baseLayer, children }: Props) {
   const [olMap] = useState(() => {
     return new OLMap({
       target: '',
-      controls: [],
+      controls: [
+        new ScaleLine({
+          units: 'metric',
+        }),
+      ],
       view: olView,
       layers: [...baseMapLayer],
       interactions: defaultInteractions({
