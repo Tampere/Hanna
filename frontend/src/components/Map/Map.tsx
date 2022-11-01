@@ -1,3 +1,4 @@
+import { useAtom } from 'jotai';
 import OLMap from 'ol/Map';
 import View from 'ol/View';
 import { defaults as defaultInteractions } from 'ol/interaction';
@@ -9,6 +10,7 @@ import {
   getMapProjection,
   registerProjection,
 } from '@frontend/components/Map/mapFunctions';
+import { zoomAtom } from '@frontend/stores/map';
 
 import { mapOptions } from './mapOptions';
 
@@ -21,6 +23,7 @@ const { code, extent, units, proj4String } = mapOptions.projection;
 registerProjection(code, extent, proj4String);
 
 export function Map({ baseLayer, children }: Props) {
+  const [zoom, setZoom] = useAtom(zoomAtom);
   const mapRef = useRef<HTMLDivElement>(null);
   const [projection] = useState(() => getMapProjection(code, extent, units));
 
@@ -37,7 +40,7 @@ export function Map({ baseLayer, children }: Props) {
       projection: projection as ProjectionLike,
       center: [327000, 6822500],
       extent: [313753, 6812223, 351129, 6861143],
-      zoom: 10,
+      zoom: zoom ?? 15,
       multiWorld: false,
       enableRotation: false,
     });
@@ -64,6 +67,10 @@ export function Map({ baseLayer, children }: Props) {
 
   useEffect(() => {
     olMap.setTarget(mapRef.current as HTMLElement);
+
+    olMap.on('moveend', () => {
+      setZoom(olView.getZoom() as number);
+    });
   }, [olMap]);
 
   useEffect(() => {
@@ -72,6 +79,12 @@ export function Map({ baseLayer, children }: Props) {
     olMap.getAllLayers().map((layer) => olMap.removeLayer(layer));
     olMap.setLayers(baseMapLayer);
   }, [baseLayer]);
+
+  useEffect(() => {
+    if (!zoom) return;
+
+    olView.setZoom(zoom);
+  }, [zoom]);
 
   return (
     <div style={{ width: '100%', height: '100%' }}>

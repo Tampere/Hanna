@@ -10,7 +10,7 @@ interface Props {
 
 export function LayerDrawer({ onLayerChange }: Props) {
   const [selectedLayerId, setSelectedLayerId] = useState<string>('opaskartta');
-  const [drawerOpen, setDrawerOpen] = useState<boolean>(true);
+  const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
 
   useEffect(() => {
     onLayerChange(selectedLayerId);
@@ -44,7 +44,7 @@ export function LayerDrawer({ onLayerChange }: Props) {
           backgroundColor: 'white',
           zIndex: drawerOpen ? 1000 : 0,
           opacity: drawerOpen ? 0.95 : 0,
-          transition: 'opacity 0.15s linear, z-index 0.15s linear',
+          transition: 'opacity 0.15s ease-in-out',
           display: 'flex',
           flexDirection: 'column',
           boxShadow: '2px 1px 4px #9c9c9c',

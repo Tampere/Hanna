@@ -1,37 +1,50 @@
 import { Add, Remove } from '@mui/icons-material';
-import { IconButton, IconButtonProps } from '@mui/material';
-// import { useMap } from '@src/stores/MapContext';
+import { useAtom } from 'jotai';
 import React from 'react';
 
+import { zoomAtom } from '@frontend/stores/map';
+
 interface Props {
-  /**
-   * Props for each zoom in & zoom add buttons.
-   */
-  ButtonProps?: IconButtonProps;
-  /**
-   * Style for the entire zoom container component.
-   */
-  style?: React.CSSProperties;
-  /**
-   * How much the zoom level is increased/decreased on a single zoom click
-   */
   zoomStep: number;
 }
 
-export function Zoom({
-  ButtonProps = { style: { color: 'white', opacity: '0.7' } },
-  zoomStep = 1,
-}: Props) {
-  // const { setZoom, zoom } = useMap();
+export function Zoom({ zoomStep = 1 }: Props) {
+  const [zoom, setZoom] = useAtom(zoomAtom);
 
   return (
-    <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 999 }}>
-      <IconButton {...ButtonProps} onClick={() => console.log(+zoomStep)}>
-        <Add />
-      </IconButton>
-      <IconButton {...ButtonProps} onClick={() => console.log(-zoomStep)}>
-        <Remove />
-      </IconButton>
+    <div
+      style={{
+        position: 'absolute',
+        top: '1rem',
+        left: '1rem',
+        zIndex: 999,
+      }}
+    >
+      <div
+        style={{
+          width: '25px',
+          height: '25px',
+          border: '1px solid #22437b',
+          backgroundColor: '#22437b',
+          marginBottom: '2px',
+          borderRadius: '2px',
+        }}
+        onClick={() => setZoom(zoom + zoomStep)}
+      >
+        <Add style={{ color: 'white' }} />
+      </div>
+      <div
+        style={{
+          width: '25px',
+          height: '25px',
+          border: '1px solid #22437b',
+          backgroundColor: '#22437b',
+          borderRadius: '2px',
+        }}
+        onClick={() => setZoom(zoom - zoomStep)}
+      >
+        <Remove style={{ color: 'white' }} />
+      </div>
     </div>
   );
 }
