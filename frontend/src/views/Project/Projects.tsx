@@ -75,14 +75,14 @@ function SearchControls() {
         <FormLabel>{tr['project.budgetLabel']}</FormLabel>
         <Select size="small"></Select>
       </FormControl>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex' }}>
         <FormControl>
           <FormLabel>{tr['project.startDateLabel']}</FormLabel>
-          <TextField type="date" size="small" />
+          <TextField type="date" size="small" fullWidth />
         </FormControl>
-        <FormControl>
+        <FormControl sx={{ ml: 2 }}>
           <FormLabel>{tr['project.endDateLabel']}</FormLabel>
-          <TextField type="date" size="small" />
+          <TextField type="date" size="small" fullWidth />
         </FormControl>
       </Box>
       <FormControl>
