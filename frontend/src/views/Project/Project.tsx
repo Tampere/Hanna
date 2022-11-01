@@ -22,6 +22,7 @@ import React, { useState } from 'react';
 import { Controller, FieldError, useForm } from 'react-hook-form';
 
 import { client } from '@frontend/client';
+import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { NewProject, newProjectSchema } from '@shared/schema/project';
@@ -89,6 +90,7 @@ function CustomFormLabel({ label, errorTooltip, error }: CustomFormLabelProps) {
 
 function NewProjectForm() {
   const tr = useTranslations();
+  const notify = useNotifications();
 
   const {
     handleSubmit,
@@ -101,12 +103,26 @@ function NewProjectForm() {
   });
 
   const onSubmit = (data: NewProject) => {
-    client.project.create.mutate({
-      projectName: data.projectName,
-      description: data.description,
-      startDate: data.startDate,
-      endDate: data.endDate,
-    });
+    try {
+      client.project.create.mutate({
+        projectName: data.projectName,
+        description: data.description,
+        startDate: data.startDate,
+        endDate: data.endDate,
+      });
+      notify({
+        severity: 'success',
+        title: tr['newProject.notifyCreatedTitle'],
+        message: tr['newProject.notifyCreatedMsg'],
+        duration: 5000,
+      });
+    } catch (error) {
+      notify({
+        severity: 'error',
+        title: tr['newProject.notifyCreateFailedTitle'],
+        message: tr['newProject.notifyCreateFailedMsg'],
+      });
+    }
   };
 
   return (
@@ -164,7 +180,7 @@ function NewProjectForm() {
         <Select size="small" fullWidth={true}></Select>
       </FormControl>
       <FormControl margin="dense">
-        <FormLabel>{tr['project.lautakuntaLabel']}</FormLabel>
+        <FormLabel>{tr['project.committeeLabel']}</FormLabel>
         <Select size="small" fullWidth={true}></Select>
       </FormControl>
       <FormControl margin="dense">
