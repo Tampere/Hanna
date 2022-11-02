@@ -32,5 +32,7 @@
   "newProject.notifyUpsertFailed": "Project save failed",
   "projectForm.saveBtnLabel": "Save",
   "projectForm.editBtnLabel": "Edit",
-  "projectForm.undoBtnLabel": "Undo changes"
+  "projectForm.undoBtnLabel": "Undo changes",
+  "map.layerdrawer.open": "Open layer drawer",
+  "map.layerdrawer.close": "Close layer drawer"
 }

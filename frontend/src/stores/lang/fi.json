@@ -32,5 +32,7 @@
   "newProject.notifyUpsertFailed": "Hankkeen tallennus epäonnistui",
   "projectForm.saveBtnLabel": "Tallenna",
   "projectForm.editBtnLabel": "Muokkaa",
-  "projectForm.undoBtnLabel": "Peruuta muutokset"
+  "projectForm.undoBtnLabel": "Peruuta muutokset",
+  "map.layerdrawer.open": "Avaa karttatasovalikko",
+  "map.layerdrawer.close": "Sulje karttatasovalikko"
 }

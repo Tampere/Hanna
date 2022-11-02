@@ -17,6 +17,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { useLoaderData, useNavigate } from 'react-router';
 
 import { trpc } from '@frontend/client';
+import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
@@ -211,6 +212,7 @@ const infobarRootStyle = css`
 
 const mapContainerStyle = css`
   padding: 16px;
+  height: 600px;
 `;
 
 const accordionSummaryStyle = css`
@@ -266,7 +268,7 @@ export function Project() {
       </Paper>
 
       <Paper elevation={2} css={mapContainerStyle}>
-        Kartta placeholder
+        <MapWrapper />
       </Paper>
     </div>
   );
