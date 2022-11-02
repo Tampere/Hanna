@@ -12,10 +12,15 @@ RUN cd /app/shared && npm install && npm run build
 
 RUN cd /app/backend && npm install
 
-RUN cd /app/frontend && npm install
+RUN cd /app/frontend && \
+  # Create the node_modules directory in advance to avoid runtime permission problems
+  mkdir node_modules && chown -R node node_modules && \
+  npm install
 
 EXPOSE 8080
 
 WORKDIR /app/frontend
+
+USER node
 
 CMD npm run dev

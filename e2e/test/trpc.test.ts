@@ -9,7 +9,7 @@ test.describe('Project endpoints', () => {
   });
 
   test('getAll', async () => {
-    const result = await client.project.getAll.query({ asdf: 'qwe' });
+    const result = await client.project.search.query({ text: '' });
     expect(result).toBeDefined();
   });
 });
