@@ -2,6 +2,10 @@
  * Options used to initialize (OpenLayers) Map -component
  */
 export const mapOptions = {
+  tre: {
+    center: [327000, 6822500],
+    extent: [313753, 6812223, 351129, 6861143],
+  },
   projection: {
     code: 'EPSG:3067',
     extent: [

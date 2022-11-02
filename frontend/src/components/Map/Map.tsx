@@ -33,9 +33,8 @@ export function Map({ baseMapLayers, children }: Props) {
   const [olView] = useState(() => {
     return new View({
       projection: projection as ProjectionLike,
-      // Tampere specific numbers
-      center: [327000, 6822500],
-      extent: [313753, 6812223, 351129, 6861143],
+      center: mapOptions.tre.center,
+      extent: mapOptions.tre.extent,
       zoom: zoom ?? 10,
       multiWorld: false,
       enableRotation: false,
