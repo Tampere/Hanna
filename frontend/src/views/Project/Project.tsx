@@ -1,96 +1,147 @@
 import { css } from '@emotion/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AddCircle, ExpandMore } from '@mui/icons-material';
+import { AddCircle, Edit, ExpandMore, Save, Undo } from '@mui/icons-material';
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Box,
   Button,
-  FormControl,
-  FormLabel,
   Paper,
-  Select,
   TextField,
   Typography,
 } from '@mui/material';
-import React from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import React, { useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { useLoaderData, useNavigate } from 'react-router';
 
-import { client } from '@frontend/client';
+import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
-import { NewProject, newProjectSchema } from '@shared/schema/project';
+import { DbProject, UpsertProject, upsertProjectSchema } from '@shared/schema/project';
 
 const newProjectFormStyle = css`
-  padding: 16px;
+  padding: 0px 16px 16px 16px;
   display: grid;
 `;
 
-function NewProjectForm() {
+interface ProjectFormProps {
+  project?: DbProject | null;
+}
+
+function ProjectForm(props: ProjectFormProps) {
   const tr = useTranslations();
   const notify = useNotifications();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [editing, setEditing] = useState(!props.project);
 
-  const form = useForm<NewProject>({
-    mode: 'onBlur',
-    resolver: zodResolver(newProjectSchema),
-    defaultValues: { projectName: '' },
+  const readonlyProps = useMemo(() => {
+    if (editing) {
+      return {};
+    }
+    return {
+      hiddenLabel: true,
+      variant: 'filled',
+      InputProps: { readOnly: true },
+    } as const;
+  }, [editing]);
+
+  const form = useForm<UpsertProject>({
+    mode: 'onChange',
+    resolver: zodResolver(upsertProjectSchema),
+    defaultValues: props.project ?? { projectName: '' },
   });
 
-  const onSubmit = (data: NewProject) => {
-    try {
-      client.project.create.mutate({
-        projectName: data.projectName,
-        description: data.description,
-        startDate: data.startDate,
-        endDate: data.endDate,
-      });
+  const projectUpsert = trpc.project.upsert.useMutation({
+    onSuccess: (data) => {
+      // Navigate to new url if we are creating a new project
+      if (!props.project && data.id) {
+        navigate(`/hanke/${data.id}`);
+      } else {
+        queryClient.invalidateQueries({ queryKey: [['project', 'get'], { id: data.id }] });
+        setEditing(false);
+        form.reset(data);
+      }
       notify({
         severity: 'success',
-        title: tr['newProject.notifyCreatedTitle'],
-        message: tr['newProject.notifyCreatedMsg'],
+        title: tr['newProject.notifyUpsert'],
         duration: 5000,
       });
-    } catch (error) {
+    },
+    onError: () => {
       notify({
         severity: 'error',
-        title: tr['newProject.notifyCreateFailedTitle'],
-        message: tr['newProject.notifyCreateFailedMsg'],
+        title: tr['newProject.notifyUpsertFailed'],
       });
-    }
-  };
+    },
+  });
+
+  const onSubmit = (data: UpsertProject | DbProject) => projectUpsert.mutate(data);
 
   return (
     <FormProvider {...form}>
+      {props.project && (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          {!form.formState.isDirty && !editing ? (
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => setEditing(!editing)}
+              endIcon={<Edit />}
+            >
+              {tr['projectForm.editBtnLabel']}
+            </Button>
+          ) : (
+            <Button
+              variant="outlined"
+              size="small"
+              color="secondary"
+              onClick={() => {
+                form.reset();
+                setEditing(!editing);
+              }}
+              endIcon={<Undo />}
+            >
+              {tr['projectForm.undoBtnLabel']}
+            </Button>
+          )}
+        </Box>
+      )}
       <form css={newProjectFormStyle} onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
         <FormField
           formField="projectName"
           label={tr['project.projectNameLabel']}
           tooltip={tr['newProject.projectNameTooltip']}
-          component={(field) => <TextField {...field} size="small" autoFocus></TextField>}
+          component={(field) => (
+            <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
+          )}
         />
 
         <FormField
           formField="description"
           label={tr['project.descriptionLabel']}
           tooltip={tr['newProject.descriptionTooltip']}
-          component={(field) => <TextField {...field} minRows={2} multiline />}
+          component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
         />
 
         <FormField
           formField="startDate"
           label={tr['project.startDateLabel']}
           tooltip={tr['newProject.startDateTooltip']}
-          component={(field) => <FormDatePicker field={field} />}
+          component={(field) => <FormDatePicker readOnly={!editing} field={field} />}
         />
         <FormField
           formField="endDate"
           label={tr['project.endDateLabel']}
           tooltip={tr['newProject.endDateTooltip']}
-          component={(field) => <FormDatePicker field={field} />}
+          component={(field) => <FormDatePicker readOnly={!editing} field={field} />}
         />
 
+        {/*
         <FormControl margin="dense">
           <FormLabel>{tr['project.projectTypeLabel']}</FormLabel>
           <Select disabled size="small" fullWidth={true}></Select>
@@ -115,18 +166,34 @@ function NewProjectForm() {
           <FormLabel>{tr['project.ownerLabel']}</FormLabel>
           <Select disabled size="small" fullWidth={true}></Select>
         </FormControl>
+      */}
 
-        <Button
-          disabled={!form.formState.isValid}
-          type="submit"
-          sx={{ mt: 2 }}
-          variant="contained"
-          color="primary"
-          size="small"
-          endIcon={<AddCircle />}
-        >
-          {tr['newProject.createBtnLabel']}
-        </Button>
+        {!props.project && (
+          <Button
+            disabled={!form.formState.isValid}
+            type="submit"
+            sx={{ mt: 2 }}
+            variant="contained"
+            color="primary"
+            size="small"
+            endIcon={<AddCircle />}
+          >
+            {tr['newProject.createBtnLabel']}
+          </Button>
+        )}
+
+        {props.project && editing && (
+          <Button
+            size="small"
+            type="submit"
+            variant="contained"
+            sx={{ mt: 2 }}
+            disabled={!form.formState.isValid || !form.formState.isDirty}
+            endIcon={<Save />}
+          >
+            {tr['projectForm.saveBtnLabel']}
+          </Button>
+        )}
       </form>
     </FormProvider>
   );
@@ -153,18 +220,29 @@ const accordionSummaryStyle = css`
 
 export function Project() {
   const tr = useTranslations();
+  const routeParams = useLoaderData() as { projectId: string };
+  const projectId = routeParams?.projectId;
+  const project = trpc.project.get.useQuery(
+    { id: projectId },
+    { enabled: Boolean(projectId), queryKey: ['project.get', projectId] }
+  );
+
+  if (projectId && !project.data) {
+    return <Typography>{tr['loading']}</Typography>;
+  }
+
   return (
     <div css={pageStyle}>
       <Paper elevation={2} css={infobarRootStyle}>
-        <Typography variant="h5" sx={{ mb: 1 }}>
-          {tr['newProject.formTitle']}
+        <Typography variant="h6" sx={{ mb: 1 }}>
+          {project?.data?.projectName ?? tr['newProject.formTitle']}
         </Typography>
         <Accordion expanded={true}>
           <AccordionSummary css={accordionSummaryStyle} expandIcon={<ExpandMore />}>
             <Typography variant="overline">{tr['newProject.basicInfoSectionLabel']}</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <NewProjectForm />
+            <ProjectForm project={project.data} />
           </AccordionDetails>
         </Accordion>
 

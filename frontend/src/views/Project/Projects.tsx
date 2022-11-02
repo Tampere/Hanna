@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   Card,
+  CardActionArea,
   FormControl,
   FormLabel,
   Paper,
@@ -11,13 +12,12 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { client } from '@frontend/client';
+import { trpc } from '@frontend/client';
 import { useTranslations } from '@frontend/stores/lang';
 
-import { ProjectSearch, SearchResult } from '@shared/schema/project';
+import { SearchResult } from '@shared/schema/project';
 
 const toolbarContainerStyle = css`
   padding: 16px;
@@ -40,7 +40,7 @@ function Toolbar() {
           style={{ alignItems: 'flex-start' }}
           endIcon={<AddCircle />}
         >
-          Luo uusi hanke
+          {tr['newProject.btnLabel']}
         </Button>
       </div>
     </Box>
@@ -65,39 +65,39 @@ function SearchControls() {
       </FormControl>
       <FormControl>
         <FormLabel>{tr['project.projectTypeLabel']}</FormLabel>
-        <Select size="small"></Select>
+        <Select disabled size="small"></Select>
       </FormControl>
       <FormControl>
         <FormLabel>{tr['project.lifecycleStateLabel']}</FormLabel>
-        <Select size="small"></Select>
+        <Select disabled size="small"></Select>
       </FormControl>
       <FormControl>
         <FormLabel>{tr['project.budgetLabel']}</FormLabel>
-        <Select size="small"></Select>
+        <Select disabled size="small"></Select>
       </FormControl>
       <Box sx={{ display: 'flex' }}>
         <FormControl>
           <FormLabel>{tr['project.startDateLabel']}</FormLabel>
-          <TextField type="date" size="small" fullWidth />
+          <TextField disabled type="date" size="small" fullWidth />
         </FormControl>
         <FormControl sx={{ ml: 2 }}>
           <FormLabel>{tr['project.endDateLabel']}</FormLabel>
-          <TextField type="date" size="small" fullWidth />
+          <TextField disabled type="date" size="small" fullWidth />
         </FormControl>
       </Box>
       <FormControl>
         <FormLabel>{tr['project.financingTypeLabel']}</FormLabel>
-        <Select size="small"></Select>
+        <Select disabled size="small"></Select>
       </FormControl>
       <FormControl>
         <FormLabel>{tr['project.committeeLabel']}</FormLabel>
-        <Select size="small"></Select>
+        <Select disabled size="small"></Select>
       </FormControl>
       <FormControl>
         <FormLabel>{tr['project.ownerLabel']}</FormLabel>
-        <Select size="small"></Select>
+        <Select disabled size="small"></Select>
       </FormControl>
-      <Button size="small" sx={{ gridColumnStart: 4 }} endIcon={<UnfoldMore />}>
+      <Button disabled size="small" sx={{ gridColumnStart: 4 }} endIcon={<UnfoldMore />}>
         {tr['projectSearch.showMoreBtnLabel']}
       </Button>
     </Paper>
@@ -134,17 +134,20 @@ function SearchResults({ results }: SearchResultsProps) {
         <Box>
           {results.map((result) => {
             return (
-              <Card variant="outlined" css={projectCardStyle}>
-                <NavigateNext sx={{ color: '#aaa', mr: 1 }} />
-                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <Typography sx={{ lineHeight: '120%' }} variant="button">
-                    {result.projectName}
-                  </Typography>
-                  <Typography sx={{ lineHeight: '120%' }} variant="overline">
-                    {result.startDate.toLocaleDateString()} — {result.endDate.toLocaleDateString()}
-                  </Typography>
-                </Box>
-              </Card>
+              <CardActionArea key={result.id} component={Link} to={`/hanke/${result.id}`}>
+                <Card variant="outlined" css={projectCardStyle}>
+                  <NavigateNext sx={{ color: '#aaa', mr: 1 }} />
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Typography sx={{ lineHeight: '120%' }} variant="button">
+                      {result.projectName}
+                    </Typography>
+                    <Typography sx={{ lineHeight: '120%' }} variant="overline">
+                      {result.startDate.toLocaleDateString()} —{' '}
+                      {result.endDate.toLocaleDateString()}
+                    </Typography>
+                  </Box>
+                </Card>
+              </CardActionArea>
             );
           })}
         </Box>
@@ -167,11 +170,6 @@ function ResultsMap() {
   );
 }
 
-const projectPageStyle = css`
-  display: flex;
-  flex-direction: column;
-`;
-
 const resultsContainerStyle = css`
   margin-top: 16px;
   display: grid;
@@ -179,26 +177,30 @@ const resultsContainerStyle = css`
   gap: 16px;
 `;
 
-export function Projects() {
-  const [search, setSearch] = useState<ProjectSearch>({ text: '' });
-  const [results, setResults] = useState<SearchResult>([]);
+function ProjectResults() {
+  const tr = useTranslations();
+  const projects = trpc.project.search.useQuery({});
+  return projects.data ? (
+    <div css={resultsContainerStyle}>
+      <SearchResults results={projects.data} />
+      <ResultsMap />
+    </div>
+  ) : (
+    <span>{tr['loading']}</span>
+  );
+}
 
-  useEffect(() => {
-    async function doSearch() {
-      const searchResult = await client.project.search.query(search);
-      setResults(searchResult);
-    }
-    doSearch();
-  }, [search]);
+const projectPageStyle = css`
+  display: flex;
+  flex-direction: column;
+`;
 
+export function ProjectsPage() {
   return (
     <Box css={projectPageStyle}>
       <Toolbar />
       <SearchControls />
-      <div css={resultsContainerStyle}>
-        <SearchResults results={results} />
-        <ResultsMap />
-      </div>
+      <ProjectResults />
     </Box>
   );
 }

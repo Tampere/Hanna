@@ -30,7 +30,7 @@ interface Notification {
   id?: string;
   severity: 'error' | 'warning' | 'info' | 'success';
   title: string;
-  message: string;
+  message?: string;
   duration?: number;
 }
 

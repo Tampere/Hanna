@@ -1,4 +1,5 @@
 {
+  "loading": "Ladataan...",
   "date.inputFormat": "DD.MM.YYYY",
   "pages.projectsTitle": "Hankkeet",
   "newProject.btnLabel": "Luo uusi hanke",
@@ -27,8 +28,9 @@
   "newProject.linksSectionTitle": "Liitokset",
   "newProject.documentsSectionTitle": "Asiakirjat",
   "newProject.decisionsSectionTitle": "Päätökset",
-  "newProject.notifyCreatedTitle": "Hanke luotu",
-  "newProject.notifyCreatedMsg": "Hanke on luotu onnistuneesti",
-  "newProject.notifyCreateFailedTitle": "Luonti epäonnistui",
-  "newProject.notifyCreateFailedMsg": "Hankkeen luonti epäonnistui"
+  "newProject.notifyUpsert": "Hanke tallennettu",
+  "newProject.notifyUpsertFailed": "Hankkeen tallennus epäonnistui",
+  "projectForm.saveBtnLabel": "Tallenna",
+  "projectForm.editBtnLabel": "Muokkaa",
+  "projectForm.undoBtnLabel": "Peruuta muutokset"
 }
