@@ -74,7 +74,11 @@ interface FormDatePickerProps {
 }
 export function FormDatePicker({ field, readOnly }: FormDatePickerProps) {
   const tr = useTranslations();
-  const readonlyProps = { variant: 'filled', hiddenLabel: true, InputProps: { readOnly: true } };
+  const readonlyProps = {
+    variant: 'filled',
+    hiddenLabel: true,
+    InputProps: { readOnly: true },
+  } as const;
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>

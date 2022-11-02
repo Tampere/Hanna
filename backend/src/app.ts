@@ -5,6 +5,7 @@ import fastify from 'fastify';
 import { join } from 'path';
 
 import { registerAuth } from '@backend/auth';
+import healthApi from '@backend/components/health/api';
 import { SharedPool, createDatabasePool } from '@backend/db';
 import { env } from '@backend/env';
 import { logger } from '@backend/logging';
@@ -63,6 +64,8 @@ async function run() {
   server.get('/api/v1/ping', async () => {
     return { ping: 'pong', now: new Date() };
   });
+
+  server.register(healthApi, { prefix: '/api/v1' });
 
   server.listen({ host: '0.0.0.0', port: env.serverPort }, (err) => {
     if (err) {

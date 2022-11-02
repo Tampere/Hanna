@@ -220,7 +220,7 @@ const accordionSummaryStyle = css`
 
 export function Project() {
   const tr = useTranslations();
-  const routeParams = useLoaderData();
+  const routeParams = useLoaderData() as { projectId: string };
   const projectId = routeParams?.projectId;
   const project = trpc.project.get.useQuery(
     { id: projectId },
