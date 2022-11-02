@@ -35,7 +35,17 @@ export async function createDatabasePool() {
   const uriEncodedPassword = encodeURIComponent(env.db.password);
   const redactedDsn = connectionDsn.replace(uriEncodedPassword, '********');
   logger.info(`Connecting to ${redactedDsn}`);
-  pool = await createPool(connectionDsn, { PgPool: SharedPool });
+  pool = await createPool(connectionDsn, {
+    PgPool: SharedPool,
+    typeParsers: [
+      {
+        name: 'date',
+        parse: (value) => {
+          return new Date(value);
+        },
+      },
+    ],
+  });
 }
 
 export function getPool() {
