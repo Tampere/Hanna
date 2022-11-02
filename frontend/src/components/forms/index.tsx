@@ -27,7 +27,7 @@ function CustomFormLabel({ label, tooltip, error }: CustomFormLabelProps) {
       `}
     >
       {label}
-      {error ? (
+      {error && (
         <Tooltip
           arrow
           placement="left-end"
@@ -40,7 +40,7 @@ function CustomFormLabel({ label, tooltip, error }: CustomFormLabelProps) {
         >
           <Help sx={{ color: 'red' }} onClick={() => setOpen(!open)} fontSize="small" />
         </Tooltip>
-      ) : null}
+      )}
     </FormLabel>
   );
 }
@@ -68,18 +68,25 @@ export function FormField({ formField, label, tooltip, component }: FormFieldPro
   );
 }
 
-export function FormDatePicker({ field }: { field: ControllerRenderProps<FieldValues, string> }) {
+interface FormDatePickerProps {
+  field: ControllerRenderProps<FieldValues, string>;
+  readOnly?: boolean;
+}
+export function FormDatePicker({ field, readOnly }: FormDatePickerProps) {
   const tr = useTranslations();
+  const readonlyProps = { variant: 'filled', hiddenLabel: true, InputProps: { readOnly: true } };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <DesktopDatePicker<Dayjs>
+        readOnly={readOnly}
         inputFormat={tr['date.inputFormat']}
         value={field.value ? dayjs(field.value) : null}
         onChange={(val) => field.onChange(val?.toDate())}
         onAccept={(val) => field.onChange(val?.toDate())}
         onClose={field.onBlur}
         renderInput={(props) => {
-          return <TextField {...field} {...props} size="small" />;
+          return <TextField {...(readOnly && readonlyProps)} {...field} {...props} size="small" />;
         }}
       />
     </LocalizationProvider>

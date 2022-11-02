@@ -1,4 +1,5 @@
 {
+  "loading": "Loading...",
   "date.inputFormat": "DD/MM/YYYY",
   "pages.projectsTitle": "Projects",
   "newProject.btnLabel": "Create new project",
@@ -27,8 +28,9 @@
   "newProject.linksSectionTitle": "Related projects",
   "newProject.documentsSectionTitle": "Documents",
   "newProject.decisionsSectionTitle": "Päätökset",
-  "newProject.notifyCreatedTitle": "Project created",
-  "newProject.notifyCreatedMsg": "Project created successfully",
-  "newProject.notifyCreateFailedTitle": "Creation failed",
-  "newProject.notifyCreateFailedMsg": "Project creation failed"
+  "newProject.notifyUpsert": "Project saved",
+  "newProject.notifyUpsertFailed": "Project save failed",
+  "projectForm.saveBtnLabel": "Save",
+  "projectForm.editBtnLabel": "Edit",
+  "projectForm.undoBtnLabel": "Undo changes"
 }

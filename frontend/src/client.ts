@@ -1,12 +1,5 @@
-import { createTRPCProxyClient } from '@trpc/client';
-import { httpLink } from '@trpc/client/links/httpLink';
-import superjson from 'superjson';
+import { createTRPCReact } from '@trpc/react-query';
 
 import type { AppRouter } from '../../backend/src/router';
 
-export const client = createTRPCProxyClient<AppRouter>({
-  // TODO: enable batching?
-  // disable batching
-  links: [httpLink({ url: '/trpc' })],
-  transformer: superjson,
-});
+export const trpc = createTRPCReact<AppRouter>();
