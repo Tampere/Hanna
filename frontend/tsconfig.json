@@ -5,6 +5,7 @@
     "strict": true,
     "allowJs": false,
     "jsx": "react",
+    "jsxImportSource": "@emotion/react",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "esModuleInterop": true,
