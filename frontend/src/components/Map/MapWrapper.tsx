@@ -1,15 +1,36 @@
 import { GlobalStyles } from '@mui/material';
-import React, { useState } from 'react';
+import { useAtom } from 'jotai';
+import { Projection } from 'ol/proj';
+import React, { useMemo, useState } from 'react';
+
+import { baseLayerIdAtom } from '@frontend/stores/map';
 
 import { LayerDrawer } from './LayerDrawer';
 import { Map } from './Map';
 import { Zoom } from './Zoom';
+import { createWMTSLayer, getMapProjection } from './mapFunctions';
+import { mapOptions } from './mapOptions';
 
 export function MapWrapper() {
-  const [baseLayer, setBaseLayer] = useState<string>();
+  const [projection] = useState(() =>
+    getMapProjection(
+      mapOptions.projection.code,
+      mapOptions.projection.extent,
+      mapOptions.projection.units
+    )
+  );
+  const [baseLayerId] = useAtom(baseLayerIdAtom);
+
+  const baseMapLayers = useMemo(() => {
+    if (!baseLayerId) return [];
+
+    return mapOptions.baseMaps
+      .filter((baseMap) => baseMap.id === (baseLayerId ? baseLayerId : 'opaskartta'))
+      .map((baseMap) => createWMTSLayer(baseMap.options, projection as Projection));
+  }, [baseLayerId]);
 
   return (
-    <Map baseLayerId={baseLayer}>
+    <Map baseMapLayers={baseMapLayers}>
       {/* Styles for the OpenLayers ScaleLine -component */}
       <GlobalStyles
         styles={{
@@ -37,7 +58,7 @@ export function MapWrapper() {
         }}
       />
       <Zoom zoomStep={1} />
-      <LayerDrawer onLayerChange={(layerId: string) => setBaseLayer(layerId)} />
+      <LayerDrawer />
     </Map>
   );
 }

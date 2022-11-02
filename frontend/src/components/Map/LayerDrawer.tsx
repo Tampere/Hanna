@@ -1,9 +1,11 @@
 import { css } from '@emotion/react';
 import { Layers } from '@mui/icons-material';
 import { Box, IconButton, MenuItem, Tooltip, Typography } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import { useAtom } from 'jotai';
+import React, { useState } from 'react';
 
 import { useTranslations } from '@frontend/stores/lang';
+import { baseLayerIdAtom } from '@frontend/stores/map';
 
 import { mapOptions } from './mapOptions';
 
@@ -45,20 +47,10 @@ const drawerStyles = css`
   border-bottom-right-radius: 2px 2px;
 `;
 
-interface Props {
-  onLayerChange: (layerId: string) => void;
-}
-
-export function LayerDrawer({ onLayerChange }: Props) {
+export function LayerDrawer() {
   const tr = useTranslations();
-  // TODO: selectedLayerId will probably be stored inside an atom later on
-  // Make the change once other map layers and map functionalities are taken into use
-  const [selectedLayerId, setSelectedLayerId] = useState<string>('opaskartta');
+  const [baseLayerId, setBaseLayerId] = useAtom(baseLayerIdAtom);
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
-
-  useEffect(() => {
-    onLayerChange(selectedLayerId);
-  }, [selectedLayerId]);
 
   return (
     <Box css={containerStyles}>
@@ -79,10 +71,10 @@ export function LayerDrawer({ onLayerChange }: Props) {
         {mapOptions.baseMaps.map((baseMap, index) => (
           <MenuItem
             key={`basemap-${index}`}
-            onClick={() => setSelectedLayerId(baseMap.id)}
+            onClick={() => setBaseLayerId(baseMap.id)}
             style={{
-              backgroundColor: baseMap.id === selectedLayerId ? '#22437b' : '',
-              color: baseMap.id === selectedLayerId ? 'white' : '',
+              backgroundColor: baseMap.id === baseLayerId ? '#22437b' : '',
+              color: baseMap.id === baseLayerId ? 'white' : '',
             }}
           >
             <Typography>{baseMap.name}</Typography>

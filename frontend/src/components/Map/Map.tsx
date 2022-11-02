@@ -3,34 +3,28 @@ import OLMap from 'ol/Map';
 import View from 'ol/View';
 import { ScaleLine } from 'ol/control';
 import { defaults as defaultInteractions } from 'ol/interaction';
-import { Projection, ProjectionLike } from 'ol/proj';
+import TileLayer from 'ol/layer/Tile';
+import { ProjectionLike } from 'ol/proj';
+import WMTS from 'ol/source/WMTS';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 
-import {
-  createWMTSLayer,
-  getMapProjection,
-  registerProjection,
-} from '@frontend/components/Map/mapFunctions';
+import { getMapProjection, registerProjection } from '@frontend/components/Map/mapFunctions';
 import { zoomAtom } from '@frontend/stores/map';
 
 import { mapOptions } from './mapOptions';
 
 interface Props {
   children?: ReactNode;
-  baseLayerId?: string;
+  baseMapLayers: TileLayer<WMTS>[];
 }
 
 const { code, extent, units, proj4String } = mapOptions.projection;
 registerProjection(code, extent, proj4String);
 
-export function Map({ baseLayerId, children }: Props) {
+export function Map({ baseMapLayers, children }: Props) {
   const [zoom, setZoom] = useAtom(zoomAtom);
-  const mapRef = useRef<HTMLDivElement>(null);
   const [projection] = useState(() => getMapProjection(code, extent, units));
-
-  const baseMapLayer = mapOptions.baseMaps
-    .filter((baseMap) => baseMap.id === (baseLayerId ? baseLayerId : 'opaskartta'))
-    .map((baseMap) => createWMTSLayer(baseMap.options, projection as Projection));
+  const mapRef = useRef<HTMLDivElement>(null);
 
   /**
    * OpenLayers View: @see https://openlayers.org/en/latest/apidoc/module-ol_View-View.html
@@ -61,7 +55,7 @@ export function Map({ baseLayerId, children }: Props) {
         }),
       ],
       view: olView,
-      layers: [...baseMapLayer],
+      layers: [...(baseMapLayers ?? [])],
       interactions: defaultInteractions({
         altShiftDragRotate: false,
         pinchRotate: false,
@@ -81,13 +75,13 @@ export function Map({ baseLayerId, children }: Props) {
     });
   }, [olMap]);
 
-  /**  */
+  /** Update Map layers based on different ol/layers passed as props */
   useEffect(() => {
-    if (!baseLayerId) return;
+    if (!baseMapLayers) return;
 
     olMap.getAllLayers().map((layer) => olMap.removeLayer(layer));
-    olMap.setLayers(baseMapLayer);
-  }, [baseLayerId]);
+    olMap.setLayers(baseMapLayers);
+  }, [baseMapLayers]);
 
   /** Set Map's zoom based on changes from the Zoom -component */
   useEffect(() => {
