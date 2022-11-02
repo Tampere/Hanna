@@ -1,4 +1,6 @@
 {
   "menubar.projects": "Hankkeet",
-  "menubar.search": "Haku"
+  "menubar.search": "Haku",
+  "map.layerdrawer.open": "Avaa karttatasovalikko",
+  "map.layerdrawer.close": "Sulje karttatasovalikko"
 }

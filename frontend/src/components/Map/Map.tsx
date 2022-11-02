@@ -17,19 +17,19 @@ import { mapOptions } from './mapOptions';
 
 interface Props {
   children?: ReactNode;
-  baseLayer?: string;
+  baseLayerId?: string;
 }
 
 const { code, extent, units, proj4String } = mapOptions.projection;
 registerProjection(code, extent, proj4String);
 
-export function Map({ baseLayer, children }: Props) {
+export function Map({ baseLayerId, children }: Props) {
   const [zoom, setZoom] = useAtom(zoomAtom);
   const mapRef = useRef<HTMLDivElement>(null);
   const [projection] = useState(() => getMapProjection(code, extent, units));
 
   const baseMapLayer = mapOptions.baseMaps
-    .filter((baseMap) => baseMap.id === (baseLayer ? baseLayer : 'opaskartta'))
+    .filter((baseMap) => baseMap.id === (baseLayerId ? baseLayerId : 'opaskartta'))
     .map((baseMap) => createWMTSLayer(baseMap.options, projection as Projection));
 
   /**
@@ -39,9 +39,10 @@ export function Map({ baseLayer, children }: Props) {
   const [olView] = useState(() => {
     return new View({
       projection: projection as ProjectionLike,
+      // Tampere specific numbers
       center: [327000, 6822500],
       extent: [313753, 6812223, 351129, 6861143],
-      zoom: zoom ?? 15,
+      zoom: zoom ?? 10,
       multiWorld: false,
       enableRotation: false,
     });
@@ -70,21 +71,25 @@ export function Map({ baseLayer, children }: Props) {
     });
   });
 
+  /** olMap -object's initialization on startup  */
   useEffect(() => {
     olMap.setTarget(mapRef.current as HTMLElement);
 
+    // Register event listeners
     olMap.on('moveend', () => {
       setZoom(olView.getZoom() as number);
     });
   }, [olMap]);
 
+  /**  */
   useEffect(() => {
-    if (!baseLayer) return;
+    if (!baseLayerId) return;
 
     olMap.getAllLayers().map((layer) => olMap.removeLayer(layer));
     olMap.setLayers(baseMapLayer);
-  }, [baseLayer]);
+  }, [baseLayerId]);
 
+  /** Set Map's zoom based on changes from the Zoom -component */
   useEffect(() => {
     if (!zoom) return;
 
