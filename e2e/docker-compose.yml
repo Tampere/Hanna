@@ -2,37 +2,42 @@ version: '3.8'
 services:
   frontend:
     build:
-      context: .
+      context: ..
       dockerfile: frontend/Dockerfile.dev
     volumes:
       # For container based development to show git changes in the whole workspace
-      - .git:/app/.git:cached
-      - ./:/app/
+      - ../.git:/app/.git:cached
+      - ../:/app/
       - /app/frontend/node_modules
       - /app/shared/node_modules
-    ports:
-      - '127.0.0.1:8080:8080'
   backend:
     build:
-      context: .
+      context: ..
       dockerfile: backend/Dockerfile.dev
     environment:
       - NODE_ENV=development
     volumes:
-      - .git:/app/.git:cached
-      - ./:/app/
+      - ../.git:/app/.git:cached
+      - ../:/app/
+      - ./backend.env:/app/backend/.env
       - /app/backend/node_modules
       - /app/shared/node_modules
     ports:
-      - '127.0.0.1:3003:3003'
-      - '127.0.0.1:9090:9090'
+      - '127.0.0.1:13003:3003'
+      - '127.0.0.1:19090:19090'
     depends_on:
       db:
         condition: service_healthy
+    # Run migrations to the test DB on every startup
+    command: sh -c "npm run db-migrate && npm run dev"
+
   oidc-provider:
     build:
-      context: ./docker/oidc-provider/
+      context: ../docker/oidc-provider/
       dockerfile: Dockerfile
+    environment:
+      - OIDC_PORT=19090
+      - OIDC_REDIRECT_URI=https://localhost:1443/api/v1/auth/callback
     network_mode: service:backend
   db:
     image: postgis/postgis:12-3.3-alpine
@@ -43,9 +48,7 @@ services:
       POSTGRES_DB: app_dev_db
     volumes:
       - db-volume:/var/lib/postgresql/data
-      - ./docker/db/init/20-init.sql:/docker-entrypoint-initdb.d/20-init.sql
-    ports:
-      - '127.0.0.1:5432:5432'
+      - ../docker/db/init/20-init.sql:/docker-entrypoint-initdb.d/20-init.sql
     healthcheck:
       test: psql -U app_user_dev -d app_dev_db -c "SELECT 1"
       interval: 5s
@@ -54,10 +57,10 @@ services:
   proxy:
     image: caddy:2-alpine
     ports:
-      - '127.0.0.1:443:443'
+      - '127.0.0.1:1443:443'
     volumes:
-      - ./docker/proxy/Caddyfile:/etc/caddy/Caddyfile
-      - ./docker/proxy/data:/data
+      - ../docker/proxy/Caddyfile:/etc/caddy/Caddyfile
+      - ../docker/proxy/data:/data
 
 volumes:
   db-volume:

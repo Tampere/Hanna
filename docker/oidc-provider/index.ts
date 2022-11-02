@@ -7,7 +7,7 @@ const config: Configuration = {
     {
       client_id: 'oidc_local_dev_client',
       client_secret: 'oidc_local_dev_secret',
-      redirect_uris: ['https://localhost/api/v1/auth/callback'],
+      redirect_uris: [process.env.OIDC_REDIRECT_URI ?? 'https://localhost/api/v1/auth/callback'],
     },
   ],
   cookies: {
@@ -36,12 +36,14 @@ function loadUsers() {
 function run() {
   loadUsers();
 
-  const oidc = new Provider('http://localhost:9090', config);
+  const port = process.env.OIDC_PORT ?? 9090;
+
+  const oidc = new Provider(`http://localhost:${port}`, config);
   oidc.proxy = true;
 
-  oidc.listen(9090, () => {
+  oidc.listen(port, () => {
     console.log(
-      'oidc-provider listening on port 9090, check http://localhost:9090/.well-known/openid-configuration'
+      `oidc-provider listening on port ${port}, check http://localhost:${port}/.well-known/openid-configuration`
     );
   });
 }

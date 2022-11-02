@@ -1,0 +1,39 @@
+# TODO this workflow should be moved beside the other tests - only running these tests temporarily only on the chore branch
+name: Test E2E
+
+on:
+  push:
+    branches:
+      - chore/e2e-tests
+
+jobs:
+  test-e2e:
+    name: Test E2E
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: e2e
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: ./e2e/package-lock.json
+      - name: Get installed Playwright version
+        id: playwright-version
+        run: echo -n "::set-output name=version::$(npm ls @playwright/test --json | jq --raw-output '.dependencies["@playwright/test"].version')"
+      - uses: actions/cache@v2
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+      - run: npm i
+      # Install Playwright dependencies unless found from the cache
+      - name: Install Playwright's dependencies
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps
+      - run: docker compose up -d
+      - run: npm test
