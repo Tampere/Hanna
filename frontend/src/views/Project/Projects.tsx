@@ -15,6 +15,7 @@ import {
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
+import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { SearchResult } from '@shared/schema/project';
@@ -160,12 +161,13 @@ function SearchResults({ results }: SearchResultsProps) {
 
 const resultMapContainerStyle = css`
   padding: 16px;
+  height: 600px;
 `;
 
 function ResultsMap() {
   return (
     <Paper css={resultMapContainerStyle} elevation={1}>
-      Kartta placeholder
+      <MapWrapper />
     </Paper>
   );
 }
