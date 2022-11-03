@@ -62,10 +62,11 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
         userinfo: UserinfoResponse,
         authDone: (err: Error | null, user?: PassportUser) => void
       ) {
-        if (userinfo.email) {
-          authDone(null, { id: userinfo.email });
+        const id = userinfo.email ?? String(userinfo.upn);
+        if (id) {
+          authDone(null, { id });
         } else {
-          authDone(new Error('No email in userinfo'));
+          authDone(new Error('No identifier found in userinfo'));
         }
       }
     )
@@ -88,9 +89,9 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
     }
   });
 
-  fastify.get('/api/v1/auth/user', async (req, reply) => {
+  fastify.get('/api/v1/auth/user', async (req) => {
     if (req.user) {
-      reply.header('Content-Type', 'application/json').send(req.user);
+      return req.user;
     }
   });
 
