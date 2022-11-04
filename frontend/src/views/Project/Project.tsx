@@ -52,7 +52,7 @@ function ProjectForm(props: ProjectFormProps) {
   }, [editing]);
 
   const form = useForm<UpsertProject>({
-    mode: 'onChange',
+    mode: 'all',
     resolver: zodResolver(upsertProjectSchema),
     defaultValues: props.project ?? { projectName: '' },
   });
