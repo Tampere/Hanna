@@ -211,8 +211,7 @@ const infobarRootStyle = css`
 `;
 
 const mapContainerStyle = css`
-  padding: 16px;
-  height: 600px;
+  min-height: 600px;
 `;
 
 const accordionSummaryStyle = css`
@@ -226,7 +225,7 @@ export function Project() {
   const projectId = routeParams?.projectId;
   const project = trpc.project.get.useQuery(
     { id: projectId },
-    { enabled: Boolean(projectId), queryKey: ['project.get', projectId] }
+    { enabled: Boolean(projectId), queryKey: ['project.get', { id: projectId }] }
   );
 
   if (projectId && !project.data) {
