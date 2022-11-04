@@ -34,5 +34,6 @@
   "projectForm.editBtnLabel": "Muokkaa",
   "projectForm.undoBtnLabel": "Peruuta muutokset",
   "map.layerdrawer.open": "Avaa karttatasovalikko",
-  "map.layerdrawer.close": "Sulje karttatasovalikko"
+  "map.layerdrawer.close": "Sulje karttatasovalikko",
+  "user.logout": "Kirjaudu ulos"
 }

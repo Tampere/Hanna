@@ -1,4 +1,5 @@
 import { css } from '@emotion/react';
+import { Logout } from '@mui/icons-material';
 import AccountCircleOutlined from '@mui/icons-material/AccountCircleOutlined';
 import AccountTreeOutlined from '@mui/icons-material/AccountTreeOutlined';
 import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
@@ -10,6 +11,7 @@ import {
   IconButton,
   ThemeProvider,
   Toolbar,
+  Tooltip,
   Typography,
   createTheme,
 } from '@mui/material';
@@ -60,6 +62,7 @@ function Navbar() {
         </Box>
         <Box>
           <Typography variant="caption">{auth.userId}</Typography>
+
           <IconButton
             component={Link}
             to="/profiili"

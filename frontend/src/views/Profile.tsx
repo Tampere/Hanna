@@ -1,4 +1,5 @@
-import { Box, Typography } from '@mui/material';
+import { Logout } from '@mui/icons-material';
+import { Box, Button, Typography } from '@mui/material';
 import { useAtom } from 'jotai';
 import React from 'react';
 
@@ -18,6 +19,18 @@ export function Profile() {
           <option value="fi">Suomi</option>
           <option value="en">English</option>
         </select>
+        <Box>
+          <Button
+            variant="contained"
+            endIcon={<Logout />}
+            onClick={async () => {
+              const resp = await fetch(`/api/v1/user/logout`);
+              if (!resp.ok) console.log('virhe');
+            }}
+          >
+            Kirjaudu ulos
+          </Button>
+        </Box>
       </Box>
     )
   );
