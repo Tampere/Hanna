@@ -143,8 +143,8 @@ function SearchResults({ results }: SearchResultsProps) {
                       {result.projectName}
                     </Typography>
                     <Typography sx={{ lineHeight: '120%' }} variant="overline">
-                      {result.startDate.toLocaleDateString()} —{' '}
-                      {result.endDate.toLocaleDateString()}
+                      {result.startDate.toLocaleDateString('fi')} —
+                      {result.endDate.toLocaleDateString('fi')}
                     </Typography>
                   </Box>
                 </Card>
@@ -160,8 +160,7 @@ function SearchResults({ results }: SearchResultsProps) {
 }
 
 const resultMapContainerStyle = css`
-  padding: 16px;
-  height: 600px;
+  min-height: 600px;
 `;
 
 function ResultsMap() {

@@ -84,10 +84,20 @@ export function FormDatePicker({ field, readOnly }: FormDatePickerProps) {
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <DesktopDatePicker<Dayjs>
         readOnly={readOnly}
+        /**
+         * Chrome interprets unfinished date strings as valid (e.g. new Date("1") resolves to 2001-01-01) and this
+         * breaks the date picker's keyboard input.
+         *
+         * However, when the underlying input's onChange callback is overridden, the Chrome's faulty date parsing doesn't seem to get called
+         * and everything works just fine.
+         */
+        InputProps={{
+          onChange: () => null,
+        }}
         inputFormat={tr['date.inputFormat']}
         value={field.value ? dayjs(field.value) : null}
-        onChange={(val) => field.onChange(val?.toDate())}
-        onAccept={(val) => field.onChange(val?.toDate())}
+        onChange={(val) => field.onChange(val?.toDate() ?? null)}
+        onAccept={(val) => field.onChange(val?.toDate() ?? null)}
         onClose={field.onBlur}
         renderInput={(props) => {
           return <TextField {...(readOnly && readonlyProps)} {...field} {...props} size="small" />;
