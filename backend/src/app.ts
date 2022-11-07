@@ -61,6 +61,18 @@ async function run() {
     prefix: '/',
   });
 
+  // Logout route
+  server.get('/logout', (req, res) => {
+    req.session.destroy((error) => {
+      if (error) logger.error(error);
+
+      if (req.session) {
+        req.logOut();
+      }
+      res.redirect(process.env.AUTH_LOGOUT_URL as string);
+    });
+  });
+
   server.get('/api/v1/ping', async () => {
     return { ping: 'pong', now: new Date() };
   });

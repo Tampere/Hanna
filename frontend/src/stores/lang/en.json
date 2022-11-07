@@ -35,5 +35,5 @@
   "projectForm.undoBtnLabel": "Undo changes",
   "map.layerdrawer.open": "Open layer drawer",
   "map.layerdrawer.close": "Close layer drawer",
-  "user.logout": "Logout"
+  "profile.logout": "Logout"
 }

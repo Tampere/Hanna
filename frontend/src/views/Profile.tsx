@@ -4,11 +4,12 @@ import { useAtom } from 'jotai';
 import React from 'react';
 
 import { authAtom } from '@frontend/stores/auth';
-import { Language, langAtom } from '@frontend/stores/lang';
+import { Language, langAtom, useTranslations } from '@frontend/stores/lang';
 
 export function Profile() {
   const [user] = useAtom(authAtom);
   const [lang, setLang] = useAtom(langAtom);
+  const tr = useTranslations();
 
   return (
     user.userId && (
@@ -19,16 +20,15 @@ export function Profile() {
           <option value="fi">Suomi</option>
           <option value="en">English</option>
         </select>
-        <Box>
+        <Box sx={{ pt: '1rem' }}>
           <Button
             variant="contained"
             endIcon={<Logout />}
-            onClick={async () => {
-              const resp = await fetch(`/api/v1/user/logout`);
-              if (!resp.ok) console.log('virhe');
+            onClick={() => {
+              window.location.pathname = '/logout';
             }}
           >
-            Kirjaudu ulos
+            {tr['profile.logout']}
           </Button>
         </Box>
       </Box>

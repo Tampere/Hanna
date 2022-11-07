@@ -5,7 +5,6 @@ import fastifySession from '@fastify/session';
 import pgStore from 'connect-pg-simple';
 import { FastifyInstance, FastifyPluginOptions, PassportUser } from 'fastify';
 import { BaseClient, Strategy, TokenSet, UserinfoResponse } from 'openid-client';
-import { userInfo } from 'os';
 import { Pool } from 'pg';
 
 interface SessionOpts {
@@ -63,7 +62,6 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
         userinfo: UserinfoResponse,
         authDone: (err: Error | null, user?: PassportUser) => void
       ) {
-        console.log(userInfo);
         const id = userinfo.email ?? String(userinfo.upn);
         if (id) {
           authDone(null, { id });
@@ -95,16 +93,6 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
     if (req.user) {
       return req.user;
     }
-  });
-
-  fastify.get('/api/v1/user/logout', async (req, res) => {
-    req.session.destroy((error) => {
-      if (error) {
-        return console.log('ERROR');
-      }
-      req.logOut();
-      res.redirect(process.env.AUTH_LOGOUT_URL as string);
-    });
   });
 
   fastify.get(opts.oidcOpts.loginPath, fastifyPassport.authenticate('oidc'));
