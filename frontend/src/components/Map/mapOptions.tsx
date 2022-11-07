@@ -17,6 +17,27 @@ export const mapOptions = {
   },
   baseMaps: [
     {
+      id: 'virastokartta',
+      title: 'Virastokartta',
+      name: 'Virastokartta',
+      visible: true,
+      type: 'base',
+      options: {
+        protocol: 'wmts',
+        url: 'https://georaster.tampere.fi/geoserver/gwc/service/wmts?service=WMTS',
+        layer: 'georaster:virastokartta_vari_EPSG_3067',
+        matrixSet: 'JHS',
+        projection: 'EPSG:3067',
+        format: 'image/png',
+        tileGridID: 'JHS',
+        tileSize: 256,
+        zoomLevels: 16,
+        zoomFactor: 2,
+      },
+      opacity: 1.0,
+      attributions: [],
+    },
+    {
       id: 'opaskartta',
       title: 'Opaskartta',
       name: 'Opaskartta',
