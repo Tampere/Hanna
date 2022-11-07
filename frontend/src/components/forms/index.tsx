@@ -95,9 +95,9 @@ export function FormDatePicker({ field, readOnly }: FormDatePickerProps) {
           onChange: () => null,
         }}
         inputFormat={tr['date.inputFormat']}
-        value={field.value ? dayjs(field.value) : null}
-        onChange={(val) => field.onChange(val?.toDate() ?? null)}
-        onAccept={(val) => field.onChange(val?.toDate() ?? null)}
+        value={field.value ? dayjs(field.value, 'YYYY-MM-DD') : null}
+        onChange={(val) => field.onChange(val?.format('YYYY-MM-DD') ?? null)}
+        onAccept={(val) => field.onChange(val?.format('YYYY-MM-DD') ?? null)}
         onClose={field.onBlur}
         renderInput={(props) => {
           return <TextField {...(readOnly && readonlyProps)} {...field} {...props} size="small" />;

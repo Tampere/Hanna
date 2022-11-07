@@ -107,4 +107,4 @@ jobs:
       url: ${{ needs.build.outputs.app_url }}
     steps:
       - name: Deploy
-        run: curl -X POST ${{ secrets.DEPLOY_WEBHOOK_URL }}
+        run: curl --fail -X POST '${{ secrets.DEPLOY_WEBHOOK_URL }}'

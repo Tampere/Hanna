@@ -37,14 +37,6 @@ export async function createDatabasePool() {
   logger.info(`Connecting to ${redactedDsn}`);
   pool = await createPool(connectionDsn, {
     PgPool: SharedPool,
-    typeParsers: [
-      {
-        name: 'date',
-        parse: (value) => {
-          return new Date(value);
-        },
-      },
-    ],
   });
 }
 

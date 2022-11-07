@@ -4,8 +4,8 @@ export const upsertProjectSchema = z.object({
   id: z.string().optional(),
   projectName: z.string().min(1),
   description: z.string().min(1),
-  startDate: z.date(),
-  endDate: z.date(),
+  startDate: z.string().regex(/\d{4}-\d{2}-\d{2}/),
+  endDate: z.string().regex(/\d{4}-\d{2}-\d{2}/),
 });
 
 export type UpsertProject = z.infer<typeof upsertProjectSchema>;
