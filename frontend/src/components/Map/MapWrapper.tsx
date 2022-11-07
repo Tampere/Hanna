@@ -25,7 +25,7 @@ export function MapWrapper() {
     if (!baseLayerId) return [];
 
     return mapOptions.baseMaps
-      .filter((baseMap) => baseMap.id === (baseLayerId ? baseLayerId : 'opaskartta'))
+      .filter((baseMap) => baseMap.id === (baseLayerId ? baseLayerId : 'virastokartta'))
       .map((baseMap) => createWMTSLayer(baseMap.options, projection as Projection));
   }, [baseLayerId]);
 
