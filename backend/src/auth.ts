@@ -7,6 +7,8 @@ import { FastifyInstance, FastifyPluginOptions, PassportUser } from 'fastify';
 import { BaseClient, Strategy, TokenSet, UserinfoResponse } from 'openid-client';
 import { Pool } from 'pg';
 
+import { logger } from './logging';
+
 interface SessionOpts {
   cookieSecret: string;
   cookieMaxAge: number;
@@ -93,6 +95,18 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
     if (req.user) {
       return req.user;
     }
+  });
+
+  // Logout route
+  fastify.get('/logout', (req, res) => {
+    req.session.destroy((error) => {
+      if (error) logger.error(error);
+
+      if (req.session) {
+        req.logOut();
+      }
+      res.redirect(process.env.AUTH_LOGOUT_URL as string);
+    });
   });
 
   fastify.get(opts.oidcOpts.loginPath, fastifyPassport.authenticate('oidc'));
