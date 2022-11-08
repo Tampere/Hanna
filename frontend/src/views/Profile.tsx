@@ -28,7 +28,7 @@ export function Profile() {
               window.location.pathname = '/logout';
             }}
           >
-            {tr['profile.logout']}
+            {tr('profile.logout')}
           </Button>
         </Box>
       </Box>
