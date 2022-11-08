@@ -39,8 +39,8 @@ async function upsertProject(project: UpsertProject) {
       SET
         project_name = ${projectName},
         description = ${description},
-        start_date = ${startDate.toISOString()},
-        end_date = ${endDate.toISOString()}
+        start_date = ${startDate},
+        end_date = ${endDate}
       WHERE id = ${id}
       RETURNING id
     `);
@@ -49,7 +49,7 @@ async function upsertProject(project: UpsertProject) {
     const result = await getPool().one(
       sql`
         INSERT INTO app.project (project_name, description, start_date, end_date)
-        VALUES (${projectName}, ${description}, ${startDate.toISOString()}, ${endDate.toISOString()})
+        VALUES (${projectName}, ${description}, ${startDate}, ${endDate})
         RETURNING id
       `
     );
