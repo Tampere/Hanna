@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpLink } from '@trpc/client';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import React, { Suspense, useState } from 'react';
 import {
   Route,
@@ -53,11 +53,13 @@ export function App() {
   return (
     <Suspense fallback={<p>Ladataan...</p>}>
       <UserLoader />
-      <trpc.Provider client={trpcClient} queryClient={queryClient}>
-        <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
-        </QueryClientProvider>
-      </trpc.Provider>
+      {useAtomValue(authAtom).userId && (
+        <trpc.Provider client={trpcClient} queryClient={queryClient}>
+          <QueryClientProvider client={queryClient}>
+            <RouterProvider router={router} />
+          </QueryClientProvider>
+        </trpc.Provider>
+      )}
     </Suspense>
   );
 }

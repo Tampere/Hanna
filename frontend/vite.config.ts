@@ -17,6 +17,7 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 8080,
     proxy: {
+      '/logout': 'http://backend:3003',
       '/api': 'http://backend:3003',
       '/trpc': 'http://backend:3003',
     },
