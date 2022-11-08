@@ -29,6 +29,10 @@ jobs:
       - name: Install shared dependencies
         working-directory: shared
         run: npm i
+      # Install backend dependencies to make tRPC types work
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm i
       - name: Build & test
         working-directory: frontend
         run: npm i && npm test && npm run build

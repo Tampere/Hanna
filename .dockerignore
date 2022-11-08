@@ -10,7 +10,7 @@ frontend/*
 
 backend/*
 !backend/package*.json
-!backend/tsconfig.json
+!backend/tsconfig*.json
 !backend/src
 !backend/db_migrations
 !backend/.eslintrc.cjs
