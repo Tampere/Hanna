@@ -1,6 +1,6 @@
 {
   "loading": "Ladataan...",
-  "date.inputFormat": "DD.MM.YYYY",
+  "date.format": "DD.MM.YYYY",
   "pages.projectsTitle": "Hankkeet",
   "newProject.btnLabel": "Luo uusi hanke",
   "projectSearch.textSearchLabel": "Haku",

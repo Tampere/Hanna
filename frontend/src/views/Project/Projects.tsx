@@ -12,6 +12,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
@@ -31,7 +32,7 @@ function Toolbar() {
   const tr = useTranslations();
   return (
     <Box css={toolbarContainerStyle}>
-      <Typography variant="h4">{tr['pages.projectsTitle']}</Typography>
+      <Typography variant="h4">{tr('pages.projectsTitle')}</Typography>
       <div>
         <Button
           component={Link}
@@ -41,7 +42,7 @@ function Toolbar() {
           style={{ alignItems: 'flex-start' }}
           endIcon={<AddCircle />}
         >
-          {tr['newProject.btnLabel']}
+          {tr('newProject.btnLabel')}
         </Button>
       </div>
     </Box>
@@ -61,45 +62,45 @@ function SearchControls() {
   return (
     <Paper elevation={1} css={searchControlContainerStyle}>
       <FormControl>
-        <FormLabel htmlFor="text-search">{tr['projectSearch.textSearchLabel']}</FormLabel>
-        <TextField id="text-search" size="small" placeholder={tr['projectSearch.textSearchTip']} />
+        <FormLabel htmlFor="text-search">{tr('projectSearch.textSearchLabel')}</FormLabel>
+        <TextField id="text-search" size="small" placeholder={tr('projectSearch.textSearchTip')} />
       </FormControl>
       <FormControl>
-        <FormLabel>{tr['project.projectTypeLabel']}</FormLabel>
+        <FormLabel>{tr('project.projectTypeLabel')}</FormLabel>
         <Select disabled size="small"></Select>
       </FormControl>
       <FormControl>
-        <FormLabel>{tr['project.lifecycleStateLabel']}</FormLabel>
+        <FormLabel>{tr('project.lifecycleStateLabel')}</FormLabel>
         <Select disabled size="small"></Select>
       </FormControl>
       <FormControl>
-        <FormLabel>{tr['project.budgetLabel']}</FormLabel>
+        <FormLabel>{tr('project.budgetLabel')}</FormLabel>
         <Select disabled size="small"></Select>
       </FormControl>
       <Box sx={{ display: 'flex' }}>
         <FormControl>
-          <FormLabel>{tr['project.startDateLabel']}</FormLabel>
+          <FormLabel>{tr('project.startDateLabel')}</FormLabel>
           <TextField disabled type="date" size="small" fullWidth />
         </FormControl>
         <FormControl sx={{ ml: 2 }}>
-          <FormLabel>{tr['project.endDateLabel']}</FormLabel>
+          <FormLabel>{tr('project.endDateLabel')}</FormLabel>
           <TextField disabled type="date" size="small" fullWidth />
         </FormControl>
       </Box>
       <FormControl>
-        <FormLabel>{tr['project.financingTypeLabel']}</FormLabel>
+        <FormLabel>{tr('project.financingTypeLabel')}</FormLabel>
         <Select disabled size="small"></Select>
       </FormControl>
       <FormControl>
-        <FormLabel>{tr['project.committeeLabel']}</FormLabel>
+        <FormLabel>{tr('project.committeeLabel')}</FormLabel>
         <Select disabled size="small"></Select>
       </FormControl>
       <FormControl>
-        <FormLabel>{tr['project.ownerLabel']}</FormLabel>
+        <FormLabel>{tr('project.ownerLabel')}</FormLabel>
         <Select disabled size="small"></Select>
       </FormControl>
       <Button disabled size="small" sx={{ gridColumnStart: 4 }} endIcon={<UnfoldMore />}>
-        {tr['projectSearch.showMoreBtnLabel']}
+        {tr('projectSearch.showMoreBtnLabel')}
       </Button>
     </Paper>
   );
@@ -130,7 +131,7 @@ function SearchResults({ results }: SearchResultsProps) {
   const tr = useTranslations();
   return (
     <Paper css={searchResultContainerStyle} elevation={1}>
-      <Typography variant="h5">{tr['projectListing.searchResultsTitle']}</Typography>
+      <Typography variant="h5">{tr('projectListing.searchResultsTitle')}</Typography>
       {results?.length > 0 ? (
         <Box>
           {results.map((result) => {
@@ -143,8 +144,8 @@ function SearchResults({ results }: SearchResultsProps) {
                       {result.projectName}
                     </Typography>
                     <Typography sx={{ lineHeight: '120%' }} variant="overline">
-                      {result.startDate.toLocaleDateString('fi')} —
-                      {result.endDate.toLocaleDateString('fi')}
+                      {dayjs(result.startDate).format(tr('date.format'))} —{' '}
+                      {dayjs(result.endDate).format(tr('date.format'))}
                     </Typography>
                   </Box>
                 </Card>
@@ -153,7 +154,7 @@ function SearchResults({ results }: SearchResultsProps) {
           })}
         </Box>
       ) : (
-        <span>{tr['projectSearch.noResults']}</span>
+        <span>{tr('projectSearch.noResults')}</span>
       )}
     </Paper>
   );
@@ -187,7 +188,7 @@ function ProjectResults() {
       <ResultsMap />
     </div>
   ) : (
-    <span>{tr['loading']}</span>
+    <span>{tr('loading')}</span>
   );
 }
 

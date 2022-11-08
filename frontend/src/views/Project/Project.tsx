@@ -69,14 +69,14 @@ function ProjectForm(props: ProjectFormProps) {
       }
       notify({
         severity: 'success',
-        title: tr['newProject.notifyUpsert'],
+        title: tr('newProject.notifyUpsert'),
         duration: 5000,
       });
     },
     onError: () => {
       notify({
         severity: 'error',
-        title: tr['newProject.notifyUpsertFailed'],
+        title: tr('newProject.notifyUpsertFailed'),
       });
     },
   });
@@ -94,7 +94,7 @@ function ProjectForm(props: ProjectFormProps) {
               onClick={() => setEditing(!editing)}
               endIcon={<Edit />}
             >
-              {tr['projectForm.editBtnLabel']}
+              {tr('projectForm.editBtnLabel')}
             </Button>
           ) : (
             <Button
@@ -107,7 +107,7 @@ function ProjectForm(props: ProjectFormProps) {
               }}
               endIcon={<Undo />}
             >
-              {tr['projectForm.undoBtnLabel']}
+              {tr('projectForm.undoBtnLabel')}
             </Button>
           )}
         </Box>
@@ -115,8 +115,8 @@ function ProjectForm(props: ProjectFormProps) {
       <form css={newProjectFormStyle} onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
         <FormField
           formField="projectName"
-          label={tr['project.projectNameLabel']}
-          tooltip={tr['newProject.projectNameTooltip']}
+          label={tr('project.projectNameLabel')}
+          tooltip={tr('newProject.projectNameTooltip')}
           component={(field) => (
             <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
           )}
@@ -124,47 +124,47 @@ function ProjectForm(props: ProjectFormProps) {
 
         <FormField
           formField="description"
-          label={tr['project.descriptionLabel']}
-          tooltip={tr['newProject.descriptionTooltip']}
+          label={tr('project.descriptionLabel')}
+          tooltip={tr('newProject.descriptionTooltip')}
           component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
         />
 
         <FormField
           formField="startDate"
-          label={tr['project.startDateLabel']}
-          tooltip={tr['newProject.startDateTooltip']}
+          label={tr('project.startDateLabel')}
+          tooltip={tr('newProject.startDateTooltip')}
           component={(field) => <FormDatePicker readOnly={!editing} field={field} />}
         />
         <FormField
           formField="endDate"
-          label={tr['project.endDateLabel']}
-          tooltip={tr['newProject.endDateTooltip']}
+          label={tr('project.endDateLabel')}
+          tooltip={tr('newProject.endDateTooltip')}
           component={(field) => <FormDatePicker readOnly={!editing} field={field} />}
         />
 
         {/*
         <FormControl margin="dense">
-          <FormLabel>{tr['project.projectTypeLabel']}</FormLabel>
+          <FormLabel>{tr('project.projectTypeLabel')}</FormLabel>
           <Select disabled size="small" fullWidth={true}></Select>
         </FormControl>
 
         <FormControl margin="dense">
-          <FormLabel>{tr['project.lifecycleStateLabel']}</FormLabel>
+          <FormLabel>{tr('project.lifecycleStateLabel')}</FormLabel>
           <Select disabled size="small" fullWidth={true}></Select>
         </FormControl>
 
         <FormControl margin="dense">
-          <FormLabel>{tr['project.budgetLabel']}</FormLabel>
+          <FormLabel>{tr('project.budgetLabel')}</FormLabel>
           <Select disabled size="small" fullWidth={true}></Select>
         </FormControl>
 
         <FormControl margin="dense">
-          <FormLabel>{tr['project.committeeLabel']}</FormLabel>
+          <FormLabel>{tr('project.committeeLabel')}</FormLabel>
           <Select disabled size="small" fullWidth={true}></Select>
         </FormControl>
 
         <FormControl margin="dense">
-          <FormLabel>{tr['project.ownerLabel']}</FormLabel>
+          <FormLabel>{tr('project.ownerLabel')}</FormLabel>
           <Select disabled size="small" fullWidth={true}></Select>
         </FormControl>
       */}
@@ -179,7 +179,7 @@ function ProjectForm(props: ProjectFormProps) {
             size="small"
             endIcon={<AddCircle />}
           >
-            {tr['newProject.createBtnLabel']}
+            {tr('newProject.createBtnLabel')}
           </Button>
         )}
 
@@ -192,7 +192,7 @@ function ProjectForm(props: ProjectFormProps) {
             disabled={!form.formState.isValid || !form.formState.isDirty}
             endIcon={<Save />}
           >
-            {tr['projectForm.saveBtnLabel']}
+            {tr('projectForm.saveBtnLabel')}
           </Button>
         )}
       </form>
@@ -229,18 +229,18 @@ export function Project() {
   );
 
   if (projectId && !project.data) {
-    return <Typography>{tr['loading']}</Typography>;
+    return <Typography>{tr('loading')}</Typography>;
   }
 
   return (
     <div css={pageStyle}>
       <Paper elevation={2} css={infobarRootStyle}>
         <Typography variant="h6" sx={{ mb: 1 }}>
-          {project?.data?.projectName ?? tr['newProject.formTitle']}
+          {project?.data?.projectName ?? tr('newProject.formTitle')}
         </Typography>
         <Accordion expanded={true}>
           <AccordionSummary css={accordionSummaryStyle} expandIcon={<ExpandMore />}>
-            <Typography variant="overline">{tr['newProject.basicInfoSectionLabel']}</Typography>
+            <Typography variant="overline">{tr('newProject.basicInfoSectionLabel')}</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <ProjectForm project={project.data} />
@@ -249,19 +249,19 @@ export function Project() {
 
         <Accordion expanded={false} disabled>
           <AccordionSummary expandIcon={<ExpandMore />}>
-            <Typography variant="overline">{tr['newProject.linksSectionTitle']}</Typography>
+            <Typography variant="overline">{tr('newProject.linksSectionTitle')}</Typography>
           </AccordionSummary>
         </Accordion>
 
         <Accordion expanded={false} disabled>
           <AccordionSummary expandIcon={<ExpandMore />}>
-            <Typography variant="overline">{tr['newProject.documentsSectionTitle']}</Typography>
+            <Typography variant="overline">{tr('newProject.documentsSectionTitle')}</Typography>
           </AccordionSummary>
         </Accordion>
 
         <Accordion expanded={false} disabled>
           <AccordionSummary expandIcon={<ExpandMore />}>
-            <Typography variant="overline">{tr['newProject.decisionsSectionTitle']}</Typography>
+            <Typography variant="overline">{tr('newProject.decisionsSectionTitle')}</Typography>
           </AccordionSummary>
         </Accordion>
       </Paper>
