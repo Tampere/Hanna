@@ -55,7 +55,7 @@ function Navbar() {
         <Box sx={{ flexGrow: 1 }}>
           <Button component={Link} to="/hankkeet" sx={{ color: 'white' }}>
             <AccountTreeOutlined sx={{ mr: 1 }} />
-            {tr['pages.projectsTitle']}
+            {tr('pages.projectsTitle')}
           </Button>
         </Box>
         <Box>

@@ -1,6 +1,6 @@
 {
   "loading": "Loading...",
-  "date.inputFormat": "DD/MM/YYYY",
+  "date.format": "DD/MM/YYYY",
   "pages.projectsTitle": "Projects",
   "newProject.btnLabel": "Create new project",
   "projectSearch.textSearchLabel": "Search",

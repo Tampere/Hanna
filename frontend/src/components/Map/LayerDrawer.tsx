@@ -54,7 +54,7 @@ export function LayerDrawer() {
 
   return (
     <Box css={containerStyles}>
-      <Tooltip title={drawerOpen ? tr['map.layerdrawer.close'] : tr['map.layerdrawer.open']}>
+      <Tooltip title={drawerOpen ? tr('map.layerdrawer.close') : tr('map.layerdrawer.open')}>
         <IconButton
           css={drawerButtonStyle}
           color="primary"

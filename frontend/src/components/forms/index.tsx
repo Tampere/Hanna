@@ -94,7 +94,7 @@ export function FormDatePicker({ field, readOnly }: FormDatePickerProps) {
         InputProps={{
           onChange: () => null,
         }}
-        inputFormat={tr['date.inputFormat']}
+        inputFormat={tr('date.format')}
         value={field.value ? dayjs(field.value, 'YYYY-MM-DD') : null}
         onChange={(val) => field.onChange(val?.format('YYYY-MM-DD') ?? null)}
         onAccept={(val) => field.onChange(val?.format('YYYY-MM-DD') ?? null)}
