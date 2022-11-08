@@ -13,7 +13,7 @@
     "outDir": "build",
     "paths": {
       "@frontend/*": ["src/*"],
-      "@shared/*": ["node_modules/tre-hanna-shared/*"]
+      "@shared/*": ["node_modules/tre-hanna-shared/src/*"]
     }
   },
   "references": [{ "path": "../backend/tsconfig.trpc.json" }],

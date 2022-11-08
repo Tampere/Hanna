@@ -17,6 +17,6 @@ backend/*
 !backend/types
 
 shared/*
-!shared/*.ts
+!shared/src
 !shared/package*.json
 !shared/tsconfig.json
