@@ -1,0 +1,7 @@
+// This tsconfig file is only used by frontend when referring to tRPC functions
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true
+  }
+}

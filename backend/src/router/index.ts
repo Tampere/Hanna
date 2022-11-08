@@ -4,7 +4,7 @@ import superjson from 'superjson';
 
 import { createProjectRouter } from '@backend/router/project';
 
-interface User {
+export interface User {
   userId: string | string[] | undefined;
 }
 
