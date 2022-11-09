@@ -1,14 +1,14 @@
 import { GlobalStyles } from '@mui/material';
-import { useAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { Projection } from 'ol/proj';
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import { baseLayerIdAtom } from '@frontend/stores/map';
+import { baseLayerIdAtom, selectedVectorLayersAtom } from '@frontend/stores/map';
 
 import { LayerDrawer } from './LayerDrawer';
 import { Map } from './Map';
 import { Zoom } from './Zoom';
-import { createWMTSLayer, getMapProjection } from './mapFunctions';
+import { createVectorLayer, createWMTSLayer, getMapProjection } from './mapFunctions';
 import { mapOptions } from './mapOptions';
 
 export function MapWrapper() {
@@ -20,6 +20,7 @@ export function MapWrapper() {
     )
   );
   const [baseLayerId] = useAtom(baseLayerIdAtom);
+  const selectedVectorLayers = useAtomValue(selectedVectorLayersAtom);
 
   const baseMapLayers = useMemo(() => {
     if (!baseLayerId) return [];
@@ -29,8 +30,15 @@ export function MapWrapper() {
       .map((baseMap) => createWMTSLayer(baseMap.options, projection as Projection));
   }, [baseLayerId]);
 
+  const vectorLayers = useMemo(() => {
+    if (!selectedVectorLayers) return [];
+    return mapOptions.vectorLayers
+      .filter((layer) => selectedVectorLayers.findIndex((l) => l.id === layer.id) !== -1)
+      .map((layer) => createVectorLayer(layer));
+  }, [selectedVectorLayers]);
+
   return (
-    <Map baseMapLayers={baseMapLayers}>
+    <Map baseMapLayers={baseMapLayers} vectorLayers={vectorLayers}>
       {/* Styles for the OpenLayers ScaleLine -component */}
       <GlobalStyles
         styles={{

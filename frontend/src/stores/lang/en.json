@@ -46,5 +46,10 @@
   "select.noOptions": "No options",
   "select.selections": "selections",
   "delete": "Poista",
-  "cancel": "Peruuta"
+  "cancel": "Peruuta",
+  "map.layerdrawer.baseLayersTitle": "Base layers",
+  "map.layerdrawer.vectorLayersTitle": "Rekisterikohteet",
+  "vectorLayer.title.kadut": "Streets",
+  "vectorLayer.title.rakennukset": "Buildings",
+  "vectorLayer.title.kiinteistot": "Properties"
 }
