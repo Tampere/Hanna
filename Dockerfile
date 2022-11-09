@@ -17,6 +17,12 @@ RUN npm ci
 COPY shared ./
 RUN npm run build
 
+# Install backend dependencies for tRPC client
+WORKDIR ${APPDIR}/backend
+
+COPY backend/package*.json ./
+RUN npm ci
+
 ###
 # Frontend build stage
 ###
@@ -39,9 +45,6 @@ FROM base AS backend-build
 
 WORKDIR ${APPDIR}/backend
 
-COPY backend/package*.json ./
-RUN npm ci
-
 COPY backend ./
 
 RUN npm run build
@@ -54,6 +57,9 @@ RUN rm -rf src
 FROM base AS main
 
 WORKDIR ${APPDIR}/backend
+
+# Remove the shared src folder to fix the runtime "@shared" path
+RUN rm -rf ../shared/src
 
 COPY --from=backend-build ${APPDIR}/backend ./
 COPY --from=frontend-build ${APPDIR}/frontend/dist ./static/

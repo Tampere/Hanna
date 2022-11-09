@@ -13,7 +13,7 @@
     "skipLibCheck": true,
     "paths": {
       "@backend/*": ["src/*", "dist/*"],
-      "@shared/*": ["node_modules/tre-hanna-shared/*"]
+      "@shared/*": ["node_modules/tre-hanna-shared/src/*", "node_modules/tre-hanna-shared/dist/*"]
     }
   },
   "include": ["types", "src"],
