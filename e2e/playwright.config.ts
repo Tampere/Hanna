@@ -1,7 +1,6 @@
 import { devices, PlaywrightTestConfig } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
-  retries: 10,
   projects: [
     {
       name: 'Chrome',

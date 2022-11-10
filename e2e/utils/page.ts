@@ -6,6 +6,9 @@ export async function login(page: Page) {
   // This should happen e.g. in watch mode when server code changes, and tests are run before the server has restarted.
   page.on('response', (response) => {
     if (response.status() >= 500) {
+      console.error(
+        `Received error ${response.status()}. If the servers are starting, re-run the tests by writing "rs" + enter.`
+      );
       process.exit(1);
     }
   });
