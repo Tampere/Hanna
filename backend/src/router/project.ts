@@ -10,6 +10,7 @@ import {
   projectGetSchema,
   projectSearchSchema,
   searchResultSchema,
+  updateGeometrySchema,
   upsertProjectSchema,
 } from '@shared/schema/project';
 
@@ -75,5 +76,15 @@ export const createProjectRouter = (t: TRPC) =>
     get: t.procedure.input(projectGetSchema).query(async ({ input }) => {
       const { id } = input;
       return getProject(id);
+    }),
+
+    updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input }) => {
+      const { id, geometry } = input;
+      return getPool().one(sql`
+        UPDATE app.project
+        SET geom = ST_GeomFromGeoJSON(${geometry})
+        WHERE id = ${id}
+        RETURNING id, ST_AsGeoJSON(geom) AS geom
+      `);
     }),
   });
