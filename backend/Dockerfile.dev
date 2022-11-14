@@ -17,4 +17,7 @@ WORKDIR /app/backend
 # /src could conflict due to tsconfig paths on production
 RUN rm -rf src/
 
+# Add curl for easier testing and local healthchecks
+RUN apk --update add curl
+
 CMD npm run dev

@@ -7,12 +7,13 @@ export default defineConfig({
   plugins: [
     react({ jsxImportSource: '@emotion/react', babel: { plugins: ['@emotion/babel-plugin'] } }),
     tsconfigPaths(),
-    checker({
-      typescript: {
-        buildMode: true,
-      },
-      overlay: true,
-    }),
+    process.env.NODE_ENV === 'development' &&
+      checker({
+        typescript: {
+          buildMode: true,
+        },
+        overlay: true,
+      }),
   ],
   build: {
     outDir: 'dist',

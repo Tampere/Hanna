@@ -1,0 +1,10 @@
+{
+  "strict": true,
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@utils/*": ["utils/*"]
+    }
+  },
+  "references": [{ "path": "../backend" }]
+}
