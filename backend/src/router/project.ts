@@ -80,11 +80,12 @@ export const createProjectRouter = (t: TRPC) =>
 
     updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input }) => {
       const { id, geometry } = input;
-      return getPool().one(sql`
+      const result = await getPool().one(sql`
         UPDATE app.project
         SET geom = ST_GeomFromGeoJSON(${geometry})
         WHERE id = ${id}
-        RETURNING id, ST_AsGeoJSON(geom) AS geom
+        RETURNING id, ST_AsGeoJSON(geom) AS geometry
       `);
+      return updateGeometrySchema.parse(result);
     }),
   });
