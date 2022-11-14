@@ -29,3 +29,17 @@ export type ProjectSearch = z.infer<typeof projectSearchSchema>;
 export const searchResultSchema = z.array(dbProjectSchema);
 
 export type SearchResult = z.infer<typeof searchResultSchema>;
+
+export const updateGeometrySchema = z.object({
+  id: z.string(),
+  geometry: z.string(),
+});
+
+export type UpdateGeometry = z.infer<typeof updateGeometrySchema>;
+
+export const updateGeometryResultSchema = z.object({
+  id: z.string(),
+  geom: z.string(),
+});
+
+export type UpdateGeometryResult = z.infer<typeof updateGeometryResultSchema>;
