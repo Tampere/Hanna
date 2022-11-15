@@ -19,7 +19,7 @@ import { trpc } from '@frontend/client';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { useTranslations } from '@frontend/stores/lang';
 
-import { SearchResult } from '@shared/schema/project';
+import { DbProject } from '@shared/schema/project';
 
 const toolbarContainerStyle = css`
   padding: 16px;
@@ -124,7 +124,7 @@ const searchResultContainerStyle = css`
 `;
 
 interface SearchResultsProps {
-  results: SearchResult;
+  results: readonly DbProject[];
 }
 
 function SearchResults({ results }: SearchResultsProps) {

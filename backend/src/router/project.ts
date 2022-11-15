@@ -9,12 +9,12 @@ import {
   dbProjectSchema,
   projectGetSchema,
   projectSearchSchema,
-  searchResultSchema,
+  updateGeometryResultSchema,
   updateGeometrySchema,
   upsertProjectSchema,
 } from '@shared/schema/project';
 
-const sqlSelectProject = sql`
+const selectProjectFragment = sql.fragment`
   SELECT
     id,
     project_name AS "projectName",
@@ -25,17 +25,16 @@ const sqlSelectProject = sql`
 `;
 
 async function getProject(id: string) {
-  const project = await getPool().one(sql`
-    ${sqlSelectProject}
+  return getPool().one(sql.type(dbProjectSchema)`
+    ${selectProjectFragment}
     WHERE id = ${id}
   `);
-  return dbProjectSchema.parse(project);
 }
 
 async function upsertProject(project: UpsertProject) {
   const { id, projectName, description, startDate, endDate } = project;
   if (id) {
-    const result = await getPool().one(sql`
+    return getPool().one(sql.type(projectGetSchema)`
       UPDATE app.project
       SET
         project_name = ${projectName},
@@ -45,27 +44,24 @@ async function upsertProject(project: UpsertProject) {
       WHERE id = ${id}
       RETURNING id
     `);
-    return z.object({ id: z.string() }).parse(result);
   } else {
-    const result = await getPool().one(
-      sql`
+    return getPool().one(
+      sql.type(projectGetSchema)`
         INSERT INTO app.project (project_name, description, start_date, end_date)
         VALUES (${projectName}, ${description}, ${startDate}, ${endDate})
         RETURNING id
       `
     );
-    return z.object({ id: z.string() }).parse(result);
   }
 }
 
 export const createProjectRouter = (t: TRPC) =>
   t.router({
     search: t.procedure.input(projectSearchSchema).query(async () => {
-      const results = await getPool().query(sql`
-        ${sqlSelectProject}
+      return getPool().any(sql.type(dbProjectSchema)`
+        ${selectProjectFragment}
         ORDER BY start_date DESC
       `);
-      return searchResultSchema.parse(results.rows);
     }),
 
     upsert: t.procedure.input(upsertProjectSchema).mutation(async ({ input }) => {
@@ -80,12 +76,11 @@ export const createProjectRouter = (t: TRPC) =>
 
     updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input }) => {
       const { id, geometry } = input;
-      const result = await getPool().one(sql`
+      return getPool().one(sql.type(updateGeometryResultSchema)`
         UPDATE app.project
         SET geom = ST_GeomFromGeoJSON(${geometry})
         WHERE id = ${id}
         RETURNING id, ST_AsGeoJSON(geom) AS geometry
       `);
-      return updateGeometrySchema.parse(result);
     }),
   });

@@ -5,6 +5,7 @@
 import axios from 'axios';
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { sql } from 'slonik';
+import { z } from 'zod';
 
 import { getPool } from '@backend/db';
 import { env } from '@backend/env';
@@ -18,9 +19,9 @@ interface ComponentCheckResult {
 async function checkDB(): Promise<ComponentCheckResult> {
   const checkTime = new Date();
   try {
-    const pingResult = await getPool().oneFirst(sql`SELECT 1`);
+    const pingResult = await getPool().oneFirst(sql.type(z.string())`SELECT 'pong'`);
     return {
-      status: pingResult === 1 ? 'pass' : 'fail',
+      status: pingResult === 'pong' ? 'pass' : 'fail',
       time: checkTime,
     };
   } catch (error) {
