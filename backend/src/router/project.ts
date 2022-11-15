@@ -58,7 +58,7 @@ async function upsertProject(project: UpsertProject) {
 export const createProjectRouter = (t: TRPC) =>
   t.router({
     search: t.procedure.input(projectSearchSchema).query(async () => {
-      return getPool().many(sql.type(dbProjectSchema)`
+      return getPool().any(sql.type(dbProjectSchema)`
         ${selectProjectFragment}
         ORDER BY start_date DESC
       `);

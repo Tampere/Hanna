@@ -35,7 +35,7 @@ export type UpdateGeometry = z.infer<typeof updateGeometrySchema>;
 
 export const updateGeometryResultSchema = z.object({
   id: z.string(),
-  geom: z.string(),
+  geometry: z.string(),
 });
 
 export type UpdateGeometryResult = z.infer<typeof updateGeometryResultSchema>;
