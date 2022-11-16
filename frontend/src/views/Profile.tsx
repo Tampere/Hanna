@@ -3,7 +3,9 @@ import { Box, Button, Typography } from '@mui/material';
 import { useAtom } from 'jotai';
 
 import { authAtom } from '@frontend/stores/auth';
-import { Language, langAtom, useTranslations } from '@frontend/stores/lang';
+import { getLanguageName, langAtom, useTranslations } from '@frontend/stores/lang';
+
+import { Language, languages } from '@shared/language';
 
 export function Profile() {
   const [user] = useAtom(authAtom);
@@ -15,8 +17,9 @@ export function Profile() {
       <Typography variant="h4">Hei {user.userId}</Typography>
       <Typography variant="body1">Tässä on profiilisi tiedot</Typography>
       <select value={lang} onChange={(e) => setLang(e.target.value as Language)}>
-        <option value="fi">Suomi</option>
-        <option value="en">English</option>
+        {languages.map((language) => (
+          <option value={language}>{getLanguageName(language)}</option>
+        ))}
       </select>
       <Box sx={{ pt: '1rem' }}>
         <Button

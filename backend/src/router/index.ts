@@ -2,6 +2,7 @@ import { inferAsyncReturnType, initTRPC } from '@trpc/server';
 import { CreateFastifyContextOptions } from '@trpc/server/adapters/fastify';
 import superjson from 'superjson';
 
+import { createCodeRouter } from '@backend/router/code';
 import { createProjectRouter } from '@backend/router/project';
 
 export interface User {
@@ -19,6 +20,7 @@ const t = initTRPC.context<Context>().create({ transformer: superjson });
 
 export const appRouter = t.router({
   project: createProjectRouter(t),
+  code: createCodeRouter(t),
 });
 
 export type TRPC = typeof t;
