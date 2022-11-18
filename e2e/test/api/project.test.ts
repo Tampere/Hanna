@@ -3,11 +3,13 @@ import { login } from '@utils/page';
 import { client } from '@utils/trpc';
 
 function makePoint(lon: number, lat: number, srid: string) {
-  return {
-    type: 'Point',
-    crs: { type: 'name', properties: { name: srid } },
-    coordinates: [lon, lat],
-  };
+  return [
+    {
+      type: 'Point',
+      crs: { type: 'name', properties: { name: srid } },
+      coordinates: [lon, lat],
+    },
+  ];
 }
 
 test.describe('Project endpoints', () => {
@@ -33,10 +35,10 @@ test.describe('Project endpoints', () => {
 
     const edit = await client.project.updateGeometry.mutate({
       id: project.id,
-      geometry: JSON.stringify(point),
+      features: JSON.stringify(point),
     });
 
     expect(edit.id).toBe(project.id);
-    expect(JSON.parse(edit.geometry)).toStrictEqual(point);
+    expect(JSON.parse(edit.geoJson)).toStrictEqual(point);
   });
 });

@@ -33,11 +33,29 @@ export function Project() {
   const tr = useTranslations();
 
   const routeParams = useLoaderData() as { projectId: string };
+  const notify = useNotifications();
   const projectId = routeParams?.projectId;
   const project = trpc.project.get.useQuery(
     { id: projectId },
     { enabled: Boolean(projectId), queryKey: ['project.get', { id: projectId }] }
   );
+
+  const geometryUpdate = trpc.project.updateGeometry.useMutation({
+    onSuccess: () => {
+      project.refetch();
+      notify({
+        severity: 'success',
+        title: tr('project.notifyGeometryUpdateTitle'),
+        duration: 5000,
+      });
+    },
+    onError: () => {
+      notify({
+        severity: 'error',
+        title: tr('project.notifyGeometryUpdateFailedTitle'),
+      });
+    },
+  });
 
   if (projectId && project.isLoading) {
     return <Typography>{tr('loading')}</Typography>;
@@ -83,7 +101,13 @@ export function Project() {
       </Paper>
 
       <Paper elevation={2} css={mapContainerStyle}>
-        <MapWrapper />
+        <MapWrapper
+          geoJson={project?.data?.geom}
+          editable={Boolean(projectId)}
+          onFeaturesSaved={(features: string) => {
+            geometryUpdate.mutate({ id: projectId, features: features });
+          }}
+        />
       </Paper>
     </div>
   );

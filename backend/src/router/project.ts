@@ -1,6 +1,5 @@
 import { TRPCError } from '@trpc/server';
 import { sql } from 'slonik';
-import { z } from 'zod';
 
 import { getPool } from '@backend/db';
 import { TRPC } from '@backend/router';
@@ -21,7 +20,8 @@ const selectProjectFragment = sql.fragment`
     project_name AS "projectName",
     description,
     start_date AS "startDate",
-    end_date AS "endDate"
+    end_date AS "endDate",
+    ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom
   FROM app.project
   WHERE deleted = false
 `;
@@ -95,10 +95,17 @@ export const createProjectRouter = (t: TRPC) =>
     }),
 
     updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input }) => {
-      const { id, geometry } = input;
+      const { id, features } = input;
       return getPool().one(sql.type(updateGeometryResultSchema)`
+        WITH featureCollection AS (
+          SELECT ST_Collect(
+            ST_GeomFromGeoJSON(value->'geometry')
+          ) AS resultGeom
+          FROM jsonb_array_elements(${features}::jsonb)
+        )
         UPDATE app.project
-        SET geom = ST_GeomFromGeoJSON(${geometry})
+        SET geom = featureCollection.resultGeom
+        FROM featureCollection
         WHERE id = ${id}
         RETURNING id, ST_AsGeoJSON(geom) AS geometry
       `);

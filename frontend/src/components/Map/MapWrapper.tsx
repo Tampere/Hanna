@@ -1,17 +1,35 @@
 import { GlobalStyles } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 import { Projection } from 'ol/proj';
-import { useMemo, useState } from 'react';
+import VectorSource from 'ol/source/Vector';
+import { useEffect, useMemo, useState } from 'react';
 
+import { MapToolbar, ToolType } from '@frontend/components/Map/MapToolbar';
+import {
+  createDrawInteraction,
+  createDrawLayer,
+  createModifyInteraction,
+  createSelectInteraction,
+  createSelectionLayer,
+  deleteSelectedFeatures,
+  featuresFromGeoJSON,
+  getGeoJSONFeaturesString,
+} from '@frontend/components/Map/mapInteractions';
 import { baseLayerIdAtom, selectedVectorLayersAtom } from '@frontend/stores/map';
 
 import { LayerDrawer } from './LayerDrawer';
-import { Map } from './Map';
+import { Map, MapInteraction } from './Map';
 import { Zoom } from './Zoom';
 import { createVectorLayer, createWMTSLayer, getMapProjection } from './mapFunctions';
 import { mapOptions } from './mapOptions';
 
-export function MapWrapper() {
+interface Props {
+  geoJson?: string | null;
+  editable?: boolean;
+  onFeaturesSaved?: (features: string) => void;
+}
+
+export function MapWrapper({ geoJson, onFeaturesSaved, editable }: Props) {
   const [projection] = useState(() =>
     getMapProjection(
       mapOptions.projection.code,
@@ -37,8 +55,70 @@ export function MapWrapper() {
       .map((layer) => createVectorLayer(layer));
   }, [selectedVectorLayers]);
 
+  /**
+   * Custom tools and interactions
+   */
+
+  const [selectedTool, setSelectedTool] = useState<ToolType | null>(null);
+  const [interactions, setInteractions] = useState<MapInteraction[] | null>(null);
+
+  const selectionSource = useMemo(() => new VectorSource({ wrapX: false }), []);
+  const selectionLayer = useMemo(() => createSelectionLayer(selectionSource), []);
+  const registerSelectInteraction = useMemo(() => createSelectInteraction(selectionSource), []);
+  const registerModifyInteraction = useMemo(() => createModifyInteraction(selectionSource), []);
+
+  const drawSource = useMemo(() => {
+    const opts = { wrapX: true };
+    const features = geoJson ? featuresFromGeoJSON(geoJson) : [];
+    const source = new VectorSource({ ...opts });
+    for (const feature of features) {
+      source.addFeature(feature);
+    }
+    return source;
+  }, [geoJson]);
+
+  const drawLayer = useMemo(() => createDrawLayer(drawSource), []);
+  const registerDrawInteraction = useMemo(
+    () =>
+      createDrawInteraction({
+        source: drawSource,
+        trace: selectedTool === 'tracedFeature',
+        traceSource: selectionSource,
+      }),
+    [selectedTool]
+  );
+
+  useEffect(() => {
+    switch (selectedTool) {
+      case 'selectFeature':
+        setInteractions([registerSelectInteraction]);
+        break;
+      case 'newFeature':
+        setInteractions([registerDrawInteraction]);
+        break;
+      case 'tracedFeature':
+        setInteractions([registerDrawInteraction]);
+        break;
+      case 'editFeature':
+        setInteractions([registerSelectInteraction, registerModifyInteraction]);
+        break;
+      case 'deleteFeature':
+        deleteSelectedFeatures(drawSource, selectionSource);
+        break;
+      default:
+        setInteractions(null);
+        break;
+    }
+  }, [selectedTool]);
+
   return (
-    <Map baseMapLayers={baseMapLayers} vectorLayers={vectorLayers}>
+    <Map
+      extent={drawSource.getExtent()}
+      baseMapLayers={baseMapLayers}
+      vectorLayers={vectorLayers}
+      interactions={interactions}
+      interactionLayers={[selectionLayer, drawLayer]}
+    >
       {/* Styles for the OpenLayers ScaleLine -component */}
       <GlobalStyles
         styles={{
@@ -67,6 +147,20 @@ export function MapWrapper() {
       />
       <Zoom zoomStep={1} />
       <LayerDrawer />
+      {editable && (
+        <MapToolbar
+          onToolChange={(tool) => setSelectedTool(tool)}
+          onSaveClick={() =>
+            onFeaturesSaved?.(
+              getGeoJSONFeaturesString(
+                drawSource.getFeatures(),
+                projection?.getCode() || mapOptions.projection.code
+              )
+            )
+          }
+          onUndoClick={() => console.log('Undo callback')}
+        />
+      )}
     </Map>
   );
 }

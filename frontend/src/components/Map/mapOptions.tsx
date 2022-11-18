@@ -163,8 +163,7 @@ export const mapOptions = {
       )}`,
       style: {
         strokeColor: '#ff0000',
-        fillColor: '#ff0000',
-        fillOpacity: 0.05,
+        fillColor: 'rgba(255, 0, 0, 0.1)',
       },
       attributions: [],
     },
@@ -181,7 +180,6 @@ export const mapOptions = {
       style: {
         strokeColor: '#000000',
         fillColor: '#999999',
-        fillOpacity: 0.8,
       },
     },
     {
@@ -197,7 +195,6 @@ export const mapOptions = {
       style: {
         strokeColor: '#0000ff',
         fillColor: '#ffffff',
-        fillOpacity: 0.95,
       },
     },
   ] as MapVectorLayer[],
