@@ -13,6 +13,7 @@ import { useLoaderData, useNavigate } from 'react-router';
 
 import { trpc } from '@frontend/client';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
+import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { ProjectForm } from './ProjectForm';
@@ -39,6 +40,7 @@ const accordionSummaryStyle = css`
 export function Project() {
   const tr = useTranslations();
   const navigate = useNavigate();
+  const notify = useNotifications();
 
   const routeParams = useLoaderData() as { projectId: string };
   const projectId = routeParams?.projectId;
@@ -48,13 +50,19 @@ export function Project() {
   );
 
   const projectDeleteMutation = trpc.project.delete.useMutation({
-    onSuccess: (data) => {
-      console.log(data);
+    onSuccess: () => {
       navigate(`/hankkeet`);
+      notify({
+        severity: 'success',
+        title: tr('projectDelete.notifyDelete'),
+        duration: 5000,
+      });
     },
     onError: () => {
-      console.log('error');
-      navigate(`/hankkeet`);
+      notify({
+        severity: 'error',
+        title: tr('projectDelete.notifyDeleteFailed'),
+      });
     },
   });
 
@@ -96,13 +104,16 @@ export function Project() {
             <Typography variant="overline">{tr('newProject.decisionsSectionTitle')}</Typography>
           </AccordionSummary>
         </Accordion>
-        <Button
-          variant="contained"
-          color="error"
-          onClick={() => onDelete(String(project.data?.id))}
-        >
-          Poista hanke
-        </Button>
+        {project.data && (
+          <Button
+            sx={{ mt: '1rem' }}
+            variant="contained"
+            color="error"
+            onClick={() => onDelete(String(project.data?.id))}
+          >
+            {tr('projectDelete.delete')}
+          </Button>
+        )}
       </Paper>
 
       <Paper elevation={2} css={mapContainerStyle}>
