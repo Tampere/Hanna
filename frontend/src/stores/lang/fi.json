@@ -1,4 +1,5 @@
 {
+  "language": "suomi",
   "loading": "Ladataan...",
   "date.format": "DD.MM.YYYY",
   "pages.projectsTitle": "Hankkeet",
@@ -35,5 +36,7 @@
   "projectForm.undoBtnLabel": "Peruuta muutokset",
   "map.layerdrawer.open": "Avaa karttatasovalikko",
   "map.layerdrawer.close": "Sulje karttatasovalikko",
-  "profile.logout": "Kirjaudu ulos"
+  "profile.logout": "Kirjaudu ulos",
+  "select.noOptions": "Ei tuloksia",
+  "select.selections": "valintaa"
 }

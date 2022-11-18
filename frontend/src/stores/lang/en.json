@@ -1,4 +1,5 @@
 {
+  "language": "English",
   "loading": "Loading...",
   "date.format": "DD/MM/YYYY",
   "pages.projectsTitle": "Projects",
@@ -35,5 +36,7 @@
   "projectForm.undoBtnLabel": "Undo changes",
   "map.layerdrawer.open": "Open layer drawer",
   "map.layerdrawer.close": "Close layer drawer",
-  "profile.logout": "Logout"
+  "profile.logout": "Logout",
+  "select.noOptions": "No options",
+  "select.selections": "selections"
 }

@@ -13,10 +13,12 @@ import {
   Typography,
 } from '@mui/material';
 import dayjs from 'dayjs';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
+import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { DbProject } from '@shared/schema/project';
@@ -59,6 +61,9 @@ const searchControlContainerStyle = css`
 function SearchControls() {
   const tr = useTranslations();
 
+  // TODO store project search state as atoms
+  const [projectTypes, setProjectTypes] = useState<string[]>([]);
+
   return (
     <Paper elevation={1} css={searchControlContainerStyle}>
       <FormControl>
@@ -67,7 +72,12 @@ function SearchControls() {
       </FormControl>
       <FormControl>
         <FormLabel>{tr('project.projectTypeLabel')}</FormLabel>
-        <Select disabled size="small"></Select>
+        <CodeSelect
+          codeListId="Hanketyyppi"
+          multiple
+          value={projectTypes}
+          onChange={setProjectTypes}
+        />
       </FormControl>
       <FormControl>
         <FormLabel>{tr('project.lifecycleStateLabel')}</FormLabel>
