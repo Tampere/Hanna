@@ -7,7 +7,7 @@ import { TRPC } from '@backend/router';
 import {
   UpsertProject,
   dbProjectSchema,
-  projectGetSchema,
+  projectIdSchema,
   projectSearchSchema,
   updateGeometryResultSchema,
   updateGeometrySchema,
@@ -22,19 +22,30 @@ const selectProjectFragment = sql.fragment`
     start_date AS "startDate",
     end_date AS "endDate"
   FROM app.project
+  WHERE deleted = false
 `;
 
 async function getProject(id: string) {
   return getPool().one(sql.type(dbProjectSchema)`
     ${selectProjectFragment}
+    AND id = ${id}
+  `);
+}
+
+async function deleteProject(id: string) {
+  return getPool().one(sql.type(projectIdSchema)`
+    UPDATE app.project
+    SET
+      deleted = true
     WHERE id = ${id}
+    RETURNING id
   `);
 }
 
 async function upsertProject(project: UpsertProject) {
   const { id, projectName, description, startDate, endDate } = project;
   if (id) {
-    return getPool().one(sql.type(projectGetSchema)`
+    return getPool().one(sql.type(projectIdSchema)`
       UPDATE app.project
       SET
         project_name = ${projectName},
@@ -46,7 +57,7 @@ async function upsertProject(project: UpsertProject) {
     `);
   } else {
     return getPool().one(
-      sql.type(projectGetSchema)`
+      sql.type(projectIdSchema)`
         INSERT INTO app.project (project_name, description, start_date, end_date)
         VALUES (${projectName}, ${description}, ${startDate}, ${endDate})
         RETURNING id
@@ -69,9 +80,14 @@ export const createProjectRouter = (t: TRPC) =>
       return getProject(result.id);
     }),
 
-    get: t.procedure.input(projectGetSchema).query(async ({ input }) => {
+    get: t.procedure.input(projectIdSchema).query(async ({ input }) => {
       const { id } = input;
       return getProject(id);
+    }),
+
+    delete: t.procedure.input(projectIdSchema).mutation(async ({ input }) => {
+      const { id } = input;
+      return await deleteProject(id);
     }),
 
     updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input }) => {

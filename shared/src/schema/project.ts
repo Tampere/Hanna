@@ -18,7 +18,7 @@ export const dbProjectSchema = upsertProjectSchema.extend({
   id: z.string(),
 });
 
-export const projectGetSchema = z.object({
+export const projectIdSchema = z.object({
   id: z.string(),
 });
 
