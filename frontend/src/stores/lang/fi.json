@@ -19,6 +19,7 @@
   "project.financingTypeLabel": "Rahoitusmalli",
   "project.committeeLabel": "Lautakunta",
   "project.ownerLabel": "Omistaja",
+  "project.notFound": "Hanketta ei löytynyt",
   "newProject.formTitle": "Uusi hanke",
   "newProject.projectNameTooltip": "Syötä hankkeelle nimi",
   "newProject.descriptionTooltip": "Syötä hankkeelle kuvaus",

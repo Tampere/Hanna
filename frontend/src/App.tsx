@@ -42,7 +42,9 @@ const router = createBrowserRouter(
 );
 
 export function App() {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(
+    () => new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  );
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [httpLink({ url: '/trpc' })],

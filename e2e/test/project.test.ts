@@ -47,7 +47,7 @@ test.describe('Projects', () => {
     const project = {
       name: 'Tuhottava hanke',
       description: 'Testikuvaus',
-      startDate: '1.12.2022',
+      startDate: '01.12.2022',
       endDate: '31.12.2022',
     };
 
@@ -69,17 +69,13 @@ test.describe('Projects', () => {
     await expect(page).toHaveURL(/https:\/\/localhost:1443\/hanke\/[0-9a-f-]+/);
     const projectId = page.url().split('/').at(-1);
 
-    // Go back to the front page
-    await page.getByRole('link', { name: 'Hankkeet' }).click();
+    // Delete the project
+    await page.getByRole('button', { name: 'Poista hanke' }).click();
+    await page.getByRole('button', { name: 'Poista' }).click();
     await expect(page).toHaveURL('https://localhost:1443/hankkeet');
 
-    // Click on the new project button to go back to the project page
-    await page.locator(`text=${project.name}`).click();
-    await expect(page).toHaveURL(`https://localhost:1443/hanke/${projectId}`);
-
-    // Delete the project
-
-    // Go back to the front page and check that deleted project isn't on the project list anymore
-    await page.getByRole('link', { name: 'Hankkeet' }).click();
+    // Expect the project page to not exist anymore
+    await page.goto(`https://localhost:1443/hanke/${projectId}`);
+    await expect(page.getByText('Hanketta ei löytynyt')).toBeVisible();
   });
 });

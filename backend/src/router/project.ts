@@ -1,3 +1,4 @@
+import { TRPCError } from '@trpc/server';
 import { sql } from 'slonik';
 import { z } from 'zod';
 
@@ -26,10 +27,14 @@ const selectProjectFragment = sql.fragment`
 `;
 
 async function getProject(id: string) {
-  return getPool().one(sql.type(dbProjectSchema)`
+  const project = await getPool().maybeOne(sql.type(dbProjectSchema)`
     ${selectProjectFragment}
     AND id = ${id}
   `);
+
+  if (!project) throw new TRPCError({ code: 'NOT_FOUND' });
+
+  return project;
 }
 
 async function deleteProject(id: string) {

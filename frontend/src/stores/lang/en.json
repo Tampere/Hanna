@@ -19,6 +19,7 @@
   "project.financingTypeLabel": "Financing type",
   "project.committeeLabel": "Committee",
   "project.ownerLabel": "Owner",
+  "project.notFound": "Project now found",
   "newProject.formTitle": "New Project",
   "newProject.projectNameTooltip": "Enter name for new project",
   "newProject.descriptionTooltip": "Enter description for new project",

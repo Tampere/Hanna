@@ -40,8 +40,12 @@ export function Project() {
     { enabled: Boolean(projectId), queryKey: ['project.get', { id: projectId }] }
   );
 
-  if (projectId && !project.data) {
+  if (projectId && project.isLoading) {
     return <Typography>{tr('loading')}</Typography>;
+  }
+
+  if (project.isError && project.error.data?.code === 'NOT_FOUND') {
+    return <Typography>{tr('project.notFound')}</Typography>;
   }
 
   return (
