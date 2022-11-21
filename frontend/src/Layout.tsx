@@ -1,5 +1,4 @@
 import { css } from '@emotion/react';
-import { Logout } from '@mui/icons-material';
 import AccountCircleOutlined from '@mui/icons-material/AccountCircleOutlined';
 import AccountTreeOutlined from '@mui/icons-material/AccountTreeOutlined';
 import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
@@ -11,12 +10,10 @@ import {
   IconButton,
   ThemeProvider,
   Toolbar,
-  Tooltip,
   Typography,
   createTheme,
 } from '@mui/material';
 import { useAtom } from 'jotai';
-import React from 'react';
 import { Link, Outlet } from 'react-router-dom';
 
 import { useTranslations } from '@frontend/stores/lang';

@@ -21,11 +21,6 @@ test.describe('Project endpoints', () => {
     await login(page);
   });
 
-  test('project search', async () => {
-    const result = await client.project.search.query({ text: '' });
-    expect(result).toBeDefined();
-  });
-
   test('project geometry edit', async () => {
     const project = await client.project.upsert.mutate({
       projectName: 'Test project',

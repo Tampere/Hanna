@@ -1,12 +1,14 @@
 {
   "language": "suomi",
   "loading": "Ladataan...",
+  "unknownError": "Tunnistamaton virhe",
   "date.format": "DD.MM.YYYY",
   "pages.projectsTitle": "Hankkeet",
   "newProject.btnLabel": "Luo uusi hanke",
   "projectSearch.textSearchLabel": "Haku",
   "projectSearch.textSearchTip": "Hae...",
   "projectSearch.showMoreBtnLabel": "Näytä lisää hakuehtoja",
+  "projectSearch.showLessBtnLabel": "Näytä vähemmän hakuehtoja",
   "projectSearch.noResults": "Ei hakutuloksia",
   "projectListing.searchResultsTitle": "Hakutulokset",
   "project.projectNameLabel": "Hankkeen nimi",
@@ -60,5 +62,8 @@
   "mapEdit.selectFeatureTooltip": "Valitse alue",
   "mapEdit.tracedFeatureTooltip": "Jäljitä valittuja alueita",
   "mapEdit.editFeatureTooltip": "Muokkaa valittuja alueita",
-  "mapEdit.removeFeatureTooltip": "Poista valitut alueet"
+  "mapEdit.removeFeatureTooltip": "Poista valitut alueet",
+  "errorPage.error": "Virhe",
+  "errorPage.warning": "Varoitus",
+  "errorPage.navigateBack": "Palaa takaisin"
 }

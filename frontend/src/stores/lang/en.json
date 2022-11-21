@@ -1,12 +1,14 @@
 {
   "language": "English",
   "loading": "Loading...",
+  "unknownError": "Unknown error",
   "date.format": "DD/MM/YYYY",
   "pages.projectsTitle": "Projects",
   "newProject.btnLabel": "Create new project",
   "projectSearch.textSearchLabel": "Search",
   "projectSearch.textSearchTip": "Search term...",
   "projectSearch.showMoreBtnLabel": "Show more filters",
+  "projectSearch.showLessBtnLabel": "Show less filters",
   "projectSearch.noResults": "No results",
   "projectListing.searchResultsTitle": "Search results",
   "project.projectNameLabel": "Project name",
@@ -19,7 +21,7 @@
   "project.financingTypeLabel": "Financing type",
   "project.committeeLabel": "Committee",
   "project.ownerLabel": "Owner",
-  "project.notFound": "Project now found",
+  "project.notFound": "Project not found",
   "newProject.formTitle": "New Project",
   "newProject.projectNameTooltip": "Enter name for new project",
   "newProject.descriptionTooltip": "Enter description for new project",
@@ -60,5 +62,8 @@
   "mapEdit.selectFeatureTooltip": "Select area(s)",
   "mapEdit.tracedFeatureTooltip": "Trace selected areas",
   "mapEdit.editFeatureTooltip": "Edit selected areas",
-  "mapEdit.removeFeatureTooltip": "Remove selected areas"
+  "mapEdit.removeFeatureTooltip": "Remove selected areas",
+  "errorPage.error": "Error",
+  "errorPage.warning": "Warning",
+  "errorPage.navigateBack": "Go back"
 }

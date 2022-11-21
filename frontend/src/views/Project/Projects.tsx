@@ -1,27 +1,18 @@
 import { css } from '@emotion/react';
-import { AddCircle, NavigateNext, UnfoldMore } from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Card,
-  CardActionArea,
-  FormControl,
-  FormLabel,
-  Paper,
-  Select,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { AddCircle, NavigateNext } from '@mui/icons-material';
+import { Box, Button, Card, CardActionArea, Paper, Typography } from '@mui/material';
 import dayjs from 'dayjs';
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
-import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { useTranslations } from '@frontend/stores/lang';
+import { getProjectSearchParams } from '@frontend/stores/search/project';
+import { useDebounce } from '@frontend/utils/useDebounce';
 
 import { DbProject } from '@shared/schema/project';
+
+import { SearchControls } from './SearchControls';
 
 const toolbarContainerStyle = css`
   padding: 16px;
@@ -48,71 +39,6 @@ function Toolbar() {
         </Button>
       </div>
     </Box>
-  );
-}
-
-const searchControlContainerStyle = css`
-  padding: 16px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-`;
-
-function SearchControls() {
-  const tr = useTranslations();
-
-  // TODO store project search state as atoms
-  const [projectTypes, setProjectTypes] = useState<string[]>([]);
-
-  return (
-    <Paper elevation={1} css={searchControlContainerStyle}>
-      <FormControl>
-        <FormLabel htmlFor="text-search">{tr('projectSearch.textSearchLabel')}</FormLabel>
-        <TextField id="text-search" size="small" placeholder={tr('projectSearch.textSearchTip')} />
-      </FormControl>
-      <FormControl>
-        <FormLabel>{tr('project.projectTypeLabel')}</FormLabel>
-        <CodeSelect
-          codeListId="Hanketyyppi"
-          multiple
-          value={projectTypes}
-          onChange={setProjectTypes}
-        />
-      </FormControl>
-      <FormControl>
-        <FormLabel>{tr('project.lifecycleStateLabel')}</FormLabel>
-        <Select disabled size="small"></Select>
-      </FormControl>
-      <FormControl>
-        <FormLabel>{tr('project.budgetLabel')}</FormLabel>
-        <Select disabled size="small"></Select>
-      </FormControl>
-      <Box sx={{ display: 'flex' }}>
-        <FormControl>
-          <FormLabel>{tr('project.startDateLabel')}</FormLabel>
-          <TextField disabled type="date" size="small" fullWidth />
-        </FormControl>
-        <FormControl sx={{ ml: 2 }}>
-          <FormLabel>{tr('project.endDateLabel')}</FormLabel>
-          <TextField disabled type="date" size="small" fullWidth />
-        </FormControl>
-      </Box>
-      <FormControl>
-        <FormLabel>{tr('project.financingTypeLabel')}</FormLabel>
-        <Select disabled size="small"></Select>
-      </FormControl>
-      <FormControl>
-        <FormLabel>{tr('project.committeeLabel')}</FormLabel>
-        <Select disabled size="small"></Select>
-      </FormControl>
-      <FormControl>
-        <FormLabel>{tr('project.ownerLabel')}</FormLabel>
-        <Select disabled size="small"></Select>
-      </FormControl>
-      <Button disabled size="small" sx={{ gridColumnStart: 4 }} endIcon={<UnfoldMore />}>
-        {tr('projectSearch.showMoreBtnLabel')}
-      </Button>
-    </Paper>
   );
 }
 
@@ -191,7 +117,11 @@ const resultsContainerStyle = css`
 
 function ProjectResults() {
   const tr = useTranslations();
-  const projects = trpc.project.search.useQuery({});
+  const projectSearchParams = getProjectSearchParams();
+  const projects = trpc.project.search.useQuery({
+    ...projectSearchParams,
+    text: useDebounce(projectSearchParams.text, 250),
+  });
   return projects.data ? (
     <div css={resultsContainerStyle}>
       <SearchResults results={projects.data} />

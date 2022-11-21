@@ -69,3 +69,5 @@ export async function retry<T>(
 export async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+export const isoDateStringRegex = /\d{4}-\d{2}-\d{2}/;

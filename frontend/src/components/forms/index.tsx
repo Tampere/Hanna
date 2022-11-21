@@ -1,13 +1,10 @@
 import { css } from '@emotion/react';
 import { Help } from '@mui/icons-material';
-import { FormControl, FormLabel, TextField, Tooltip } from '@mui/material';
-import { DesktopDatePicker, LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs, { Dayjs } from 'dayjs';
+import { FormControl, FormLabel, Tooltip } from '@mui/material';
 import React, { useState } from 'react';
 import { Controller, ControllerRenderProps, FieldValues, useFormContext } from 'react-hook-form';
 
-import { useTranslations } from '@frontend/stores/lang';
+import { DatePicker } from './DatePicker';
 
 interface CustomFormLabelProps {
   label: string;
@@ -73,36 +70,13 @@ interface FormDatePickerProps {
   readOnly?: boolean;
 }
 export function FormDatePicker({ field, readOnly }: FormDatePickerProps) {
-  const tr = useTranslations();
-  const readonlyProps = {
-    variant: 'filled',
-    hiddenLabel: true,
-    InputProps: { readOnly: true },
-  } as const;
-
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <DesktopDatePicker<Dayjs>
-        readOnly={readOnly}
-        /**
-         * Chrome interprets unfinished date strings as valid (e.g. new Date("1") resolves to 2001-01-01) and this
-         * breaks the date picker's keyboard input.
-         *
-         * However, when the underlying input's onChange callback is overridden, the Chrome's faulty date parsing doesn't seem to get called
-         * and everything works just fine.
-         */
-        InputProps={{
-          onChange: () => null,
-        }}
-        inputFormat={tr('date.format')}
-        value={field.value ? dayjs(field.value, 'YYYY-MM-DD') : null}
-        onChange={(val) => field.onChange(val?.format('YYYY-MM-DD') ?? null)}
-        onAccept={(val) => field.onChange(val?.format('YYYY-MM-DD') ?? null)}
-        onClose={field.onBlur}
-        renderInput={(props) => {
-          return <TextField {...(readOnly && readonlyProps)} {...field} {...props} size="small" />;
-        }}
-      />
-    </LocalizationProvider>
+    <DatePicker
+      InputProps={{ name: field.name }}
+      value={field.value}
+      onChange={(value) => field.onChange(value)}
+      onClose={field.onBlur}
+      readOnly={readOnly}
+    />
   );
 }
