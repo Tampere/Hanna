@@ -39,4 +39,13 @@ test.describe('Project endpoints', () => {
     expect(edit.id).toBe(project.id);
     expect(JSON.parse(edit.geometry)).toStrictEqual(point);
   });
+
+  test('delete project(s)', async () => {
+    let projects = await client.project.search.query({ text: '' });
+    expect(projects.length).toBeDefined();
+
+    await Promise.all(projects.map((project) => client.project.delete.mutate({ id: project.id })));
+    projects = await client.project.search.query({ text: '' });
+    expect(projects.length).toEqual(0);
+  });
 });
