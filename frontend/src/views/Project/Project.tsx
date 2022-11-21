@@ -1,21 +1,14 @@
 import { css } from '@emotion/react';
 import { ExpandMore } from '@mui/icons-material';
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Button,
-  Paper,
-  Typography,
-} from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Paper, Typography } from '@mui/material';
 import React from 'react';
-import { useLoaderData, useNavigate } from 'react-router';
+import { useLoaderData } from 'react-router';
 
 import { trpc } from '@frontend/client';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
-import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
+import { DeleteProjectDialog } from './DeleteProjectDialog';
 import { ProjectForm } from './ProjectForm';
 
 const pageStyle = css`
@@ -39,8 +32,6 @@ const accordionSummaryStyle = css`
 
 export function Project() {
   const tr = useTranslations();
-  const navigate = useNavigate();
-  const notify = useNotifications();
 
   const routeParams = useLoaderData() as { projectId: string };
   const projectId = routeParams?.projectId;
@@ -48,25 +39,6 @@ export function Project() {
     { id: projectId },
     { enabled: Boolean(projectId), queryKey: ['project.get', { id: projectId }] }
   );
-
-  const projectDeleteMutation = trpc.project.delete.useMutation({
-    onSuccess: () => {
-      navigate(`/hankkeet`);
-      notify({
-        severity: 'success',
-        title: tr('projectDelete.notifyDelete'),
-        duration: 5000,
-      });
-    },
-    onError: () => {
-      notify({
-        severity: 'error',
-        title: tr('projectDelete.notifyDeleteFailed'),
-      });
-    },
-  });
-
-  const onDelete = async (id: string) => projectDeleteMutation.mutate({ id });
 
   if (projectId && !project.data) {
     return <Typography>{tr('loading')}</Typography>;
@@ -104,16 +76,7 @@ export function Project() {
             <Typography variant="overline">{tr('newProject.decisionsSectionTitle')}</Typography>
           </AccordionSummary>
         </Accordion>
-        {project.data && (
-          <Button
-            sx={{ mt: '1rem' }}
-            variant="contained"
-            color="error"
-            onClick={() => onDelete(String(project.data?.id))}
-          >
-            {tr('projectDelete.delete')}
-          </Button>
-        )}
+        {project.data && <DeleteProjectDialog projectId={project.data.id} />}
       </Paper>
 
       <Paper elevation={2} css={mapContainerStyle}>

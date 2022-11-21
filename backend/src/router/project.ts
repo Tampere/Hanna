@@ -33,12 +33,11 @@ async function getProject(id: string) {
 }
 
 async function deleteProject(id: string) {
-  return getPool().one(sql.type(projectIdSchema)`
+  return getPool().any(sql.type(projectIdSchema)`
     UPDATE app.project
     SET
       deleted = true
     WHERE id = ${id}
-    RETURNING id
   `);
 }
 

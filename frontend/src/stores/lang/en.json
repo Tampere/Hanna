@@ -37,9 +37,13 @@
   "projectDelete.delete": "Delete project",
   "projectDelete.notifyDelete": "Project deleted",
   "projectDelete.notifyDeleteFailed": "Failed to delete the project",
+  "deleteProjectDialog.title": "Remove project",
+  "deleteProjectDialog.content": "You are about to delete the project. Notice, that by removing the project you will lose access to the project's information, for example information to sites and jobs under the project. Are you sure you want to remove the project?",
   "map.layerdrawer.open": "Open layer drawer",
   "map.layerdrawer.close": "Close layer drawer",
   "profile.logout": "Logout",
   "select.noOptions": "No options",
-  "select.selections": "selections"
+  "select.selections": "selections",
+  "delete": "Poista",
+  "cancel": "Peruuta"
 }

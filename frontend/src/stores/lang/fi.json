@@ -37,9 +37,13 @@
   "projectDelete.delete": "Poista hanke",
   "projectDelete.notifyDelete": "Hanke poistettu",
   "projectDelete.notifyDeleteFailed": "Hankkeen poisto epäonnistui",
+  "deleteProjectDialog.title": "Hankkeen poistaminen",
+  "deleteProjectDialog.content": "Olet poistamassa hanketta. Huomaa, että poistamalla hankkeen poistat myös pääsyn hankkeen muihin tietoihin, kuten hankkeesseen liittyviin kohteisiin sekä tehtäviin. Haluatko varmasti poistaa hankkeen?",
   "map.layerdrawer.open": "Avaa karttatasovalikko",
   "map.layerdrawer.close": "Sulje karttatasovalikko",
   "profile.logout": "Kirjaudu ulos",
   "select.noOptions": "Ei tuloksia",
-  "select.selections": "valintaa"
+  "select.selections": "valintaa",
+  "delete": "Poista",
+  "cancel": "Peruuta"
 }
