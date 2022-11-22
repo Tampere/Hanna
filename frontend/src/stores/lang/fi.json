@@ -19,6 +19,7 @@
   "project.financingTypeLabel": "Rahoitusmalli",
   "project.committeeLabel": "Lautakunta",
   "project.ownerLabel": "Omistaja",
+  "project.notFound": "Hanketta ei löytynyt",
   "newProject.formTitle": "Uusi hanke",
   "newProject.projectNameTooltip": "Syötä hankkeelle nimi",
   "newProject.descriptionTooltip": "Syötä hankkeelle kuvaus",
@@ -34,9 +35,16 @@
   "projectForm.saveBtnLabel": "Tallenna",
   "projectForm.editBtnLabel": "Muokkaa",
   "projectForm.undoBtnLabel": "Peruuta muutokset",
+  "projectDelete.delete": "Poista hanke",
+  "projectDelete.notifyDelete": "Hanke poistettu",
+  "projectDelete.notifyDeleteFailed": "Hankkeen poisto epäonnistui",
+  "deleteProjectDialog.title": "Hankkeen poistaminen",
+  "deleteProjectDialog.content": "Olet poistamassa hanketta. Huomaa, että poistamalla hankkeen poistat myös pääsyn hankkeen muihin tietoihin, kuten hankkeesseen liittyviin kohteisiin sekä tehtäviin. Haluatko varmasti poistaa hankkeen?",
   "map.layerdrawer.open": "Avaa karttatasovalikko",
   "map.layerdrawer.close": "Sulje karttatasovalikko",
   "profile.logout": "Kirjaudu ulos",
   "select.noOptions": "Ei tuloksia",
-  "select.selections": "valintaa"
+  "select.selections": "valintaa",
+  "delete": "Poista",
+  "cancel": "Peruuta"
 }

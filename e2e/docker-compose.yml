@@ -52,7 +52,6 @@ services:
       POSTGRES_PASSWORD: DevPassword
       POSTGRES_DB: app_dev_db
     volumes:
-      - db-volume:/var/lib/postgresql/data
       - ../docker/db/init/20-init.sql:/docker-entrypoint-initdb.d/20-init.sql
     healthcheck:
       test: psql -U app_user_dev -d app_dev_db -c "SELECT 1"
@@ -66,6 +65,3 @@ services:
     volumes:
       - ../docker/proxy/Caddyfile:/etc/caddy/Caddyfile
       - ../docker/proxy/data:/data
-
-volumes:
-  db-volume:

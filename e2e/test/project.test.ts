@@ -42,4 +42,40 @@ test.describe('Projects', () => {
     await expect(page.locator('input[name="startDate"]')).toHaveValue(project.startDate);
     await expect(page.locator('input[name="endDate"]')).toHaveValue(project.endDate);
   });
+
+  test('Delete project', async ({ page }) => {
+    const project = {
+      name: 'Tuhottava hanke',
+      description: 'Testikuvaus',
+      startDate: '01.12.2022',
+      endDate: '31.12.2022',
+    };
+
+    await login(page);
+
+    // Go to the new project page
+    await page.getByRole('link', { name: 'Luo uusi hanke' }).click();
+    await expect(page).toHaveURL('https://localhost:1443/hanke/luo');
+
+    // Fill in the project data and save the project
+    await page.locator('input[name="projectName"]').fill(project.name);
+    await page.locator('textarea[name="description"]').fill(project.description);
+    await page.locator('input[name="startDate"]').fill(project.startDate);
+    await page.locator('input[name="endDate"]').fill(project.endDate);
+
+    await page.getByRole('button', { name: 'Lisää hanke' }).click();
+
+    // URL should include the newly created project ID, parse it from the URL
+    await expect(page).toHaveURL(/https:\/\/localhost:1443\/hanke\/[0-9a-f-]+/);
+    const projectId = page.url().split('/').at(-1);
+
+    // Delete the project
+    await page.getByRole('button', { name: 'Poista hanke' }).click();
+    await page.getByRole('button', { name: 'Poista' }).click();
+    await expect(page).toHaveURL('https://localhost:1443/hankkeet');
+
+    // Expect the project page to not exist anymore
+    await page.goto(`https://localhost:1443/hanke/${projectId}`);
+    await expect(page.getByText('Hanketta ei löytynyt')).toBeVisible();
+  });
 });
