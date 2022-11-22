@@ -9,6 +9,7 @@ import {
   UpsertProject,
   dbProjectSchema,
   projectIdSchema,
+  projectRelationsSchema,
   projectSearchSchema,
   updateGeometryResultSchema,
   updateGeometrySchema,
@@ -103,6 +104,52 @@ function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
   `;
 }
 
+async function getRelatedProjects(id: string) {
+  return getPool().one(sql.type(projectRelationsSchema)`WITH relations AS (
+    (SELECT
+      'child' AS relation,
+      target_project_id AS "projectId"
+      FROM app.project_relation
+      WHERE project_id = ${id} AND relation_type = 'is_parent_of')
+    UNION
+    (SELECT
+      'related' AS relation,
+      target_project_id AS "projectId"
+      FROM app.project_relation
+      WHERE project_id = ${id} AND relation_type = 'relates_to')
+    UNION
+    (SELECT
+      'related' AS relation,
+      project_id AS "projectId"
+      FROM app.project_relation
+      WHERE target_project_id = ${id} AND relation_type = 'relates_to')
+    UNION
+    (SELECT
+      'parent' AS relation,
+      project_id AS "projectId"
+      FROM app.project_relation
+      WHERE target_project_id = ${id} AND relation_type = 'is_parent_of')
+  ),
+
+  related_projects AS (
+    SELECT
+      relation,
+      id AS "projectId",
+      project_name AS "projectName"
+    FROM relations
+    LEFT JOIN app.project ON "projectId" = project.id
+    WHERE deleted = false
+  )
+
+  SELECT
+    jsonb_build_object(
+      'children', json_agg(related_projects) FILTER (WHERE relation = 'child'),
+      'parents', json_agg(related_projects) FILTER (WHERE relation = 'parent'),
+      'related', json_agg(related_projects) FILTER (WHERE relation = 'related')
+    ) AS relations
+  FROM related_projects`);
+}
+
 export const createProjectRouter = (t: TRPC) =>
   t.router({
     search: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
@@ -122,6 +169,11 @@ export const createProjectRouter = (t: TRPC) =>
     get: t.procedure.input(projectIdSchema).query(async ({ input }) => {
       const { id } = input;
       return getProject(id);
+    }),
+
+    getRelations: t.procedure.input(projectIdSchema).query(async ({ input }) => {
+      const { id } = input;
+      return getRelatedProjects(id);
     }),
 
     delete: t.procedure.input(projectIdSchema).mutation(async ({ input }) => {

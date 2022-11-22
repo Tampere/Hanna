@@ -59,6 +59,11 @@ export function Project() {
     },
   });
 
+  const relations = trpc.project.getRelations.useQuery(
+    { id: projectId },
+    { enabled: Boolean(projectId), queryKey: ['project.getRelations', { id: projectId }] }
+  );
+
   if (projectId && project.isLoading) {
     return <Typography>{tr('loading')}</Typography>;
   }
