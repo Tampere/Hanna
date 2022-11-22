@@ -11,6 +11,8 @@ import {
 import { Box, Divider, IconButton, Tooltip } from '@mui/material';
 import { useState } from 'react';
 
+import { TranslationKey, useTranslations } from '@frontend/stores/lang';
+
 const toolsContainerStyle = css`
   position: absolute;
   display: flex;
@@ -51,7 +53,7 @@ export type ToolType =
 interface Tool {
   type: ToolType;
   icon: JSX.Element;
-  tooltip: string;
+  tooltip: TranslationKey;
   color?: 'primary' | 'secondary';
 }
 
@@ -59,28 +61,28 @@ const tools: readonly Tool[] = [
   {
     type: 'newFeature',
     icon: <PentagonTwoTone />,
-    tooltip: 'Lisää alue',
+    tooltip: 'mapEdit.newFeatureTooltip',
   },
   {
     type: 'selectFeature',
     icon: <PanToolAltTwoTone />,
-    tooltip: 'Valitse geometria',
+    tooltip: 'mapEdit.selectFeatureTooltip',
   },
   {
     type: 'tracedFeature',
     icon: <RoundedCornerTwoTone />,
-    tooltip: 'Lisää vierekkäinen geometria',
+    tooltip: 'mapEdit.tracedFeatureTooltip',
   },
   {
     type: 'editFeature',
     icon: <EditTwoTone />,
-    tooltip: 'Muokkaa geometriaa',
+    tooltip: 'mapEdit.editFeatureTooltip',
   },
   {
     type: 'deleteFeature',
     icon: <DeleteForeverTwoTone />,
     color: 'secondary',
-    tooltip: 'Poista geometria',
+    tooltip: 'mapEdit.removeFeatureTooltip',
   },
 ] as const;
 
@@ -91,6 +93,7 @@ interface Props {
 }
 
 export function MapToolbar(props: Props) {
+  const tr = useTranslations();
   const [selectedTool, setSelectedTool] = useState<ToolType | null>(null);
 
   function handleToolClick(tool: ToolType | null) {
@@ -101,7 +104,7 @@ export function MapToolbar(props: Props) {
   return (
     <Box css={toolsContainerStyle}>
       {tools.map((tool) => (
-        <Tooltip placement="left" key={tool.type} title={tool.tooltip}>
+        <Tooltip placement="left" key={tool.type} title={tr(tool.tooltip)}>
           <IconButton
             css={selectedTool === tool.type ? selectedToolStyle : toolBtnStyle}
             color={tool?.color || 'primary'}

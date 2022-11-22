@@ -53,5 +53,12 @@
   "vectorLayer.title.rakennukset": "Rakennukset",
   "vectorLayer.title.kiinteistot": "Kiinteistöt",
   "project.notifyGeometryUpdateTitle": "Alue päivitetty",
-  "project.notifyGeometryUpdateFailedTitle": "Alueen päivitys epäonnistui"
+  "project.notifyGeometryUpdateFailedTitle": "Alueen päivitys epäonnistui",
+  "mapEdit.undoTooltip": "Peruuta muutokset",
+  "mapEdit.saveTooltip": "Tallenna muutokset",
+  "mapEdit.newFeatureTooltip": "Luo alue",
+  "mapEdit.selectFeatureTooltip": "Valitse alue",
+  "mapEdit.tracedFeatureTooltip": "Jäljitä valittuja alueita",
+  "mapEdit.editFeatureTooltip": "Muokkaa valittuja alueita",
+  "mapEdit.removeFeatureTooltip": "Poista valitut alueet"
 }

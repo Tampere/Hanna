@@ -53,5 +53,12 @@
   "vectorLayer.title.rakennukset": "Buildings",
   "vectorLayer.title.kiinteistot": "Properties",
   "project.notifyGeometryUpdateTitle": "Project area updated",
-  "project.notifyGeometryUpdateFailedTitle": "Area update failed"
+  "project.notifyGeometryUpdateFailedTitle": "Area update failed",
+  "mapEdit.undoTooltip": "Undo changes",
+  "mapEdit.saveTooltip": "Save changes",
+  "mapEdit.newFeatureTooltip": "Create a new area",
+  "mapEdit.selectFeatureTooltip": "Select area(s)",
+  "mapEdit.tracedFeatureTooltip": "Trace selected areas",
+  "mapEdit.editFeatureTooltip": "Edit selected areas",
+  "mapEdit.removeFeatureTooltip": "Remove selected areas"
 }
