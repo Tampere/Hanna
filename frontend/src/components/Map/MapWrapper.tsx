@@ -6,13 +6,13 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { MapToolbar, ToolType } from '@frontend/components/Map/MapToolbar';
 import {
+  addFeaturesFromGeoJson,
   createDrawInteraction,
   createDrawLayer,
   createModifyInteraction,
   createSelectInteraction,
   createSelectionLayer,
   deleteSelectedFeatures,
-  featuresFromGeoJSON,
   getGeoJSONFeaturesString,
 } from '@frontend/components/Map/mapInteractions';
 import { baseLayerIdAtom, selectedVectorLayersAtom } from '@frontend/stores/map';
@@ -30,6 +30,9 @@ interface Props {
 }
 
 export function MapWrapper({ geoJson, onFeaturesSaved, editable }: Props) {
+  const [dirty, setDirty] = useState(false);
+  const [featuresSelected, setFeaturesSelected] = useState(false);
+
   const [projection] = useState(() =>
     getMapProjection(
       mapOptions.projection.code,
@@ -64,16 +67,24 @@ export function MapWrapper({ geoJson, onFeaturesSaved, editable }: Props) {
 
   const selectionSource = useMemo(() => new VectorSource({ wrapX: false }), []);
   const selectionLayer = useMemo(() => createSelectionLayer(selectionSource), []);
-  const registerSelectInteraction = useMemo(() => createSelectInteraction(selectionSource), []);
-  const registerModifyInteraction = useMemo(() => createModifyInteraction(selectionSource), []);
+  const registerSelectInteraction = useMemo(
+    () =>
+      createSelectInteraction({
+        source: selectionSource,
+        onSelectionChanged(features) {
+          setFeaturesSelected(features.length > 0);
+        },
+      }),
+    []
+  );
+  const registerModifyInteraction = useMemo(
+    () => createModifyInteraction({ source: selectionSource, onModifyEnd: () => setDirty(true) }),
+    []
+  );
 
   const drawSource = useMemo(() => {
-    const opts = { wrapX: true };
-    const features = geoJson ? featuresFromGeoJSON(geoJson) : [];
-    const source = new VectorSource({ ...opts });
-    for (const feature of features) {
-      source.addFeature(feature);
-    }
+    const source = new VectorSource({ wrapX: false });
+    addFeaturesFromGeoJson(source, geoJson);
     return source;
   }, [geoJson]);
 
@@ -84,6 +95,9 @@ export function MapWrapper({ geoJson, onFeaturesSaved, editable }: Props) {
         source: drawSource,
         trace: selectedTool === 'tracedFeature',
         traceSource: selectionSource,
+        onDrawEnd: () => {
+          setDirty(true);
+        },
       }),
     [selectedTool]
   );
@@ -100,9 +114,10 @@ export function MapWrapper({ geoJson, onFeaturesSaved, editable }: Props) {
         setInteractions([registerDrawInteraction]);
         break;
       case 'editFeature':
-        setInteractions([registerSelectInteraction, registerModifyInteraction]);
+        setInteractions([registerModifyInteraction]);
         break;
       case 'deleteFeature':
+        setDirty(true);
         deleteSelectedFeatures(drawSource, selectionSource);
         break;
       default:
@@ -152,6 +167,11 @@ export function MapWrapper({ geoJson, onFeaturesSaved, editable }: Props) {
       <LayerDrawer />
       {editable && (
         <MapToolbar
+          toolsDisabled={{
+            tracedFeature: !featuresSelected,
+            editFeature: !featuresSelected,
+            deleteFeature: !featuresSelected,
+          }}
           onToolChange={(tool) => setSelectedTool(tool)}
           onSaveClick={() =>
             onFeaturesSaved?.(
@@ -161,7 +181,13 @@ export function MapWrapper({ geoJson, onFeaturesSaved, editable }: Props) {
               )
             )
           }
-          onUndoClick={() => console.log('Undo callback')}
+          saveDisabled={!dirty}
+          onUndoClick={() => {
+            selectionSource.clear();
+            setDirty(false);
+            addFeaturesFromGeoJson(drawSource, geoJson);
+          }}
+          undoDisabled={!dirty}
         />
       )}
     </Map>

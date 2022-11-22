@@ -87,9 +87,12 @@ const tools: readonly Tool[] = [
 ] as const;
 
 interface Props {
+  toolsDisabled: Partial<Record<ToolType, boolean>>;
   onToolChange: (tool: ToolType | null) => void;
   onSaveClick: () => void;
   onUndoClick: () => void;
+  saveDisabled?: boolean;
+  undoDisabled?: boolean;
 }
 
 export function MapToolbar(props: Props) {
@@ -106,6 +109,7 @@ export function MapToolbar(props: Props) {
       {tools.map((tool) => (
         <Tooltip placement="left" key={tool.type} title={tr(tool.tooltip)}>
           <IconButton
+            disabled={props.toolsDisabled[tool.type]}
             css={selectedTool === tool.type ? selectedToolStyle : toolBtnStyle}
             color={tool?.color || 'primary'}
             onClick={() => handleToolClick(selectedTool === tool.type ? null : tool.type)}
@@ -115,13 +119,23 @@ export function MapToolbar(props: Props) {
         </Tooltip>
       ))}
       <Divider sx={{ mt: 2, mb: 2 }} />
-      <Tooltip placement="left" title="Peruuta muutokset">
-        <IconButton disabled={true} css={toolBtnStyle} color="primary" onClick={props.onUndoClick}>
+      <Tooltip placement="left" title={tr('mapEdit.undoTooltip')}>
+        <IconButton
+          disabled={props.undoDisabled}
+          css={toolBtnStyle}
+          color="primary"
+          onClick={props.onUndoClick}
+        >
           <UndoTwoTone />
         </IconButton>
       </Tooltip>
-      <Tooltip placement="left" title="Tallenna muutokset">
-        <IconButton css={toolBtnStyle} color="primary" onClick={props.onSaveClick}>
+      <Tooltip placement="left" title={tr('mapEdit.saveTooltip')}>
+        <IconButton
+          disabled={props.saveDisabled}
+          css={toolBtnStyle}
+          color="primary"
+          onClick={props.onSaveClick}
+        >
           <SaveTwoTone />
         </IconButton>
       </Tooltip>

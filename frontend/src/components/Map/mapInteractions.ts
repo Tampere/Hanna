@@ -53,6 +53,7 @@ type DrawOptions = {
   source: VectorSource<Geometry>;
   trace: boolean;
   traceSource: VectorSource<Geometry> | null;
+  onDrawEnd?: () => void;
 };
 
 export function createDrawLayer(source: VectorSource<Geometry>) {
@@ -77,7 +78,7 @@ export function createDrawInteraction(opts: DrawOptions) {
     draw.set('type', 'customInteraction');
 
     const escKeyAbort = (e: KeyboardEvent) => e.code === 'Escape' && draw.abortDrawing();
-    const mouseContextMenuAbort = () => draw.abortDrawing();
+    const mouseContextMenuAbort = () => (opts.trace ? draw.abortDrawing() : draw.removeLastPoint());
 
     draw.on('drawstart', () => {
       document.addEventListener('keydown', escKeyAbort);
@@ -88,6 +89,7 @@ export function createDrawInteraction(opts: DrawOptions) {
       // remove listeners
       document.removeEventListener('keydown', escKeyAbort);
       document.removeEventListener('contextmenu', mouseContextMenuAbort);
+      opts.onDrawEnd?.();
     });
 
     map.addInteraction(draw);
@@ -111,13 +113,18 @@ export function createSelectionLayer(source: VectorSource<Geometry>) {
     zIndex: 100,
     style: new Style({
       fill: new Fill({
-        color: 'rgba(0, 255, 0, 0.8)',
+        color: 'rgba(255, 255, 0, 0.9)',
       }),
     }),
   });
 }
 
-export function createSelectInteraction(selectionSource: VectorSource<Geometry>) {
+interface SelectOptions {
+  source: VectorSource<Geometry>;
+  onSelectionChanged?: (features: Feature<Geometry>[]) => void;
+}
+
+export function createSelectInteraction(opts: SelectOptions) {
   return function registerInteraction(map: OLMap) {
     const select = new Select({
       condition: click,
@@ -125,9 +132,10 @@ export function createSelectInteraction(selectionSource: VectorSource<Geometry>)
     });
     select.set('type', 'customInteraction');
     select.on('select', (e) => {
-      const selectedFeatures = e.target.getFeatures();
-      selectionSource.clear();
-      selectionSource.addFeatures(selectedFeatures.getArray());
+      const selectedFeatures = e.target.getFeatures().getArray();
+      opts.source.clear();
+      opts.source.addFeatures(selectedFeatures);
+      opts.onSelectionChanged?.(selectedFeatures);
     });
     map.addInteraction(select);
   };
@@ -137,12 +145,18 @@ export function createSelectInteraction(selectionSource: VectorSource<Geometry>)
  * Modify tool
  */
 
-export function createModifyInteraction(selectionSource: VectorSource<Geometry>) {
+interface ModifyOptions {
+  source: VectorSource<Geometry>;
+  onModifyEnd?: () => void;
+}
+
+export function createModifyInteraction(opts: ModifyOptions) {
   return function registerInteraction(map: OLMap) {
     const modify = new Modify({
-      source: selectionSource,
+      source: opts.source,
     });
-    selectionSource.set('type', 'customInteraction');
+    opts.source.set('type', 'customInteraction');
+    modify.on('modifyend', () => opts.onModifyEnd?.());
     map.addInteraction(modify);
   };
 }
@@ -192,4 +206,16 @@ export function deleteSelectedFeatures(
     selectionSource.removeFeature(feature);
   }
   selectionSource.clear();
+}
+
+export function addFeaturesFromGeoJson(
+  targetSource: VectorSource<Geometry>,
+  geoJson?: string | null
+) {
+  targetSource.clear();
+
+  const features = geoJson ? featuresFromGeoJSON(geoJson) : [];
+  for (const feature of features) {
+    targetSource.addFeature(feature);
+  }
 }
