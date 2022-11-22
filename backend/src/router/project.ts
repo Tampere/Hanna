@@ -107,7 +107,7 @@ export const createProjectRouter = (t: TRPC) =>
         SET geom = featureCollection.resultGeom
         FROM featureCollection
         WHERE id = ${id}
-        RETURNING id, ST_AsGeoJSON(geom) AS geometry
+        RETURNING id, ST_AsGeoJSON(geom) AS geom
       `);
     }),
   });

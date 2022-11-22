@@ -5,9 +5,12 @@ import { client } from '@utils/trpc';
 function makePoint(lon: number, lat: number, srid: string) {
   return [
     {
-      type: 'Point',
-      crs: { type: 'name', properties: { name: srid } },
-      coordinates: [lon, lat],
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        crs: { type: 'name', properties: { name: srid } },
+        coordinates: [lon, lat],
+      },
     },
   ];
 }
@@ -39,6 +42,10 @@ test.describe('Project endpoints', () => {
     });
 
     expect(edit.id).toBe(project.id);
-    expect(JSON.parse(edit.geoJson)).toStrictEqual(point);
+    expect(JSON.parse(edit.geom)).toStrictEqual({
+      type: 'MultiPoint',
+      crs: { type: 'name', properties: { name: 'EPSG:3878' } },
+      coordinates: [[24487416.69375355, 6821004.272996133]],
+    });
   });
 });
