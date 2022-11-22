@@ -122,6 +122,9 @@ export function MapWrapper({ geoJson, onFeaturesSaved, editable }: Props) {
       {/* Styles for the OpenLayers ScaleLine -component */}
       <GlobalStyles
         styles={{
+          '.ol-viewport': {
+            cursor: 'crosshair',
+          },
           '.ol-scale-line-inner': {
             marginBottom: '1rem',
             textAlign: 'center',

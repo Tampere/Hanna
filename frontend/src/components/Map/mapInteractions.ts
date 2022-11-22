@@ -16,11 +16,11 @@ import Style from 'ol/style/Style';
 
 const drawStyle = {
   fill: {
-    color: 'rgba(0, 0, 255, 0.1)',
+    color: 'rgb(173, 255, 47, 0.3)',
   },
   stroke: {
-    color: '#0000ff',
-    width: 2,
+    color: 'rgb(0, 168, 0)',
+    width: 3,
   },
 };
 
@@ -41,7 +41,7 @@ const completedDrawingStyle = new Style({
   stroke: new Stroke({
     color: drawStyle.stroke.color,
     width: drawStyle.stroke.width,
-    lineDash: [3, 6],
+    lineDash: [3, 10],
   }),
   image: new Circle({
     radius: 5,
