@@ -5,6 +5,7 @@ import { useLoaderData } from 'react-router';
 
 import { trpc } from '@frontend/client';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
+import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { DeleteProjectDialog } from './DeleteProjectDialog';

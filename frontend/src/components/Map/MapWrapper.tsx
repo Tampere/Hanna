@@ -118,6 +118,7 @@ export function MapWrapper({ geoJson, onFeaturesSaved, editable }: Props) {
         break;
       case 'deleteFeature':
         setDirty(true);
+        setFeaturesSelected(false);
         deleteSelectedFeatures(drawSource, selectionSource);
         break;
       default:
@@ -173,14 +174,15 @@ export function MapWrapper({ geoJson, onFeaturesSaved, editable }: Props) {
             deleteFeature: !featuresSelected,
           }}
           onToolChange={(tool) => setSelectedTool(tool)}
-          onSaveClick={() =>
+          onSaveClick={() => {
+            selectionSource.clear();
             onFeaturesSaved?.(
               getGeoJSONFeaturesString(
                 drawSource.getFeatures(),
                 projection?.getCode() || mapOptions.projection.code
               )
-            )
-          }
+            );
+          }}
           saveDisabled={!dirty}
           onUndoClick={() => {
             selectionSource.clear();
