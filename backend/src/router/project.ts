@@ -90,7 +90,7 @@ function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
       .map((term) => `${term}:*`)
       .join(' & ');
     return sql.fragment`
-      WHERE
+      AND
       tsv @@ to_tsquery('simple', ${textQuery})
       ORDER BY
       ts_rank(tsv, to_tsquery('simple', ${textQuery})) DESC
@@ -105,10 +105,12 @@ function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
 export const createProjectRouter = (t: TRPC) =>
   t.router({
     search: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
-      return getPool().any(sql.type(dbProjectSchema)`
+      return getPool().any(
+        sql.type(dbProjectSchema)`
         ${selectProjectFragment}
         ${getFilterFragment(input) ?? ''}
-      `);
+      `
+      );
     }),
 
     upsert: t.procedure.input(upsertProjectSchema).mutation(async ({ input }) => {

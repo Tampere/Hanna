@@ -1,81 +1,144 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { login } from '@utils/page';
+import type { UpsertProject } from '@shared/schema/project';
+import { sleep } from '@shared/utils';
+
+async function createProject(page: Page, project: UpsertProject) {
+  // Go to the new project page
+  await page.getByRole('link', { name: 'Luo uusi hanke' }).click();
+  await expect(page).toHaveURL('https://localhost:1443/hanke/luo');
+
+  // Fill in the project data and save the project
+  await page.locator('input[name="projectName"]').fill(project.projectName);
+  await page.locator('textarea[name="description"]').fill(project.description);
+  await page.locator('input[name="startDate"]').fill(project.startDate);
+  await page.locator('input[name="endDate"]').fill(project.endDate);
+
+  await page.getByRole('button', { name: 'Lisää hanke' }).click();
+
+  // URL should include the newly created project ID, parse it from the URL
+  await expect(page).toHaveURL(/https:\/\/localhost:1443\/hanke\/[0-9a-f-]+/);
+  const projectId = page.url().split('/').at(-1);
+
+  // Go back to the front page
+  await page.getByRole('link', { name: 'Hankkeet' }).click();
+  await expect(page).toHaveURL('https://localhost:1443/hankkeet');
+
+  // Return the created project with ID
+  return {
+    ...project,
+    id: projectId,
+  } as UpsertProject;
+}
+
+async function deleteProject(page: Page, projectId: string) {
+  // Go to the project page
+  await page.goto(`https://localhost:1443/hanke/${projectId}`);
+
+  // Delete the project
+  await page.getByRole('button', { name: 'Poista hanke' }).click();
+  await page.getByRole('button', { name: 'Poista' }).click();
+  await expect(page).toHaveURL('https://localhost:1443/hankkeet');
+
+  // Expect the project page to not exist anymore
+  await page.goto(`https://localhost:1443/hanke/${projectId}`);
+  await expect(page.getByText('Hanketta ei löytynyt')).toBeVisible();
+  await page.goto('https://localhost:1443/hankkeet');
+}
 
 test.describe('Projects', () => {
+  test.beforeEach(async ({ page }) => {
+    await login(page);
+  });
+
   test('Create a project', async ({ page }) => {
-    const project = {
-      name: `Testihanke ${Date.now()}`,
+    let project: UpsertProject = {
+      projectName: `Testihanke ${Date.now()}`,
       description: 'Testikuvaus',
       startDate: '01.12.2022',
       endDate: '28.02.2023',
     };
 
-    await login(page);
-
-    // Go to the new project page
-    await page.getByRole('link', { name: 'Luo uusi hanke' }).click();
-    await expect(page).toHaveURL('https://localhost:1443/hanke/luo');
-
-    // Fill in the project data and save the project
-    await page.locator('input[name="projectName"]').fill(project.name);
-    await page.locator('textarea[name="description"]').fill(project.description);
-    await page.locator('input[name="startDate"]').fill(project.startDate);
-    await page.locator('input[name="endDate"]').fill(project.endDate);
-
-    await page.getByRole('button', { name: 'Lisää hanke' }).click();
-
-    // URL should include the newly created project ID, parse it from the URL
-    await expect(page).toHaveURL(/https:\/\/localhost:1443\/hanke\/[0-9a-f-]+/);
-    const projectId = page.url().split('/').at(-1);
-
-    // Go back to the front page
-    await page.getByRole('link', { name: 'Hankkeet' }).click();
-    await expect(page).toHaveURL('https://localhost:1443/hankkeet');
+    project = { ...project, ...(await createProject(page, project)) };
 
     // Click on the new project button to go back to the project page
-    await page.locator(`text=${project.name}`).click();
-    await expect(page).toHaveURL(`https://localhost:1443/hanke/${projectId}`);
+    await page.locator(`text=${project.projectName}`).click();
+    await expect(page).toHaveURL(`https://localhost:1443/hanke/${project.id}`);
 
     // Check that all fields still have the same values
-    await expect(page.locator('input[name="projectName"]')).toHaveValue(project.name);
+    await expect(page.locator('input[name="projectName"]')).toHaveValue(project.projectName);
     await expect(page.locator('textarea[name="description"]')).toHaveValue(project.description);
     await expect(page.locator('input[name="startDate"]')).toHaveValue(project.startDate);
     await expect(page.locator('input[name="endDate"]')).toHaveValue(project.endDate);
+
+    await deleteProject(page, project.id);
   });
 
   test('Delete project', async ({ page }) => {
-    const project = {
-      name: 'Tuhottava hanke',
+    const project = await createProject(page, {
+      projectName: 'Tuhottava hanke',
       description: 'Testikuvaus',
       startDate: '01.12.2022',
       endDate: '31.12.2022',
-    };
+    });
 
-    await login(page);
+    await deleteProject(page, project.id);
+  });
 
-    // Go to the new project page
-    await page.getByRole('link', { name: 'Luo uusi hanke' }).click();
-    await expect(page).toHaveURL('https://localhost:1443/hanke/luo');
+  test('Project search', async ({ page }) => {
+    const projectA = await createProject(page, {
+      projectName: `Hakutesti ${Date.now()}`,
+      description: 'Myös kuvauksen teksti otetaan haussa huomioon',
+      startDate: '01.12.2022',
+      endDate: '28.02.2023',
+    });
 
-    // Fill in the project data and save the project
-    await page.locator('input[name="projectName"]').fill(project.name);
-    await page.locator('textarea[name="description"]').fill(project.description);
-    await page.locator('input[name="startDate"]').fill(project.startDate);
-    await page.locator('input[name="endDate"]').fill(project.endDate);
+    const projectB = await createProject(page, {
+      projectName: `Toinen hakutesti ${Date.now()}`,
+      description: 'Tässä on toisen testihankkeen kuvaus',
+      startDate: '01.01.2001',
+      endDate: '31.12.2099',
+    });
 
-    await page.getByRole('button', { name: 'Lisää hanke' }).click();
+    // Search for projectA - projectB should not be in results
+    await page.fill('label:has-text("Haku")', 'huomio');
+    // Delay required because of debouncing
+    await sleep(1000);
+    let searchResults = await page.locator(':text("Hakutulokset") + div >> a').allTextContents();
+    expect(
+      searchResults.some((result) => result.includes(projectA.projectName)) &&
+        searchResults.every((result) => !result.includes(projectB.projectName))
+    ).toBe(true);
 
-    // URL should include the newly created project ID, parse it from the URL
-    await expect(page).toHaveURL(/https:\/\/localhost:1443\/hanke\/[0-9a-f-]+/);
-    const projectId = page.url().split('/').at(-1);
+    // Search for projectB - projectA should not be in results
+    await page.fill('label:has-text("Haku")', 'kuvaus');
+    await sleep(1000);
+    searchResults = await page.locator(':text("Hakutulokset") + div >> a').allTextContents();
+    expect(
+      searchResults.some((result) => result.includes(projectB.projectName)) &&
+        searchResults.every((result) => !result.includes(projectA.projectName))
+    ).toBe(true);
 
-    // Delete the project
-    await page.getByRole('button', { name: 'Poista hanke' }).click();
-    await page.getByRole('button', { name: 'Poista' }).click();
-    await expect(page).toHaveURL('https://localhost:1443/hankkeet');
+    // Search for both projects
+    await page.fill('label:has-text("Haku")', 'hakutesti');
+    await sleep(1000);
+    searchResults = await page.locator(':text("Hakutulokset") + div >> a').allTextContents();
+    expect(
+      searchResults.some((result) => result.includes(projectB.projectName)) &&
+        searchResults.some((result) => result.includes(projectA.projectName))
+    ).toBe(true);
 
-    // Expect the project page to not exist anymore
-    await page.goto(`https://localhost:1443/hanke/${projectId}`);
-    await expect(page.getByText('Hanketta ei löytynyt')).toBeVisible();
+    // Search for other projects (only prefixes should be matched - no other substrings!)
+    await page.fill('label:has-text("Haku")', 'akutesti');
+    await sleep(1000);
+    searchResults = await page.locator(':text("Hakutulokset") + div >> a').allTextContents();
+    expect(
+      searchResults.every((result) => !result.includes(projectB.projectName)) &&
+        searchResults.every((result) => !result.includes(projectA.projectName))
+    ).toBe(true);
+
+    // Clean up the test case
+    await deleteProject(page, projectA.id);
+    await deleteProject(page, projectB.id);
   });
 });
