@@ -75,7 +75,6 @@ export function Map({
    * "For a map to render, a view, one or more layers, and a target container are needed" -docs
    */
   const [olMap] = useState(() => {
-    console.log('Initializing map...');
     const map = new OLMap({
       target: '',
       controls: [

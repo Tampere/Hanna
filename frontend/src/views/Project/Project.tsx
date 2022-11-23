@@ -105,7 +105,7 @@ export function Project() {
         <MapWrapper
           geoJson={project?.data?.geom}
           editable={Boolean(projectId)}
-          onFeaturesSaved={(features: string) => {
+          onFeaturesSaved={(features) => {
             geometryUpdate.mutate({ id: projectId, features: features });
           }}
         />

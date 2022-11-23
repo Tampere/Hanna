@@ -49,12 +49,12 @@ const completedDrawingStyle = new Style({
   }),
 });
 
-type DrawOptions = {
+interface DrawOptions {
   source: VectorSource<Geometry>;
   trace: boolean;
   traceSource: VectorSource<Geometry> | null;
   onDrawEnd?: () => void;
-};
+}
 
 export function createDrawLayer(source: VectorSource<Geometry>) {
   return new VectorLayer({
