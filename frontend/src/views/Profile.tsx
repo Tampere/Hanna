@@ -18,7 +18,9 @@ export function Profile() {
       <Typography variant="body1">Tässä on profiilisi tiedot</Typography>
       <select value={lang} onChange={(e) => setLang(e.target.value as Language)}>
         {languages.map((language) => (
-          <option value={language}>{getLanguageName(language)}</option>
+          <option key={language} value={language}>
+            {getLanguageName(language)}
+          </option>
         ))}
       </select>
       <Box sx={{ pt: '1rem' }}>

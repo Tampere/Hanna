@@ -1,17 +1,24 @@
 import { z } from 'zod';
 
+import { isoDateStringRegex } from '../utils';
+
 export const upsertProjectSchema = z.object({
   id: z.string().optional(),
   projectName: z.string().min(1),
   description: z.string().min(1),
-  startDate: z.string().regex(/\d{4}-\d{2}-\d{2}/),
-  endDate: z.string().regex(/\d{4}-\d{2}-\d{2}/),
+  startDate: z.string().regex(isoDateStringRegex),
+  endDate: z.string().regex(isoDateStringRegex),
 });
 
 export type UpsertProject = z.infer<typeof upsertProjectSchema>;
 
 export const projectSearchSchema = z.object({
-  text: z.string().optional(),
+  text: z.string(),
+  startDate: z.string().regex(isoDateStringRegex).nullable(),
+  endDate: z.string().regex(isoDateStringRegex).nullable(),
+  lifecycleStates: z.array(z.string()),
+  projectTypes: z.array(z.string()),
+  financingTypes: z.array(z.string()),
 });
 
 export const dbProjectSchema = upsertProjectSchema.extend({

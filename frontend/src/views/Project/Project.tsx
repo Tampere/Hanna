@@ -4,6 +4,7 @@ import { Accordion, AccordionDetails, AccordionSummary, Paper, Typography } from
 import { useLoaderData } from 'react-router';
 
 import { trpc } from '@frontend/client';
+import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
@@ -62,8 +63,15 @@ export function Project() {
     return <Typography>{tr('loading')}</Typography>;
   }
 
-  if (project.isError && project.error.data?.code === 'NOT_FOUND') {
-    return <Typography>{tr('project.notFound')}</Typography>;
+  if (project.isError) {
+    return (
+      <ErrorPage
+        severity="warning"
+        message={
+          project.error.data?.code === 'NOT_FOUND' ? tr('project.notFound') : tr('unknownError')
+        }
+      />
+    );
   }
 
   return (

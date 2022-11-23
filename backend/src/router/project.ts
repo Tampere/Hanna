@@ -38,12 +38,18 @@ async function getProject(id: string) {
 }
 
 async function deleteProject(id: string) {
-  return getPool().any(sql.type(projectIdSchema)`
+  const project = await getPool().any(sql.type(projectIdSchema)`
     UPDATE app.project
     SET
       deleted = true
     WHERE id = ${id}
   `);
+  if (!project) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+    });
+  }
+  return project;
 }
 
 async function upsertProject(project: UpsertProject) {
@@ -70,13 +76,41 @@ async function upsertProject(project: UpsertProject) {
   }
 }
 
+function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
+  if (
+    input.text.trim().length > 0 ||
+    [input.startDate, input.endDate].some((date) => date != null) ||
+    [input.financingTypes, input.lifecycleStates, input.projectTypes].some(
+      (selection) => selection.length > 0
+    )
+  ) {
+    const textQuery = input.text
+      .split(/\s+/)
+      .filter((term) => term.length > 0)
+      .map((term) => `${term}:*`)
+      .join(' & ');
+    return sql.fragment`
+      AND
+      tsv @@ to_tsquery('simple', ${textQuery})
+      ORDER BY
+      ts_rank(tsv, to_tsquery('simple', ${textQuery})) DESC
+    `;
+  }
+
+  return sql.fragment`
+    ORDER BY start_date DESC
+  `;
+}
+
 export const createProjectRouter = (t: TRPC) =>
   t.router({
-    search: t.procedure.input(projectSearchSchema).query(async () => {
-      return getPool().any(sql.type(dbProjectSchema)`
+    search: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
+      return getPool().any(
+        sql.type(dbProjectSchema)`
         ${selectProjectFragment}
-        ORDER BY start_date DESC
-      `);
+        ${getFilterFragment(input) ?? ''}
+      `
+      );
     }),
 
     upsert: t.procedure.input(upsertProjectSchema).mutation(async ({ input }) => {
