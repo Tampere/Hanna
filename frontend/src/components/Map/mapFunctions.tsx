@@ -1,12 +1,26 @@
+import { asArray } from 'ol/color';
 import { Extent, getTopLeft, getWidth } from 'ol/extent';
+import GeoJSON from 'ol/format/GeoJSON';
+import Layer from 'ol/layer/Layer';
 import TileLayer from 'ol/layer/Tile';
-import { get as getProjection } from 'ol/proj';
-import { Projection } from 'ol/proj';
+import { bbox } from 'ol/loadingstrategy';
+import { Projection, get as getProjection } from 'ol/proj';
 import { Units } from 'ol/proj/Units';
 import { register } from 'ol/proj/proj4.js';
+import WebGLVectorLayerRenderer from 'ol/renderer/webgl/VectorLayer';
+import { packColor } from 'ol/renderer/webgl/shaders';
+import VectorSource from 'ol/source/Vector';
 import WMTS from 'ol/source/WMTS';
 import WMTSTileGrid from 'ol/tilegrid/WMTS';
 import proj4 from 'proj4';
+
+/**
+ * Create OpenLayers Vector Layer
+ * @public
+ * @return {VectorLayer}                        # ol/WMS -protocol Tiled layer
+ * @see https://openlayers.org/en/latest/apidoc/module-ol_source_WMTS-WMTS.html
+ */
+import { MapVectorLayer } from '@frontend/components/Map/mapOptions';
 
 /**
  * Default map projection is EPSG:3857 Web Mercator. Uncommon projections,
@@ -95,7 +109,7 @@ export function createWMTSLayer(
 
   const tileGrid = new WMTSTileGrid({
     tileSize: [tileSize, tileSize],
-    origin: getTopLeft(projection.getExtent() as Extent),
+    origin: getTopLeft(projection.getExtent()),
     resolutions: createTileResolutions(tileSize, zoomFactor, zoomLevels, projection),
     matrixIds: createTileMatrixIDS(zoomLevels, matrixSet),
   });
@@ -114,6 +128,7 @@ export function createWMTSLayer(
 
   return new TileLayer({
     source: wmtsSource,
+    properties: { type: 'basemap' },
   });
 }
 
@@ -128,6 +143,70 @@ function createTileMatrixIDS(zoomLevels: number, matrixSet: string) {
   const baseMatrix = Array.from(Array(zoomLevels).keys());
 
   return baseMatrix.map((i) => `${matrixSet}:${i}`);
+}
+
+/**
+ * Creates a vector source used with vector layers
+ */
+
+export function createVectorSource(url: string) {
+  return new VectorSource({
+    url: (extent: number[]) => {
+      return `${url}&bbox=${extent.join(',')},EPSG:3067`;
+    },
+    strategy: bbox,
+    format: new GeoJSON(),
+  });
+}
+
+/**
+ * https://openlayers.org/en/latest/examples/webgl-vector-layer.html
+ */
+
+export class WebGLLayer extends Layer {
+  createRenderer(): WebGLVectorLayerRenderer {
+    const layer = this;
+    return new WebGLVectorLayerRenderer(this, {
+      fill: {
+        attributes: {
+          color: function () {
+            const color = asArray(layer.get('fillColor'));
+            return packColor(color);
+          },
+          opacity: function () {
+            return layer.get('fillOpacity') || 1;
+          },
+        },
+      },
+      stroke: {
+        attributes: {
+          color: function () {
+            const color = [...asArray(layer.get('strokeColor'))];
+            return packColor(color);
+          },
+          width: function () {
+            return 1.2;
+          },
+          opacity: function () {
+            return 1;
+          },
+        },
+      },
+    });
+  }
+}
+
+export function createVectorLayer(layer: MapVectorLayer) {
+  return new WebGLLayer({
+    source: createVectorSource(layer.url),
+    properties: {
+      id: layer.id,
+      type: 'vector',
+      strokeColor: layer.style.strokeColor,
+      fillColor: layer.style.fillColor,
+      fillOpacity: layer.style.fillOpacity,
+    },
+  });
 }
 
 /**

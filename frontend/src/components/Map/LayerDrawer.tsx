@@ -1,11 +1,16 @@
 import { css } from '@emotion/react';
-import { Layers } from '@mui/icons-material';
-import { Box, IconButton, MenuItem, Tooltip, Typography } from '@mui/material';
+import { DragIndicator, Layers, ToggleOff, ToggleOn } from '@mui/icons-material';
+import { Box, Divider, IconButton, MenuItem, Tooltip, Typography } from '@mui/material';
 import { useAtom } from 'jotai';
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { useTranslations } from '@frontend/stores/lang';
-import { baseLayerIdAtom } from '@frontend/stores/map';
+import {
+  LayerState,
+  VectorLayerKey,
+  baseLayerIdAtom,
+  vectorLayersAtom,
+} from '@frontend/stores/map';
 
 import { mapOptions } from './mapOptions';
 
@@ -47,10 +52,40 @@ const drawerStyles = css`
   border-bottom-right-radius: 2px 2px;
 `;
 
+const dragIndicatorStyle = css`
+  color: #aaa;
+  :hover {
+    cursor: grab;
+    color: #777;
+    transform: scale(1.3);
+  }
+  transition: transform 0.1s ease-in-out;
+`;
+
+const toggleOnStyle = css`
+  color: green;
+`;
+
+const toggleOffStyle = css`
+  color: #aaa;
+`;
+
+function setLayerSelected(layersState: LayerState[], layerId: VectorLayerKey, selected: boolean) {
+  return layersState.map((layer) =>
+    layer.id === layerId
+      ? {
+          ...layer,
+          selected,
+        }
+      : layer
+  );
+}
+
 export function LayerDrawer() {
   const tr = useTranslations();
   const [baseLayerId, setBaseLayerId] = useAtom(baseLayerIdAtom);
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
+  const [vectorLayers, setVectorLayers] = useAtom(vectorLayersAtom);
 
   return (
     <Box css={containerStyles}>
@@ -67,6 +102,9 @@ export function LayerDrawer() {
         css={drawerStyles}
         style={{ zIndex: drawerOpen ? 201 : 0, opacity: drawerOpen ? 0.95 : 0 }}
       >
+        <Typography variant="overline" sx={{ padding: '8px' }}>
+          {tr('map.layerdrawer.baseLayersTitle')}
+        </Typography>
         {/* The drawer content will change at some point when other map layers are taken into use */}
         {mapOptions.baseMaps.map((baseMap, index) => (
           <MenuItem
@@ -78,6 +116,30 @@ export function LayerDrawer() {
             }}
           >
             <Typography>{baseMap.name}</Typography>
+          </MenuItem>
+        ))}
+        <Divider />
+        <Typography variant="overline" sx={{ padding: '8px' }}>
+          {tr('map.layerdrawer.vectorLayersTitle')}
+        </Typography>
+        {vectorLayers.map((layerState) => (
+          <MenuItem
+            sx={{ display: 'flex', justifyContent: 'space-between' }}
+            key={`vectorlayer-${layerState.id}`}
+            onClick={() =>
+              setVectorLayers((prev) => setLayerSelected(prev, layerState.id, !layerState.selected))
+            }
+            disableTouchRipple
+          >
+            <Box sx={{ display: 'flex' }}>
+              <DragIndicator css={dragIndicatorStyle} />
+              <Typography>{tr(`vectorLayer.title.${layerState.id}`)}</Typography>
+            </Box>
+            {layerState.selected ? (
+              <ToggleOn css={toggleOnStyle} fontSize="large" />
+            ) : (
+              <ToggleOff css={toggleOffStyle} fontSize="large" />
+            )}
           </MenuItem>
         ))}
       </Box>

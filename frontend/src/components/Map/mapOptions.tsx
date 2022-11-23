@@ -1,3 +1,31 @@
+const geodataBaseUrl = 'https://geodata.tampere.fi/geoserver';
+
+const createWfsParams = (typeName: string, projectionCode: string) => {
+  return new URLSearchParams({
+    service: 'WFS',
+    request: 'GetFeature',
+    typeName: typeName,
+    srsname: projectionCode,
+    exceptions: 'application/json',
+    outputFormat: 'application/json',
+  });
+};
+
+export interface MapVectorLayer {
+  id: string;
+  title: string;
+  name: string;
+  visible: boolean;
+  type: 'vector';
+  url: string;
+  style: {
+    strokeColor: string;
+    fillColor: string;
+    fillOpacity: number;
+  };
+  attributions?: string[];
+}
+
 /**
  * Options used to initialize (OpenLayers) Map -component
  */
@@ -122,4 +150,55 @@ export const mapOptions = {
       attributions: [],
     },
   ],
+  vectorLayers: [
+    {
+      id: 'kiinteistot',
+      title: 'Kiinteistöt',
+      name: 'Kiinteistöt',
+      visible: true,
+      type: 'vector',
+      url: `${geodataBaseUrl}/kiinteistot/wfs?${createWfsParams(
+        'kiinteistot:KIINTEISTOT_ALUE_GSVIEW',
+        'EPSG:3067'
+      )}`,
+      style: {
+        strokeColor: '#ff0000',
+        fillColor: '#ff0000',
+        fillOpacity: 0.05,
+      },
+      attributions: [],
+    },
+    {
+      id: 'rakennukset',
+      title: 'Rakennukset',
+      name: 'Rakennukset',
+      visible: true,
+      type: 'vector',
+      url: `${geodataBaseUrl}/rakennukset/wfs?${createWfsParams(
+        'rakennukset:RAKENN_ST_FA_GSVIEW',
+        'EPSG:3067'
+      )}`,
+      style: {
+        strokeColor: '#000000',
+        fillColor: '#999999',
+        fillOpacity: 0.8,
+      },
+    },
+    {
+      id: 'kadut',
+      title: 'Kadut',
+      name: 'Kadut',
+      visible: true,
+      type: 'vector',
+      url: `${geodataBaseUrl}/locus/wfs?${createWfsParams(
+        'locus:Katualueen_osa_katu_RpaStreetPart_Polygon_gsview',
+        'EPSG:3067'
+      )}`,
+      style: {
+        strokeColor: '#0000ff',
+        fillColor: '#ffffff',
+        fillOpacity: 0.95,
+      },
+    },
+  ] as MapVectorLayer[],
 };

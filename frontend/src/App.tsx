@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpLink } from '@trpc/client';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import React, { Suspense, useState } from 'react';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { Suspense, useState } from 'react';
 import {
   Route,
   RouterProvider,

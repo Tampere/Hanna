@@ -6,9 +6,13 @@ import { defaults as defaultInteractions } from 'ol/interaction';
 import TileLayer from 'ol/layer/Tile';
 import { ProjectionLike } from 'ol/proj';
 import WMTS from 'ol/source/WMTS';
-import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 
-import { getMapProjection, registerProjection } from '@frontend/components/Map/mapFunctions';
+import {
+  WebGLLayer,
+  getMapProjection,
+  registerProjection,
+} from '@frontend/components/Map/mapFunctions';
 import { zoomAtom } from '@frontend/stores/map';
 
 import { mapOptions } from './mapOptions';
@@ -16,12 +20,13 @@ import { mapOptions } from './mapOptions';
 interface Props {
   children?: ReactNode;
   baseMapLayers: TileLayer<WMTS>[];
+  vectorLayers?: WebGLLayer[];
 }
 
 const { code, extent, units, proj4String } = mapOptions.projection;
 registerProjection(code, extent, proj4String);
 
-export function Map({ baseMapLayers, children }: Props) {
+export function Map({ baseMapLayers, vectorLayers, children }: Props) {
   const [zoom, setZoom] = useAtom(zoomAtom);
   const [projection] = useState(() => getMapProjection(code, extent, units));
   const mapRef = useRef<HTMLDivElement>(null);
@@ -77,10 +82,31 @@ export function Map({ baseMapLayers, children }: Props) {
   /** Update Map layers based on different ol/layers passed as props */
   useEffect(() => {
     if (!baseMapLayers) return;
-
-    olMap.getAllLayers().map((layer) => olMap.removeLayer(layer));
-    olMap.setLayers(baseMapLayers);
+    const layers = [...olMap.getLayers().getArray()];
+    layers.forEach((layer) => {
+      if (layer.get('type') === 'basemap') {
+        olMap.removeLayer(layer);
+      }
+    });
+    baseMapLayers.forEach((layer) => {
+      olMap.addLayer(layer);
+    });
   }, [baseMapLayers]);
+
+  useEffect(() => {
+    if (!vectorLayers) return;
+    const currentVectorLayerIds = new Set(vectorLayers.map((layer) => layer.get('id')));
+    const layers = [...olMap.getLayers().getArray()];
+    layers.forEach((layer) => {
+      if (layer.get('type') === 'vector') {
+        olMap.removeLayer(layer);
+      }
+    });
+    vectorLayers.forEach((layer) => {
+      layer.setZIndex(1);
+      olMap.addLayer(layer);
+    });
+  }, [vectorLayers]);
 
   /** Set Map's zoom based on changes from the Zoom -component */
   useEffect(() => {

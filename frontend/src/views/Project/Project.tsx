@@ -1,7 +1,6 @@
 import { css } from '@emotion/react';
 import { ExpandMore } from '@mui/icons-material';
 import { Accordion, AccordionDetails, AccordionSummary, Paper, Typography } from '@mui/material';
-import React from 'react';
 import { useLoaderData } from 'react-router';
 
 import { trpc } from '@frontend/client';

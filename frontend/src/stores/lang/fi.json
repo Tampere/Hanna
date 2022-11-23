@@ -46,5 +46,10 @@
   "select.noOptions": "Ei tuloksia",
   "select.selections": "valintaa",
   "delete": "Poista",
-  "cancel": "Peruuta"
+  "cancel": "Peruuta",
+  "map.layerdrawer.baseLayersTitle": "Taustakartta",
+  "map.layerdrawer.vectorLayersTitle": "Rekisterikohteet",
+  "vectorLayer.title.kadut": "Kadut",
+  "vectorLayer.title.rakennukset": "Rakennukset",
+  "vectorLayer.title.kiinteistot": "Kiinteistöt"
 }
