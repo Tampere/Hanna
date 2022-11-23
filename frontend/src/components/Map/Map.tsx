@@ -94,11 +94,9 @@ export function Map({ baseMapLayers, vectorLayers, children }: Props) {
   }, [baseMapLayers]);
 
   useEffect(() => {
-    console.log('vectorLayers changed');
     if (!vectorLayers) return;
     const currentVectorLayerIds = new Set(vectorLayers.map((layer) => layer.get('id')));
     const layers = [...olMap.getLayers().getArray()];
-    console.log(layers.length);
     layers.forEach((layer) => {
       if (layer.get('type') === 'vector') {
         olMap.removeLayer(layer);
