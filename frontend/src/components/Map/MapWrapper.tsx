@@ -1,17 +1,38 @@
 import { GlobalStyles } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 import { Projection } from 'ol/proj';
-import { useMemo, useState } from 'react';
+import VectorSource from 'ol/source/Vector';
+import { useEffect, useMemo, useState } from 'react';
 
+import { MapToolbar, ToolType } from '@frontend/components/Map/MapToolbar';
+import {
+  addFeaturesFromGeoJson,
+  createDrawInteraction,
+  createDrawLayer,
+  createModifyInteraction,
+  createSelectInteraction,
+  createSelectionLayer,
+  deleteSelectedFeatures,
+  getGeoJSONFeaturesString,
+} from '@frontend/components/Map/mapInteractions';
 import { baseLayerIdAtom, selectedVectorLayersAtom } from '@frontend/stores/map';
 
 import { LayerDrawer } from './LayerDrawer';
-import { Map } from './Map';
+import { Map, MapInteraction } from './Map';
 import { Zoom } from './Zoom';
 import { createVectorLayer, createWMTSLayer, getMapProjection } from './mapFunctions';
 import { mapOptions } from './mapOptions';
 
-export function MapWrapper() {
+interface Props {
+  geoJson?: string | null;
+  editable?: boolean;
+  onFeaturesSaved?: (features: string) => void;
+}
+
+export function MapWrapper({ geoJson, onFeaturesSaved, editable }: Props) {
+  const [dirty, setDirty] = useState(false);
+  const [featuresSelected, setFeaturesSelected] = useState(false);
+
   const [projection] = useState(() =>
     getMapProjection(
       mapOptions.projection.code,
@@ -37,11 +58,89 @@ export function MapWrapper() {
       .map((layer) => createVectorLayer(layer));
   }, [selectedVectorLayers]);
 
+  /**
+   * Custom tools and interactions
+   */
+
+  const [selectedTool, setSelectedTool] = useState<ToolType | null>(null);
+  const [interactions, setInteractions] = useState<MapInteraction[] | null>(null);
+
+  const selectionSource = useMemo(() => new VectorSource({ wrapX: false }), []);
+  const selectionLayer = useMemo(() => createSelectionLayer(selectionSource), []);
+  const registerSelectInteraction = useMemo(
+    () =>
+      createSelectInteraction({
+        source: selectionSource,
+        onSelectionChanged(features) {
+          setFeaturesSelected(features.length > 0);
+        },
+      }),
+    []
+  );
+  const registerModifyInteraction = useMemo(
+    () => createModifyInteraction({ source: selectionSource, onModifyEnd: () => setDirty(true) }),
+    []
+  );
+
+  const drawSource = useMemo(() => {
+    const source = new VectorSource({ wrapX: false });
+    addFeaturesFromGeoJson(source, geoJson);
+    return source;
+  }, [geoJson]);
+
+  const drawLayer = useMemo(() => createDrawLayer(drawSource), []);
+  const registerDrawInteraction = useMemo(
+    () =>
+      createDrawInteraction({
+        source: drawSource,
+        trace: selectedTool === 'tracedFeature',
+        traceSource: selectionSource,
+        onDrawEnd: () => {
+          setDirty(true);
+        },
+      }),
+    [selectedTool]
+  );
+
+  useEffect(() => {
+    switch (selectedTool) {
+      case 'selectFeature':
+        setInteractions([registerSelectInteraction]);
+        break;
+      case 'newFeature':
+        setInteractions([registerDrawInteraction]);
+        break;
+      case 'tracedFeature':
+        setInteractions([registerDrawInteraction]);
+        break;
+      case 'editFeature':
+        setInteractions([registerModifyInteraction]);
+        break;
+      case 'deleteFeature':
+        setDirty(true);
+        setFeaturesSelected(false);
+        deleteSelectedFeatures(drawSource, selectionSource);
+        break;
+      default:
+        setInteractions(null);
+        break;
+    }
+  }, [selectedTool]);
+
   return (
-    <Map baseMapLayers={baseMapLayers} vectorLayers={vectorLayers}>
+    <Map
+      extent={drawSource.getExtent()}
+      baseMapLayers={baseMapLayers}
+      vectorLayers={vectorLayers}
+      interactions={interactions}
+      interactionLayers={[selectionLayer, drawLayer]}
+    >
       {/* Styles for the OpenLayers ScaleLine -component */}
       <GlobalStyles
         styles={{
+          '.ol-viewport': {
+            cursor: 'crosshair',
+          },
           '.ol-scale-line-inner': {
             marginBottom: '1rem',
             textAlign: 'center',
@@ -67,6 +166,32 @@ export function MapWrapper() {
       />
       <Zoom zoomStep={1} />
       <LayerDrawer />
+      {editable && (
+        <MapToolbar
+          toolsDisabled={{
+            tracedFeature: !featuresSelected,
+            editFeature: !featuresSelected,
+            deleteFeature: !featuresSelected,
+          }}
+          onToolChange={(tool) => setSelectedTool(tool)}
+          onSaveClick={() => {
+            selectionSource.clear();
+            onFeaturesSaved?.(
+              getGeoJSONFeaturesString(
+                drawSource.getFeatures(),
+                projection?.getCode() || mapOptions.projection.code
+              )
+            );
+          }}
+          saveDisabled={!dirty}
+          onUndoClick={() => {
+            selectionSource.clear();
+            setDirty(false);
+            addFeaturesFromGeoJson(drawSource, geoJson);
+          }}
+          undoDisabled={!dirty}
+        />
+      )}
     </Map>
   );
 }

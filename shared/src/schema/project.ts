@@ -16,6 +16,7 @@ export const projectSearchSchema = z.object({
 
 export const dbProjectSchema = upsertProjectSchema.extend({
   id: z.string(),
+  geom: z.string().nullable(),
 });
 
 export const projectIdSchema = z.object({
@@ -28,14 +29,14 @@ export type ProjectSearch = z.infer<typeof projectSearchSchema>;
 
 export const updateGeometrySchema = z.object({
   id: z.string(),
-  geometry: z.string(),
+  features: z.string(),
 });
 
 export type UpdateGeometry = z.infer<typeof updateGeometrySchema>;
 
 export const updateGeometryResultSchema = z.object({
   id: z.string(),
-  geometry: z.string(),
+  geom: z.string(),
 });
 
 export type UpdateGeometryResult = z.infer<typeof updateGeometryResultSchema>;

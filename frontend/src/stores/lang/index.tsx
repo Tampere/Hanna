@@ -9,9 +9,11 @@ const translations = { fi, en };
 export const langAtom = atom<Language>('fi');
 export const trAtom = atom((get) => translations[get(langAtom)]);
 
+export type TranslationKey = keyof typeof translations[Language];
+
 export function useTranslations() {
   const value = useAtomValue(trAtom);
-  return function tr(key: keyof typeof value) {
+  return function tr(key: TranslationKey) {
     return value[key] ?? <span style={{ background: 'yellow' }}>{key}</span>;
   };
 }

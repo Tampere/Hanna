@@ -3,6 +3,7 @@ import { Extent, getTopLeft, getWidth } from 'ol/extent';
 import GeoJSON from 'ol/format/GeoJSON';
 import Layer from 'ol/layer/Layer';
 import TileLayer from 'ol/layer/Tile';
+import VectorLayer from 'ol/layer/Vector';
 import { bbox } from 'ol/loadingstrategy';
 import { Projection, get as getProjection } from 'ol/proj';
 import { Units } from 'ol/proj/Units';
@@ -11,6 +12,9 @@ import WebGLVectorLayerRenderer from 'ol/renderer/webgl/VectorLayer';
 import { packColor } from 'ol/renderer/webgl/shaders';
 import VectorSource from 'ol/source/Vector';
 import WMTS from 'ol/source/WMTS';
+import Fill from 'ol/style/Fill';
+import Stroke from 'ol/style/Stroke';
+import Style from 'ol/style/Style';
 import WMTSTileGrid from 'ol/tilegrid/WMTS';
 import proj4 from 'proj4';
 
@@ -196,7 +200,7 @@ export class WebGLLayer extends Layer {
   }
 }
 
-export function createVectorLayer(layer: MapVectorLayer) {
+export function createWebGLVectorLayer(layer: MapVectorLayer) {
   return new WebGLLayer({
     source: createVectorSource(layer.url),
     properties: {
@@ -205,6 +209,25 @@ export function createVectorLayer(layer: MapVectorLayer) {
       strokeColor: layer.style.strokeColor,
       fillColor: layer.style.fillColor,
       fillOpacity: layer.style.fillOpacity,
+    },
+  });
+}
+
+export function createVectorLayer(layer: MapVectorLayer) {
+  return new VectorLayer({
+    source: createVectorSource(layer.url),
+    style: new Style({
+      fill: new Fill({
+        color: layer.style.fillColor,
+      }),
+      stroke: new Stroke({
+        color: layer.style.strokeColor,
+        width: 1.2,
+      }),
+    }),
+    properties: {
+      id: layer.id,
+      type: 'vector',
     },
   });
 }

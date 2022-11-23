@@ -6,8 +6,8 @@ import { atom, useAtom, useSetAtom } from 'jotai';
 const notificationContainerStyle = css`
   z-index: 500;
   position: fixed;
-  right: 32px;
-  top: 72px;
+  left: 32px;
+  top: 32px;
 `;
 
 const wrapperStyle = css`

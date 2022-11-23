@@ -2,9 +2,13 @@ import { useAtom } from 'jotai';
 import OLMap from 'ol/Map';
 import View from 'ol/View';
 import { ScaleLine } from 'ol/control';
+import { isEmpty } from 'ol/extent';
+import { Geometry } from 'ol/geom';
 import { defaults as defaultInteractions } from 'ol/interaction';
 import TileLayer from 'ol/layer/Tile';
+import VectorLayer from 'ol/layer/Vector';
 import { ProjectionLike } from 'ol/proj';
+import VectorSource from 'ol/source/Vector';
 import WMTS from 'ol/source/WMTS';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 
@@ -17,18 +21,38 @@ import { zoomAtom } from '@frontend/stores/map';
 
 import { mapOptions } from './mapOptions';
 
+export type MapInteraction = (map: OLMap) => void;
+
 interface Props {
-  children?: ReactNode;
   baseMapLayers: TileLayer<WMTS>[];
-  vectorLayers?: WebGLLayer[];
+  children?: ReactNode;
+  extent?: number[];
+  vectorLayers?: (VectorLayer<VectorSource<Geometry>> | WebGLLayer)[];
+  interactions?: MapInteraction[] | null;
+  interactionLayers?: VectorLayer<VectorSource<Geometry>>[];
 }
 
-const { code, extent, units, proj4String } = mapOptions.projection;
-registerProjection(code, extent, proj4String);
+const { code, units, proj4String } = mapOptions.projection;
+registerProjection(code, mapOptions.projection.extent, proj4String);
 
-export function Map({ baseMapLayers, vectorLayers, children }: Props) {
+const initialInteractions = defaultInteractions({
+  altShiftDragRotate: false,
+  pinchRotate: false,
+  doubleClickZoom: false,
+  shiftDragZoom: false,
+  keyboard: true,
+});
+
+export function Map({
+  baseMapLayers,
+  extent,
+  vectorLayers,
+  children,
+  interactions,
+  interactionLayers,
+}: Props) {
   const [zoom, setZoom] = useAtom(zoomAtom);
-  const [projection] = useState(() => getMapProjection(code, extent, units));
+  const [projection] = useState(() => getMapProjection(code, mapOptions.projection.extent, units));
   const mapRef = useRef<HTMLDivElement>(null);
 
   /**
@@ -51,7 +75,7 @@ export function Map({ baseMapLayers, vectorLayers, children }: Props) {
    * "For a map to render, a view, one or more layers, and a target container are needed" -docs
    */
   const [olMap] = useState(() => {
-    return new OLMap({
+    const map = new OLMap({
       target: '',
       controls: [
         new ScaleLine({
@@ -59,14 +83,11 @@ export function Map({ baseMapLayers, vectorLayers, children }: Props) {
         }),
       ],
       view: olView,
+      keyboardEventTarget: document,
       layers: [...(baseMapLayers ?? [])],
-      interactions: defaultInteractions({
-        altShiftDragRotate: false,
-        pinchRotate: false,
-        doubleClickZoom: false,
-        shiftDragZoom: false,
-      }),
+      interactions: initialInteractions,
     });
+    return map;
   });
 
   /** olMap -object's initialization on startup  */
@@ -78,6 +99,23 @@ export function Map({ baseMapLayers, vectorLayers, children }: Props) {
       setZoom(olView.getZoom() as number);
     });
   }, [olMap]);
+
+  /** Set Map's zoom based on changes from the Zoom -component */
+  useEffect(() => {
+    if (!zoom) return;
+    olView.setZoom(zoom);
+  }, [zoom]);
+
+  useEffect(() => {
+    if (!extent) return;
+    if (!isEmpty(extent) && olView && olView.getProjection()) {
+      olView.fit(extent, {
+        size: olMap.getSize(),
+        padding: [64, 64, 64, 64],
+        maxZoom: 15,
+      });
+    }
+  }, []);
 
   /** Update Map layers based on different ol/layers passed as props */
   useEffect(() => {
@@ -93,12 +131,13 @@ export function Map({ baseMapLayers, vectorLayers, children }: Props) {
     });
   }, [baseMapLayers]);
 
+  /** Vector layers */
   useEffect(() => {
     if (!vectorLayers) return;
     const currentVectorLayerIds = new Set(vectorLayers.map((layer) => layer.get('id')));
     const layers = [...olMap.getLayers().getArray()];
     layers.forEach((layer) => {
-      if (layer.get('type') === 'vector') {
+      if (layer.get('type') === 'vector' && !currentVectorLayerIds.has(layer.get('id'))) {
         olMap.removeLayer(layer);
       }
     });
@@ -108,12 +147,33 @@ export function Map({ baseMapLayers, vectorLayers, children }: Props) {
     });
   }, [vectorLayers]);
 
-  /** Set Map's zoom based on changes from the Zoom -component */
+  /** Interactions and related layers */
   useEffect(() => {
-    if (!zoom) return;
+    const mapInteractions = [...olMap.getInteractions().getArray()];
+    mapInteractions.forEach((interaction) => {
+      if (interaction.get('type') === 'customInteraction') {
+        olMap.removeInteraction(interaction);
+      }
+    });
 
-    olView.setZoom(zoom);
-  }, [zoom]);
+    interactions?.forEach((interaction) => {
+      interaction(olMap);
+    });
+  }, [interactions]);
+
+  useEffect(() => {
+    const mapLayerIds = new Set(
+      olMap
+        .getLayers()
+        .getArray()
+        .map((layer) => layer.get('id'))
+    );
+    interactionLayers?.forEach((layer) => {
+      if (!mapLayerIds.has(layer.get('id'))) {
+        olMap.addLayer(layer);
+      }
+    });
+  }, [interactionLayers]);
 
   return (
     <div style={{ width: '100%', height: '100%' }}>
