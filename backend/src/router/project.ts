@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { sql } from 'slonik';
+import { z } from 'zod';
 
 import { getPool } from '@backend/db';
 import { TRPC } from '@backend/router';
