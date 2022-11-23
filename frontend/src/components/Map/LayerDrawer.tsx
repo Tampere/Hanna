@@ -71,10 +71,14 @@ const toggleOffStyle = css`
 `;
 
 function setLayerSelected(layersState: LayerState[], layerId: VectorLayerKey, selected: boolean) {
-  const newLayers = layersState.slice();
-  const layerIndex = newLayers.findIndex((layer) => layer.id === layerId);
-  newLayers[layerIndex] = { ...newLayers[layerIndex], selected };
-  return newLayers;
+  return layersState.map((layer) =>
+    layer.id === layerId
+      ? {
+          ...layer,
+          selected,
+        }
+      : layer
+  );
 }
 
 export function LayerDrawer() {
