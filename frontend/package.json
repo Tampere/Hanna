@@ -49,7 +49,7 @@
     "@mui/icons-material": "^5.10.9",
     "@mui/material": "^5.10.13",
     "@mui/x-date-pickers": "^5.0.8",
-    "@tanstack/react-query": "^4.16.1",
+    "@tanstack/react-query": "^4.18.0",
     "@trpc/client": "^10.0.0-rc.8",
     "@trpc/react-query": "^10.0.0-rc.8",
     "@trpc/server": "^10.0.0-rc.8",
