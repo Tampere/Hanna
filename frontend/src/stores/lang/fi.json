@@ -39,6 +39,7 @@
   "newProject.decisionsSectionTitle": "Päätökset",
   "newProject.notifyUpsert": "Hanke tallennettu",
   "newProject.notifyUpsertFailed": "Hankkeen tallennus epäonnistui",
+  "newProject.error.endDateBeforeStartDate": "Loppuajankohta ei voi olla ennen alkuajankohtaa",
   "projectForm.saveBtnLabel": "Tallenna",
   "projectForm.editBtnLabel": "Muokkaa",
   "projectForm.undoBtnLabel": "Peruuta muutokset",

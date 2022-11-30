@@ -3,9 +3,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AddCircle, Edit, Save, Undo } from '@mui/icons-material';
 import { Box, Button, TextField } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
-import React, { useMemo, useState } from 'react';
+import dayjs from 'dayjs';
+import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
+import { z } from 'zod';
 
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
@@ -43,9 +45,38 @@ export function ProjectForm(props: ProjectFormProps) {
 
   const form = useForm<UpsertProject>({
     mode: 'all',
-    resolver: zodResolver(upsertProjectSchema),
-    defaultValues: props.project ?? { projectName: '' },
+    resolver: zodResolver(
+      upsertProjectSchema.superRefine((val, ctx) => {
+        if (val.startDate && val.endDate && dayjs(val.startDate).isAfter(dayjs(val.endDate))) {
+          ctx.addIssue({
+            path: ['startDate'],
+            code: z.ZodIssueCode.custom,
+            message: tr('newProject.error.endDateBeforeStartDate'),
+          });
+          ctx.addIssue({
+            path: ['endDate'],
+            code: z.ZodIssueCode.custom,
+            message: tr('newProject.error.endDateBeforeStartDate'),
+          });
+        }
+      })
+    ),
+    defaultValues: props.project ?? {
+      projectName: '',
+      description: '',
+      startDate: '',
+      endDate: '',
+    },
   });
+
+  useEffect(() => {
+    const sub = form.watch((value, { name, type }) => {
+      if (type === 'change' && (name === 'startDate' || name === 'endDate')) {
+        form.trigger(['startDate', 'endDate']);
+      }
+    });
+    return () => sub.unsubscribe();
+  }, [form.watch]);
 
   const projectUpsert = trpc.project.upsert.useMutation({
     onSuccess: (data) => {
@@ -53,7 +84,9 @@ export function ProjectForm(props: ProjectFormProps) {
       if (!props.project && data.id) {
         navigate(`/hanke/${data.id}`);
       } else {
-        queryClient.invalidateQueries({ queryKey: [['project', 'get'], { id: data.id }] });
+        queryClient.invalidateQueries({
+          queryKey: [['project', 'get'], { input: { id: data.id } }],
+        });
         setEditing(false);
         form.reset(data);
       }
@@ -123,13 +156,25 @@ export function ProjectForm(props: ProjectFormProps) {
           formField="startDate"
           label={tr('project.startDateLabel')}
           tooltip={tr('newProject.startDateTooltip')}
-          component={(field) => <FormDatePicker readOnly={!editing} field={field} />}
+          component={(field) => (
+            <FormDatePicker
+              maxDate={dayjs(form.getValues('endDate'))}
+              readOnly={!editing}
+              field={field}
+            />
+          )}
         />
         <FormField
           formField="endDate"
           label={tr('project.endDateLabel')}
           tooltip={tr('newProject.endDateTooltip')}
-          component={(field) => <FormDatePicker readOnly={!editing} field={field} />}
+          component={(field) => (
+            <FormDatePicker
+              minDate={dayjs(form.getValues('startDate'))}
+              readOnly={!editing}
+              field={field}
+            />
+          )}
         />
 
         {!props.project && (

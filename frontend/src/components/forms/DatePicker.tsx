@@ -13,12 +13,15 @@ interface Props {
   onChange: (value: string | null) => void;
   onClose?: () => void;
   readOnly?: boolean;
+  minDate?: Dayjs;
+  maxDate?: Dayjs;
   InputProps?: InputProps;
 }
 
 const isoDateStringFormat = 'YYYY-MM-DD';
 
-export function DatePicker({ value, onChange, onClose, readOnly, InputProps }: Props) {
+export function DatePicker(props: Props) {
+  const { value, onChange, onClose, readOnly, minDate, maxDate, InputProps } = props;
   const tr = useTranslations();
   const lang = useAtomValue(langAtom);
   const readonlyProps = {
@@ -31,6 +34,8 @@ export function DatePicker({ value, onChange, onClose, readOnly, InputProps }: P
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang}>
       <DesktopDatePicker<Dayjs>
         readOnly={readOnly}
+        minDate={minDate}
+        maxDate={maxDate}
         /**
          * Chrome interprets unfinished date strings as valid (e.g. new Date("1") resolves to 2001-01-01) and this
          * breaks the date picker's keyboard input.
@@ -53,8 +58,12 @@ export function DatePicker({ value, onChange, onClose, readOnly, InputProps }: P
               {...(readOnly && readonlyProps)}
               {...props}
               // Only highlight error if the value is actually invalid (i.e. ignore empty values)
-              error={value != null && props.error}
+              error={value != '' && props.error}
               size="small"
+              inputProps={{
+                ...props.inputProps,
+                placeholder: tr('date.format.placeholder'),
+              }}
             />
           );
         }}

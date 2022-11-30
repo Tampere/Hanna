@@ -53,7 +53,6 @@ export const updateGeometryResultSchema = z.object({
 
 export type UpdateGeometryResult = z.infer<typeof updateGeometryResultSchema>;
 
-
 const projectRelationSchema = z.object({
   relation: z.enum(['parent', 'child', 'related']),
   projectId: z.string(),

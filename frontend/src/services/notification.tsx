@@ -6,8 +6,9 @@ import { atom, useAtom, useSetAtom } from 'jotai';
 const notificationContainerStyle = css`
   z-index: 500;
   position: fixed;
-  left: 32px;
-  top: 32px;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
 `;
 
 const wrapperStyle = css`
@@ -20,7 +21,7 @@ const wrapperStyle = css`
 
 const alertStyle = css`
   margin-bottom: 8px;
-  width: 256px;
+  width: 288px;
   :hover {
     opacity: 0.9;
   }
