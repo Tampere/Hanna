@@ -78,29 +78,44 @@ async function upsertProject(project: UpsertProject) {
   }
 }
 
-function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
-  if (
-    input.text.trim().length > 0 ||
-    [input.startDate, input.endDate].some((date) => date != null) ||
-    [input.financingTypes, input.lifecycleStates, input.projectTypes].some(
-      (selection) => selection.length > 0
-    )
-  ) {
-    const textQuery = input.text
-      .split(/\s+/)
-      .filter((term) => term.length > 0)
-      .map((term) => `${term}:*`)
-      .join(' & ');
+function textSearchFragment(input: z.infer<typeof projectSearchSchema>) {
+  const textQuery = input.text
+    .split(/\s+/)
+    .filter((term) => term.length > 0)
+    .map((term) => `${term}:*`)
+    .join(' & ');
+
+  if (input.text.trim().length > 0) {
     return sql.fragment`
-      AND
       tsv @@ to_tsquery('simple', ${textQuery})
-      ORDER BY
-      ts_rank(tsv, to_tsquery('simple', ${textQuery})) DESC
     `;
   }
+  return sql.fragment`true`;
+}
 
+function timePeriodFragment(input: z.infer<typeof projectSearchSchema>) {
+  const startDate = input.dateRange?.startDate;
+  const endDate = input.dateRange?.endDate;
+  if (startDate && endDate) {
+    return sql.fragment`
+      daterange(start_date, end_date) && daterange(${startDate}, ${endDate})
+    `;
+  }
+  return sql.fragment`true`;
+}
+
+function orderByFragment(input: z.infer<typeof projectSearchSchema>) {
+  if (input.text.trim().length > 0) {
+    return sql.fragment`ORDER BY ts_rank(tsv, to_tsquery('simple', ${input.text})) DESC`;
+  }
+  return sql.fragment`ORDER BY start_date DESC`;
+}
+
+function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
   return sql.fragment`
-    ORDER BY start_date DESC
+      AND ${textSearchFragment(input)}
+      AND ${timePeriodFragment(input)}
+      ${orderByFragment(input)}
   `;
 }
 

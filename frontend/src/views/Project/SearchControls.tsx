@@ -10,10 +10,11 @@ import {
   TextField,
   css,
 } from '@mui/material';
+import dayjs from 'dayjs';
 import { useState } from 'react';
 
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
-import { DatePicker } from '@frontend/components/forms/DatePicker';
+import { DateRange } from '@frontend/components/forms/DateRange';
 import { useTranslations } from '@frontend/stores/lang';
 import {
   getProjectSearchParamSetters,
@@ -26,6 +27,35 @@ const searchControlContainerStyle = css`
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
 `;
+
+//! FIXME: duplicated a lot, put to shared
+const isoFormat = 'YYYY-MM-DD';
+
+function makeCalendarQuickSelections(tr: ReturnType<typeof useTranslations>) {
+  return [
+    {
+      label: tr('projectSearch.calendarQuickSelection.lastYear'),
+      period: {
+        startDate: dayjs().subtract(1, 'year').startOf('year').format(isoFormat),
+        endDate: dayjs().subtract(1, 'year').endOf('year').format(isoFormat),
+      },
+    },
+    {
+      label: tr('projectSearch.calendarQuickSelection.thisYear'),
+      period: {
+        startDate: dayjs().startOf('year').format(isoFormat),
+        endDate: dayjs().endOf('year').format(isoFormat),
+      },
+    },
+    {
+      label: tr('projectSearch.calendarQuickSelection.nextYear'),
+      period: {
+        startDate: dayjs().add(1, 'year').startOf('year').format(isoFormat),
+        endDate: dayjs().add(1, 'year').endOf('year').format(isoFormat),
+      },
+    },
+  ] as const;
+}
 
 export function SearchControls() {
   const tr = useTranslations();
@@ -58,12 +88,12 @@ export function SearchControls() {
       </FormControl>
       <Box sx={{ display: 'flex' }}>
         <FormControl>
-          <FormLabel>{tr('project.startDateLabel')}</FormLabel>
-          <DatePicker value={searchParams.startDate} onChange={setSearchParams.startDate} />
-        </FormControl>
-        <FormControl sx={{ ml: 2 }}>
-          <FormLabel>{tr('project.endDateLabel')}</FormLabel>
-          <DatePicker value={searchParams.endDate} onChange={setSearchParams.endDate} />
+          <FormLabel>{tr('projectSearch.dateRange')}</FormLabel>
+          <DateRange
+            value={searchParams.dateRange}
+            onChange={(period) => setSearchParams.dateRange(period)}
+            quickSelections={makeCalendarQuickSelections(tr)}
+          />
         </FormControl>
       </Box>
       <FormControl>
