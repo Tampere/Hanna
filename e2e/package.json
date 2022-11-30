@@ -12,13 +12,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "^1.27.1",
+    "@playwright/test": "^1.28.1",
     "nodemon": "^2.0.20",
-    "playwright": "^1.27.1"
+    "playwright": "^1.28.1"
   },
   "dependencies": {
-    "@trpc/client": "^10.0.0-rc.8",
-    "@trpc/server": "^10.0.0-rc.8",
+    "@trpc/client": "^10.4.2",
+    "@trpc/server": "^10.4.2",
     "node-fetch": "^2.6.7",
     "superjson": "^1.11.0"
   }
