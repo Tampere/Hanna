@@ -50,6 +50,8 @@
   "deleteProjectDialog.content": "Olet poistamassa hanketta. Huomaa, että poistamalla hankkeen poistat myös pääsyn hankkeen muihin tietoihin, kuten hankkeesseen liittyviin kohteisiin sekä tehtäviin. Haluatko varmasti poistaa hankkeen?",
   "map.layerdrawer.open": "Avaa karttatasovalikko",
   "map.layerdrawer.close": "Sulje karttatasovalikko",
+  "map.fitScreen": "Sovita näkymään",
+  "map.resetZoom": "Palauta zoomaus",
   "profile.logout": "Kirjaudu ulos",
   "select.noOptions": "Ei tuloksia",
   "select.selections": "valintaa",

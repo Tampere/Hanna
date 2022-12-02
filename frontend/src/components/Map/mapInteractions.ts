@@ -191,7 +191,7 @@ export function getGeoJSONFeaturesString(features: Feature<Geometry>[], projecti
   return JSON.stringify(feats);
 }
 
-export function featuresFromGeoJSON(geojson: string) {
+export function featuresFromGeoJSON(geojson: string | object) {
   const geoJson = new OLGeoJSON();
   const features = geoJson.readFeatures(geojson, {});
   return features;
@@ -210,7 +210,7 @@ export function deleteSelectedFeatures(
 
 export function addFeaturesFromGeoJson(
   targetSource: VectorSource<Geometry>,
-  geoJson?: string | null
+  geoJson?: string | object | null
 ) {
   targetSource.clear();
 

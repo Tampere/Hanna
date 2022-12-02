@@ -117,6 +117,7 @@ export function Project() {
       <Paper elevation={2} css={mapContainerStyle}>
         <MapWrapper
           geoJson={project?.data?.geom}
+          geoJsonFitBounds={true}
           editable={Boolean(projectId)}
           onFeaturesSaved={(features) => {
             geometryUpdate.mutate({ id: projectId, features: features });

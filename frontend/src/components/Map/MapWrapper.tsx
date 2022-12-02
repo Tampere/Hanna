@@ -24,14 +24,19 @@ import { createVectorLayer, createWMTSLayer, getMapProjection } from './mapFunct
 import { mapOptions } from './mapOptions';
 
 interface Props {
-  geoJson?: string | null;
+  geoJson?: string | object | null;
+  geoJsonFitBounds?: boolean;
   editable?: boolean;
   onFeaturesSaved?: (features: string) => void;
 }
 
-export function MapWrapper({ geoJson, onFeaturesSaved, editable }: Props) {
+export function MapWrapper(props: Props) {
+  const { geoJson, geoJsonFitBounds, onFeaturesSaved, editable } = props;
+
   const [dirty, setDirty] = useState(false);
   const [featuresSelected, setFeaturesSelected] = useState(false);
+  const [zoom, setZoom] = useState(mapOptions.tre.defaultZoom);
+  const [extent, setExtent] = useState<number[] | null>(null);
 
   const [projection] = useState(() =>
     getMapProjection(
@@ -82,10 +87,12 @@ export function MapWrapper({ geoJson, onFeaturesSaved, editable }: Props) {
     []
   );
 
-  const drawSource = useMemo(() => {
-    const source = new VectorSource({ wrapX: false });
-    addFeaturesFromGeoJson(source, geoJson);
-    return source;
+  const drawSource = useMemo(() => new VectorSource({ wrapX: false }), []);
+
+  useEffect(() => {
+    if (geoJson) {
+      addFeaturesFromGeoJson(drawSource, geoJson);
+    }
   }, [geoJson]);
 
   const drawLayer = useMemo(() => createDrawLayer(drawSource), []);
@@ -101,6 +108,12 @@ export function MapWrapper({ geoJson, onFeaturesSaved, editable }: Props) {
       }),
     [selectedTool]
   );
+
+  useEffect(() => {
+    if (geoJsonFitBounds) {
+      setExtent(drawSource.getExtent());
+    }
+  }, [geoJsonFitBounds]);
 
   useEffect(() => {
     switch (selectedTool) {
@@ -129,7 +142,9 @@ export function MapWrapper({ geoJson, onFeaturesSaved, editable }: Props) {
 
   return (
     <Map
-      extent={drawSource.getExtent()}
+      zoom={zoom}
+      onZoomChange={setZoom}
+      extent={extent}
       baseMapLayers={baseMapLayers}
       vectorLayers={vectorLayers}
       interactions={interactions}
@@ -164,7 +179,14 @@ export function MapWrapper({ geoJson, onFeaturesSaved, editable }: Props) {
           },
         }}
       />
-      <Zoom zoomStep={1} />
+      <Zoom
+        zoom={zoom}
+        zoomStep={1}
+        defaultZoom={mapOptions.tre.defaultZoom}
+        onZoomChanged={(changedZoom) => setZoom(changedZoom)}
+        onFitScreen={() => setExtent(drawSource?.getExtent())}
+      />
+
       <LayerDrawer />
       {editable && (
         <MapToolbar

@@ -50,6 +50,8 @@
   "deleteProjectDialog.content": "You are about to delete the project. Notice, that by removing the project you will lose access to the project's information, for example information to sites and jobs under the project. Are you sure you want to remove the project?",
   "map.layerdrawer.open": "Open layer drawer",
   "map.layerdrawer.close": "Close layer drawer",
+  "map.fitScreen": "Fit to screen",
+  "map.resetZoom": "Reset zoom",
   "profile.logout": "Logout",
   "select.noOptions": "No options",
   "select.selections": "selections",

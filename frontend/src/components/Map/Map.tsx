@@ -1,4 +1,3 @@
-import { useAtom } from 'jotai';
 import OLMap from 'ol/Map';
 import View from 'ol/View';
 import { ScaleLine } from 'ol/control';
@@ -17,16 +16,17 @@ import {
   getMapProjection,
   registerProjection,
 } from '@frontend/components/Map/mapFunctions';
-import { zoomAtom } from '@frontend/stores/map';
 
 import { mapOptions } from './mapOptions';
 
 export type MapInteraction = (map: OLMap) => void;
 
 interface Props {
+  zoom: number;
+  onZoomChange: (zoom: number) => void;
   baseMapLayers: TileLayer<WMTS>[];
   children?: ReactNode;
-  extent?: number[];
+  extent: number[] | null;
   vectorLayers?: (VectorLayer<VectorSource<Geometry>> | WebGLLayer)[];
   interactions?: MapInteraction[] | null;
   interactionLayers?: VectorLayer<VectorSource<Geometry>>[];
@@ -44,14 +44,15 @@ const initialInteractions = defaultInteractions({
 });
 
 export function Map({
+  zoom,
+  onZoomChange,
   baseMapLayers,
-  extent,
   vectorLayers,
   children,
+  extent,
   interactions,
   interactionLayers,
 }: Props) {
-  const [zoom, setZoom] = useAtom(zoomAtom);
   const [projection] = useState(() => getMapProjection(code, mapOptions.projection.extent, units));
   const mapRef = useRef<HTMLDivElement>(null);
 
@@ -64,7 +65,7 @@ export function Map({
       projection: projection as ProjectionLike,
       center: mapOptions.tre.center,
       extent: mapOptions.tre.extent,
-      zoom: zoom ?? 10,
+      zoom: zoom,
       multiWorld: false,
       enableRotation: false,
     });
@@ -75,7 +76,7 @@ export function Map({
    * "For a map to render, a view, one or more layers, and a target container are needed" -docs
    */
   const [olMap] = useState(() => {
-    const map = new OLMap({
+    return new OLMap({
       target: '',
       controls: [
         new ScaleLine({
@@ -87,7 +88,6 @@ export function Map({
       layers: [...(baseMapLayers ?? [])],
       interactions: initialInteractions,
     });
-    return map;
   });
 
   /** olMap -object's initialization on startup  */
@@ -96,7 +96,10 @@ export function Map({
 
     // Register event listeners
     olMap.on('moveend', () => {
-      setZoom(olView.getZoom() as number);
+      const moveZoom = olMap.getView().getZoom();
+      if (moveZoom) {
+        onZoomChange(moveZoom);
+      }
     });
   }, [olMap]);
 
@@ -115,7 +118,7 @@ export function Map({
         maxZoom: 15,
       });
     }
-  }, []);
+  }, [extent]);
 
   /** Update Map layers based on different ol/layers passed as props */
   useEffect(() => {
@@ -167,6 +170,7 @@ export function Map({
         .getLayers()
         .getArray()
         .map((layer) => layer.get('id'))
+        .filter((id) => id)
     );
     interactionLayers?.forEach((layer) => {
       if (!mapLayerIds.has(layer.get('id'))) {
