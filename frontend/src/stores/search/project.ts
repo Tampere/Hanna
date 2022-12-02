@@ -1,11 +1,16 @@
+import dayjs from 'dayjs';
 import { atom } from 'jotai';
 
 import { unwrapAtomSetters, unwrapAtomValues } from '@frontend/utils/atom';
 
+import { Period } from '@shared/schema/project';
+
 export const projectSearchParamAtoms = {
   text: atom(''),
-  startDate: atom<string | null>(null),
-  endDate: atom<string | null>(null),
+  dateRange: atom<Period>({
+    startDate: dayjs().startOf('year').format('YYYY-MM-DD'),
+    endDate: dayjs().endOf('year').format('YYYY-MM-DD'),
+  }),
   lifecycleStates: atom<string[]>([]),
   projectTypes: atom<string[]>([]),
   financingTypes: atom<string[]>([]),

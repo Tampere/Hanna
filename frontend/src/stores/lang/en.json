@@ -3,6 +3,7 @@
   "loading": "Loading...",
   "unknownError": "Unknown error",
   "date.format": "DD/MM/YYYY",
+  "date.format.placeholder": "DD/MM/YYYY",
   "pages.projectsTitle": "Projects",
   "newProject.btnLabel": "Create new project",
   "projectSearch.textSearchLabel": "Search",
@@ -10,6 +11,10 @@
   "projectSearch.showMoreBtnLabel": "Show more filters",
   "projectSearch.showLessBtnLabel": "Show less filters",
   "projectSearch.noResults": "No results",
+  "projectSearch.dateRange": "Search date range",
+  "projectSearch.calendarQuickSelection.lastYear": "Last year",
+  "projectSearch.calendarQuickSelection.thisYear": "This year",
+  "projectSearch.calendarQuickSelection.nextYear": "Next year",
   "projectListing.searchResultsTitle": "Search results",
   "project.projectNameLabel": "Project name",
   "project.descriptionLabel": "Description",
@@ -65,5 +70,6 @@
   "mapEdit.removeFeatureTooltip": "Remove selected areas",
   "errorPage.error": "Error",
   "errorPage.warning": "Warning",
-  "errorPage.navigateBack": "Go back"
+  "errorPage.navigateBack": "Go back",
+  "dateRange.quickSelections": "Quick selections"
 }
