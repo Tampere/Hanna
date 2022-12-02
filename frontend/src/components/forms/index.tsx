@@ -1,23 +1,30 @@
 import { css } from '@emotion/react';
 import { Help } from '@mui/icons-material';
 import { FormControl, FormLabel, Tooltip } from '@mui/material';
+import { Dayjs } from 'dayjs';
 import React, { useState } from 'react';
-import { Controller, ControllerRenderProps, FieldValues, useFormContext } from 'react-hook-form';
+import {
+  Controller,
+  ControllerRenderProps,
+  FieldError,
+  FieldValues,
+  useFormContext,
+} from 'react-hook-form';
 
 import { DatePicker } from './DatePicker';
 
 interface CustomFormLabelProps {
   label: string;
   tooltip: string;
-  error?: boolean;
+  error?: FieldError;
 }
 
-function CustomFormLabel({ label, tooltip, error }: CustomFormLabelProps) {
+export function CustomFormLabel({ label, tooltip, error }: CustomFormLabelProps) {
   const [open, setOpen] = useState(true);
 
   return (
     <FormLabel
-      error={error}
+      error={Boolean(error)}
       css={css`
         display: flex;
         justify-content: space-between;
@@ -33,7 +40,7 @@ function CustomFormLabel({ label, tooltip, error }: CustomFormLabelProps) {
             border-bottom: 2px dotted red;
             cursor: pointer;
           `}
-          title={tooltip}
+          title={error.type === 'custom' ? error.message : tooltip}
         >
           <Help sx={{ color: 'red' }} onClick={() => setOpen(!open)} fontSize="small" />
         </Tooltip>
@@ -51,13 +58,14 @@ interface FormFieldProps {
 
 export function FormField({ formField, label, tooltip, component }: FormFieldProps) {
   const { control } = useFormContext();
+
   return (
     <Controller
       name={formField}
       control={control}
       render={({ field, fieldState }) => (
         <FormControl margin="dense">
-          <CustomFormLabel label={label} tooltip={tooltip} error={Boolean(fieldState?.error)} />
+          <CustomFormLabel label={label} tooltip={tooltip} error={fieldState.error} />
           {component(field)}
         </FormControl>
       )}
@@ -68,8 +76,10 @@ export function FormField({ formField, label, tooltip, component }: FormFieldPro
 interface FormDatePickerProps {
   field: ControllerRenderProps<FieldValues, string>;
   readOnly?: boolean;
+  minDate?: Dayjs;
+  maxDate?: Dayjs;
 }
-export function FormDatePicker({ field, readOnly }: FormDatePickerProps) {
+export function FormDatePicker({ field, readOnly, minDate, maxDate }: FormDatePickerProps) {
   return (
     <DatePicker
       InputProps={{ name: field.name }}
@@ -77,6 +87,8 @@ export function FormDatePicker({ field, readOnly }: FormDatePickerProps) {
       onChange={(value) => field.onChange(value)}
       onClose={field.onBlur}
       readOnly={readOnly}
+      minDate={minDate}
+      maxDate={maxDate}
     />
   );
 }
