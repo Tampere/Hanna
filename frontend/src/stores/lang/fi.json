@@ -2,7 +2,7 @@
   "language": "suomi",
   "loading": "Ladataan...",
   "unknownError": "Tunnistamaton virhe",
-  "date.format": "DD.MM.YYYY",
+  "date.format": "D.M.YYYY",
   "date.format.placeholder": "pp.kk.vvvv",
   "pages.projectsTitle": "Hankkeet",
   "newProject.btnLabel": "Luo uusi hanke",
