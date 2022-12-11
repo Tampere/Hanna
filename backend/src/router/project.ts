@@ -10,6 +10,7 @@ import {
   dbProjectSchema,
   projectIdSchema,
   projectRelationsSchema,
+  projectSearchResultSchema,
   projectSearchSchema,
   updateGeometryResultSchema,
   updateGeometrySchema,
@@ -23,6 +24,7 @@ const selectProjectFragment = sql.fragment`
     description,
     start_date AS "startDate",
     end_date AS "endDate",
+    geohash,
     ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom
   FROM app.project
   WHERE deleted = false
@@ -104,6 +106,21 @@ function timePeriodFragment(input: z.infer<typeof projectSearchSchema>) {
   return sql.fragment`true`;
 }
 
+function mapExtentFragment(extent: number[]) {
+  return sql.fragment`
+    ST_Intersects(
+      geom,
+      ST_SetSRID(
+        ST_MakeBox2d(
+          ST_Point(${extent[0]}, ${extent[1]}),
+          ST_Point(${extent[2]}, ${extent[3]})
+        ),
+        3067
+      )
+    )
+  `;
+}
+
 function orderByFragment(input: z.infer<typeof projectSearchSchema>) {
   if (input.text.trim().length > 0) {
     return sql.fragment`ORDER BY ts_rank(tsv, to_tsquery('simple', ${input.text})) DESC`;
@@ -114,6 +131,7 @@ function orderByFragment(input: z.infer<typeof projectSearchSchema>) {
 function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
   return sql.fragment`
       AND ${textSearchFragment(input)}
+      AND ${mapExtentFragment(input.map.extent)}
       AND ${timePeriodFragment(input)}
       ${orderByFragment(input)}
   `;
@@ -165,15 +183,46 @@ async function getRelatedProjects(id: string) {
   FROM related_projects`);
 }
 
+function zoomToGeohashLength(zoom: number) {
+  if (zoom < 9) {
+    return 5;
+  } else if (zoom < 10) {
+    return 6;
+  } else {
+    return 8;
+  }
+}
+
 export const createProjectRouter = (t: TRPC) =>
   t.router({
     search: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
-      return getPool().any(
-        sql.type(dbProjectSchema)`
-        ${selectProjectFragment}
-        ${getFilterFragment(input) ?? ''}
-      `
-      );
+      const { map } = input;
+      const geoHashLength = zoomToGeohashLength(map.zoom);
+
+      const resultSchema = z.object({ result: projectSearchResultSchema });
+      const dbResult = await getPool().one(sql.type(resultSchema)`
+        WITH projects AS (
+          ${selectProjectFragment}
+          ${getFilterFragment(input) ?? ''}
+        )
+        SELECT jsonb_build_object(
+          'projects', (SELECT jsonb_agg(projects.*) FROM projects),
+          'clusters',
+          CASE WHEN ${map.zoom < 10} THEN
+            (SELECT jsonb_agg(clusters.*)
+             FROM (
+               SELECT
+                 substr(geohash, 1, ${geoHashLength}) AS "clusterGeohash",
+                 count(*) AS "clusterCount",
+                 ST_AsGeoJSON(ST_Centroid(ST_Collect(geom))) AS "clusterLocation"
+               FROM projects
+               GROUP BY "clusterGeohash"
+            ) clusters)
+          ELSE '[]'::jsonb
+          END
+        ) AS result
+      `);
+      return dbResult.result;
     }),
 
     upsert: t.procedure.input(upsertProjectSchema).mutation(async ({ input }) => {

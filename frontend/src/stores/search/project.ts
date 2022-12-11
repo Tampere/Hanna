@@ -1,9 +1,10 @@
 import dayjs from 'dayjs';
 import { atom } from 'jotai';
 
+import { mapOptions } from '@frontend/components/Map/mapOptions';
 import { unwrapAtomSetters, unwrapAtomValues } from '@frontend/utils/atom';
 
-import { Period } from '@shared/schema/project';
+import { MapSearch, Period } from '@shared/schema/project';
 
 export const projectSearchParamAtoms = {
   text: atom(''),
@@ -14,6 +15,10 @@ export const projectSearchParamAtoms = {
   lifecycleStates: atom<string[]>([]),
   projectTypes: atom<string[]>([]),
   financingTypes: atom<string[]>([]),
+  map: atom<MapSearch>({
+    zoom: mapOptions.tre.defaultZoom,
+    extent: mapOptions.tre.extent,
+  }),
 };
 
 export const getProjectSearchParams = () => unwrapAtomValues(projectSearchParamAtoms);

@@ -24,7 +24,7 @@ import proj4 from 'proj4';
  * @return {VectorLayer}                        # ol/WMS -protocol Tiled layer
  * @see https://openlayers.org/en/latest/apidoc/module-ol_source_WMTS-WMTS.html
  */
-import { MapVectorLayer } from '@frontend/components/Map/mapOptions';
+import { WFSLayer } from '@frontend/components/Map/mapOptions';
 
 /**
  * Default map projection is EPSG:3857 Web Mercator. Uncommon projections,
@@ -200,12 +200,12 @@ export class WebGLLayer extends Layer {
   }
 }
 
-export function createWebGLVectorLayer(layer: MapVectorLayer) {
+export function createWebGLWFSLayer(layer: WFSLayer) {
   return new WebGLLayer({
     source: createVectorSource(layer.url),
     properties: {
       id: layer.id,
-      type: 'vector',
+      type: 'wfs',
       strokeColor: layer.style.strokeColor,
       fillColor: layer.style.fillColor,
       fillOpacity: layer.style.fillOpacity,
@@ -213,7 +213,7 @@ export function createWebGLVectorLayer(layer: MapVectorLayer) {
   });
 }
 
-export function createVectorLayer(layer: MapVectorLayer) {
+export function createWFSLayer(layer: WFSLayer) {
   return new VectorLayer({
     source: createVectorSource(layer.url),
     style: new Style({
@@ -227,7 +227,7 @@ export function createVectorLayer(layer: MapVectorLayer) {
     }),
     properties: {
       id: layer.id,
-      type: 'vector',
+      type: 'wfs',
     },
   });
 }

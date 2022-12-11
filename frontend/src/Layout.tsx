@@ -94,7 +94,7 @@ export function Layout() {
   const mainContentStyle = css`
     padding: 16px;
     overflow-y: auto;
-    flex-grow: 1;
+    height: 100%;
   `;
 
   return (
