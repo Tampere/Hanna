@@ -3,6 +3,38 @@ import { login } from '@utils/page';
 import type { UpsertProject } from '@shared/schema/project';
 import { sleep } from '@shared/utils';
 
+const keskustoriGeom = {
+  type: 'Polygon',
+  coordinates: [
+    [
+      [327603.111449048, 6822563.296219701],
+      [327591.111449048, 6822541.546219701],
+      [327619.861449048, 6822543.796219701],
+      [327603.111449048, 6822563.296219701],
+    ],
+  ],
+  crs: {
+    type: 'name',
+    properties: {
+      name: 'EPSG:3067',
+    },
+  },
+};
+
+function geometryPayload(projectId: string, geometry: object) {
+  return {
+    json: {
+      id: projectId,
+      features: JSON.stringify([
+        {
+          type: 'Feature',
+          geometry,
+        },
+      ]),
+    },
+  };
+}
+
 async function createProject(page: Page, project: UpsertProject) {
   // Go to the new project page
   await page.getByRole('link', { name: 'Luo uusi hanke' }).click();
@@ -19,6 +51,11 @@ async function createProject(page: Page, project: UpsertProject) {
   // URL should include the newly created project ID, parse it from the URL
   await expect(page).toHaveURL(/https:\/\/localhost:1443\/hanke\/[0-9a-f-]+/);
   const projectId = page.url().split('/').at(-1);
+
+  // NOTE: Geometry edit request with API call (not using the UI)
+  await page.request.post('https://localhost:1443/trpc/project.updateGeometry', {
+    data: geometryPayload(projectId, keskustoriGeom),
+  });
 
   // Go back to the front page
   await page.getByRole('link', { name: 'Hankkeet' }).click();
