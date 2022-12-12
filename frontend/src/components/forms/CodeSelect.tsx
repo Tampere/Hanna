@@ -10,6 +10,7 @@ import type { Code } from '@shared/schema/code';
 
 type Props = {
   codeListId: Code['codeListId'];
+  readOnly?: boolean;
 } & (
   | {
       multiple: true;
@@ -23,7 +24,7 @@ type Props = {
     }
 );
 
-export function CodeSelect({ codeListId, multiple, value, onChange }: Props) {
+export function CodeSelect({ codeListId, multiple, value, readOnly, onChange }: Props) {
   const codes = trpc.code.get.useQuery({ codeListId });
   const lang = useAtomValue(langAtom);
   const tr = useTranslations();
@@ -37,6 +38,7 @@ export function CodeSelect({ codeListId, multiple, value, onChange }: Props) {
 
   return (
     <Autocomplete
+      readOnly={readOnly}
       multiple={multiple}
       size="small"
       options={codes.data?.map((code) => code.id) ?? []}
@@ -122,6 +124,8 @@ export function CodeSelect({ codeListId, multiple, value, onChange }: Props) {
       renderInput={(params) => (
         <TextField
           {...params}
+          variant={readOnly ? 'filled' : 'outlined'}
+          hiddenLabel={readOnly}
           InputProps={{
             ...params.InputProps,
             style: { flexWrap: 'nowrap' },
