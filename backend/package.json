@@ -33,7 +33,7 @@
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
     "@types/connect-pg-simple": "^7.0.0",
     "@types/node": "^18.11.13",
-    "@typescript-eslint/eslint-plugin": "^5.46.0",
+    "@typescript-eslint/eslint-plugin": "^5.46.1",
     "@typescript-eslint/parser": "^5.46.0",
     "eslint": "^8.29.0",
     "node-dev": "^7.4.3",
