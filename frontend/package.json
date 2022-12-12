@@ -64,6 +64,6 @@
     "react-router-dom": "^6.4.5",
     "superjson": "^1.12.0",
     "tre-hanna-shared": "file:../shared",
-    "zod": "^3.19.1"
+    "zod": "^3.20.0"
   }
 }
