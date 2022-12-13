@@ -2,7 +2,6 @@ import { css } from '@emotion/react';
 import { Add, Remove, ZoomInMap, ZoomOutMap } from '@mui/icons-material';
 import { Box, Tooltip } from '@mui/material';
 
-import { mapOptions } from '@frontend/components/Map/mapOptions';
 import { useTranslations } from '@frontend/stores/lang';
 
 const zoomButtomStyle = css`
@@ -25,7 +24,7 @@ interface Props {
   onFitScreen: () => void;
 }
 
-export function Zoom(props: Props) {
+export function MapControls(props: Props) {
   const tr = useTranslations();
   const { zoom, zoomStep, onZoomChanged, onFitScreen } = props;
   const toolTipOpts = { enterDelay: 1000, enterNextDelay: 1000, placement: 'right' as const };

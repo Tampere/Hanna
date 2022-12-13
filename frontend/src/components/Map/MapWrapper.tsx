@@ -19,7 +19,7 @@ import { baseLayerIdAtom, selectedVectorLayersAtom } from '@frontend/stores/map'
 
 import { LayerDrawer } from './LayerDrawer';
 import { Map, MapInteraction } from './Map';
-import { Zoom } from './Zoom';
+import { MapControls } from './MapControls';
 import { createVectorLayer, createWMTSLayer, getMapProjection } from './mapFunctions';
 import { mapOptions } from './mapOptions';
 
@@ -179,7 +179,7 @@ export function MapWrapper(props: Props) {
           },
         }}
       />
-      <Zoom
+      <MapControls
         zoom={zoom}
         zoomStep={1}
         defaultZoom={mapOptions.tre.defaultZoom}
