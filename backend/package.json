@@ -32,9 +32,9 @@
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
     "@types/connect-pg-simple": "^7.0.0",
-    "@types/node": "^18.11.13",
-    "@typescript-eslint/eslint-plugin": "^5.46.0",
-    "@typescript-eslint/parser": "^5.46.0",
+    "@types/node": "^18.11.14",
+    "@typescript-eslint/eslint-plugin": "^5.46.1",
+    "@typescript-eslint/parser": "^5.46.1",
     "eslint": "^8.29.0",
     "node-dev": "^7.4.3",
     "pino-pretty": "^9.1.1",
@@ -49,8 +49,8 @@
     "@fastify/sensible": "^5.2.0",
     "@fastify/session": "^10.1.0",
     "@fastify/static": "^6.6.0",
-    "@trpc/client": "^10.4.3",
-    "@trpc/server": "^10.4.3",
+    "@trpc/client": "^10.5.0",
+    "@trpc/server": "^10.5.0",
     "axios": "^1.2.1",
     "connect-pg-simple": "^8.0.0",
     "dotenv": "^16.0.3",
@@ -61,6 +61,6 @@
     "slonik": "^33.0.4",
     "superjson": "^1.12.0",
     "tre-hanna-shared": "file:../shared",
-    "zod": "^3.19.1"
+    "zod": "^3.20.2"
   }
 }
