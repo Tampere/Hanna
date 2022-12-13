@@ -55,8 +55,8 @@ test.describe('Projects', () => {
     let project: UpsertProject = {
       projectName: `Testihanke ${Date.now()}`,
       description: 'Testikuvaus',
-      startDate: '01.12.2022',
-      endDate: '28.02.2023',
+      startDate: '1.12.2022',
+      endDate: '28.2.2023',
     };
 
     project = { ...project, ...(await createProject(page, project)) };
@@ -78,7 +78,7 @@ test.describe('Projects', () => {
     const project = await createProject(page, {
       projectName: 'Tuhottava hanke',
       description: 'Testikuvaus',
-      startDate: '01.12.2022',
+      startDate: '1.12.2022',
       endDate: '31.12.2022',
     });
 
@@ -89,14 +89,14 @@ test.describe('Projects', () => {
     const projectA = await createProject(page, {
       projectName: `Hakutesti ${Date.now()}`,
       description: 'Myös kuvauksen teksti otetaan haussa huomioon',
-      startDate: '01.12.2022',
-      endDate: '28.02.2023',
+      startDate: '1.12.2022',
+      endDate: '28.2.2023',
     });
 
     const projectB = await createProject(page, {
       projectName: `Toinen hakutesti ${Date.now()}`,
       description: 'Tässä on toisen testihankkeen kuvaus',
-      startDate: '01.01.2001',
+      startDate: '1.1.2001',
       endDate: '31.12.2099',
     });
 
