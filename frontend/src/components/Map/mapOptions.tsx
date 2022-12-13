@@ -31,6 +31,7 @@ export interface MapVectorLayer {
  */
 export const mapOptions = {
   tre: {
+    defaultZoom: 8,
     center: [327000, 6822500],
     extent: [313753, 6812223, 351129, 6861143],
   },
