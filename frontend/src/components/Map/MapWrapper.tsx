@@ -1,5 +1,7 @@
 import { GlobalStyles } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
+import { Geometry } from 'ol/geom';
+import VectorLayer from 'ol/layer/Vector';
 import { Projection } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
 import { useEffect, useMemo, useState } from 'react';
@@ -15,12 +17,12 @@ import {
   deleteSelectedFeatures,
   getGeoJSONFeaturesString,
 } from '@frontend/components/Map/mapInteractions';
-import { baseLayerIdAtom, selectedVectorLayersAtom } from '@frontend/stores/map';
+import { baseLayerIdAtom, selectedWFSLayersAtom } from '@frontend/stores/map';
 
 import { LayerDrawer } from './LayerDrawer';
 import { Map, MapInteraction } from './Map';
 import { MapControls } from './MapControls';
-import { createVectorLayer, createWMTSLayer, getMapProjection } from './mapFunctions';
+import { createWFSLayer, createWMTSLayer, getMapProjection } from './mapFunctions';
 import { mapOptions } from './mapOptions';
 
 interface Props {
@@ -28,6 +30,9 @@ interface Props {
   geoJsonFitBounds?: boolean;
   editable?: boolean;
   onFeaturesSaved?: (features: string) => void;
+  onMoveEnd?: (zoom: number, extent: number[]) => void;
+  loading?: boolean;
+  vectorLayers?: VectorLayer<VectorSource<Geometry>>[];
 }
 
 export function MapWrapper(props: Props) {
@@ -36,6 +41,14 @@ export function MapWrapper(props: Props) {
   const [dirty, setDirty] = useState(false);
   const [featuresSelected, setFeaturesSelected] = useState(false);
   const [zoom, setZoom] = useState(mapOptions.tre.defaultZoom);
+  const [viewExtent, setViewExtent] = useState<number[]>(mapOptions.tre.extent);
+
+  useEffect(() => {
+    if (props.onMoveEnd) {
+      props.onMoveEnd(zoom, viewExtent);
+    }
+  }, [zoom, viewExtent]);
+
   const [extent, setExtent] = useState<number[] | null>(null);
 
   const [projection] = useState(() =>
@@ -46,7 +59,7 @@ export function MapWrapper(props: Props) {
     )
   );
   const [baseLayerId] = useAtom(baseLayerIdAtom);
-  const selectedVectorLayers = useAtomValue(selectedVectorLayersAtom);
+  const selectedWFSLayers = useAtomValue(selectedWFSLayersAtom);
 
   const baseMapLayers = useMemo(() => {
     if (!baseLayerId) return [];
@@ -56,12 +69,12 @@ export function MapWrapper(props: Props) {
       .map((baseMap) => createWMTSLayer(baseMap.options, projection as Projection));
   }, [baseLayerId]);
 
-  const vectorLayers = useMemo(() => {
-    if (!selectedVectorLayers) return [];
-    return mapOptions.vectorLayers
-      .filter((layer) => selectedVectorLayers.findIndex((l) => l.id === layer.id) !== -1)
-      .map((layer) => createVectorLayer(layer));
-  }, [selectedVectorLayers]);
+  const WFSLayers = useMemo(() => {
+    if (!selectedWFSLayers) return [];
+    return mapOptions.wfsLayers
+      .filter((layer) => selectedWFSLayers.findIndex((l) => l.id === layer.id) !== -1)
+      .map((layer) => createWFSLayer(layer));
+  }, [selectedWFSLayers]);
 
   /**
    * Custom tools and interactions
@@ -143,10 +156,14 @@ export function MapWrapper(props: Props) {
   return (
     <Map
       zoom={zoom}
-      onZoomChange={setZoom}
+      onMoveEnd={(zoom, extent) => {
+        setZoom(zoom);
+        setViewExtent(extent);
+      }}
       extent={extent}
       baseMapLayers={baseMapLayers}
-      vectorLayers={vectorLayers}
+      wfsLayers={WFSLayers}
+      vectorLayers={props.vectorLayers}
       interactions={interactions}
       interactionLayers={[selectionLayer, drawLayer]}
     >

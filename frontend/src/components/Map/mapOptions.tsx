@@ -11,12 +11,12 @@ const createWfsParams = (typeName: string, projectionCode: string) => {
   });
 };
 
-export interface MapVectorLayer {
+export interface WFSLayer {
   id: string;
   title: string;
   name: string;
   visible: boolean;
-  type: 'vector';
+  type: 'wfs';
   url: string;
   style: {
     strokeColor: string;
@@ -32,6 +32,8 @@ export interface MapVectorLayer {
 export const mapOptions = {
   tre: {
     defaultZoom: 8,
+    minZoom: 8,
+    maxZoom: 17,
     center: [327000, 6822500],
     extent: [313753, 6812223, 351129, 6861143],
   },
@@ -151,13 +153,13 @@ export const mapOptions = {
       attributions: [],
     },
   ],
-  vectorLayers: [
+  wfsLayers: [
     {
       id: 'kiinteistot',
       title: 'Kiinteistöt',
       name: 'Kiinteistöt',
       visible: true,
-      type: 'vector',
+      type: 'wfs',
       url: `${geodataBaseUrl}/kiinteistot/wfs?${createWfsParams(
         'kiinteistot:KIINTEISTOT_ALUE_GSVIEW',
         'EPSG:3067'
@@ -173,7 +175,7 @@ export const mapOptions = {
       title: 'Rakennukset',
       name: 'Rakennukset',
       visible: true,
-      type: 'vector',
+      type: 'wfs',
       url: `${geodataBaseUrl}/rakennukset/wfs?${createWfsParams(
         'rakennukset:RAKENN_ST_FA_GSVIEW',
         'EPSG:3067'
@@ -188,7 +190,7 @@ export const mapOptions = {
       title: 'Kadut',
       name: 'Kadut',
       visible: true,
-      type: 'vector',
+      type: 'wfs',
       url: `${geodataBaseUrl}/locus/wfs?${createWfsParams(
         'locus:Katualueen_osa_katu_RpaStreetPart_Polygon_gsview',
         'EPSG:3067'
@@ -198,5 +200,5 @@ export const mapOptions = {
         fillColor: '#ffffff',
       },
     },
-  ] as MapVectorLayer[],
+  ] as WFSLayer[],
 };

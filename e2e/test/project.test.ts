@@ -1,7 +1,38 @@
-import { test, expect, Page } from '@playwright/test';
-import { login } from '@utils/page';
+import { expect, Page, test } from '@playwright/test';
 import type { UpsertProject } from '@shared/schema/project';
 import { sleep } from '@shared/utils';
+import { login } from '@utils/page';
+import { client } from '@utils/trpc';
+
+const keskustoriGeom = {
+  type: 'Polygon',
+  coordinates: [
+    [
+      [327603.111449048, 6822563.296219701],
+      [327591.111449048, 6822541.546219701],
+      [327619.861449048, 6822543.796219701],
+      [327603.111449048, 6822563.296219701],
+    ],
+  ],
+  crs: {
+    type: 'name',
+    properties: {
+      name: 'EPSG:3067',
+    },
+  },
+};
+
+function geometryPayload(projectId: string, geometry: object) {
+  return {
+    id: projectId,
+    features: JSON.stringify([
+      {
+        type: 'Feature',
+        geometry,
+      },
+    ]),
+  };
+}
 
 async function createProject(page: Page, project: UpsertProject) {
   // Go to the new project page
@@ -19,6 +50,8 @@ async function createProject(page: Page, project: UpsertProject) {
   // URL should include the newly created project ID, parse it from the URL
   await expect(page).toHaveURL(/https:\/\/localhost:1443\/hanke\/[0-9a-f-]+/);
   const projectId = page.url().split('/').at(-1);
+
+  await client.project.updateGeometry.mutate(geometryPayload(projectId, keskustoriGeom));
 
   // Go back to the front page
   await page.getByRole('link', { name: 'Hankkeet' }).click();

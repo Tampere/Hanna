@@ -14,7 +14,7 @@ import Style from 'ol/style/Style';
  * Drawing tool
  */
 
-const drawStyle = {
+export const drawStyle = {
   fill: {
     color: 'rgb(173, 255, 47, 0.3)',
   },
@@ -96,7 +96,6 @@ export function createDrawInteraction(opts: DrawOptions) {
 
     if (opts.trace && opts.traceSource) {
       const snap = new Snap({ source: opts.traceSource });
-      //snap.set('type', 'customInteraction');
       map.addInteraction(snap);
     }
   };
@@ -108,7 +107,7 @@ export function createDrawInteraction(opts: DrawOptions) {
 
 export function createSelectionLayer(source: VectorSource<Geometry>) {
   return new VectorLayer({
-    source: source,
+    source,
     properties: { id: 'selectionLayer' },
     zIndex: 100,
     style: new Style({

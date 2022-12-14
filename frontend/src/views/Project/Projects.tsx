@@ -5,10 +5,10 @@ import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
-import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { useTranslations } from '@frontend/stores/lang';
 import { getProjectSearchParams } from '@frontend/stores/search/project';
 import { useDebounce } from '@frontend/utils/useDebounce';
+import { ResultsMap } from '@frontend/views/Project/ResultsMap';
 
 import { DbProject } from '@shared/schema/project';
 
@@ -61,9 +61,10 @@ const searchResultContainerStyle = css`
 
 interface SearchResultsProps {
   results: readonly DbProject[];
+  loading?: boolean;
 }
 
-function SearchResults({ results }: SearchResultsProps) {
+function SearchResults({ results, loading }: SearchResultsProps) {
   const tr = useTranslations();
   return (
     <Paper css={searchResultContainerStyle} elevation={1}>
@@ -90,20 +91,12 @@ function SearchResults({ results }: SearchResultsProps) {
           })}
         </Box>
       ) : (
-        <span>{tr('projectSearch.noResults')}</span>
+        !loading && (
+          <Box>
+            <span>{tr('projectSearch.noResults')}</span>
+          </Box>
+        )
       )}
-    </Paper>
-  );
-}
-
-const resultMapContainerStyle = css`
-  min-height: 600px;
-`;
-
-function ResultsMap() {
-  return (
-    <Paper css={resultMapContainerStyle} elevation={1}>
-      <MapWrapper />
     </Paper>
   );
 }
@@ -113,28 +106,28 @@ const resultsContainerStyle = css`
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: 16px;
+  flex: 1;
 `;
 
 function ProjectResults() {
-  const tr = useTranslations();
   const projectSearchParams = getProjectSearchParams();
-  const projects = trpc.project.search.useQuery({
+  const search = trpc.project.search.useQuery({
     ...projectSearchParams,
+    map: useDebounce(projectSearchParams.map, 400),
     text: useDebounce(projectSearchParams.text, 250),
   });
-  return projects.data ? (
+  return (
     <div css={resultsContainerStyle}>
-      <SearchResults results={projects.data} />
-      <ResultsMap />
+      <SearchResults loading={search.isLoading} results={search.data?.projects ?? []} />
+      <ResultsMap loading={search.isLoading} results={search.data} />
     </div>
-  ) : (
-    <span>{tr('loading')}</span>
   );
 }
 
 const projectPageStyle = css`
   display: flex;
   flex-direction: column;
+  height: 100%;
 `;
 
 export function ProjectsPage() {

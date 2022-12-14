@@ -11,11 +11,7 @@ import VectorSource from 'ol/source/Vector';
 import WMTS from 'ol/source/WMTS';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 
-import {
-  WebGLLayer,
-  getMapProjection,
-  registerProjection,
-} from '@frontend/components/Map/mapFunctions';
+import { getMapProjection, registerProjection } from '@frontend/components/Map/mapFunctions';
 
 import { mapOptions } from './mapOptions';
 
@@ -23,11 +19,12 @@ export type MapInteraction = (map: OLMap) => void;
 
 interface Props {
   zoom: number;
-  onZoomChange: (zoom: number) => void;
+  onMoveEnd: (zoom: number, extent: number[]) => void;
   baseMapLayers: TileLayer<WMTS>[];
   children?: ReactNode;
   extent: number[] | null;
-  vectorLayers?: (VectorLayer<VectorSource<Geometry>> | WebGLLayer)[];
+  wfsLayers?: VectorLayer<VectorSource<Geometry>>[];
+  vectorLayers?: VectorLayer<VectorSource<Geometry>>[];
   interactions?: MapInteraction[] | null;
   interactionLayers?: VectorLayer<VectorSource<Geometry>>[];
 }
@@ -45,11 +42,12 @@ const initialInteractions = defaultInteractions({
 
 export function Map({
   zoom,
-  onZoomChange,
+  onMoveEnd,
   baseMapLayers,
-  vectorLayers,
   children,
   extent,
+  wfsLayers,
+  vectorLayers,
   interactions,
   interactionLayers,
 }: Props) {
@@ -66,6 +64,8 @@ export function Map({
       center: mapOptions.tre.center,
       extent: mapOptions.tre.extent,
       zoom: zoom,
+      minZoom: mapOptions.tre.minZoom,
+      maxZoom: mapOptions.tre.maxZoom,
       multiWorld: false,
       enableRotation: false,
     });
@@ -96,10 +96,9 @@ export function Map({
 
     // Register event listeners
     olMap.on('moveend', () => {
-      const moveZoom = olMap.getView().getZoom();
-      if (moveZoom) {
-        onZoomChange(moveZoom);
-      }
+      const moveZoom = olMap.getView().getZoom() || zoom;
+      const viewBounds = olMap.getView().calculateExtent(olMap.getSize());
+      onMoveEnd(moveZoom, viewBounds);
     });
   }, [olMap]);
 
@@ -134,18 +133,32 @@ export function Map({
     });
   }, [baseMapLayers]);
 
-  /** Vector layers */
+  /** WFS vector layers */
   useEffect(() => {
-    if (!vectorLayers) return;
-    const currentVectorLayerIds = new Set(vectorLayers.map((layer) => layer.get('id')));
-    const layers = [...olMap.getLayers().getArray()];
-    layers.forEach((layer) => {
-      if (layer.get('type') === 'vector' && !currentVectorLayerIds.has(layer.get('id'))) {
+    if (!wfsLayers) return;
+    const wfsLayerIds = new Set(wfsLayers.map((layer) => layer.get('id')));
+    const allLayers = [...olMap.getLayers().getArray()];
+    allLayers.forEach((layer) => {
+      if (layer.get('type') === 'wfs' && !wfsLayerIds.has(layer.get('id'))) {
         olMap.removeLayer(layer);
       }
     });
-    vectorLayers.forEach((layer) => {
+    wfsLayers.forEach((layer) => {
       layer.setZIndex(1);
+      olMap.addLayer(layer);
+    });
+  }, [wfsLayers]);
+
+  /** Vector layers */
+  useEffect(() => {
+    const allLayers = [...olMap.getLayers().getArray()];
+    allLayers.forEach((layer) => {
+      if (layer.get('type') === 'vector') {
+        olMap.removeLayer(layer);
+      }
+    });
+    vectorLayers?.forEach((layer) => {
+      layer.setZIndex(2);
       olMap.addLayer(layer);
     });
   }, [vectorLayers]);

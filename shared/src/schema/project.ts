@@ -18,18 +18,40 @@ export const periodSchema = z.object({
 });
 
 export type Period = z.infer<typeof periodSchema>;
+
+export const mapSearchSchema = z.object({
+  zoom: z.number(),
+  extent: z.array(z.number()),
+});
+
+export type MapSearch = z.infer<typeof mapSearchSchema>;
+
 export const projectSearchSchema = z.object({
   text: z.string(),
   dateRange: periodSchema,
   lifecycleStates: z.array(z.string()),
   projectTypes: z.array(z.string()),
   financingTypes: z.array(z.string()),
+  map: mapSearchSchema,
 });
 
 export const dbProjectSchema = upsertProjectSchema.extend({
   id: z.string(),
   geom: z.string().nullable(),
 });
+
+export const projectSearchResultSchema = z.object({
+  projects: z.array(dbProjectSchema),
+  clusters: z.array(
+    z.object({
+      clusterCount: z.number(),
+      clusterLocation: z.string(),
+      clusterGeohash: z.string(),
+    })
+  )
+});
+
+export type ProjectSearchResult = z.infer<typeof projectSearchResultSchema>;
 
 export const projectIdSchema = z.object({
   id: z.string(),
