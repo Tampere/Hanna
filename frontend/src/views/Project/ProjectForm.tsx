@@ -11,6 +11,7 @@ import { z } from 'zod';
 
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
+import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
@@ -66,6 +67,7 @@ export function ProjectForm(props: ProjectFormProps) {
       description: '',
       startDate: '',
       endDate: '',
+      lifecycleState: '01',
     },
   });
 
@@ -174,6 +176,15 @@ export function ProjectForm(props: ProjectFormProps) {
               readOnly={!editing}
               field={field}
             />
+          )}
+        />
+
+        <FormField
+          formField="lifecycleState"
+          label={tr('project.lifecycleStateLabel')}
+          tooltip={tr('newProject.lifecycleStateTooltip')}
+          component={(field) => (
+            <CodeSelect readOnly={!editing} codeListId="HankkeenElinkaarentila" {...field} />
           )}
         />
 

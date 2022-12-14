@@ -32,6 +32,7 @@
   "newProject.descriptionTooltip": "Enter description for new project",
   "newProject.startDateTooltip": "Select project start date",
   "newProject.endDateTooltip": "Select project end date",
+  "newProject.lifecycleStateTooltip": "Select project lifecycle state",
   "newProject.basicInfoSectionLabel": "Information",
   "newProject.createBtnLabel": "Add project",
   "newProject.linksSectionTitle": "Related projects",

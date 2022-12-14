@@ -25,7 +25,8 @@ const selectProjectFragment = sql.fragment`
     start_date AS "startDate",
     end_date AS "endDate",
     geohash,
-    ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom
+    ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
+    lifecycle_state AS "lifecycleState"
   FROM app.project
   WHERE deleted = false
 `;
@@ -57,7 +58,7 @@ async function deleteProject(id: string) {
 }
 
 async function upsertProject(project: UpsertProject) {
-  const { id, projectName, description, startDate, endDate } = project;
+  const { id, projectName, description, startDate, endDate, lifecycleState } = project;
   if (id) {
     return getPool().one(sql.type(projectIdSchema)`
       UPDATE app.project
@@ -65,15 +66,16 @@ async function upsertProject(project: UpsertProject) {
         project_name = ${projectName},
         description = ${description},
         start_date = ${startDate},
-        end_date = ${endDate}
+        end_date = ${endDate},
+        lifecycle_state = ${lifecycleState}
       WHERE id = ${id}
       RETURNING id
     `);
   } else {
     return getPool().one(
       sql.type(projectIdSchema)`
-        INSERT INTO app.project (project_name, description, start_date, end_date)
-        VALUES (${projectName}, ${description}, ${startDate}, ${endDate})
+        INSERT INTO app.project (project_name, description, start_date, end_date, lifecycle_state)
+        VALUES (${projectName}, ${description}, ${startDate}, ${endDate}, ${lifecycleState})
         RETURNING id
       `
     );
@@ -133,6 +135,11 @@ function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
       AND ${textSearchFragment(input)}
       AND ${mapExtentFragment(input.map.extent)}
       AND ${timePeriodFragment(input)}
+      AND ${
+        input.lifecycleStates?.length > 0
+          ? sql.fragment`lifecycle_state = ANY(${sql.array(input.lifecycleStates, 'text')})`
+          : sql.fragment`true`
+      }
       ${orderByFragment(input)}
   `;
 }

@@ -27,6 +27,7 @@ test.describe('Project endpoints', () => {
       description: 'Test description',
       startDate: '2021-01-01',
       endDate: '2022-01-01',
+      lifecycleState: '01',
     });
 
     const point = makePoint(24487416.69375355, 6821004.272996133, 'EPSG:3878');

@@ -8,6 +8,7 @@ export const upsertProjectSchema = z.object({
   description: z.string().min(1),
   startDate: z.string().regex(isoDateStringRegex),
   endDate: z.string().regex(isoDateStringRegex),
+  lifecycleState: z.enum(['01', '02', '03', '04']),
 });
 
 export type UpsertProject = z.infer<typeof upsertProjectSchema>;
