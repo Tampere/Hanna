@@ -152,14 +152,14 @@ export function Map({
   /** Vector layers */
   useEffect(() => {
     const allLayers = [...olMap.getLayers().getArray()];
-    vectorLayers?.forEach((layer) => {
-      layer.setZIndex(2);
-      olMap.addLayer(layer);
-    });
     allLayers.forEach((layer) => {
       if (layer.get('type') === 'vector') {
         olMap.removeLayer(layer);
       }
+    });
+    vectorLayers?.forEach((layer) => {
+      layer.setZIndex(2);
+      olMap.addLayer(layer);
     });
   }, [vectorLayers]);
 
