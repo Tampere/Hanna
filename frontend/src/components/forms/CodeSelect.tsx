@@ -43,7 +43,7 @@ export function CodeSelect({ codeListId, multiple, value, readOnly, onChange }: 
       size="small"
       options={codes.data?.map((code) => code.id) ?? []}
       disabled={!codes.data}
-      disableCloseOnSelect
+      disableCloseOnSelect={multiple}
       ref={autocompleteRef}
       value={value}
       noOptionsText={tr('select.noOptions')}
