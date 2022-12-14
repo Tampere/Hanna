@@ -42,7 +42,6 @@ function clusterGeoJSON(clusters?: ProjectSearchResult['clusters']) {
 }
 
 function getClusterLayer(source: VectorSource) {
-  console.log('Creating cluster layer');
   return new VectorLayer({
     source,
     style: function style(feature) {
