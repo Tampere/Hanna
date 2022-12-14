@@ -1,7 +1,8 @@
-import { test, expect, Page } from '@playwright/test';
-import { login } from '@utils/page';
+import { expect, Page, test } from '@playwright/test';
 import type { UpsertProject } from '@shared/schema/project';
 import { sleep } from '@shared/utils';
+import { login } from '@utils/page';
+import { client } from '@utils/trpc';
 
 const keskustoriGeom = {
   type: 'Polygon',
@@ -23,15 +24,13 @@ const keskustoriGeom = {
 
 function geometryPayload(projectId: string, geometry: object) {
   return {
-    json: {
-      id: projectId,
-      features: JSON.stringify([
-        {
-          type: 'Feature',
-          geometry,
-        },
-      ]),
-    },
+    id: projectId,
+    features: JSON.stringify([
+      {
+        type: 'Feature',
+        geometry,
+      },
+    ]),
   };
 }
 
@@ -52,10 +51,7 @@ async function createProject(page: Page, project: UpsertProject) {
   await expect(page).toHaveURL(/https:\/\/localhost:1443\/hanke\/[0-9a-f-]+/);
   const projectId = page.url().split('/').at(-1);
 
-  // NOTE: Geometry edit request with API call (not using the UI)
-  await page.request.post('https://localhost:1443/trpc/project.updateGeometry', {
-    data: geometryPayload(projectId, keskustoriGeom),
-  });
+  await client.project.updateGeometry.mutate(geometryPayload(projectId, keskustoriGeom));
 
   // Go back to the front page
   await page.getByRole('link', { name: 'Hankkeet' }).click();
