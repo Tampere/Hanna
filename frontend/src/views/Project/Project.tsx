@@ -9,8 +9,11 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
+import { DbProject } from '@shared/schema/project';
+
 import { DeleteProjectDialog } from './DeleteProjectDialog';
 import { ProjectForm } from './ProjectForm';
+import { ProjectRelations } from './ProjectRelations';
 
 const pageStyle = css`
   display: grid;
@@ -59,11 +62,6 @@ export function Project() {
     },
   });
 
-  const relations = trpc.project.getRelations.useQuery(
-    { id: projectId },
-    { enabled: Boolean(projectId), queryKey: ['project.getRelations', { id: projectId }] }
-  );
-
   if (projectId && project.isLoading) {
     return <Typography>{tr('loading')}</Typography>;
   }
@@ -94,10 +92,13 @@ export function Project() {
           </AccordionDetails>
         </Accordion>
 
-        <Accordion expanded={false} disabled>
+        <Accordion expanded={true}>
           <AccordionSummary expandIcon={<ExpandMore />}>
             <Typography variant="overline">{tr('newProject.linksSectionTitle')}</Typography>
           </AccordionSummary>
+          <AccordionDetails>
+            <ProjectRelations project={project.data as DbProject} />
+          </AccordionDetails>
         </Accordion>
 
         <Accordion expanded={false} disabled>

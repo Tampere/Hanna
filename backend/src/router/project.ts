@@ -14,6 +14,7 @@ import {
   projectSearchSchema,
   updateGeometryResultSchema,
   updateGeometrySchema,
+  updateRelationsSchema,
   upsertProjectSchema,
 } from '@shared/schema/project';
 
@@ -144,6 +145,27 @@ function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
   `;
 }
 
+async function updateProjectRelations(
+  projectId: string,
+  targetProjectId: string,
+  relation: 'parent' | 'child' | 'related'
+) {
+  let projectRelation = 'relates_to';
+  let subjectProject = projectId;
+  let objectProject = targetProjectId;
+  if (relation === 'parent') {
+    projectRelation = 'is_parent_of';
+    subjectProject = targetProjectId;
+    objectProject = projectId;
+  } else if (relation === 'child') {
+    projectRelation = 'is_parent_of';
+  }
+  return getPool().any(sql.type(updateRelationsSchema)`
+    INSERT INTO app.project_relation (project_id, target_project_id, relation_type)
+    VALUES (${subjectProject}, ${objectProject}, ${projectRelation});
+  `);
+}
+
 async function getRelatedProjects(id: string) {
   return getPool().one(sql.type(projectRelationsSchema)`WITH relations AS (
     (SELECT
@@ -267,5 +289,10 @@ export const createProjectRouter = (t: TRPC) =>
         WHERE id = ${id}
         RETURNING id, ST_AsGeoJSON(geom) AS geom
       `);
+    }),
+
+    updateRelations: t.procedure.input(updateRelationsSchema).mutation(async ({ input }) => {
+      const { projectId, targetProjectId, relation } = input;
+      return await updateProjectRelations(projectId, targetProjectId, relation);
     }),
   });
