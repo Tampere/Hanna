@@ -12,9 +12,9 @@ import {
   projectRelationsSchema,
   projectSearchResultSchema,
   projectSearchSchema,
+  relationsSchema,
   updateGeometryResultSchema,
   updateGeometrySchema,
-  updateRelationsSchema,
   upsertProjectSchema,
 } from '@shared/schema/project';
 
@@ -160,9 +160,32 @@ async function updateProjectRelations(
   } else if (relation === 'child') {
     projectRelation = 'is_parent_of';
   }
-  return getPool().any(sql.type(updateRelationsSchema)`
+  return getPool().any(sql.type(relationsSchema)`
     INSERT INTO app.project_relation (project_id, target_project_id, relation_type)
     VALUES (${subjectProject}, ${objectProject}, ${projectRelation});
+  `);
+}
+
+async function removeProjectRelation(
+  projectId: string,
+  targetProjectId: string,
+  relation: 'parent' | 'child' | 'related'
+) {
+  let projectRelation = 'relates_to';
+  let subjectProject = projectId;
+  let objectProject = targetProjectId;
+  if (relation === 'parent') {
+    projectRelation = 'is_parent_of';
+    subjectProject = targetProjectId;
+    objectProject = projectId;
+  } else if (relation === 'child') {
+    projectRelation = 'is_parent_of';
+  }
+  console.log(subjectProject, projectRelation, objectProject);
+  return getPool().any(sql.type(relationsSchema)`
+    DELETE FROM app.project_relation
+    WHERE project_id = ${subjectProject} AND target_project_id = ${objectProject} AND relation_type = ${projectRelation}
+    OR project_id = ${objectProject} AND target_project_id = ${subjectProject} AND relation_type = ${projectRelation}
   `);
 }
 
@@ -291,8 +314,13 @@ export const createProjectRouter = (t: TRPC) =>
       `);
     }),
 
-    updateRelations: t.procedure.input(updateRelationsSchema).mutation(async ({ input }) => {
+    updateRelations: t.procedure.input(relationsSchema).mutation(async ({ input }) => {
       const { projectId, targetProjectId, relation } = input;
       return await updateProjectRelations(projectId, targetProjectId, relation);
+    }),
+
+    remoteRelation: t.procedure.input(relationsSchema).mutation(async ({ input }) => {
+      const { projectId, targetProjectId, relation } = input;
+      return await removeProjectRelation(projectId, targetProjectId, relation);
     }),
   });

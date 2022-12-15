@@ -1,8 +1,9 @@
 import { css } from '@emotion/react';
-import { Add } from '@mui/icons-material';
+import { Add, Cancel } from '@mui/icons-material';
 import { Autocomplete, Button, IconButton, TextField, Tooltip, Typography } from '@mui/material';
 import { Box } from '@mui/system';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
@@ -24,23 +25,33 @@ const columnStyle = css`
 
 const addIconButtonStyle = css`
   color: #22437b;
+  background-color: #d7e4f7;
   font-size: 0.5rem;
 `;
 
 const relationStyle = css`
-  background-color: #f0f6ff;
+  background-color: #f3f3fc;
   padding: 0.25rem;
   border-radius: 2px;
-  border: 1px solid grey;
+  border: 1px solid #22437b;
 `;
 
 const relationContainer = css`
   border-bottom: 1px solid black;
   padding-bottom: 0.25rem;
+  padding-top: 0.25rem;
 `;
 
 const projectLinkContainer = css`
+  /* display: flex;
+  flex-direction: row; */
   padding-bottom: 0.75rem;
+`;
+
+const noRelationsText = css`
+  font-style: italic;
+  color: grey;
+  font-size: 0.9rem;
 `;
 
 interface Props {
@@ -53,9 +64,10 @@ export function ProjectRelations({ project }: Props) {
   const [selectedProjectName, setSelectedProjectName] = useState<string | null>('');
   const [projectSearch, setProjectSearch] = useState<{
     isOpen: boolean;
-    ref?: 'parent' | 'child' | 'related';
+    ref?: 'parent' | 'child' | 'related' | '';
   }>({
     isOpen: false,
+    ref: '',
   });
 
   const relations = trpc.project.getRelations.useQuery(
@@ -80,6 +92,7 @@ export function ProjectRelations({ project }: Props) {
   const relationsUpdate = trpc.project.updateRelations.useMutation({
     onSuccess: () => {
       relations.refetch();
+      setSelectedProjectName('');
       notify({
         severity: 'success',
         title: tr('projectRelations.notifyAddedRelation'),
@@ -90,6 +103,24 @@ export function ProjectRelations({ project }: Props) {
       notify({
         severity: 'success',
         title: tr('projectRelations.notifyAddedRelationFailure'),
+        duration: 5000,
+      });
+    },
+  });
+
+  const deleteRelation = trpc.project.remoteRelation.useMutation({
+    onSuccess: () => {
+      relations.refetch();
+      notify({
+        severity: 'success',
+        title: tr('projectRelations.relationRemoved'),
+        duration: 5000,
+      });
+    },
+    onError: () => {
+      notify({
+        severity: 'success',
+        title: tr('projectRelations.relationRemovalFailed'),
         duration: 5000,
       });
     },
@@ -109,6 +140,14 @@ export function ProjectRelations({ project }: Props) {
       targetProjectId: projects.data.find((project) => project.projectName === selectedProjectName)
         ?.id as any,
       relation: projectSearch.ref,
+    });
+  }
+
+  function removeProjectRelation(relation: string, targetProjectId: string) {
+    deleteRelation.mutate({
+      projectId: project.id,
+      targetProjectId: targetProjectId,
+      relation: relation as any,
     });
   }
 
@@ -140,7 +179,7 @@ export function ProjectRelations({ project }: Props) {
             size="small"
             style={{ marginRight: '0.5rem' }}
             onClick={() => {
-              setProjectSearch({ isOpen: false, ref: 'child' });
+              setProjectSearch({ isOpen: false, ref: '' });
               addProjectRelation();
             }}
           >
@@ -150,7 +189,7 @@ export function ProjectRelations({ project }: Props) {
             variant="contained"
             size="small"
             onClick={() => {
-              setProjectSearch({ isOpen: false, ref: 'child' });
+              setProjectSearch({ isOpen: false, ref: '' });
               setSelectedProjectName('');
             }}
           >
@@ -163,17 +202,19 @@ export function ProjectRelations({ project }: Props) {
 
   return (
     <div>
+      {/* Parent */}
       <Box css={relationContainer}>
-        <Box css={rowStyle}>
+        <Box css={rowStyle} style={{ justifyContent: 'space-between' }}>
           <Typography style={{ fontSize: '0.9rem' }}>
             {tr('projectRelations.parentRelations').toLocaleUpperCase()}
           </Typography>
           <Tooltip title={'Lisää hankkeelle ylähanke'}>
             <IconButton
+              size="small"
               css={addIconButtonStyle}
               onClick={() => setProjectSearch({ isOpen: true, ref: 'parent' })}
             >
-              <Add />
+              <Add fontSize="small" />
             </IconButton>
           </Tooltip>
         </Box>
@@ -181,30 +222,43 @@ export function ProjectRelations({ project }: Props) {
           {relations?.data?.relations.parents?.map((parent: any, index: number) => (
             <Box css={projectLinkContainer} key={`parent-idx-${index}`}>
               <span css={relationStyle}>
-                <a href={`/hanke/${parent.projectId}`}>{parent.projectName}</a>
+                <Tooltip
+                  title={tr('projectRelations.gotoProject').replace('{x}', parent.projectName)}
+                >
+                  <Link to={`/hanke/${parent.projectId}`}>{parent.projectName}</Link>
+                </Tooltip>
               </span>
+              <Tooltip title={tr('projectRelations.removeRelation')}>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    removeProjectRelation('parent', parent.projectId);
+                  }}
+                >
+                  <Cancel fontSize="small" />
+                </IconButton>
+              </Tooltip>
             </Box>
           )) ??
-            (!projectSearch.isOpen && (
-              <span style={{ fontStyle: 'italic', color: 'grey', fontSize: '0.9rem' }}>
-                {' '}
-                Ei ylähankkeita{' '}
-              </span>
+            (projectSearch.ref !== 'parent' && (
+              <Typography css={noRelationsText}> Ei ylähankkeita </Typography>
             ))}
         </Box>
         {projectSearch.isOpen && projectSearch.ref === 'parent' && <ProjectSearch />}
       </Box>
+      {/* Child */}
       <Box css={relationContainer}>
-        <Box css={rowStyle}>
+        <Box css={rowStyle} style={{ justifyContent: 'space-between' }}>
           <Typography style={{ fontSize: '0.9rem' }}>
             {tr('projectRelations.childRelations').toLocaleUpperCase()}
           </Typography>
           <Tooltip title={'Lisää hankkeelle alahanke'}>
             <IconButton
+              size="small"
               css={addIconButtonStyle}
               onClick={() => setProjectSearch({ isOpen: true, ref: 'child' })}
             >
-              <Add />
+              <Add fontSize="small" />
             </IconButton>
           </Tooltip>
         </Box>
@@ -212,30 +266,43 @@ export function ProjectRelations({ project }: Props) {
           {relations?.data?.relations.children?.map((child: any, index: number) => (
             <Box css={projectLinkContainer} key={`child-idx-${index}`}>
               <span css={relationStyle}>
-                <a href={`/hanke/${child.projectId}`}>{child.projectName}</a>
+                <Tooltip
+                  title={tr('projectRelations.gotoProject').replace('{x}', child.projectName)}
+                >
+                  <Link to={`/hanke/${child.projectId}`}>{child.projectName}</Link>
+                </Tooltip>
               </span>
+              <Tooltip title={tr('projectRelations.removeRelation')}>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    removeProjectRelation('child', child.projectId);
+                  }}
+                >
+                  <Cancel fontSize="small" />
+                </IconButton>
+              </Tooltip>
             </Box>
           )) ??
-            (!projectSearch.isOpen && (
-              <span style={{ fontStyle: 'italic', color: 'grey', fontSize: '0.9rem' }}>
-                {' '}
-                Ei alahankkeita{' '}
-              </span>
+            (projectSearch.ref !== 'child' && (
+              <Typography css={noRelationsText}> Ei alahankkeita </Typography>
             ))}
         </Box>
         {projectSearch.isOpen && projectSearch.ref === 'child' && <ProjectSearch />}
       </Box>
-      <Box style={{ paddingBottom: '1rem' }}>
-        <Box css={rowStyle}>
+      {/* Related */}
+      <Box css={relationContainer}>
+        <Box css={rowStyle} style={{ justifyContent: 'space-between' }}>
           <Typography style={{ fontSize: '0.9rem' }}>
             {tr('projectRelations.relatedRelations').toLocaleUpperCase()}
           </Typography>
           <Tooltip title={'Lisää hankkeelle rinnakkaishanke'}>
             <IconButton
+              size="small"
               css={addIconButtonStyle}
               onClick={() => setProjectSearch({ isOpen: true, ref: 'related' })}
             >
-              <Add />
+              <Add fontSize="small" />
             </IconButton>
           </Tooltip>
         </Box>
@@ -243,15 +310,26 @@ export function ProjectRelations({ project }: Props) {
           {relations?.data?.relations.related?.map((related: any, index: number) => (
             <Box css={projectLinkContainer} key={`related-idx-${index}`}>
               <span css={relationStyle}>
-                <a href={`/hanke/${related.projectId}`}>{related.projectName}</a>
+                <Tooltip
+                  title={tr('projectRelations.gotoProject').replace('{x}', related.projectName)}
+                >
+                  <Link to={`/hanke/${related.projectId}`}>{related.projectName}</Link>
+                </Tooltip>
               </span>
+              <Tooltip title={tr('projectRelations.removeRelation')}>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    removeProjectRelation('related', related.projectId);
+                  }}
+                >
+                  <Cancel fontSize="small" />
+                </IconButton>
+              </Tooltip>
             </Box>
           )) ??
-            (!projectSearch.isOpen && (
-              <span style={{ fontStyle: 'italic', color: 'grey', fontSize: '0.9rem' }}>
-                {' '}
-                Ei rinnakkaishankkeita{' '}
-              </span>
+            (projectSearch.ref !== 'related' && (
+              <Typography css={noRelationsText}> Ei rinnakkaishankkeita </Typography>
             ))}
         </Box>
         {projectSearch.isOpen && projectSearch.ref === 'related' && <ProjectSearch />}

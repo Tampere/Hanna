@@ -88,7 +88,7 @@ export const projectRelationsSchema = z.object({
   related: z.array(projectRelationSchema).nullable(),
 });
 
-export const updateRelationsSchema = z.object({
+export const relationsSchema = z.object({
   projectId: z.string(),
   targetProjectId: z.string(),
   relation: z.enum(['parent', 'child', 'related']),
