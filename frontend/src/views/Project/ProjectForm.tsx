@@ -72,6 +72,17 @@ export function ProjectForm(props: ProjectFormProps) {
   });
 
   useEffect(() => {
+    form.reset(
+      props.project ?? {
+        projectName: '',
+        description: '',
+        startDate: '',
+        endDate: '',
+      }
+    );
+  }, [props.project]);
+
+  useEffect(() => {
     const sub = form.watch((value, { name, type }) => {
       if (type === 'change' && (name === 'startDate' || name === 'endDate')) {
         form.trigger(['startDate', 'endDate']);

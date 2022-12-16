@@ -30,10 +30,19 @@ const addIconButtonStyle = css`
 `;
 
 const relationStyle = css`
-  background-color: #f3f3fc;
+  /* background-color: #f3f3fc; */
+  background-color: #d7e4f7;
+  /* opacity: 0.1; */
   padding: 0.25rem;
-  border-radius: 2px;
+  border-radius: 4px;
   border: 1px solid #22437b;
+`;
+
+const linkStyle = css`
+  color: black;
+  :hover {
+    color: #22437b;
+  }
 `;
 
 const relationContainer = css`
@@ -225,7 +234,9 @@ export function ProjectRelations({ project }: Props) {
                 <Tooltip
                   title={tr('projectRelations.gotoProject').replace('{x}', parent.projectName)}
                 >
-                  <Link to={`/hanke/${parent.projectId}`}>{parent.projectName}</Link>
+                  <Link css={linkStyle} to={`/hanke/${parent.projectId}`}>
+                    {parent.projectName}
+                  </Link>
                 </Tooltip>
               </span>
               <Tooltip title={tr('projectRelations.removeRelation')}>
@@ -269,7 +280,9 @@ export function ProjectRelations({ project }: Props) {
                 <Tooltip
                   title={tr('projectRelations.gotoProject').replace('{x}', child.projectName)}
                 >
-                  <Link to={`/hanke/${child.projectId}`}>{child.projectName}</Link>
+                  <Link css={linkStyle} to={`/hanke/${child.projectId}`}>
+                    {child.projectName}
+                  </Link>
                 </Tooltip>
               </span>
               <Tooltip title={tr('projectRelations.removeRelation')}>
@@ -313,7 +326,9 @@ export function ProjectRelations({ project }: Props) {
                 <Tooltip
                   title={tr('projectRelations.gotoProject').replace('{x}', related.projectName)}
                 >
-                  <Link to={`/hanke/${related.projectId}`}>{related.projectName}</Link>
+                  <Link css={linkStyle} to={`/hanke/${related.projectId}`}>
+                    {related.projectName}
+                  </Link>
                 </Tooltip>
               </span>
               <Tooltip title={tr('projectRelations.removeRelation')}>
