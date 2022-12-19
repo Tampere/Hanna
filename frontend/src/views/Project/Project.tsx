@@ -16,6 +16,7 @@ const pageStyle = css`
   display: grid;
   grid-template-columns: minmax(384px, 1fr) minmax(512px, 2fr);
   gap: 16px;
+  height: 100%;
 `;
 
 const infobarRootStyle = css`
