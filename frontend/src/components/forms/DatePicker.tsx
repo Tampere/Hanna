@@ -48,6 +48,8 @@ export function DatePicker(props: Props) {
           ...InputProps,
         }}
         inputFormat={tr('date.format')}
+        mask=""
+        disableMaskedInput={true}
         value={dayjs(value, isoDateStringFormat)}
         onChange={(value) => onChange(value?.format(isoDateStringFormat) ?? null)}
         onAccept={(value) => onChange(value?.format(isoDateStringFormat) ?? null)}
