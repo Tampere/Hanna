@@ -58,6 +58,7 @@
     "ol": "^7.1.0",
     "proj4": "^2.8.0",
     "react": "^18.2.0",
+    "react-currency-input-field": "^3.6.9",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.41.0",
     "react-router": "^6.5.0",

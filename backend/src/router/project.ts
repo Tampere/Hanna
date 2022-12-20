@@ -7,11 +7,13 @@ import { TRPC } from '@backend/router';
 
 import {
   UpsertProject,
+  costEstimateSchema,
   dbProjectSchema,
   projectIdSchema,
   projectRelationsSchema,
   projectSearchResultSchema,
   projectSearchSchema,
+  updateCostEstimatesSchema,
   updateGeometryResultSchema,
   updateGeometrySchema,
   upsertProjectSchema,
@@ -268,4 +270,49 @@ export const createProjectRouter = (t: TRPC) =>
         RETURNING id, ST_AsGeoJSON(geom) AS geom
       `);
     }),
+
+    getCostEstimates: t.procedure.input(projectIdSchema).query(async ({ input }) => {
+      const { id } = input;
+      const result = await getPool().any(sql.type(costEstimateSchema)`
+        SELECT
+          year,
+          jsonb_agg(
+            jsonb_build_object(
+              'id', id,
+              'amount', amount
+            )
+          ) AS estimates
+        FROM app.cost_estimate
+        WHERE project_id = ${id}
+        GROUP BY year
+        ORDER BY year ASC
+      `);
+      return result;
+    }),
+
+    updateCostEstimates: t.procedure
+      .input(updateCostEstimatesSchema)
+      .mutation(async ({ input }) => {
+        const { projectId, costEstimates } = input;
+        const newRows = costEstimates.reduce(
+          (rows, item) => [
+            ...rows,
+            ...item.estimates
+              .filter((estimate) => estimate.amount != null)
+              .map((estimate) => ({ year: item.year, amount: estimate.amount! })),
+          ],
+          [] as { year: number; amount: number }[]
+        );
+        await getPool().any(
+          sql.unsafe`DELETE FROM app.cost_estimate WHERE project_id = ${projectId}`
+        );
+        await Promise.all(
+          newRows.map((row) =>
+            getPool().any(sql.unsafe`
+          INSERT INTO app.cost_estimate (project_id, year, amount)
+          VALUES (${projectId}, ${row.year}, ${row.amount})
+        `)
+          )
+        );
+      }),
   });

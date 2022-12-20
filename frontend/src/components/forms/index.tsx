@@ -14,8 +14,8 @@ import {
 import { DatePicker } from './DatePicker';
 
 interface CustomFormLabelProps {
-  label: string;
-  tooltip: string;
+  label?: string;
+  tooltip?: string;
   error?: FieldError;
 }
 
@@ -51,8 +51,8 @@ export function CustomFormLabel({ label, tooltip, error }: CustomFormLabelProps)
 
 interface FormFieldProps {
   formField: string;
-  label: string;
-  tooltip: string;
+  label?: string;
+  tooltip?: string;
   component: (field: ControllerRenderProps<FieldValues, string>) => React.ReactElement;
 }
 

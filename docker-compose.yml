@@ -12,6 +12,7 @@ services:
       - ./:/app/
       - /app/frontend/node_modules
       - /app/shared/node_modules
+      - /app/backend/node_modules
     ports:
       - '127.0.0.1:8080:8080'
   backend:

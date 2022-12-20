@@ -1,15 +1,18 @@
 import { css } from '@emotion/react';
 import { ExpandMore } from '@mui/icons-material';
 import { Accordion, AccordionDetails, AccordionSummary, Paper, Typography } from '@mui/material';
+import { useState } from 'react';
 import { useLoaderData } from 'react-router';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
+// import { CurrencyInput } from '@frontend/components/forms/CurrencyInput';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { DeleteProjectDialog } from './DeleteProjectDialog';
+import { ProjectFinances } from './ProjectFinances';
 import { ProjectForm } from './ProjectForm';
 
 const pageStyle = css`
@@ -34,6 +37,7 @@ const accordionSummaryStyle = css`
 
 export function Project() {
   const tr = useTranslations();
+  const [financeSectionExpanded, setFinanceSectionExpanded] = useState(false);
 
   const routeParams = useLoaderData() as { projectId: string };
   const notify = useNotifications();
@@ -105,6 +109,18 @@ export function Project() {
           <AccordionSummary expandIcon={<ExpandMore />}>
             <Typography variant="overline">{tr('newProject.documentsSectionTitle')}</Typography>
           </AccordionSummary>
+        </Accordion>
+
+        <Accordion
+          expanded={financeSectionExpanded}
+          onChange={(_, expanded) => setFinanceSectionExpanded(expanded)}
+        >
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Typography variant="overline">{tr('newProject.financeSectionTitle')}</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <ProjectFinances project={project.data} />
+          </AccordionDetails>
         </Accordion>
 
         <Accordion expanded={false} disabled>

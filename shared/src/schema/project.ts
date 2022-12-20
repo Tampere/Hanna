@@ -87,3 +87,18 @@ export const projectRelationsSchema = z.object({
   children: z.array(projectRelationSchema).nullable(),
   related: z.array(projectRelationSchema).nullable(),
 });
+
+export const costEstimateSchema = z.object({
+  year: z.number(),
+  estimates: z.array(z.object({
+    id: z.string().optional(),
+    amount: z.number().nullable()
+  }))
+})
+
+export type CostEstimate = z.infer<typeof costEstimateSchema>
+
+export const updateCostEstimatesSchema = z.object({
+  projectId: z.string(),
+  costEstimates: z.array(costEstimateSchema)
+})
