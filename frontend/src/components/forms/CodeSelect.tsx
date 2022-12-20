@@ -6,21 +6,21 @@ import { useRef, useState } from 'react';
 import { trpc } from '@frontend/client';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 
-import type { Code } from '@shared/schema/code';
+import type { CodeId } from '@shared/schema/code';
 
 type Props = {
-  codeListId: Code['codeListId'];
+  codeListId: CodeId['codeListId'];
   readOnly?: boolean;
 } & (
   | {
       multiple: true;
-      value: string[];
-      onChange: (newValue: string[]) => void;
+      value: CodeId['id'][];
+      onChange: (newValue: CodeId['id'][]) => void;
     }
   | {
       multiple?: false;
-      value: string;
-      onChange: (newValue: string) => void;
+      value: CodeId['id'][];
+      onChange: (newValue: CodeId['id'][]) => void;
     }
 );
 
@@ -33,7 +33,7 @@ export function CodeSelect({ codeListId, multiple, value, readOnly, onChange }: 
   const autocompleteRef = useRef<HTMLElement>();
 
   function getCode(id: string) {
-    return codes.data?.find((code) => code.id === id);
+    return codes.data?.find((code) => code.id.id === id);
   }
 
   return (
@@ -41,7 +41,7 @@ export function CodeSelect({ codeListId, multiple, value, readOnly, onChange }: 
       readOnly={readOnly}
       multiple={multiple}
       size="small"
-      options={codes.data?.map((code) => code.id) ?? []}
+      options={codes.data?.map((code) => code.id.id) ?? []}
       disabled={!codes.data}
       disableCloseOnSelect={multiple}
       ref={autocompleteRef}

@@ -6,17 +6,19 @@ import { Code, codeSchema, codeSearchSchema } from '@shared/schema/code';
 
 import { TRPC } from '.';
 
-async function getCodesForCodeList(codeListId: Code['codeListId']) {
+async function getCodesForCodeList(codeListId: Code['id']['codeListId']) {
   return getPool().any(sql.type(codeSchema)`
     SELECT
-      code_list_id as "codeListId",
-      id,
+      json_build_object(
+        'codeListId', (code.id).code_list_id,
+        'id', (code.id).id
+      ) AS id,
       json_build_object(
         'fi', text_fi,
         'en', text_en
-      ) as text
+      ) AS text
     FROM app.code
-    WHERE code_list_id = ${codeListId}
+    WHERE (code.id).code_list_id = ${codeListId}
   `);
 }
 
