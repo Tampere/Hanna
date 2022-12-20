@@ -5,6 +5,7 @@ import superjson from 'superjson';
 import { logger } from '@backend/logging';
 import { createCodeRouter } from '@backend/router/code';
 import { createProjectRouter } from '@backend/router/project';
+import { createProjectObjectRouter } from '@backend/router/projectObject';
 
 export interface User {
   userId: string | string[] | undefined;
@@ -28,6 +29,7 @@ const t = initTRPC.context<Context>().create({
 
 export const appRouter = t.router({
   project: createProjectRouter(t),
+  projectObject: createProjectObjectRouter(t),
   code: createCodeRouter(t),
 });
 
