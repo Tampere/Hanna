@@ -7,7 +7,6 @@ import { useLoaderData } from 'react-router';
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
-// import { CurrencyInput } from '@frontend/components/forms/CurrencyInput';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
@@ -114,6 +113,7 @@ export function Project() {
         <Accordion
           expanded={financeSectionExpanded}
           onChange={(_, expanded) => setFinanceSectionExpanded(expanded)}
+          disabled={!project.data}
         >
           <AccordionSummary expandIcon={<ExpandMore />}>
             <Typography variant="overline">{tr('newProject.financeSectionTitle')}</Typography>

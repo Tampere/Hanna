@@ -74,13 +74,14 @@ export function CostEstimatesTable(props: Props) {
 
       notify({
         severity: 'success',
-        title: 'Kustannusarviot tallennettu',
+        title: tr('costEstimatesTable.notifySave'),
+        duration: 5000,
       });
     },
     onError() {
       notify({
         severity: 'error',
-        title: 'NOK',
+        title: tr('costEstimatesTable.notifySaveFailed'),
       });
     },
   });

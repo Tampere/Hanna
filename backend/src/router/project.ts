@@ -303,16 +303,18 @@ export const createProjectRouter = (t: TRPC) =>
           ],
           [] as { year: number; amount: number }[]
         );
-        await getPool().any(
-          sql.unsafe`DELETE FROM app.cost_estimate WHERE project_id = ${projectId}`
-        );
-        await Promise.all(
-          newRows.map((row) =>
-            getPool().any(sql.unsafe`
+        await getPool().transaction(async (connection) => {
+          await connection.any(
+            sql.type(z.any())`DELETE FROM app.cost_estimate WHERE project_id = ${projectId}`
+          );
+          await Promise.all(
+            newRows.map((row) =>
+              connection.any(sql.type(z.any())`
           INSERT INTO app.cost_estimate (project_id, year, amount)
           VALUES (${projectId}, ${row.year}, ${row.amount})
         `)
-          )
-        );
+            )
+          );
+        });
       }),
   });

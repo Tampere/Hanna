@@ -78,5 +78,7 @@
   "errorPage.navigateBack": "Go back",
   "dateRange.quickSelections": "Quick selections",
   "costEstimatesTable.year": "Year",
-  "costEstimatesTable.estimate": "Estimate"
+  "costEstimatesTable.estimate": "Estimate",
+  "costEstimatesTable.notifySave": "Cost estimates saved",
+  "costEstimatesTable.notifySaveFailed": "Failed to save cost estimates"
 }
