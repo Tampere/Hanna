@@ -4,6 +4,8 @@ services:
     build:
       context: ..
       dockerfile: frontend/Dockerfile.dev
+    environment:
+      - HMR_PORT=1443
     volumes:
       # For container based development to show git changes in the whole workspace
       - ../.git:/app/.git:cached

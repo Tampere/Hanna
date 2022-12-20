@@ -25,7 +25,7 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 8080,
     hmr: {
-      clientPort: 443,
+      clientPort: process.env.HMR_PORT ?? 1443,
     },
     proxy: {
       '/logout': 'http://backend:3003',
