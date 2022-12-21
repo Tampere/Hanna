@@ -1,5 +1,11 @@
 FROM node:18-alpine
 
+# Build argument for running in CI a bit more efficiently (without HMR)
+ARG CI
+
+# Install curl for health checks
+RUN apk update && apk add curl
+
 WORKDIR /app
 
 COPY ./shared /app/shared
@@ -21,6 +27,10 @@ EXPOSE 8080
 
 WORKDIR /app/frontend
 
+# CI: Pre-build the bundle
+RUN if [[ -n "$CI" ]]; then npm run build; fi
+
 USER node
 
-CMD npm run dev
+# CI: Run via preview, otherwise run via dev (with HMR)
+CMD if [[ -n "$CI" ]]; then npm run preview; else npm run dev; fi

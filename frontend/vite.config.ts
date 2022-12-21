@@ -1,7 +1,17 @@
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { CommonServerOptions, defineConfig } from 'vite';
 import checker from 'vite-plugin-checker';
 import tsconfigPaths from 'vite-tsconfig-paths';
+
+const serverOptions: CommonServerOptions = {
+  host: '0.0.0.0',
+  port: 8080,
+  proxy: {
+    '/logout': 'http://backend:3003',
+    '/api': 'http://backend:3003',
+    '/trpc': 'http://backend:3003',
+  },
+};
 
 export default defineConfig({
   plugins: [
@@ -22,15 +32,10 @@ export default defineConfig({
     },
   },
   server: {
-    host: '0.0.0.0',
-    port: 8080,
+    ...serverOptions,
     hmr: {
-      clientPort: process.env.HMR_PORT ?? 1443,
-    },
-    proxy: {
-      '/logout': 'http://backend:3003',
-      '/api': 'http://backend:3003',
-      '/trpc': 'http://backend:3003',
+      clientPort: process.env.HMR_PORT ? Number(process.env.HMR_PORT) : 443,
     },
   },
+  preview: serverOptions,
 });

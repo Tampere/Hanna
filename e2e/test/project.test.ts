@@ -198,7 +198,7 @@ test.describe('Projects', () => {
 
     // search with elinkaaren tila filter
     await page.fill('label:has-text("Haku")', '');
-    await page.getByRole('button', { name: 'Open' }).first().click();
+    await page.getByLabel('Elinkaaren tila').press('ArrowDown');
     await page.getByRole('option', { name: 'Aloittamatta' }).getByRole('checkbox').check();
     await sleep(500);
     searchResults = await page.locator(':text("Hakutulokset") + div >> a').allTextContents();
