@@ -1,11 +1,11 @@
 import { TRPCError } from '@trpc/server';
 import { sql } from 'slonik';
-import { CodeId } from 'tre-hanna-shared/src/schema/code';
 import { z } from 'zod';
 
 import { getPool } from '@backend/db';
 import { TRPC } from '@backend/router';
 
+import { CodeId } from '@shared/schema/code';
 import {
   UpsertProjectObject,
   dbProjectObjectSchema,

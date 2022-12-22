@@ -194,12 +194,28 @@ export function ProjectForm(props: ProjectFormProps) {
           formField="lifecycleState"
           label={tr('project.lifecycleStateLabel')}
           tooltip={tr('newProject.lifecycleStateTooltip')}
-          component={({ onChange, value }) => (
+          component={({ id, onChange, value }) => (
             <CodeSelect
+              id={id}
               value={value}
               onChange={onChange}
               readOnly={!editing}
               codeListId="HankkeenElinkaarentila"
+            />
+          )}
+        />
+
+        <FormField
+          formField="projectType"
+          label={tr('project.projectTypeLabel')}
+          tooltip={tr('newProject.projectTypeTooltip')}
+          component={({ id, onChange, value }) => (
+            <CodeSelect
+              id={id}
+              value={value}
+              onChange={onChange}
+              readOnly={!editing}
+              codeListId="HankeTyyppi"
             />
           )}
         />

@@ -31,7 +31,8 @@ const selectProjectFragment = sql.fragment`
     end_date AS "endDate",
     geohash,
     ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
-    (lifecycle_state).id AS "lifecycleState"
+    (lifecycle_state).id AS "lifecycleState",
+    (project_type).id AS "projectType"
   FROM app.project
   WHERE deleted = false
 `;
@@ -63,7 +64,7 @@ async function deleteProject(id: string) {
 }
 
 async function upsertProject(project: UpsertProject) {
-  const { id, projectName, description, startDate, endDate, lifecycleState } = project;
+  const { id, projectName, description, startDate, endDate, lifecycleState, projectType } = project;
   if (id) {
     return getPool().one(sql.type(projectIdSchema)`
       UPDATE app.project
@@ -72,15 +73,16 @@ async function upsertProject(project: UpsertProject) {
         description = ${description},
         start_date = ${startDate},
         end_date = ${endDate},
-        lifecycle_state = ('HankkeenElinkaarentila',${lifecycleState})
+        lifecycle_state = ('HankkeenElinkaarentila',${lifecycleState}),
+        project_type = ('HankeTyyppi',${projectType})
       WHERE id = ${id}
       RETURNING id
     `);
   } else {
     return getPool().one(
       sql.type(projectIdSchema)`
-        INSERT INTO app.project (project_name, description, start_date, end_date, lifecycle_state)
-        VALUES (${projectName}, ${description}, ${startDate}, ${endDate}, ('HankkeenElinkaarentila',${lifecycleState}))
+        INSERT INTO app.project (project_name, description, start_date, end_date, lifecycle_state, project_type)
+        VALUES (${projectName}, ${description}, ${startDate}, ${endDate}, ('HankkeenElinkaarentila',${lifecycleState}), ('HankeTyyppi',${projectType}))
         RETURNING id
       `
     );
@@ -144,6 +146,11 @@ function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
       AND ${
         input.lifecycleStates && input.lifecycleStates?.length > 0
           ? sql.fragment`(lifecycle_state).id = ANY(${sql.array(input.lifecycleStates, 'text')})`
+          : sql.fragment`true`
+      }
+      AND ${
+        input.projectTypes && input.projectTypes?.length > 0
+          ? sql.fragment`(project_type).id = ANY(${sql.array(input.projectTypes, 'text')})`
           : sql.fragment`true`
       }
       ${orderByFragment(input)}

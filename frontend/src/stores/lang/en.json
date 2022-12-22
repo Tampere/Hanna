@@ -33,6 +33,7 @@
   "newProject.startDateTooltip": "Select project start date",
   "newProject.endDateTooltip": "Select project end date",
   "newProject.lifecycleStateTooltip": "Select project lifecycle state",
+  "newProject.projectTypeTooltip": "Select project type",
   "newProject.basicInfoSectionLabel": "Information",
   "newProject.createBtnLabel": "Add project",
   "newProject.linksSectionTitle": "Related projects",

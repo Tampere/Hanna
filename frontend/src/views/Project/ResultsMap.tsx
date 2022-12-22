@@ -8,11 +8,12 @@ import Stroke from 'ol/style/Stroke';
 import Style from 'ol/style/Style';
 import Text from 'ol/style/Text';
 import { useEffect, useMemo } from 'react';
-import { ProjectSearchResult } from 'tre-hanna-shared/src/schema/project';
 
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { addFeaturesFromGeoJson, drawStyle } from '@frontend/components/Map/mapInteractions';
 import { getProjectSearchParamSetters } from '@frontend/stores/search/project';
+
+import { ProjectSearchResult } from '@shared/schema/project';
 
 const resultMapContainerStyle = css`
   min-height: 600px;

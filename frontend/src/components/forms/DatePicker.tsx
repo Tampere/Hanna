@@ -9,6 +9,7 @@ import { useAtomValue } from 'jotai';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 
 interface Props {
+  id?: string;
   value: string | null;
   onChange: (value: string | null) => void;
   onClose?: () => void;
@@ -21,7 +22,7 @@ interface Props {
 const isoDateStringFormat = 'YYYY-MM-DD';
 
 export function DatePicker(props: Props) {
-  const { value, onChange, onClose, readOnly, minDate, maxDate, InputProps } = props;
+  const { id, value, onChange, onClose, readOnly, minDate, maxDate, InputProps } = props;
   const tr = useTranslations();
   const lang = useAtomValue(langAtom);
   const readonlyProps = {
@@ -65,6 +66,7 @@ export function DatePicker(props: Props) {
               inputProps={{
                 ...props.inputProps,
                 placeholder: tr('date.format.placeholder'),
+                id,
               }}
             />
           );

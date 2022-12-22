@@ -1,21 +1,23 @@
 import { z } from 'zod';
 
-import { isoDateStringRegex } from '../utils';
+import { codeId } from './code';
+import { isoDateString, nonEmptyString } from './common';
 
 export const upsertProjectSchema = z.object({
   id: z.string().optional(),
-  projectName: z.string().min(1),
-  description: z.string().min(1),
-  startDate: z.string().regex(isoDateStringRegex),
-  endDate: z.string().regex(isoDateStringRegex),
-  lifecycleState: z.enum(['01', '02', '03', '04']),
+  projectName: nonEmptyString,
+  description: nonEmptyString,
+  startDate: isoDateString,
+  endDate: isoDateString,
+  lifecycleState: codeId,
+  projectType: codeId,
 });
 
 export type UpsertProject = z.infer<typeof upsertProjectSchema>;
 
 export const periodSchema = z.object({
-  startDate: z.string().regex(isoDateStringRegex),
-  endDate: z.string().regex(isoDateStringRegex),
+  startDate: isoDateString,
+  endDate: isoDateString,
 });
 
 export type Period = z.infer<typeof periodSchema>;

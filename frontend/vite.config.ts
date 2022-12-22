@@ -22,7 +22,9 @@ export default defineConfig({
         typescript: {
           buildMode: true,
         },
-        overlay: false,
+        overlay: {
+          initialIsOpen: false,
+        },
       }),
   ],
   build: {
