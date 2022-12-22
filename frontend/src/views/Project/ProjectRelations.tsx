@@ -91,10 +91,6 @@ export function ProjectRelations({ project }: Props) {
   ];
 
   const projects = trpc.project.search.useQuery({
-    dateRange: { startDate: '2022-01-01', endDate: '2022-12-31' },
-    lifecycleStates: [],
-    projectTypes: [],
-    financingTypes: [],
     text: useDebounce('', 250),
   });
 
@@ -140,14 +136,15 @@ export function ProjectRelations({ project }: Props) {
       !project ||
       !projectSearch.ref ||
       !projects.data ||
-      !projects.data.map((project) => project.projectName).includes(selectedProjectName)
+      !projects.data.projects.map((project) => project.projectName).includes(selectedProjectName)
     )
       return;
 
     relationsUpdate.mutate({
       projectId: project.id,
-      targetProjectId: projects.data.find((project) => project.projectName === selectedProjectName)
-        ?.id as any,
+      targetProjectId: projects.data.projects.find(
+        (project) => project.projectName === selectedProjectName
+      )?.id as any,
       relation: projectSearch.ref,
     });
   }
@@ -167,7 +164,7 @@ export function ProjectRelations({ project }: Props) {
           <Autocomplete
             id="project-relation-search"
             options={
-              projects.data
+              projects.data?.projects
                 ?.map((project) => project.projectName)
                 .filter((projectName) => projectName !== project.projectName)
                 .filter((projectName) => !currentlyRelatedProjects.includes(projectName)) ?? []

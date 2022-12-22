@@ -19,6 +19,7 @@ const pageStyle = css`
   display: grid;
   grid-template-columns: minmax(384px, 1fr) minmax(512px, 2fr);
   gap: 16px;
+  height: 100%;
 `;
 
 const infobarRootStyle = css`
@@ -118,7 +119,6 @@ export function Project() {
       <Paper elevation={2} css={mapContainerStyle}>
         <MapWrapper
           geoJson={project?.data?.geom}
-          geoJsonFitBounds={true}
           editable={Boolean(projectId)}
           onFeaturesSaved={(features) => {
             geometryUpdate.mutate({ id: projectId, features: features });

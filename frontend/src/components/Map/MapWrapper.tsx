@@ -27,7 +27,6 @@ import { mapOptions } from './mapOptions';
 
 interface Props {
   geoJson?: string | object | null;
-  geoJsonFitBounds?: boolean;
   editable?: boolean;
   onFeaturesSaved?: (features: string) => void;
   onMoveEnd?: (zoom: number, extent: number[]) => void;
@@ -36,7 +35,7 @@ interface Props {
 }
 
 export function MapWrapper(props: Props) {
-  const { geoJson, geoJsonFitBounds, onFeaturesSaved, editable } = props;
+  const { geoJson, onFeaturesSaved, editable } = props;
 
   const [dirty, setDirty] = useState(false);
   const [featuresSelected, setFeaturesSelected] = useState(false);
@@ -123,10 +122,9 @@ export function MapWrapper(props: Props) {
   );
 
   useEffect(() => {
-    if (geoJsonFitBounds) {
-      setExtent(drawSource.getExtent());
-    }
-  }, [geoJsonFitBounds]);
+    if (!geoJson) return;
+    setExtent(drawSource.getExtent());
+  }, [geoJson]);
 
   useEffect(() => {
     switch (selectedTool) {
