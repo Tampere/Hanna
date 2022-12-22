@@ -30,6 +30,18 @@ const theme = createTheme({
       main: '#c83e36',
     },
   },
+  components: {
+    MuiTooltip: {
+      styleOverrides: {
+        tooltip: {
+          zIndex: 250,
+        },
+        popper: {
+          zIndex: 251,
+        },
+      },
+    },
+  },
 });
 
 function Navbar() {

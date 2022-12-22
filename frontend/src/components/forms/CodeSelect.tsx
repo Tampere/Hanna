@@ -15,17 +15,19 @@ type Props = {
 } & (
   | {
       multiple: true;
-      value: CodeId['id'][];
+      value?: CodeId['id'][];
       onChange: (newValue: CodeId['id'][]) => void;
+      onBlur?: () => void;
     }
   | {
       multiple?: false;
-      value: CodeId['id'][];
+      value?: CodeId['id'][];
       onChange: (newValue: CodeId['id'][]) => void;
+      onBlur?: () => void;
     }
 );
 
-export function CodeSelect({ id, codeListId, multiple, value, readOnly, onChange }: Props) {
+export function CodeSelect({ id, codeListId, multiple, value, readOnly, onChange, onBlur }: Props) {
   const codes = trpc.code.get.useQuery({ codeListId });
   const lang = useAtomValue(langAtom);
   const tr = useTranslations();
@@ -43,11 +45,12 @@ export function CodeSelect({ id, codeListId, multiple, value, readOnly, onChange
       readOnly={readOnly}
       multiple={multiple}
       size="small"
+      clearOnBlur={true}
       options={codes.data?.map((code) => code.id.id) ?? []}
       disabled={!codes.data}
       disableCloseOnSelect={multiple}
       ref={autocompleteRef}
-      value={value}
+      value={value ?? null}
       noOptionsText={tr('select.noOptions')}
       componentsProps={{
         paper: {
@@ -61,8 +64,10 @@ export function CodeSelect({ id, codeListId, multiple, value, readOnly, onChange
           setPopoverOpen(false);
         }
         // TypeScript infers onChange argument as "string & string[]" even though it should rather be "string | string[]"
-        (onChange as (value: string | string[]) => void)(newSelection ?? []);
+        const empty = multiple ? [] : null;
+        (onChange as (value: string | string[] | null) => void)(newSelection ?? empty);
       }}
+      onBlur={onBlur}
       getOptionLabel={(id) => getCode(id)?.text[lang] ?? ''}
       renderTags={(value, getTagProps) => {
         return value.length > 1 ? (
@@ -126,6 +131,7 @@ export function CodeSelect({ id, codeListId, multiple, value, readOnly, onChange
       renderInput={(params) => (
         <TextField
           {...params}
+          value={value}
           variant={readOnly ? 'filled' : 'outlined'}
           hiddenLabel={readOnly}
           InputProps={{

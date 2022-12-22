@@ -12,7 +12,9 @@ export interface User {
 }
 
 export function createContext({ req, res }: CreateFastifyContextOptions) {
-  const user: User = { userId: req.headers['username'] };
+  // FIXME: user is serialized as string, but PassportUser is an object, need to
+  // check where the type goes wrong
+  const user = JSON.parse(req.user as any) as { id: string };
   return { req, res, user };
 }
 
