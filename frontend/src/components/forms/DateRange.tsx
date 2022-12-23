@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
-import { CalendarMonthTwoTone, Clear } from '@mui/icons-material';
-import { Box, Button, Chip, IconButton, Popover, TextField, Typography } from '@mui/material';
+import { CalendarMonthTwoTone } from '@mui/icons-material';
+import { Box, Chip, IconButton, Popover, TextField, Typography } from '@mui/material';
 import { CalendarPicker, LocalizationProvider, PickersDay } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
@@ -138,8 +138,9 @@ export function DateRange(props: Props) {
                     align-items: flex-start;
                   `}
                 >
-                  {props.quickSelections.map((selection) => (
+                  {props.quickSelections.map((selection, idx) => (
                     <Chip
+                      key={idx}
                       css={css`
                         margin: 4px 0px;
                         width: 100%;
