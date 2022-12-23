@@ -18,6 +18,7 @@ const toolsContainerStyle = css`
   display: flex;
   flex-direction: column;
   justify-content: start;
+  align-items: center;
   width: 48px;
   top: 0;
   bottom: 0;
@@ -108,36 +109,42 @@ export function MapToolbar(props: Props) {
     <Box css={toolsContainerStyle}>
       {tools.map((tool) => (
         <Tooltip placement="left" key={tool.type} title={tr(tool.tooltip)}>
-          <IconButton
-            disabled={props.toolsDisabled[tool.type]}
-            css={selectedTool === tool.type ? selectedToolStyle : toolBtnStyle}
-            color={tool?.color || 'primary'}
-            onClick={() => handleToolClick(selectedTool === tool.type ? null : tool.type)}
-          >
-            {tool.icon}
-          </IconButton>
+          <Box>
+            <IconButton
+              disabled={props.toolsDisabled[tool.type]}
+              css={selectedTool === tool.type ? selectedToolStyle : toolBtnStyle}
+              color={tool?.color || 'primary'}
+              onClick={() => handleToolClick(selectedTool === tool.type ? null : tool.type)}
+            >
+              {tool.icon}
+            </IconButton>
+          </Box>
         </Tooltip>
       ))}
       <Divider sx={{ mt: 2, mb: 2 }} />
       <Tooltip placement="left" title={tr('mapEdit.undoTooltip')}>
-        <IconButton
-          disabled={props.undoDisabled}
-          css={toolBtnStyle}
-          color="primary"
-          onClick={props.onUndoClick}
-        >
-          <UndoTwoTone />
-        </IconButton>
+        <Box>
+          <IconButton
+            disabled={props.undoDisabled}
+            css={toolBtnStyle}
+            color="primary"
+            onClick={props.onUndoClick}
+          >
+            <UndoTwoTone />
+          </IconButton>
+        </Box>
       </Tooltip>
       <Tooltip placement="left" title={tr('mapEdit.saveTooltip')}>
-        <IconButton
-          disabled={props.saveDisabled}
-          css={toolBtnStyle}
-          color="primary"
-          onClick={props.onSaveClick}
-        >
-          <SaveTwoTone />
-        </IconButton>
+        <Box>
+          <IconButton
+            disabled={props.saveDisabled}
+            css={toolBtnStyle}
+            color="primary"
+            onClick={props.onSaveClick}
+          >
+            <SaveTwoTone />
+          </IconButton>
+        </Box>
       </Tooltip>
     </Box>
   );
