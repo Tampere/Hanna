@@ -28,12 +28,13 @@ export const mapSearchSchema = z.object({
 export type MapSearch = z.infer<typeof mapSearchSchema>;
 
 export const projectSearchSchema = z.object({
-  text: z.string(),
-  dateRange: periodSchema,
-  lifecycleStates: z.array(z.string()),
-  projectTypes: z.array(z.string()),
-  financingTypes: z.array(z.string()),
-  map: mapSearchSchema,
+  limit: z.number().int().optional(),
+  text: z.string().optional(),
+  dateRange: periodSchema.optional(),
+  lifecycleStates: z.array(z.string()).optional(),
+  projectTypes: z.array(z.string()).optional(),
+  financingTypes: z.array(z.string()).optional(),
+  map: mapSearchSchema.optional(),
 });
 
 export const dbProjectSchema = upsertProjectSchema.extend({
@@ -49,7 +50,7 @@ export const projectSearchResultSchema = z.object({
       clusterLocation: z.string(),
       clusterGeohash: z.string(),
     })
-  )
+  ),
 });
 
 export type ProjectSearchResult = z.infer<typeof projectSearchResultSchema>;
@@ -61,6 +62,14 @@ export const projectIdSchema = z.object({
 export type DbProject = z.infer<typeof dbProjectSchema>;
 
 export type ProjectSearch = z.infer<typeof projectSearchSchema>;
+
+export type Relation = 'parent' | 'child' | 'related';
+
+export interface ProjectRelation {
+  projectId: string;
+  projectName: string;
+  relation: Relation;
+}
 
 export const updateGeometrySchema = z.object({
   id: z.string(),
@@ -83,7 +92,15 @@ const projectRelationSchema = z.object({
 });
 
 export const projectRelationsSchema = z.object({
-  parents: z.array(projectRelationSchema).nullable(),
-  children: z.array(projectRelationSchema).nullable(),
-  related: z.array(projectRelationSchema).nullable(),
+  relations: z.object({
+    parents: z.array(projectRelationSchema).nullable(),
+    children: z.array(projectRelationSchema).nullable(),
+    related: z.array(projectRelationSchema).nullable(),
+  }),
+});
+
+export const relationsSchema = z.object({
+  subjectProjectId: z.string(),
+  objectProjectId: z.string(),
+  relation: z.enum(['parent', 'child', 'related']),
 });

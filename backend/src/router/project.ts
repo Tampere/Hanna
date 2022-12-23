@@ -6,12 +6,15 @@ import { getPool } from '@backend/db';
 import { TRPC } from '@backend/router';
 
 import {
+  ProjectSearch,
+  Relation,
   UpsertProject,
   dbProjectSchema,
   projectIdSchema,
   projectRelationsSchema,
   projectSearchResultSchema,
   projectSearchSchema,
+  relationsSchema,
   updateGeometryResultSchema,
   updateGeometrySchema,
   upsertProjectSchema,
@@ -82,14 +85,13 @@ async function upsertProject(project: UpsertProject) {
   }
 }
 
-function textSearchFragment(input: z.infer<typeof projectSearchSchema>) {
-  const textQuery = input.text
-    .split(/\s+/)
-    .filter((term) => term.length > 0)
-    .map((term) => `${term}:*`)
-    .join(' & ');
-
-  if (input.text.trim().length > 0) {
+function textSearchFragment(text: ProjectSearch['text']) {
+  if (text && text.trim().length > 0) {
+    const textQuery = text
+      .split(/\s+/)
+      .filter((term) => term.length > 0)
+      .map((term) => `${term}:*`)
+      .join(' & ');
     return sql.fragment`
       tsv @@ to_tsquery('simple', ${textQuery})
     `;
@@ -108,7 +110,9 @@ function timePeriodFragment(input: z.infer<typeof projectSearchSchema>) {
   return sql.fragment`true`;
 }
 
-function mapExtentFragment(extent: number[]) {
+function mapExtentFragment(extent: number[] | undefined) {
+  if (!extent) return sql.fragment`true`;
+
   return sql.fragment`
     ST_Intersects(
       geom,
@@ -124,7 +128,7 @@ function mapExtentFragment(extent: number[]) {
 }
 
 function orderByFragment(input: z.infer<typeof projectSearchSchema>) {
-  if (input.text.trim().length > 0) {
+  if (input?.text && input.text.trim().length > 0) {
     return sql.fragment`ORDER BY ts_rank(tsv, to_tsquery('simple', ${input.text})) DESC`;
   }
   return sql.fragment`ORDER BY start_date DESC`;
@@ -132,16 +136,64 @@ function orderByFragment(input: z.infer<typeof projectSearchSchema>) {
 
 function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
   return sql.fragment`
-      AND ${textSearchFragment(input)}
-      AND ${mapExtentFragment(input.map.extent)}
+      AND ${textSearchFragment(input.text)}
+      AND ${mapExtentFragment(input.map?.extent)}
       AND ${timePeriodFragment(input)}
       AND ${
-        input.lifecycleStates?.length > 0
+        input.lifecycleStates && input.lifecycleStates?.length > 0
           ? sql.fragment`(lifecycle_state).id = ANY(${sql.array(input.lifecycleStates, 'text')})`
           : sql.fragment`true`
       }
       ${orderByFragment(input)}
   `;
+}
+
+async function addProjectRelation(projectId: string, targetProjectId: string, relation: Relation) {
+  let projectRelation = '';
+  let subjectProject = projectId;
+  let objectProject = targetProjectId;
+  /**
+    DB knows only two relation types: 'is_parent_of' and 'relates_to'
+    If the relation to be added is 'parent' -relation, then the project to which the relation is targeted on on the UI
+    (the object project) is to be switched to subject of the relation and the initial project which was modified is now the object
+   */
+  if (relation === 'parent') {
+    projectRelation = 'is_parent_of';
+    subjectProject = targetProjectId;
+    objectProject = projectId;
+  } else if (relation === 'child') {
+    projectRelation = 'is_parent_of';
+  } else {
+    projectRelation = 'relates_to';
+  }
+  return getPool().any(sql.type(relationsSchema)`
+    INSERT INTO app.project_relation (project_id, target_project_id, relation_type)
+    VALUES (${subjectProject}, ${objectProject}, ${projectRelation});
+  `);
+}
+
+async function removeProjectRelation(
+  projectId: string,
+  targetProjectId: string,
+  relation: Relation
+) {
+  let projectRelation = '';
+  let subjectProject = projectId;
+  let objectProject = targetProjectId;
+  if (relation === 'parent') {
+    projectRelation = 'is_parent_of';
+    subjectProject = targetProjectId;
+    objectProject = projectId;
+  } else if (relation === 'child') {
+    projectRelation = 'is_parent_of';
+  } else {
+    projectRelation = 'relates_to';
+  }
+  return getPool().any(sql.type(relationsSchema)`
+    DELETE FROM app.project_relation
+    WHERE project_id = ${subjectProject} AND target_project_id = ${objectProject} AND relation_type = ${projectRelation}
+    OR project_id = ${objectProject} AND target_project_id = ${subjectProject} AND relation_type = ${projectRelation}
+  `);
 }
 
 async function getRelatedProjects(id: string) {
@@ -200,33 +252,39 @@ function zoomToGeohashLength(zoom: number) {
   }
 }
 
+function clusterResultsFragment(zoom: number | undefined) {
+  if (!zoom || zoom > 10) return sql.fragment`'[]'::jsonb`;
+
+  return sql.fragment`
+    (
+      SELECT jsonb_agg(clusters.*)
+      FROM (
+        SELECT
+          substr(geohash, 1, ${zoomToGeohashLength(zoom)}) AS "clusterGeohash",
+          count(*) AS "clusterCount",
+          ST_AsGeoJSON(ST_Centroid(ST_Collect(geom))) AS "clusterLocation"
+        FROM projects
+        GROUP BY "clusterGeohash"
+    ) clusters)
+  `;
+}
+
 export const createProjectRouter = (t: TRPC) =>
   t.router({
     search: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
-      const { map } = input;
-      const geoHashLength = zoomToGeohashLength(map.zoom);
+      const { map, limit = 250 } = input;
 
       const resultSchema = z.object({ result: projectSearchResultSchema });
       const dbResult = await getPool().one(sql.type(resultSchema)`
         WITH projects AS (
           ${selectProjectFragment}
           ${getFilterFragment(input) ?? ''}
+        ), limited AS (
+          SELECT * FROM projects LIMIT ${limit}
         )
         SELECT jsonb_build_object(
-          'projects', (SELECT jsonb_agg(projects.*) FROM projects),
-          'clusters',
-          CASE WHEN ${map.zoom < 10} THEN
-            (SELECT jsonb_agg(clusters.*)
-             FROM (
-               SELECT
-                 substr(geohash, 1, ${geoHashLength}) AS "clusterGeohash",
-                 count(*) AS "clusterCount",
-                 ST_AsGeoJSON(ST_Centroid(ST_Collect(geom))) AS "clusterLocation"
-               FROM projects
-               GROUP BY "clusterGeohash"
-            ) clusters)
-          ELSE '[]'::jsonb
-          END
+          'projects', (SELECT jsonb_agg(limited.*) FROM limited),
+          'clusters', ${clusterResultsFragment(map?.zoom)}
         ) AS result
       `);
       return dbResult.result;
@@ -267,5 +325,15 @@ export const createProjectRouter = (t: TRPC) =>
         WHERE id = ${id}
         RETURNING id, ST_AsGeoJSON(geom) AS geom
       `);
+    }),
+
+    updateRelations: t.procedure.input(relationsSchema).mutation(async ({ input }) => {
+      const { subjectProjectId, objectProjectId, relation } = input;
+      return await addProjectRelation(subjectProjectId, objectProjectId, relation);
+    }),
+
+    remoteRelation: t.procedure.input(relationsSchema).mutation(async ({ input }) => {
+      const { subjectProjectId: projectId, objectProjectId: targetProjectId, relation } = input;
+      return await removeProjectRelation(projectId, targetProjectId, relation);
     }),
   });
