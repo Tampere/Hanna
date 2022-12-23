@@ -40,7 +40,7 @@ const accordionSummaryStyle = css`
 export function Project() {
   const tr = useTranslations();
 
-  const [expanded, setExpanded] = useState<string | false>('panel1');
+  const [expanded, setExpanded] = useState<string | false>('basicInfoSection');
   const routeParams = useLoaderData() as { projectId: string };
   const notify = useNotifications();
   const projectId = routeParams?.projectId;
@@ -91,7 +91,10 @@ export function Project() {
         <Typography variant="h6" sx={{ mb: 1 }}>
           {project?.data?.projectName ?? tr('newProject.formTitle')}
         </Typography>
-        <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
+        <Accordion
+          expanded={expanded === 'basicInfoSection'}
+          onChange={handleChange('basicInfoSection')}
+        >
           <AccordionSummary css={accordionSummaryStyle} expandIcon={<ExpandMore />}>
             <Typography variant="overline">{tr('newProject.basicInfoSectionLabel')}</Typography>
           </AccordionSummary>
@@ -100,7 +103,10 @@ export function Project() {
           </AccordionDetails>
         </Accordion>
 
-        <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
+        <Accordion
+          expanded={expanded === 'relationSection'}
+          onChange={handleChange('relationSection')}
+        >
           <AccordionSummary css={accordionSummaryStyle} expandIcon={<ExpandMore />}>
             <Typography variant="overline">{tr('newProject.linksSectionTitle')}</Typography>
           </AccordionSummary>
