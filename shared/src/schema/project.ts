@@ -65,6 +65,12 @@ export type ProjectSearch = z.infer<typeof projectSearchSchema>;
 
 export type Relation = 'parent' | 'child' | 'related';
 
+export interface ProjectRelation {
+  projectId: string;
+  projectName: string;
+  relation: Relation;
+}
+
 export const updateGeometrySchema = z.object({
   id: z.string(),
   features: z.string(),
@@ -86,9 +92,11 @@ const projectRelationSchema = z.object({
 });
 
 export const projectRelationsSchema = z.object({
-  parents: z.array(projectRelationSchema).nullable(),
-  children: z.array(projectRelationSchema).nullable(),
-  related: z.array(projectRelationSchema).nullable(),
+  relations: z.object({
+    parents: z.array(projectRelationSchema).nullable(),
+    children: z.array(projectRelationSchema).nullable(),
+    related: z.array(projectRelationSchema).nullable(),
+  }),
 });
 
 export const relationsSchema = z.object({

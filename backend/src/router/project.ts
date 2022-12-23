@@ -183,7 +183,6 @@ async function removeProjectRelation(
   } else if (relation === 'child') {
     projectRelation = 'is_parent_of';
   }
-  console.log(subjectProject, projectRelation, objectProject);
   return getPool().any(sql.type(relationsSchema)`
     DELETE FROM app.project_relation
     WHERE project_id = ${subjectProject} AND target_project_id = ${objectProject} AND relation_type = ${projectRelation}

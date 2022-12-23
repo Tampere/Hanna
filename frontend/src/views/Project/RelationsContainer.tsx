@@ -9,7 +9,7 @@ import { trpc } from '@frontend/client';
 import { useTranslations } from '@frontend/stores/lang';
 import { useDebounce } from '@frontend/utils/useDebounce';
 
-import { DbProject, Relation } from '@shared/schema/project';
+import { DbProject, ProjectRelation, Relation } from '@shared/schema/project';
 
 const rowStyle = css`
   display: flex;
@@ -63,10 +63,10 @@ interface Props {
   addRelationText: string;
   noRelationsText: string;
   relationType: Relation;
-  relations: any[];
+  relations: ProjectRelation[];
   unrelatableProjectIds: string[];
-  onRemoveProjectRelation: (relationType: Relation, relationId: string) => void;
-  onAddProjectRelation: (relationType: Relation, relationId: string) => void;
+  onRemoveProjectRelation: (relationType: Relation, relationObjectId: string) => void;
+  onAddProjectRelation: (relationType: Relation, relationObjectId: string) => void;
 }
 
 export function RelationsContainer({
@@ -85,7 +85,7 @@ export function RelationsContainer({
 
   const projects = trpc.project.search.useQuery({
     text: useDebounce('', 250),
-  }) as any;
+  });
 
   function ProjectRelationSearch() {
     return (
@@ -105,7 +105,7 @@ export function RelationsContainer({
             )}
             getOptionLabel={(option: DbProject) => option.projectName}
             loading={projects.isLoading}
-            onChange={(event: React.SyntheticEvent, newValue: any) => {
+            onChange={(event: React.SyntheticEvent, newValue: DbProject | null) => {
               setSelectedObjectProjectId(newValue?.id ?? null);
             }}
             value={projects?.data?.projects?.find(
@@ -132,17 +132,17 @@ export function RelationsContainer({
         </Tooltip>
       </Box>
       <Box css={columnStyle}>
-        {relations?.map((relationObject: any, index: number) => (
+        {relations?.map((objectOfRelation: ProjectRelation, index: number) => (
           <Box css={projectLinkContainer} key={`relation-index-${index}`}>
             <span css={relationStyle}>
               <Tooltip
                 title={tr('projectRelations.gotoProject').replace(
                   '{x}',
-                  relationObject.projectName
+                  objectOfRelation.projectName
                 )}
               >
-                <Link css={linkStyle} to={`/hanke/${relationObject.projectId}`}>
-                  {relationObject.projectName}
+                <Link css={linkStyle} to={`/hanke/${objectOfRelation.projectId}`}>
+                  {objectOfRelation.projectName}
                 </Link>
               </Tooltip>
             </span>
@@ -150,7 +150,7 @@ export function RelationsContainer({
               <IconButton
                 size="small"
                 onClick={() => {
-                  onRemoveProjectRelation(relationType, relationObject.projectId);
+                  onRemoveProjectRelation(relationType, objectOfRelation.projectId);
                 }}
               >
                 <Cancel fontSize="small" />

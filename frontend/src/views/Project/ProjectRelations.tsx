@@ -2,7 +2,7 @@ import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
-import { DbProject, Relation } from '@shared/schema/project';
+import { DbProject, ProjectRelation, Relation } from '@shared/schema/project';
 
 import { RelationsContainer } from './RelationsContainer';
 
@@ -21,9 +21,9 @@ export function ProjectRelations({ project }: Props) {
 
   /** It should probably be forbidden to add a second relation between this project and projects it is already related to */
   const currentlyRelatedProjects = [
-    ...(relations.data?.relations.children?.map((child) => child.id) ?? []),
-    ...(relations.data?.relations.parents?.map((parent) => parent.id) ?? []),
-    ...(relations.data?.relations.related?.map((relative) => relative.id) ?? []),
+    ...(relations.data?.relations.children?.map((child) => child.projectId) ?? []),
+    ...(relations.data?.relations.parents?.map((parent) => parent.projectId) ?? []),
+    ...(relations.data?.relations.related?.map((relative) => relative.projectId) ?? []),
   ];
 
   const relationsUpdate = trpc.project.updateRelations.useMutation({
@@ -99,8 +99,8 @@ export function ProjectRelations({ project }: Props) {
         onAddProjectRelation={(relationType, objectProjectId) =>
           addProjectRelation(relationType, project.id, objectProjectId)
         }
-        relations={relations.data?.relations.parents as any}
-        unrelatableProjectIds={[...currentlyRelatedProjects, project.id]}
+        relations={relations.data?.relations.parents as ProjectRelation[]}
+        unrelatableProjectIds={[...currentlyRelatedProjects, project?.id]}
         relationType={'parent'}
       />
       {/* Child relations */}
@@ -114,8 +114,8 @@ export function ProjectRelations({ project }: Props) {
         onAddProjectRelation={(relationType, objectProjectId) =>
           addProjectRelation(relationType, project.id, objectProjectId)
         }
-        relations={relations.data?.relations.children as any}
-        unrelatableProjectIds={[...currentlyRelatedProjects, project.id]}
+        relations={relations.data?.relations.children as ProjectRelation[]}
+        unrelatableProjectIds={[...currentlyRelatedProjects, project?.id]}
         relationType={'child'}
       />
       {/* Related relations */}
@@ -129,8 +129,8 @@ export function ProjectRelations({ project }: Props) {
         onAddProjectRelation={(relationType, objectProjectId) =>
           addProjectRelation(relationType, project.id, objectProjectId)
         }
-        relations={relations.data?.relations.related as any}
-        unrelatableProjectIds={[...currentlyRelatedProjects, project.id]}
+        relations={relations.data?.relations.related as ProjectRelation[]}
+        unrelatableProjectIds={[...currentlyRelatedProjects, project?.id]}
         relationType={'related'}
       />
     </div>
