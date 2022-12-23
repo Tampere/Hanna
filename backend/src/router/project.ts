@@ -7,6 +7,7 @@ import { TRPC } from '@backend/router';
 
 import {
   ProjectSearch,
+  Relation,
   UpsertProject,
   dbProjectSchema,
   projectIdSchema,
@@ -147,20 +148,23 @@ function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
   `;
 }
 
-async function updateProjectRelations(
-  projectId: string,
-  targetProjectId: string,
-  relation: 'parent' | 'child' | 'related'
-) {
-  let projectRelation = 'relates_to';
+async function addProjectRelation(projectId: string, targetProjectId: string, relation: Relation) {
+  let projectRelation = '';
   let subjectProject = projectId;
   let objectProject = targetProjectId;
+  /**
+    DB knows only two relation types: 'is_parent_of' and 'relates_to'
+    If the relation to be added is 'parent' -relation, then the project to which the relation is targeted on on the UI
+    (the object project) is to be switched to subject of the relation and the initial project which was modified is now the object
+   */
   if (relation === 'parent') {
     projectRelation = 'is_parent_of';
     subjectProject = targetProjectId;
     objectProject = projectId;
   } else if (relation === 'child') {
     projectRelation = 'is_parent_of';
+  } else {
+    projectRelation = 'relates_to';
   }
   return getPool().any(sql.type(relationsSchema)`
     INSERT INTO app.project_relation (project_id, target_project_id, relation_type)
@@ -171,9 +175,9 @@ async function updateProjectRelations(
 async function removeProjectRelation(
   projectId: string,
   targetProjectId: string,
-  relation: 'parent' | 'child' | 'related'
+  relation: Relation
 ) {
-  let projectRelation = 'relates_to';
+  let projectRelation = '';
   let subjectProject = projectId;
   let objectProject = targetProjectId;
   if (relation === 'parent') {
@@ -182,6 +186,8 @@ async function removeProjectRelation(
     objectProject = projectId;
   } else if (relation === 'child') {
     projectRelation = 'is_parent_of';
+  } else {
+    projectRelation = 'relates_to';
   }
   return getPool().any(sql.type(relationsSchema)`
     DELETE FROM app.project_relation
@@ -323,7 +329,7 @@ export const createProjectRouter = (t: TRPC) =>
 
     updateRelations: t.procedure.input(relationsSchema).mutation(async ({ input }) => {
       const { subjectProjectId, objectProjectId, relation } = input;
-      return await updateProjectRelations(subjectProjectId, objectProjectId, relation);
+      return await addProjectRelation(subjectProjectId, objectProjectId, relation);
     }),
 
     remoteRelation: t.procedure.input(relationsSchema).mutation(async ({ input }) => {
