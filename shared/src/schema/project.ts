@@ -50,7 +50,7 @@ export const projectSearchResultSchema = z.object({
       clusterLocation: z.string(),
       clusterGeohash: z.string(),
     })
-  )
+  ),
 });
 
 export type ProjectSearchResult = z.infer<typeof projectSearchResultSchema>;
@@ -62,6 +62,8 @@ export const projectIdSchema = z.object({
 export type DbProject = z.infer<typeof dbProjectSchema>;
 
 export type ProjectSearch = z.infer<typeof projectSearchSchema>;
+
+export type Relation = 'parent' | 'child' | 'related';
 
 export const updateGeometrySchema = z.object({
   id: z.string(),
@@ -90,7 +92,7 @@ export const projectRelationsSchema = z.object({
 });
 
 export const relationsSchema = z.object({
-  projectId: z.string(),
-  targetProjectId: z.string(),
+  subjectProjectId: z.string(),
+  objectProjectId: z.string(),
   relation: z.enum(['parent', 'child', 'related']),
 });

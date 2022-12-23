@@ -323,12 +323,12 @@ export const createProjectRouter = (t: TRPC) =>
     }),
 
     updateRelations: t.procedure.input(relationsSchema).mutation(async ({ input }) => {
-      const { projectId, targetProjectId, relation } = input;
-      return await updateProjectRelations(projectId, targetProjectId, relation);
+      const { subjectProjectId, objectProjectId, relation } = input;
+      return await updateProjectRelations(subjectProjectId, objectProjectId, relation);
     }),
 
     remoteRelation: t.procedure.input(relationsSchema).mutation(async ({ input }) => {
-      const { projectId, targetProjectId, relation } = input;
+      const { subjectProjectId: projectId, objectProjectId: targetProjectId, relation } = input;
       return await removeProjectRelation(projectId, targetProjectId, relation);
     }),
   });

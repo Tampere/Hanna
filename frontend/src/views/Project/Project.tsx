@@ -1,6 +1,7 @@
 import { css } from '@emotion/react';
 import { ExpandMore } from '@mui/icons-material';
 import { Accordion, AccordionDetails, AccordionSummary, Paper, Typography } from '@mui/material';
+import { useState } from 'react';
 import { useLoaderData } from 'react-router';
 
 import { trpc } from '@frontend/client';
@@ -20,6 +21,7 @@ const pageStyle = css`
   grid-template-columns: minmax(384px, 1fr) minmax(512px, 2fr);
   gap: 16px;
   height: 100%;
+  overflow: scroll;
 `;
 
 const infobarRootStyle = css`
@@ -38,6 +40,7 @@ const accordionSummaryStyle = css`
 export function Project() {
   const tr = useTranslations();
 
+  const [expanded, setExpanded] = useState<string | false>('panel1');
   const routeParams = useLoaderData() as { projectId: string };
   const notify = useNotifications();
   const projectId = routeParams?.projectId;
@@ -78,13 +81,17 @@ export function Project() {
     );
   }
 
+  const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    setExpanded(isExpanded ? panel : false);
+  };
+
   return (
     <div css={pageStyle}>
       <Paper elevation={2} css={infobarRootStyle}>
         <Typography variant="h6" sx={{ mb: 1 }}>
           {project?.data?.projectName ?? tr('newProject.formTitle')}
         </Typography>
-        <Accordion expanded={true}>
+        <Accordion expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
           <AccordionSummary css={accordionSummaryStyle} expandIcon={<ExpandMore />}>
             <Typography variant="overline">{tr('newProject.basicInfoSectionLabel')}</Typography>
           </AccordionSummary>
@@ -93,8 +100,8 @@ export function Project() {
           </AccordionDetails>
         </Accordion>
 
-        <Accordion expanded={true}>
-          <AccordionSummary expandIcon={<ExpandMore />}>
+        <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
+          <AccordionSummary css={accordionSummaryStyle} expandIcon={<ExpandMore />}>
             <Typography variant="overline">{tr('newProject.linksSectionTitle')}</Typography>
           </AccordionSummary>
           <AccordionDetails>
