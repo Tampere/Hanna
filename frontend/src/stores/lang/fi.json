@@ -35,7 +35,7 @@
   "newProject.lifecycleStateTooltip": "Valitse elinkaaren tila",
   "newProject.basicInfoSectionLabel": "Perustiedot",
   "newProject.createBtnLabel": "Lisää hanke",
-  "newProject.linksSectionTitle": "Liitokset",
+  "newProject.linksSectionTitle": "Sidoshankkeet",
   "newProject.documentsSectionTitle": "Asiakirjat",
   "newProject.decisionsSectionTitle": "Päätökset",
   "newProject.notifyUpsert": "Hanke tallennettu",
