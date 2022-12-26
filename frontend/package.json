@@ -50,7 +50,7 @@
     "@mui/material": "^5.11.0",
     "@mui/x-date-pickers": "^5.0.11",
     "@tanstack/react-query": "^4.20.4",
-    "@trpc/client": "^10.6.0",
+    "@trpc/client": "^10.7.0",
     "@trpc/react-query": "^10.6.0",
     "@trpc/server": "^10.6.0",
     "dayjs": "^1.11.7",
