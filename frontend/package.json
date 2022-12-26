@@ -61,7 +61,7 @@
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.41.0",
     "react-router": "^6.5.0",
-    "react-router-dom": "^6.5.0",
+    "react-router-dom": "^6.6.1",
     "superjson": "^1.12.1",
     "tre-hanna-shared": "file:../shared",
     "zod": "^3.20.2"
