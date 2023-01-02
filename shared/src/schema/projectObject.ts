@@ -1,21 +1,40 @@
 import { z } from 'zod';
 
-import { isoDateStringRegex } from '../utils';
+import { codeId } from './code';
+import { isoDateString, nonEmptyString } from './common';
 
-export const projectObject = z.object({
+export const upsertProjectObjectSchema = z.object({
+  id: z.string().optional(),
   projectId: z.string(),
-  id: z.string(),
-  objectName: z.string(),
-  description: z.string(),
-  createdAt: z.string().regex(isoDateStringRegex),
-  geom: z.string(),
-  lifecycleState: z.enum(['TODO']),
-  objectType: z.enum(['TODO']),
-  objectClass: z.enum(['TODO']),
-  objectUsage: z.enum(['TODO']),
-  startDate: z.string().regex(isoDateStringRegex),
-  endDate: z.string().regex(isoDateStringRegex),
-  height: z.number(),
+  objectName: nonEmptyString,
+  description: nonEmptyString,
+  lifecycleState: codeId,
+  objectType: codeId,
+  objectCategory: codeId,
+  objectUsage: codeId,
   personResponsible: z.string(),
+  geom: z.string().optional(),
+  startDate: isoDateString,
+  endDate: isoDateString,
+  landownership: codeId.optional().nullable(),
+  locationOnProperty: codeId.optional().nullable(),
+  height: z.coerce.number().optional().nullable(),
+});
+
+export const dbProjectObjectSchema = upsertProjectObjectSchema.extend({
+  id: z.string(),
+  createdAt: isoDateString,
+  deleted: z.boolean(),
   updatedBy: z.string(),
 });
+
+export type UpsertProjectObject = z.infer<typeof upsertProjectObjectSchema>;
+
+export type DBProjectObject = z.infer<typeof dbProjectObjectSchema>;
+
+export const getProjectObjectParams = z.object({
+  projectId: z.string(),
+  id: z.string(),
+});
+
+export type ProjectObjectParams = z.infer<typeof getProjectObjectParams>;

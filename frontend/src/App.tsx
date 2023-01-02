@@ -15,6 +15,7 @@ import { NotFound } from '@frontend/views/NotFound';
 import { Profile } from '@frontend/views/Profile';
 import { Project } from '@frontend/views/Project/Project';
 import { ProjectsPage } from '@frontend/views/Project/Projects';
+import { ProjectObject } from '@frontend/views/ProjectObject/ProjectObject';
 import { Settings } from '@frontend/views/Settings';
 
 import { trpc } from './client';
@@ -34,6 +35,16 @@ const router = createBrowserRouter(
       <Route path="hankkeet" element={<ProjectsPage />} />
       <Route path="hanke/luo" element={<Project />} />
       <Route path="hanke/:projectId" element={<Project />} loader={({ params }) => params} />
+      <Route
+        path="hanke/:projectId/uusi-kohde"
+        element={<ProjectObject />}
+        loader={({ params }) => params}
+      />
+      <Route
+        path="hanke/:projectId/kohde/:projectObjectId"
+        element={<ProjectObject />}
+        loader={({ params }) => params}
+      />
       <Route path="profiili" element={<Profile />} />
       <Route path="asetukset" element={<Settings />} />
       <Route path="*" element={<NotFound />} />
