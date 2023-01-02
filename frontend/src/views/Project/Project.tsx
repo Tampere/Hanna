@@ -10,15 +10,19 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
+import { DbProject } from '@shared/schema/project';
+
 import { DeleteProjectDialog } from './DeleteProjectDialog';
 import { ProjectFinances } from './ProjectFinances';
 import { ProjectForm } from './ProjectForm';
+import { ProjectRelations } from './ProjectRelations';
 
 const pageStyle = css`
   display: grid;
   grid-template-columns: minmax(384px, 1fr) minmax(512px, 2fr);
   gap: 16px;
   height: 100%;
+  overflow: scroll;
 `;
 
 const infobarRootStyle = css`
@@ -38,6 +42,7 @@ export function Project() {
   const tr = useTranslations();
   const [financeSectionExpanded, setFinanceSectionExpanded] = useState(false);
 
+  const [expanded, setExpanded] = useState<string | false>('basicInfoSection');
   const routeParams = useLoaderData() as { projectId: string };
   const notify = useNotifications();
   const projectId = routeParams?.projectId;
@@ -63,11 +68,6 @@ export function Project() {
     },
   });
 
-  const relations = trpc.project.getRelations.useQuery(
-    { id: projectId },
-    { enabled: Boolean(projectId), queryKey: ['project.getRelations', { id: projectId }] }
-  );
-
   if (projectId && project.isLoading) {
     return <Typography>{tr('loading')}</Typography>;
   }
@@ -83,13 +83,20 @@ export function Project() {
     );
   }
 
+  const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    setExpanded(isExpanded ? panel : false);
+  };
+
   return (
     <div css={pageStyle}>
       <Paper elevation={2} css={infobarRootStyle}>
         <Typography variant="h6" sx={{ mb: 1 }}>
           {project?.data?.projectName ?? tr('newProject.formTitle')}
         </Typography>
-        <Accordion expanded={true}>
+        <Accordion
+          expanded={expanded === 'basicInfoSection'}
+          onChange={handleChange('basicInfoSection')}
+        >
           <AccordionSummary css={accordionSummaryStyle} expandIcon={<ExpandMore />}>
             <Typography variant="overline">{tr('newProject.basicInfoSectionLabel')}</Typography>
           </AccordionSummary>
@@ -98,10 +105,16 @@ export function Project() {
           </AccordionDetails>
         </Accordion>
 
-        <Accordion expanded={false} disabled>
-          <AccordionSummary expandIcon={<ExpandMore />}>
+        <Accordion
+          expanded={expanded === 'relationSection'}
+          onChange={handleChange('relationSection')}
+        >
+          <AccordionSummary css={accordionSummaryStyle} expandIcon={<ExpandMore />}>
             <Typography variant="overline">{tr('newProject.linksSectionTitle')}</Typography>
           </AccordionSummary>
+          <AccordionDetails>
+            <ProjectRelations project={project.data as DbProject} />
+          </AccordionDetails>
         </Accordion>
 
         <Accordion expanded={false} disabled>
@@ -134,7 +147,6 @@ export function Project() {
       <Paper elevation={2} css={mapContainerStyle}>
         <MapWrapper
           geoJson={project?.data?.geom}
-          geoJsonFitBounds={true}
           editable={Boolean(projectId)}
           onFeaturesSaved={(features) => {
             geometryUpdate.mutate({ id: projectId, features: features });

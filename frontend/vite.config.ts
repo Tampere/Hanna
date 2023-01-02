@@ -22,7 +22,7 @@ export default defineConfig({
         typescript: {
           buildMode: true,
         },
-        overlay: true,
+        overlay: false,
       }),
   ],
   build: {
