@@ -37,6 +37,7 @@
   "newProject.createBtnLabel": "Lisää hanke",
   "newProject.linksSectionTitle": "Sidoshankkeet",
   "newProject.documentsSectionTitle": "Asiakirjat",
+  "newProject.financeSectionTitle": "Talous",
   "newProject.decisionsSectionTitle": "Päätökset",
   "newProject.notifyUpsert": "Hanke tallennettu",
   "newProject.notifyUpsertFailed": "Hankkeen tallennus epäonnistui",
@@ -92,5 +93,9 @@
   "errorPage.error": "Virhe",
   "errorPage.warning": "Varoitus",
   "errorPage.navigateBack": "Palaa takaisin",
-  "dateRange.quickSelections": "Pikavalinnat"
+  "dateRange.quickSelections": "Pikavalinnat",
+  "costEstimatesTable.year": "Vuosi",
+  "costEstimatesTable.estimate": "Kustannusarvio",
+  "costEstimatesTable.notifySave": "Kustannusarviot tallennettu",
+  "costEstimatesTable.notifySaveFailed": "Kustannusarvioiden tallentaminen epäonnistui"
 }

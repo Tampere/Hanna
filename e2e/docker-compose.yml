@@ -4,12 +4,23 @@ services:
     build:
       context: ..
       dockerfile: frontend/Dockerfile.dev
+      args:
+        - CI=${CI:-}
+    environment:
+      - CI=${CI:-}
     volumes:
       # For container based development to show git changes in the whole workspace
       - ../.git:/app/.git:cached
       - ../:/app/
+      - /app/frontend/dist
       - /app/frontend/node_modules
       - /app/shared/node_modules
+    healthcheck:
+      test: curl --fail http://localhost:8080 || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   backend:
     build:
       context: ..

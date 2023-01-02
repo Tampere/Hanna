@@ -37,7 +37,8 @@
   "newProject.createBtnLabel": "Add project",
   "newProject.linksSectionTitle": "Related projects",
   "newProject.documentsSectionTitle": "Documents",
-  "newProject.decisionsSectionTitle": "Päätökset",
+  "newProject.financeSectionTitle": "Finance",
+  "newProject.decisionsSectionTitle": "Decisions",
   "newProject.notifyUpsert": "Project saved",
   "newProject.notifyUpsertFailed": "Project save failed",
   "newProject.error.endDateBeforeStartDate": "End date before start date",
@@ -92,5 +93,9 @@
   "errorPage.error": "Error",
   "errorPage.warning": "Warning",
   "errorPage.navigateBack": "Go back",
-  "dateRange.quickSelections": "Quick selections"
+  "dateRange.quickSelections": "Quick selections",
+  "costEstimatesTable.year": "Year",
+  "costEstimatesTable.estimate": "Estimate",
+  "costEstimatesTable.notifySave": "Cost estimates saved",
+  "costEstimatesTable.notifySaveFailed": "Failed to save cost estimates"
 }

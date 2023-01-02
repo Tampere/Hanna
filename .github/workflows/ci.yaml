@@ -99,19 +99,8 @@ jobs:
       - name: Install Playwright's dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps
-      # Cache Docker compose images: https://stackoverflow.com/a/73414254/16034437
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Build & cache Docker compose images
-        uses: docker/bake-action@v2
-        with:
-          push: false
-          load: true
-          set: |
-            *.cache-from=type=gha
-            *.cache-to=type=gha
       # Start up the stack & wait for all services to be healthy
-      - run: docker compose up -d --wait
+      - run: CI=1 docker compose up -d --wait
       # Execute the E2E tests
       - run: npm test
 

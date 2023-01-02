@@ -13,6 +13,7 @@ import { useTranslations } from '@frontend/stores/lang';
 import { DbProject } from '@shared/schema/project';
 
 import { DeleteProjectDialog } from './DeleteProjectDialog';
+import { ProjectFinances } from './ProjectFinances';
 import { ProjectForm } from './ProjectForm';
 import { ProjectRelations } from './ProjectRelations';
 
@@ -39,6 +40,7 @@ const accordionSummaryStyle = css`
 
 export function Project() {
   const tr = useTranslations();
+  const [financeSectionExpanded, setFinanceSectionExpanded] = useState(false);
 
   const [expanded, setExpanded] = useState<string | false>('basicInfoSection');
   const routeParams = useLoaderData() as { projectId: string };
@@ -119,6 +121,19 @@ export function Project() {
           <AccordionSummary expandIcon={<ExpandMore />}>
             <Typography variant="overline">{tr('newProject.documentsSectionTitle')}</Typography>
           </AccordionSummary>
+        </Accordion>
+
+        <Accordion
+          expanded={financeSectionExpanded}
+          onChange={(_, expanded) => setFinanceSectionExpanded(expanded)}
+          disabled={!project.data}
+        >
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Typography variant="overline">{tr('newProject.financeSectionTitle')}</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <ProjectFinances project={project.data} />
+          </AccordionDetails>
         </Accordion>
 
         <Accordion expanded={false} disabled>

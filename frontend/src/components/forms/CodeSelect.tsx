@@ -9,6 +9,7 @@ import { langAtom, useTranslations } from '@frontend/stores/lang';
 import type { CodeId } from '@shared/schema/code';
 
 type Props = {
+  id?: string;
   codeListId: CodeId['codeListId'];
   readOnly?: boolean;
 } & (
@@ -24,7 +25,7 @@ type Props = {
     }
 );
 
-export function CodeSelect({ codeListId, multiple, value, readOnly, onChange }: Props) {
+export function CodeSelect({ id, codeListId, multiple, value, readOnly, onChange }: Props) {
   const codes = trpc.code.get.useQuery({ codeListId });
   const lang = useAtomValue(langAtom);
   const tr = useTranslations();
@@ -38,6 +39,7 @@ export function CodeSelect({ codeListId, multiple, value, readOnly, onChange }: 
 
   return (
     <Autocomplete
+      id={id}
       readOnly={readOnly}
       multiple={multiple}
       size="small"

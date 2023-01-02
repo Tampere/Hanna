@@ -97,8 +97,9 @@ export function SearchControls() {
         </FormControl>
       </Box>
       <FormControl>
-        <FormLabel>{tr('project.lifecycleStateLabel')}</FormLabel>
+        <FormLabel htmlFor="lifecycle-state">{tr('project.lifecycleStateLabel')}</FormLabel>
         <CodeSelect
+          id="lifecycle-state"
           codeListId="HankkeenElinkaarentila"
           multiple
           value={searchParams.lifecycleStates}
@@ -106,8 +107,9 @@ export function SearchControls() {
         />
       </FormControl>
       <FormControl>
-        <FormLabel>{tr('project.projectTypeLabel')}</FormLabel>
+        <FormLabel htmlFor="project-type">{tr('project.projectTypeLabel')}</FormLabel>
         <CodeSelect
+          id="project-type"
           codeListId="Hanketyyppi"
           multiple
           value={searchParams.projectTypes}
