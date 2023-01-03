@@ -51,15 +51,14 @@ async function createProject(page: Page, project: UpsertProject) {
   await page.locator('textarea[name="description"]').fill(project.description);
   await page.locator('input[name="startDate"]').fill(project.startDate);
   await page.locator('input[name="endDate"]').fill(project.endDate);
-
   const lifecycleText = lifecycleStateToText[project.lifecycleState];
   if (lifecycleText) {
-    await page.getByRole('combobox').click();
-    await page.getByRole('combobox').fill('');
-    await page.getByRole('combobox').fill(lifecycleText);
-    await page.getByRole('combobox').press('ArrowDown');
-    await page.getByRole('combobox').press('Enter');
+    await page.getByLabel('Elinkaaren tila').click();
+    await page.getByRole('option', { name: lifecycleText }).click();
   }
+
+  await page.getByLabel('Hanketyyppi').click();
+  await page.getByRole('option', { name: 'Investointihanke' }).click();
 
   await page.getByRole('button', { name: 'Lisää hanke' }).click();
 

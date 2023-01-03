@@ -11,10 +11,10 @@ test.describe('Code endpoints', () => {
   });
 
   test('get codes for a list', async () => {
-    const codeListId: Code['codeListId'] = 'Hanketyyppi';
+    const codeListId: Code['id']['codeListId'] = 'HankeTyyppi';
 
     const codes = await client.code.get.query({ codeListId });
     expect(Array.isArray(codes)).toBe(true);
-    expect(codes.every((code) => code.codeListId === codeListId));
+    expect(codes.every((code) => code.id.codeListId === codeListId));
   });
 });

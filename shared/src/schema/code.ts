@@ -8,7 +8,7 @@ export const codeId = z.string().regex(codeIdRegex);
 
 const codeListIdSchema = z.enum([
   'Rahoitusmalli',
-  'Hanketyyppi',
+  'HankeTyyppi',
   'LiittyvanHankkeenTyyppi',
   'HankkeenElinkaarentila',
   'HankkeenToimielin',
@@ -18,6 +18,7 @@ const codeListIdSchema = z.enum([
   'KohteenToiminnallinenKayttoTarkoitus',
   'KohteenMaanomistusLaji',
   'KohteenSuhdePeruskiinteistoon',
+  'Lautakunta',
 ]);
 
 export const codeIdSchema = z.object({

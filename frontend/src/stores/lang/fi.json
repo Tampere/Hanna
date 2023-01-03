@@ -33,6 +33,7 @@
   "newProject.startDateTooltip": "Valitse hankkeen alkuajankohta",
   "newProject.endDateTooltip": "Valitse hankkeen loppuajankohta",
   "newProject.lifecycleStateTooltip": "Valitse elinkaaren tila",
+  "newProject.projectTypeTooltip": "Valitse hanketyyppi",
   "newProject.basicInfoSectionLabel": "Perustiedot",
   "newProject.createBtnLabel": "Lisää hanke",
   "newProject.linksSectionTitle": "Sidoshankkeet",

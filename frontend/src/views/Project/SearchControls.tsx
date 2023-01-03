@@ -110,7 +110,7 @@ export function SearchControls() {
         <FormLabel htmlFor="project-type">{tr('project.projectTypeLabel')}</FormLabel>
         <CodeSelect
           id="project-type"
-          codeListId="Hanketyyppi"
+          codeListId="HankeTyyppi"
           multiple
           value={searchParams.projectTypes}
           onChange={setSearchParams.projectTypes}
@@ -133,7 +133,12 @@ export function SearchControls() {
           </FormControl>
           <FormControl>
             <FormLabel>{tr('project.committeeLabel')}</FormLabel>
-            <Select disabled size="small"></Select>
+            <CodeSelect
+              codeListId="Lautakunta"
+              multiple
+              value={searchParams.committee}
+              onChange={setSearchParams.committee}
+            />
           </FormControl>
           <FormControl>
             <FormLabel>{tr('project.ownerLabel')}</FormLabel>
