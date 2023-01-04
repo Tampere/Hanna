@@ -103,6 +103,7 @@ export function RelationsContainer({
             renderInput={(params) => (
               <TextField {...params} label={tr('project.projectNameLabel')} />
             )}
+            size="small"
             getOptionLabel={(option: DbProject) => option.projectName}
             loading={projects.isLoading}
             onChange={(event: React.SyntheticEvent, newValue: DbProject | null) => {

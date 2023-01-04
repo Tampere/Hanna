@@ -34,17 +34,10 @@ const router = createBrowserRouter(
       <Route index element={<ProjectsPage />} />
       <Route path="hankkeet" element={<ProjectsPage />} />
       <Route path="hanke/luo" element={<Project />} />
-      <Route path="hanke/:projectId" element={<Project />} loader={({ params }) => params} />
-      <Route
-        path="hanke/:projectId/uusi-kohde"
-        element={<ProjectObject />}
-        loader={({ params }) => params}
-      />
-      <Route
-        path="hanke/:projectId/kohde/:projectObjectId"
-        element={<ProjectObject />}
-        loader={({ params }) => params}
-      />
+      <Route path="hanke/:projectId" element={<Project />} />
+      <Route path="hanke/:projectId/uusi-kohde" element={<ProjectObject />} />
+      <Route path="hanke/:projectId/:tabView" element={<Project />} />
+      <Route path="hanke/:projectId/kohde/:projectObjectId" element={<ProjectObject />} />
       <Route path="profiili" element={<Profile />} />
       <Route path="asetukset" element={<Settings />} />
       <Route path="*" element={<NotFound />} />

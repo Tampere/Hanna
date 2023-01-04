@@ -21,7 +21,7 @@ const wrapperStyle = css`
 
 const alertStyle = css`
   margin-bottom: 8px;
-  width: 288px;
+  width: 392px;
   :hover {
     opacity: 0.9;
   }

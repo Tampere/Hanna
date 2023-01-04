@@ -106,7 +106,7 @@ export function CostEstimatesTable(props: Props) {
 
   return !project || !estimates ? null : (
     <>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
         {!editing ? (
           <Button
             variant="contained"

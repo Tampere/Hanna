@@ -38,3 +38,17 @@ export const getProjectObjectParams = z.object({
 });
 
 export type ProjectObjectParams = z.infer<typeof getProjectObjectParams>;
+
+export const updateGeometrySchema = z.object({
+  id: z.string(),
+  features: z.string(),
+});
+
+export type UpdateGeometry = z.infer<typeof updateGeometrySchema>;
+
+export const updateGeometryResultSchema = z.object({
+  id: z.string(),
+  geom: z.string(),
+});
+
+export type UpdateGeometryResult = z.infer<typeof updateGeometryResultSchema>;

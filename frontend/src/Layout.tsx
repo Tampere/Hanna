@@ -31,6 +31,22 @@ const theme = createTheme({
     },
   },
   components: {
+    MuiTabs: {
+      styleOverrides: {
+        root: {
+          minHeight: '48px',
+          height: '48px',
+        },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          minHeight: '48px',
+          height: '48px',
+        },
+      },
+    },
     MuiTooltip: {
       styleOverrides: {
         tooltip: {

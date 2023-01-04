@@ -5,49 +5,10 @@ import { Geometry } from 'ol/geom';
 import { Draw, Modify, Select, Snap } from 'ol/interaction';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import Circle from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
-import Stroke from 'ol/style/Stroke';
 import Style from 'ol/style/Style';
 
-/**
- * Drawing tool
- */
-
-export const drawStyle = {
-  fill: {
-    color: 'rgb(173, 255, 47, 0.3)',
-  },
-  stroke: {
-    color: 'rgb(0, 168, 0)',
-    width: 3,
-  },
-};
-
-const unfinishedDrawingStyle = new Style({
-  fill: new Fill({
-    color: drawStyle.fill.color,
-  }),
-  stroke: new Stroke({
-    color: drawStyle.stroke.color,
-    width: drawStyle.stroke.width,
-  }),
-});
-
-const completedDrawingStyle = new Style({
-  fill: new Fill({
-    color: drawStyle.fill.color,
-  }),
-  stroke: new Stroke({
-    color: drawStyle.stroke.color,
-    width: drawStyle.stroke.width,
-    lineDash: [3, 10],
-  }),
-  image: new Circle({
-    radius: 5,
-    fill: new Fill({ color: drawStyle.stroke.color }),
-  }),
-});
+import { completedDrawingStyle, unfinishedDrawingStyle } from '@frontend/components/Map/styles';
 
 interface DrawOptions {
   source: VectorSource<Geometry>;
