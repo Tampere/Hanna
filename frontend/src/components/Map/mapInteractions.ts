@@ -5,34 +5,45 @@ import { Geometry } from 'ol/geom';
 import { Draw, Modify, Select, Snap } from 'ol/interaction';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
+import CircleStyle from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
 import Style from 'ol/style/Style';
 
-import { completedDrawingStyle, unfinishedDrawingStyle } from '@frontend/components/Map/styles';
+import { DEFAULT_DRAW_STYLE } from '@frontend/components/Map/styles';
 
 interface DrawOptions {
   source: VectorSource<Geometry>;
   trace: boolean;
   traceSource: VectorSource<Geometry> | null;
+  drawStyle?: Style;
   onDrawEnd?: () => void;
 }
 
-export function createDrawLayer(source: VectorSource<Geometry>) {
+export function createDrawLayer(source: VectorSource<Geometry>, style?: Style) {
   return new VectorLayer({
     source,
     zIndex: 101,
     properties: { id: 'drawLayer' },
-    style: unfinishedDrawingStyle,
+    style: style || DEFAULT_DRAW_STYLE,
   });
 }
 
 export function createDrawInteraction(opts: DrawOptions) {
   return function registerInteraction(map: OLMap) {
+    const drawStyle = (opts.drawStyle || DEFAULT_DRAW_STYLE).clone();
+    drawStyle.setImage(
+      new CircleStyle({
+        radius: 5,
+        fill: new Fill({ color: drawStyle.getStroke()?.getColor() }),
+      })
+    );
+    drawStyle.getStroke()?.setLineDash([3, 10]);
+
     const draw = new Draw({
       source: opts.source,
       type: 'Polygon',
       condition: primaryAction,
-      style: completedDrawingStyle,
+      style: drawStyle,
       trace: opts.trace,
       ...(opts.trace && opts.traceSource && { traceSource: opts.traceSource }),
     });

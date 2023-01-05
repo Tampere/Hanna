@@ -6,7 +6,7 @@ import { useEffect, useMemo } from 'react';
 
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { addFeaturesFromGeoJson } from '@frontend/components/Map/mapInteractions';
-import { clusterStyle, projectAreaStyle } from '@frontend/components/Map/styles';
+import { PROJECT_AREA_STYLE, clusterStyle } from '@frontend/components/Map/styles';
 import { getProjectSearchParamSetters } from '@frontend/stores/search/project';
 
 import { ProjectSearchResult } from '@shared/schema/project';
@@ -73,7 +73,7 @@ function getProjectsGeoJSON(projects?: ProjectSearchResult['projects']) {
 function getProjectsLayer(source: VectorSource) {
   return new VectorLayer({
     source,
-    style: projectAreaStyle,
+    style: PROJECT_AREA_STYLE,
     properties: {
       id: 'projectResults',
       type: 'vector',

@@ -14,7 +14,7 @@ import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
-import { projectObjectStyle } from '@frontend/components/Map/styles';
+import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
@@ -124,7 +124,7 @@ export function Project() {
   const projectObjectsLayer = useMemo(() => {
     return new VectorLayer({
       source: projectObjectSource,
-      style: projectObjectStyle,
+      style: PROJ_OBJ_STYLE,
       properties: {
         id: 'projectObjects',
         type: 'vector',
@@ -193,6 +193,7 @@ export function Project() {
             <Box css={mapContainerStyle}>
               <MapWrapper
                 geoJson={project?.data?.geom}
+                drawStyle={PROJECT_AREA_STYLE}
                 fitExtent="geoJson"
                 editable={Boolean(projectId)}
                 onFeaturesSaved={(features) => {

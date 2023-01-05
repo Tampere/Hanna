@@ -3,9 +3,6 @@ import { Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import Fill from 'ol/style/Fill';
-import Stroke from 'ol/style/Stroke';
-import Style from 'ol/style/Style';
 import { useMemo } from 'react';
 import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
@@ -14,7 +11,7 @@ import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
-import { projectBoundsStyle } from '@frontend/components/Map/styles';
+import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
@@ -99,7 +96,11 @@ export function ProjectObject() {
   const projectLayer = useMemo(() => {
     return new VectorLayer({
       source: projectSource,
-      style: projectBoundsStyle,
+      style: PROJECT_AREA_STYLE,
+      properties: {
+        id: 'project',
+        type: 'vector',
+      },
     });
   }, [project.data]);
 
@@ -162,6 +163,7 @@ export function ProjectObject() {
             <Box css={mapContainerStyle}>
               <MapWrapper
                 geoJson={projectObject?.data?.geom}
+                drawStyle={PROJ_OBJ_STYLE}
                 editable={Boolean(projectObjectId)}
                 vectorLayers={[projectLayer]}
                 fitExtent="vectorLayers"

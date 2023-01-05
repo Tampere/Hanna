@@ -5,88 +5,76 @@ import Stroke from 'ol/style/Stroke';
 import Style from 'ol/style/Style';
 import Text from 'ol/style/Text';
 
-export const drawStyle = {
-  fill: {
-    color: 'rgb(173, 255, 47, 0.3)',
-  },
-  stroke: {
-    color: 'rgb(0, 168, 0)',
-    width: 3,
-  },
-};
+const _PROJECT_FILL = 'rgb(173, 255, 47, 0.3)';
+const _PROJECT_STROKE = 'rgb(0, 168, 0)';
+const _PROJECT_STROKE_WIDTH = 3;
 
-export const unfinishedDrawingStyle = new Style({
-  fill: new Fill({
-    color: drawStyle.fill.color,
-  }),
-  stroke: new Stroke({
-    color: drawStyle.stroke.color,
-    width: drawStyle.stroke.width,
-  }),
-});
+export function makeDrawStyle(fillColor: string, strokeColor: string) {
+  return new Style({
+    fill: new Fill({
+      color: fillColor,
+    }),
+    stroke: new Stroke({
+      color: strokeColor,
+      width: _PROJECT_STROKE_WIDTH,
+    }),
+  });
+}
 
-export const completedDrawingStyle = new Style({
-  fill: new Fill({
-    color: drawStyle.fill.color,
-  }),
-  stroke: new Stroke({
-    color: drawStyle.stroke.color,
-    width: drawStyle.stroke.width,
-    lineDash: [3, 10],
-  }),
-  image: new CircleStyle({
-    radius: 5,
-    fill: new Fill({ color: drawStyle.stroke.color }),
-  }),
-});
+const _DEFAULT_FILL = 'rgb(255, 0, 0, 0.4)';
+const _DEFAULT_STROKE = 'rgb(255, 0, 0)';
+export const DEFAULT_DRAW_STYLE = makeDrawStyle(_DEFAULT_FILL, _DEFAULT_STROKE);
+
+const CLUSTER_RADIUS = 16;
+const CLUSTER_STROKE = '#fff';
+const CLUSTER_STROKE_WIDTH = 2;
+const CLUSTER_FILL = 'rgb(0, 168, 0)';
+const CLUSTER_FONT = 'bold 14px sans-serif';
 
 export function clusterStyle(feature: FeatureLike) {
   const clusterCount = feature.get('clusterCount');
   return new Style({
     image: new CircleStyle({
-      radius: 16,
+      radius: CLUSTER_RADIUS,
       stroke: new Stroke({
-        color: '#fff',
-        width: 2,
+        color: CLUSTER_STROKE,
+        width: CLUSTER_STROKE_WIDTH,
       }),
       fill: new Fill({
-        color: 'rgb(0, 168, 0)',
+        color: CLUSTER_FILL,
       }),
     }),
     text: new Text({
-      font: 'bold 14px sans-serif',
+      font: CLUSTER_FONT,
       textAlign: 'center',
       text: clusterCount.toString(),
       fill: new Fill({
-        color: '#fff',
+        color: CLUSTER_STROKE,
       }),
     }),
   });
 }
 
-export const projectAreaStyle = new Style({
+export const PROJECT_AREA_STYLE = new Style({
   fill: new Fill({
-    color: drawStyle.fill.color,
+    color: _PROJECT_FILL,
   }),
   stroke: new Stroke({
-    color: drawStyle.stroke.color,
-    width: drawStyle.stroke.width,
+    color: _PROJECT_STROKE,
+    width: _PROJECT_STROKE_WIDTH,
   }),
 });
 
-export const projectBoundsStyle = new Style({
-  stroke: new Stroke({
-    color: drawStyle.stroke.color,
-    width: drawStyle.stroke.width,
-  }),
-});
+const _PROJ_OBJ_FILL = 'rgb(0, 0, 255, 0.4)';
+const _PROJ_OBJ_STROKE = 'rgb(0, 0, 255)';
+const _PROJ_OBJ_STROKE_WIDTH = 2;
 
-export const projectObjectStyle = new Style({
+export const PROJ_OBJ_STYLE = new Style({
   fill: new Fill({
-    color: 'rgb(0, 0, 255, 0.4)',
+    color: _PROJ_OBJ_FILL,
   }),
   stroke: new Stroke({
-    color: 'rgb(0, 0, 255)',
-    width: 2,
+    color: _PROJ_OBJ_STROKE,
+    width: _PROJ_OBJ_STROKE_WIDTH,
   }),
 });

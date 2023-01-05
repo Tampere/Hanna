@@ -5,6 +5,7 @@ import { Geometry } from 'ol/geom';
 import VectorLayer from 'ol/layer/Vector';
 import { Projection } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
+import Style from 'ol/style/Style';
 import { useEffect, useMemo, useState } from 'react';
 
 import { MapToolbar, ToolType } from '@frontend/components/Map/MapToolbar';
@@ -29,6 +30,7 @@ import { mapOptions } from './mapOptions';
 interface Props {
   geoJson?: string | object | null;
   editable?: boolean;
+  drawStyle?: Style;
   onFeaturesSaved?: (features: string) => void;
   onMoveEnd?: (zoom: number, extent: number[]) => void;
   loading?: boolean;
@@ -109,11 +111,12 @@ export function MapWrapper(props: Props) {
     }
   }, [geoJson]);
 
-  const drawLayer = useMemo(() => createDrawLayer(drawSource), []);
+  const drawLayer = useMemo(() => createDrawLayer(drawSource, props.drawStyle), []);
   const registerDrawInteraction = useMemo(
     () =>
       createDrawInteraction({
         source: drawSource,
+        drawStyle: props.drawStyle,
         trace: selectedTool === 'tracedFeature',
         traceSource: selectionSource,
         onDrawEnd: () => {
