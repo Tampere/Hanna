@@ -61,7 +61,6 @@ async function upsertProjectObject(projectObject: UpsertProjectObject, userId: s
     object_category: codeIdFragment('KohteenOmaisuusLuokka', projectObject.objectCategory),
     object_usage: codeIdFragment('KohteenToiminnallinenKayttoTarkoitus', projectObject.objectUsage),
     person_responsible: projectObject.personResponsible,
-    geom: projectObject.geom ?? null,
     start_date: projectObject.startDate,
     end_date: projectObject.endDate,
     landownership: codeIdFragment('KohteenMaanomistusLaji', projectObject.landownership),

@@ -13,7 +13,6 @@ export const upsertProjectObjectSchema = z.object({
   objectCategory: codeId,
   objectUsage: codeId,
   personResponsible: z.string(),
-  geom: z.string().optional(),
   startDate: isoDateString,
   endDate: isoDateString,
   landownership: codeId.optional().nullable(),
