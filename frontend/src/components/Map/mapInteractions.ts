@@ -19,10 +19,12 @@ interface DrawOptions {
   onDrawEnd?: () => void;
 }
 
+export const DRAW_LAYER_Z_INDEX = 101;
+
 export function createDrawLayer(source: VectorSource<Geometry>, style?: Style) {
   return new VectorLayer({
     source,
-    zIndex: 101,
+    zIndex: DRAW_LAYER_Z_INDEX,
     properties: { id: 'drawLayer' },
     style: style || DEFAULT_DRAW_STYLE,
   });

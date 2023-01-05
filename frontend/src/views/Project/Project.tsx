@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
-import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
+import { DRAW_LAYER_Z_INDEX, featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
@@ -123,6 +123,7 @@ export function Project() {
 
   const projectObjectsLayer = useMemo(() => {
     return new VectorLayer({
+      zIndex: DRAW_LAYER_Z_INDEX + 1,
       source: projectObjectSource,
       style: PROJ_OBJ_STYLE,
       properties: {
@@ -204,13 +205,15 @@ export function Project() {
             </Box>
           )}
 
-          <Box sx={{ m: 2 }}>
-            {routeParams.tabView === 'talous' && <ProjectFinances project={project.data} />}
-            {routeParams.tabView === 'kohteet' && <ProjectObjectList projectId={projectId} />}
-            {routeParams.tabView === 'sidoshankkeet' && (
-              <ProjectRelations project={project.data as DbProject} />
-            )}
-          </Box>
+          {routeParams.tabView && (
+            <Box sx={{ m: 2 }}>
+              {routeParams.tabView === 'talous' && <ProjectFinances project={project.data} />}
+              {routeParams.tabView === 'kohteet' && <ProjectObjectList projectId={projectId} />}
+              {routeParams.tabView === 'sidoshankkeet' && (
+                <ProjectRelations project={project.data as DbProject} />
+              )}
+            </Box>
+          )}
         </Paper>
       </div>
     </Box>
