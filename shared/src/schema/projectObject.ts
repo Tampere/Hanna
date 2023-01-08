@@ -22,6 +22,7 @@ export const upsertProjectObjectSchema = z.object({
 
 export const dbProjectObjectSchema = upsertProjectObjectSchema.extend({
   id: z.string(),
+  geom: z.string().nullable(),
   createdAt: isoDateString,
   deleted: z.boolean(),
   updatedBy: z.string(),

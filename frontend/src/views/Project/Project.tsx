@@ -109,7 +109,6 @@ export function Project() {
     if (projectObjects?.data) {
       for (const projObj of projectObjects.data) {
         if (projObj.geom) {
-          // TODO: Attributes, map interaction showing attributes
           const geoJson = JSON.parse(projObj.geom);
           const features = geoJson ? featuresFromGeoJSON(geoJson) : [];
           for (const feature of features) {
