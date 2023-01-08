@@ -1,9 +1,11 @@
 import { GlobalStyles } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
+import { Extent, createEmpty, extend, isEmpty } from 'ol/extent';
 import { Geometry } from 'ol/geom';
 import VectorLayer from 'ol/layer/Vector';
 import { Projection } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
+import Style from 'ol/style/Style';
 import { useEffect, useMemo, useState } from 'react';
 
 import { MapToolbar, ToolType } from '@frontend/components/Map/MapToolbar';
@@ -28,10 +30,12 @@ import { mapOptions } from './mapOptions';
 interface Props {
   geoJson?: string | object | null;
   editable?: boolean;
+  drawStyle?: Style;
   onFeaturesSaved?: (features: string) => void;
   onMoveEnd?: (zoom: number, extent: number[]) => void;
   loading?: boolean;
   vectorLayers?: VectorLayer<VectorSource<Geometry>>[];
+  fitExtent?: 'geoJson' | 'vectorLayers' | 'all';
 }
 
 export function MapWrapper(props: Props) {
@@ -107,11 +111,12 @@ export function MapWrapper(props: Props) {
     }
   }, [geoJson]);
 
-  const drawLayer = useMemo(() => createDrawLayer(drawSource), []);
+  const drawLayer = useMemo(() => createDrawLayer(drawSource, props.drawStyle), []);
   const registerDrawInteraction = useMemo(
     () =>
       createDrawInteraction({
         source: drawSource,
+        drawStyle: props.drawStyle,
         trace: selectedTool === 'tracedFeature',
         traceSource: selectionSource,
         onDrawEnd: () => {
@@ -122,9 +127,25 @@ export function MapWrapper(props: Props) {
   );
 
   useEffect(() => {
-    if (!geoJson) return;
-    setExtent(drawSource.getExtent());
-  }, [geoJson]);
+    let extent = createEmpty();
+    switch (props.fitExtent) {
+      case 'geoJson':
+        if (geoJson) {
+          setExtent(drawSource.getExtent());
+        }
+        break;
+      case 'vectorLayers':
+        extent = props.vectorLayers?.reduce((extent, layer) => {
+          const layerExtent = layer.getSource()?.getExtent();
+          if (!layerExtent) return extent;
+          return extend(extent, layerExtent);
+        }, createEmpty()) as Extent;
+        if (!isEmpty(extent)) {
+          setExtent(extent);
+        }
+        break;
+    }
+  }, [geoJson, props.vectorLayers, props.fitExtent]);
 
   useEffect(() => {
     switch (selectedTool) {

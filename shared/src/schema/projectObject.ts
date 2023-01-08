@@ -13,7 +13,6 @@ export const upsertProjectObjectSchema = z.object({
   objectCategory: codeId,
   objectUsage: codeId,
   personResponsible: z.string(),
-  geom: z.string().optional(),
   startDate: isoDateString,
   endDate: isoDateString,
   landownership: codeId.optional().nullable(),
@@ -23,6 +22,7 @@ export const upsertProjectObjectSchema = z.object({
 
 export const dbProjectObjectSchema = upsertProjectObjectSchema.extend({
   id: z.string(),
+  geom: z.string().nullable(),
   createdAt: isoDateString,
   deleted: z.boolean(),
   updatedBy: z.string(),
@@ -38,3 +38,17 @@ export const getProjectObjectParams = z.object({
 });
 
 export type ProjectObjectParams = z.infer<typeof getProjectObjectParams>;
+
+export const updateGeometrySchema = z.object({
+  id: z.string(),
+  features: z.string(),
+});
+
+export type UpdateGeometry = z.infer<typeof updateGeometrySchema>;
+
+export const updateGeometryResultSchema = z.object({
+  id: z.string(),
+  geom: z.string(),
+});
+
+export type UpdateGeometryResult = z.infer<typeof updateGeometryResultSchema>;

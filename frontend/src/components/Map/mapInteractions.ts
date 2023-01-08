@@ -5,73 +5,47 @@ import { Geometry } from 'ol/geom';
 import { Draw, Modify, Select, Snap } from 'ol/interaction';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import Circle from 'ol/style/Circle';
+import CircleStyle from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
-import Stroke from 'ol/style/Stroke';
 import Style from 'ol/style/Style';
 
-/**
- * Drawing tool
- */
-
-export const drawStyle = {
-  fill: {
-    color: 'rgb(173, 255, 47, 0.3)',
-  },
-  stroke: {
-    color: 'rgb(0, 168, 0)',
-    width: 3,
-  },
-};
-
-const unfinishedDrawingStyle = new Style({
-  fill: new Fill({
-    color: drawStyle.fill.color,
-  }),
-  stroke: new Stroke({
-    color: drawStyle.stroke.color,
-    width: drawStyle.stroke.width,
-  }),
-});
-
-const completedDrawingStyle = new Style({
-  fill: new Fill({
-    color: drawStyle.fill.color,
-  }),
-  stroke: new Stroke({
-    color: drawStyle.stroke.color,
-    width: drawStyle.stroke.width,
-    lineDash: [3, 10],
-  }),
-  image: new Circle({
-    radius: 5,
-    fill: new Fill({ color: drawStyle.stroke.color }),
-  }),
-});
+import { DEFAULT_DRAW_STYLE } from '@frontend/components/Map/styles';
 
 interface DrawOptions {
   source: VectorSource<Geometry>;
   trace: boolean;
   traceSource: VectorSource<Geometry> | null;
+  drawStyle?: Style;
   onDrawEnd?: () => void;
 }
 
-export function createDrawLayer(source: VectorSource<Geometry>) {
+export const DRAW_LAYER_Z_INDEX = 101;
+
+export function createDrawLayer(source: VectorSource<Geometry>, style?: Style) {
   return new VectorLayer({
     source,
-    zIndex: 101,
+    zIndex: DRAW_LAYER_Z_INDEX,
     properties: { id: 'drawLayer' },
-    style: unfinishedDrawingStyle,
+    style: style || DEFAULT_DRAW_STYLE,
   });
 }
 
 export function createDrawInteraction(opts: DrawOptions) {
   return function registerInteraction(map: OLMap) {
+    const drawStyle = (opts.drawStyle || DEFAULT_DRAW_STYLE).clone();
+    drawStyle.setImage(
+      new CircleStyle({
+        radius: 5,
+        fill: new Fill({ color: drawStyle.getStroke()?.getColor() }),
+      })
+    );
+    drawStyle.getStroke()?.setLineDash([3, 10]);
+
     const draw = new Draw({
       source: opts.source,
       type: 'Polygon',
       condition: primaryAction,
-      style: completedDrawingStyle,
+      style: drawStyle,
       trace: opts.trace,
       ...(opts.trace && opts.traceSource && { traceSource: opts.traceSource }),
     });

@@ -6,6 +6,8 @@ import { getPool } from '@backend/db';
 import { TRPC } from '@backend/router';
 
 import { CodeId } from '@shared/schema/code';
+import { nonEmptyString } from '@shared/schema/common';
+import { updateGeometryResultSchema, updateGeometrySchema } from '@shared/schema/projectObject';
 import {
   UpsertProjectObject,
   dbProjectObjectSchema,
@@ -26,6 +28,7 @@ const projectObjectFragment = sql.fragment`
      person_responsible AS "personResponsible",
      start_date AS "startDate",
      end_date AS "endDate",
+     ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
      (landownership).id AS "landownership",
      (location_on_property).id AS "locationOnProperty",
      height
@@ -58,7 +61,6 @@ async function upsertProjectObject(projectObject: UpsertProjectObject, userId: s
     object_category: codeIdFragment('KohteenOmaisuusLuokka', projectObject.objectCategory),
     object_usage: codeIdFragment('KohteenToiminnallinenKayttoTarkoitus', projectObject.objectUsage),
     person_responsible: projectObject.personResponsible,
-    geom: projectObject.geom ?? null,
     start_date: projectObject.startDate,
     end_date: projectObject.endDate,
     landownership: codeIdFragment('KohteenMaanomistusLaji', projectObject.landownership),
@@ -99,9 +101,35 @@ export const createProjectObjectRouter = (t: TRPC) =>
       return getProjectObject(input.projectId, result.id);
     }),
 
+    updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input, ctx }) => {
+      const { id, features } = input;
+      return getPool().one(sql.type(updateGeometryResultSchema)`
+        WITH featureCollection AS (
+          SELECT ST_Collect(
+            ST_GeomFromGeoJSON(value->'geometry')
+          ) AS resultGeom
+          FROM jsonb_array_elements(${features}::jsonb)
+        )
+        UPDATE app.project_object
+        SET geom = featureCollection.resultGeom
+        FROM featureCollection
+        WHERE id = ${id}
+        RETURNING id, ST_AsGeoJSON(geom) AS geom
+      `);
+    }),
+
     get: t.procedure.input(getProjectObjectParams).query(async ({ input, ctx }) => {
       return getProjectObject(input.projectId, input.id);
     }),
+
+    getByProjectId: t.procedure
+      .input(z.object({ projectId: nonEmptyString }))
+      .query(async ({ input, ctx }) => {
+        return getPool().any(sql.type(dbProjectObjectSchema)`
+        ${projectObjectFragment}
+        AND project_id = ${input.projectId}
+      `);
+      }),
 
     delete: t.procedure.input(getProjectObjectParams).mutation(async ({ input }) => {
       throw new TRPCError({ code: 'METHOD_NOT_SUPPORTED' });

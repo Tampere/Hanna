@@ -2,15 +2,11 @@ import { css } from '@emotion/react';
 import { Paper } from '@mui/material';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import CircleStyle from 'ol/style/Circle';
-import Fill from 'ol/style/Fill';
-import Stroke from 'ol/style/Stroke';
-import Style from 'ol/style/Style';
-import Text from 'ol/style/Text';
 import { useEffect, useMemo } from 'react';
 
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
-import { addFeaturesFromGeoJson, drawStyle } from '@frontend/components/Map/mapInteractions';
+import { addFeaturesFromGeoJson } from '@frontend/components/Map/mapInteractions';
+import { PROJECT_AREA_STYLE, clusterStyle } from '@frontend/components/Map/styles';
 import { getProjectSearchParamSetters } from '@frontend/stores/search/project';
 
 import { ProjectSearchResult } from '@shared/schema/project';
@@ -45,29 +41,7 @@ function clusterGeoJSON(clusters?: ProjectSearchResult['clusters']) {
 function getClusterLayer(source: VectorSource) {
   return new VectorLayer({
     source,
-    style: function style(feature) {
-      const clusterCount = feature.get('clusterCount');
-      return new Style({
-        image: new CircleStyle({
-          radius: 16,
-          stroke: new Stroke({
-            color: '#fff',
-            width: 2,
-          }),
-          fill: new Fill({
-            color: 'rgb(0, 168, 0)',
-          }),
-        }),
-        text: new Text({
-          font: 'bold 14px sans-serif',
-          textAlign: 'center',
-          text: clusterCount.toString(),
-          fill: new Fill({
-            color: '#fff',
-          }),
-        }),
-      });
-    },
+    style: clusterStyle,
     properties: {
       id: 'clusterResults',
       type: 'vector',
@@ -99,15 +73,7 @@ function getProjectsGeoJSON(projects?: ProjectSearchResult['projects']) {
 function getProjectsLayer(source: VectorSource) {
   return new VectorLayer({
     source,
-    style: new Style({
-      fill: new Fill({
-        color: drawStyle.fill.color,
-      }),
-      stroke: new Stroke({
-        color: drawStyle.stroke.color,
-        width: drawStyle.stroke.width,
-      }),
-    }),
+    style: PROJECT_AREA_STYLE,
     properties: {
       id: 'projectResults',
       type: 'vector',

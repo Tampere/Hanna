@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AddCircle, Edit, Save, Undo } from '@mui/icons-material';
-import { Box, Button, TextField } from '@mui/material';
+import { Box, Button, TextField, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
@@ -18,8 +18,8 @@ import { useTranslations } from '@frontend/stores/lang';
 import { DbProject, UpsertProject, upsertProjectSchema } from '@shared/schema/project';
 
 const newProjectFormStyle = css`
-  padding: 0px 16px 16px 16px;
   display: grid;
+  margin-top: 16px;
 `;
 
 interface ProjectFormProps {
@@ -121,8 +121,10 @@ export function ProjectForm(props: ProjectFormProps) {
 
   return (
     <FormProvider {...form}>
+      {!props.project && <Typography variant="overline">{tr('newProject.formTitle')}</Typography>}
       {props.project && (
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Typography variant="overline">{tr('projectForm.formTitle')}</Typography>
           {!form.formState.isDirty && !editing ? (
             <Button
               variant="contained"

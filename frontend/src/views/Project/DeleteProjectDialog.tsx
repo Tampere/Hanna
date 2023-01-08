@@ -1,3 +1,4 @@
+import { Delete } from '@mui/icons-material';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -42,7 +43,13 @@ export function DeleteProjectDialog({ projectId }: Props) {
 
   return (
     <>
-      <Button sx={{ mt: '1rem' }} variant="contained" onClick={() => setIsDialogOpen(true)}>
+      <Button
+        size="small"
+        variant="contained"
+        sx={{ mt: 2 }}
+        endIcon={<Delete />}
+        onClick={() => setIsDialogOpen(true)}
+      >
         {tr('projectDelete.delete')}
       </Button>
       <Dialog open={isDialogOpen}>

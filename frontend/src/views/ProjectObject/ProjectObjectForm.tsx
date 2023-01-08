@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AddCircle, Edit, Save, Undo } from '@mui/icons-material';
-import { Box, Button, InputAdornment, TextField } from '@mui/material';
+import { Box, Button, InputAdornment, TextField, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
@@ -18,8 +18,8 @@ import { useTranslations } from '@frontend/stores/lang';
 import { UpsertProjectObject, upsertProjectObjectSchema } from '@shared/schema/projectObject';
 
 const newProjectFormStyle = css`
-  padding: 0px 16px 16px 16px;
   display: grid;
+  margin-top: 16px;
 `;
 
 interface Props {
@@ -74,6 +74,12 @@ export function ProjectObjectForm(props: Props) {
   });
 
   useEffect(() => {
+    if (props.projectObject) {
+      form.reset(props.projectObject);
+    }
+  }, [props.projectObject]);
+
+  useEffect(() => {
     const sub = form.watch((value, { name, type }) => {
       if (type === 'change' && (name === 'startDate' || name === 'endDate')) {
         form.trigger(['startDate', 'endDate']);
@@ -91,6 +97,11 @@ export function ProjectObjectForm(props: Props) {
         queryClient.invalidateQueries({
           queryKey: [['project', 'get'], { input: { id: data.id } }],
         });
+        // invalidate projectobject query
+        queryClient.invalidateQueries({
+          queryKey: [['projectObject', 'get'], { input: { id: data.id } }],
+        });
+
         setEditing(false);
         form.reset(data);
       }
@@ -112,8 +123,12 @@ export function ProjectObjectForm(props: Props) {
 
   return (
     <FormProvider {...form}>
+      {!props.projectObject && (
+        <Typography variant="overline">{tr('newProjectObject.title')}</Typography>
+      )}
       {props.projectObject && (
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Typography variant="overline">{tr('projectObject.formTitle')}</Typography>
           {!form.formState.isDirty && !editing ? (
             <Button
               variant="contained"
