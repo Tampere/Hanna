@@ -179,6 +179,7 @@ export function Project() {
           >
             {tabs.map((tab) => (
               <Tab
+                disabled={!project.data}
                 key={tab.tabView}
                 component={Link}
                 to={tab.url}
