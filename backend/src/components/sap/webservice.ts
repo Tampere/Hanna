@@ -39,7 +39,7 @@ export async function createWSClient() {
   });
 
   client.setSecurity(
-    new BasicAuthSecurity(env.sapWebService.basicAuthPass, env.sapWebService.basicAuthUser)
+    new BasicAuthSecurity(env.sapWebService.basicAuthUser, env.sapWebService.basicAuthPass)
   );
   client.setEndpoint(env.sapWebService.endpoint);
   logger.info('SAP Web Service client initialized');
