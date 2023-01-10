@@ -12,7 +12,7 @@ export async function createWSClient() {
   logger.info('Initializing SAP Web Service client...');
   logger.info(`SAP endpoint: ${env.sapWebService.endpoint}`);
 
-  client = await createClientAsync(path.join(__dirname, 'project_info.wsdl'), {
+  client = await createClientAsync(path.join(process.cwd(), 'resources/project_info.wsdl'), {
     request: axios.create({
       httpsAgent: new https.Agent({
         // FIXME: for poc test only until DNS resolves to correct address and name can be used with valid cert

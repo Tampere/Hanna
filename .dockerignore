@@ -15,6 +15,7 @@ backend/*
 !backend/db_migrations
 !backend/.eslintrc.cjs
 !backend/types
+!backend/resources
 
 shared/*
 !shared/src
