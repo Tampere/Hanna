@@ -11,6 +11,7 @@ export const upsertProjectSchema = z.object({
   endDate: isoDateString,
   lifecycleState: codeId,
   projectType: codeId,
+  sapProjectId: z.string().nullable()
 });
 
 export type UpsertProject = z.infer<typeof upsertProjectSchema>;

@@ -6,6 +6,7 @@ import { join } from 'path';
 
 import { registerAuth } from '@backend/auth';
 import healthApi from '@backend/components/health/api';
+import { createWSClient } from '@backend/components/sap/webservice';
 import { SharedPool, createDatabasePool } from '@backend/db';
 import { env } from '@backend/env';
 import { logger } from '@backend/logging';
@@ -13,6 +14,7 @@ import { getClient } from '@backend/oidc';
 import { appRouter, createContext } from '@backend/router';
 
 async function run() {
+  await createWSClient();
   await createDatabasePool();
 
   const server = fastify({ logger });

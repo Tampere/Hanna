@@ -2,7 +2,9 @@ import { TRPCError } from '@trpc/server';
 import { sql } from 'slonik';
 import { z } from 'zod';
 
+import { getClient } from '@backend/components/sap/webservice';
 import { getPool } from '@backend/db';
+import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
 
 import {
@@ -15,8 +17,8 @@ import {
   projectRelationsSchema,
   projectSearchResultSchema,
   projectSearchSchema,
-  updateCostEstimatesSchema,
   relationsSchema,
+  updateCostEstimatesSchema,
   updateGeometryResultSchema,
   updateGeometrySchema,
   upsertProjectSchema,
@@ -32,7 +34,8 @@ const selectProjectFragment = sql.fragment`
     geohash,
     ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
     (lifecycle_state).id AS "lifecycleState",
-    (project_type).id AS "projectType"
+    (project_type).id AS "projectType",
+    sap_project_id AS "sapProjectId"
   FROM app.project
   WHERE deleted = false
 `;
@@ -74,15 +77,16 @@ async function upsertProject(project: UpsertProject) {
         start_date = ${startDate},
         end_date = ${endDate},
         lifecycle_state = ('HankkeenElinkaarentila',${lifecycleState}),
-        project_type = ('HankeTyyppi',${projectType})
+        project_type = ('HankeTyyppi',${projectType}),
+        sap_project_id = ${project.sapProjectId}
       WHERE id = ${id}
       RETURNING id
     `);
   } else {
     return getPool().one(
       sql.type(projectIdSchema)`
-        INSERT INTO app.project (project_name, description, start_date, end_date, lifecycle_state, project_type)
-        VALUES (${projectName}, ${description}, ${startDate}, ${endDate}, ('HankkeenElinkaarentila',${lifecycleState}), ('HankeTyyppi',${projectType}))
+        INSERT INTO app.project (project_name, description, start_date, end_date, lifecycle_state, project_type, sap_project_id)
+        VALUES (${projectName}, ${description}, ${startDate}, ${endDate}, ('HankkeenElinkaarentila',${lifecycleState}), ('HankeTyyppi',${projectType}), ${project.sapProjectId})
         RETURNING id
       `
     );
@@ -391,5 +395,13 @@ export const createProjectRouter = (t: TRPC) =>
     remoteRelation: t.procedure.input(relationsSchema).mutation(async ({ input }) => {
       const { subjectProjectId: projectId, objectProjectId: targetProjectId, relation } = input;
       return await removeProjectRelation(projectId, targetProjectId, relation);
+    }),
+
+    // FIXME: only for short-lived poc
+    sapTest: t.procedure.input(z.object({ sapProjectId: z.string() })).query(async ({ input }) => {
+      const wsClient = getClient();
+      const res = await wsClient.SI_ZPS_WS_GET_PROJECT_INFOAsync({ PROJECT: input.sapProjectId });
+      logger.debug({ res });
+      return res;
     }),
   });
