@@ -19,6 +19,7 @@
   "project.projectNameLabel": "Project name",
   "project.descriptionLabel": "Description",
   "project.projectTypeLabel": "Type",
+  "project.sapProjectIdLabel": "SAP Project ID",
   "project.lifecycleStateLabel": "Lifecycle state",
   "project.budgetLabel": "Budget",
   "project.startDateLabel": "Start date",

@@ -19,6 +19,7 @@
   "project.projectNameLabel": "Hankkeen nimi",
   "project.descriptionLabel": "Kuvaus",
   "project.projectTypeLabel": "Hanketyyppi",
+  "project.sapProjectIdLabel": "SAP-projektin ID",
   "project.lifecycleStateLabel": "Elinkaaren tila",
   "project.budgetLabel": "Budjetti",
   "project.startDateLabel": "Alkuajankohta",

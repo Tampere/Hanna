@@ -28,6 +28,11 @@ const schema = z.object({
     client_secret: z.string(),
     redirect_uri: z.string(),
   }),
+  sapWebService: z.object({
+    basicAuthUser: z.string(),
+    basicAuthPass: z.string(),
+    endpoint: z.string(),
+  }),
 });
 
 function getEnv() {
@@ -49,6 +54,11 @@ function getEnv() {
       client_id: process.env.OIDC_CLIENT_ID,
       client_secret: process.env.OIDC_CLIENT_SECRET,
       redirect_uri: process.env.OIDC_REDIRECT_URI,
+    },
+    sapWebService: {
+      basicAuthUser: process.env.SAP_WS_BASIC_AUTH_USER,
+      basicAuthPass: process.env.SAP_WS_BASIC_AUTH_PASS,
+      endpoint: process.env.SAP_WS_ENDPOINT,
     },
   });
 }

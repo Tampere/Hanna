@@ -16,6 +16,7 @@ import { Profile } from '@frontend/views/Profile';
 import { Project } from '@frontend/views/Project/Project';
 import { ProjectsPage } from '@frontend/views/Project/Projects';
 import { ProjectObject } from '@frontend/views/ProjectObject/ProjectObject';
+import { SapDebugView } from '@frontend/views/SapDebug';
 import { Settings } from '@frontend/views/Settings';
 
 import { trpc } from './client';
@@ -29,7 +30,7 @@ const UserLoader = () => {
 };
 
 const router = createBrowserRouter(
-  createRoutesFromElements([
+  createRoutesFromElements(
     <Route path="/" element={<Layout />}>
       <Route index element={<ProjectsPage />} />
       <Route path="hankkeet" element={<ProjectsPage />} />
@@ -38,11 +39,12 @@ const router = createBrowserRouter(
       <Route path="hanke/:projectId/uusi-kohde" element={<ProjectObject />} />
       <Route path="hanke/:projectId/:tabView" element={<Project />} />
       <Route path="hanke/:projectId/kohde/:projectObjectId" element={<ProjectObject />} />
+      <Route path="saptest/:sapProjectId" element={<SapDebugView />} />
       <Route path="profiili" element={<Profile />} />
       <Route path="asetukset" element={<Settings />} />
       <Route path="*" element={<NotFound />} />
-    </Route>,
-  ])
+    </Route>
+  )
 );
 
 export function App() {

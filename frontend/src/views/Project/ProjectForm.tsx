@@ -78,6 +78,7 @@ export function ProjectForm(props: ProjectFormProps) {
         description: '',
         startDate: '',
         endDate: '',
+        sapProjectId: null,
       }
     );
   }, [props.project]);
@@ -220,6 +221,12 @@ export function ProjectForm(props: ProjectFormProps) {
               codeListId="HankeTyyppi"
             />
           )}
+        />
+
+        <FormField
+          formField="sapProjectId"
+          label={tr('project.sapProjectIdLabel')}
+          component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
         />
 
         {!props.project && (
