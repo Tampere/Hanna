@@ -15,6 +15,7 @@ import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/sty
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
+import { DeleteProjectObjectDialog } from './DeleteProjectObjectDialog';
 import { ProjectObjectForm } from './ProjectObjectForm';
 
 const pageContentStyle = css`
@@ -131,6 +132,7 @@ export function ProjectObject() {
       <div css={pageContentStyle}>
         <Paper sx={{ p: 3, height: '100%' }} variant="outlined">
           <ProjectObjectForm projectId={routeParams.projectId} projectObject={projectObject.data} />
+          {projectObject.data && <DeleteProjectObjectDialog projectObjectId={projectObjectId} />}
         </Paper>
 
         <Paper
