@@ -29,6 +29,7 @@ test.describe('Project endpoints', () => {
       endDate: '2022-01-01',
       lifecycleState: '01',
       projectType: '01',
+      sapProjectId: null,
     });
 
     const point = makePoint(24487416.69375355, 6821004.272996133, 'EPSG:3878');
