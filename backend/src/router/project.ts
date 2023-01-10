@@ -400,8 +400,12 @@ export const createProjectRouter = (t: TRPC) =>
     // FIXME: only for short-lived poc
     sapTest: t.procedure.input(z.object({ sapProjectId: z.string() })).query(async ({ input }) => {
       const wsClient = getClient();
-      const res = await wsClient.SI_ZPS_WS_GET_PROJECT_INFOAsync({ PROJECT: input.sapProjectId });
-      logger.debug({ res });
-      return res;
+      try {
+        const res = await wsClient.SI_ZPS_WS_GET_PROJECT_INFOAsync({ PROJECT: input.sapProjectId });
+        logger.debug({ res });
+        return res;
+      } catch (error) {
+        logger.error(error);
+      }
     }),
   });
