@@ -1,6 +1,6 @@
 import { Configuration, Provider } from 'oidc-provider';
-import { readFileSync } from 'fs';
 import { createMockAccount, findAccount } from './accounts';
+import users from './users.json';
 
 const config: Configuration = {
   clients: [
@@ -14,8 +14,9 @@ const config: Configuration = {
     keys: ['development_oidc_server_cookie_key'],
   },
   claims: {
-    email: ['email', 'email_verified'],
+    email: ['upn'],
     openid: ['sub'],
+    profile: ['name'],
   },
   features: {
     devInteractions: { enabled: true },
@@ -24,13 +25,8 @@ const config: Configuration = {
 };
 
 function loadUsers() {
-  console.log('Reading users from users.json');
-  const userData = readFileSync('./users.json', 'utf8');
-  const users = JSON.parse(userData);
   console.log(`Loaded ${users.length} users`);
-  users.forEach((user: any) => {
-    createMockAccount(user.email);
-  });
+  users.forEach(createMockAccount);
 }
 
 function run() {
@@ -40,6 +36,10 @@ function run() {
 
   const oidc = new Provider(`http://localhost:${port}`, config);
   oidc.proxy = true;
+
+  oidc.on('server_error', (ctx, err) => {
+    console.error(err);
+  });
 
   oidc.listen(port, () => {
     console.log(

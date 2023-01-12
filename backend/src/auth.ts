@@ -8,6 +8,7 @@ import { BaseClient, Strategy, TokenSet, UserinfoResponse } from 'openid-client'
 import { Pool } from 'pg';
 
 import { logger } from './logging';
+import { upsertUser } from './user';
 
 interface SessionOpts {
   cookieSecret: string;
@@ -56,17 +57,24 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
       {
         client: opts.oidcOpts.client,
         params: {
-          scope: 'email openid',
+          scope: 'email openid profile',
         },
       },
-      function verify(
+      async function verify(
         _tokenset: TokenSet,
         userinfo: UserinfoResponse,
         authDone: (err: Error | null, user?: PassportUser) => void
       ) {
-        const id = userinfo.email ?? String(userinfo.upn);
+        const id = userinfo.sub;
         if (id) {
-          authDone(null, { id });
+          const user: PassportUser = {
+            id,
+            name: String(userinfo.name),
+            email: String(userinfo.upn),
+          };
+          // Update user to the database
+          await upsertUser(user);
+          authDone(null, user);
         } else {
           authDone(new Error('No identifier found in userinfo'));
         }
