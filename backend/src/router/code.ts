@@ -2,7 +2,7 @@ import { sql } from 'slonik';
 
 import { getPool } from '@backend/db';
 
-import { Code, codeSchema, codeSearchSchema } from '@shared/schema/code';
+import { Code, CodeId, codeSchema, codeSearchSchema } from '@shared/schema/code';
 
 import { TRPC } from '.';
 
@@ -28,3 +28,13 @@ export const createCodeRouter = (t: TRPC) =>
       return getCodesForCodeList(input.codeListId);
     }),
   });
+
+export function codeIdFragment(
+  codeListId: CodeId['codeListId'],
+  codeId: CodeId['id'] | undefined | null
+) {
+  if (!codeId) return sql.fragment`NULL`;
+  return sql.fragment`
+      (${sql.join([codeListId, codeId], sql.fragment`,`)})
+    `;
+}

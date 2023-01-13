@@ -19,6 +19,8 @@ const codeListIdSchema = z.enum([
   'KohteenMaanomistusLaji',
   'KohteenSuhdePeruskiinteistoon',
   'Lautakunta',
+  'TehtäväTyyppi',
+  'TehtävänElinkaarentila'
 ]);
 
 export const codeIdSchema = z.object({

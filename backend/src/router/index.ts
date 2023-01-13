@@ -7,6 +7,7 @@ import { createCodeRouter } from '@backend/router/code';
 import { createProjectRouter } from '@backend/router/project';
 import { createProjectObjectRouter } from '@backend/router/projectObject';
 import { createSapRouter } from '@backend/router/sap';
+import { createTaskRouter } from '@backend/router/task';
 
 import { User } from '@shared/schema/user';
 
@@ -36,6 +37,7 @@ export const appRouter = t.router({
   code: createCodeRouter(t),
   sap: createSapRouter(t),
   session: createSessionRouter(t),
+  task: createTaskRouter(t),
 });
 
 export type TRPC = typeof t;

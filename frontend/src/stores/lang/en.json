@@ -155,5 +155,21 @@
   "sessionExpiredWarning.buttonText": "Renew session",
   "sessionRenewed.title": "Session is renewed",
   "sessionRenewed.text": "You can now close this tab or navigate to another page.",
-  "sapWBSSelect.noOptions": "SAP-rakenneosia ei löytynyt"
+  "sapWBSSelect.noOptions": "SAP-rakenneosia ei löytynyt",
+  "task.tasks": "Tasks",
+  "task.createTask": "Create new task",
+  "taskForm.notifyUpsertSuccess": "Task created",
+  "taskForm.notifyUpsertFailure": "Failed to create task",
+  "taskForm.descriptionLabel": "Kuvaus",
+  "taskForm.descriptionTooltip": "Anna tehtävälle kuvaus",
+  "taskForm.lifecycleStateLabel": "Elinkaaren tila",
+  "taskForm.lifecycleStateTooltip": "Valitse elinkaaren tila",
+  "taskForm.taskTypeLabel": "Tyyppi",
+  "taskForm.taskTypeTooltip": "Anna tehtävälle tyyppi",
+  "taskForm.startDateLabel": "Alkupäivämäärä",
+  "taskForm.startDateTooltip": "Valitse tehtävälle aloituspäivämäärä",
+  "taskForm.endDateLabel": "Loppupäivämäärä",
+  "taskForm.endDateTooltip": "Valitse tehtävälle lopetuspäivämäärä",
+  "taskForm.createBtnLabel": "Luo tehtävä",
+  "taskForm.saveBtnLabel": "Tallenna"
 }

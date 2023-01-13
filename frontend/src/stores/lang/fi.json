@@ -155,5 +155,21 @@
   "sessionExpiredWarning.buttonText": "Uusi istunto",
   "sessionRenewed.title": "Istunto on uusittu",
   "sessionRenewed.text": "Voit nyt sulkea tämän välilehden tai siirtyä haluamallesi sivulle valikosta.",
-  "sapWBSSelect.noOptions": "SAP-rakenneosia ei löytynyt"
+  "sapWBSSelect.noOptions": "SAP-rakenneosia ei löytynyt",
+  "task.tasks": "Tehtävät",
+  "task.createTask": "Luo uusi tehtävä",
+  "taskForm.notifyUpsertSuccess": "Uusi tehtävä luotu",
+  "taskForm.notifyUpsertFailure": "Tehtävän luonti epäonnistui",
+  "taskForm.descriptionLabel": "Kuvaus",
+  "taskForm.descriptionTooltip": "Anna tehtävälle kuvaus",
+  "taskForm.lifecycleStateLabel": "Elinkaaren tila",
+  "taskForm.lifecycleStateTooltip": "Valitse elinkaaren tila",
+  "taskForm.taskTypeLabel": "Tyyppi",
+  "taskForm.taskTypeTooltip": "Anna tehtävälle tyyppi",
+  "taskForm.startDateLabel": "Alkupäivämäärä",
+  "taskForm.startDateTooltip": "Valitse tehtävälle aloituspäivämäärä",
+  "taskForm.endDateLabel": "Loppupäivämäärä",
+  "taskForm.endDateTooltip": "Valitse tehtävälle lopetuspäivämäärä",
+  "taskForm.createBtnLabel": "Luo tehtävä",
+  "taskForm.saveBtnLabel": "Tallenna"
 }
