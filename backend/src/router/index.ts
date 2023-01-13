@@ -7,14 +7,12 @@ import { createCodeRouter } from '@backend/router/code';
 import { createProjectRouter } from '@backend/router/project';
 import { createProjectObjectRouter } from '@backend/router/projectObject';
 
-export interface User {
-  userId: string | string[] | undefined;
-}
+import { User } from '@shared/schema/user';
 
 export function createContext({ req, res }: CreateFastifyContextOptions) {
   // FIXME: user is serialized as string, but PassportUser is an object, need to
   // check where the type goes wrong
-  const user = JSON.parse(req.user as any) as { id: string };
+  const user = JSON.parse(req.user as any) as User;
   return { req, res, user };
 }
 

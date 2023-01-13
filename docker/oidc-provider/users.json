@@ -1,1 +1,1 @@
-[{ "email": "dev@localhost" }]
+[{ "sub": "dev@localhost", "upn": "dev@localhost", "name": "Test User" }]

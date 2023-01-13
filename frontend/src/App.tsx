@@ -61,7 +61,7 @@ export function App() {
   return (
     <Suspense fallback={<p>Ladataan...</p>}>
       <UserLoader />
-      {useAtomValue(authAtom).userId && (
+      {useAtomValue(authAtom) && (
         <trpc.Provider client={trpcClient} queryClient={queryClient}>
           <QueryClientProvider client={queryClient}>
             <RouterProvider router={router} />

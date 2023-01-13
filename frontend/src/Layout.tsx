@@ -86,7 +86,7 @@ function Navbar() {
           </Button>
         </Box>
         <Box>
-          <Typography variant="caption">{auth.userId}</Typography>
+          <Typography variant="caption">{auth?.name}</Typography>
 
           <IconButton
             component={Link}
