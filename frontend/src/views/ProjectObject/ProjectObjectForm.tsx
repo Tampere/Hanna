@@ -280,6 +280,7 @@ export function ProjectObjectForm(props: Props) {
             <TextField
               {...readonlyProps}
               {...field}
+              value={field.value ?? ''}
               size="small"
               type="number"
               InputProps={{

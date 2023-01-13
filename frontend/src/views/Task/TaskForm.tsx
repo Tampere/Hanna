@@ -50,22 +50,22 @@ export function TaskForm(props: Props) {
 
   const form = useForm<UpsertTask>({
     mode: 'all',
-    // resolver: zodResolver(
-    //   upsertTaskSchema.superRefine((val, ctx) => {
-    //     if (val.startDate && val.endDate && dayjs(val.startDate).isAfter(dayjs(val.endDate))) {
-    //       ctx.addIssue({
-    //         path: ['startDate'],
-    //         code: z.ZodIssueCode.custom,
-    //         message: tr('projectObject.error.endDateBeforeStartDate'),
-    //       });
-    //       ctx.addIssue({
-    //         path: ['endDate'],
-    //         code: z.ZodIssueCode.custom,
-    //         message: tr('projectObject.error.endDateBeforeStartDate'),
-    //       });
-    //     }
-    //   })
-    // ),
+    resolver: zodResolver(
+      upsertTaskSchema.superRefine((val, ctx) => {
+        if (val.startDate && val.endDate && dayjs(val.startDate).isAfter(dayjs(val.endDate))) {
+          ctx.addIssue({
+            path: ['startDate'],
+            code: z.ZodIssueCode.custom,
+            message: tr('projectObject.error.endDateBeforeStartDate'),
+          });
+          ctx.addIssue({
+            path: ['endDate'],
+            code: z.ZodIssueCode.custom,
+            message: tr('projectObject.error.endDateBeforeStartDate'),
+          });
+        }
+      })
+    ),
     defaultValues: props.task ?? {
       projectObjectId: props.projectObjectId,
       description: '',
@@ -117,14 +117,9 @@ export function TaskForm(props: Props) {
   });
 
   const onSubmit = (data: UpsertTask) => {
-    console.log('data', data);
-    // taskUpsert.mutate(data);
+    taskUpsert.mutate(data);
   };
 
-  console.log(form.formState.isValid);
-  console.log(form.formState);
-  console.log(form.getValues());
-  console.log(errors);
   return (
     <FormProvider {...form}>
       {!props.task && <Typography variant="overline">{tr('newProjectObject.title')}</Typography>}
@@ -173,14 +168,14 @@ export function TaskForm(props: Props) {
           )}
         />
 
-        {/* <FormField
+        <FormField
           formField="taskType"
           label={tr('taskForm.taskTypeLabel')}
           tooltip={tr('taskForm.taskTypeTooltip')}
           component={({ ref, ...field }) => (
             <CodeSelect {...field} codeListId="TehtäväTyyppi" readOnly={!editing} />
           )}
-        /> */}
+        />
 
         <FormField
           formField="startDate"
