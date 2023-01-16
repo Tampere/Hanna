@@ -222,7 +222,6 @@
              project-id
              {:area area :wbs-count wbs-count :activity-count activity-count})]]]))})))
 
-
 (defn handler [{:keys [query-string request-method uri body] :as req}]
   (log/debug (with-out-str (pprint req)))
   (cond
