@@ -37,6 +37,15 @@ services:
       context: ./docker/oidc-provider/
       dockerfile: Dockerfile
     network_mode: service:backend
+  sap-mock:
+    build:
+      context: ./docker/sap-mock/
+      dockerfile: Dockerfile
+    volumes:
+      - ./docker/sap-mock:/app/
+      - ./backend/resources/projectinfo.wsdl:/app/projectinfo.wsdl
+    ports:
+      - '127.0.0.1:9043:3000'
   db:
     image: postgis/postgis:12-3.3-alpine
     restart: always

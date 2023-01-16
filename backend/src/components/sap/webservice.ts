@@ -34,7 +34,7 @@ export async function createWSClient() {
     return response;
   });
 
-  client = await createClientAsync(path.join(process.cwd(), 'resources/project_info.wsdl'), {
+  client = await createClientAsync(path.join(process.cwd(), 'resources/projectinfo.wsdl'), {
     request: axiosClient,
   });
 
