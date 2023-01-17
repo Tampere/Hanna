@@ -6,28 +6,32 @@ import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { getRange } from '@frontend/utils/array';
 
-import { DbProject } from '@shared/schema/project';
+import { DBProjectObject } from '@shared/schema/projectObject';
 
-import { CostEstimatesTable } from './CostEstimatesTable';
+import { CostEstimatesTable } from '../Project/CostEstimatesTable';
 
 interface Props {
-  project?: DbProject | null;
+  projectId: string;
+  projectObject: DBProjectObject;
 }
 
-export function ProjectFinances(props: Props) {
-  const { project } = props;
-  const estimates = !project ? null : trpc.project.getCostEstimates.useQuery({ id: project.id });
+export function ProjectObjectFinances(props: Props) {
+  const { projectId, projectObject } = props;
+  const estimates = !projectObject.id
+    ? null
+    : trpc.projectObject.getCostEstimates.useQuery({ projectId, id: projectObject.id });
+
   const notify = useNotifications();
   const tr = useTranslations();
 
-  const projectYears = useMemo(() => {
-    if (!project?.startDate || !project?.endDate) {
+  const years = useMemo(() => {
+    if (!projectObject?.startDate || !projectObject?.endDate) {
       return [];
     }
-    const startYear = dayjs(project.startDate).get('year');
-    const endYear = dayjs(project.endDate).get('year');
+    const startYear = dayjs(projectObject.startDate).get('year');
+    const endYear = dayjs(projectObject.endDate).get('year');
     return getRange(startYear, endYear);
-  }, [project?.startDate, project?.endDate]);
+  }, [projectObject?.startDate, projectObject?.endDate]);
 
   const saveEstimatesMutation = trpc.project.updateCostEstimates.useMutation({
     onSuccess() {
@@ -45,16 +49,17 @@ export function ProjectFinances(props: Props) {
     },
   });
 
-  return !estimates?.data || !project ? null : (
+  return !estimates?.data ? null : (
     <CostEstimatesTable
-      years={projectYears}
+      years={years}
       estimates={estimates.data}
       onSave={async (costEstimates) => {
         await saveEstimatesMutation.mutateAsync({
-          projectId: project.id,
+          projectId,
+          projectObjectId: projectObject.id,
           costEstimates,
         });
-        estimates?.refetch();
+        estimates.refetch();
       }}
     />
   );
