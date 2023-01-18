@@ -31,7 +31,8 @@ const schema = z.object({
   sapWebService: z.object({
     basicAuthUser: z.string(),
     basicAuthPass: z.string(),
-    endpoint: z.string(),
+    projectInfoEndpoint: z.string(),
+    actualsEndpoint: z.string(),
   }),
 });
 
@@ -58,7 +59,8 @@ function getEnv() {
     sapWebService: {
       basicAuthUser: process.env.SAP_WS_BASIC_AUTH_USER,
       basicAuthPass: process.env.SAP_WS_BASIC_AUTH_PASS,
-      endpoint: process.env.SAP_WS_ENDPOINT,
+      projectInfoEndpoint: process.env.SAP_WS_PROJECTINFO_ENDPOINT,
+      actualsEndpoint: process.env.SAP_WS_ACTUALS_ENDPOINT,
     },
   });
 }

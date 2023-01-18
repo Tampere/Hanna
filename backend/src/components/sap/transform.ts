@@ -1,3 +1,4 @@
+import { incomingSapActualsSchema } from '@shared/schema/sapActuals';
 import { incomingSapProjectSchema, sapProjectSchema } from '@shared/schema/sapProject';
 
 function itemAsArray(item: any) {
@@ -32,7 +33,7 @@ function transformWBS(wbs: any) {
   });
 }
 
-function preprocess(payload: any) {
+function preprocessProjectInfo(payload: any) {
   const projectInfo = payload?.[0].PROJECT_INFO;
 
   if (!projectInfo) {
@@ -47,7 +48,7 @@ function preprocess(payload: any) {
 }
 
 export function transformProjectInfo(response: any) {
-  const payload = preprocess(response);
+  const payload = preprocessProjectInfo(response);
   const transformed = {
     sapProjectId: payload.PSPID,
     sapProjectInternalId: payload.PSPNR,
@@ -113,4 +114,42 @@ export function transformProjectInfo(response: any) {
   };
 
   return sapProjectSchema.parse(transformed);
+}
+
+function preprocessActuals(payload: any) {
+  const actuals = payload?.[0].ACTUALS.item;
+
+  if (!actuals) {
+    throw new Error('Actuals not found');
+  }
+
+  return incomingSapActualsSchema.parse(actuals);
+}
+
+function currencyInSubunit(amount: string, separator = '.') {
+  const [whole, fraction] = amount.split(separator);
+  return parseInt(whole, 10) * 100 + parseInt(fraction, 10);
+}
+
+export function transformActuals(response: any) {
+  const actuals = preprocessActuals(response);
+
+  return actuals.map((item) => {
+    return {
+      documentNumber: item.BELNR,
+      description: item.OBJ_TXT,
+      projectId: item.PSPID,
+      wbsElementId: item.POSID,
+      networkId: item.AUFNR,
+      activityId: item.VORNR,
+      fiscalYear: item.GJAHR,
+      documentDate: item.BLDAT,
+      postingDate: item.BUDAT,
+      creationDate: item.CPUDT,
+      objectType: item.OBART,
+      currency: item.TWAER,
+      valueInCurrencySubunit: currencyInSubunit(item.WTGBTR),
+      entryType: item.BEKNZ === 'S' ? 'DEBIT' : 'CREDIT',
+    };
+  });
 }

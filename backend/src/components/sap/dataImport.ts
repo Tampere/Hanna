@@ -3,8 +3,8 @@ import stringify from 'fast-json-stable-stringify';
 import { sql } from 'slonik';
 import { z } from 'zod';
 
-import { transformProjectInfo } from '@backend/components/sap/transform';
-import { getClient } from '@backend/components/sap/webservice';
+import { transformActuals, transformProjectInfo } from '@backend/components/sap/transform';
+import { ActualsService, ProjectInfoService } from '@backend/components/sap/webservice';
 import { getPool } from '@backend/db';
 import { logger } from '@backend/logging';
 
@@ -54,10 +54,27 @@ export async function getSapProject(projectId: string) {
     return getCachedSapProject(projectId);
   } else {
     logger.info(`No recent cache entry for ${projectId}, fetching...`);
-    const wsClient = getClient();
+    const wsClient = ProjectInfoService.getClient();
     const wsResult = await wsClient.SI_ZPS_WS_GET_PROJECT_INFOAsync({ PROJECT: projectId });
     const projectInfo = transformProjectInfo(wsResult);
 
     return maybeCacheProjectInfo({ projectId, projectInfo });
   }
+}
+
+function iso8601DateYearRange(year: string) {
+  return [`${year}-01-01`, `${year}-12-31`];
+}
+
+export async function getSapActuals(projectId: string, year: string) {
+  const wsClient = ActualsService.getClient();
+  const [startDate, endDate] = iso8601DateYearRange(year);
+  const wsResult = await wsClient.SI_ZPS_WS_GET_ACTUALSAsync({
+    I_PSPID: projectId,
+    I_BUDAT_BEGDA: startDate,
+    I_BUDAT_ENDDA: endDate,
+  });
+  const actuals = transformActuals(wsResult);
+
+  return actuals;
 }
