@@ -2,7 +2,6 @@ import { css } from '@emotion/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AddCircle, Edit, Save, Undo } from '@mui/icons-material';
 import { Box, Button, TextField, Typography } from '@mui/material';
-// import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -24,17 +23,12 @@ const newProjectFormStyle = css`
 interface Props {
   projectObjectId: string;
   task?: UpsertTask | null;
+  onSubmit: () => void;
 }
 
 export function TaskForm(props: Props) {
   const tr = useTranslations();
   const notify = useNotifications();
-  // const queryClient = useQueryClient();
-  const {
-    formState: { errors },
-  } = useForm({
-    mode: 'onChange',
-  });
   const [editing, setEditing] = useState(!props.task);
 
   const readonlyProps = useMemo(() => {
@@ -68,6 +62,7 @@ export function TaskForm(props: Props) {
     ),
     defaultValues: props.task ?? {
       projectObjectId: props.projectObjectId,
+      taskName: '',
       description: '',
       startDate: '',
       endDate: '',
@@ -91,16 +86,9 @@ export function TaskForm(props: Props) {
 
   const taskUpsert = trpc.task.upsert.useMutation({
     onSuccess: (data) => {
-      // queryClient.invalidateQueries({
-      //   queryKey: [['project', 'get'], { input: { id: data.id } }],
-      // });
-
-      // queryClient.invalidateQueries({
-      //   queryKey: [['projectObject', 'get'], { input: { id: data.id } }],
-      // });
-
       setEditing(false);
       form.reset(data);
+      props.onSubmit();
 
       notify({
         severity: 'success',
@@ -122,7 +110,6 @@ export function TaskForm(props: Props) {
 
   return (
     <FormProvider {...form}>
-      {!props.task && <Typography variant="overline">{tr('newProjectObject.title')}</Typography>}
       {props.task && (
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Typography variant="overline">{tr('projectObject.formTitle')}</Typography>
@@ -152,6 +139,15 @@ export function TaskForm(props: Props) {
         </Box>
       )}
       <form css={newProjectFormStyle} onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
+        <FormField
+          formField="projectName"
+          label={tr('taskForm.taskNameLabel')}
+          tooltip={tr('taskForm.taskNameTooltip')}
+          component={(field) => (
+            <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
+          )}
+        />
+
         <FormField
           formField="description"
           label={tr('taskForm.descriptionLabel')}

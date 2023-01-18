@@ -20,6 +20,7 @@ const taskFragment = sql.fragment`
   SELECT
     project_object_id AS "projectObjectId",
     id,
+    task_name AS "taskName",
     description AS "description",
     (lifecycle_state).id AS "lifecycleState",
     (task_type).id AS "taskType",
@@ -29,14 +30,16 @@ const taskFragment = sql.fragment`
   WHERE deleted = false
 `;
 
-async function upsertTask(task: UpsertTask) {
+async function upsertTask(task: UpsertTask, userId: string) {
   const data = {
     project_object_id: task.projectObjectId,
+    task_name: task.taskName,
     description: task.description,
     lifecycle_state: codeIdFragment('TehtävänElinkaarentila', task.lifecycleState),
     task_type: codeIdFragment('TehtäväTyyppi', task.taskType),
     start_date: task.startDate,
     end_date: task.endDate,
+    updated_by: userId,
   };
 
   const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
@@ -84,7 +87,7 @@ async function deleteTask(id: string) {
 export const createTaskRouter = (t: TRPC) =>
   t.router({
     upsert: t.procedure.input(upsertTaskSchema).mutation(async ({ input, ctx }) => {
-      const result = await upsertTask(input);
+      const result = await upsertTask(input, ctx.user.id);
       return getTask(result.id);
     }),
 
