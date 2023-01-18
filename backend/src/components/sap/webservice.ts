@@ -21,7 +21,7 @@ export async function createWSClient() {
   });
 
   axiosClient.interceptors.request.use((request) => {
-    logger.debug({
+    logger.trace({
       requestData: request.data,
       requestPath: request.url,
       requestMethod: request.method,
@@ -30,7 +30,7 @@ export async function createWSClient() {
   });
 
   axiosClient.interceptors.response.use((response) => {
-    logger.debug({ responseData: response.data, responseStatus: response.status });
+    logger.trace({ responseData: response.data, responseStatus: response.status });
     return response;
   });
 

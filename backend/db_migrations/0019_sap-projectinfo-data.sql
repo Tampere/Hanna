@@ -1,7 +1,9 @@
 CREATE TABLE sap_projectinfo_raw (
   sap_project_id TEXT NOT NULL,
-  imported_at TIMESTAMP NOT NULL,
-  raw_data JSONB NOT NULL
+  raw_data JSONB NOT NULL,
+  data_hash TEXT NOT NULL,
+  last_check TIMESTAMP DEFAULT now(),
+  PRIMARY KEY (sap_project_id, data_hash)
 );
 
 CREATE INDEX idx_sap_projectinfo_raw_sap_project_id ON sap_projectinfo_raw (sap_project_id);
@@ -51,7 +53,6 @@ CREATE INDEX idx_sap_wbs_internal_id ON sap_wbs (wbs_internal_id);
 CREATE TABLE sap_network (
   network_id VARCHAR(12) PRIMARY KEY, -- AUFNR
   network_name VARCHAR(40) NOT NULL, -- KTEXT
-  network_internal_id VARCHAR(8) NOT NULL, -- PSPEL
   sap_wbs_internal_id VARCHAR(8) REFERENCES sap_wbs(wbs_id) NOT NULL, -- PSPEL -> PSPNR
   -- PSPHI -> PSPNR
   sap_project_internal_id VARCHAR(24) REFERENCES sap_project(sap_project_id) NOT NULL,

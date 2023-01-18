@@ -241,6 +241,6 @@
   (http/run-server handler {:port port})
   (log/info "Started"))
 
-(start-server 3000)
+(start-server (or (Integer/parseInt (System/getenv "SAP_MOCK_PORT")) 3000))
 
 @(promise)
