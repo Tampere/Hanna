@@ -3,9 +3,6 @@ import { AccountTree, Euro, ListAlt, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import Fill from 'ol/style/Fill';
-import Stroke from 'ol/style/Stroke';
-import Style from 'ol/style/Style';
 import { useMemo } from 'react';
 import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
@@ -136,7 +133,7 @@ export function Project() {
     return <Typography>{tr('loading')}</Typography>;
   }
 
-  if (project.isError) {
+  if (project.isError && project.error.data?.code !== 'UNAUTHORIZED') {
     return (
       <ErrorPage
         severity="warning"

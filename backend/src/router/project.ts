@@ -149,12 +149,14 @@ function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
       AND ${timePeriodFragment(input)}
       AND ${
         input.lifecycleStates && input.lifecycleStates?.length > 0
-          ? sql.fragment`(lifecycle_state).id = ANY(${sql.array(input.lifecycleStates, 'text')})`
+          ? sql.fragment`(lifecycle_state).id = ANY(${sql.array(input.lifecycleStates, 'text')})
+          `
           : sql.fragment`true`
       }
       AND ${
         input.projectTypes && input.projectTypes?.length > 0
-          ? sql.fragment`(project_type).id = ANY(${sql.array(input.projectTypes, 'text')})`
+          ? sql.fragment`(project_type).id = ANY(${sql.array(input.projectTypes, 'text')})
+          `
           : sql.fragment`true`
       }
       ${orderByFragment(input)}
