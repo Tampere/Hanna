@@ -89,7 +89,7 @@
       [:KDPOS "00000"] ;;" Item number in sales order"
       [:VAPLZ ""] ;; "Main work center for maintenance tasks"
       [:ACTIVITY
-       (map
+       (mapv
         (fn [x]
           (let [activity-num (generate-random-id 9999 4)
                 description (rand-nth ["Rakentaminen" "Kunnossapito" "Lisätyö" "Dokumentointi" "Ylläpito" "Muu"])]
@@ -109,40 +109,40 @@
 (defn random-wbs
   [{:keys [wbs-count] :as config}
    {:keys [project-description project-id project-internal-id project-creation-date plant] :as ctx}]
-  (let [wbs-id (generate-random-id 999999 8)
-        wbs-created-date (.plusDays project-creation-date (rand-int 30))
+  (let [wbs-created-date (.plusDays project-creation-date (rand-int 30))
         creator (generate-random-name)
         applicant (generate-random-name)
         cost-center (generate-random-id (rand-int 999999) 8)
         technically-completed-date (.plusDays project-creation-date (rand-int (* 3 365)))]
-    (map
+    (mapv
      (fn [id]
-       (into
-        {}
-        [[:PSPNR wbs-id]
-         [:POSID (str project-id id)]
-         [:POST1 (str project-description ", kohde " (inc id))]
-         [:OBJNR (str "PR" (generate-random-id 999999 8))]
-         [:PSPHI project-internal-id]
-         [:ERNAM (short-name creator)]
-         [:ERDAT wbs-created-date]
-         [:AENAM (short-name (generate-random-name))]
-         [:AEDAT (.plusDays wbs-created-date (rand-int 30))]
-         [:VERNR (generate-random-id 999999 8)] ;; project manager id
-         [:ASTNR (generate-random-id 999999 8)] ;; applicant id
-         [:ASTNA (str (:last-name applicant) " " (:first-name applicant))]
-         [:STUFE 2] ;; level in project hierarchy
-         [:AKSTL cost-center]
-         [:FKSTL cost-center]
-         [:PRART "Y4"] ;; project type
-         [:PSPRI "U"] ;; priority
-         [:WERKS plant]
-         [:TADAT (if (.isBefore technically-completed-date (java.time.LocalDate/now))
-                   technically-completed-date
-                   nil)]
-         [:IZWEK "30"] ;; reason for investment
-         [:IUMKZ "414"] ;; reason for environmental investment
-         [:NETWORK (random-network config (assoc ctx :wbs-id wbs-id))]]))
+       (let [wbs-id (generate-random-id 999999 8)]
+         (into
+          {}
+          [[:PSPNR wbs-id]
+           [:POSID (str project-id id)]
+           [:POST1 (str project-description ", kohde " (inc id))]
+           [:OBJNR (str "PR" (generate-random-id 999999 8))]
+           [:PSPHI project-internal-id]
+           [:ERNAM (short-name creator)]
+           [:ERDAT wbs-created-date]
+           [:AENAM (short-name (generate-random-name))]
+           [:AEDAT (.plusDays wbs-created-date (rand-int 30))]
+           [:VERNR (generate-random-id 999999 8)] ;; project manager id
+           [:ASTNR (generate-random-id 999999 8)] ;; applicant id
+           [:ASTNA (str (:last-name applicant) " " (:first-name applicant))]
+           [:STUFE 2] ;; level in project hierarchy
+           [:AKSTL cost-center]
+           [:FKSTL cost-center]
+           [:PRART "Y4"] ;; project type
+           [:PSPRI "U"] ;; priority
+           [:WERKS plant]
+           [:TADAT (if (.isBefore technically-completed-date (java.time.LocalDate/now))
+                     technically-completed-date
+                     nil)]
+           [:IZWEK "30"] ;; reason for investment
+           [:IUMKZ "414"] ;; reason for environmental investment
+           [:NETWORK (random-network config (assoc ctx :wbs-id wbs-id))]])))
      (range wbs-count))))
 
 (defn random-project-data [project-id]
@@ -156,6 +156,7 @@
         area (rand-nth ["Tesoma" "Hervanta" "Lielahti" "Keskusta" "Kaleva" "Pyynikki"])
         config {:area area :wbs-count wbs-count :activity-count activity-count}
         [plant _] (str/split project-id #"_")
+        plant (subs plant 1)
         internal-id (generate-random-id 100000 8)
         project-creator (generate-random-name)
         project-creation-date (generate-random-date (java.time.LocalDate/of 2020 01 01) 90)
@@ -376,8 +377,7 @@
         project-id (get-in root-elem [:Envelope :Body :ZPS_WS_GET_PROJECT_INFO :PROJECT])
         [_ id] (str/split project-id #"_")
         _ (set-seed! (Integer/parseInt id))
-        project (random-project-data project-id)
-        _ (pprint project)]
+        project (random-project-data project-id)]
     (s/validate ProjectInfoSoapMessage root-elem)
     {:status 200
      :content-type "text/xml"
@@ -405,7 +405,9 @@
           end (java.time.LocalDate/parse end)]
       (filter
        (fn [{:keys [BUDAT]}]
-         (and (.isAfter BUDAT start) (.isBefore BUDAT end)))
+         (and
+          (not (.isAfter start BUDAT))
+          (not (.isBefore end BUDAT))))
        actuals))))
 
 (defn process-actuals-request [body]
@@ -417,7 +419,6 @@
           [_ id] (str/split project-id #"_")
           _ (set-seed! (Integer/parseInt id))
           project (random-project-data project-id)
-          _ (pprint project)
           actuals (->> (random-actuals-data project)
                        (filter-by-date-range query-date-range))]
       {:status 200

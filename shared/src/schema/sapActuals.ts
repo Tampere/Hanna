@@ -21,10 +21,10 @@ export const incomingItemSchema = z.object({
 
 export const incomingSapActualsSchema = z.array(incomingItemSchema);
 
-export const sapActual = z.object({
+export const sapActualSchema = z.object({
   documentNumber: z.string(),
   description: z.string(),
-  projectId: z.string(),
+  sapProjectId: z.string(),
   wbsElementId: z.string(),
   networkId: z.string(),
   activityId: z.string().nullable(),
@@ -37,3 +37,7 @@ export const sapActual = z.object({
   valueInCurrencySubunit: z.number().int(),
   entryType: z.enum(['DEBIT', 'CREDIT']),
 });
+
+export type SAPActual = z.infer<typeof sapActualSchema>;
+
+export const sapActualsSchema = z.array(sapActualSchema);

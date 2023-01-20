@@ -10,7 +10,7 @@ CREATE INDEX idx_sap_projectinfo_raw_sap_project_id ON sap_projectinfo_raw (sap_
 
 CREATE TABLE sap_project (
   sap_project_id VARCHAR(24) PRIMARY KEY,  -- PSPID
-  sap_project_internal_id VARCHAR(8) NOT NULL, -- PSPNR
+  sap_project_internal_id VARCHAR(8) NOT NULL UNIQUE, -- PSPNR
   short_description VARCHAR(40) NOT NULL, -- POST1
   created_at DATE NOT NULL,  -- ERDAT
   created_by VARCHAR(12) NOT NULL,  -- ERNAM
@@ -28,9 +28,9 @@ CREATE INDEX idx_sap_project_sap_project_internal_id ON sap_project (sap_project
 
 CREATE TABLE sap_wbs (
   wbs_id VARCHAR(24) PRIMARY KEY,  -- POSID
-  wbs_internal_id VARCHAR(8) NOT NULL,  -- PSPNR
+  wbs_internal_id VARCHAR(8) NOT NULL UNIQUE,  -- PSPNR
   -- PSPHI -> PSPNR
-  sap_project_internal_id VARCHAR(24) REFERENCES sap_project(sap_project_id) NOT NULL,
+  sap_project_internal_id VARCHAR(24) REFERENCES sap_project(sap_project_internal_id) NOT NULL,
   short_description VARCHAR(40) NOT NULL,  -- POST1
   created_at DATE NOT NULL,  -- ERDAT
   created_by VARCHAR(12) NOT NULL,  -- ERNAM
@@ -48,14 +48,14 @@ CREATE TABLE sap_wbs (
   hierarchy_level INTEGER NOT NULL  -- STUFE
 );
 
-CREATE INDEX idx_sap_wbs_internal_id ON sap_wbs (wbs_internal_id);
+CREATE INDEX idx_sap_wbs_wbs_internal_id ON sap_wbs (wbs_internal_id);
 
 CREATE TABLE sap_network (
   network_id VARCHAR(12) PRIMARY KEY, -- AUFNR
   network_name VARCHAR(40) NOT NULL, -- KTEXT
-  sap_wbs_internal_id VARCHAR(8) REFERENCES sap_wbs(wbs_id) NOT NULL, -- PSPEL -> PSPNR
+  wbs_internal_id VARCHAR(8) REFERENCES sap_wbs(wbs_internal_id) NOT NULL, -- PSPEL -> PSPNR
   -- PSPHI -> PSPNR
-  sap_project_internal_id VARCHAR(24) REFERENCES sap_project(sap_project_id) NOT NULL,
+  sap_project_internal_id VARCHAR(24) REFERENCES sap_project(sap_project_internal_id) NOT NULL,
   created_at DATE NOT NULL, -- ERDAT
   created_by VARCHAR(12) NOT NULL, -- ERNAM
   actual_start_date DATE, -- GSTRI
@@ -75,8 +75,8 @@ CREATE TABLE sap_activity (
   network_id VARCHAR(12) REFERENCES sap_network(network_id) NOT NULL, -- AUFNR
   short_description VARCHAR(40) NOT NULL, -- LTXA1
   -- PSPHI -> PSPNR
-  sap_project_internal_id VARCHAR(8) REFERENCES sap_project(sap_project_id) NOT NULL,
-  wbs_internal_id VARCHAR(8) REFERENCES sap_wbs(wbs_id) NOT NULL, -- PSPEL -> PSPNR
+  sap_project_internal_id VARCHAR(8) REFERENCES sap_project(sap_project_internal_id) NOT NULL,
+  wbs_internal_id VARCHAR(8) REFERENCES sap_wbs(wbs_internal_id) NOT NULL, -- PSPEL -> PSPNR
   profit_center VARCHAR(10) NOT NULL, -- PRCTR
   plant VARCHAR(4) NOT NULL, -- WERKS
   PRIMARY KEY (routing_number, order_counter) -- AUFPL + APLZL

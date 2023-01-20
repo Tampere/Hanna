@@ -1,4 +1,10 @@
-import { incomingSapActualsSchema } from '@shared/schema/sapActuals';
+import { z } from 'zod';
+
+import {
+  incomingItemSchema,
+  incomingSapActualsSchema,
+  sapActualsSchema,
+} from '@shared/schema/sapActuals';
 import { incomingSapProjectSchema, sapProjectSchema } from '@shared/schema/sapProject';
 
 function itemAsArray(item: any) {
@@ -33,21 +39,33 @@ function transformWBS(wbs: any) {
   });
 }
 
-function preprocessProjectInfo(payload: any) {
-  const projectInfo = payload?.[0].PROJECT_INFO;
+const wsProjectInfoResult = z.object({
+  PROJECT_INFO: z.any(),
+});
 
-  if (!projectInfo) {
+function preprocessProjectInfo(payload: object) {
+  const result = wsProjectInfoResult.parse(payload);
+
+  if (!result.PROJECT_INFO) {
     throw new Error('Project info not found');
   }
 
   const data = {
-    ...projectInfo,
-    WBS: transformWBS(projectInfo.WBS),
+    ...result.PROJECT_INFO,
+    WBS: transformWBS(result.PROJECT_INFO.WBS),
   } as const;
+
   return incomingSapProjectSchema.parse(data);
 }
 
-export function transformProjectInfo(response: any) {
+function handleSapDate(date?: string | null) {
+  if (date && date === '0000-00-00') {
+    return null;
+  }
+  return date;
+}
+
+export function transformProjectInfo(response: object) {
   const payload = preprocessProjectInfo(response);
   const transformed = {
     sapProjectId: payload.PSPID,
@@ -66,7 +84,7 @@ export function transformProjectInfo(response: any) {
       return {
         wbsId: wbs.POSID,
         wbsInternalId: wbs.PSPNR,
-        sapProjectInternalID: wbs.PSPHI,
+        sapProjectInternalId: wbs.PSPHI,
         shortDescription: wbs.POST1,
         createdAt: wbs.ERDAT,
         createdBy: wbs.ERNAM,
@@ -85,12 +103,12 @@ export function transformProjectInfo(response: any) {
         network: {
           networkId: wbs.NETWORK.AUFNR,
           networkName: wbs.NETWORK.KTEXT,
-          sapWBSInternalId: wbs.NETWORK.PSPEL,
+          wbsInternalId: wbs.NETWORK.PSPEL,
           sapProjectInternalId: wbs.NETWORK.PSPHI,
           createdAt: wbs.NETWORK.ERDAT,
           createdBy: wbs.NETWORK.ERNAM,
-          actualStartDate: wbs.NETWORK.GSTRI,
-          actualFinishDate: wbs.NETWORK.GETRI,
+          actualStartDate: handleSapDate(wbs.NETWORK.GSTRI),
+          actualFinishDate: handleSapDate(wbs.NETWORK.GETRI),
           companyCode: wbs.NETWORK.BUKRS,
           plant: wbs.NETWORK.WERKS,
           technicalCompletionDate: wbs.NETWORK.IDAT2,
@@ -103,7 +121,7 @@ export function transformProjectInfo(response: any) {
               networkId: activity.AUFNR,
               shortDescription: activity.LTXA1,
               sapProjectInternalId: activity.PSPHI,
-              sapWBSInternalId: activity.PSPEL,
+              wbsInternalId: activity.PSPEL,
               profitCenter: activity.PRCTR,
               plant: activity.WERKS,
             };
@@ -116,14 +134,17 @@ export function transformProjectInfo(response: any) {
   return sapProjectSchema.parse(transformed);
 }
 
-function preprocessActuals(payload: any) {
-  const actuals = payload?.[0].ACTUALS.item;
+const wsActualsResultSchema = z.object({
+  ACTUALS: z
+    .object({
+      item: z.array(incomingItemSchema).nullish(),
+    })
+    .nullish(),
+});
 
-  if (!actuals) {
-    throw new Error('Actuals not found');
-  }
-
-  return incomingSapActualsSchema.parse(actuals);
+function preprocessActuals(payload: object) {
+  const result = wsActualsResultSchema.parse(payload);
+  return incomingSapActualsSchema.parse(result.ACTUALS?.item ?? []);
 }
 
 function currencyInSubunit(amount: string, separator = '.') {
@@ -131,14 +152,14 @@ function currencyInSubunit(amount: string, separator = '.') {
   return parseInt(whole, 10) * 100 + parseInt(fraction, 10);
 }
 
-export function transformActuals(response: any) {
+export function transformActuals(response: object) {
   const actuals = preprocessActuals(response);
 
-  return actuals.map((item) => {
+  const result = actuals.map((item) => {
     return {
       documentNumber: item.BELNR,
       description: item.OBJ_TXT,
-      projectId: item.PSPID,
+      sapProjectId: item.PSPID,
       wbsElementId: item.POSID,
       networkId: item.AUFNR,
       activityId: item.VORNR,
@@ -152,4 +173,6 @@ export function transformActuals(response: any) {
       entryType: item.BEKNZ === 'S' ? 'DEBIT' : 'CREDIT',
     };
   });
+
+  return sapActualsSchema.parse(result);
 }
