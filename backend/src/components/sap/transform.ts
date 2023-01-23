@@ -18,19 +18,22 @@ function itemAsArray<T>(item: T | T[]) {
 }
 
 function transformNetwork(network: any) {
-  const networkItem = network.item;
+  const networkItem = network?.item;
+  if (!networkItem) {
+    return null;
+  }
   return {
     ...networkItem,
-    ACTIVITY: itemAsArray(networkItem.ACTIVITY.item),
+    ACTIVITY: itemAsArray(networkItem?.ACTIVITY?.item),
   } as const;
 }
 
 function transformWBS(wbs: any) {
-  const wbsItems = itemAsArray(wbs.item);
+  const wbsItems = itemAsArray(wbs?.item);
   return wbsItems.map((item: any) => {
     return {
       ...item,
-      NETWORK: transformNetwork(item.NETWORK),
+      NETWORK: transformNetwork(item?.NETWORK),
     } as const;
   });
 }
