@@ -1,12 +1,13 @@
 import { createHash } from 'crypto';
 import stringify from 'fast-json-stable-stringify';
-import { DatabaseTransactionConnection, sql } from 'slonik';
+import { DatabaseTransactionConnection } from 'slonik';
 import { SAPActual, sapActualsSchema } from 'tre-hanna-shared/src/schema/sapActuals';
 import { z } from 'zod';
 
 import { transformActuals, transformProjectInfo } from '@backend/components/sap/transform';
 import { ActualsService, ProjectInfoService } from '@backend/components/sap/webservice';
-import { getPool } from '@backend/db';
+import { getPool, sql } from '@backend/db';
+import { env } from '@backend/env';
 import { logger } from '@backend/logging';
 
 import { SAPProject, sapProjectSchema } from '@shared/schema/sapProject';
@@ -19,7 +20,7 @@ async function getCachedSapProject(projectId: string) {
         rank() OVER (PARTITION BY sap_project_id ORDER BY last_check DESC) AS "rank"
       FROM app.sap_projectinfo_raw
       WHERE sap_project_id = ${projectId}
-        AND last_check > now() - interval '5 minutes'
+        AND last_check > now() - interval '1 seconds' * ${env.sapWebService.projectInfoTTLSeconds}
     )
     SELECT latestProjectInfo.raw_data AS "projectInfo"
     FROM latestProjectInfo
@@ -40,7 +41,7 @@ function md5Hash(content: string) {
 }
 
 async function getSapProjectInternalId(conn: DatabaseTransactionConnection, sapProjectId: string) {
-  const result = await conn.maybeOne(sql.unsafe`
+  const result = await conn.maybeOne(sql.untyped`
       SELECT sap_project_internal_id AS "sapProjectInternalId"
       FROM app.sap_project
       WHERE sap_project_id = ${sapProjectId}
@@ -54,17 +55,17 @@ async function deleteProjectStructures(
   sapProjectInternalId: string
 ) {
   const deletions = [
-    sql.unsafe`DELETE FROM app.sap_activity WHERE sap_project_internal_id = ${sapProjectInternalId}`,
-    sql.unsafe`DELETE FROM app.sap_network WHERE sap_project_internal_id = ${sapProjectInternalId}`,
-    sql.unsafe`DELETE FROM app.sap_wbs WHERE sap_project_internal_id = ${sapProjectInternalId}`,
-    sql.unsafe`DELETE FROM app.sap_project WHERE sap_project_internal_id = ${sapProjectInternalId}`,
+    sql.untyped`DELETE FROM app.sap_activity WHERE sap_project_internal_id = ${sapProjectInternalId}`,
+    sql.untyped`DELETE FROM app.sap_network WHERE sap_project_internal_id = ${sapProjectInternalId}`,
+    sql.untyped`DELETE FROM app.sap_wbs WHERE sap_project_internal_id = ${sapProjectInternalId}`,
+    sql.untyped`DELETE FROM app.sap_project WHERE sap_project_internal_id = ${sapProjectInternalId}`,
   ];
 
   await Promise.all(deletions.map((query) => conn.any(query)));
 }
 
 async function insertProject(conn: DatabaseTransactionConnection, project: SAPProject) {
-  await conn.any(sql.type(z.any())`
+  await conn.any(sql.untyped`
     INSERT INTO app.sap_project (
       sap_project_id,
       sap_project_internal_id,
@@ -98,7 +99,7 @@ async function insertProject(conn: DatabaseTransactionConnection, project: SAPPr
 
 async function insertWBS(conn: DatabaseTransactionConnection, wbsItems: SAPProject['wbs']) {
   for (const wbs of wbsItems) {
-    await conn.any(sql.unsafe`
+    await conn.any(sql.untyped`
       INSERT INTO app.sap_wbs (
         wbs_id,
         wbs_internal_id,
@@ -145,7 +146,7 @@ async function insertWBS(conn: DatabaseTransactionConnection, wbsItems: SAPProje
 
 async function insertNetworks(conn: DatabaseTransactionConnection, wbsItems: SAPProject['wbs']) {
   for (const wbs of wbsItems) {
-    await conn.any(sql.unsafe`
+    await conn.any(sql.untyped`
         INSERT INTO app.sap_network (
           network_id,
           network_name,
@@ -181,7 +182,7 @@ async function insertNetworks(conn: DatabaseTransactionConnection, wbsItems: SAP
 async function insertActivities(conn: DatabaseTransactionConnection, wbsItems: SAPProject['wbs']) {
   for (const wbs of wbsItems) {
     for (const activity of wbs.network.activities) {
-      await conn.any(sql.unsafe`
+      await conn.any(sql.untyped`
         INSERT INTO app.sap_activity (
           routing_number,
           order_counter,
@@ -213,7 +214,7 @@ async function maybeCacheProjectInfo({ projectId, projectInfo }: MaybeCacheProje
   const hash = md5Hash(jsonProjectInfo);
 
   await getPool().transaction(async (conn) => {
-    conn.any(sql.type(z.any())`
+    conn.any(sql.untyped`
       INSERT INTO app.sap_projectinfo_raw (sap_project_id, raw_data, data_hash)
       VALUES (${projectId}, ${jsonProjectInfo}, ${hash})
       ON CONFLICT (sap_project_id, data_hash) DO UPDATE SET last_check = now()
@@ -265,7 +266,7 @@ async function getCachedSapActuals(projectId: string, year: string) {
       FROM app.sap_actuals_raw
       WHERE sap_project_id = ${projectId}
         AND actuals_year = ${year}
-        AND last_check > now() - interval '5 minutes'
+        AND last_check > now() - interval '1 seconds' * ${env.sapWebService.actualsInfoTTLSeconds}
     )
     SELECT raw_data AS actuals
     FROM latestActuals
@@ -280,7 +281,7 @@ function iso8601DateYearRange(year: string) {
 
 async function insertActuals(conn: DatabaseTransactionConnection, actuals: SAPActual[]) {
   for (const actual of actuals) {
-    await conn.any(sql.unsafe`
+    await conn.any(sql.untyped`
       INSERT INTO app.sap_actuals_item (
         document_number,
         description,
@@ -322,13 +323,13 @@ async function maybeCacheSapActuals(projectId: string, year: string, actuals: SA
   const hash = md5Hash(jsonActuals);
 
   await getPool().transaction(async (conn) => {
-    conn.any(sql.unsafe`
+    conn.any(sql.untyped`
       DELETE FROM app.sap_actuals_item
       WHERE sap_project_id = ${projectId}
         AND extract (year FROM posting_date) = ${year}
     `);
 
-    conn.any(sql.unsafe`
+    conn.any(sql.untyped`
       INSERT INTO app.sap_actuals_raw (sap_project_id, actuals_year, raw_data, data_hash)
       VALUES (${projectId}, ${year}, ${jsonActuals}, ${hash})
       ON CONFLICT (sap_project_id, actuals_year, data_hash) DO UPDATE SET last_check = now()

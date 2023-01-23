@@ -7,11 +7,11 @@ import {
 } from '@shared/schema/sapActuals';
 import { incomingSapProjectSchema, sapProjectSchema } from '@shared/schema/sapProject';
 
-function itemAsArray(item: any) {
-  if (item && !Array.isArray(item)) {
-    return [item];
-  } else if (item) {
+function itemAsArray<T>(item: T | T[]) {
+  if (item && Array.isArray(item)) {
     return item;
+  } else if (item && !Array.isArray(item)) {
+    return [item];
   } else {
     return [];
   }
@@ -26,10 +26,6 @@ function transformNetwork(network: any) {
 }
 
 function transformWBS(wbs: any) {
-  if (!wbs) {
-    return [];
-  }
-
   const wbsItems = itemAsArray(wbs.item);
   return wbsItems.map((item: any) => {
     return {
@@ -39,20 +35,14 @@ function transformWBS(wbs: any) {
   });
 }
 
-const wsProjectInfoResult = z.object({
-  PROJECT_INFO: z.any(),
-});
-
-function preprocessProjectInfo(payload: object) {
-  const result = wsProjectInfoResult.parse(payload);
-
-  if (!result.PROJECT_INFO) {
-    throw new Error('Project info not found');
+function preprocessProjectInfo(payload: any) {
+  if (!payload.PROJECT_INFO) {
+    throw new Error('No PROJECT_INFO in payload');
   }
 
   const data = {
-    ...result.PROJECT_INFO,
-    WBS: transformWBS(result.PROJECT_INFO.WBS),
+    ...payload.PROJECT_INFO,
+    WBS: transformWBS(payload.PROJECT_INFO.WBS),
   } as const;
 
   return incomingSapProjectSchema.parse(data);
@@ -113,7 +103,7 @@ export function transformProjectInfo(response: object) {
           plant: wbs.NETWORK.WERKS,
           technicalCompletionDate: wbs.NETWORK.IDAT2,
           profitCenter: wbs.NETWORK.PRCTR,
-          activities: wbs.NETWORK.ACTIVITY.map((activity: any) => {
+          activities: wbs.NETWORK.ACTIVITY.map((activity) => {
             return {
               routingNumber: activity.AUFPL,
               orderCounter: activity.APLZL,

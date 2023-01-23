@@ -1,5 +1,5 @@
 import { Pool, PoolConfig } from 'pg';
-import { DatabasePool, createPool, stringifyDsn } from 'slonik';
+import { DatabasePool, createPool, sql as slonikSql, stringifyDsn } from 'slonik';
 
 import { env } from '@backend/env';
 import { logger } from '@backend/logging';
@@ -47,3 +47,9 @@ export function getPool() {
     throw Error('DB pool is not initialized');
   }
 }
+
+export const sql = {
+  ...slonikSql,
+  unsafe: undefined,
+  untyped: slonikSql.unsafe,
+};
