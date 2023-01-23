@@ -1,8 +1,10 @@
 import fastifySensible from '@fastify/sensible';
 import fastifyStatic from '@fastify/static';
+import { TRPCError } from '@trpc/server';
 import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
 import fastify from 'fastify';
 import { join } from 'path';
+import { serialize } from 'superjson';
 
 import { registerAuth } from '@backend/auth';
 import healthApi from '@backend/components/health/api';
@@ -69,6 +71,26 @@ async function run() {
   });
 
   server.register(healthApi, { prefix: '/api/v1' });
+
+  const defaultErrorHandler = server.errorHandler;
+
+  server.setErrorHandler((error, req, res) => {
+    // Simulate a TRPC error response if such an error was thrown outside a TRPC router
+    if (error instanceof TRPCError) {
+      const shape = appRouter.getErrorShape({
+        error,
+        type: 'unknown',
+        path: undefined,
+        input: undefined,
+        ctx: undefined,
+      });
+
+      return res.status(shape.data.httpStatus).send({ error: serialize(shape) });
+    }
+
+    // For other errors use the default Fastify error handler
+    return defaultErrorHandler(error, req, res);
+  });
 
   server.listen({ host: '0.0.0.0', port: env.serverPort }, (err) => {
     if (err) {

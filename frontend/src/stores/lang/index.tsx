@@ -14,7 +14,7 @@ export type TranslationKey = keyof typeof translations[Language];
 export function useTranslations() {
   const value = useAtomValue(trAtom);
   return function tr(key: TranslationKey) {
-    return value[key] ?? <span style={{ background: 'yellow' }}>{key}</span>;
+    return value[key] ?? <span style={{ background: 'yellow', color: 'black' }}>{key}</span>;
   };
 }
 

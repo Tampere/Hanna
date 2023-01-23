@@ -108,8 +108,17 @@ export function ProjectObject() {
     return <Typography>{tr('loading')}</Typography>;
   }
 
-  if (projectObject?.isError) {
-    return <ErrorPage severity="warning" message={tr('projectObject.notFound')} />;
+  if (projectObject.isError && projectObject.error.data?.code !== 'UNAUTHORIZED') {
+    return (
+      <ErrorPage
+        severity="warning"
+        message={
+          projectObject.error.data?.code === 'NOT_FOUND'
+            ? tr('projectObject.notFound')
+            : tr('unknownError')
+        }
+      />
+    );
   }
 
   return (
