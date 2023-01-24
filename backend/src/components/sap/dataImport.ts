@@ -1,7 +1,6 @@
 import { createHash } from 'crypto';
 import stringify from 'fast-json-stable-stringify';
 import { DatabaseTransactionConnection } from 'slonik';
-import { SAPActual, sapActualsSchema } from 'tre-hanna-shared/src/schema/sapActuals';
 import { z } from 'zod';
 
 import { transformActuals, transformProjectInfo } from '@backend/components/sap/transform';
@@ -10,6 +9,7 @@ import { getPool, sql } from '@backend/db';
 import { env } from '@backend/env';
 import { logger } from '@backend/logging';
 
+import { SAPActual, sapActualsSchema } from '@shared/schema/sapActuals';
 import { SAPProject, sapProjectSchema } from '@shared/schema/sapProject';
 
 async function getCachedSapProject(projectId: string) {
