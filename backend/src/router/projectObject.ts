@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { sql } from 'slonik';
+import { costEstimateSchema } from 'tre-hanna-shared/src/schema/project';
 import { z } from 'zod';
 
 import { getPool } from '@backend/db';
@@ -133,5 +134,24 @@ export const createProjectObjectRouter = (t: TRPC) =>
 
     delete: t.procedure.input(getProjectObjectParams).mutation(async ({ input }) => {
       throw new TRPCError({ code: 'METHOD_NOT_SUPPORTED' });
+    }),
+
+    getCostEstimates: t.procedure.input(getProjectObjectParams).query(async ({ input }) => {
+      const { id } = input;
+      const result = await getPool().any(sql.type(costEstimateSchema)`
+        SELECT
+          year,
+          jsonb_agg(
+            jsonb_build_object(
+              'id', id,
+              'amount', amount
+            )
+          ) AS estimates
+        FROM app.cost_estimate
+        WHERE project_object_id = ${id}
+        GROUP BY year
+        ORDER BY year ASC
+      `);
+      return result;
     }),
   });

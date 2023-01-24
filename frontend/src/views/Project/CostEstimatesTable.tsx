@@ -10,23 +10,19 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
-import dayjs from 'dayjs';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
-import { trpc } from '@frontend/client';
 import { FormField } from '@frontend/components/forms';
 import { CurrencyInput } from '@frontend/components/forms/CurrencyInput';
-import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
-import { getRange } from '@frontend/utils/array';
 
-import { CostEstimate, DbProject } from '@shared/schema/project';
+import { CostEstimate } from '@shared/schema/project';
 
 interface Props {
-  project?: DbProject | null;
+  years: number[];
   estimates: readonly CostEstimate[];
-  onSaved?: () => void;
+  onSave: (estimates: CostEstimate[]) => Promise<void>;
 }
 
 type EstimateFormValues = Record<string, number | null>;
@@ -49,42 +45,12 @@ function formValuesToEstimates(values: EstimateFormValues, projectYears: number[
 }
 
 export function CostEstimatesTable(props: Props) {
-  const { project, estimates, onSaved } = props;
+  const { years, estimates, onSave } = props;
 
   const [editing, setEditing] = useState(false);
 
   const tr = useTranslations();
-  const notify = useNotifications();
   const form = useForm<EstimateFormValues>({ mode: 'all', defaultValues: {} });
-
-  const projectYears = useMemo(() => {
-    if (!project?.startDate || !project?.endDate) {
-      return [];
-    }
-    const startYear = dayjs(project.startDate).get('year');
-    const endYear = dayjs(project.endDate).get('year');
-    return getRange(startYear, endYear);
-  }, [project?.startDate, project?.endDate]);
-
-  const saveEstimatesMutation = trpc.project.updateCostEstimates.useMutation({
-    onSuccess() {
-      setEditing(false);
-      form.reset();
-      onSaved?.();
-
-      notify({
-        severity: 'success',
-        title: tr('costEstimatesTable.notifySave'),
-        duration: 5000,
-      });
-    },
-    onError() {
-      notify({
-        severity: 'error',
-        title: tr('costEstimatesTable.notifySaveFailed'),
-      });
-    },
-  });
 
   /**
    * Convert estimates from object into a simple array for the form
@@ -94,17 +60,16 @@ export function CostEstimatesTable(props: Props) {
       return;
     }
     // Fill in all the years within the project's range
-    form.reset(estimatesToFormValues([...estimates], projectYears));
-  }, [estimates, projectYears]);
+    form.reset(estimatesToFormValues([...estimates], years));
+  }, [estimates, years]);
 
-  const onSubmit = (data: EstimateFormValues) =>
-    project?.id &&
-    saveEstimatesMutation.mutate({
-      projectId: project.id,
-      costEstimates: formValuesToEstimates(data, projectYears),
-    });
+  async function onSubmit(data: EstimateFormValues) {
+    await onSave(formValuesToEstimates(data, years));
+    setEditing(false);
+    form.reset();
+  }
 
-  return !project || !estimates ? null : (
+  return !estimates ? null : (
     <>
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
         {!editing ? (
@@ -142,7 +107,7 @@ export function CostEstimatesTable(props: Props) {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {projectYears?.map((year) => (
+                {years?.map((year) => (
                   <TableRow key={year}>
                     <TableCell>{year}</TableCell>
                     <TableCell>

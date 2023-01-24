@@ -41,6 +41,7 @@ const router = createBrowserRouter(
       <Route path="hanke/:projectId/uusi-kohde" element={<ProjectObject />} />
       <Route path="hanke/:projectId/:tabView" element={<Project />} />
       <Route path="hanke/:projectId/kohde/:projectObjectId" element={<ProjectObject />} />
+      <Route path="hanke/:projectId/kohde/:projectObjectId/:tabView" element={<ProjectObject />} />
       <Route path="saptest/:sapProjectId" element={<SapDebugView />} />
       <Route path="profiili" element={<Profile />} />
       <Route path="asetukset" element={<Settings />} />

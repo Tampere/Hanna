@@ -352,7 +352,7 @@ export const createProjectRouter = (t: TRPC) =>
             )
           ) AS estimates
         FROM app.cost_estimate
-        WHERE project_id = ${id}
+        WHERE project_id = ${id} AND project_object_id IS NULL
         GROUP BY year
         ORDER BY year ASC
       `);
@@ -362,7 +362,7 @@ export const createProjectRouter = (t: TRPC) =>
     updateCostEstimates: t.procedure
       .input(updateCostEstimatesSchema)
       .mutation(async ({ input }) => {
-        const { projectId, costEstimates } = input;
+        const { projectId, projectObjectId, costEstimates } = input;
         const newRows = costEstimates.reduce(
           (rows, item) => [
             ...rows,
@@ -374,13 +374,17 @@ export const createProjectRouter = (t: TRPC) =>
         );
         await getPool().transaction(async (connection) => {
           await connection.any(
-            sql.type(z.any())`DELETE FROM app.cost_estimate WHERE project_id = ${projectId}`
+            sql.type(z.any())`
+              DELETE FROM app.cost_estimate
+              WHERE project_id = ${projectId} AND project_object_id ${
+              projectObjectId ? sql.fragment`= ${projectObjectId}` : sql.fragment`IS NULL`
+            }`
           );
           await Promise.all(
             newRows.map((row) =>
               connection.any(sql.type(z.any())`
-          INSERT INTO app.cost_estimate (project_id, year, amount)
-          VALUES (${projectId}, ${row.year}, ${row.amount})
+          INSERT INTO app.cost_estimate (project_id, project_object_id, year, amount)
+          VALUES (${projectId}, ${projectObjectId ?? null}, ${row.year}, ${row.amount})
         `)
             )
           );

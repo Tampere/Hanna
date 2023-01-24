@@ -120,5 +120,6 @@ export type CostEstimate = z.infer<typeof costEstimateSchema>
 
 export const updateCostEstimatesSchema = z.object({
   projectId: z.string(),
+  projectObjectId: z.string().optional(),
   costEstimates: z.array(costEstimateSchema)
 })
