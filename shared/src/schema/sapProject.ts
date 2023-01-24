@@ -32,7 +32,7 @@ export const incomingNetworkSchema = z.object({
   BUKRS: z.string(),
   WERKS: z.string(),
   IDAT2: isoDateString.nullish(),
-  PRCTR: z.string(),
+  PRCTR: z.string().nullish(),
   ACTIVITY: z.array(incomingActivitySchema),
 });
 
@@ -46,16 +46,16 @@ export const incomingWBSSchema = z.object({
   ERDAT: isoDateString,
   ERNAM: z.string(),
   AEDAT: isoDateString.nullish(),
-  AENAM: z.string(),
+  AENAM: z.string().nullish(),
   ASTNA: z.string(),
-  AKSTL: z.string(),
-  FKSTL: z.string(),
+  AKSTL: z.string().nullish(),
+  FKSTL: z.string().nullish(),
   PRART: z.string(),
   PSPRI: z.string(),
   WERKS: z.string(),
   TADAT: isoDateString.nullish(),
   IZWEK: z.string(),
-  IUMKZ: z.string(),
+  IUMKZ: z.string().nullish(),
   STUFE: z.string(),
   NETWORK: incomingNetworkSchema,
 });
@@ -105,12 +105,12 @@ export const sapNetworkSchema = z.object({
   sapProjectInternalId: z.string(),
   createdAt: isoDateString,
   createdBy: z.string(),
-  actualStartDate: isoDateString,
+  actualStartDate: isoDateString.nullish(),
   actualFinishDate: isoDateString.nullish(),
   companyCode: z.string(),
   plant: z.string(),
   technicalCompletionDate: isoDateString,
-  profitCenter: z.string(),
+  profitCenter: z.string().nullish(),
   activities: z.array(sapActivity),
 });
 
@@ -123,8 +123,8 @@ export const sapWBSSchema = z.object({
   shortDescription: z.string(),
   createdAt: isoDateString,
   createdBy: z.string(),
-  updatedAt: isoDateString,
-  updatedBy: z.string(),
+  updatedAt: isoDateString.nullish(),
+  updatedBy: z.string().nullish(),
   applicantName: z.string(),
   requestingCostCenter: z.string(),
   responsibleCostCenter: z.string(),
@@ -133,9 +133,9 @@ export const sapWBSSchema = z.object({
   plant: z.string(),
   technicallyCompletedAt: isoDateString,
   reasonForInvestment: z.string(),
-  reasonForEnvironmentalInvestment: z.string(),
+  reasonForEnvironmentalInvestment: z.string().nullish(),
   hierarchyLevel: z.number(),
-  network: sapNetworkSchema,
+  network: sapNetworkSchema.nullish(),
 });
 
 export type SAPWBS = z.infer<typeof sapWBSSchema>;

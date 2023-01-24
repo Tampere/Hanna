@@ -127,8 +127,8 @@ async function insertWBS(conn: DatabaseTransactionConnection, wbsItems: SAPProje
         ${wbs.shortDescription},
         ${wbs.createdAt},
         ${wbs.createdBy},
-        ${wbs.updatedAt},
-        ${wbs.updatedBy},
+        ${wbs.updatedAt ?? null},
+        ${wbs.updatedBy ?? null},
         ${wbs.applicantName},
         ${wbs.requestingCostCenter},
         ${wbs.responsibleCostCenter},
@@ -137,7 +137,7 @@ async function insertWBS(conn: DatabaseTransactionConnection, wbsItems: SAPProje
         ${wbs.plant},
         ${wbs.technicallyCompletedAt},
         ${wbs.reasonForInvestment},
-        ${wbs.reasonForEnvironmentalInvestment},
+        ${wbs.reasonForEnvironmentalInvestment ?? null},
         ${wbs.hierarchyLevel}
      )
   `);
@@ -146,7 +146,8 @@ async function insertWBS(conn: DatabaseTransactionConnection, wbsItems: SAPProje
 
 async function insertNetworks(conn: DatabaseTransactionConnection, wbsItems: SAPProject['wbs']) {
   for (const wbs of wbsItems) {
-    await conn.any(sql.untyped`
+    if (wbs.network) {
+      await conn.any(sql.untyped`
         INSERT INTO app.sap_network (
           network_id,
           network_name,
@@ -168,43 +169,46 @@ async function insertNetworks(conn: DatabaseTransactionConnection, wbsItems: SAP
           ${wbs.network.sapProjectInternalId},
           ${wbs.network.createdAt},
           ${wbs.network.createdBy},
-          ${wbs.network.actualStartDate},
+          ${wbs.network.actualStartDate ?? null},
           ${wbs.network.actualFinishDate ?? null},
           ${wbs.network.companyCode},
           ${wbs.network.plant},
           ${wbs.network.technicalCompletionDate},
-          ${wbs.network.profitCenter}
+          ${wbs.network.profitCenter ?? null}
         )
       `);
+    }
   }
 }
 
 async function insertActivities(conn: DatabaseTransactionConnection, wbsItems: SAPProject['wbs']) {
   for (const wbs of wbsItems) {
-    for (const activity of wbs.network.activities) {
-      await conn.any(sql.untyped`
-        INSERT INTO app.sap_activity (
-          routing_number,
-          order_counter,
-          activity_number,
-          network_id,
-          short_description,
-          sap_project_internal_id,
-          wbs_internal_id,
-          profit_center,
-          plant
-        ) VALUES (
-          ${activity.routingNumber},
-          ${activity.orderCounter},
-          ${activity.activityNumber},
-          ${activity.networkId},
-          ${activity.shortDescription},
-          ${activity.sapProjectInternalId},
-          ${activity.wbsInternalId},
-          ${activity.profitCenter},
-          ${activity.plant}
-        )
-      `);
+    if (wbs.network) {
+      for (const activity of wbs.network.activities) {
+        await conn.any(sql.untyped`
+          INSERT INTO app.sap_activity (
+            routing_number,
+            order_counter,
+            activity_number,
+            network_id,
+            short_description,
+            sap_project_internal_id,
+            wbs_internal_id,
+            profit_center,
+            plant
+          ) VALUES (
+            ${activity.routingNumber},
+            ${activity.orderCounter},
+            ${activity.activityNumber},
+            ${activity.networkId},
+            ${activity.shortDescription},
+            ${activity.sapProjectInternalId},
+            ${activity.wbsInternalId},
+            ${activity.profitCenter},
+            ${activity.plant}
+          )
+        `);
+      }
     }
   }
 }
