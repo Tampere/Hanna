@@ -10,6 +10,8 @@ import { createSapRouter } from '@backend/router/sap';
 
 import { User } from '@shared/schema/user';
 
+import { createSessionRouter } from './session';
+
 export function createContext({ req, res }: CreateFastifyContextOptions) {
   // FIXME: user is serialized as string, but PassportUser is an object, need to
   // check where the type goes wrong
@@ -33,6 +35,7 @@ export const appRouter = t.router({
   projectObject: createProjectObjectRouter(t),
   code: createCodeRouter(t),
   sap: createSapRouter(t),
+  session: createSessionRouter(t),
 });
 
 export type TRPC = typeof t;

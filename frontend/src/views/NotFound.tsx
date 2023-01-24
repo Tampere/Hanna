@@ -1,11 +1,13 @@
 import { Box, Typography } from '@mui/material';
-import React from 'react';
+
+import { useTranslations } from '@frontend/stores/lang';
 
 export function NotFound() {
+  const tr = useTranslations();
   return (
     <Box>
-      <Typography variant="h4">Not found</Typography>
-      <Typography variant="body1">This page does not exist</Typography>
+      <Typography variant="h4">{tr('notFound.title')}</Typography>
+      <Typography variant="body1">{tr('notFound.text')}</Typography>
     </Box>
   );
 }

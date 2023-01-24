@@ -1,6 +1,8 @@
 {
   "language": "suomi",
   "loading": "Ladataan...",
+  "notFound.title": "Sivua ei löytynyt",
+  "notFound.text": "Tätä sivua ei ole olemassa. Tarkista osoite ja yritä ladata sivu uudestaan.",
   "unknownError": "Tunnistamaton virhe",
   "date.format": "D.M.YYYY",
   "date.format.placeholder": "pp.kk.vvvv",
@@ -139,5 +141,9 @@
   "projectObject.notifyGeometryUpdateTitle": "Kohteen sijainti päivitetty",
   "projectObject.notifyGeometryUpdateFailedTitle": "Virhe tallentaessa kohteen sijaintia",
   "projectObjectForm.createBtnLabel": "Luo kohde",
-  "projectObjectForm.saveBtnLabel": "Tallenna"
+  "projectObjectForm.saveBtnLabel": "Tallenna",
+  "sessionExpiredWarning.infoText": "Istuntosi on vanhentunut. Jatkaaksesi keskeneräisiä töitäsi, uusi istunto.",
+  "sessionExpiredWarning.buttonText": "Uusi istunto",
+  "sessionRenewed.title": "Istunto on uusittu",
+  "sessionRenewed.text": "Voit nyt sulkea tämän välilehden tai siirtyä haluamallesi sivulle valikosta."
 }
