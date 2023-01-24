@@ -63,6 +63,7 @@ services:
     volumes:
       - ../docker/sap-mock:/app/
       - ../backend/resources/projectinfo.wsdl:/app/projectinfo.wsdl
+      - ../backend/resources/actuals.wsdl:/app/actuals.wsdl
     ports:
       - '127.0.0.1:19043:13000'
     environment:

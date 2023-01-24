@@ -2,9 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { sql } from 'slonik';
 import { z } from 'zod';
 
-import { getClient } from '@backend/components/sap/webservice';
 import { getPool } from '@backend/db';
-import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
 
 import {

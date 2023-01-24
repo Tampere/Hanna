@@ -1,9 +1,6 @@
-import { sql } from 'slonik';
 import { z } from 'zod';
 
-import { getSapProject } from '@backend/components/sap/projectImport';
-import { getPool } from '@backend/db';
-import { logger } from '@backend/logging';
+import { getSapActuals, getSapProject } from '@backend/components/sap/dataImport';
 
 import { TRPC } from '.';
 
@@ -13,5 +10,10 @@ export const createSapRouter = (t: TRPC) =>
       .input(z.object({ projectId: z.string() }))
       .mutation(async ({ input }) => {
         return getSapProject(input.projectId);
+      }),
+    getSapActuals: t.procedure
+      .input(z.object({ projectId: z.string(), year: z.string() }))
+      .mutation(async ({ input }) => {
+        return getSapActuals(input.projectId, input.year);
       }),
   });

@@ -15,6 +15,7 @@ services:
       - /app/backend/node_modules
     ports:
       - '127.0.0.1:8080:8080'
+
   backend:
     build:
       context: .
@@ -32,11 +33,13 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
   oidc-provider:
     build:
       context: ./docker/oidc-provider/
       dockerfile: Dockerfile
     network_mode: service:backend
+
   sap-mock:
     build:
       context: ./docker/sap-mock/
@@ -44,8 +47,12 @@ services:
     volumes:
       - ./docker/sap-mock:/app/
       - ./backend/resources/projectinfo.wsdl:/app/projectinfo.wsdl
+      - ./backend/resources/actuals.wsdl:/app/actuals.wsdl
     ports:
       - '127.0.0.1:9043:3000'
+    environment:
+      - SAP_MOCK_PORT=3000
+
   db:
     image: postgis/postgis:12-3.3-alpine
     restart: always
@@ -63,6 +70,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
   proxy:
     image: caddy:2-alpine
     ports:

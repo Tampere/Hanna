@@ -91,7 +91,7 @@ export const sapActivity = z.object({
   networkId: z.string(),
   shortDescription: z.string(),
   sapProjectInternalId: z.string(),
-  sapWBSInternalId: z.string(),
+  wbsInternalId: z.string(),
   profitCenter: z.string(),
   plant: z.string(),
 });
@@ -101,12 +101,12 @@ export type SAPActivity = z.infer<typeof sapActivity>;
 export const sapNetworkSchema = z.object({
   networkId: z.string(),
   networkName: z.string(),
-  sapWBSInternalId: z.string(),
+  wbsInternalId: z.string(),
   sapProjectInternalId: z.string(),
   createdAt: isoDateString,
   createdBy: z.string(),
   actualStartDate: isoDateString,
-  actualFinishDate: isoDateString,
+  actualFinishDate: isoDateString.nullish(),
   companyCode: z.string(),
   plant: z.string(),
   technicalCompletionDate: isoDateString,
@@ -119,7 +119,7 @@ export type SAPNetwork = z.infer<typeof sapNetworkSchema>;
 export const sapWBSSchema = z.object({
   wbsId: z.string(),
   wbsInternalId: z.string(),
-  sapProjectInternalID: z.string(),
+  sapProjectInternalId: z.string(),
   shortDescription: z.string(),
   createdAt: isoDateString,
   createdBy: z.string(),

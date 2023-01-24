@@ -8,7 +8,7 @@ import { serialize } from 'superjson';
 
 import { registerAuth } from '@backend/auth';
 import healthApi from '@backend/components/health/api';
-import { createWSClient } from '@backend/components/sap/webservice';
+import { ActualsService, ProjectInfoService } from '@backend/components/sap/webservice';
 import { SharedPool, createDatabasePool } from '@backend/db';
 import { env } from '@backend/env';
 import { logger } from '@backend/logging';
@@ -16,7 +16,20 @@ import { getClient } from '@backend/oidc';
 import { appRouter, createContext } from '@backend/router';
 
 async function run() {
-  await createWSClient();
+  ProjectInfoService.initialize({
+    endpoint: env.sapWebService.projectInfoEndpoint,
+    basicAuthUser: env.sapWebService.basicAuthUser,
+    basicAuthPass: env.sapWebService.basicAuthPass,
+    wsdlResourcePath: 'resources/projectinfo.wsdl',
+  });
+
+  ActualsService.initialize({
+    endpoint: env.sapWebService.actualsEndpoint,
+    basicAuthUser: env.sapWebService.basicAuthUser,
+    basicAuthPass: env.sapWebService.basicAuthPass,
+    wsdlResourcePath: 'resources/actuals.wsdl',
+  });
+
   await createDatabasePool();
 
   const server = fastify({ logger });
