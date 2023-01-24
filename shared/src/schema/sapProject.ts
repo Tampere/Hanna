@@ -57,7 +57,7 @@ export const incomingWBSSchema = z.object({
   IZWEK: z.string(),
   IUMKZ: z.string().nullish(),
   STUFE: z.string(),
-  NETWORK: incomingNetworkSchema,
+  NETWORK: incomingNetworkSchema.nullish(),
 });
 
 export type IncomingWBS = z.infer<typeof incomingWBSSchema>;
