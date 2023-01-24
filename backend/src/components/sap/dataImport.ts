@@ -86,12 +86,12 @@ async function insertProject(conn: DatabaseTransactionConnection, project: SAPPr
       ${project.shortDescription},
       ${project.createdAt},
       ${project.createdBy},
-      ${project.updatedAt},
+      ${project.updatedAt ?? null},
       ${project.updatedBy},
       ${project.projectManagerName},
       ${project.applicantName},
-      ${project.plannedStartDate},
-      ${project.plannedEndDate},
+      ${project.plannedStartDate ?? null},
+      ${project.plannedEndDate ?? null},
       ${project.plant}
     )
   `);
@@ -135,7 +135,7 @@ async function insertWBS(conn: DatabaseTransactionConnection, wbsItems: SAPProje
         ${wbs.projectType},
         ${wbs.priority},
         ${wbs.plant},
-        ${wbs.technicallyCompletedAt},
+        ${wbs.technicallyCompletedAt ?? null},
         ${wbs.reasonForInvestment},
         ${wbs.reasonForEnvironmentalInvestment ?? null},
         ${wbs.hierarchyLevel}
@@ -173,7 +173,7 @@ async function insertNetworks(conn: DatabaseTransactionConnection, wbsItems: SAP
           ${wbs.network.actualFinishDate ?? null},
           ${wbs.network.companyCode},
           ${wbs.network.plant},
-          ${wbs.network.technicalCompletionDate},
+          ${wbs.network.technicalCompletionDate ?? null},
           ${wbs.network.profitCenter ?? null}
         )
       `);
