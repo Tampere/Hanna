@@ -1,6 +1,5 @@
 import { TRPCError } from '@trpc/server';
 import { sql } from 'slonik';
-import { costEstimateSchema } from 'tre-hanna-shared/src/schema/project';
 import { z } from 'zod';
 
 import { getPool } from '@backend/db';
@@ -8,6 +7,7 @@ import { TRPC } from '@backend/router';
 
 import { CodeId } from '@shared/schema/code';
 import { nonEmptyString } from '@shared/schema/common';
+import { costEstimateSchema } from '@shared/schema/project';
 import { updateGeometryResultSchema, updateGeometrySchema } from '@shared/schema/projectObject';
 import {
   UpsertProjectObject,
