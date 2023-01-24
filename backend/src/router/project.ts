@@ -352,7 +352,7 @@ export const createProjectRouter = (t: TRPC) =>
             )
           ) AS estimates
         FROM app.cost_estimate
-        WHERE project_id = ${id}
+        WHERE project_id = ${id} AND project_object_id IS NULL
         GROUP BY year
         ORDER BY year ASC
       `);
@@ -376,7 +376,9 @@ export const createProjectRouter = (t: TRPC) =>
           await connection.any(
             sql.type(z.any())`
               DELETE FROM app.cost_estimate
-              WHERE project_id = ${projectId} AND project_object_id = ${projectObjectId ?? null}`
+              WHERE project_id = ${projectId} AND project_object_id ${
+              projectObjectId ? sql.fragment`= ${projectObjectId}` : sql.fragment`IS NULL`
+            }`
           );
           await Promise.all(
             newRows.map((row) =>
