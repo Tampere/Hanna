@@ -398,16 +398,4 @@ export const createProjectRouter = (t: TRPC) =>
       const { subjectProjectId: projectId, objectProjectId: targetProjectId, relation } = input;
       return await removeProjectRelation(projectId, targetProjectId, relation);
     }),
-
-    // FIXME: only for short-lived poc
-    sapTest: t.procedure.input(z.object({ sapProjectId: z.string() })).query(async ({ input }) => {
-      const wsClient = getClient();
-      try {
-        const res = await wsClient.SI_ZPS_WS_GET_PROJECT_INFOAsync({ PROJECT: input.sapProjectId });
-        logger.debug({ res });
-        return res;
-      } catch (error) {
-        logger.error(error);
-      }
-    }),
   });

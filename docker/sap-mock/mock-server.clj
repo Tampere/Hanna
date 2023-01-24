@@ -222,7 +222,6 @@
              project-id
              {:area area :wbs-count wbs-count :activity-count activity-count})]]]))})))
 
-
 (defn handler [{:keys [query-string request-method uri body] :as req}]
   (log/debug (with-out-str (pprint req)))
   (cond
@@ -242,6 +241,6 @@
   (http/run-server handler {:port port})
   (log/info "Started"))
 
-(start-server 3000)
+(start-server (or (Integer/parseInt (System/getenv "SAP_MOCK_PORT")) 3000))
 
 @(promise)
