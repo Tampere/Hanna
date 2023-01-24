@@ -93,33 +93,35 @@ export function transformProjectInfo(response: object) {
         reasonForInvestment: wbs.IZWEK,
         reasonForEnvironmentalInvestment: wbs.IUMKZ,
         hierarchyLevel: parseInt(wbs.STUFE, 10),
-        network: {
-          networkId: wbs.NETWORK.AUFNR,
-          networkName: wbs.NETWORK.KTEXT,
-          wbsInternalId: wbs.NETWORK.PSPEL,
-          sapProjectInternalId: wbs.NETWORK.PSPHI,
-          createdAt: wbs.NETWORK.ERDAT,
-          createdBy: wbs.NETWORK.ERNAM,
-          actualStartDate: handleSapDate(wbs.NETWORK.GSTRI),
-          actualFinishDate: handleSapDate(wbs.NETWORK.GETRI),
-          companyCode: wbs.NETWORK.BUKRS,
-          plant: wbs.NETWORK.WERKS,
-          technicalCompletionDate: wbs.NETWORK.IDAT2,
-          profitCenter: wbs.NETWORK.PRCTR,
-          activities: wbs.NETWORK.ACTIVITY.map((activity) => {
-            return {
-              routingNumber: activity.AUFPL,
-              orderCounter: activity.APLZL,
-              activityNumber: activity.VORNR,
-              networkId: activity.AUFNR,
-              shortDescription: activity.LTXA1,
-              sapProjectInternalId: activity.PSPHI,
-              wbsInternalId: activity.PSPEL,
-              profitCenter: activity.PRCTR,
-              plant: activity.WERKS,
-            };
-          }),
-        },
+        network: wbs?.NETWORK
+          ? {
+              networkId: wbs.NETWORK.AUFNR,
+              networkName: wbs.NETWORK.KTEXT,
+              wbsInternalId: wbs.NETWORK.PSPEL,
+              sapProjectInternalId: wbs.NETWORK.PSPHI,
+              createdAt: wbs.NETWORK.ERDAT,
+              createdBy: wbs.NETWORK.ERNAM,
+              actualStartDate: handleSapDate(wbs.NETWORK.GSTRI),
+              actualFinishDate: handleSapDate(wbs.NETWORK.GETRI),
+              companyCode: wbs.NETWORK.BUKRS,
+              plant: wbs.NETWORK.WERKS,
+              technicalCompletionDate: wbs.NETWORK.IDAT2,
+              profitCenter: wbs.NETWORK.PRCTR,
+              activities: wbs.NETWORK.ACTIVITY.map((activity) => {
+                return {
+                  routingNumber: activity.AUFPL,
+                  orderCounter: activity.APLZL,
+                  activityNumber: activity.VORNR,
+                  networkId: activity.AUFNR,
+                  shortDescription: activity.LTXA1,
+                  sapProjectInternalId: activity.PSPHI,
+                  wbsInternalId: activity.PSPEL,
+                  profitCenter: activity.PRCTR,
+                  plant: activity.WERKS,
+                };
+              }),
+            }
+          : null,
       };
     }),
   };
