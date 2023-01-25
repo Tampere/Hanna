@@ -1,5 +1,4 @@
 import axios from 'axios';
-import https from 'https';
 import path from 'path';
 import { BasicAuthSecurity, Client, createClientAsync } from 'soap';
 
@@ -21,11 +20,6 @@ class WebService {
 
     const axiosClient = axios.create({
       transformRequest: [],
-      httpsAgent: new https.Agent({
-        // FIXME: for poc test only until DNS resolves to correct address and name can be used with
-        // valid cert (UPDATE: still required at 18.01.2023)
-        rejectUnauthorized: false,
-      }),
     });
 
     axiosClient.interceptors.request.use((request) => {
