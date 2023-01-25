@@ -152,7 +152,8 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          add-hosts: ${{ secrets.IMAGE_EXTRA_HOSTS }}
+          build-args: |
+            EXTRA_HOSTS=${{ secrets.IMAGE_EXTRA_HOSTS }}
           tags: ${{ env.IMAGE_NAME }}:${{ env.ENV_NAME }}
           cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:latest
           cache-to: type=inline
