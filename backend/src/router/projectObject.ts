@@ -53,7 +53,7 @@ function codeIdFragment(codeListId: CodeId['codeListId'], codeId: CodeId['id'] |
 }
 
 async function deleteProjectObject(id: string) {
-  const project = await getPool().maybeOne(sql.type(dbProjectObjectSchema)`
+  const projectObject = await getPool().maybeOne(sql.type(dbProjectObjectSchema)`
     UPDATE app.project_object
     SET
       deleted = true
@@ -61,12 +61,12 @@ async function deleteProjectObject(id: string) {
     RETURNING id
   `);
 
-  if (!project) {
+  if (!projectObject) {
     throw new TRPCError({
       code: 'NOT_FOUND',
     });
   }
-  return project;
+  return projectObject;
 }
 
 async function upsertProjectObject(projectObject: UpsertProjectObject, userId: string) {

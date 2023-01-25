@@ -8,10 +8,11 @@ import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
 interface Props {
+  projectId: string;
   projectObjectId: string;
 }
 
-export function DeleteProjectObjectDialog({ projectObjectId: projectId }: Props) {
+export function DeleteProjectObjectDialog({ projectId, projectObjectId }: Props) {
   const navigate = useNavigate();
   const notify = useNotifications();
   const tr = useTranslations();
@@ -19,7 +20,7 @@ export function DeleteProjectObjectDialog({ projectObjectId: projectId }: Props)
 
   const projectObjectDeleteMutation = trpc.projectObject.delete.useMutation({
     onSuccess: () => {
-      navigate(`/hankkeet`);
+      navigate(`/hanke/${projectId}`);
       notify({
         severity: 'success',
         title: tr('projectObjectDelete.notifyDelete'),
@@ -38,7 +39,7 @@ export function DeleteProjectObjectDialog({ projectObjectId: projectId }: Props)
 
   function handleSubmit() {
     setIsDialogOpen(false);
-    onDelete(projectId);
+    onDelete(projectObjectId);
   }
 
   return (

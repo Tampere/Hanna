@@ -132,7 +132,12 @@ export function ProjectObject() {
       <div css={pageContentStyle}>
         <Paper sx={{ p: 3, height: '100%' }} variant="outlined">
           <ProjectObjectForm projectId={routeParams.projectId} projectObject={projectObject.data} />
-          {projectObject.data && <DeleteProjectObjectDialog projectObjectId={projectObjectId} />}
+          {projectObject.data && (
+            <DeleteProjectObjectDialog
+              projectId={routeParams.projectId}
+              projectObjectId={projectObjectId}
+            />
+          )}
         </Paper>
 
         <Paper
