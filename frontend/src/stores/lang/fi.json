@@ -129,6 +129,8 @@
   "projectObject.startDateTooltip": "Valitse kohteelle aloituspäivämäärä",
   "projectObject.endDateLabel": "Loppupäivämäärä",
   "projectObject.endDateTooltip": "Valitse kohteen lopetuspäivämäärä",
+  "projectObject.sapWBSIdLabel": "SAP-rakenneosa",
+  "projectObject.sapWBSIdTooltip": "Valitse SAP-rakenneosa",
   "projectObject.landownershipLabel": "Maanomistuslaji",
   "projectObject.landownershipTooltip": "Valitse kohteen maanomistuslaji",
   "projectObject.locationOnPropertyLabel": "Kohteen suhde peruskiinteistöön",
@@ -145,5 +147,6 @@
   "sessionExpiredWarning.infoText": "Istuntosi on vanhentunut. Jatkaaksesi keskeneräisiä töitäsi, uusi istunto.",
   "sessionExpiredWarning.buttonText": "Uusi istunto",
   "sessionRenewed.title": "Istunto on uusittu",
-  "sessionRenewed.text": "Voit nyt sulkea tämän välilehden tai siirtyä haluamallesi sivulle valikosta."
+  "sessionRenewed.text": "Voit nyt sulkea tämän välilehden tai siirtyä haluamallesi sivulle valikosta.",
+  "sapWBSSelect.noOptions": "SAP-rakenneosia ei löytynyt"
 }

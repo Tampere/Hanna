@@ -29,6 +29,7 @@ const projectObjectFragment = sql.fragment`
      person_responsible AS "personResponsible",
      start_date AS "startDate",
      end_date AS "endDate",
+     sap_wbs_id AS "sapWBSId",
      ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
      (landownership).id AS "landownership",
      (location_on_property).id AS "locationOnProperty",
@@ -64,6 +65,7 @@ async function upsertProjectObject(projectObject: UpsertProjectObject, userId: s
     person_responsible: projectObject.personResponsible,
     start_date: projectObject.startDate,
     end_date: projectObject.endDate,
+    sap_wbs_id: projectObject.sapWBSId ?? null,
     landownership: codeIdFragment('KohteenMaanomistusLaji', projectObject.landownership),
     location_on_property: codeIdFragment(
       'KohteenSuhdePeruskiinteistoon',

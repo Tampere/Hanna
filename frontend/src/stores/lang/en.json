@@ -129,6 +129,8 @@
   "projectObject.startDateTooltip": "Valitse kohteelle aloituspäivämäärä",
   "projectObject.endDateLabel": "Loppupäivämäärä",
   "projectObject.endDateTooltip": "Valitse kohteen lopetuspäivämäärä",
+  "projectObject.sapWBSIdLabel": "SAP-rakenneosa",
+  "projectObject.sapWBSIdTooltip": "Valitse SAP-rakenneosa",
   "projectObject.landownershipLabel": "Maanomistuslaji",
   "projectObject.landownershipTooltip": "Valitse kohteen maanomistuslaji",
   "projectObject.locationOnPropertyLabel": "Kohteen suhde peruskiinteistöön",
@@ -145,5 +147,6 @@
   "sessionExpiredWarning.infoText": "Your session is expired. To keep your unsaved changes, please renew the session.",
   "sessionExpiredWarning.buttonText": "Renew session",
   "sessionRenewed.title": "Session is renewed",
-  "sessionRenewed.text": "You can now close this tab or navigate to another page."
+  "sessionRenewed.text": "You can now close this tab or navigate to another page.",
+  "sapWBSSelect.noOptions": "SAP-rakenneosia ei löytynyt"
 }

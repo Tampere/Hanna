@@ -15,6 +15,7 @@ export const upsertProjectObjectSchema = z.object({
   personResponsible: z.string(),
   startDate: isoDateString,
   endDate: isoDateString,
+  sapWBSId: nonEmptyString.optional().nullable(),
   landownership: codeId.optional().nullable(),
   locationOnProperty: codeId.optional().nullable(),
   height: z.coerce.number().optional().nullable(),
