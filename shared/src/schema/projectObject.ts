@@ -51,4 +51,8 @@ export const updateGeometryResultSchema = z.object({
   geom: z.string(),
 });
 
+export const deleteProjectObjectSchema = z.object({
+  id: z.string(),
+});
+
 export type UpdateGeometryResult = z.infer<typeof updateGeometryResultSchema>;

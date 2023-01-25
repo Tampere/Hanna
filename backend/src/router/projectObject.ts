@@ -12,6 +12,7 @@ import { updateGeometryResultSchema, updateGeometrySchema } from '@shared/schema
 import {
   UpsertProjectObject,
   dbProjectObjectSchema,
+  deleteProjectObjectSchema,
   getProjectObjectParams,
   upsertProjectObjectSchema,
 } from '@shared/schema/projectObject';
@@ -50,6 +51,23 @@ function codeIdFragment(codeListId: CodeId['codeListId'], codeId: CodeId['id'] |
   return sql.fragment`
     (${sql.join([codeListId, codeId], sql.fragment`,`)})
   `;
+}
+
+async function deleteProjectObject(id: string) {
+  const projectObject = await getPool().maybeOne(sql.type(dbProjectObjectSchema)`
+    UPDATE app.project_object
+    SET
+      deleted = true
+    WHERE id = ${id}
+    RETURNING id
+  `);
+
+  if (!projectObject) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+    });
+  }
+  return projectObject;
 }
 
 async function upsertProjectObject(projectObject: UpsertProjectObject, userId: string) {
@@ -132,8 +150,9 @@ export const createProjectObjectRouter = (t: TRPC) =>
       `);
       }),
 
-    delete: t.procedure.input(getProjectObjectParams).mutation(async ({ input }) => {
-      throw new TRPCError({ code: 'METHOD_NOT_SUPPORTED' });
+    delete: t.procedure.input(deleteProjectObjectSchema).mutation(async ({ input }) => {
+      const { id } = input;
+      return await deleteProjectObject(id);
     }),
 
     getCostEstimates: t.procedure.input(getProjectObjectParams).query(async ({ input }) => {
