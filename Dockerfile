@@ -66,4 +66,14 @@ COPY --from=frontend-build ${APPDIR}/frontend/dist ./static/
 
 ENV TZ=Europe/Helsinki
 
-CMD npm run db-migrate:prod && npm start
+# Get extra hosts from build arguments and inject to environment for runtime access
+ARG EXTRA_HOSTS
+ENV EXTRA_HOSTS ${EXTRA_HOSTS}
+
+CMD \
+  # Append extra host definitions if given
+  echo "${EXTRA_HOSTS}" >> /etc/hosts && \
+  # Execute DB migrations
+  npm run db-migrate:prod && \
+  # Start the application
+  npm start
