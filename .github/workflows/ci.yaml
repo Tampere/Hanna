@@ -101,6 +101,10 @@ jobs:
         run: npx playwright install --with-deps
       # Start up the stack & wait for all services to be healthy
       - run: CI=1 docker compose up -d --wait
+        timeout-minutes: 10
+      # Output container logs if any of the previous steps failed
+      - run: docker compose logs
+        if: failure()
       # Execute the E2E tests
       - run: npm test
 
@@ -148,6 +152,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
+          add-hosts: ${{ secrets.IMAGE_EXTRA_HOSTS }}
           tags: ${{ env.IMAGE_NAME }}:${{ env.ENV_NAME }}
           cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:latest
           cache-to: type=inline

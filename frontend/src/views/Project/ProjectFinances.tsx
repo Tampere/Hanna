@@ -1,4 +1,10 @@
+import dayjs from 'dayjs';
+import { useMemo } from 'react';
+
 import { trpc } from '@frontend/client';
+import { useNotifications } from '@frontend/services/notification';
+import { useTranslations } from '@frontend/stores/lang';
+import { getRange } from '@frontend/utils/array';
 
 import { DbProject } from '@shared/schema/project';
 
@@ -11,11 +17,43 @@ interface Props {
 export function ProjectFinances(props: Props) {
   const { project } = props;
   const estimates = !project ? null : trpc.project.getCostEstimates.useQuery({ id: project.id });
-  return !estimates?.data ? null : (
+  const notify = useNotifications();
+  const tr = useTranslations();
+
+  const projectYears = useMemo(() => {
+    if (!project?.startDate || !project?.endDate) {
+      return [];
+    }
+    const startYear = dayjs(project.startDate).get('year');
+    const endYear = dayjs(project.endDate).get('year');
+    return getRange(startYear, endYear);
+  }, [project?.startDate, project?.endDate]);
+
+  const saveEstimatesMutation = trpc.project.updateCostEstimates.useMutation({
+    onSuccess() {
+      notify({
+        severity: 'success',
+        title: tr('costEstimatesTable.notifySave'),
+        duration: 5000,
+      });
+    },
+    onError() {
+      notify({
+        severity: 'error',
+        title: tr('costEstimatesTable.notifySaveFailed'),
+      });
+    },
+  });
+
+  return !estimates?.data || !project ? null : (
     <CostEstimatesTable
-      project={project}
+      years={projectYears}
       estimates={estimates.data}
-      onSaved={() => {
+      onSave={async (costEstimates) => {
+        await saveEstimatesMutation.mutateAsync({
+          projectId: project.id,
+          costEstimates,
+        });
         estimates?.refetch();
       }}
     />

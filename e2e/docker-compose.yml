@@ -55,6 +55,20 @@ services:
       - OIDC_PORT=19090
       - OIDC_REDIRECT_URI=https://localhost:1443/api/v1/auth/callback
     network_mode: service:backend
+
+  sap-mock:
+    build:
+      context: ../docker/sap-mock/
+      dockerfile: Dockerfile
+    volumes:
+      - ../docker/sap-mock:/app/
+      - ../backend/resources/projectinfo.wsdl:/app/projectinfo.wsdl
+      - ../backend/resources/actuals.wsdl:/app/actuals.wsdl
+    ports:
+      - '127.0.0.1:19043:13000'
+    environment:
+      - SAP_MOCK_PORT=13000
+
   db:
     image: postgis/postgis:12-3.3-alpine
     restart: always
@@ -69,6 +83,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
   proxy:
     image: caddy:2-alpine
     ports:

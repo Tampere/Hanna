@@ -22,6 +22,7 @@ autolabeler:
   - label: 'chore'
     branch:
       - '/chore\/.+/'
+      - '/dependabot\/.+/'
 version-resolver:
   major:
     labels:
@@ -29,9 +30,13 @@ version-resolver:
   minor:
     labels:
       - 'minor'
+      - 'feature'
   patch:
     labels:
       - 'patch'
+      - 'fix'
+      - 'chore'
+      - 'infra'
   default: patch
 template: |
   ## Changes

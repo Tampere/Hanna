@@ -12,9 +12,9 @@ export function Profile() {
   const [lang, setLang] = useAtom(langAtom);
   const tr = useTranslations();
 
-  return !user.userId ? null : (
+  return !user ? null : (
     <Box>
-      <Typography variant="h4">Hei {user.userId}</Typography>
+      <Typography variant="h4">Hei {user.name}</Typography>
       <Typography variant="body1">Tässä on profiilisi tiedot</Typography>
       <select value={lang} onChange={(e) => setLang(e.target.value as Language)}>
         {languages.map((language) => (

@@ -1,7 +1,7 @@
 import 'fastify';
 
+import { User } from '@shared/schema/user';
+
 declare module 'fastify' {
-  interface PassportUser {
-    id: string;
-  }
+  type PassportUser = User;
 }

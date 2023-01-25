@@ -20,7 +20,9 @@ import { SapDebugView } from '@frontend/views/SapDebug';
 import { Settings } from '@frontend/views/Settings';
 
 import { trpc } from './client';
-import { authAtom, getUserAtom } from './stores/auth';
+import { authAtom, getUserAtom, sessionExpiredAtom } from './stores/auth';
+import { useTranslations } from './stores/lang';
+import { SessionRenewed } from './views/SessionRenewed';
 
 const UserLoader = () => {
   const user = useAtomValue(getUserAtom);
@@ -39,29 +41,49 @@ const router = createBrowserRouter(
       <Route path="hanke/:projectId/uusi-kohde" element={<ProjectObject />} />
       <Route path="hanke/:projectId/:tabView" element={<Project />} />
       <Route path="hanke/:projectId/kohde/:projectObjectId" element={<ProjectObject />} />
+      <Route path="hanke/:projectId/kohde/:projectObjectId/:tabView" element={<ProjectObject />} />
       <Route path="saptest/:sapProjectId" element={<SapDebugView />} />
       <Route path="profiili" element={<Profile />} />
       <Route path="asetukset" element={<Settings />} />
+      <Route path="session-renewed" element={<SessionRenewed />} />
       <Route path="*" element={<NotFound />} />
     </Route>
   )
 );
 
 export function App() {
+  const tr = useTranslations();
+  const setSessionExpired = useSetAtom(sessionExpiredAtom);
   const [queryClient] = useState(
     () => new QueryClient({ defaultOptions: { queries: { retry: false } } })
   );
   const [trpcClient] = useState(() =>
     trpc.createClient({
-      links: [httpLink({ url: '/trpc' })],
+      links: [
+        httpLink({
+          url: '/trpc',
+          // Override fetch function to intercept all TRPC response status codes for detecting expired sessions
+          async fetch(url, options) {
+            const result = await fetch(url, { ...options });
+            if (result.status === 401) {
+              // Any 401 error in TRPC responses -> session has been expired
+              setSessionExpired(true);
+            } else {
+              // Any non-401 status -> session is OK
+              setSessionExpired(false);
+            }
+            return result;
+          },
+        }),
+      ],
       transformer: SuperJSON,
     })
   );
 
   return (
-    <Suspense fallback={<p>Ladataan...</p>}>
+    <Suspense fallback={<p>{tr('loading')}</p>}>
       <UserLoader />
-      {useAtomValue(authAtom).userId && (
+      {useAtomValue(authAtom) && (
         <trpc.Provider client={trpcClient} queryClient={queryClient}>
           <QueryClientProvider client={queryClient}>
             <RouterProvider router={router} />

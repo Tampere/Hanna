@@ -161,7 +161,7 @@ export const mapOptions = {
       visible: true,
       type: 'wfs',
       url: `${geodataBaseUrl}/kiinteistot/wfs?${createWfsParams(
-        'kiinteistot:KIINTEISTOT_ALUE_GSVIEW',
+        'kiinteistot:KIINTEISTOT_ALUE_JULKINEN_GSVIEW',
         'EPSG:3067'
       )}`,
       style: {

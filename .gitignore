@@ -1,4 +1,8 @@
 .DS_store
 .tool-versions
 .history
+.clj-kondo
+.lsp
+node_modules
+
 

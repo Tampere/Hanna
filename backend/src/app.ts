@@ -1,12 +1,14 @@
 import fastifySensible from '@fastify/sensible';
 import fastifyStatic from '@fastify/static';
+import { TRPCError } from '@trpc/server';
 import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
 import fastify from 'fastify';
 import { join } from 'path';
+import { serialize } from 'superjson';
 
 import { registerAuth } from '@backend/auth';
 import healthApi from '@backend/components/health/api';
-import { createWSClient } from '@backend/components/sap/webservice';
+import { ActualsService, ProjectInfoService } from '@backend/components/sap/webservice';
 import { SharedPool, createDatabasePool } from '@backend/db';
 import { env } from '@backend/env';
 import { logger } from '@backend/logging';
@@ -14,7 +16,20 @@ import { getClient } from '@backend/oidc';
 import { appRouter, createContext } from '@backend/router';
 
 async function run() {
-  await createWSClient();
+  ProjectInfoService.initialize({
+    endpoint: env.sapWebService.projectInfoEndpoint,
+    basicAuthUser: env.sapWebService.basicAuthUser,
+    basicAuthPass: env.sapWebService.basicAuthPass,
+    wsdlResourcePath: 'resources/projectinfo.wsdl',
+  });
+
+  ActualsService.initialize({
+    endpoint: env.sapWebService.actualsEndpoint,
+    basicAuthUser: env.sapWebService.basicAuthUser,
+    basicAuthPass: env.sapWebService.basicAuthPass,
+    wsdlResourcePath: 'resources/actuals.wsdl',
+  });
+
   await createDatabasePool();
 
   const server = fastify({ logger });
@@ -69,6 +84,26 @@ async function run() {
   });
 
   server.register(healthApi, { prefix: '/api/v1' });
+
+  const defaultErrorHandler = server.errorHandler;
+
+  server.setErrorHandler((error, req, res) => {
+    // Simulate a TRPC error response if such an error was thrown outside a TRPC router
+    if (error instanceof TRPCError) {
+      const shape = appRouter.getErrorShape({
+        error,
+        type: 'unknown',
+        path: undefined,
+        input: undefined,
+        ctx: undefined,
+      });
+
+      return res.status(shape.data.httpStatus).send({ error: serialize(shape) });
+    }
+
+    // For other errors use the default Fastify error handler
+    return defaultErrorHandler(error, req, res);
+  });
 
   server.listen({ host: '0.0.0.0', port: env.serverPort }, (err) => {
     if (err) {

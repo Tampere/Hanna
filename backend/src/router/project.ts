@@ -2,9 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { sql } from 'slonik';
 import { z } from 'zod';
 
-import { getClient } from '@backend/components/sap/webservice';
 import { getPool } from '@backend/db';
-import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
 
 import {
@@ -149,12 +147,14 @@ function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
       AND ${timePeriodFragment(input)}
       AND ${
         input.lifecycleStates && input.lifecycleStates?.length > 0
-          ? sql.fragment`(lifecycle_state).id = ANY(${sql.array(input.lifecycleStates, 'text')})`
+          ? sql.fragment`(lifecycle_state).id = ANY(${sql.array(input.lifecycleStates, 'text')})
+          `
           : sql.fragment`true`
       }
       AND ${
         input.projectTypes && input.projectTypes?.length > 0
-          ? sql.fragment`(project_type).id = ANY(${sql.array(input.projectTypes, 'text')})`
+          ? sql.fragment`(project_type).id = ANY(${sql.array(input.projectTypes, 'text')})
+          `
           : sql.fragment`true`
       }
       ${orderByFragment(input)}
@@ -352,7 +352,7 @@ export const createProjectRouter = (t: TRPC) =>
             )
           ) AS estimates
         FROM app.cost_estimate
-        WHERE project_id = ${id}
+        WHERE project_id = ${id} AND project_object_id IS NULL
         GROUP BY year
         ORDER BY year ASC
       `);
@@ -362,7 +362,7 @@ export const createProjectRouter = (t: TRPC) =>
     updateCostEstimates: t.procedure
       .input(updateCostEstimatesSchema)
       .mutation(async ({ input }) => {
-        const { projectId, costEstimates } = input;
+        const { projectId, projectObjectId, costEstimates } = input;
         const newRows = costEstimates.reduce(
           (rows, item) => [
             ...rows,
@@ -374,13 +374,17 @@ export const createProjectRouter = (t: TRPC) =>
         );
         await getPool().transaction(async (connection) => {
           await connection.any(
-            sql.type(z.any())`DELETE FROM app.cost_estimate WHERE project_id = ${projectId}`
+            sql.type(z.any())`
+              DELETE FROM app.cost_estimate
+              WHERE project_id = ${projectId} AND project_object_id ${
+              projectObjectId ? sql.fragment`= ${projectObjectId}` : sql.fragment`IS NULL`
+            }`
           );
           await Promise.all(
             newRows.map((row) =>
               connection.any(sql.type(z.any())`
-          INSERT INTO app.cost_estimate (project_id, year, amount)
-          VALUES (${projectId}, ${row.year}, ${row.amount})
+          INSERT INTO app.cost_estimate (project_id, project_object_id, year, amount)
+          VALUES (${projectId}, ${projectObjectId ?? null}, ${row.year}, ${row.amount})
         `)
             )
           );
@@ -395,17 +399,5 @@ export const createProjectRouter = (t: TRPC) =>
     remoteRelation: t.procedure.input(relationsSchema).mutation(async ({ input }) => {
       const { subjectProjectId: projectId, objectProjectId: targetProjectId, relation } = input;
       return await removeProjectRelation(projectId, targetProjectId, relation);
-    }),
-
-    // FIXME: only for short-lived poc
-    sapTest: t.procedure.input(z.object({ sapProjectId: z.string() })).query(async ({ input }) => {
-      const wsClient = getClient();
-      try {
-        const res = await wsClient.SI_ZPS_WS_GET_PROJECT_INFOAsync({ PROJECT: input.sapProjectId });
-        logger.debug({ res });
-        return res;
-      } catch (error) {
-        logger.error(error);
-      }
     }),
   });

@@ -1,9 +1,9 @@
 import { css } from '@emotion/react';
-import { Map } from '@mui/icons-material';
+import { Euro, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import { useMemo } from 'react';
+import { ReactElement, useMemo } from 'react';
 import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 
@@ -13,10 +13,20 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
-import { useTranslations } from '@frontend/stores/lang';
+import { TranslationKey, useTranslations } from '@frontend/stores/lang';
 
 import { DeleteProjectObjectDialog } from './DeleteProjectObjectDialog';
+import { ProjectObjectFinances } from './ProjectObjectFinances';
 import { ProjectObjectForm } from './ProjectObjectForm';
+
+type TabView = 'default' | 'talous';
+
+interface Tab {
+  tabView: TabView;
+  url: string;
+  label: TranslationKey;
+  icon: ReactElement;
+}
 
 const pageContentStyle = css`
   display: grid;
@@ -25,15 +35,21 @@ const pageContentStyle = css`
   height: 100%;
 `;
 
-function projectObjectTabs() {
+function projectObjectTabs(projectId: string, projectObjectId: string): Tab[] {
   return [
     {
       tabView: 'default',
-      url: `/kohteet/:projectId/:projectObjectId`,
+      url: `/hanke/${projectId}/kohde/${projectObjectId}`,
       label: 'projectObject.mapTabLabel',
       icon: <Map fontSize="small" />,
     },
-  ] as const;
+    {
+      tabView: 'talous',
+      url: `/hanke/${projectId}/kohde/${projectObjectId}/talous`,
+      label: 'project.financeTabLabel',
+      icon: <Euro fontSize="small" />,
+    },
+  ];
 }
 
 const mapContainerStyle = css`
@@ -45,11 +61,14 @@ export function ProjectObject() {
   const routeParams = useParams() as {
     projectId: string;
     projectObjectId: string;
-    tabView?: 'talous';
+    tabView?: TabView;
   };
   const projectObjectId = routeParams?.projectObjectId;
-  const tabs = projectObjectTabs();
-  const tabIndex = tabs.findIndex((tab) => tab.tabView === 'default');
+  const tabView = routeParams.tabView || 'default';
+  const tabs = projectObjectTabs(routeParams.projectId, projectObjectId);
+  const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
+
+  console.log({ tabView, tabs, tabIndex, tab: tabs[tabIndex] });
 
   const projectObject = trpc.projectObject.get.useQuery(
     {
@@ -109,8 +128,17 @@ export function ProjectObject() {
     return <Typography>{tr('loading')}</Typography>;
   }
 
-  if (projectObject?.isError) {
-    return <ErrorPage severity="warning" message={tr('projectObject.notFound')} />;
+  if (projectObject.isError && projectObject.error.data?.code !== 'UNAUTHORIZED') {
+    return (
+      <ErrorPage
+        severity="warning"
+        message={
+          projectObject.error.data?.code === 'NOT_FOUND'
+            ? tr('projectObject.notFound')
+            : tr('unknownError')
+        }
+      />
+    );
   }
 
   return (
@@ -158,7 +186,7 @@ export function ProjectObject() {
               <Tab
                 key={tab.tabView}
                 component={Link}
-                to={`/hanke/${routeParams.projectId}/kohde/${projectObjectId}`}
+                to={tab.url}
                 label={tr(tab.label)}
                 icon={tab.icon}
                 iconPosition="end"
@@ -178,6 +206,17 @@ export function ProjectObject() {
                   geometryUpdate.mutate({ id: projectObjectId, features: features });
                 }}
               />
+            </Box>
+          )}
+
+          {routeParams.tabView && (
+            <Box sx={{ m: 2 }}>
+              {routeParams.tabView === 'talous' && projectObject.data && (
+                <ProjectObjectFinances
+                  projectId={routeParams.projectId}
+                  projectObject={projectObject.data}
+                />
+              )}
             </Box>
           )}
         </Paper>

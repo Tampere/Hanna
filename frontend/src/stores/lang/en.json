@@ -1,6 +1,8 @@
 {
   "language": "English",
   "loading": "Loading...",
+  "notFound.title": "Not found",
+  "notFound.text": "This page does not exist. Please check the address and reload the page.",
   "unknownError": "Unknown error",
   "date.format": "DD/MM/YYYY",
   "date.format.placeholder": "DD/MM/YYYY",
@@ -144,5 +146,9 @@
   "projectObject.heightLabel": "Rajaus pystysuunnassa",
   "projectObject.heightTooltip": "Syötä kohteen rajaus pystysuunnassa",
   "projectObjectForm.createBtnLabel": "Luo kohde",
-  "projectObjectForm.saveBtnLabel": "Tallenna"
+  "projectObjectForm.saveBtnLabel": "Tallenna",
+  "sessionExpiredWarning.infoText": "Your session is expired. To keep your unsaved changes, please renew the session.",
+  "sessionExpiredWarning.buttonText": "Renew session",
+  "sessionRenewed.title": "Session is renewed",
+  "sessionRenewed.text": "You can now close this tab or navigate to another page."
 }

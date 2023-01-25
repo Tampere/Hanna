@@ -1,5 +1,4 @@
-<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" name="SI_ZPS_WS_GET_PROJECT_INFO"
-    targetNamespace="Projects_to_Hanna"
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" name="SI_ZPS_WS_GET_PROJECT_INFO" targetNamespace="Projects_to_Hanna"
     xmlns:p1="Projects_to_Hanna"
     xmlns:rfc="urn:sap-com:document:sap:rfc:functions"
     xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy"
@@ -8,17 +7,14 @@
         <wsdl:appinfo source="WMQI_APPINFO">
             <MRWSDLAppInfo imported="true">
                 <generatedXSD location="SI_ZPS_WS_GET_PROJECT_INFOService_InlineSchema1.xsd" />
-                <binding hasEncoding="false" imported="true"
-                    name="SI_ZPS_WS_GET_PROJECT_INFOBinding"
-                    originalBindingStyle="document" />
+                <binding hasEncoding="false" imported="true" name="SI_ZPS_WS_GET_PROJECT_INFOBinding" originalBindingStyle="document" />
             </MRWSDLAppInfo>
         </wsdl:appinfo>
     </wsdl:documentation>
     <wsp:UsingPolicy wsdl:required="true" />
     <wsp:Policy wsu:Id="OP_SI_ZPS_WS_GET_PROJECT_INFO" />
     <wsdl:types>
-        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            targetNamespace="urn:sap-com:document:sap:rfc:functions"
+        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:sap-com:document:sap:rfc:functions"
             xmlns="urn:sap-com:document:sap:rfc:functions"
             xmlns:ibmSchExtn="http://www.ibm.com/schema/extensions"
             xmlns:p1="Projects_to_Hanna"
@@ -51,8 +47,7 @@
                             </xsd:annotation>
                             <xsd:complexType>
                                 <xsd:sequence>
-                                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="item"
-                                        type="BAPIRET2" />
+                                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="item" type="BAPIRET2" />
                                 </xsd:sequence>
                             </xsd:complexType>
                         </xsd:element>
@@ -373,8 +368,7 @@
                     <xsd:documentation>Network</xsd:documentation>
                 </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="item"
-                        type="ZPS_WS_NETWORK_S" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="item" type="ZPS_WS_NETWORK_S" />
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:complexType name="ZPS_WS_NETWORK_S">
@@ -889,8 +883,7 @@
                     <xsd:documentation>Activity</xsd:documentation>
                 </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="item"
-                        type="ZPS_WS_ACTIVITY_S" />
+                    <xsd:element maxOccurs="unbounded" minOccurs="0" name="item" type="ZPS_WS_ACTIVITY_S" />
                 </xsd:sequence>
             </xsd:complexType>
         </xsd:schema>
@@ -915,11 +908,9 @@
         </wsdl:operation>
     </wsdl:portType>
     <wsdl:binding name="SI_ZPS_WS_GET_PROJECT_INFOBinding" type="p1:SI_ZPS_WS_GET_PROJECT_INFO">
-        <soap:binding xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" style="document"
-            transport="http://schemas.xmlsoap.org/soap/http" />
+        <soap:binding xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" style="document" transport="http://schemas.xmlsoap.org/soap/http" />
         <wsdl:operation name="SI_ZPS_WS_GET_PROJECT_INFO">
-            <soap:operation xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
-                soapAction="http://sap.com/xi/WebService/soap1.1" />
+            <soap:operation xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" soapAction="http://sap.com/xi/WebService/soap1.1" />
             <wsdl:input>
                 <soap:body xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" use="literal" />
             </wsdl:input>

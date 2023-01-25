@@ -7,6 +7,7 @@ import { TRPC } from '@backend/router';
 
 import { CodeId } from '@shared/schema/code';
 import { nonEmptyString } from '@shared/schema/common';
+import { costEstimateSchema } from '@shared/schema/project';
 import { updateGeometryResultSchema, updateGeometrySchema } from '@shared/schema/projectObject';
 import {
   UpsertProjectObject,
@@ -152,5 +153,24 @@ export const createProjectObjectRouter = (t: TRPC) =>
     delete: t.procedure.input(deleteProjectObjectSchema).mutation(async ({ input }) => {
       const { id } = input;
       return await deleteProjectObject(id);
+    }),
+
+    getCostEstimates: t.procedure.input(getProjectObjectParams).query(async ({ input }) => {
+      const { id } = input;
+      const result = await getPool().any(sql.type(costEstimateSchema)`
+        SELECT
+          year,
+          jsonb_agg(
+            jsonb_build_object(
+              'id', id,
+              'amount', amount
+            )
+          ) AS estimates
+        FROM app.cost_estimate
+        WHERE project_object_id = ${id}
+        GROUP BY year
+        ORDER BY year ASC
+      `);
+      return result;
     }),
   });

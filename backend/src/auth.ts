@@ -2,12 +2,14 @@ import fastifyCookie from '@fastify/cookie';
 import formBody from '@fastify/formbody';
 import { Authenticator } from '@fastify/passport';
 import fastifySession from '@fastify/session';
+import { TRPCError } from '@trpc/server';
 import pgStore from 'connect-pg-simple';
-import { FastifyInstance, FastifyPluginOptions, PassportUser } from 'fastify';
+import { FastifyInstance, FastifyPluginOptions, FastifyRequest, PassportUser } from 'fastify';
 import { BaseClient, Strategy, TokenSet, UserinfoResponse } from 'openid-client';
 import { Pool } from 'pg';
 
 import { logger } from './logging';
+import { upsertUser } from './user';
 
 interface SessionOpts {
   cookieSecret: string;
@@ -56,17 +58,24 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
       {
         client: opts.oidcOpts.client,
         params: {
-          scope: 'email openid',
+          scope: 'email openid profile',
         },
       },
-      function verify(
+      async function verify(
         _tokenset: TokenSet,
         userinfo: UserinfoResponse,
         authDone: (err: Error | null, user?: PassportUser) => void
       ) {
-        const id = userinfo.email ?? String(userinfo.upn);
+        const id = userinfo.sub;
         if (id) {
-          authDone(null, { id });
+          const user: PassportUser = {
+            id,
+            name: String(userinfo.name),
+            email: String(userinfo.upn),
+          };
+          // Update user to the database
+          await upsertUser(user);
+          authDone(null, user);
         } else {
           authDone(new Error('No identifier found in userinfo'));
         }
@@ -87,7 +96,7 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
       return;
     }
     if (!req.user) {
-      throw fastify.httpErrors.unauthorized();
+      throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
   });
 
@@ -109,13 +118,25 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
     });
   });
 
-  fastify.get(opts.oidcOpts.loginPath, fastifyPassport.authenticate('oidc'));
-
   fastify.get(
-    opts.oidcOpts.callbackPath,
-    fastifyPassport.authenticate('oidc', {
-      successRedirect: '/',
-      failureRedirect: '/',
-    })
+    opts.oidcOpts.loginPath,
+    function (req: FastifyRequest<{ Querystring: { redirect?: string } }>, res) {
+      // Store the redirect URL in session data
+      if (req.query.redirect) {
+        req.session.set('redirectUrl', req.query.redirect);
+      }
+
+      return fastifyPassport.authenticate('oidc').call(fastify, req, res);
+    }
   );
+
+  fastify.get(opts.oidcOpts.callbackPath, (req, res) => {
+    return fastifyPassport
+      .authenticate('oidc', {
+        // Redirect to the original URL if one was found from session, otherwise to the home page
+        successRedirect: req.session.get<string>('redirectUrl') ?? '/',
+        failureRedirect: '/',
+      })
+      .call(fastify, req, res);
+  });
 }

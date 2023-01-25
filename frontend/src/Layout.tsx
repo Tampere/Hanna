@@ -13,13 +13,14 @@ import {
   Typography,
   createTheme,
 } from '@mui/material';
-import { useAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { Link, Outlet } from 'react-router-dom';
 
 import { useTranslations } from '@frontend/stores/lang';
 
+import { SessionExpiredWarning } from './SessionExpiredWarning';
 import NotificationList from './services/notification';
-import { authAtom } from './stores/auth';
+import { authAtom, sessionExpiredAtom } from './stores/auth';
 
 const theme = createTheme({
   palette: {
@@ -86,7 +87,7 @@ function Navbar() {
           </Button>
         </Box>
         <Box>
-          <Typography variant="caption">{auth.userId}</Typography>
+          <Typography variant="caption">{auth?.name}</Typography>
 
           <IconButton
             component={Link}
@@ -113,10 +114,17 @@ function Navbar() {
 }
 
 export function Layout() {
+  const sessionExpired = useAtomValue(sessionExpiredAtom);
+
   const mainLayoutStyle = css`
     height: 100vh;
     display: flex;
     flex-direction: column;
+    ${sessionExpired &&
+    css`
+      pointer-events: none;
+      user-select: none;
+    `}
   `;
 
   const mainContentStyle = css`
@@ -135,6 +143,7 @@ export function Layout() {
           <Box css={mainContentStyle}>
             <Outlet />
           </Box>
+          <SessionExpiredWarning />
         </ThemeProvider>
       </Box>
     </>
