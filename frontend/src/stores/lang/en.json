@@ -110,6 +110,8 @@
   "dateRange.quickSelections": "Quick selections",
   "costEstimatesTable.year": "Year",
   "costEstimatesTable.estimate": "Estimate",
+  "costEstimatesTable.actual": "Actual",
+  "costEstimatesTable.total": "Total",
   "costEstimatesTable.notifySave": "Cost estimates saved",
   "costEstimatesTable.notifySaveFailed": "Failed to save cost estimates",
   "projectObject.error.endDateBeforeStartDate": "Loppuajankohta ei voi olla ennen alkuajankohtaa",
