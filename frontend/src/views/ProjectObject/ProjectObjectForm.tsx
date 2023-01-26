@@ -14,6 +14,7 @@ import { FormDatePicker, FormField } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
+import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
 import { UpsertProjectObject, upsertProjectObjectSchema } from '@shared/schema/projectObject';
 
@@ -243,6 +244,16 @@ export function ProjectObjectForm(props: Props) {
             />
           )}
         />
+
+        <FormField
+          formField="sapWBSId"
+          label={tr('projectObject.sapWBSIdLabel')}
+          tooltip={tr('projectObject.sapWBSIdTooltip')}
+          component={(field) => (
+            <SapWBSSelect projectId={props.projectId} readonlyProps={readonlyProps} field={field} />
+          )}
+        />
+
         <FormField
           formField="landownership"
           label={tr('projectObject.landownershipLabel')}
