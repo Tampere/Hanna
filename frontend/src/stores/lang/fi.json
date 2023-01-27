@@ -110,6 +110,8 @@
   "dateRange.quickSelections": "Pikavalinnat",
   "costEstimatesTable.year": "Vuosi",
   "costEstimatesTable.estimate": "Kustannusarvio",
+  "costEstimatesTable.actual": "Toteuma",
+  "costEstimatesTable.total": "Yhteensä",
   "costEstimatesTable.notifySave": "Kustannusarviot tallennettu",
   "costEstimatesTable.notifySaveFailed": "Kustannusarvioiden tallentaminen epäonnistui",
   "projectObject.error.endDateBeforeStartDate": "Loppuajankohta ei voi olla ennen alkuajankohtaa",

@@ -2,13 +2,13 @@ import { Edit, Save, Undo } from '@mui/icons-material';
 import {
   Box,
   Button,
-  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -51,6 +51,7 @@ export function CostEstimatesTable(props: Props) {
 
   const tr = useTranslations();
   const form = useForm<EstimateFormValues>({ mode: 'all', defaultValues: {} });
+  const watch = form.watch();
 
   /**
    * Convert estimates from object into a simple array for the form
@@ -98,12 +99,19 @@ export function CostEstimatesTable(props: Props) {
       </Box>
       <FormProvider {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
-          <TableContainer component={Paper}>
+          <TableContainer>
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>{tr('costEstimatesTable.year')}</TableCell>
-                  <TableCell>{tr('costEstimatesTable.estimate')}</TableCell>
+                  <TableCell>
+                    <Typography variant="overline">{tr('costEstimatesTable.year')}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="overline"> {tr('costEstimatesTable.estimate')}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="overline">{tr('costEstimatesTable.actual')}</Typography>
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -119,14 +127,36 @@ export function CostEstimatesTable(props: Props) {
                             <CurrencyInput
                               {...{ ...field, ref: undefined }}
                               innerRef={innerRef}
-                              readOnly={!editing}
+                              editing={!editing}
                             />
                           );
                         }}
                       />
                     </TableCell>
+                    <TableCell>
+                      <CurrencyInput readOnly value={null} /> {/* TODO */}
+                    </TableCell>
                   </TableRow>
                 ))}
+                <TableRow>
+                  <TableCell>
+                    <Typography variant="overline">{tr('costEstimatesTable.total')}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <CurrencyInput
+                      readOnly
+                      value={
+                        watch &&
+                        Object.values(watch).reduce((total, amount) => {
+                          return (total || 0) + (amount || 0);
+                        }, 0)
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <CurrencyInput readOnly value={null} />
+                  </TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </TableContainer>

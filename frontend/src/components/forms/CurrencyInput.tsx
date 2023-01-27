@@ -1,17 +1,18 @@
-import { InputAdornment, TextField, TextFieldProps } from '@mui/material';
+import { Input, InputAdornment, InputBase, TextField, TextFieldProps } from '@mui/material';
 import { Ref, useEffect, useMemo, useState } from 'react';
 import CurrencyInputField from 'react-currency-input-field';
 
 interface Props {
+  value: number | null;
   id?: string;
   name?: string;
-  innerRef: Ref<HTMLInputElement>;
-  value: number | null;
-  onChange: (value: number | null) => void;
+  innerRef?: Ref<HTMLInputElement>;
+  onChange?: (value: number | null) => void;
   placeholder?: string;
-  readOnly?: boolean;
+  editing?: boolean;
   disabled?: boolean;
   TextFieldProps?: TextFieldProps;
+  readOnly?: boolean;
 }
 
 function textValueToNumeric(value: string | undefined) {
@@ -40,7 +41,7 @@ function numericValueToText(value: number | null) {
 }
 
 export function CurrencyInput(props: Props) {
-  const { readOnly, TextFieldProps } = props;
+  const { editing, TextFieldProps } = props;
   const [textValue, setTextValue] = useState<string>('');
 
   /**
@@ -50,8 +51,8 @@ export function CurrencyInput(props: Props) {
     setTextValue(numericValueToText(props.value));
   }, [props.value]);
 
-  const readonlyProps = useMemo<TextFieldProps>(() => {
-    if (!readOnly) {
+  const editingProps = useMemo<TextFieldProps>(() => {
+    if (!editing) {
       return {};
     }
     return {
@@ -59,7 +60,20 @@ export function CurrencyInput(props: Props) {
       variant: 'filled',
       InputProps: { readOnly: true },
     };
-  }, [readOnly]);
+  }, [editing]);
+
+  const FormattedCurrencyField = useMemo(() => {
+    return function FormattedCurrencyField(props: TextFieldProps) {
+      return (
+        <InputBase
+          value={props.value}
+          sx={{ pl: '12px', pt: '8px', pb: '8px' }}
+          inputProps={{ style: { textAlign: 'right' }, tabIndex: -1 }}
+          endAdornment={<InputAdornment position="end">€</InputAdornment>}
+        />
+      );
+    };
+  }, []);
 
   const CurrencyTextField = useMemo(() => {
     return function CurrencyTextField(props: TextFieldProps) {
@@ -68,9 +82,10 @@ export function CurrencyInput(props: Props) {
           {...props}
           variant="outlined"
           size="small"
-          {...readonlyProps}
+          {...editingProps}
+          inputProps={{ style: { textAlign: 'right' } }}
           InputProps={{
-            ...readonlyProps.InputProps,
+            ...editingProps.InputProps,
             endAdornment: <InputAdornment position="end">€</InputAdornment>,
             ...TextFieldProps?.InputProps,
           }}
@@ -78,22 +93,22 @@ export function CurrencyInput(props: Props) {
         />
       );
     };
-  }, [props.TextFieldProps, readonlyProps]);
+  }, [props.TextFieldProps, editingProps]);
 
   return (
     <CurrencyInputField
       id={props.id}
       name={props.name}
       placeholder={props.placeholder}
-      readOnly={props.readOnly}
+      readOnly={props.editing}
       disabled={props.disabled}
       value={textValue}
       decimalsLimit={2}
       ref={props.innerRef}
       onValueChange={(value) => setTextValue(value ?? '')}
-      onBlur={() => props.onChange(textValueToNumeric(textValue))}
+      onBlur={() => props.onChange?.(textValueToNumeric(textValue))}
       intlConfig={{ locale: 'fi-FI' }}
-      customInput={CurrencyTextField}
+      customInput={props?.readOnly ? FormattedCurrencyField : CurrencyTextField}
     />
   );
 }
