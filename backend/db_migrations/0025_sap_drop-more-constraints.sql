@@ -1,0 +1,6 @@
+ALTER TABLE sap_project
+ALTER COLUMN plant DROP NOT NULL;
+
+ALTER TABLE sap_wbs
+ALTER COLUMN reason_for_investment DROP NOT NULL,
+ALTER COLUMN priority DROP NOT NULL;

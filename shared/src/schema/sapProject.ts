@@ -15,7 +15,7 @@ export const incomingActivitySchema = z.object({
   PSPHI: z.string(),
   PSPEL: z.string(),
   PRCTR: z.string(),
-  WERKS: z.string(),
+  WERKS: z.string().nullish(),
 });
 
 export type IncomingActivity = z.infer<typeof incomingActivitySchema>;
@@ -30,7 +30,7 @@ export const incomingNetworkSchema = z.object({
   GSTRI: isoDateString.nullish(),
   GETRI: isoDateString.nullish(),
   BUKRS: z.string(),
-  WERKS: z.string(),
+  WERKS: z.string().nullish(),
   IDAT2: isoDateString.nullish(),
   PRCTR: z.string().nullish(),
   ACTIVITY: z.array(incomingActivitySchema),
@@ -51,10 +51,10 @@ export const incomingWBSSchema = z.object({
   AKSTL: z.string().nullish(),
   FKSTL: z.string().nullish(),
   PRART: z.string(),
-  PSPRI: z.string(),
-  WERKS: z.string(),
+  PSPRI: z.string().nullish(),
+  WERKS: z.string().nullish(),
   TADAT: isoDateString.nullish(),
-  IZWEK: z.string(),
+  IZWEK: z.string().nullish(),
   IUMKZ: z.string().nullish(),
   STUFE: z.string(),
   NETWORK: incomingNetworkSchema.nullish(),
@@ -69,12 +69,12 @@ export const incomingSapProjectSchema = z.object({
   ERDAT: isoDateString,
   ERNAM: z.string(),
   AEDAT: isoDateString.nullish(),
-  AENAM: z.string(),
+  AENAM: z.string().nullish(),
   VERNA: z.string(),
   ASTNA: z.string(),
   PLFAZ: isoDateString.nullish(),
   PLSEZ: isoDateString.nullish(),
-  WERKS: z.string(),
+  WERKS: z.string().nullish(),
   WBS: z.array(incomingWBSSchema),
 });
 
@@ -93,7 +93,7 @@ export const sapActivity = z.object({
   sapProjectInternalId: z.string(),
   wbsInternalId: z.string(),
   profitCenter: z.string(),
-  plant: z.string(),
+  plant: z.string().nullish(),
 });
 
 export type SAPActivity = z.infer<typeof sapActivity>;
@@ -108,7 +108,7 @@ export const sapNetworkSchema = z.object({
   actualStartDate: isoDateString.nullish(),
   actualFinishDate: isoDateString.nullish(),
   companyCode: z.string(),
-  plant: z.string(),
+  plant: z.string().nullish(),
   technicalCompletionDate: isoDateString.nullish(),
   profitCenter: z.string().nullish(),
   activities: z.array(sapActivity),
@@ -129,8 +129,8 @@ export const sapWBSSchema = z.object({
   requestingCostCenter: z.string().nullish(),
   responsibleCostCenter: z.string().nullish(),
   projectType: z.string(),
-  priority: z.string(),
-  plant: z.string(),
+  priority: z.string().nullish(),
+  plant: z.string().nullish(),
   technicallyCompletedAt: isoDateString.nullish(),
   reasonForInvestment: z.string(),
   reasonForEnvironmentalInvestment: z.string().nullish(),
@@ -152,7 +152,7 @@ export const sapProjectSchema = z.object({
   applicantName: z.string(),
   plannedStartDate: isoDateString.nullish(),
   plannedEndDate: isoDateString.nullish(),
-  plant: z.string(),
+  plant: z.string().nullish(),
   wbs: z.array(sapWBSSchema),
 });
 
