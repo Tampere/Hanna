@@ -87,7 +87,7 @@ async function insertProject(conn: DatabaseTransactionConnection, project: SAPPr
       ${project.createdAt},
       ${project.createdBy},
       ${project.updatedAt ?? null},
-      ${project.updatedBy},
+      ${project.updatedBy ?? null},
       ${project.projectManagerName},
       ${project.applicantName},
       ${project.plannedStartDate ?? null},
@@ -136,7 +136,7 @@ async function insertWBS(conn: DatabaseTransactionConnection, wbsItems: SAPProje
         ${wbs.priority ?? null},
         ${wbs.plant ?? null},
         ${wbs.technicallyCompletedAt ?? null},
-        ${wbs.reasonForInvestment},
+        ${wbs.reasonForInvestment ?? null},
         ${wbs.reasonForEnvironmentalInvestment ?? null},
         ${wbs.hierarchyLevel}
      )
