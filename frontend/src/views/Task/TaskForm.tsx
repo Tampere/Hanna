@@ -12,6 +12,7 @@ import { FormDatePicker, FormField } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
+import { getRequiredFields } from '@frontend/utils/form';
 
 import { UpsertTask, upsertTaskSchema } from '@shared/schema/task';
 
@@ -23,7 +24,7 @@ const newProjectFormStyle = css`
 interface Props {
   projectObjectId: string;
   task?: UpsertTask | null;
-  onSubmit: () => void;
+  onSubmit?: () => void;
 }
 
 export function TaskForm(props: Props) {
@@ -60,6 +61,9 @@ export function TaskForm(props: Props) {
         }
       })
     ),
+    context: {
+      requiredFields: getRequiredFields(upsertTaskSchema),
+    },
     defaultValues: props.task ?? {
       projectObjectId: props.projectObjectId,
       taskName: '',
@@ -88,18 +92,22 @@ export function TaskForm(props: Props) {
     onSuccess: (data) => {
       setEditing(false);
       form.reset(data);
-      props.onSubmit();
+      props.onSubmit?.();
 
       notify({
         severity: 'success',
-        title: tr('taskForm.notifyUpsertSuccess'),
+        title: props.task?.id
+          ? tr('taskForm.notifyUpdateSuccess')
+          : tr('taskForm.notifyCreateSuccess'),
         duration: 5000,
       });
     },
     onError: () => {
       notify({
         severity: 'error',
-        title: tr('taskForm.notifyUpsertFailure'),
+        title: props.task?.id
+          ? tr('taskForm.notifyUpdateFailure')
+          : tr('taskForm.notifyCreateFailure'),
       });
     },
   });
@@ -112,7 +120,7 @@ export function TaskForm(props: Props) {
     <FormProvider {...form}>
       {props.task && (
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant="overline">{tr('projectObject.formTitle')}</Typography>
+          <Typography variant="overline">{tr('taskForm.title')}</Typography>
           {!form.formState.isDirty && !editing ? (
             <Button
               variant="contained"
@@ -140,7 +148,7 @@ export function TaskForm(props: Props) {
       )}
       <form css={newProjectFormStyle} onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
         <FormField
-          formField="projectName"
+          formField="taskName"
           label={tr('taskForm.taskNameLabel')}
           tooltip={tr('taskForm.taskNameTooltip')}
           component={(field) => (

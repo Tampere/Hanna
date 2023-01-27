@@ -12,7 +12,7 @@ export const upsertProjectObjectSchema = z.object({
   objectType: codeId,
   objectCategory: codeId,
   objectUsage: codeId,
-  personResponsible: z.string(),
+  personResponsible: nonEmptyString,
   startDate: isoDateString,
   endDate: isoDateString,
   sapWBSId: nonEmptyString.optional().nullable(),

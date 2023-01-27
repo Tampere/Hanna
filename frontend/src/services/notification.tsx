@@ -4,7 +4,7 @@ import { Alert, AlertTitle, Box, IconButton, Stack } from '@mui/material';
 import { atom, useAtom, useSetAtom } from 'jotai';
 
 const notificationContainerStyle = css`
-  z-index: 500;
+  z-index: 2000;
   position: fixed;
   top: 8px;
   left: 50%;

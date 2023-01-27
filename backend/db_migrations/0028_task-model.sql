@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS "task_history" (
 CREATE OR REPLACE FUNCTION task_history_trigger() RETURNS trigger AS $$
 DECLARE old_row_json JSONB;
 BEGIN IF (TG_OP = 'UPDATE') THEN old_row_json = row_to_json(OLD);
-INSERT INTO "task_history" (row_data, updated_by, project_object_id)
+INSERT INTO app.task_history (row_data, updated_by, task_id)
 VALUES (old_row_json, OLD.updated_by, NEW.id);
 END IF;
 RETURN NEW;

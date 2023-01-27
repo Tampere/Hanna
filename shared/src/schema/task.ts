@@ -6,7 +6,7 @@ import { isoDateString, nonEmptyString } from './common';
 export const upsertTaskSchema = z.object({
   id: z.string().optional(),
   projectObjectId: z.string(),
-  taskName: z.string(),
+  taskName: nonEmptyString,
   description: nonEmptyString,
   lifecycleState: codeId,
   taskType: codeId,
@@ -27,3 +27,5 @@ export const taskIdSchema = z.object({
 });
 
 export type UpsertTask = z.infer<typeof upsertTaskSchema>;
+
+export type DbTask = z.infer<typeof dbTaskSchema>;
