@@ -51,7 +51,7 @@
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.6",
     "@mui/x-date-pickers": "^5.0.15",
-    "@tanstack/react-query": "^4.22.4",
+    "@tanstack/react-query": "^4.24.4",
     "@trpc/client": "^10.9.0",
     "@trpc/react-query": "^10.9.0",
     "@trpc/server": "^10.9.0",
