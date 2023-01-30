@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { Euro, Map } from '@mui/icons-material';
+import { Assignment, Euro, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
@@ -14,12 +14,13 @@ import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
 import { TranslationKey, useTranslations } from '@frontend/stores/lang';
+import Tasks from '@frontend/views/Task/Tasks';
 
 import { DeleteProjectObjectDialog } from './DeleteProjectObjectDialog';
 import { ProjectObjectFinances } from './ProjectObjectFinances';
 import { ProjectObjectForm } from './ProjectObjectForm';
 
-type TabView = 'default' | 'talous';
+type TabView = 'default' | 'talous' | 'tehtavat';
 
 interface Tab {
   tabView: TabView;
@@ -49,6 +50,12 @@ function projectObjectTabs(projectId: string, projectObjectId: string): Tab[] {
       label: 'project.financeTabLabel',
       icon: <Euro fontSize="small" />,
     },
+    {
+      tabView: 'tehtavat',
+      url: `/hanke/${projectId}/kohde/${projectObjectId}/tehtavat`,
+      label: 'task.tasks',
+      icon: <Assignment fontSize="small" />,
+    },
   ];
 }
 
@@ -67,8 +74,6 @@ export function ProjectObject() {
   const tabView = routeParams.tabView || 'default';
   const tabs = projectObjectTabs(routeParams.projectId, projectObjectId);
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
-
-  console.log({ tabView, tabs, tabIndex, tab: tabs[tabIndex] });
 
   const projectObject = trpc.projectObject.get.useQuery(
     {
@@ -217,6 +222,7 @@ export function ProjectObject() {
                   projectObject={projectObject.data}
                 />
               )}
+              {routeParams.tabView === 'tehtavat' && <Tasks projectObjectId={projectObjectId} />}
             </Box>
           )}
         </Paper>

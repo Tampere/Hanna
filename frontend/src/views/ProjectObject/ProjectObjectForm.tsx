@@ -14,6 +14,7 @@ import { FormDatePicker, FormField } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
+import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
 import { UpsertProjectObject, upsertProjectObjectSchema } from '@shared/schema/projectObject';
@@ -64,6 +65,9 @@ export function ProjectObjectForm(props: Props) {
         }
       })
     ),
+    context: {
+      requiredFields: getRequiredFields(upsertProjectObjectSchema),
+    },
     defaultValues: props.projectObject ?? {
       projectId: props.projectId,
       objectName: '',
@@ -280,6 +284,7 @@ export function ProjectObjectForm(props: Props) {
             <TextField
               {...readonlyProps}
               {...field}
+              value={field.value ?? ''}
               size="small"
               type="number"
               InputProps={{

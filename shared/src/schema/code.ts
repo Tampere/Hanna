@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { Language, languages } from '../language';
 
-const codeIdRegex = /^(0[1-9]|[1-9][0-9])$/;
+const codeIdRegex = /^\d{0,4}$/;
 
 export const codeId = z.string().regex(codeIdRegex);
 
@@ -19,6 +19,8 @@ const codeListIdSchema = z.enum([
   'KohteenMaanomistusLaji',
   'KohteenSuhdePeruskiinteistoon',
   'Lautakunta',
+  'TehtäväTyyppi',
+  'TehtävänElinkaarentila',
 ]);
 
 export const codeIdSchema = z.object({
