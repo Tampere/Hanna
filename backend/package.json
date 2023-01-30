@@ -51,7 +51,7 @@
     "@fastify/static": "^6.6.1",
     "@trpc/client": "^10.9.0",
     "@trpc/server": "^10.9.0",
-    "axios": "^1.2.3",
+    "axios": "^1.2.6",
     "connect-pg-simple": "^8.0.0",
     "dotenv": "^16.0.3",
     "fast-json-stable-stringify": "^2.1.0",
