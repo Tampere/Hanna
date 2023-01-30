@@ -3,10 +3,12 @@ import { trpc } from '@frontend/client';
 import { Language } from '@shared/language';
 import { CodeId } from '@shared/schema/code';
 
-export function useCodes(codeListId: CodeId['codeListId']) {
-  const { data } = trpc.code.get.useQuery({ codeListId });
+type CodeMap = Map<string, { [language in Language]: string }>;
 
-  return data?.reduce<Map<string, { [language in Language]: string }>>((codes, code) => {
+export function useCodes(codeListId: CodeId['codeListId']) {
+  const { data } = trpc.code.get.useQuery({ codeListId }, { staleTime: 60 * 60 * 1000 });
+
+  return data?.reduce<CodeMap>((codes, code) => {
     codes.set(code.id.id, code.text);
     return codes;
   }, new Map());

@@ -28,7 +28,7 @@ type Props = {
 );
 
 export function CodeSelect({ id, codeListId, multiple, value, readOnly, onChange, onBlur }: Props) {
-  const codes = trpc.code.get.useQuery({ codeListId });
+  const codes = trpc.code.get.useQuery({ codeListId }, { staleTime: 60 * 60 * 1000 });
   const lang = useAtomValue(langAtom);
   const tr = useTranslations();
 

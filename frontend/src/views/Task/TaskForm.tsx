@@ -16,7 +16,7 @@ import { getRequiredFields } from '@frontend/utils/form';
 
 import { UpsertTask, upsertTaskSchema } from '@shared/schema/task';
 
-const newProjectFormStyle = css`
+const newTaskFormStyle = css`
   display: grid;
   margin-top: 16px;
 `;
@@ -146,7 +146,7 @@ export function TaskForm(props: Props) {
           )}
         </Box>
       )}
-      <form css={newProjectFormStyle} onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
+      <form css={newTaskFormStyle} onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
         <FormField
           formField="taskName"
           label={tr('taskForm.taskNameLabel')}

@@ -1,9 +1,8 @@
 import { TRPCError } from '@trpc/server';
-import { sql } from 'slonik';
 import { nonEmptyString } from 'tre-hanna-shared/src/schema/common';
 import { z } from 'zod';
 
-import { getPool } from '@backend/db';
+import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 
 import {
@@ -69,7 +68,7 @@ async function getTask(id: string) {
 }
 
 async function deleteTask(id: string) {
-  const task = await getPool().any(sql.type(taskIdSchema)`
+  const task = await getPool().any(sql.untyped`
     UPDATE app.task
     SET
       deleted = true
@@ -99,9 +98,9 @@ export const createTaskRouter = (t: TRPC) =>
       .input(z.object({ projectObjectId: nonEmptyString }))
       .query(async ({ input }) => {
         return getPool().any(sql.type(dbTaskSchema)`
-      ${taskFragment}
-      AND project_object_id = ${input.projectObjectId}
-    `);
+          ${taskFragment}
+          AND project_object_id = ${input.projectObjectId}
+        `);
       }),
 
     delete: t.procedure.input(taskIdSchema).mutation(async ({ input }) => {

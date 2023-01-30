@@ -20,7 +20,7 @@ import { DeleteProjectObjectDialog } from './DeleteProjectObjectDialog';
 import { ProjectObjectFinances } from './ProjectObjectFinances';
 import { ProjectObjectForm } from './ProjectObjectForm';
 
-type TabView = 'default' | 'talous' | 'tehtävät';
+type TabView = 'default' | 'talous' | 'tehtavat';
 
 interface Tab {
   tabView: TabView;
@@ -51,8 +51,8 @@ function projectObjectTabs(projectId: string, projectObjectId: string): Tab[] {
       icon: <Euro fontSize="small" />,
     },
     {
-      tabView: 'tehtävät',
-      url: `/hanke/${projectId}/kohde/${projectObjectId}/tehtävät`,
+      tabView: 'tehtavat',
+      url: `/hanke/${projectId}/kohde/${projectObjectId}/tehtavat`,
       label: 'task.tasks',
       icon: <Assignment fontSize="small" />,
     },
@@ -222,7 +222,7 @@ export function ProjectObject() {
                   projectObject={projectObject.data}
                 />
               )}
-              {routeParams.tabView === 'tehtävät' && <Tasks projectObjectId={projectObjectId} />}
+              {routeParams.tabView === 'tehtavat' && <Tasks projectObjectId={projectObjectId} />}
             </Box>
           )}
         </Paper>

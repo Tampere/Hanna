@@ -6,6 +6,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Typography,
   css,
 } from '@mui/material';
 
@@ -50,11 +51,21 @@ export function TaskList({ projectObjectId }: Props) {
           >
             <TableHead>
               <TableRow>
-                <TableCell css={stickyColumnStyle}>{tr('taskForm.taskNameLabel')}</TableCell>
-                <TableCell>{tr('taskForm.lifecycleStateLabel')}</TableCell>
-                <TableCell>{tr('taskForm.taskTypeLabel')}</TableCell>
-                <TableCell>{tr('taskForm.startDateLabel')}</TableCell>
-                <TableCell>{tr('taskForm.endDateLabel')}</TableCell>
+                <TableCell css={stickyColumnStyle}>
+                  <Typography variant="overline">{tr('taskForm.taskNameLabel')}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="overline">{tr('taskForm.lifecycleStateLabel')}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="overline">{tr('taskForm.taskTypeLabel')}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="overline">{tr('taskForm.startDateLabel')}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="overline">{tr('taskForm.endDateLabel')}</Typography>
+                </TableCell>
                 {/* TODO aggregate columns for financial data */}
               </TableRow>
             </TableHead>

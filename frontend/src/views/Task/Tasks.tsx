@@ -1,6 +1,6 @@
 import { AddCircle, Undo } from '@mui/icons-material';
 import { Button } from '@mui/material';
-import { Box, css } from '@mui/system';
+import { Box } from '@mui/system';
 import { useState } from 'react';
 
 import { useTranslations } from '@frontend/stores/lang';
@@ -19,10 +19,11 @@ export default function Tasks({ projectObjectId }: Props) {
   return (
     <Box>
       <Box
-        css={css`
-          display: flex;
-          justify-content: flex-end;
-        `}
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          mb: 2,
+        }}
       >
         <Button
           variant="contained"
