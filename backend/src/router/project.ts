@@ -1,8 +1,7 @@
 import { TRPCError } from '@trpc/server';
-import { sql } from 'slonik';
 import { z } from 'zod';
 
-import { getPool } from '@backend/db';
+import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 
 import {
@@ -16,7 +15,6 @@ import {
   projectSearchResultSchema,
   projectSearchSchema,
   relationsSchema,
-  updateCostEstimatesSchema,
   updateGeometryResultSchema,
   updateGeometrySchema,
   upsertProjectSchema,
@@ -360,9 +358,20 @@ export const createProjectRouter = (t: TRPC) =>
     }),
 
     updateCostEstimates: t.procedure
-      .input(updateCostEstimatesSchema)
+      .input(
+        z
+          .object({
+            projectId: z.string().optional(),
+            projectObjectId: z.string().optional(),
+            taskId: z.string().optional(),
+            costEstimates: z.array(costEstimateSchema),
+          })
+          .refine((input) => input.projectId || input.projectObjectId || input.taskId, {
+            message: 'projectId, projectObjectId or taskId must be provided',
+          })
+      )
       .mutation(async ({ input }) => {
-        const { projectId, projectObjectId, costEstimates } = input;
+        const { projectId, projectObjectId, taskId, costEstimates } = input;
         const newRows = costEstimates.reduce(
           (rows, item) => [
             ...rows,
@@ -373,19 +382,24 @@ export const createProjectRouter = (t: TRPC) =>
           [] as { year: number; amount: number }[]
         );
         await getPool().transaction(async (connection) => {
-          await connection.any(
-            sql.type(z.any())`
-              DELETE FROM app.cost_estimate
-              WHERE project_id = ${projectId} AND project_object_id ${
-              projectObjectId ? sql.fragment`= ${projectObjectId}` : sql.fragment`IS NULL`
-            }`
-          );
+          await connection.any(sql.untyped`
+            DELETE FROM app.cost_estimate
+            WHERE (project_id = ${projectId ?? null} OR
+                   project_object_id = ${projectObjectId ?? null} OR
+                   task_id = ${taskId ?? null})
+          `);
           await Promise.all(
             newRows.map((row) =>
-              connection.any(sql.type(z.any())`
-          INSERT INTO app.cost_estimate (project_id, project_object_id, year, amount)
-          VALUES (${projectId}, ${projectObjectId ?? null}, ${row.year}, ${row.amount})
-        `)
+              connection.any(sql.untyped`
+                INSERT INTO app.cost_estimate (project_id, project_object_id, task_id, year, amount)
+                VALUES (
+                  ${projectId ?? null},
+                  ${projectObjectId ?? null},
+                  ${taskId ?? null},
+                  ${row.year},
+                  ${row.amount}
+                )
+              `)
             )
           );
         });

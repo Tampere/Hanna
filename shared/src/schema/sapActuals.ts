@@ -41,3 +41,12 @@ export const sapActualSchema = z.object({
 export type SAPActual = z.infer<typeof sapActualSchema>;
 
 export const sapActualsSchema = z.array(sapActualSchema);
+
+export const yearlyActualsSchema = z.array(
+  z.object({
+    year: z.number(),
+    total: z.number().int(),
+  })
+);
+
+export type YearlyActuals = z.infer<typeof yearlyActualsSchema>;

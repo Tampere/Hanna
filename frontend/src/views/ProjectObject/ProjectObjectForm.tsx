@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AddCircle, Edit, Save, Undo } from '@mui/icons-material';
-import { Box, Button, InputAdornment, TextField, Typography } from '@mui/material';
+import { Box, Button, InputAdornment, TextField } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
@@ -12,6 +12,7 @@ import { z } from 'zod';
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
+import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { getRequiredFields } from '@frontend/utils/form';
@@ -128,12 +129,10 @@ export function ProjectObjectForm(props: Props) {
 
   return (
     <FormProvider {...form}>
-      {!props.projectObject && (
-        <Typography variant="overline">{tr('newProjectObject.title')}</Typography>
-      )}
+      {!props.projectObject && <SectionTitle title={tr('newProjectObject.title')} />}
       {props.projectObject && (
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant="overline">{tr('projectObject.formTitle')}</Typography>
+          <SectionTitle title={tr('projectObject.formTitle')} />
           {!form.formState.isDirty && !editing ? (
             <Button
               variant="contained"

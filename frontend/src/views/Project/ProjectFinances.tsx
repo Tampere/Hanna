@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
@@ -45,10 +45,25 @@ export function ProjectFinances(props: Props) {
     },
   });
 
+  const yearlyActuals = trpc.sap.getYearlyActualsByProjectId.useQuery(
+    {
+      projectId: project?.id as string,
+      startYear: dayjs(project?.startDate).year(),
+      endYear: dayjs(project?.endDate).year(),
+    },
+    { enabled: Boolean(project?.id) }
+  );
+
+  useEffect(() => {
+    yearlyActuals.refetch();
+  }, [project?.sapProjectId]);
+
   return !estimates?.data || !project ? null : (
     <CostEstimatesTable
       years={projectYears}
       estimates={estimates.data}
+      actuals={yearlyActuals.data}
+      actualsLoading={yearlyActuals.isFetching}
       onSave={async (costEstimates) => {
         await saveEstimatesMutation.mutateAsync({
           projectId: project.id,

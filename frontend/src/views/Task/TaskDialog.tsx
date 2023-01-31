@@ -1,7 +1,13 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, css } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, css } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
+import dayjs from 'dayjs';
+import { useMemo } from 'react';
 
+import { trpc } from '@frontend/client';
+import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
+import { getRange } from '@frontend/utils/array';
+import { CostEstimatesTable } from '@frontend/views/Project/CostEstimatesTable';
 
 import { DbTask } from '@shared/schema/task';
 
@@ -29,6 +35,34 @@ export function TaskDialog(props: Props) {
   const { projectObjectId, task, open, onClose } = props;
   const queryClient = useQueryClient();
   const tr = useTranslations();
+  const notify = useNotifications();
+
+  const estimates = !task.id ? null : trpc.task.getCostEstimates.useQuery({ id: task.id });
+
+  const years = useMemo(() => {
+    if (!task?.startDate || !task?.endDate) {
+      return [];
+    }
+    const startYear = dayjs(task.startDate).get('year');
+    const endYear = dayjs(task.endDate).get('year');
+    return getRange(startYear, endYear);
+  }, [task?.startDate, task?.endDate]);
+
+  const saveEstimatesMutation = trpc.project.updateCostEstimates.useMutation({
+    onSuccess() {
+      notify({
+        severity: 'success',
+        title: tr('costEstimatesTable.notifySave'),
+        duration: 5000,
+      });
+    },
+    onError() {
+      notify({
+        severity: 'error',
+        title: tr('costEstimatesTable.notifySaveFailed'),
+      });
+    },
+  });
 
   function invalidateTasks() {
     queryClient.invalidateQueries({
@@ -47,7 +81,24 @@ export function TaskDialog(props: Props) {
             invalidateTasks();
           }}
         />
-        {/* TODO finance section */}
+
+        <Box sx={{ mt: 4 }}>
+          {!estimates?.data ? null : (
+            <CostEstimatesTable
+              years={years}
+              estimates={estimates.data}
+              actuals={null}
+              actualsLoading={false}
+              onSave={async (costEstimates) => {
+                await saveEstimatesMutation.mutateAsync({
+                  taskId: task.id,
+                  costEstimates,
+                });
+                estimates?.refetch();
+              }}
+            />
+          )}
+        </Box>
       </DialogContent>
       <DialogActions css={dialogActionsStyle}>
         <DeleteTaskDialog

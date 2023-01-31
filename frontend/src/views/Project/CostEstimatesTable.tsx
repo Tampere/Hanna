@@ -2,6 +2,7 @@ import { Edit, Save, Undo } from '@mui/icons-material';
 import {
   Box,
   Button,
+  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -9,20 +10,25 @@ import {
   TableHead,
   TableRow,
   Typography,
+  css,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { FormField } from '@frontend/components/forms';
 import { CurrencyInput } from '@frontend/components/forms/CurrencyInput';
+import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { CostEstimate } from '@shared/schema/project';
+import { YearlyActuals } from '@shared/schema/sapActuals';
 
 interface Props {
   years: number[];
   estimates: readonly CostEstimate[];
   onSave: (estimates: CostEstimate[]) => Promise<void>;
+  actuals?: YearlyActuals | null;
+  actualsLoading?: boolean;
 }
 
 type EstimateFormValues = Record<string, number | null>;
@@ -43,6 +49,10 @@ function formValuesToEstimates(values: EstimateFormValues, projectYears: number[
     estimates: [{ amount: values[year] ?? null }],
   }));
 }
+
+const cellMinWidthStyle = css`
+  min-width: 256px;
+`;
 
 export function CostEstimatesTable(props: Props) {
   const { years, estimates, onSave } = props;
@@ -72,7 +82,8 @@ export function CostEstimatesTable(props: Props) {
 
   return !estimates ? null : (
     <>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+        <SectionTitle title={tr('costEstimatesTable.title')} />
         {!editing ? (
           <Button
             variant="contained"
@@ -106,12 +117,21 @@ export function CostEstimatesTable(props: Props) {
                   <TableCell>
                     <Typography variant="overline">{tr('costEstimatesTable.year')}</Typography>
                   </TableCell>
-                  <TableCell>
+                  <TableCell css={cellMinWidthStyle}>
                     <Typography variant="overline"> {tr('costEstimatesTable.estimate')}</Typography>
                   </TableCell>
-                  <TableCell>
-                    <Typography variant="overline">{tr('costEstimatesTable.actual')}</Typography>
+                  <TableCell css={cellMinWidthStyle}>
+                    <span
+                      css={css`
+                        display: flex;
+                        align-items: center;
+                      `}
+                    >
+                      <Typography variant="overline">{tr('costEstimatesTable.actual')}</Typography>
+                      {props.actualsLoading && <CircularProgress sx={{ ml: 1 }} size={16} />}
+                    </span>
                   </TableCell>
+                  <TableCell sx={{ width: '100%' }} />
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -134,8 +154,14 @@ export function CostEstimatesTable(props: Props) {
                       />
                     </TableCell>
                     <TableCell>
-                      <CurrencyInput readOnly value={null} /> {/* TODO */}
+                      {!props.actualsLoading ? (
+                        <CurrencyInput
+                          readOnly
+                          value={props.actuals?.find((data) => data.year === year)?.total || null}
+                        />
+                      ) : null}
                     </TableCell>
+                    <TableCell />
                   </TableRow>
                 ))}
                 <TableRow>
@@ -154,24 +180,32 @@ export function CostEstimatesTable(props: Props) {
                     />
                   </TableCell>
                   <TableCell>
-                    <CurrencyInput readOnly value={null} />
+                    {!props.actualsLoading ? (
+                      <CurrencyInput
+                        readOnly
+                        value={
+                          props.actuals?.reduce((total, yearData) => {
+                            return total + yearData.total;
+                          }, 0) || null
+                        }
+                      />
+                    ) : null}
                   </TableCell>
+                  <TableCell />
                 </TableRow>
               </TableBody>
             </Table>
           </TableContainer>
-          {editing && (
-            <Button
-              size="small"
-              type="submit"
-              variant="contained"
-              sx={{ mt: 2 }}
-              disabled={!form.formState.isDirty}
-              endIcon={<Save />}
-            >
-              {tr('projectForm.saveBtnLabel')}
-            </Button>
-          )}
+          <Button
+            size="small"
+            type="submit"
+            variant="contained"
+            sx={{ mt: 2, float: 'right' }}
+            disabled={!form.formState.isDirty}
+            endIcon={<Save />}
+          >
+            {tr('projectForm.saveBtnLabel')}
+          </Button>
         </form>
       </FormProvider>
     </>

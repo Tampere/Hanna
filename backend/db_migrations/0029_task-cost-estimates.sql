@@ -1,0 +1,3 @@
+ALTER TABLE cost_estimate
+ADD COLUMN task_id UUID,
+ADD CONSTRAINT fk_task FOREIGN KEY (task_id) REFERENCES task(id) ON DELETE CASCADE;
