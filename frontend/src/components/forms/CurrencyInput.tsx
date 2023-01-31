@@ -1,5 +1,5 @@
-import { Input, InputAdornment, InputBase, TextField, TextFieldProps } from '@mui/material';
-import { Ref, useEffect, useMemo, useState } from 'react';
+import { InputAdornment, InputBase, TextField, TextFieldProps } from '@mui/material';
+import { Ref, useEffect, useMemo, useRef, useState } from 'react';
 import CurrencyInputField from 'react-currency-input-field';
 
 interface Props {
@@ -44,11 +44,15 @@ export function CurrencyInput(props: Props) {
   const { editing, TextFieldProps } = props;
   const [textValue, setTextValue] = useState<string>('');
 
+  const inputRef = useRef<HTMLInputElement>();
+
   /**
    * Update value when updated from the outside
    */
   useEffect(() => {
-    setTextValue(numericValueToText(props.value));
+    if (inputRef.current !== document.activeElement) {
+      setTextValue(numericValueToText(props.value));
+    }
   }, [props.value]);
 
   const editingProps = useMemo<TextFieldProps>(() => {
@@ -83,7 +87,7 @@ export function CurrencyInput(props: Props) {
           variant="outlined"
           size="small"
           {...editingProps}
-          inputProps={{ style: { textAlign: 'right' } }}
+          inputProps={{ style: { textAlign: 'right' }, ref: inputRef }}
           InputProps={{
             ...editingProps.InputProps,
             endAdornment: <InputAdornment position="end">€</InputAdornment>,
@@ -105,8 +109,11 @@ export function CurrencyInput(props: Props) {
       value={textValue}
       decimalsLimit={2}
       ref={props.innerRef}
-      onValueChange={(value) => setTextValue(value ?? '')}
-      onBlur={() => props.onChange?.(textValueToNumeric(textValue))}
+      onValueChange={(value) => {
+        setTextValue(value ?? '');
+        props.onChange?.(textValueToNumeric(value));
+      }}
+      onBlur={() => setTextValue(numericValueToText(props.value))}
       intlConfig={{ locale: 'fi-FI' }}
       customInput={props?.readOnly ? FormattedCurrencyField : CurrencyTextField}
     />
