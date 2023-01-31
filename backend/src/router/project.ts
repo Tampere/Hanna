@@ -5,16 +5,19 @@ import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 
 import {
+  CostEstimatesInput,
   ProjectSearch,
   Relation,
   UpsertProject,
   costEstimateSchema,
   dbProjectSchema,
+  getCostEstimatesInputSchema,
   projectIdSchema,
   projectRelationsSchema,
   projectSearchResultSchema,
   projectSearchSchema,
   relationsSchema,
+  updateCostEstimatesInputSchema,
   updateGeometryResultSchema,
   updateGeometrySchema,
   upsertProjectSchema,
@@ -280,6 +283,16 @@ function clusterResultsFragment(zoom: number | undefined) {
   `;
 }
 
+function costEstimateWhereFragment(costEstimateInput: CostEstimatesInput) {
+  const { projectId, projectObjectId, taskId } = costEstimateInput;
+  const sqlFalse = sql.fragment`FALSE`;
+  return sql.fragment`
+    ${projectId ? sql.fragment`project_id = ${projectId}` : sqlFalse} OR
+    ${projectObjectId ? sql.fragment`project_object_id = ${projectObjectId}` : sqlFalse} OR
+    ${taskId ? sql.fragment`task_id = ${taskId}` : sqlFalse}
+  `;
+}
+
 export const createProjectRouter = (t: TRPC) =>
   t.router({
     search: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
@@ -338,9 +351,8 @@ export const createProjectRouter = (t: TRPC) =>
       `);
     }),
 
-    getCostEstimates: t.procedure.input(projectIdSchema).query(async ({ input }) => {
-      const { id } = input;
-      const result = await getPool().any(sql.type(costEstimateSchema)`
+    getCostEstimates: t.procedure.input(getCostEstimatesInputSchema).query(async ({ input }) => {
+      return getPool().any(sql.type(costEstimateSchema)`
         SELECT
           year,
           jsonb_agg(
@@ -350,28 +362,17 @@ export const createProjectRouter = (t: TRPC) =>
             )
           ) AS estimates
         FROM app.cost_estimate
-        WHERE project_id = ${id} AND project_object_id IS NULL
+        WHERE ${costEstimateWhereFragment(input)}
         GROUP BY year
         ORDER BY year ASC
       `);
-      return result;
     }),
 
     updateCostEstimates: t.procedure
-      .input(
-        z
-          .object({
-            projectId: z.string().optional(),
-            projectObjectId: z.string().optional(),
-            taskId: z.string().optional(),
-            costEstimates: z.array(costEstimateSchema),
-          })
-          .refine((input) => input.projectId || input.projectObjectId || input.taskId, {
-            message: 'projectId, projectObjectId or taskId must be provided',
-          })
-      )
+      .input(updateCostEstimatesInputSchema)
       .mutation(async ({ input }) => {
         const { projectId, projectObjectId, taskId, costEstimates } = input;
+
         const newRows = costEstimates.reduce(
           (rows, item) => [
             ...rows,
@@ -381,12 +382,11 @@ export const createProjectRouter = (t: TRPC) =>
           ],
           [] as { year: number; amount: number }[]
         );
+
         await getPool().transaction(async (connection) => {
           await connection.any(sql.untyped`
             DELETE FROM app.cost_estimate
-            WHERE (project_id = ${projectId ?? null} OR
-                   project_object_id = ${projectObjectId ?? null} OR
-                   task_id = ${taskId ?? null})
+            WHERE ${costEstimateWhereFragment(input)}
           `);
           await Promise.all(
             newRows.map((row) =>

@@ -11,15 +11,14 @@ import { DBProjectObject } from '@shared/schema/projectObject';
 import { CostEstimatesTable } from '../Project/CostEstimatesTable';
 
 interface Props {
-  projectId: string;
   projectObject: DBProjectObject;
 }
 
 export function ProjectObjectFinances(props: Props) {
-  const { projectId, projectObject } = props;
+  const { projectObject } = props;
   const estimates = !projectObject.id
     ? null
-    : trpc.projectObject.getCostEstimates.useQuery({ projectId, id: projectObject.id });
+    : trpc.project.getCostEstimates.useQuery({ projectObjectId: projectObject.id });
 
   const notify = useNotifications();
   const tr = useTranslations();

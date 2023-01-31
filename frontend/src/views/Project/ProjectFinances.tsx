@@ -16,7 +16,9 @@ interface Props {
 
 export function ProjectFinances(props: Props) {
   const { project } = props;
-  const estimates = !project ? null : trpc.project.getCostEstimates.useQuery({ id: project.id });
+  const estimates = !project
+    ? null
+    : trpc.project.getCostEstimates.useQuery({ projectId: project.id });
   const notify = useNotifications();
   const tr = useTranslations();
 

@@ -5,7 +5,6 @@ import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 
 import { nonEmptyString } from '@shared/schema/common';
-import { costEstimateSchema } from '@shared/schema/project';
 import {
   UpsertTask,
   dbTaskSchema,
@@ -107,38 +106,4 @@ export const createTaskRouter = (t: TRPC) =>
     delete: t.procedure.input(taskIdSchema).mutation(async ({ input }) => {
       return deleteTask(input.id);
     }),
-
-    getCostEstimates: t.procedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-      const { id } = input;
-      const result = await getPool().any(sql.type(costEstimateSchema)`
-        SELECT
-          year,
-          jsonb_agg(
-            jsonb_build_object(
-              'id', id,
-              'amount', amount
-            )
-          ) AS estimates
-        FROM app.cost_estimate
-        WHERE task_id = ${id}
-        GROUP BY year
-        ORDER BY year ASC
-      `);
-      return result;
-    }),
-
-    updateCostEstimates: t.procedure
-      .input(
-        z.object({
-          id: z.string(),
-          year: z.number(),
-          estimates: z.array(
-            z.object({
-              id: z.string().optional(),
-              amount: z.number(),
-            })
-          ),
-        })
-      )
-      .mutation(async ({ input }) => {}),
   });

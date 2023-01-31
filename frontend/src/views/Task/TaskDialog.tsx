@@ -37,7 +37,7 @@ export function TaskDialog(props: Props) {
   const tr = useTranslations();
   const notify = useNotifications();
 
-  const estimates = !task.id ? null : trpc.task.getCostEstimates.useQuery({ id: task.id });
+  const estimates = !task.id ? null : trpc.project.getCostEstimates.useQuery({ taskId: task.id });
 
   const years = useMemo(() => {
     if (!task?.startDate || !task?.endDate) {
@@ -87,7 +87,7 @@ export function TaskDialog(props: Props) {
             <CostEstimatesTable
               years={years}
               estimates={estimates.data}
-              actuals={null}
+              actuals={null} // TODO: coming soon
               actualsLoading={false}
               onSave={async (costEstimates) => {
                 await saveEstimatesMutation.mutateAsync({

@@ -119,3 +119,28 @@ export const costEstimateSchema = z.object({
 });
 
 export type CostEstimate = z.infer<typeof costEstimateSchema>;
+
+export const getCostEstimatesInputSchema = z.union([
+  z.object({
+    projectId: z.string(),
+    projectObjectId: z.undefined().optional(),
+    taskId: z.undefined().optional(),
+  }),
+  z.object({
+    projectId: z.undefined().optional(),
+    projectObjectId: z.string(),
+    taskId: z.undefined().optional(),
+  }),
+  z.object({
+    projectId: z.undefined().optional(),
+    projectObjectId: z.undefined().optional(),
+    taskId: z.string(),
+  }),
+]);
+
+export type CostEstimatesInput = z.infer<typeof getCostEstimatesInputSchema>;
+
+export const updateCostEstimatesInputSchema = z.intersection(
+  getCostEstimatesInputSchema,
+  z.object({ costEstimates: z.array(costEstimateSchema) })
+);
