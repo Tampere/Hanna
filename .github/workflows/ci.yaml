@@ -122,7 +122,7 @@ jobs:
           password: ${{ secrets.REGISTRY_PASSWORD }}
       # Push only with 'latest' tag for caching
       - name: Build
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           push: true
           tags: ${{ env.IMAGE_NAME }}:latest
@@ -149,7 +149,7 @@ jobs:
           password: ${{ secrets.REGISTRY_PASSWORD }}
       # Rebuild the image using the "latest" tag as cache
       - name: Build and push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           push: true
           build-args: |
