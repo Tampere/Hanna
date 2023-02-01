@@ -1,22 +1,23 @@
 import { TRPCError } from '@trpc/server';
-import { sql } from 'slonik';
 import { z } from 'zod';
 
-import { getPool } from '@backend/db';
+import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 
 import {
+  CostEstimatesInput,
   ProjectSearch,
   Relation,
   UpsertProject,
   costEstimateSchema,
   dbProjectSchema,
+  getCostEstimatesInputSchema,
   projectIdSchema,
   projectRelationsSchema,
   projectSearchResultSchema,
   projectSearchSchema,
   relationsSchema,
-  updateCostEstimatesSchema,
+  updateCostEstimatesInputSchema,
   updateGeometryResultSchema,
   updateGeometrySchema,
   upsertProjectSchema,
@@ -282,6 +283,16 @@ function clusterResultsFragment(zoom: number | undefined) {
   `;
 }
 
+function costEstimateWhereFragment(costEstimateInput: CostEstimatesInput) {
+  const { projectId, projectObjectId, taskId } = costEstimateInput;
+  const sqlFalse = sql.fragment`FALSE`;
+  return sql.fragment`
+    ${projectId ? sql.fragment`project_id = ${projectId}` : sqlFalse} OR
+    ${projectObjectId ? sql.fragment`project_object_id = ${projectObjectId}` : sqlFalse} OR
+    ${taskId ? sql.fragment`task_id = ${taskId}` : sqlFalse}
+  `;
+}
+
 export const createProjectRouter = (t: TRPC) =>
   t.router({
     search: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
@@ -340,9 +351,8 @@ export const createProjectRouter = (t: TRPC) =>
       `);
     }),
 
-    getCostEstimates: t.procedure.input(projectIdSchema).query(async ({ input }) => {
-      const { id } = input;
-      const result = await getPool().any(sql.type(costEstimateSchema)`
+    getCostEstimates: t.procedure.input(getCostEstimatesInputSchema).query(async ({ input }) => {
+      return getPool().any(sql.type(costEstimateSchema)`
         SELECT
           year,
           jsonb_agg(
@@ -352,17 +362,17 @@ export const createProjectRouter = (t: TRPC) =>
             )
           ) AS estimates
         FROM app.cost_estimate
-        WHERE project_id = ${id} AND project_object_id IS NULL
+        WHERE ${costEstimateWhereFragment(input)}
         GROUP BY year
         ORDER BY year ASC
       `);
-      return result;
     }),
 
     updateCostEstimates: t.procedure
-      .input(updateCostEstimatesSchema)
+      .input(updateCostEstimatesInputSchema)
       .mutation(async ({ input }) => {
-        const { projectId, projectObjectId, costEstimates } = input;
+        const { projectId, projectObjectId, taskId, costEstimates } = input;
+
         const newRows = costEstimates.reduce(
           (rows, item) => [
             ...rows,
@@ -372,20 +382,24 @@ export const createProjectRouter = (t: TRPC) =>
           ],
           [] as { year: number; amount: number }[]
         );
+
         await getPool().transaction(async (connection) => {
-          await connection.any(
-            sql.type(z.any())`
-              DELETE FROM app.cost_estimate
-              WHERE project_id = ${projectId} AND project_object_id ${
-              projectObjectId ? sql.fragment`= ${projectObjectId}` : sql.fragment`IS NULL`
-            }`
-          );
+          await connection.any(sql.untyped`
+            DELETE FROM app.cost_estimate
+            WHERE ${costEstimateWhereFragment(input)}
+          `);
           await Promise.all(
             newRows.map((row) =>
-              connection.any(sql.type(z.any())`
-          INSERT INTO app.cost_estimate (project_id, project_object_id, year, amount)
-          VALUES (${projectId}, ${projectObjectId ?? null}, ${row.year}, ${row.amount})
-        `)
+              connection.any(sql.untyped`
+                INSERT INTO app.cost_estimate (project_id, project_object_id, task_id, year, amount)
+                VALUES (
+                  ${projectId ?? null},
+                  ${projectObjectId ?? null},
+                  ${taskId ?? null},
+                  ${row.year},
+                  ${row.amount}
+                )
+              `)
             )
           );
         });

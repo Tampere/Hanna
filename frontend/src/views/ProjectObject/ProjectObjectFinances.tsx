@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
@@ -11,15 +11,14 @@ import { DBProjectObject } from '@shared/schema/projectObject';
 import { CostEstimatesTable } from '../Project/CostEstimatesTable';
 
 interface Props {
-  projectId: string;
   projectObject: DBProjectObject;
 }
 
 export function ProjectObjectFinances(props: Props) {
-  const { projectId, projectObject } = props;
+  const { projectObject } = props;
   const estimates = !projectObject.id
     ? null
-    : trpc.projectObject.getCostEstimates.useQuery({ projectId, id: projectObject.id });
+    : trpc.project.getCostEstimates.useQuery({ projectObjectId: projectObject.id });
 
   const notify = useNotifications();
   const tr = useTranslations();
@@ -49,13 +48,27 @@ export function ProjectObjectFinances(props: Props) {
     },
   });
 
+  const yearlyActuals = trpc.sap.getYearlyActualsByProjectObjectId.useQuery(
+    {
+      projectObjectId: projectObject.id,
+      startYear: dayjs(projectObject?.startDate).year(),
+      endYear: dayjs(projectObject?.endDate).year(),
+    },
+    { enabled: Boolean(projectObject?.id) }
+  );
+
+  useEffect(() => {
+    yearlyActuals.refetch();
+  }, [projectObject?.sapWBSId]);
+
   return !estimates?.data ? null : (
     <CostEstimatesTable
       years={years}
       estimates={estimates.data}
+      actuals={yearlyActuals.data}
+      actualsLoading={yearlyActuals.isFetching}
       onSave={async (costEstimates) => {
         await saveEstimatesMutation.mutateAsync({
-          projectId,
           projectObjectId: projectObject.id,
           costEstimates,
         });

@@ -109,6 +109,7 @@
   "errorPage.warning": "Warning",
   "errorPage.navigateBack": "Go back",
   "dateRange.quickSelections": "Quick selections",
+  "costEstimatesTable.title": "Cost estimates",
   "costEstimatesTable.year": "Year",
   "costEstimatesTable.estimate": "Estimate",
   "costEstimatesTable.actual": "Actual",

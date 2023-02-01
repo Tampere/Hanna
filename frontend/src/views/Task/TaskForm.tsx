@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AddCircle, Edit, Save, Undo } from '@mui/icons-material';
-import { Box, Button, TextField, Typography } from '@mui/material';
+import { Box, Button, TextField } from '@mui/material';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
+import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { getRequiredFields } from '@frontend/utils/form';
@@ -120,7 +121,7 @@ export function TaskForm(props: Props) {
     <FormProvider {...form}>
       {props.task && (
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant="overline">{tr('taskForm.title')}</Typography>
+          <SectionTitle title={tr('taskForm.title')} />
           {!form.formState.isDirty && !editing ? (
             <Button
               variant="contained"
@@ -221,7 +222,7 @@ export function TaskForm(props: Props) {
           </Button>
         )}
 
-        {props.task && editing && (
+        {props.task && (
           <Button
             size="small"
             type="submit"

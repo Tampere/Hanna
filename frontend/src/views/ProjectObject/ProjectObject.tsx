@@ -217,10 +217,7 @@ export function ProjectObject() {
           {routeParams.tabView && (
             <Box sx={{ m: 2 }}>
               {routeParams.tabView === 'talous' && projectObject.data && (
-                <ProjectObjectFinances
-                  projectId={routeParams.projectId}
-                  projectObject={projectObject.data}
-                />
+                <ProjectObjectFinances projectObject={projectObject.data} />
               )}
               {routeParams.tabView === 'tehtavat' && <Tasks projectObjectId={projectObjectId} />}
             </Box>

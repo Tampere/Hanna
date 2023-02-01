@@ -345,24 +345,24 @@ async function maybeCacheSapActuals(projectId: string, year: string, actuals: SA
   return actuals;
 }
 
-export async function getSapActuals(projectId: string, year: string) {
-  logger.info(`Getting SAP actuals for ${projectId}, year ${year}...`);
+export async function getSapActuals(sapProjectId: string, year: string) {
+  logger.info(`Getting SAP actuals for ${sapProjectId}, year ${year}...`);
 
-  const cachedActuals = await getCachedSapActuals(projectId, year);
+  const cachedActuals = await getCachedSapActuals(sapProjectId, year);
   if (cachedActuals) {
-    logger.info(`Found recently cached SAP actuals for ${projectId}, year ${year}...`);
+    logger.info(`Found recently cached SAP actuals for ${sapProjectId}, year ${year}...`);
     return cachedActuals;
   } else {
-    logger.info(`No recent cache entry for ${projectId}, year ${year} actuals, fetching...`);
+    logger.info(`No recent cache entry for ${sapProjectId}, year ${year} actuals, fetching...`);
     const wsClient = ActualsService.getClient();
     const [startDate, endDate] = iso8601DateYearRange(year);
     const wsResult = await wsClient.SI_ZPS_WS_GET_ACTUALSAsync({
-      I_PSPID: projectId,
+      I_PSPID: sapProjectId,
       I_BUDAT_BEGDA: startDate,
       I_BUDAT_ENDDA: endDate,
     });
     // JSON response in the first element of the array
     const actuals = transformActuals(wsResult[0]);
-    return maybeCacheSapActuals(projectId, year, actuals);
+    return maybeCacheSapActuals(sapProjectId, year, actuals);
   }
 }

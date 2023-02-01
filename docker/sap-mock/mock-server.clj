@@ -12,16 +12,16 @@
 ;; Randomisation utilities
 ;;
 
-(defonce random (java.util.Random.))
+(def ^{:dynamic true} *random*)
 
 (defn set-seed! [seed]
-  (.setSeed random seed))
+  (.setSeed *random* seed))
 
 (defn rand-int [max-value]
-  (.nextInt random max-value))
+  (.nextInt *random* max-value))
 
 (defn rand-nth [seq]
-  (nth seq (.nextInt random (count seq))))
+  (nth seq (.nextInt *random* (count seq))))
 
 (defn generate-project-description [area]
   (str area ", " (rand-nth ["yleiskaava" "kehitys" "asemakaava" "investointihanke" "ylläpito"])))
@@ -40,10 +40,8 @@
   (let [value (rand-int max-value)]
     (format (str "%0" length "d") value)))
 
-(defn generate-random-date [start random-days]
-  (if (rand-nth [true false])
-    (.plusDays start (rand-int (+ random-days 1)))
-    (.minusDays start (rand-int (+ random-days 1)))))
+(defn generate-random-date [start upper-range-days]
+  (.plusDays start (rand-int (+ upper-range-days 1))))
 
 (defn generate-date-between [start end]
   (let [days-between (.until start end java.time.temporal.ChronoUnit/DAYS)]
@@ -54,12 +52,12 @@
 ;;
 
 (defn random-network
-  [{:keys [activity-count] :as config}
+  [{:keys [activity-count start-date finish-date] :as config}
    {:keys [wbs-id project-description project-internal-id project-creation-date company-code plant]}]
   (let [order-number (generate-random-id 99999999 12)
         creation-date (generate-random-date project-creation-date 30)
-        scheduled-start (generate-random-date (.plusDays creation-date 90) (rand-int 30))
-        scheduled-finish (generate-random-date (.plusDays scheduled-start 90) (rand-int 30))
+        scheduled-start (generate-date-between start-date finish-date)
+        scheduled-finish (generate-date-between scheduled-start finish-date)
         profit-center-id (generate-random-id 999999 10)
         operations-routing-number (generate-random-id 99999 10)]
     (into
@@ -107,13 +105,13 @@
         (range activity-count))]])))
 
 (defn random-wbs
-  [{:keys [wbs-count] :as config}
+  [{:keys [wbs-count start-date finish-date] :as config}
    {:keys [project-description project-id project-internal-id project-creation-date plant] :as ctx}]
   (let [wbs-created-date (.plusDays project-creation-date (rand-int 30))
         creator (generate-random-name)
         applicant (generate-random-name)
         cost-center (generate-random-id (rand-int 999999) 8)
-        technically-completed-date (.plusDays project-creation-date (rand-int (* 3 365)))]
+        technically-completed-date (generate-date-between start-date finish-date)]
     (mapv
      (fn [id]
        (let [wbs-id (generate-random-id 999999 8)]
@@ -159,13 +157,13 @@
         plant (subs plant 1)
         internal-id (generate-random-id 100000 8)
         project-creator (generate-random-name)
-        project-creation-date (generate-random-date (java.time.LocalDate/of 2020 01 01) 90)
+        project-creation-date (generate-random-date (java.time.LocalDate/of 2019 06 01) 365)
         project-updater (generate-random-name)
         project-manager (generate-random-name)
         applicant (generate-random-name)
         company-code (generate-random-id 9999 4)
-        planned-start-date (generate-random-date (.plusDays project-creation-date 90) 30)
-        planned-finish-date (generate-random-date (.plusDays planned-start-date (rand-int (* 3 365))) 30)
+        planned-start-date (generate-random-date project-creation-date 30)
+        planned-finish-date (generate-random-date (.plusDays planned-start-date (rand-int (* 5 365))) 30)
         project-description (generate-project-description area)]
     (into
      {}
@@ -175,7 +173,7 @@
       [:ERNAM (short-name project-creator)]
       [:ERDAT project-creation-date]
       [:AENAM (short-name project-updater)]
-      [:AEDAT (generate-random-date (.plusDays project-creation-date 90) 30)]
+      [:AEDAT (generate-random-date (.plusDays project-creation-date 30) 30)]
       [:VERNR (generate-random-id 100000 8)]
       [:VERNA (str (:last-name project-manager) " " (:first-name project-manager))]
       [:ASTNR (generate-random-id 100000 8)]
@@ -186,7 +184,7 @@
       [:WERKS plant]
       [:WBS
        (random-wbs
-        config
+        (assoc config :start-date planned-start-date :finish-date planned-finish-date)
         {:project-id project-id
          :project-description project-description
          :project-internal-id internal-id
@@ -195,8 +193,8 @@
          :plant plant})]])))
 
 (defn random-actuals-data [project]
-  (for [num-of-actuals (range 200)
-        :let [amount (+ (rand-int 1000) 5)
+  (for [num-of-actuals (range (+ (rand-int 1000) 250))
+        :let [amount (+ (rand-int 10000) 500)
               amount-fmt (apply str amount "." (format "%02d" (rand-int 100)))
               debit {:BEKNZ "S" :OBART "NV" :WTGBTR amount-fmt}
               credit {:BEKNZ "H" :OBART "PR" :WTGBTR (str "-" amount-fmt)}
@@ -373,19 +371,20 @@
      {:PROJECT s/Str}}}})
 
 (defn process-projectinfo-request [body]
-  (let [root-elem (-> body xml/parse-str preprocess-elem)
-        project-id (get-in root-elem [:Envelope :Body :ZPS_WS_GET_PROJECT_INFO :PROJECT])
-        [_ id] (str/split project-id #"_")
-        _ (set-seed! (Integer/parseInt id))
-        project (random-project-data project-id)]
-    (s/validate ProjectInfoSoapMessage root-elem)
-    {:status 200
-     :content-type "text/xml"
-     :body (->soap-envelope
-            [:rfc:ZPS_WS_GET_PROJECT_INFO.Response
-             {:xmlns:rfc "urn:sap-com:document:sap:rfc:functions"}
-             [:MESSAGES]
-             (generate-project-data project)])}))
+  (binding [*random* (java.util.Random.)]
+    (let [root-elem (-> body xml/parse-str preprocess-elem)
+          project-id (get-in root-elem [:Envelope :Body :ZPS_WS_GET_PROJECT_INFO :PROJECT])
+          [_ id] (str/split project-id #"_")
+          _ (set-seed! (Integer/parseInt id))
+          project (random-project-data project-id)]
+      (s/validate ProjectInfoSoapMessage root-elem)
+      {:status 200
+       :content-type "text/xml"
+       :body (->soap-envelope
+              [:rfc:ZPS_WS_GET_PROJECT_INFO.Response
+               {:xmlns:rfc "urn:sap-com:document:sap:rfc:functions"}
+               [:MESSAGES]
+               (generate-project-data project)])})))
 
 (s/defschema ActualsSoapMessage
   {:Envelope
@@ -411,23 +410,24 @@
        actuals))))
 
 (defn process-actuals-request [body]
-  (let [root-elem (-> body xml/parse-str preprocess-elem)]
-    (s/validate ActualsSoapMessage root-elem)
-    (let [params (get-in root-elem [:Envelope :Body :ZPS_WS_GET_ACTUALS])
-          project-id (:I_PSPID params)
-          query-date-range [(:I_BUDAT_BEGDA params) (:I_BUDAT_ENDDA params)]
-          [_ id] (str/split project-id #"_")
-          _ (set-seed! (Integer/parseInt id))
-          project (random-project-data project-id)
-          actuals (->> (random-actuals-data project)
-                       (filter-by-date-range query-date-range))]
-      {:status 200
-       :content-type "text/xml"
-       :body (->soap-envelope
-              [:rfc:ZPS_WS_GET_ACTUALS.Response
-               {:xmlns:rfc "urn:sap-com:document:sap:rfc:functions"}
-               [:MESSAGES]
-               (generate-actuals-data actuals)])})))
+  (binding [*random* (java.util.Random.)]
+    (let [root-elem (-> body xml/parse-str preprocess-elem)]
+      (s/validate ActualsSoapMessage root-elem)
+      (let [params (get-in root-elem [:Envelope :Body :ZPS_WS_GET_ACTUALS])
+            project-id (:I_PSPID params)
+            query-date-range [(:I_BUDAT_BEGDA params) (:I_BUDAT_ENDDA params)]
+            [_ id] (str/split project-id #"_")
+            _ (set-seed! (Integer/parseInt id))
+            project (random-project-data project-id)
+            actuals (->> (random-actuals-data project)
+                         (filter-by-date-range query-date-range))]
+        {:status 200
+         :content-type "text/xml"
+         :body (->soap-envelope
+                [:rfc:ZPS_WS_GET_ACTUALS.Response
+                 {:xmlns:rfc "urn:sap-com:document:sap:rfc:functions"}
+                 [:MESSAGES]
+                 (generate-actuals-data actuals)])}))))
 
 ;;
 ;; Web server
