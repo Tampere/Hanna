@@ -12,16 +12,16 @@
 ;; Randomisation utilities
 ;;
 
-(defonce random (java.util.Random.))
+(def ^{:dynamic true} *random*)
 
 (defn set-seed! [seed]
-  (.setSeed random seed))
+  (.setSeed *random* seed))
 
 (defn rand-int [max-value]
-  (.nextInt random max-value))
+  (.nextInt *random* max-value))
 
 (defn rand-nth [seq]
-  (nth seq (.nextInt random (count seq))))
+  (nth seq (.nextInt *random* (count seq))))
 
 (defn generate-project-description [area]
   (str area ", " (rand-nth ["yleiskaava" "kehitys" "asemakaava" "investointihanke" "ylläpito"])))
@@ -371,19 +371,20 @@
      {:PROJECT s/Str}}}})
 
 (defn process-projectinfo-request [body]
-  (let [root-elem (-> body xml/parse-str preprocess-elem)
-        project-id (get-in root-elem [:Envelope :Body :ZPS_WS_GET_PROJECT_INFO :PROJECT])
-        [_ id] (str/split project-id #"_")
-        _ (set-seed! (Integer/parseInt id))
-        project (random-project-data project-id)]
-    (s/validate ProjectInfoSoapMessage root-elem)
-    {:status 200
-     :content-type "text/xml"
-     :body (->soap-envelope
-            [:rfc:ZPS_WS_GET_PROJECT_INFO.Response
-             {:xmlns:rfc "urn:sap-com:document:sap:rfc:functions"}
-             [:MESSAGES]
-             (generate-project-data project)])}))
+  (binding [*random* (java.util.Random.)]
+    (let [root-elem (-> body xml/parse-str preprocess-elem)
+          project-id (get-in root-elem [:Envelope :Body :ZPS_WS_GET_PROJECT_INFO :PROJECT])
+          [_ id] (str/split project-id #"_")
+          _ (set-seed! (Integer/parseInt id))
+          project (random-project-data project-id)]
+      (s/validate ProjectInfoSoapMessage root-elem)
+      {:status 200
+       :content-type "text/xml"
+       :body (->soap-envelope
+              [:rfc:ZPS_WS_GET_PROJECT_INFO.Response
+               {:xmlns:rfc "urn:sap-com:document:sap:rfc:functions"}
+               [:MESSAGES]
+               (generate-project-data project)])})))
 
 (s/defschema ActualsSoapMessage
   {:Envelope
@@ -409,23 +410,24 @@
        actuals))))
 
 (defn process-actuals-request [body]
-  (let [root-elem (-> body xml/parse-str preprocess-elem)]
-    (s/validate ActualsSoapMessage root-elem)
-    (let [params (get-in root-elem [:Envelope :Body :ZPS_WS_GET_ACTUALS])
-          project-id (:I_PSPID params)
-          query-date-range [(:I_BUDAT_BEGDA params) (:I_BUDAT_ENDDA params)]
-          [_ id] (str/split project-id #"_")
-          _ (set-seed! (Integer/parseInt id))
-          project (random-project-data project-id)
-          actuals (->> (random-actuals-data project)
-                       (filter-by-date-range query-date-range))]
-      {:status 200
-       :content-type "text/xml"
-       :body (->soap-envelope
-              [:rfc:ZPS_WS_GET_ACTUALS.Response
-               {:xmlns:rfc "urn:sap-com:document:sap:rfc:functions"}
-               [:MESSAGES]
-               (generate-actuals-data actuals)])})))
+  (binding [*random* (java.util.Random.)]
+    (let [root-elem (-> body xml/parse-str preprocess-elem)]
+      (s/validate ActualsSoapMessage root-elem)
+      (let [params (get-in root-elem [:Envelope :Body :ZPS_WS_GET_ACTUALS])
+            project-id (:I_PSPID params)
+            query-date-range [(:I_BUDAT_BEGDA params) (:I_BUDAT_ENDDA params)]
+            [_ id] (str/split project-id #"_")
+            _ (set-seed! (Integer/parseInt id))
+            project (random-project-data project-id)
+            actuals (->> (random-actuals-data project)
+                         (filter-by-date-range query-date-range))]
+        {:status 200
+         :content-type "text/xml"
+         :body (->soap-envelope
+                [:rfc:ZPS_WS_GET_ACTUALS.Response
+                 {:xmlns:rfc "urn:sap-com:document:sap:rfc:functions"}
+                 [:MESSAGES]
+                 (generate-actuals-data actuals)])}))))
 
 ;;
 ;; Web server
