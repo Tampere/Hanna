@@ -48,7 +48,7 @@ export function ProjectForm(props: ProjectFormProps) {
     mode: 'all',
     resolver: zodResolver(
       upsertProjectSchema.superRefine((val, ctx) => {
-        if (val.startDate && val.endDate && dayjs(val.startDate).isAfter(dayjs(val.endDate))) {
+        if (val.startDate && val.endDate && dayjs(val.endDate) <= dayjs(val.startDate)) {
           ctx.addIssue({
             path: ['startDate'],
             code: z.ZodIssueCode.custom,
@@ -174,7 +174,7 @@ export function ProjectForm(props: ProjectFormProps) {
           tooltip={tr('newProject.startDateTooltip')}
           component={(field) => (
             <FormDatePicker
-              maxDate={dayjs(form.getValues('endDate'))}
+              maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
               readOnly={!editing}
               field={field}
             />
@@ -186,7 +186,7 @@ export function ProjectForm(props: ProjectFormProps) {
           tooltip={tr('newProject.endDateTooltip')}
           component={(field) => (
             <FormDatePicker
-              minDate={dayjs(form.getValues('startDate'))}
+              minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
               readOnly={!editing}
               field={field}
             />

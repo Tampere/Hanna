@@ -48,7 +48,7 @@ export function TaskForm(props: Props) {
     mode: 'all',
     resolver: zodResolver(
       upsertTaskSchema.superRefine((val, ctx) => {
-        if (val.startDate && val.endDate && dayjs(val.startDate).isAfter(dayjs(val.endDate))) {
+        if (val.startDate && val.endDate && dayjs(val.endDate) <= dayjs(val.startDate)) {
           ctx.addIssue({
             path: ['startDate'],
             code: z.ZodIssueCode.custom,
@@ -188,7 +188,7 @@ export function TaskForm(props: Props) {
           tooltip={tr('taskForm.startDateTooltip')}
           component={(field) => (
             <FormDatePicker
-              maxDate={dayjs(form.getValues('endDate'))}
+              maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
               readOnly={!editing}
               field={field}
             />
@@ -201,7 +201,7 @@ export function TaskForm(props: Props) {
           tooltip={tr('taskForm.endDateTooltip')}
           component={(field) => (
             <FormDatePicker
-              minDate={dayjs(form.getValues('startDate'))}
+              minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
               readOnly={!editing}
               field={field}
             />
