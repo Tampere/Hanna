@@ -49,7 +49,7 @@
   "newProject.decisionsSectionTitle": "Decisions",
   "newProject.notifyUpsert": "Project saved",
   "newProject.notifyUpsertFailed": "Project save failed",
-  "newProject.error.endDateBeforeStartDate": "End date before start date",
+  "newProject.error.endDateNotAfterStartDate": "End date must be after start date",
   "projectForm.saveBtnLabel": "Save",
   "projectForm.editBtnLabel": "Edit",
   "projectForm.undoBtnLabel": "Undo changes",
