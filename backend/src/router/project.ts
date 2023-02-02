@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
+import { codeIdFragment } from '@backend/router/code';
 
 import {
   CostEstimatesInput,
@@ -65,27 +66,33 @@ async function deleteProject(id: string) {
   return project;
 }
 
-async function upsertProject(project: UpsertProject) {
-  const { id, projectName, description, startDate, endDate, lifecycleState, projectType } = project;
-  if (id) {
+async function upsertProject(project: UpsertProject, userId: string) {
+  const data = {
+    project_name: project.projectName,
+    description: project.description,
+    start_date: project.startDate,
+    end_date: project.endDate,
+    lifecycle_state: codeIdFragment('HankkeenElinkaarentila', project.lifecycleState),
+    project_type: codeIdFragment('HankeTyyppi', project.projectType),
+    sap_project_id: project.sapProjectId,
+    updated_by: userId,
+  };
+
+  const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
+  const values = Object.values(data);
+
+  if (project.id) {
     return getPool().one(sql.type(projectIdSchema)`
       UPDATE app.project
-      SET
-        project_name = ${projectName},
-        description = ${description},
-        start_date = ${startDate},
-        end_date = ${endDate},
-        lifecycle_state = ('HankkeenElinkaarentila',${lifecycleState}),
-        project_type = ('HankeTyyppi',${projectType}),
-        sap_project_id = ${project.sapProjectId}
-      WHERE id = ${id}
+      SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
+      WHERE id = ${project.id}
       RETURNING id
     `);
   } else {
     return getPool().one(
       sql.type(projectIdSchema)`
-        INSERT INTO app.project (project_name, description, start_date, end_date, lifecycle_state, project_type, sap_project_id)
-        VALUES (${projectName}, ${description}, ${startDate}, ${endDate}, ('HankkeenElinkaarentila',${lifecycleState}), ('HankeTyyppi',${projectType}), ${project.sapProjectId})
+        INSERT INTO app.project (${sql.join(identifiers, sql.fragment`,`)})
+        VALUES (${sql.join(values, sql.fragment`,`)})
         RETURNING id
       `
     );
@@ -314,8 +321,8 @@ export const createProjectRouter = (t: TRPC) =>
       return dbResult.result;
     }),
 
-    upsert: t.procedure.input(upsertProjectSchema).mutation(async ({ input }) => {
-      const result = await upsertProject(input);
+    upsert: t.procedure.input(upsertProjectSchema).mutation(async ({ input, ctx }) => {
+      const result = await upsertProject(input, ctx.user.id);
       return getProject(result.id);
     }),
 
