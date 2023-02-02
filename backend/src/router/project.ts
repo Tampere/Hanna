@@ -118,7 +118,7 @@ function timePeriodFragment(input: z.infer<typeof projectSearchSchema>) {
   const endDate = input.dateRange?.endDate;
   if (startDate && endDate) {
     return sql.fragment`
-      daterange(start_date, end_date) && daterange(${startDate}, ${endDate})
+      daterange(start_date, end_date, '[]') && daterange(${startDate}, ${endDate}, '[]')
     `;
   }
   return sql.fragment`true`;
