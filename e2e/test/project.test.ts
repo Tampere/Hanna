@@ -162,7 +162,8 @@ test.describe('Projects', () => {
     await page.fill('label:has-text("Haku")', 'huomio');
     // Delay required because of debouncing
     await sleep(1000);
-    let searchResults = await page.locator(':text("Hakutulokset") + div >> a').allTextContents();
+
+    let searchResults = await page.locator("div[aria-label='Hakutulokset'] > a").allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectA.projectName)) &&
         searchResults.every((result) => !result.includes(projectB.projectName))
@@ -171,7 +172,7 @@ test.describe('Projects', () => {
     // Search for projectB - projectA should not be in results
     await page.fill('label:has-text("Haku")', 'kuvaus');
     await sleep(1000);
-    searchResults = await page.locator(':text("Hakutulokset") + div >> a').allTextContents();
+    searchResults = await page.locator("div[aria-label='Hakutulokset'] > a").allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectB.projectName)) &&
         searchResults.every((result) => !result.includes(projectA.projectName))
@@ -180,7 +181,7 @@ test.describe('Projects', () => {
     // Search for both projects
     await page.fill('label:has-text("Haku")', 'hakutesti');
     await sleep(1000);
-    searchResults = await page.locator(':text("Hakutulokset") + div >> a').allTextContents();
+    searchResults = await page.locator("div[aria-label='Hakutulokset'] > a").allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectB.projectName)) &&
         searchResults.some((result) => result.includes(projectA.projectName))
@@ -189,7 +190,7 @@ test.describe('Projects', () => {
     // Search for other projects (only prefixes should be matched - no other substrings!)
     await page.fill('label:has-text("Haku")', 'akutesti');
     await sleep(1000);
-    searchResults = await page.locator(':text("Hakutulokset") + div >> a').allTextContents();
+    searchResults = await page.locator("div[aria-label='Hakutulokset'] > a").allTextContents();
     expect(
       searchResults.every((result) => !result.includes(projectB.projectName)) &&
         searchResults.every((result) => !result.includes(projectA.projectName))
@@ -200,7 +201,7 @@ test.describe('Projects', () => {
     await page.getByLabel('Elinkaaren tila').press('ArrowDown');
     await page.getByRole('option', { name: 'Aloittamatta' }).getByRole('checkbox').check();
     await sleep(500);
-    searchResults = await page.locator(':text("Hakutulokset") + div >> a').allTextContents();
+    searchResults = await page.locator("div[aria-label='Hakutulokset'] > a").allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectA.projectName)) &&
         searchResults.some((result) => result.includes(projectB.projectName)) &&
@@ -211,7 +212,7 @@ test.describe('Projects', () => {
     await page.getByRole('option', { name: 'Käynnissä' }).getByRole('checkbox').check();
     await sleep(500);
 
-    searchResults = await page.locator(':text("Hakutulokset") + div >> a').allTextContents();
+    searchResults = await page.locator("div[aria-label='Hakutulokset'] > a").allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectC.projectName)) &&
         searchResults.every((result) => !result.includes(projectA.projectName)) &&
