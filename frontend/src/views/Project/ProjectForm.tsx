@@ -4,6 +4,7 @@ import { AddCircle, Edit, Save, Undo } from '@mui/icons-material';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
+import { useAtomValue } from 'jotai';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
@@ -12,7 +13,9 @@ import { z } from 'zod';
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
+import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
+import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { DbProject, UpsertProject, upsertProjectSchema } from '@shared/schema/project';
@@ -32,6 +35,7 @@ export function ProjectForm(props: ProjectFormProps) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(!props.project);
+  const currentUser = useAtomValue(authAtom);
 
   const readonlyProps = useMemo(() => {
     if (editing) {
@@ -63,6 +67,8 @@ export function ProjectForm(props: ProjectFormProps) {
       })
     ),
     defaultValues: props.project ?? {
+      owner: currentUser?.id,
+      personInCharge: currentUser?.id,
       projectName: '',
       description: '',
       startDate: '',
@@ -74,6 +80,8 @@ export function ProjectForm(props: ProjectFormProps) {
   useEffect(() => {
     form.reset(
       props.project ?? {
+        owner: currentUser?.id,
+        personInCharge: currentUser?.id,
         projectName: '',
         description: '',
         startDate: '',
@@ -194,6 +202,24 @@ export function ProjectForm(props: ProjectFormProps) {
         />
 
         <FormField
+          formField="owner"
+          label={tr('project.ownerLabel')}
+          tooltip={tr('newProject.ownerTooltip')}
+          component={({ id, onChange, value }) => (
+            <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
+          )}
+        />
+
+        <FormField
+          formField="personInCharge"
+          label={tr('project.personInChargeLabel')}
+          tooltip={tr('newProject.personInChargeTooltip')}
+          component={({ id, onChange, value }) => (
+            <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
+          )}
+        />
+
+        <FormField
           formField="lifecycleState"
           label={tr('project.lifecycleStateLabel')}
           tooltip={tr('newProject.lifecycleStateTooltip')}
@@ -226,7 +252,9 @@ export function ProjectForm(props: ProjectFormProps) {
         <FormField
           formField="sapProjectId"
           label={tr('project.sapProjectIdLabel')}
-          component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
+          component={(field) => (
+            <TextField {...readonlyProps} {...field} value={field.value ?? ''} size="small" />
+          )}
         />
 
         {!props.project && (
