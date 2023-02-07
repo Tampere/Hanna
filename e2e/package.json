@@ -19,7 +19,7 @@
   "dependencies": {
     "@trpc/client": "^10.10.0",
     "@trpc/server": "^10.10.0",
-    "node-fetch": "^2.6.7",
+    "node-fetch": "^3.3.0",
     "superjson": "^1.12.2"
   }
 }
