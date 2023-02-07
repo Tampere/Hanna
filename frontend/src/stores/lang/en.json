@@ -119,6 +119,7 @@
   "costEstimatesTable.total": "Total",
   "costEstimatesTable.notifySave": "Cost estimates saved",
   "costEstimatesTable.notifySaveFailed": "Failed to save cost estimates",
+  "newProject.error.endDateBeforeStartDate": "End date cannot be before start date",
   "projectObject.error.endDateBeforeStartDate": "Loppuajankohta ei voi olla ennen alkuajankohtaa",
   "newProjectObject.title": "Uusi kohde",
   "newProjectObject.notifyUpsert": "Kohteen tiedot tallennettu",
