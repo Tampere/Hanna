@@ -43,7 +43,6 @@ function Toolbar() {
 }
 
 const projectCardStyle = css`
-  margin-top: 8px;
   padding: 16px;
   display: flex;
   align-items: center;
@@ -54,10 +53,25 @@ const projectCardStyle = css`
   transition: background 0.5s;
 `;
 
-const searchResultContainerStyle = css`
-  min-width: 256px;
-  padding: 16px;
-`;
+function ProjectCard({ result }: { result: DbProject }) {
+  const tr = useTranslations();
+  return (
+    <CardActionArea key={result.id} component={Link} to={`/hanke/${result.id}`}>
+      <Card variant="outlined" css={projectCardStyle}>
+        <NavigateNext sx={{ color: '#aaa', mr: 1 }} />
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Typography sx={{ lineHeight: '120%' }} variant="button">
+            {result.projectName}
+          </Typography>
+          <Typography sx={{ lineHeight: '120%' }} variant="overline">
+            {dayjs(result.startDate).format(tr('date.format'))} —{' '}
+            {dayjs(result.endDate).format(tr('date.format'))}
+          </Typography>
+        </Box>
+      </Card>
+    </CardActionArea>
+  );
+}
 
 interface SearchResultsProps {
   results: readonly DbProject[];
@@ -67,37 +81,24 @@ interface SearchResultsProps {
 function SearchResults({ results, loading }: SearchResultsProps) {
   const tr = useTranslations();
   return (
-    <Paper css={searchResultContainerStyle} elevation={1}>
-      <Typography variant="h5">{tr('projectListing.searchResultsTitle')}</Typography>
-      {results?.length > 0 ? (
-        <Box>
-          {results.map((result) => {
-            return (
-              <CardActionArea key={result.id} component={Link} to={`/hanke/${result.id}`}>
-                <Card variant="outlined" css={projectCardStyle}>
-                  <NavigateNext sx={{ color: '#aaa', mr: 1 }} />
-                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Typography sx={{ lineHeight: '120%' }} variant="button">
-                      {result.projectName}
-                    </Typography>
-                    <Typography sx={{ lineHeight: '120%' }} variant="overline">
-                      {dayjs(result.startDate).format(tr('date.format'))} —{' '}
-                      {dayjs(result.endDate).format(tr('date.format'))}
-                    </Typography>
-                  </Box>
-                </Card>
-              </CardActionArea>
-            );
-          })}
-        </Box>
-      ) : (
-        !loading && (
-          <Box>
-            <span>{tr('projectSearch.noResults')}</span>
-          </Box>
-        )
-      )}
-    </Paper>
+    <Box
+      aria-label={tr('projectListing.searchResultsTitle')}
+      css={css`
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        overflow: auto;
+        min-width: 256px;
+      `}
+    >
+      {results?.length > 0
+        ? results.map((result) => <ProjectCard result={result} key={result.id} />)
+        : !loading && (
+            <Box>
+              <p>{tr('projectSearch.noResults')}</p>
+            </Box>
+          )}
+    </Box>
   );
 }
 
@@ -105,7 +106,8 @@ const resultsContainerStyle = css`
   margin-top: 16px;
   display: grid;
   grid-template-columns: 1fr 2fr;
-  gap: 16px;
+  grid-gap: 16px;
+  overflow: auto;
   flex: 1;
 `;
 
@@ -125,9 +127,9 @@ function ProjectResults() {
 }
 
 const projectPageStyle = css`
+  height: 100%;
   display: flex;
   flex-direction: column;
-  height: 100%;
 `;
 
 export function ProjectsPage() {
