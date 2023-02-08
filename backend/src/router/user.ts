@@ -5,7 +5,7 @@ import { userSchema } from '@shared/schema/user';
 
 export const createUserRouter = (t: TRPC) =>
   t.router({
-    getUsers: t.procedure.query(async () => {
+    getAll: t.procedure.query(async () => {
       const users = await getPool().many(sql.type(userSchema)`
         SELECT id, email, name FROM app.user
       `);
