@@ -2,9 +2,11 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
 import { getPool, sql } from '@backend/db';
+import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
 import { codeIdFragment } from '@backend/router/code';
 
+import { FormErrors, fieldError, hasErrors } from '@shared/formerror';
 import {
   CostEstimatesInput,
   ProjectSearch,
@@ -304,6 +306,64 @@ function costEstimateWhereFragment(costEstimateInput: CostEstimatesInput) {
   `;
 }
 
+async function validateUpsertProject(values: UpsertProject) {
+  const validationErrors: FormErrors<UpsertProject> = { errors: {} };
+
+  // Check that SAP project ID is not changed if project has project objects
+  // with selected SAP WBS elements
+  if (values?.id) {
+    const result = await getPool().maybeOne(sql.untyped`
+      SELECT
+        project.id AS "projectId",
+        sap_project.sap_project_id AS "sapProjectId",
+        jsonb_agg(project_object.sap_wbs_id) FILTER (WHERE sap_wbs_id IS NOT NULL) AS "projectObjectWBSIds"
+      FROM app.project
+      LEFT JOIN app.sap_project ON project.sap_project_id = sap_project.sap_project_id
+      LEFT JOIN app.project_object ON project.id = project_object.project_id
+      WHERE project.id = ${values?.id}
+      GROUP BY project.id, sap_project.sap_project_id;
+    `);
+
+    if (
+      result?.sapProjectId &&
+      result?.sapProjectId !== values?.sapProjectId &&
+      result?.projectObjectWBSIds?.length > 0
+    ) {
+      validationErrors.errors['sapProjectId'] = fieldError(
+        'project.error.existingProjectObjectWBS'
+      );
+    }
+  }
+
+  // Check that cost estimate years are included in the project start and end date range
+  if (values?.id) {
+    const estimateRange = await getPool().maybeOne(sql.untyped`
+    SELECT
+      extract(year FROM ${values?.startDate}::date) <= min(cost_estimate.year) AS "validStartDate",
+      extract(year FROM ${values?.endDate}::date) >= max(cost_estimate.year) AS "validEndDate"
+    FROM app.cost_estimate
+    WHERE project_id = ${values?.id}
+    GROUP BY project_id;
+  `);
+
+    if (estimateRange?.validStartDate === false) {
+      validationErrors.errors['startDate'] = fieldError('project.error.costEstimateNotIncluded');
+    }
+
+    if (estimateRange?.validEndDate === false) {
+      validationErrors.errors['endDate'] = fieldError('project.error.costEstimateNotIncluded');
+    }
+  }
+
+  // Check that project start date is not after end date
+  if (values.startDate >= values.endDate) {
+    validationErrors.errors['startDate'] = fieldError('project.error.endDateBeforeStartDate');
+    validationErrors.errors['endDate'] = fieldError('project.error.endDateBeforeStartDate');
+  }
+
+  return validationErrors;
+}
+
 export const createProjectRouter = (t: TRPC) =>
   t.router({
     search: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
@@ -325,7 +385,15 @@ export const createProjectRouter = (t: TRPC) =>
       return dbResult.result;
     }),
 
+    upsertValidate: t.procedure.input(z.any()).query(async ({ input, ctx }) => {
+      return validateUpsertProject(input);
+    }),
+
     upsert: t.procedure.input(upsertProjectSchema).mutation(async ({ input, ctx }) => {
+      if (hasErrors(await validateUpsertProject(input))) {
+        logger.error('Invalid project data', { input });
+        throw new Error('Invalid project data');
+      }
       const result = await upsertProject(input, ctx.user.id);
       return getProject(result.id);
     }),

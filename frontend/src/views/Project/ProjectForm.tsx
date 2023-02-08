@@ -1,14 +1,13 @@
 import { css } from '@emotion/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AddCircle, Edit, Save, Undo } from '@mui/icons-material';
+import { AddCircle, Edit, HourglassFullTwoTone, Save, Undo } from '@mui/icons-material';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
 import { useEffect, useMemo, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
-import { z } from 'zod';
 
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
@@ -17,7 +16,9 @@ import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
 import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
+import { getRequiredFields } from '@frontend/utils/form';
 
+import { mergeErrors } from '@shared/formerror';
 import { DbProject, UpsertProject, upsertProjectSchema } from '@shared/schema/project';
 
 const newProjectFormStyle = css`
@@ -48,24 +49,33 @@ export function ProjectForm(props: ProjectFormProps) {
     } as const;
   }, [editing]);
 
+  const { project } = trpc.useContext();
+  const formValidator = useMemo(() => {
+    const schemaValidation = zodResolver(upsertProjectSchema);
+
+    return async function formValidation(
+      values: UpsertProject,
+      context: any,
+      options: ResolverOptions<UpsertProject>
+    ) {
+      const fields = options.names ?? [];
+      const isFormValidation = fields && fields.length > 1;
+      const serverErrors = isFormValidation ? project.upsertValidate.fetch(values) : null;
+      const shapeErrors = schemaValidation(values, context, options);
+      const errors = await Promise.all([serverErrors, shapeErrors]);
+      return {
+        values,
+        errors: mergeErrors<UpsertProject>(errors).errors,
+      };
+    };
+  }, []);
+
   const form = useForm<UpsertProject>({
     mode: 'all',
-    resolver: zodResolver(
-      upsertProjectSchema.superRefine((val, ctx) => {
-        if (val.startDate && val.endDate && dayjs(val.endDate) <= dayjs(val.startDate)) {
-          ctx.addIssue({
-            path: ['startDate'],
-            code: z.ZodIssueCode.custom,
-            message: tr('newProject.error.endDateBeforeStartDate'),
-          });
-          ctx.addIssue({
-            path: ['endDate'],
-            code: z.ZodIssueCode.custom,
-            message: tr('newProject.error.endDateBeforeStartDate'),
-          });
-        }
-      })
-    ),
+    resolver: formValidator,
+    context: {
+      requiredFields: getRequiredFields(upsertProjectSchema),
+    },
     defaultValues: props.project ?? {
       owner: currentUser?.id,
       personInCharge: currentUser?.id,
@@ -90,15 +100,6 @@ export function ProjectForm(props: ProjectFormProps) {
       }
     );
   }, [props.project]);
-
-  useEffect(() => {
-    const sub = form.watch((value, { name, type }) => {
-      if (type === 'change' && (name === 'startDate' || name === 'endDate')) {
-        form.trigger(['startDate', 'endDate']);
-      }
-    });
-    return () => sub.unsubscribe();
-  }, [form.watch]);
 
   const projectUpsert = trpc.project.upsert.useMutation({
     onSuccess: (data) => {
@@ -277,8 +278,10 @@ export function ProjectForm(props: ProjectFormProps) {
             type="submit"
             variant="contained"
             sx={{ mt: 2 }}
-            disabled={!form.formState.isValid || !form.formState.isDirty}
-            endIcon={<Save />}
+            disabled={
+              !form.formState.isValid || !form.formState.isDirty || form.formState.isSubmitting
+            }
+            endIcon={form.formState.isSubmitting ? <HourglassFullTwoTone /> : <Save />}
           >
             {tr('projectForm.saveBtnLabel')}
           </Button>
