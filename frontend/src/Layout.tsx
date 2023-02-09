@@ -1,19 +1,24 @@
 import { css } from '@emotion/react';
+import { Logout } from '@mui/icons-material';
 import AccountCircleOutlined from '@mui/icons-material/AccountCircleOutlined';
 import AccountTreeOutlined from '@mui/icons-material/AccountTreeOutlined';
-import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
 import {
   AppBar,
   Box,
   Button,
   CssBaseline,
   IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   ThemeProvider,
   Toolbar,
   Typography,
   createTheme,
 } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
+import { useRef, useState } from 'react';
 import { Link, Outlet } from 'react-router-dom';
 
 import { useTranslations } from '@frontend/stores/lang';
@@ -64,6 +69,8 @@ const theme = createTheme({
 function Navbar() {
   const [auth] = useAtom(authAtom);
   const tr = useTranslations();
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuAnchor = useRef<HTMLButtonElement>(null);
 
   const logoStyle = css`
     font-family: monospace;
@@ -90,23 +97,38 @@ function Navbar() {
           <Typography variant="caption">{auth?.name}</Typography>
 
           <IconButton
-            component={Link}
-            to="/profiili"
             size="large"
             aria-label="user"
             color="inherit"
+            onClick={() => setProfileMenuOpen(true)}
+            ref={profileMenuAnchor}
           >
             <AccountCircleOutlined />
           </IconButton>
-          <IconButton
-            component={Link}
-            to="/asetukset"
-            size="large"
-            aria-label="settings"
-            color="inherit"
+          <Menu
+            open={profileMenuOpen}
+            onClose={() => setProfileMenuOpen(false)}
+            anchorEl={profileMenuAnchor.current}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
           >
-            <SettingsOutlined />
-          </IconButton>
+            <MenuItem
+              onClick={() => {
+                window.location.pathname = '/logout';
+              }}
+            >
+              <ListItemIcon>
+                <Logout />
+              </ListItemIcon>
+              <ListItemText>{tr('profile.logout')}</ListItemText>
+            </MenuItem>
+          </Menu>
         </Box>
       </Toolbar>
     </AppBar>

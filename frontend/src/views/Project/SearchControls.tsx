@@ -6,7 +6,6 @@ import {
   FormLabel,
   InputAdornment,
   Paper,
-  Select,
   TextField,
   css,
 } from '@mui/material';
@@ -116,38 +115,9 @@ export function SearchControls() {
           onChange={setSearchParams.projectTypes}
         />
       </FormControl>
-      {expanded && (
-        <>
-          <FormControl>
-            <FormLabel>{tr('project.budgetLabel')}</FormLabel>
-            <Select disabled size="small"></Select>
-          </FormControl>
-          <FormControl>
-            <FormLabel>{tr('project.financingTypeLabel')}</FormLabel>
-            <CodeSelect
-              codeListId="Rahoitusmalli"
-              multiple
-              value={searchParams.financingTypes}
-              onChange={setSearchParams.financingTypes}
-            />
-          </FormControl>
-          <FormControl>
-            <FormLabel>{tr('project.committeeLabel')}</FormLabel>
-            <CodeSelect
-              codeListId="Lautakunta"
-              multiple
-              value={searchParams.committee}
-              onChange={setSearchParams.committee}
-            />
-          </FormControl>
-          <FormControl>
-            <FormLabel>{tr('project.ownerLabel')}</FormLabel>
-            <Select disabled size="small"></Select>
-          </FormControl>
-        </>
-      )}
       <Button
         size="small"
+        disabled
         sx={{ gridColumnStart: 4 }}
         endIcon={expanded ? <UnfoldLess /> : <UnfoldMore />}
         onClick={() => {
