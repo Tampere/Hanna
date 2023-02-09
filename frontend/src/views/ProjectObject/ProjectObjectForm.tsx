@@ -4,6 +4,7 @@ import { AddCircle, Edit, Save, Undo } from '@mui/icons-material';
 import { Box, Button, InputAdornment, TextField } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
+import { useAtomValue } from 'jotai';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
@@ -13,7 +14,9 @@ import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
+import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
+import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
@@ -36,6 +39,7 @@ export function ProjectObjectForm(props: Props) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(!props.projectObject);
+  const user = useAtomValue(authAtom);
 
   const readonlyProps = useMemo(() => {
     if (editing) {
@@ -73,7 +77,7 @@ export function ProjectObjectForm(props: Props) {
       projectId: props.projectId,
       objectName: '',
       description: '',
-      personResponsible: '',
+      personInCharge: user?.id,
       startDate: '',
       endDate: '',
     },
@@ -176,10 +180,12 @@ export function ProjectObjectForm(props: Props) {
         />
 
         <FormField
-          formField="personResponsible"
-          label={tr('projectObject.personResponsibleLabel')}
-          tooltip={tr('projectObject.personResponsibleTooltip')}
-          component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
+          formField="personInCharge"
+          label={tr('projectObject.personInChargeLabel')}
+          tooltip={tr('projectObject.personInChargeTooltip')}
+          component={({ id, onChange, value }) => (
+            <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
+          )}
         />
 
         <FormField
