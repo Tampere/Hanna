@@ -69,3 +69,22 @@ export async function retry<T>(
 export async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+/**
+ * Debounces a function call
+ * @param f  function to be debounced
+ * @param interval debounce interval in milliseconds
+ * @returns
+ */
+export function debounce<T extends (...args: any[]) => any>(f: T, interval: number) {
+  let timer: NodeJS.Timeout | null = null;
+
+  return function (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> {
+    if (timer) {
+      clearTimeout(timer);
+    }
+    return new Promise((resolve) => {
+      timer = setTimeout(() => resolve(f(...args)), interval);
+    });
+  };
+}

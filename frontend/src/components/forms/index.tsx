@@ -11,6 +11,10 @@ import {
   useFormContext,
 } from 'react-hook-form';
 
+import { useTranslations } from '@frontend/stores/lang';
+
+import { isTranslationKey } from '@shared/language';
+
 import { DatePicker } from './DatePicker';
 
 interface CustomFormLabelProps {
@@ -29,6 +33,7 @@ export function CustomFormLabel({
   required,
 }: CustomFormLabelProps) {
   const [open, setOpen] = useState(true);
+  const tr = useTranslations();
 
   return (
     <FormLabel
@@ -53,7 +58,9 @@ export function CustomFormLabel({
             cursor: pointer;
             z-index: 400;
           `}
-          title={error.type === 'custom' ? error.message : tooltip}
+          title={
+            error.type === 'custom' && isTranslationKey(error.message) ? tr(error.message) : tooltip
+          }
         >
           <Help sx={{ color: 'red' }} onClick={() => setOpen(!open)} fontSize="small" />
         </Tooltip>
