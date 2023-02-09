@@ -1,15 +1,17 @@
+import { TranslationKey } from './language';
+
 export interface FieldError {
-  type: string;
-  message?: string;
+  type: 'custom';
+  message: TranslationKey;
 }
 
 export type FormErrors<T> = {
   errors: {
-    [key in keyof T]?: FieldError;
+    [key in keyof T]?: FieldError | { type: string };
   };
 } | null;
 
-export function fieldError(message: string) {
+export function fieldError(message: TranslationKey): FieldError {
   return {
     type: 'custom',
     message,

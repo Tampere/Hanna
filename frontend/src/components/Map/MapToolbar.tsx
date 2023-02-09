@@ -11,7 +11,9 @@ import {
 import { Box, Divider, IconButton, Tooltip } from '@mui/material';
 import { useState } from 'react';
 
-import { TranslationKey, useTranslations } from '@frontend/stores/lang';
+import { useTranslations } from '@frontend/stores/lang';
+
+import { TranslationKey } from '@shared/language';
 
 const toolsContainerStyle = css`
   position: absolute;

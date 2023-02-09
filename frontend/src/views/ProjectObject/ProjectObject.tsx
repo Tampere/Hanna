@@ -13,8 +13,10 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
-import { TranslationKey, useTranslations } from '@frontend/stores/lang';
+import { useTranslations } from '@frontend/stores/lang';
 import Tasks from '@frontend/views/Task/Tasks';
+
+import { TranslationKey } from '@shared/language';
 
 import { DeleteProjectObjectDialog } from './DeleteProjectObjectDialog';
 import { ProjectObjectFinances } from './ProjectObjectFinances';

@@ -13,6 +13,8 @@ import {
 
 import { useTranslations } from '@frontend/stores/lang';
 
+import { isTranslationKey } from '@shared/language';
+
 import { DatePicker } from './DatePicker';
 
 interface CustomFormLabelProps {
@@ -56,7 +58,9 @@ export function CustomFormLabel({
             cursor: pointer;
             z-index: 400;
           `}
-          title={error.type === 'custom' ? tr(error.message) : tooltip}
+          title={
+            error.type === 'custom' && isTranslationKey(error.message) ? tr(error.message) : tooltip
+          }
         >
           <Help sx={{ color: 'red' }} onClick={() => setOpen(!open)} fontSize="small" />
         </Tooltip>

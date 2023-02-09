@@ -3,9 +3,9 @@ import { Box, Button, Typography } from '@mui/material';
 import { useAtom } from 'jotai';
 
 import { authAtom } from '@frontend/stores/auth';
-import { getLanguageName, langAtom, useTranslations } from '@frontend/stores/lang';
+import { langAtom, useTranslations } from '@frontend/stores/lang';
 
-import { Language, languages } from '@shared/language';
+import { Language, getLanguageName, languages } from '@shared/language';
 
 export function Profile() {
   const [user] = useAtom(authAtom);
