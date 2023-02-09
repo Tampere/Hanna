@@ -22,9 +22,14 @@ test.describe('Project endpoints', () => {
   });
 
   test('project geometry edit', async () => {
+    // There should be at least one user because this is executed after login
+    const [user] = await client.user.getAll.query();
+
     const project = await client.project.upsert.mutate({
       projectName: 'Test project',
       description: 'Test description',
+      owner: user.id,
+      personInCharge: user.id,
       startDate: '2021-01-01',
       endDate: '2022-01-01',
       lifecycleState: '01',

@@ -5,6 +5,8 @@ import { isoDateString, nonEmptyString } from './common';
 
 export const upsertProjectSchema = z.object({
   id: z.string().optional(),
+  owner: nonEmptyString,
+  personInCharge: nonEmptyString,
   projectName: nonEmptyString,
   description: nonEmptyString,
   startDate: isoDateString,

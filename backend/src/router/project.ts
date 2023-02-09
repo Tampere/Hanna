@@ -29,6 +29,8 @@ const selectProjectFragment = sql.fragment`
     id,
     project_name AS "projectName",
     description,
+    owner,
+    person_in_charge AS "personInCharge",
     start_date AS "startDate",
     end_date AS "endDate",
     geohash,
@@ -70,6 +72,8 @@ async function upsertProject(project: UpsertProject, userId: string) {
   const data = {
     project_name: project.projectName,
     description: project.description,
+    owner: project.owner,
+    person_in_charge: project.personInCharge,
     start_date: project.startDate,
     end_date: project.endDate,
     lifecycle_state: codeIdFragment('HankkeenElinkaarentila', project.lifecycleState),

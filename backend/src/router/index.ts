@@ -12,6 +12,7 @@ import { createTaskRouter } from '@backend/router/task';
 import { User } from '@shared/schema/user';
 
 import { createSessionRouter } from './session';
+import { createUserRouter } from './user';
 
 export function createContext({ req, res }: CreateFastifyContextOptions) {
   // FIXME: user is serialized as string, but PassportUser is an object, need to
@@ -38,6 +39,7 @@ export const appRouter = t.router({
   sap: createSapRouter(t),
   session: createSessionRouter(t),
   task: createTaskRouter(t),
+  user: createUserRouter(t),
 });
 
 export type TRPC = typeof t;

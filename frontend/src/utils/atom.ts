@@ -20,7 +20,7 @@ export function unwrapAtomValues<Obj extends Record<string, unknown>>(obj: {
  * @returns Object of atom setter functions
  */
 export function unwrapAtomSetters<Obj extends Record<string, unknown>>(obj: {
-  [key in keyof Obj]: WritableAtom<Obj[key], SetStateAction<Obj[key]>>;
+  [key in keyof Obj]: WritableAtom<Obj[key], any, SetStateAction<Obj[key]>>;
 }) {
   return Object.keys(obj).reduce(
     (previous, key) => ({ ...previous, [key]: useSetAtom(obj[key]) }),
