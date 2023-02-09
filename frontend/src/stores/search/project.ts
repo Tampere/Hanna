@@ -14,8 +14,6 @@ export const projectSearchParamAtoms = {
   }),
   lifecycleStates: atom<string[]>([]),
   projectTypes: atom<string[]>([]),
-  financingTypes: atom<string[]>([]),
-  committee: atom<string[]>([]),
   map: atom<MapSearch>({
     zoom: mapOptions.tre.defaultZoom,
     extent: mapOptions.tre.extent,

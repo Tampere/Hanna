@@ -12,12 +12,10 @@ import SuperJSON from 'superjson';
 
 import { Layout } from '@frontend/Layout';
 import { NotFound } from '@frontend/views/NotFound';
-import { Profile } from '@frontend/views/Profile';
 import { Project } from '@frontend/views/Project/Project';
 import { ProjectsPage } from '@frontend/views/Project/Projects';
 import { ProjectObject } from '@frontend/views/ProjectObject/ProjectObject';
 import { SapDebugView } from '@frontend/views/SapDebug';
-import { Settings } from '@frontend/views/Settings';
 
 import { trpc } from './client';
 import { authAtom, getUserAtom, sessionExpiredAtom } from './stores/auth';
@@ -43,8 +41,6 @@ const router = createBrowserRouter(
       <Route path="hanke/:projectId/kohde/:projectObjectId" element={<ProjectObject />} />
       <Route path="hanke/:projectId/kohde/:projectObjectId/:tabView" element={<ProjectObject />} />
       <Route path="saptest/:sapProjectId" element={<SapDebugView />} />
-      <Route path="profiili" element={<Profile />} />
-      <Route path="asetukset" element={<Settings />} />
       <Route path="session-renewed" element={<SessionRenewed />} />
       <Route path="*" element={<NotFound />} />
     </Route>

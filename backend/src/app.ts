@@ -1,3 +1,4 @@
+import fastifyCompress from '@fastify/compress';
 import fastifySensible from '@fastify/sensible';
 import fastifyStatic from '@fastify/static';
 import { TRPCError } from '@trpc/server';
@@ -58,6 +59,7 @@ async function run() {
   });
 
   server.register(fastifySensible);
+  server.register(fastifyCompress);
   server.setNotFoundHandler((req, reply) => {
     const url = req.raw.url;
     // For not found /api or /trpc routes -> throw a 404 error
