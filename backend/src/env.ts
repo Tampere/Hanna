@@ -36,6 +36,9 @@ const schema = z.object({
     actualsEndpoint: z.string(),
     actualsInfoTTLSeconds: z.number(),
   }),
+  enabledFeatures: z.object({
+    sapActuals: z.boolean(),
+  }),
 });
 
 function getEnv() {
@@ -65,6 +68,9 @@ function getEnv() {
       projectInfoTTLSeconds: Number(process.env.SAP_WS_PROJECTINFO_TTL_SECONDS),
       actualsEndpoint: process.env.SAP_WS_ACTUALS_ENDPOINT,
       actualsInfoTTLSeconds: Number(process.env.SAP_WS_ACTUALS_TTL_SECONDS),
+    },
+    enabledFeatures: {
+      sapActuals: process.env.FEATURE_ENABLED_SAP_ACTUALS === 'true',
     },
   });
 }

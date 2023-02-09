@@ -346,6 +346,11 @@ async function maybeCacheSapActuals(projectId: string, year: string, actuals: SA
 }
 
 export async function getSapActuals(sapProjectId: string, year: string) {
+  if (!env.enabledFeatures.sapActuals) {
+    logger.info('SAP actuals are disabled.');
+    return [];
+  }
+
   logger.info(`Getting SAP actuals for ${sapProjectId}, year ${year}...`);
 
   const cachedActuals = await getCachedSapActuals(sapProjectId, year);
