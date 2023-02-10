@@ -10,7 +10,7 @@
     "build": "tsc",
     "start": "node -r tsconfig-paths/register dist/app.js",
     "dev": "node-dev -r tsconfig-paths/register src/app.ts",
-    "test": "echo \"No tests specified\"",
+    "test": "vitest run",
     "db-migrate": "PGOPTIONS='-c search_path=app,public' ts-node -r tsconfig-paths/register src/migration.ts",
     "db-migrate:prod": "PGOPTIONS='-c search_path=app,public' node -r tsconfig-paths/register dist/migration.js"
   },
@@ -40,7 +40,9 @@
     "pino-pretty": "^9.1.1",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.2",
-    "typescript": "^4.9.5"
+    "typescript": "^4.9.5",
+    "vite-tsconfig-paths": "^4.0.5",
+    "vitest": "^0.28.4"
   },
   "dependencies": {
     "@fastify/compress": "^6.2.0",
