@@ -52,7 +52,13 @@ async function getProject(id: string) {
 
   if (!project) throw new TRPCError({ code: 'NOT_FOUND' });
 
-  return project;
+  const committees = await getPool().many(sql.type(z.object({ id: z.string() }))`
+    SELECT (committee_type).id FROM app.project_committee
+    WHERE project_id = ${id}
+  `);
+  console.log({ committees });
+
+  return { ...project, committees: committees.map(({ id }) => id) };
 }
 
 async function deleteProject(id: string) {
@@ -87,22 +93,41 @@ async function upsertProject(project: UpsertProject, userId: string) {
   const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
   const values = Object.values(data);
 
-  if (project.id) {
-    return getPool().one(sql.type(projectIdSchema)`
+  const upsertResult = project.id
+    ? await getPool().one(sql.type(projectIdSchema)`
       UPDATE app.project
       SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
       WHERE id = ${project.id}
       RETURNING id
+    `)
+    : await getPool().one(
+        sql.type(projectIdSchema)`
+      INSERT INTO app.project (${sql.join(identifiers, sql.fragment`,`)})
+      VALUES (${sql.join(values, sql.fragment`,`)})
+      RETURNING id
+    `
+      );
+
+  // Update committees in a transaction
+  await getPool().transaction(async (connection) => {
+    connection.any(sql.untyped`
+      DELETE FROM app.project_committee
+      WHERE project_id = ${upsertResult.id}
     `);
-  } else {
-    return getPool().one(
-      sql.type(projectIdSchema)`
-        INSERT INTO app.project (${sql.join(identifiers, sql.fragment`,`)})
-        VALUES (${sql.join(values, sql.fragment`,`)})
-        RETURNING id
-      `
+    await Promise.all(
+      project.committees.map((committee) =>
+        connection.any(sql.untyped`
+          INSERT INTO app.project_committee (project_id, committee_type)
+          VALUES (
+            ${upsertResult.id},
+            ${codeIdFragment('Lautakunta', committee)}
+          );
+        `)
+      )
     );
-  }
+  });
+
+  return upsertResult;
 }
 
 function textSearchFragment(text: ProjectSearch['text']) {
@@ -169,6 +194,14 @@ function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
         input.projectTypes && input.projectTypes?.length > 0
           ? sql.fragment`(project_type).id = ANY(${sql.array(input.projectTypes, 'text')})
           `
+          : sql.fragment`true`
+      }
+      AND ${
+        input.committees && input.committees.length > 0
+          ? sql.fragment`id IN (
+            SELECT project_id FROM app.project_committee
+            WHERE (committee_type).id = ANY(${sql.array(input.committees, 'text')})
+          )`
           : sql.fragment`true`
       }
       ${orderByFragment(input)}

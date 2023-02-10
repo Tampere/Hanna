@@ -13,6 +13,7 @@ export const upsertProjectSchema = z.object({
   endDate: isoDateString,
   lifecycleState: codeId,
   projectType: codeId,
+  committees: z.array(codeId).nonempty(),
   sapProjectId: z.string().nullable(),
 });
 
@@ -39,6 +40,7 @@ export const projectSearchSchema = z.object({
   lifecycleStates: z.array(z.string()).optional(),
   projectTypes: z.array(z.string()).optional(),
   financingTypes: z.array(z.string()).optional(),
+  committees: z.array(z.string()).optional(),
   map: mapSearchSchema.optional(),
 });
 

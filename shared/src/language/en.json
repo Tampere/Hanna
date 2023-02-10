@@ -44,6 +44,7 @@
   "newProject.projectTypeTooltip": "Select project type",
   "newProject.personInChargeTooltip": "Valitse vastuuhenkilö",
   "newProject.ownerTooltip": "Valitse omistaja",
+  "newProject.committeeTooltip": "Valitse lautakunta",
   "newProject.basicInfoSectionLabel": "Information",
   "newProject.createBtnLabel": "Add project",
   "project.relatedProjectsTabLabel": "Related projects",

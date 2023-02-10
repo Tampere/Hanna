@@ -115,9 +115,22 @@ export function SearchControls() {
           onChange={setSearchParams.projectTypes}
         />
       </FormControl>
+      {expanded && (
+        <>
+          <FormControl>
+            <FormLabel htmlFor="committee">{tr('project.committeeLabel')}</FormLabel>
+            <CodeSelect
+              id="committee"
+              codeListId="Lautakunta"
+              multiple
+              value={searchParams.committees}
+              onChange={setSearchParams.committees}
+            />
+          </FormControl>
+        </>
+      )}
       <Button
         size="small"
-        disabled
         sx={{ gridColumnStart: 4 }}
         endIcon={expanded ? <UnfoldLess /> : <UnfoldMore />}
         onClick={() => {
