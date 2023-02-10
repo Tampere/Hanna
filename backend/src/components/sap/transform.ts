@@ -146,7 +146,8 @@ function currencyInSubunit(amount: string, separator = '.') {
   const [whole, fraction] = amount.split(separator);
   let result = parseInt(whole, 10) * 100;
   if (fraction) {
-    result += parseInt(fraction, 10);
+    // normalize fraction to 2 digits
+    result += parseInt(fraction.padEnd(2, '0'), 10);
   }
   return result;
 }
