@@ -144,12 +144,17 @@ function preprocessActuals(payload: object) {
 
 function currencyInSubunit(amount: string, separator = '.') {
   const [whole, fraction] = amount.split(separator);
-  let result = parseInt(whole, 10) * 100;
+  let amountInSubunit = parseInt(whole, 10) * 100;
   if (fraction) {
     // normalize fraction to 2 digits
-    result += parseInt(fraction.padEnd(2, '0'), 10);
+    const subunits = parseInt(fraction.padEnd(2, '0'), 10);
+    if (amountInSubunit < 0) {
+      amountInSubunit -= subunits;
+    } else {
+      amountInSubunit += subunits;
+    }
   }
-  return result;
+  return amount;
 }
 
 export function transformActuals(response: object) {
