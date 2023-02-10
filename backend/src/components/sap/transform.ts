@@ -154,7 +154,7 @@ function currencyInSubunit(amount: string, separator = '.') {
       amountInSubunit += subunits;
     }
   }
-  return amount;
+  return amountInSubunit;
 }
 
 export function transformActuals(response: object) {
