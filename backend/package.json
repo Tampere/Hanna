@@ -66,7 +66,7 @@
     "soap": "^1.0.0",
     "superjson": "^1.12.2",
     "tre-hanna-shared": "file:../shared",
-    "zod": "^3.20.2"
+    "zod": "^3.20.6"
   },
   "overrides": {
     "soap": {
