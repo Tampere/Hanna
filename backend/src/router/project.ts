@@ -56,7 +56,6 @@ async function getProject(id: string) {
     SELECT (committee_type).id FROM app.project_committee
     WHERE project_id = ${id}
   `);
-  console.log({ committees });
 
   return { ...project, committees: committees.map(({ id }) => id) };
 }
@@ -93,23 +92,22 @@ async function upsertProject(project: UpsertProject, userId: string) {
   const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
   const values = Object.values(data);
 
-  const upsertResult = project.id
-    ? await getPool().one(sql.type(projectIdSchema)`
-      UPDATE app.project
-      SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
-      WHERE id = ${project.id}
-      RETURNING id
-    `)
-    : await getPool().one(
-        sql.type(projectIdSchema)`
-      INSERT INTO app.project (${sql.join(identifiers, sql.fragment`,`)})
-      VALUES (${sql.join(values, sql.fragment`,`)})
-      RETURNING id
-    `
-      );
-
   // Update committees in a transaction
-  await getPool().transaction(async (connection) => {
+  return getPool().transaction(async (connection) => {
+    const upsertResult = project.id
+      ? await getPool().one(sql.type(projectIdSchema)`
+        UPDATE app.project
+        SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
+        WHERE id = ${project.id}
+        RETURNING id
+      `)
+      : await getPool().one(
+          sql.type(projectIdSchema)`
+        INSERT INTO app.project (${sql.join(identifiers, sql.fragment`,`)})
+        VALUES (${sql.join(values, sql.fragment`,`)})
+        RETURNING id
+      `
+        );
     connection.any(sql.untyped`
       DELETE FROM app.project_committee
       WHERE project_id = ${upsertResult.id}
@@ -125,9 +123,8 @@ async function upsertProject(project: UpsertProject, userId: string) {
         `)
       )
     );
+    return upsertResult;
   });
-
-  return upsertResult;
 }
 
 function textSearchFragment(text: ProjectSearch['text']) {
