@@ -15,7 +15,7 @@ interface Props {
   readOnly?: boolean;
 }
 
-function textValueToNumeric(value: string | undefined) {
+export function textValueToNumeric(value: string | undefined) {
   if (value == null || !value.length) {
     return null;
   }
@@ -31,9 +31,12 @@ function textValueToNumeric(value: string | undefined) {
   return Number(whole) * 100 + cents;
 }
 
-function numericValueToText(value: number | null) {
+export function numericValueToText(value: number | null): string {
   if (value == null) {
     return '';
+  }
+  if (value < 0) {
+    return `-${numericValueToText(-value)}`;
   }
   const whole = Math.floor(value / 100);
   const decimals = String(value % 100);
