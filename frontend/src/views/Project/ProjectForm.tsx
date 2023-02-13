@@ -251,6 +251,22 @@ export function ProjectForm(props: ProjectFormProps) {
         />
 
         <FormField
+          formField="committees"
+          label={tr('project.committeeLabel')}
+          tooltip={tr('newProject.committeeTooltip')}
+          component={({ id, onChange, value }) => (
+            <CodeSelect
+              id={id}
+              // Coerce the single value into an array (support for multiple committees will be added later)
+              value={value?.[0]}
+              onChange={(value) => onChange(!value ? [] : [value])}
+              readOnly={!editing}
+              codeListId="Lautakunta"
+            />
+          )}
+        />
+
+        <FormField
           formField="sapProjectId"
           label={tr('project.sapProjectIdLabel')}
           component={(field) => (

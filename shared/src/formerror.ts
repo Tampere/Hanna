@@ -7,7 +7,7 @@ export interface FieldError {
 
 export type FormErrors<T> = {
   errors: {
-    [key in keyof T]?: FieldError | { type: string };
+    [key in keyof T]?: FieldError | { type?: string };
   };
 } | null;
 

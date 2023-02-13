@@ -44,6 +44,7 @@
   "newProject.projectTypeTooltip": "Valitse hanketyyppi",
   "newProject.personInChargeTooltip": "Valitse vastuuhenkilö",
   "newProject.ownerTooltip": "Valitse omistaja",
+  "newProject.committeeTooltip": "Valitse lautakunta",
   "newProject.basicInfoSectionLabel": "Perustiedot",
   "newProject.createBtnLabel": "Lisää hanke",
   "project.relatedProjectsTabLabel": "Sidoshankkeet",

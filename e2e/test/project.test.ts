@@ -60,6 +60,9 @@ async function createProject(page: Page, project: UpsertProject) {
   await page.getByLabel('Hanketyyppi').click();
   await page.getByRole('option', { name: 'Investointihanke' }).click();
 
+  await page.getByLabel('Lautakunta').click();
+  await page.getByRole('option', { name: 'Yhdyskuntalautakunta' }).click();
+
   await page.getByRole('button', { name: 'Lisää hanke' }).click();
 
   // URL should include the newly created project ID, parse it from the URL

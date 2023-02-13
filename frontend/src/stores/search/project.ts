@@ -14,6 +14,7 @@ export const projectSearchParamAtoms = {
   }),
   lifecycleStates: atom<string[]>([]),
   projectTypes: atom<string[]>([]),
+  committees: atom<string[]>([]),
   map: atom<MapSearch>({
     zoom: mapOptions.tre.defaultZoom,
     extent: mapOptions.tre.extent,
