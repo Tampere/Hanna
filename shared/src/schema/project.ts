@@ -13,7 +13,7 @@ export const upsertProjectSchema = z.object({
   endDate: isoDateString,
   lifecycleState: codeId,
   projectType: codeId,
-  committees: z.array(codeId).nonempty(),
+  committees: z.array(codeId).superRefine((committees) => committees.length > 0),
   sapProjectId: z.string().nullable(),
 });
 
