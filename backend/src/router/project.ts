@@ -52,7 +52,7 @@ async function getProject(id: string) {
 
   if (!project) throw new TRPCError({ code: 'NOT_FOUND' });
 
-  const committees = await getPool().many(sql.type(z.object({ id: z.string() }))`
+  const committees = await getPool().any(sql.type(z.object({ id: z.string() }))`
     SELECT (committee_type).id FROM app.project_committee
     WHERE project_id = ${id}
   `);
