@@ -34,6 +34,7 @@ test.describe('Project endpoints', () => {
       endDate: '2022-01-01',
       lifecycleState: '01',
       projectType: '01',
+      committees: ['01'],
       sapProjectId: null,
     });
 
