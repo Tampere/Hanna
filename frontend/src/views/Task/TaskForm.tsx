@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
+import { ContractorSelect } from '@frontend/components/forms/ContractorSelect';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
@@ -162,6 +163,15 @@ export function TaskForm(props: Props) {
           label={tr('taskForm.descriptionLabel')}
           tooltip={tr('taskForm.descriptionTooltip')}
           component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
+        />
+
+        <FormField
+          formField="contractorId"
+          label={tr('taskForm.contractorLabel')}
+          tooltip={tr('taskForm.contractorTooltip')}
+          component={({ ref, ...field }) => (
+            <ContractorSelect {...field} readonlyProps={readonlyProps} />
+          )}
         />
 
         <FormField

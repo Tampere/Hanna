@@ -8,6 +8,7 @@ export const upsertTaskSchema = z.object({
   projectObjectId: z.string(),
   taskName: nonEmptyString,
   description: nonEmptyString,
+  contractorId: nonEmptyString,
   lifecycleState: codeId,
   taskType: codeId,
   startDate: isoDateString,
