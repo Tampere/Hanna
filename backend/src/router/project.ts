@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
+import { getReportJob, startReportJob } from '@backend/components/taskQueue/reportQueue';
 import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
@@ -523,4 +524,22 @@ export const createProjectRouter = (t: TRPC) =>
       const { subjectProjectId: projectId, objectProjectId: targetProjectId, relation } = input;
       return await removeProjectRelation(projectId, targetProjectId, relation);
     }),
+
+    startReportJob: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
+      return await startReportJob(input);
+    }),
+
+    getReportJobStatus: t.procedure
+      .input(z.object({ jobId: z.string() }))
+      .query(async ({ input }) => {
+        const { state, isFinished } = await getReportJob(input.jobId);
+        return { state, isFinished };
+      }),
+
+    getReportJobOutput: t.procedure
+      .input(z.object({ jobId: z.string() }))
+      .query(async ({ input }) => {
+        const { output } = await getReportJob(input.jobId);
+        return output;
+      }),
   });

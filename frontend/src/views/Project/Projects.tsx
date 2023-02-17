@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
-import { AddCircle, NavigateNext } from '@mui/icons-material';
-import { Box, Button, Card, CardActionArea, Paper, Typography } from '@mui/material';
+import { AddCircle, Download, NavigateNext } from '@mui/icons-material';
+import { Box, Button, Card, CardActionArea, IconButton, Tooltip, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
 
@@ -80,6 +80,8 @@ interface SearchResultsProps {
 
 function SearchResults({ results, loading }: SearchResultsProps) {
   const tr = useTranslations();
+  const projectSearchParams = getProjectSearchParams();
+  const { project } = trpc.useContext();
   return (
     <Box
       aria-label={tr('projectListing.searchResultsTitle')}
@@ -91,6 +93,43 @@ function SearchResults({ results, loading }: SearchResultsProps) {
         min-width: 256px;
       `}
     >
+      <Box
+        css={css`
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          position: sticky;
+          top: 0;
+          z-index: 1;
+          background: #fff;
+        `}
+      >
+        <Typography
+          variant="h5"
+          css={css`
+            flex-grow: 1;
+          `}
+        >
+          {tr('projectListing.searchResultsTitle')}
+        </Typography>
+        <Tooltip title={tr('projectSearch.exportSearchResults')}>
+          <IconButton
+            onClick={async () => {
+              const jobId = await project.startReportJob.fetch(projectSearchParams);
+              const interval = setInterval(async () => {
+                const { isFinished } = await project.getReportJobStatus.fetch({ jobId });
+                if (isFinished) {
+                  clearInterval(interval);
+                  const output = await project.getReportJobOutput.fetch({ jobId });
+                  console.log({ output });
+                }
+              }, 1000);
+            }}
+          >
+            <Download />
+          </IconButton>
+        </Tooltip>
+      </Box>
       {results?.length > 0
         ? results.map((result) => <ProjectCard result={result} key={result.id} />)
         : !loading && (

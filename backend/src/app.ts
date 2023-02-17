@@ -16,6 +16,9 @@ import { logger } from '@backend/logging';
 import { getClient } from '@backend/oidc';
 import { appRouter, createContext } from '@backend/router';
 
+import { initializeTaskQueue } from './components/taskQueue';
+import { initializeReportQueue } from './components/taskQueue/reportQueue';
+
 async function run() {
   ProjectInfoService.initialize({
     endpoint: env.sapWebService.projectInfoEndpoint,
@@ -32,6 +35,9 @@ async function run() {
   });
 
   await createDatabasePool();
+  await initializeTaskQueue();
+
+  await Promise.all([initializeReportQueue()]);
 
   const server = fastify({ logger });
   const oidcClient = await getClient();
