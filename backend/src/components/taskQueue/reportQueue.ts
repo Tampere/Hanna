@@ -1,6 +1,7 @@
-import { ProjectSearch } from 'tre-hanna-shared/src/schema/project';
+import { buildProjectReport } from '@backend/components/report/projectReport';
+import { logger } from '@backend/logging';
 
-import { sleep } from '@shared/utils';
+import { ProjectSearch } from '@shared/schema/project';
 
 import { getJob, getTaskQueue } from '.';
 
@@ -10,8 +11,8 @@ interface Output {
   bar: number;
 }
 
-async function generateReport({ data }: { data: ProjectSearch }) {
-  await sleep(10000);
+async function generateReport({ id, data }: { id: string; data: ProjectSearch }) {
+  await buildProjectReport(id, data);
   return { bar: 123 };
 }
 

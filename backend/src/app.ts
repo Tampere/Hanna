@@ -9,6 +9,7 @@ import { serialize } from 'superjson';
 
 import { registerAuth } from '@backend/auth';
 import healthApi from '@backend/components/health/api';
+import reportDownloadApi from '@backend/components/report/downloadApi';
 import { ActualsService, ProjectInfoService } from '@backend/components/sap/webservice';
 import { SharedPool, createDatabasePool } from '@backend/db';
 import { env } from '@backend/env';
@@ -92,6 +93,7 @@ async function run() {
   });
 
   server.register(healthApi, { prefix: '/api/v1' });
+  server.register(reportDownloadApi, { prefix: '/api/v1' });
 
   const defaultErrorHandler = server.errorHandler;
 
