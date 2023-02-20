@@ -1,5 +1,4 @@
 import { buildProjectReport } from '@backend/components/report/projectReport';
-import { logger } from '@backend/logging';
 
 import { ProjectSearch } from '@shared/schema/project';
 
@@ -7,18 +6,13 @@ import { getJob, getTaskQueue } from '.';
 
 const queueName = 'report';
 
-interface Output {
-  bar: number;
-}
-
 async function generateReport({ id, data }: { id: string; data: ProjectSearch }) {
   await buildProjectReport(id, data);
-  return { bar: 123 };
 }
 
 export async function initializeReportQueue() {
   const queue = getTaskQueue();
-  queue.work<ProjectSearch, Output>(queueName, generateReport);
+  queue.work<ProjectSearch, void>(queueName, generateReport);
 }
 
 export async function startReportJob(data: ProjectSearch) {
@@ -31,5 +25,5 @@ export async function startReportJob(data: ProjectSearch) {
 }
 
 export async function getReportJob(jobId: string) {
-  return getJob<Output>(jobId);
+  return getJob(jobId);
 }

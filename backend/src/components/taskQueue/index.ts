@@ -25,7 +25,7 @@ export function getTaskQueue() {
   return boss;
 }
 
-export async function getJob<Output extends object = object>(jobId: string) {
+export async function getJob<Output extends object | void = void>(jobId: string) {
   assertTaskQueueInitialized(boss);
 
   const job = await boss.getJobById(jobId);

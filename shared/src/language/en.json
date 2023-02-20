@@ -15,6 +15,7 @@
   "projectSearch.showLessBtnLabel": "Show less filters",
   "projectSearch.noResults": "No results",
   "projectSearch.dateRange": "Search date range",
+  "projectSearch.generateReport": "Generate report",
   "projectSearch.calendarQuickSelection.lastYear": "Last year",
   "projectSearch.calendarQuickSelection.thisYear": "This year",
   "projectSearch.calendarQuickSelection.nextYear": "Next year",

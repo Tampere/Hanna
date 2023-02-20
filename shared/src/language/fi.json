@@ -18,6 +18,7 @@
   "projectSearch.calendarQuickSelection.lastYear": "Viime vuosi",
   "projectSearch.calendarQuickSelection.thisYear": "Kuluva vuosi",
   "projectSearch.calendarQuickSelection.nextYear": "Seuraava vuosi",
+  "projectSearch.generateReport": "Lataa raportti",
   "projectListing.searchResultsTitle": "Hakutulokset",
   "project.projectNameLabel": "Hankkeen nimi",
   "project.descriptionLabel": "Kuvaus",
