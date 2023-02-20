@@ -54,7 +54,7 @@
     "@mui/x-date-pickers": "^5.0.17",
     "@tanstack/react-query": "^4.24.4",
     "@trpc/client": "^10.10.0",
-    "@trpc/react-query": "^10.10.0",
+    "@trpc/react-query": "^10.12.0",
     "@trpc/server": "^10.10.0",
     "dayjs": "^1.11.7",
     "jotai": "^2.0.0",
