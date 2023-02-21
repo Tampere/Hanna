@@ -1,9 +1,9 @@
-import { nonEmptyString } from 'tre-hanna-shared/src/schema/common';
 import { z } from 'zod';
 
 import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 
+import { nonEmptyString } from '@shared/schema/common';
 import {
   companyIdSchema,
   companySchema,
