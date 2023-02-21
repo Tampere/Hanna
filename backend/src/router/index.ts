@@ -4,6 +4,7 @@ import superjson from 'superjson';
 
 import { logger } from '@backend/logging';
 import { createCodeRouter } from '@backend/router/code';
+import { createContractorRouter } from '@backend/router/contractor';
 import { createProjectRouter } from '@backend/router/project';
 import { createProjectObjectRouter } from '@backend/router/projectObject';
 import { createSapRouter } from '@backend/router/sap';
@@ -40,6 +41,7 @@ export const appRouter = t.router({
   session: createSessionRouter(t),
   task: createTaskRouter(t),
   user: createUserRouter(t),
+  contractor: createContractorRouter(t),
 });
 
 export type TRPC = typeof t;

@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { Logout } from '@mui/icons-material';
+import { Logout, Settings } from '@mui/icons-material';
 import AccountCircleOutlined from '@mui/icons-material/AccountCircleOutlined';
 import AccountTreeOutlined from '@mui/icons-material/AccountTreeOutlined';
 import {
@@ -87,11 +87,41 @@ function Navbar() {
             Hanna|TRE
           </Typography>
         </Box>
-        <Box sx={{ flexGrow: 1 }}>
+        <Box
+          css={css`
+            display: flex;
+            flex-grow: 1;
+            justify-content: space-between;
+          `}
+        >
           <Button component={Link} to="/hankkeet" sx={{ color: 'white' }}>
             <AccountTreeOutlined sx={{ mr: 1 }} />
             {tr('pages.projectsTitle')}
           </Button>
+
+          <Box
+            css={css`
+              display: flex;
+            `}
+          >
+            <Button
+              component={Link}
+              to="/hallinta/urakoitsijat"
+              sx={{ color: 'white', float: 'right' }}
+            >
+              <Settings />
+              {tr('pages.managementTitle')}
+            </Button>
+
+            <span
+              css={css`
+                margin-left: 16px;
+                margin-right: 24px;
+                height: 100%;
+                border-left: 2px solid #aaa;
+              `}
+            />
+          </Box>
         </Box>
         <Box>
           <Typography variant="caption">{auth?.name}</Typography>

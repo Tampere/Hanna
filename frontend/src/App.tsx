@@ -11,6 +11,7 @@ import {
 import SuperJSON from 'superjson';
 
 import { Layout } from '@frontend/Layout';
+import { Management } from '@frontend/views/Management';
 import { NotFound } from '@frontend/views/NotFound';
 import { Project } from '@frontend/views/Project/Project';
 import { ProjectsPage } from '@frontend/views/Project/Projects';
@@ -40,6 +41,7 @@ const router = createBrowserRouter(
       <Route path="hanke/:projectId/:tabView" element={<Project />} />
       <Route path="hanke/:projectId/kohde/:projectObjectId" element={<ProjectObject />} />
       <Route path="hanke/:projectId/kohde/:projectObjectId/:tabView" element={<ProjectObject />} />
+      <Route path="hallinta/:tabView" element={<Management />} />
       <Route path="saptest/:sapProjectId" element={<SapDebugView />} />
       <Route path="session-renewed" element={<SessionRenewed />} />
       <Route path="*" element={<NotFound />} />

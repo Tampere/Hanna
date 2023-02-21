@@ -1,4 +1,3 @@
-import { FileDownload } from '@mui/icons-material';
 import { Autocomplete, CircularProgress, TextField } from '@mui/material';
 import { ControllerRenderProps, FieldValues } from 'react-hook-form';
 
