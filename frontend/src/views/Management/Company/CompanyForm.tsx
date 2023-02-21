@@ -48,7 +48,7 @@ export function CompanyForm(props: Props) {
   });
 
   const companyUpsert = trpc.contractor.upsertCompany.useMutation({
-    onSuccess: (data) => {
+    onSuccess: () => {
       props.onSubmitted?.();
       navigate('/hallinta/yritykset', { replace: true });
       notify({

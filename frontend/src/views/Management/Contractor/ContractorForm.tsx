@@ -54,7 +54,7 @@ export function ContractorForm(props: Props) {
   });
 
   const contractorUpsert = trpc.contractor.upsertContractor.useMutation({
-    onSuccess: (data) => {
+    onSuccess: () => {
       props.onSubmitted?.();
       navigate('/hallinta/urakoitsijat', { replace: true });
       notify({

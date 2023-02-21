@@ -1,19 +1,5 @@
-import {
-  Delete,
-  DeleteForever,
-  DeleteForeverTwoTone,
-  EditTwoTone,
-  Remove,
-} from '@mui/icons-material';
-import {
-  Button,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-} from '@mui/material';
+import { DeleteForeverTwoTone, EditTwoTone } from '@mui/icons-material';
+import { Button, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
