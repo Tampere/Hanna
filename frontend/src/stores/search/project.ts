@@ -19,6 +19,7 @@ export const projectSearchParamAtoms = {
     zoom: mapOptions.tre.defaultZoom,
     extent: mapOptions.tre.extent,
   }),
+  includeWithoutGeom: atom<boolean>(false),
 };
 
 export const getProjectSearchParams = () => unwrapAtomValues(projectSearchParamAtoms);

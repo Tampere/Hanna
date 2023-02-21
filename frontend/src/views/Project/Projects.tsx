@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { AddCircle, Download, NavigateNext } from '@mui/icons-material';
-import { Box, Button, Card, CardActionArea, Typography } from '@mui/material';
+import { Box, Button, Card, CardActionArea, Chip, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 import { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
@@ -116,6 +116,7 @@ function SearchResults({ results, loading }: SearchResultsProps) {
           `}
         >
           {tr('projectListing.searchResultsTitle')}
+          <Chip label={results?.length ?? 0} sx={{ ml: 1 }} size="small" variant="outlined" />
         </Typography>
         <AsyncJobIconButton
           disabled={results?.length < 1}

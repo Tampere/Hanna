@@ -18,6 +18,8 @@
   "projectSearch.calendarQuickSelection.lastYear": "Viime vuosi",
   "projectSearch.calendarQuickSelection.thisYear": "Kuluva vuosi",
   "projectSearch.calendarQuickSelection.nextYear": "Seuraava vuosi",
+  "projectSearch.geometry": "Alue",
+  "projectSearch.showWithoutGeom": "Sisällytä hankkeet ilman alueita",
   "projectSearch.generateReport": "Lataa raportti",
   "projectSearch.reportFailed": "Raportin luonti epäonnistui",
   "projectListing.searchResultsTitle": "Hakutulokset",

@@ -142,7 +142,7 @@ function textSearchFragment(text: ProjectSearch['text']) {
   return sql.fragment`true`;
 }
 
-function timePeriodFragment(input: z.infer<typeof projectSearchSchema>) {
+function timePeriodFragment(input: ProjectSearch) {
   const startDate = input.dateRange?.startDate;
   const endDate = input.dateRange?.endDate;
   if (startDate && endDate) {
@@ -153,11 +153,13 @@ function timePeriodFragment(input: z.infer<typeof projectSearchSchema>) {
   return sql.fragment`true`;
 }
 
-function mapExtentFragment(extent: number[] | undefined) {
+function mapExtentFragment(input: ProjectSearch) {
+  const extent = input.map?.extent;
   if (!extent) return sql.fragment`true`;
+  const includeWithoutGeom = input.includeWithoutGeom ? sql.fragment`true` : sql.fragment`false`;
 
   return sql.fragment`
-    ST_Intersects(
+    (ST_Intersects(
       project.geom,
       ST_SetSRID(
         ST_MakeBox2d(
@@ -166,21 +168,21 @@ function mapExtentFragment(extent: number[] | undefined) {
         ),
         3067
       )
-    )
+    ) OR (${includeWithoutGeom} AND project.geom IS NULL))
   `;
 }
 
-function orderByFragment(input: z.infer<typeof projectSearchSchema>) {
+function orderByFragment(input: ProjectSearch) {
   if (input?.text && input.text.trim().length > 0) {
     return sql.fragment`ORDER BY ts_rank(tsv, to_tsquery('simple', ${input.text})) DESC`;
   }
   return sql.fragment`ORDER BY project.start_date DESC`;
 }
 
-export function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
+export function getFilterFragment(input: ProjectSearch) {
   return sql.fragment`
       AND ${textSearchFragment(input.text)}
-      AND ${mapExtentFragment(input.map?.extent)}
+      AND ${mapExtentFragment(input)}
       AND ${timePeriodFragment(input)}
       AND ${
         input.lifecycleStates && input.lifecycleStates?.length > 0

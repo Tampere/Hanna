@@ -42,6 +42,7 @@ export const projectSearchSchema = z.object({
   financingTypes: z.array(z.string()).optional(),
   committees: z.array(z.string()).optional(),
   map: mapSearchSchema.optional(),
+  includeWithoutGeom: z.boolean().optional(),
 });
 
 export const dbProjectSchema = upsertProjectSchema.extend({
