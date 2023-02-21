@@ -147,7 +147,7 @@ function timePeriodFragment(input: z.infer<typeof projectSearchSchema>) {
   const endDate = input.dateRange?.endDate;
   if (startDate && endDate) {
     return sql.fragment`
-      daterange(start_date, end_date, '[]') && daterange(${startDate}, ${endDate}, '[]')
+      daterange(project.start_date, project.end_date, '[]') && daterange(${startDate}, ${endDate}, '[]')
     `;
   }
   return sql.fragment`true`;
@@ -158,7 +158,7 @@ function mapExtentFragment(extent: number[] | undefined) {
 
   return sql.fragment`
     ST_Intersects(
-      geom,
+      project.geom,
       ST_SetSRID(
         ST_MakeBox2d(
           ST_Point(${extent[0]}, ${extent[1]}),
@@ -174,17 +174,20 @@ function orderByFragment(input: z.infer<typeof projectSearchSchema>) {
   if (input?.text && input.text.trim().length > 0) {
     return sql.fragment`ORDER BY ts_rank(tsv, to_tsquery('simple', ${input.text})) DESC`;
   }
-  return sql.fragment`ORDER BY start_date DESC`;
+  return sql.fragment`ORDER BY project.start_date DESC`;
 }
 
-function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
+export function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
   return sql.fragment`
       AND ${textSearchFragment(input.text)}
       AND ${mapExtentFragment(input.map?.extent)}
       AND ${timePeriodFragment(input)}
       AND ${
         input.lifecycleStates && input.lifecycleStates?.length > 0
-          ? sql.fragment`(lifecycle_state).id = ANY(${sql.array(input.lifecycleStates, 'text')})
+          ? sql.fragment`(project.lifecycle_state).id = ANY(${sql.array(
+              input.lifecycleStates,
+              'text'
+            )})
           `
           : sql.fragment`true`
       }
@@ -196,7 +199,7 @@ function getFilterFragment(input: z.infer<typeof projectSearchSchema>) {
       }
       AND ${
         input.committees && input.committees.length > 0
-          ? sql.fragment`id IN (
+          ? sql.fragment`project.id IN (
             SELECT project_id FROM app.project_committee
             WHERE (committee_type).id = ANY(${sql.array(input.committees, 'text')})
           )`

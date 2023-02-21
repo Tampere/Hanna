@@ -8,6 +8,7 @@ interface Props {
   onFinished: (jobId: string) => Promise<void>;
   pollingIntervalTimeout?: number;
   tooltip?: ReactNode;
+  disabled?: boolean;
 }
 
 export function AsyncJobIconButton(props: Props) {
@@ -59,7 +60,7 @@ export function AsyncJobIconButton(props: Props) {
       </div>
       <Tooltip title={tooltip ?? ''}>
         <IconButton
-          disabled={loading}
+          disabled={loading || props.disabled}
           onClick={async () => {
             setJobId(await onStart());
           }}

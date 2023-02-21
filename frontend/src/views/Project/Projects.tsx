@@ -115,6 +115,7 @@ function SearchResults({ results, loading }: SearchResultsProps) {
           {tr('projectListing.searchResultsTitle')}
         </Typography>
         <AsyncJobIconButton
+          disabled={results?.length < 1}
           tooltip={tr('projectSearch.generateReport')}
           onStart={async () => {
             return await project.startReportJob.fetch(projectSearchParams);
