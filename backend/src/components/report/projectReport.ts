@@ -77,16 +77,13 @@ function dbResultToXlsx(rows: ReportRow[]) {
   const data = rows.map((row) => {
     return Object.values(row);
   });
-  return xlsx.build(
-    [
-      {
-        name: 'Raportti',
-        options: {},
-        data: [headers, ...data],
-      },
-    ],
-    { writeOptions: { cellStyles: true } }
-  );
+  return xlsx.build([
+    {
+      name: 'Raportti',
+      options: {},
+      data: [headers, ...data],
+    },
+  ]);
 }
 export async function buildProjectReport(jobId: string, data: ProjectSearch) {
   const reportQuery = sql.type(reportRowSchema)`
