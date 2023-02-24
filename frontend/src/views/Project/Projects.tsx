@@ -2,10 +2,12 @@ import { css } from '@emotion/react';
 import { AddCircle, Download, NavigateNext } from '@mui/icons-material';
 import { Box, Button, Card, CardActionArea, Typography } from '@mui/material';
 import dayjs from 'dayjs';
+import { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { AsyncJobIconButton } from '@frontend/components/AsyncJobIconButton';
+import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { getProjectSearchParams } from '@frontend/stores/search/project';
 import { useDebounce } from '@frontend/utils/useDebounce';
@@ -83,6 +85,7 @@ function SearchResults({ results, loading }: SearchResultsProps) {
   const tr = useTranslations();
   const projectSearchParams = getProjectSearchParams();
   const { project } = trpc.useContext();
+  const notify = useNotifications();
 
   return (
     <Box
@@ -120,15 +123,30 @@ function SearchResults({ results, loading }: SearchResultsProps) {
           onStart={async () => {
             return await project.startReportJob.fetch(projectSearchParams);
           }}
-          isFinished={async (jobId) => {
-            const { isFinished } = await project.getReportJobStatus.fetch({ jobId });
-            return isFinished;
+          getStatus={async (jobId) => {
+            const { isFinished, state } = await project.getReportJobStatus.fetch({ jobId });
+            if (state === 'failed') {
+              return {
+                finished: true,
+                error: tr('projectSearch.reportFailed'),
+              };
+            }
+
+            return {
+              finished: isFinished,
+            };
           }}
           onFinished={async (jobId) => {
             // Create a link element to automatically download the new report
             const link = document.createElement('a');
             link.href = `/api/v1/report/file?id=${jobId}`;
             link.click();
+          }}
+          onError={(error: string) => {
+            notify({
+              title: error,
+              severity: 'error',
+            });
           }}
           icon={<Download />}
           pollingIntervalTimeout={1000}

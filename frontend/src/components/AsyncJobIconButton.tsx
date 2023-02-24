@@ -1,18 +1,22 @@
 import { CircularProgress, IconButton, Tooltip } from '@mui/material';
 import { ReactNode, useEffect, useState } from 'react';
 
-interface Props {
+interface Props<ErrorType> {
   icon: ReactNode;
   onStart: () => Promise<string>;
-  isFinished: (jobId: string) => Promise<boolean>;
+  getStatus: (jobId: string) => Promise<{
+    finished: boolean;
+    error?: ErrorType;
+  }>;
   onFinished: (jobId: string) => Promise<void>;
+  onError: (error: ErrorType) => void;
   pollingIntervalTimeout?: number;
   tooltip?: ReactNode;
   disabled?: boolean;
 }
 
-export function AsyncJobIconButton(props: Props) {
-  const { icon, onStart, isFinished, onFinished, pollingIntervalTimeout, tooltip } = props;
+export function AsyncJobIconButton<ErrorType>(props: Props<ErrorType>) {
+  const { icon, onStart, getStatus, onFinished, onError, pollingIntervalTimeout, tooltip } = props;
 
   const [loading, setLoading] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
@@ -25,14 +29,16 @@ export function AsyncJobIconButton(props: Props) {
     setLoading(true);
 
     const interval = setInterval(async () => {
-      if (!(await isFinished(jobId))) {
-        // Status is not yet ready, keep on polling
+      const status = await getStatus(jobId);
+      if (status.error) {
+        onError(status.error);
+      } else if (status.finished) {
+        onFinished(jobId);
+      } else {
         return;
       }
 
-      // Job is done - clear the interval and invoke the callback
       clearInterval(interval);
-      onFinished(jobId);
       setLoading(false);
     }, pollingIntervalTimeout ?? 1000);
 
@@ -59,14 +65,16 @@ export function AsyncJobIconButton(props: Props) {
         {loading && <CircularProgress size={20} />}
       </div>
       <Tooltip title={tooltip ?? ''}>
-        <IconButton
-          disabled={loading || props.disabled}
-          onClick={async () => {
-            setJobId(await onStart());
-          }}
-        >
-          {icon}
-        </IconButton>
+        <span>
+          <IconButton
+            disabled={loading || props.disabled}
+            onClick={async () => {
+              setJobId(await onStart());
+            }}
+          >
+            {icon}
+          </IconButton>
+        </span>
       </Tooltip>
     </div>
   );

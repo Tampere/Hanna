@@ -19,6 +19,7 @@
   "projectSearch.calendarQuickSelection.thisYear": "Kuluva vuosi",
   "projectSearch.calendarQuickSelection.nextYear": "Seuraava vuosi",
   "projectSearch.generateReport": "Lataa raportti",
+  "projectSearch.reportFailed": "Raportin luonti epäonnistui",
   "projectListing.searchResultsTitle": "Hakutulokset",
   "project.projectNameLabel": "Hankkeen nimi",
   "project.descriptionLabel": "Kuvaus",

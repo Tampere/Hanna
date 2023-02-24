@@ -1,4 +1,4 @@
-import xlsx from 'node-xlsx';
+import { Workbook } from 'excel4node';
 import { z } from 'zod';
 
 import { getPool, sql } from '@backend/db';
@@ -8,12 +8,15 @@ import { getFilterFragment } from '@backend/router/project';
 import { translations } from '@shared/language';
 import { ProjectSearch } from '@shared/schema/project';
 
+const dateStringSchema = z.string().transform((value) => new Date(value));
+const datetimeSchema = z.number().transform((value) => new Date(value));
+
 const projectReportFragment = sql.fragment`
   SELECT
     project.project_name AS "projectName",
     project.id AS "projectId",
     project.description AS "projectDescription",
-    project.created_at::date AS "projectCreatedAt",
+    project.created_at AS "projectCreatedAt",
     project.start_date AS "projectStartDate",
     project.end_date AS "projectEndDate",
     (SELECT text_fi FROM app.code WHERE id = project.lifecycle_state) AS "projectLifecycleState",
@@ -29,7 +32,7 @@ const projectReportFragment = sql.fragment`
     (SELECT text_fi FROM app.code WHERE id = project_object.object_category) AS "projectObjectCategory",
     (SELECT text_fi FROM app.code WHERE id = project_object.object_usage) AS "projectObjectUsage",
     (SELECT email FROM app.user WHERE id = project_object.person_in_charge) AS "projectObjectPersonInChargeEmail",
-    project_object.created_at::date AS "projectObjectCreatedAt",
+    project_object.created_at AS "projectObjectCreatedAt",
     project_object.start_date AS "projectObjectStartDate",
     project_object.end_date AS "projectObjectEndDate",
     (SELECT text_fi FROM app.code WHERE id = project_object.landownership) AS "projectObjectLandownership",
@@ -44,9 +47,9 @@ const reportRowSchema = z.object({
   projectName: z.string(),
   projectId: z.string(),
   projectDescription: z.string(),
-  projectCreatedAt: z.string(),
-  projectStartDate: z.string(),
-  projectEndDate: z.string(),
+  projectCreatedAt: datetimeSchema,
+  projectStartDate: dateStringSchema,
+  projectEndDate: dateStringSchema,
   projectLifecycleState: z.string(),
   projectType: z.string(),
   projectSAPProjectId: z.string().nullish(),
@@ -60,9 +63,9 @@ const reportRowSchema = z.object({
   projectObjectCategory: z.string().nullish(),
   projectObjectUsage: z.string().nullish(),
   projectObjectPersonInChargeEmail: z.string().nullish(),
-  projectObjectCreatedAt: z.string().nullish(),
-  projectObjectStartDate: z.string().nullish(),
-  projectObjectEndDate: z.string().nullish(),
+  projectObjectCreatedAt: datetimeSchema.nullish(),
+  projectObjectStartDate: dateStringSchema.nullish(),
+  projectObjectEndDate: dateStringSchema.nullish(),
   projectObjectLandownership: z.string().nullish(),
   projectObjectLocationOnProperty: z.string().nullish(),
   projectObjectSAPWBSId: z.string().nullish(),
@@ -70,20 +73,44 @@ const reportRowSchema = z.object({
 
 type ReportRow = z.infer<typeof reportRowSchema>;
 
-function dbResultToXlsx(rows: ReportRow[]) {
+async function dbResultToXlsx(rows: ReportRow[]) {
   const reportFields = Object.keys(rows[0]) as (keyof ReportRow)[];
   const headers = reportFields.map((field) => translations['fi'][`report.columns.${field}`]);
 
-  const data = rows.map((row) => {
-    return Object.values(row);
+  const workbook = new Workbook({
+    dateFormat: 'd.m.yyyy',
   });
-  return xlsx.build([
-    {
-      name: 'Raportti',
-      options: {},
-      data: [headers, ...data],
+  const worksheet = workbook.addWorksheet('Raportti');
+  const headerStyle = workbook.createStyle({
+    font: {
+      bold: true,
     },
-  ]);
+  });
+
+  headers.forEach((header, index) => {
+    worksheet
+      .cell(1, index + 1)
+      .string(header)
+      .style(headerStyle);
+  });
+
+  rows.forEach((row, rowIndex) => {
+    Object.values(row).forEach((value, column) => {
+      // Skip empty values
+      if (value == null) {
+        return;
+      }
+
+      const cell = worksheet.cell(rowIndex + 2, column + 1);
+      if (value instanceof Date) {
+        cell.date(value);
+      } else {
+        cell.string(value);
+      }
+    });
+  });
+
+  return await workbook.writeToBuffer();
 }
 export async function buildProjectReport(jobId: string, data: ProjectSearch) {
   const reportQuery = sql.type(reportRowSchema)`
@@ -95,14 +122,16 @@ export async function buildProjectReport(jobId: string, data: ProjectSearch) {
     logger.debug(`Running report query for job ${jobId} with data: ${JSON.stringify(data)}`);
     const reportResult = await getPool().any(reportQuery);
     const reportRows = z.array(reportRowSchema).parse(reportResult);
-    const buffer = dbResultToXlsx(reportRows);
+    const buffer = await dbResultToXlsx(reportRows);
     logger.debug(`Saving report to database, ${buffer.length} bytes...`);
     const queryResult = await getPool().query(sql.untyped`
       INSERT INTO app.report_file (pgboss_job_id, report_filename, report_data)
       VALUES (${jobId}, 'raportti.xlsx', ${sql.binary(buffer)})
     `);
     logger.debug(`Report saved to database, ${queryResult.rowCount} rows affected.`);
-  } catch (e) {
-    logger.error(e);
+  } catch (error) {
+    // Log and rethrow the error to make the job state failed
+    logger.error(error);
+    throw error;
   }
 }
