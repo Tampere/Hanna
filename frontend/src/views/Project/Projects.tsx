@@ -1,10 +1,13 @@
 import { css } from '@emotion/react';
-import { AddCircle, NavigateNext } from '@mui/icons-material';
-import { Box, Button, Card, CardActionArea, Paper, Typography } from '@mui/material';
+import { AddCircle, Download, NavigateNext } from '@mui/icons-material';
+import { Box, Button, Card, CardActionArea, Typography } from '@mui/material';
 import dayjs from 'dayjs';
+import { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
+import { AsyncJobIconButton } from '@frontend/components/AsyncJobIconButton';
+import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { getProjectSearchParams } from '@frontend/stores/search/project';
 import { useDebounce } from '@frontend/utils/useDebounce';
@@ -80,6 +83,10 @@ interface SearchResultsProps {
 
 function SearchResults({ results, loading }: SearchResultsProps) {
   const tr = useTranslations();
+  const projectSearchParams = getProjectSearchParams();
+  const { project } = trpc.useContext();
+  const notify = useNotifications();
+
   return (
     <Box
       aria-label={tr('projectListing.searchResultsTitle')}
@@ -91,6 +98,60 @@ function SearchResults({ results, loading }: SearchResultsProps) {
         min-width: 256px;
       `}
     >
+      <Box
+        css={css`
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          position: sticky;
+          top: 0;
+          z-index: 1;
+          background: #fff;
+        `}
+      >
+        <Typography
+          variant="h5"
+          css={css`
+            flex-grow: 1;
+          `}
+        >
+          {tr('projectListing.searchResultsTitle')}
+        </Typography>
+        <AsyncJobIconButton
+          disabled={results?.length < 1}
+          tooltip={tr('projectSearch.generateReport')}
+          onStart={async () => {
+            return await project.startReportJob.fetch(projectSearchParams);
+          }}
+          getStatus={async (jobId) => {
+            const { isFinished, state } = await project.getReportJobStatus.fetch({ jobId });
+            if (state === 'failed') {
+              return {
+                finished: true,
+                error: tr('projectSearch.reportFailed'),
+              };
+            }
+
+            return {
+              finished: isFinished,
+            };
+          }}
+          onFinished={async (jobId) => {
+            // Create a link element to automatically download the new report
+            const link = document.createElement('a');
+            link.href = `/api/v1/report/file?id=${jobId}`;
+            link.click();
+          }}
+          onError={(error: string) => {
+            notify({
+              title: error,
+              severity: 'error',
+            });
+          }}
+          icon={<Download />}
+          pollingIntervalTimeout={1000}
+        />
+      </Box>
       {results?.length > 0
         ? results.map((result) => <ProjectCard result={result} key={result.id} />)
         : !loading && (

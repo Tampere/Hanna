@@ -19,7 +19,7 @@ export class SharedPool extends Pool {
   }
 }
 
-const connectionDsn =
+export const connectionDsn =
   stringifyDsn({
     databaseName: env.db.database,
     host: env.db.host,
