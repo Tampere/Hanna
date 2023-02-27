@@ -41,7 +41,9 @@ export function TaskRow(props: Props) {
           </Link>
         </TableCell>
         <TableCell>{codes.lifecycleState?.get(task.lifecycleState)?.[lang]}</TableCell>
-        <TableCell>{codes.taskType?.get(task.taskType)?.[lang]}</TableCell>
+        <TableCell>
+          {task.taskType} {codes.taskType?.get(task.taskType)?.[lang]}
+        </TableCell>
         <TableCell>{dayjs(task.startDate).format(tr('date.format'))}</TableCell>
         <TableCell>{dayjs(task.endDate).format(tr('date.format'))}</TableCell>
       </TableRow>
