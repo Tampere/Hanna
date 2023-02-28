@@ -2,7 +2,10 @@ import { Search, UnfoldLess, UnfoldMore } from '@mui/icons-material';
 import {
   Box,
   Button,
+  Checkbox,
   FormControl,
+  FormControlLabel,
+  FormGroup,
   FormLabel,
   InputAdornment,
   Paper,
@@ -31,12 +34,23 @@ const searchControlContainerStyle = css`
 const isoFormat = 'YYYY-MM-DD';
 
 function makeCalendarQuickSelections(tr: ReturnType<typeof useTranslations>) {
-  return [
-    {
-      label: tr('projectSearch.calendarQuickSelection.lastYear'),
+  const yearSelections = [];
+  for (let i = 1; i <= 5; i++) {
+    yearSelections.push({
+      label: dayjs().subtract(i, 'year').format('YYYY'),
       period: {
-        startDate: dayjs().subtract(1, 'year').startOf('year').format(isoFormat),
-        endDate: dayjs().subtract(1, 'year').endOf('year').format(isoFormat),
+        startDate: dayjs().subtract(i, 'year').startOf('year').format(isoFormat),
+        endDate: dayjs().subtract(i, 'year').endOf('year').format(isoFormat),
+      },
+    });
+  }
+
+  const labeledSelections = [
+    {
+      label: tr('projectSearch.calendarQuickSelection.nextYear'),
+      period: {
+        startDate: dayjs().add(1, 'year').startOf('year').format(isoFormat),
+        endDate: dayjs().add(1, 'year').endOf('year').format(isoFormat),
       },
     },
     {
@@ -46,14 +60,9 @@ function makeCalendarQuickSelections(tr: ReturnType<typeof useTranslations>) {
         endDate: dayjs().endOf('year').format(isoFormat),
       },
     },
-    {
-      label: tr('projectSearch.calendarQuickSelection.nextYear'),
-      period: {
-        startDate: dayjs().add(1, 'year').startOf('year').format(isoFormat),
-        endDate: dayjs().add(1, 'year').endOf('year').format(isoFormat),
-      },
-    },
   ] as const;
+
+  return [...labeledSelections, ...yearSelections];
 }
 
 export function SearchControls() {
@@ -127,6 +136,20 @@ export function SearchControls() {
               onChange={setSearchParams.committees}
             />
           </FormControl>
+          <FormGroup>
+            <FormLabel>{tr('projectSearch.geometry')}</FormLabel>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={searchParams.includeWithoutGeom}
+                  onChange={(_, checked) => {
+                    setSearchParams.includeWithoutGeom(checked);
+                  }}
+                />
+              }
+              label={tr('projectSearch.showWithoutGeom')}
+            />
+          </FormGroup>
         </>
       )}
       <Button
