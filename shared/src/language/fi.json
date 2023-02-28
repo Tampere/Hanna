@@ -8,6 +8,7 @@
   "date.format.placeholder": "pp.kk.vvvv",
   "pages.projectsTitle": "Hankkeet",
   "pages.managementTitle": "Hallinta",
+  "pages.manualTitle": "Ohje",
   "newProject.btnLabel": "Luo uusi hanke",
   "projectSearch.textSearchLabel": "Haku",
   "projectSearch.textSearchTip": "Hae...",

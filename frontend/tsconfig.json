@@ -17,5 +17,5 @@
     }
   },
   "references": [{ "path": "../backend/tsconfig.trpc.json" }],
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "types"]
 }

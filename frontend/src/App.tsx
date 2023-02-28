@@ -21,6 +21,7 @@ import { SapDebugView } from '@frontend/views/SapDebug';
 import { trpc } from './client';
 import { authAtom, getUserAtom, sessionExpiredAtom } from './stores/auth';
 import { useTranslations } from './stores/lang';
+import { Manual } from './views/Manual/Manual';
 import { SessionRenewed } from './views/SessionRenewed';
 
 const UserLoader = () => {
@@ -32,20 +33,26 @@ const UserLoader = () => {
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/" element={<Layout />}>
-      <Route index element={<ProjectsPage />} />
-      <Route path="hankkeet" element={<ProjectsPage />} />
-      <Route path="hanke/luo" element={<Project />} />
-      <Route path="hanke/:projectId" element={<Project />} />
-      <Route path="hanke/:projectId/uusi-kohde" element={<ProjectObject />} />
-      <Route path="hanke/:projectId/:tabView" element={<Project />} />
-      <Route path="hanke/:projectId/kohde/:projectObjectId" element={<ProjectObject />} />
-      <Route path="hanke/:projectId/kohde/:projectObjectId/:tabView" element={<ProjectObject />} />
-      <Route path="hallinta/:tabView" element={<Management />} />
-      <Route path="saptest/:sapProjectId" element={<SapDebugView />} />
-      <Route path="session-renewed" element={<SessionRenewed />} />
-      <Route path="*" element={<NotFound />} />
-    </Route>
+    <>
+      <Route path="ohje" element={<Manual />} />
+      <Route path="/" element={<Layout />}>
+        <Route index element={<ProjectsPage />} />
+        <Route path="hankkeet" element={<ProjectsPage />} />
+        <Route path="hanke/luo" element={<Project />} />
+        <Route path="hanke/:projectId" element={<Project />} />
+        <Route path="hanke/:projectId/uusi-kohde" element={<ProjectObject />} />
+        <Route path="hanke/:projectId/:tabView" element={<Project />} />
+        <Route path="hanke/:projectId/kohde/:projectObjectId" element={<ProjectObject />} />
+        <Route
+          path="hanke/:projectId/kohde/:projectObjectId/:tabView"
+          element={<ProjectObject />}
+        />
+        <Route path="hallinta/:tabView" element={<Management />} />
+        <Route path="saptest/:sapProjectId" element={<SapDebugView />} />
+        <Route path="session-renewed" element={<SessionRenewed />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </>
   )
 );
 
