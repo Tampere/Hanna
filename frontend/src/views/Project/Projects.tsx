@@ -6,7 +6,7 @@ import { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
-import { AsyncJobIconButton } from '@frontend/components/AsyncJobIconButton';
+import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { getProjectSearchParams } from '@frontend/stores/search/project';
@@ -118,9 +118,9 @@ function SearchResults({ results, loading }: SearchResultsProps) {
           {tr('projectListing.searchResultsTitle')}
           <Chip label={results?.length ?? 0} sx={{ ml: 1 }} size="small" variant="outlined" />
         </Typography>
-        <AsyncJobIconButton
+        <AsyncJobButton
+          label={tr('projectSearch.generateReport')}
           disabled={results?.length < 1}
-          tooltip={tr('projectSearch.generateReport')}
           onStart={async () => {
             return await project.startReportJob.fetch(projectSearchParams);
           }}

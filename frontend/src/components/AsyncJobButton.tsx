@@ -1,7 +1,8 @@
-import { CircularProgress, IconButton, Tooltip } from '@mui/material';
+import { Button, CircularProgress } from '@mui/material';
 import { ReactNode, useEffect, useState } from 'react';
 
 interface Props<ErrorType> {
+  label: string;
   icon: ReactNode;
   onStart: () => Promise<string>;
   getStatus: (jobId: string) => Promise<{
@@ -11,12 +12,11 @@ interface Props<ErrorType> {
   onFinished: (jobId: string) => Promise<void>;
   onError: (error: ErrorType) => void;
   pollingIntervalTimeout?: number;
-  tooltip?: ReactNode;
   disabled?: boolean;
 }
 
-export function AsyncJobIconButton<ErrorType>(props: Props<ErrorType>) {
-  const { icon, onStart, getStatus, onFinished, onError, pollingIntervalTimeout, tooltip } = props;
+export function AsyncJobButton<ErrorType>(props: Props<ErrorType>) {
+  const { label, icon, onStart, getStatus, onFinished, onError, pollingIntervalTimeout } = props;
 
   const [loading, setLoading] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
@@ -64,18 +64,15 @@ export function AsyncJobIconButton<ErrorType>(props: Props<ErrorType>) {
       >
         {loading && <CircularProgress size={20} />}
       </div>
-      <Tooltip title={tooltip ?? ''}>
-        <span>
-          <IconButton
-            disabled={loading || props.disabled}
-            onClick={async () => {
-              setJobId(await onStart());
-            }}
-          >
-            {icon}
-          </IconButton>
-        </span>
-      </Tooltip>
+      <Button
+        disabled={loading || props.disabled}
+        onClick={async () => {
+          setJobId(await onStart());
+        }}
+        endIcon={icon}
+      >
+        {label}
+      </Button>
     </div>
   );
 }
