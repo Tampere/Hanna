@@ -188,7 +188,7 @@ export function TaskForm(props: Props) {
           label={tr('taskForm.taskTypeLabel')}
           tooltip={tr('taskForm.taskTypeTooltip')}
           component={({ ref, ...field }) => (
-            <CodeSelect {...field} codeListId="TehtäväTyyppi" readOnly={!editing} />
+            <CodeSelect {...field} codeListId="TehtäväTyyppi" readOnly={!editing} showIdInLabel />
           )}
         />
 

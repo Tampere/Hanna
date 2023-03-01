@@ -13,6 +13,8 @@ type Props = {
   codeListId: CodeId['codeListId'];
   readOnly?: boolean;
   onBlur?: () => void;
+  getLabel?: (code: Code) => string;
+  showIdInLabel?: boolean;
 } & (
   | {
       multiple: true;
@@ -26,12 +28,25 @@ type Props = {
     }
 );
 
-export function CodeSelect({ id, codeListId, multiple, value, readOnly, onChange, onBlur }: Props) {
+export function CodeSelect({
+  id,
+  codeListId,
+  multiple,
+  value,
+  readOnly,
+  onChange,
+  onBlur,
+  showIdInLabel,
+}: Props) {
   const codes = trpc.code.get.useQuery({ codeListId }, { staleTime: 60 * 60 * 1000 });
   const lang = useAtomValue(langAtom);
 
   function getCode(id: string) {
     return codes.data?.find((code) => code.id.id === id);
+  }
+
+  function getLabel(code: Code) {
+    return [showIdInLabel && code.id.id, code.text[lang]].filter(Boolean).join(' ');
   }
 
   const selection = useMemo(() => {
@@ -48,7 +63,7 @@ export function CodeSelect({ id, codeListId, multiple, value, readOnly, onChange
       onBlur={onBlur}
       options={codes.data ?? []}
       loading={codes.isLoading}
-      getOptionLabel={(code) => code.text[lang]}
+      getOptionLabel={getLabel}
       getOptionId={(code) => code.id.id}
       value={selection as Code[]}
       onChange={(value) => {
@@ -63,7 +78,7 @@ export function CodeSelect({ id, codeListId, multiple, value, readOnly, onChange
       onBlur={onBlur}
       options={codes.data ?? []}
       loading={codes.isLoading}
-      getOptionLabel={(code) => code.text[lang]}
+      getOptionLabel={getLabel}
       getOptionId={(code) => code.id.id}
       value={selection as Code}
       onChange={(option) => {
