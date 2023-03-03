@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { Logout, Settings } from '@mui/icons-material';
+import { HelpOutline, Logout, Settings } from '@mui/icons-material';
 import AccountCircleOutlined from '@mui/icons-material/AccountCircleOutlined';
 import AccountTreeOutlined from '@mui/icons-material/AccountTreeOutlined';
 import {
@@ -106,10 +106,19 @@ function Navbar() {
           >
             <Button
               component={Link}
+              to="/ohje"
+              target="_blank"
+              sx={{ color: 'white', float: 'right' }}
+              startIcon={<HelpOutline />}
+            >
+              {tr('pages.manualTitle')}
+            </Button>
+            <Button
+              component={Link}
               to="/hallinta/urakoitsijat"
               sx={{ color: 'white', float: 'right' }}
+              startIcon={<Settings />}
             >
-              <Settings />
               {tr('pages.managementTitle')}
             </Button>
 
