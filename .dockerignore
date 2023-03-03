@@ -17,6 +17,7 @@ backend/*
 !backend/.eslintrc.cjs
 !backend/types
 !backend/resources
+!backend/email-templates
 
 shared/*
 !shared/src

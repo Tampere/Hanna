@@ -18,7 +18,8 @@ import { getClient } from '@backend/oidc';
 import { appRouter, createContext } from '@backend/router';
 
 import { initializeTaskQueue } from './components/taskQueue';
-import { initializeReportQueue } from './components/taskQueue/reportQueue';
+import { setupMailQueue, startSendMailJob } from './components/taskQueue/mailQueue';
+import { setupReportQueue } from './components/taskQueue/reportQueue';
 
 async function run() {
   ProjectInfoService.initialize({
@@ -38,7 +39,7 @@ async function run() {
   await createDatabasePool();
   await initializeTaskQueue();
 
-  await Promise.all([initializeReportQueue()]);
+  await Promise.all([setupReportQueue(), setupMailQueue()]);
 
   const server = fastify({ logger });
   const oidcClient = await getClient();

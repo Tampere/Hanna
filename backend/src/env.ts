@@ -39,6 +39,34 @@ const schema = z.object({
   enabledFeatures: z.object({
     sapActuals: z.boolean(),
   }),
+  report: z.object({
+    queueConcurrency: z.number(),
+  }),
+  email: z.object({
+    host: z.string(),
+    port: z.number(),
+    secure: z.boolean(),
+    maxConnections: z.number(),
+    senderAddress: z.string(),
+    senderName: z.string(),
+    queueConcurrency: z.number(),
+    auth: z.discriminatedUnion('method', [
+      z.object({
+        method: z.literal('oauth'),
+        clientId: z.string(),
+        clientSecret: z.string(),
+        refreshToken: z.string(),
+      }),
+      z.object({
+        method: z.literal('login'),
+        username: z.string(),
+        password: z.string(),
+      }),
+      z.object({
+        method: z.literal('none'),
+      }),
+    ]),
+  }),
 });
 
 function getEnv() {
@@ -72,7 +100,36 @@ function getEnv() {
     enabledFeatures: {
       sapActuals: process.env.FEATURE_ENABLED_SAP_ACTUALS === 'true',
     },
-  });
+    report: {
+      queueConcurrency: Number(process.env.REPORT_QUEUE_CONCURRENCY),
+    },
+    email: {
+      host: process.env.EMAIL_HOST,
+      port: Number(process.env.EMAIL_PORT),
+      secure: process.env.EMAIL_SECURE === 'true',
+      maxConnections: Number(process.env.EMAIL_MAX_CONNECTIONS),
+      queueConcurrency: Number(process.env.EMAIL_QUEUE_CONCURRENCY),
+      senderAddress: process.env.EMAIL_SENDER_ADDRESS,
+      senderName: process.env.EMAIL_SENDER_NAME,
+      auth:
+        process.env.EMAIL_AUTH_METHOD === 'oauth'
+          ? {
+              method: 'oauth',
+              clientId: process.env.EMAIL_AUTH_CLIENT_ID,
+              clientSecret: process.env.EMAIL_AUTH_CLIENT_SECRET,
+              refreshToken: process.env.EMAIL_REFRESH_TOKEN,
+            }
+          : process.env.EMAIL_AUTH_METHOD === 'login'
+          ? {
+              method: 'login',
+              username: process.env.EMAIL_USERNAME,
+              password: process.env.EMAIL_PASSWORD,
+            }
+          : {
+              method: 'none',
+            },
+    },
+  } as z.infer<typeof schema>);
 }
 
 export const env = getEnv();
