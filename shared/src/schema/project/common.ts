@@ -13,6 +13,7 @@ export const commonProjectSchema = upsertProjectSchema.extend({
   lifecycleState: codeId,
   projectType: codeId,
   personInCharge: nonEmptyString,
+  committees: z.array(codeId).superRefine((committees) => committees.length > 0),
 });
 
 export type CommonProject = z.infer<typeof commonProjectSchema>;

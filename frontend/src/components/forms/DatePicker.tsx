@@ -61,7 +61,7 @@ export function DatePicker(props: Props) {
               {...(readOnly && readonlyProps)}
               {...props}
               // Only highlight error if the value is actually invalid (i.e. ignore empty values)
-              error={value != '' && props.error}
+              error={value != '' && value != null && props.error}
               size="small"
               inputProps={{
                 ...props.inputProps,

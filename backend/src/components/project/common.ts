@@ -78,6 +78,23 @@ export async function projectUpsert(project: CommonProject, user: User) {
         RETURNING id
       `);
 
+    tx.query(sql.untyped`
+      DELETE FROM app.project_committee
+      WHERE project_id = ${upsertResult.id}
+    `);
+
+    await Promise.all(
+      project.committees.map((committee) =>
+        tx.any(sql.untyped`
+          INSERT INTO app.project_committee (project_id, committee_type)
+          VALUES (
+            ${upsertResult.id},
+            ${codeIdFragment('Lautakunta', committee)}
+          );
+        `)
+      )
+    );
+
     return getProject(upsertResult.id, tx);
   });
 }

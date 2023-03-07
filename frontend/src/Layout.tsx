@@ -159,6 +159,7 @@ function Navbar() {
           >
             <MenuItem
               onClick={() => {
+                // Server route - cannot use react-router-dom's Link here
                 window.location.pathname = '/logout';
               }}
             >

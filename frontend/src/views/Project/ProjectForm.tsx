@@ -49,6 +49,20 @@ export function ProjectForm(props: ProjectFormProps) {
     } as const;
   }, [editing]);
 
+  const formDefaultValues = useMemo<Partial<DbCommonProject>>(
+    () => ({
+      owner: currentUser?.id,
+      personInCharge: currentUser?.id,
+      projectName: '',
+      description: '',
+      startDate: '',
+      endDate: '',
+      lifecycleState: '01',
+      sapProjectId: null,
+    }),
+    [currentUser]
+  );
+
   const { projectCommon } = trpc.useContext();
   const formValidator = useMemo(() => {
     const schemaValidation = zodResolver(commonProjectSchema);
@@ -76,29 +90,11 @@ export function ProjectForm(props: ProjectFormProps) {
     context: {
       requiredFields: getRequiredFields(commonProjectSchema),
     },
-    defaultValues: props.project ?? {
-      owner: currentUser?.id,
-      personInCharge: currentUser?.id,
-      projectName: '',
-      description: '',
-      startDate: '',
-      endDate: '',
-      lifecycleState: '01',
-    },
+    defaultValues: props.project ?? formDefaultValues,
   });
 
   useEffect(() => {
-    form.reset(
-      props.project ?? {
-        owner: currentUser?.id,
-        personInCharge: currentUser?.id,
-        projectName: '',
-        description: '',
-        startDate: '',
-        endDate: '',
-        sapProjectId: null,
-      }
-    );
+    form.reset(props.project ?? formDefaultValues);
   }, [props.project]);
 
   const projectUpsert = trpc.projectCommon.upsert.useMutation({

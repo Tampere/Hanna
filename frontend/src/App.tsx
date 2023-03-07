@@ -21,6 +21,7 @@ import { SapDebugView } from '@frontend/views/SapDebug';
 import { trpc } from './client';
 import { authAtom, getUserAtom, sessionExpiredAtom } from './stores/auth';
 import { useTranslations } from './stores/lang';
+import { DetailPlanProject } from './views/DetailPlanProject/DetailPlanProject';
 import { Manual } from './views/Manual/Manual';
 import { SessionRenewed } from './views/SessionRenewed';
 
@@ -47,6 +48,8 @@ const router = createBrowserRouter(
           path="hanke/:projectId/kohde/:projectObjectId/:tabView"
           element={<ProjectObject />}
         />
+        <Route path="asemakaavahanke/luo" element={<DetailPlanProject />} />
+        <Route path="asemakaavahanke/:projectId" element={<DetailPlanProject />} />
         <Route path="hallinta/:tabView" element={<Management />} />
         <Route path="saptest/:sapProjectId" element={<SapDebugView />} />
         <Route path="session-renewed" element={<SessionRenewed />} />

@@ -1,9 +1,9 @@
 import { TRPCError } from '@trpc/server';
 import { DatabaseTransactionConnection } from 'slonik';
+import { z } from 'zod';
 
 import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
-import { codeIdFragment } from '@backend/router/code';
 
 import { FormErrors, fieldError, hasErrors } from '@shared/formerror';
 import { UpsertProject, projectIdSchema } from '@shared/schema/project/base';
@@ -25,7 +25,6 @@ async function upsertBaseProject(
   const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
   const values = Object.values(data);
 
-  // Update committees in a transaction
   const upsertResult = project.id
     ? await tx.one(sql.type(projectIdSchema)`
       UPDATE app.project
@@ -39,32 +38,22 @@ async function upsertBaseProject(
       RETURNING id
     `);
 
-  tx.query(sql.untyped`
-    DELETE FROM app.project_committee
-    WHERE project_id = ${upsertResult.id}
-  `);
-
-  await Promise.all(
-    project.committees.map((committee) =>
-      tx.any(sql.untyped`
-        INSERT INTO app.project_committee (project_id, committee_type)
-        VALUES (
-          ${upsertResult.id},
-          ${codeIdFragment('Lautakunta', committee)}
-        );
-      `)
-    )
-  );
   return upsertResult;
 }
 
 export async function getProject(id: string) {
-  const project = await getPool().maybeOne(sql.type(projectIdSchema)`
+  const project = await getPool().maybeOne(sql.type(
+    z.object({
+      id: z.string(),
+      description: z.string(),
+      projectName: z.string(),
+      geom: z.string(),
+    })
+  )`
     SELECT
       id,
       description,
       project_name AS "projectName",
-      created_at AS "createdAt",
       ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom
     FROM app.project
     WHERE id = ${id}

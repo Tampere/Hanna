@@ -46,15 +46,17 @@ VALUES
 (('AsemakaavaSuunnittelualue', '03'), 'Itä', 'Itä'),
 (('AsemakaavaSuunnittelualue', '04'), 'Etelä', 'Etelä');
 
+CREATE SEQUENCE app.detailplan_id_seq AS int;
+
 CREATE TABLE "project_detailplan" (
   id uuid NOT NULL REFERENCES app.project(id) ON DELETE CASCADE,
-  diary_id text NOT NULL,
-  diary_date date NOT NULL,
-  subtype app.code_id NOT NULL REFERENCES app.code(id) ON DELETE RESTRICT,
+  diary_id text,
+  diary_date date,
+  subtype app.code_id REFERENCES app.code(id) ON DELETE RESTRICT,
   CONSTRAINT project_detailplan_subtype_check CHECK (
     (subtype) .code_list_id = 'AsemakaavaHanketyyppi'::text
   ),
-  planning_zone app.code_id NOT NULL REFERENCES app.code(id) ON DELETE RESTRICT,
+  planning_zone app.code_id REFERENCES app.code(id) ON DELETE RESTRICT,
   CONSTRAINT planning_zone_check CHECK (
     (planning_zone) .code_list_id = 'AsemakaavaSuunnittelualue'::text
   ),
@@ -63,10 +65,11 @@ CREATE TABLE "project_detailplan" (
   district text,
   block_name text,
   address_text text,
-  detailplan_id text,
+  detailplan_id int DEFAULT nextval('app.detailplan_id_seq'),
   initiative_date date,
   applicant_name text,
   applicant_address text,
   applicant_objective text,
+  additional_info text,
   PRIMARY KEY (id)
 );

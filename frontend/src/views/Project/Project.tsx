@@ -17,7 +17,7 @@ import { useTranslations } from '@frontend/stores/lang';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
 
-import { DbProject } from '@shared/schema/project';
+import { DbCommonProject } from '@shared/schema/project/common';
 
 import { DeleteProjectDialog } from './DeleteProjectDialog';
 import { ProjectFinances } from './ProjectFinances';
@@ -207,7 +207,7 @@ export function Project() {
               {routeParams.tabView === 'talous' && <ProjectFinances project={project.data} />}
               {routeParams.tabView === 'kohteet' && <ProjectObjectList projectId={projectId} />}
               {routeParams.tabView === 'sidoshankkeet' && (
-                <ProjectRelations project={project.data as DbProject} />
+                <ProjectRelations project={project.data as DbCommonProject} />
               )}
             </Box>
           )}

@@ -15,13 +15,14 @@ const selectProjectFragment = sql.fragment`
     project.id,
     project_name AS "projectName",
     description,
+    owner,
     created_at AS "createdAt",
     ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
     sap_project_id AS "sapProjectId",
     diary_id AS "diaryId",
     diary_date AS "diaryDate",
-    subtype,
-    planning_zone AS "planningZone",
+    (subtype).id AS "subtype",
+    (planning_zone).id AS "planningZone",
     preparer,
     technical_planner AS "technicalPlanner",
     district,
@@ -31,7 +32,8 @@ const selectProjectFragment = sql.fragment`
     initiative_date AS "initiativeDate",
     applicant_name AS "applicantName",
     applicant_address AS "applicantAddress",
-    applicant_objective AS "applicantObjective"
+    applicant_objective AS "applicantObjective",
+    additional_info AS "additionalInfo"
   FROM app.project
   LEFT JOIN app.project_detailplan ON project_detailplan.id = project.id
   WHERE deleted = false
@@ -58,25 +60,25 @@ export async function getProject(id: string, tx?: DatabaseTransactionConnection)
 }
 
 export async function projectUpsert(project: DetailplanProject, user: User) {
-  await getPool().transaction(async (tx) => {
+  return await getPool().transaction(async (tx) => {
     const id = await baseProjectUpsert(tx, project, user);
 
     const data = {
       id,
       diary_id: project.diaryId ?? null,
       diary_date: project.diaryDate ?? null,
-      subtype: codeIdFragment('AsemakaavaHanketyyppi', project.subtype),
-      planning_zone: codeIdFragment('AsemakaavaSuunnittelualue', project.planningZone),
+      subtype: codeIdFragment('AsemakaavaHanketyyppi', project.subtype) ?? null,
+      planning_zone: codeIdFragment('AsemakaavaSuunnittelualue', project.planningZone) ?? null,
       preparer: project.preparer,
-      technical_planner: project.technicalPlanner,
+      technical_planner: project.technicalPlanner ?? null,
       district: project.district,
       block_name: project.blockName,
       address_text: project.addressText,
-      detailplan_id: project.detailplanId,
-      initiative_date: project.initiativeDate,
-      applicant_name: project.applicantName,
-      applicant_address: project.applicantAddress,
-      applicant_objective: project.applicantObjective,
+      initiative_date: project.initiativeDate ?? null,
+      applicant_name: project.applicantName ?? null,
+      applicant_address: project.applicantAddress ?? null,
+      applicant_objective: project.applicantObjective ?? null,
+      additional_info: project.additionalInfo ?? null,
     };
 
     const identifiers = Object.keys(data).map((key) => sql.identifier([key]));

@@ -69,8 +69,8 @@ export function CustomFormLabel({
   );
 }
 
-interface FormFieldProps {
-  formField: string;
+interface FormFieldProps<T extends object> {
+  formField: keyof T;
   label?: string;
   tooltip?: string;
   required?: boolean;
@@ -79,7 +79,12 @@ interface FormFieldProps {
   ) => React.ReactElement;
 }
 
-export function FormField({ formField, label, tooltip, component }: FormFieldProps) {
+export function FormField<T extends object = any>({
+  formField,
+  label,
+  tooltip,
+  component,
+}: FormFieldProps<T>) {
   const { control } = useFormContext();
 
   const required = useMemo(() => {
@@ -88,20 +93,22 @@ export function FormField({ formField, label, tooltip, component }: FormFieldPro
 
   return (
     <Controller
-      name={formField}
+      name={String(formField)}
       control={control}
-      render={({ field, fieldState }) => (
-        <FormControl margin="dense">
-          <CustomFormLabel
-            htmlFor={formField}
-            label={label}
-            tooltip={tooltip}
-            error={fieldState.error}
-            required={required}
-          />
-          {component({ ...field, id: formField })}
-        </FormControl>
-      )}
+      render={({ field, fieldState }) => {
+        return (
+          <FormControl margin="dense">
+            <CustomFormLabel
+              htmlFor={String(formField)}
+              label={label}
+              tooltip={tooltip}
+              error={fieldState.error}
+              required={required}
+            />
+            {component({ ...field, id: String(formField) })}
+          </FormControl>
+        );
+      }}
     />
   );
 }
