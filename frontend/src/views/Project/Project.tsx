@@ -72,9 +72,9 @@ export function Project() {
   const tabs = projectTabs(routeParams.projectId);
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
   const projectId = routeParams?.projectId;
-  const project = trpc.project.get.useQuery(
+  const project = trpc.projectCommon.get.useQuery(
     { id: projectId },
-    { enabled: Boolean(projectId), queryKey: ['project.get', { id: projectId }] }
+    { enabled: Boolean(projectId), queryKey: ['projectCommon.get', { id: projectId }] }
   );
 
   const tr = useTranslations();

@@ -1,9 +1,9 @@
 import { Workbook } from 'excel4node';
 import { z } from 'zod';
 
+import { getFilterFragment } from '@backend/components/project';
 import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
-import { getFilterFragment } from '@backend/router/project';
 
 import { translations } from '@shared/language';
 import { ProjectSearch } from '@shared/schema/project';

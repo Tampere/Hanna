@@ -21,6 +21,8 @@ const codeListIdSchema = z.enum([
   'Lautakunta',
   'TehtäväTyyppi',
   'TehtävänElinkaarentila',
+  'AsemakaavaHanketyyppi',
+  'AsemakaavaSuunnittelualue'
 ]);
 
 export const codeIdSchema = z.object({

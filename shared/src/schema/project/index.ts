@@ -1,23 +1,6 @@
 import { z } from 'zod';
 
-import { codeId } from './code';
-import { isoDateString, nonEmptyString } from './common';
-
-export const upsertProjectSchema = z.object({
-  id: z.string().optional(),
-  owner: nonEmptyString,
-  personInCharge: nonEmptyString,
-  projectName: nonEmptyString,
-  description: nonEmptyString,
-  startDate: isoDateString,
-  endDate: isoDateString,
-  lifecycleState: codeId,
-  projectType: codeId,
-  committees: z.array(codeId).superRefine((committees) => committees.length > 0),
-  sapProjectId: z.string().nullable(),
-});
-
-export type UpsertProject = z.infer<typeof upsertProjectSchema>;
+import { isoDateString } from '../common';
 
 export const periodSchema = z.object({
   startDate: isoDateString,
@@ -45,13 +28,9 @@ export const projectSearchSchema = z.object({
   includeWithoutGeom: z.boolean().optional(),
 });
 
-export const dbProjectSchema = upsertProjectSchema.extend({
-  id: z.string(),
-  geom: z.string().nullable(),
-});
-
 export const projectSearchResultSchema = z.object({
-  projects: z.array(dbProjectSchema),
+  // !FIXME: search specific schema
+  projects: z.array(z.any()),
   clusters: z.array(
     z.object({
       clusterCount: z.number(),
@@ -62,12 +41,6 @@ export const projectSearchResultSchema = z.object({
 });
 
 export type ProjectSearchResult = z.infer<typeof projectSearchResultSchema>;
-
-export const projectIdSchema = z.object({
-  id: z.string(),
-});
-
-export type DbProject = z.infer<typeof dbProjectSchema>;
 
 export type ProjectSearch = z.infer<typeof projectSearchSchema>;
 
@@ -149,3 +122,5 @@ export const updateCostEstimatesInputSchema = z.intersection(
   getCostEstimatesInputSchema,
   z.object({ costEstimates: z.array(costEstimateSchema) })
 );
+
+export type CostEstimatesUpdate = z.infer<typeof updateCostEstimatesInputSchema>;
