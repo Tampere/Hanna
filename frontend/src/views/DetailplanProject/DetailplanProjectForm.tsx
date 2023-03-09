@@ -199,6 +199,41 @@ export function DetailplanProjectForm(props: Props) {
         />
 
         <FormField<DetailplanProject>
+          formField="preparer"
+          label={tr('detailplanProject.preparerLabel')}
+          tooltip={tr('newDetailplanProject.preparerTooltip')}
+          component={({ id, onChange, value }) => (
+            <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
+          )}
+        />
+
+        <FormField<DetailplanProject>
+          formField="district"
+          label={tr('detailplanProject.districtLabel')}
+          tooltip={tr('newDetailplanProject.districtTooltip')}
+          component={(field) => (
+            <TextField {...readonlyProps} {...field} value={field.value ?? ''} size="small" />
+          )}
+        />
+
+        <FormField<DetailplanProject>
+          formField="blockName"
+          label={tr('detailplanProject.blockNameLabel')}
+          tooltip={tr('newDetailplanProject.blockNameTooltip')}
+          component={(field) => (
+            <TextField {...readonlyProps} {...field} value={field.value ?? ''} size="small" />
+          )}
+        />
+
+        <FormField<DetailplanProject>
+          formField="addressText"
+          label={tr('detailplanProject.addressTextLabel')}
+          tooltip={tr('newDetailplanProject.addressTextTooltip')}
+          component={(field) => (
+            <TextField {...readonlyProps} {...field} value={field.value ?? ''} size="small" />
+          )}
+        />
+        <FormField<DetailplanProject>
           formField="diaryId"
           label={tr('detailplanProject.diaryIdLabel')}
           component={(field) => (
@@ -263,46 +298,10 @@ export function DetailplanProjectForm(props: Props) {
         />
 
         <FormField<DetailplanProject>
-          formField="preparer"
-          label={tr('detailplanProject.preparerLabel')}
-          tooltip={tr('newDetailplanProject.preparerTooltip')}
-          component={({ id, onChange, value }) => (
-            <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
-          )}
-        />
-
-        <FormField<DetailplanProject>
           formField="technicalPlanner"
           label={tr('detailplanProject.technicalPlannerLabel')}
           component={({ id, onChange, value }) => (
             <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
-          )}
-        />
-
-        <FormField<DetailplanProject>
-          formField="district"
-          label={tr('detailplanProject.districtLabel')}
-          tooltip={tr('newDetailplanProject.districtTooltip')}
-          component={(field) => (
-            <TextField {...readonlyProps} {...field} value={field.value ?? ''} size="small" />
-          )}
-        />
-
-        <FormField<DetailplanProject>
-          formField="blockName"
-          label={tr('detailplanProject.blockNameLabel')}
-          tooltip={tr('newDetailplanProject.blockNameTooltip')}
-          component={(field) => (
-            <TextField {...readonlyProps} {...field} value={field.value ?? ''} size="small" />
-          )}
-        />
-
-        <FormField<DetailplanProject>
-          formField="addressText"
-          label={tr('detailplanProject.addressTextLabel')}
-          tooltip={tr('newDetailplanProject.addressTextTooltip')}
-          component={(field) => (
-            <TextField {...readonlyProps} {...field} value={field.value ?? ''} size="small" />
           )}
         />
 
