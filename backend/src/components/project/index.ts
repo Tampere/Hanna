@@ -73,7 +73,7 @@ export function getFilterFragment(input: ProjectSearch) {
       AND ${timePeriodFragment(input)}
       AND ${
         input.lifecycleStates && input.lifecycleStates?.length > 0
-          ? sql.fragment`(project.lifecycle_state).id = ANY(${sql.array(
+          ? sql.fragment`(project_common.lifecycle_state).id = ANY(${sql.array(
               input.lifecycleStates,
               'text'
             )})

@@ -25,7 +25,7 @@ test.describe('Project endpoints', () => {
     // There should be at least one user because this is executed after login
     const [user] = await client.user.getAll.query();
 
-    const project = await client.project.upsert.mutate({
+    const project = await client.projectCommon.upsert.mutate({
       projectName: 'Test project',
       description: 'Test description',
       owner: user.id,

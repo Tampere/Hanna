@@ -3,13 +3,15 @@ import { httpLink } from '@trpc/client';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { Suspense, useState } from 'react';
 import {
+  Route,
+  RouterProvider,
   createBrowserRouter,
-  createRoutesFromElements, Route,
-  RouterProvider
+  createRoutesFromElements,
 } from 'react-router-dom';
 import SuperJSON from 'superjson';
 
 import { Layout } from '@frontend/Layout';
+import { DetailplanProject } from '@frontend/views/DetailplanProject/DetailplanProject';
 import { Management } from '@frontend/views/Management';
 import { NotFound } from '@frontend/views/NotFound';
 import { Project } from '@frontend/views/Project/Project';
@@ -17,7 +19,6 @@ import { ProjectsPage } from '@frontend/views/Project/Projects';
 import { ProjectObject } from '@frontend/views/ProjectObject/ProjectObject';
 import { SapDebugView } from '@frontend/views/SapDebug';
 
-import { DetailplanProject } from '@frontend/views/DetailPlanProject/DetailPlanProject';
 import { trpc } from './client';
 import { authAtom, getUserAtom, sessionExpiredAtom } from './stores/auth';
 import { useTranslations } from './stores/lang';
@@ -50,7 +51,7 @@ const router = createBrowserRouter(
           path="hanke/:projectId/kohde/:projectObjectId/:tabView"
           element={<ProjectObject projectType="hanke" />}
         />
-        <Route path="asemakaavahanke/luo" element={<DetailplanProject() />} />
+        <Route path="asemakaavahanke/luo" element={<DetailplanProject />} />
         <Route path="asemakaavahanke/:projectId" element={<DetailplanProject />} />
         <Route
           path="asemakaavahanke/:projectId/uusi-kohde"
