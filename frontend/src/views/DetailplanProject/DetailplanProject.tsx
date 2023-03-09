@@ -1,33 +1,38 @@
-import { css } from '@emotion/react';
-import { AccountTree, Euro, ListAlt, Map } from '@mui/icons-material';
-import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
-import VectorLayer from 'ol/layer/Vector';
-import VectorSource from 'ol/source/Vector';
-import { useMemo } from 'react';
-import { useParams } from 'react-router';
-import { Link } from 'react-router-dom';
+import { AccountTree, ListAlt, Map } from '@mui/icons-material';
+import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography, css } from '@mui/material';
+import { ReactElement } from 'react';
+import { Link, useParams } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
-import { DRAW_LAYER_Z_INDEX, featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
-import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
+import { PROJECT_AREA_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
+import { DeleteProjectDialog } from '@frontend/views/Project/DeleteProjectDialog';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
 
-import { DbCommonProject } from '@shared/schema/project/common';
+import { TranslationKey } from '@shared/language';
 
-import { DeleteProjectDialog } from './DeleteProjectDialog';
-import { ProjectFinances } from './ProjectFinances';
-import { ProjectForm } from './ProjectForm';
+import { DetailplanProjectForm } from './DetailplanProjectForm';
+
+type TabView = 'default' | 'kohteet' | 'sidoshankkeet';
+
+interface Tab {
+  tabView: TabView;
+  url: string;
+  label: TranslationKey;
+  icon: ReactElement;
+}
 
 const pageContentStyle = css`
   display: grid;
   grid-template-columns: minmax(384px, 1fr) minmax(512px, 2fr);
   gap: 16px;
   height: 100%;
+  flex: 1;
+  overflow: hidden;
 `;
 
 const mapContainerStyle = css`
@@ -35,50 +40,43 @@ const mapContainerStyle = css`
   min-height: 600px;
 `;
 
-type TabView = 'default' | 'talous' | 'kohteet' | 'sidoshankkeet';
-
-function projectTabs(projectId: string) {
+function getTabs(projectId: string): Tab[] {
   return [
     {
       tabView: 'default',
-      url: `/hanke/${projectId}`,
+      url: `/asemakaavahanke/${projectId}`,
       label: 'project.mapTabLabel',
       icon: <Map fontSize="small" />,
     },
     {
-      tabView: 'talous',
-      url: `/hanke/${projectId}/talous`,
-      label: 'project.financeTabLabel',
-      icon: <Euro fontSize="small" />,
-    },
-    {
       tabView: 'kohteet',
-      url: `/hanke/${projectId}/kohteet`,
+      url: `/asemakaavahanke/${projectId}/kohteet`,
       label: 'project.projectObjectsTabLabel',
       icon: <ListAlt fontSize="small" />,
     },
     {
       tabView: 'sidoshankkeet',
-      url: `/hanke/${projectId}/sidoshankkeet`,
+      url: `/asemakaavahanke/${projectId}/sidoshankkeet`,
       label: 'project.relatedProjectsTabLabel',
       icon: <AccountTree fontSize="small" />,
     },
-  ] as const;
+  ];
 }
 
-export function Project() {
-  const routeParams = useParams() as { projectId: string; tabView?: TabView };
-  const tabView = routeParams.tabView || 'default';
-  const tabs = projectTabs(routeParams.projectId);
-  const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
+export function DetailplanProject() {
+  const routeParams = useParams() as { projectId: string; tabView: TabView };
+  const tabView = routeParams.tabView ?? 'default';
+  const tabs = getTabs(routeParams.projectId);
   const projectId = routeParams?.projectId;
-  const project = trpc.projectCommon.get.useQuery(
-    { id: projectId },
-    { enabled: Boolean(projectId), queryKey: ['projectCommon.get', { id: projectId }] }
-  );
+  const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
 
+  const project = trpc.projectDetailplan.get.useQuery(
+    { id: projectId },
+    { enabled: Boolean(projectId), queryKey: ['projectDetailplan.get', { id: projectId }] }
+  );
   const tr = useTranslations();
   const notify = useNotifications();
+
   const geometryUpdate = trpc.project.updateGeometry.useMutation({
     onSuccess: () => {
       project.refetch();
@@ -96,39 +94,6 @@ export function Project() {
     },
   });
 
-  const projectObjects = trpc.projectObject.getByProjectId.useQuery(
-    { projectId },
-    { enabled: Boolean(projectId), queryKey: ['projectObject.getByProjectId', { projectId }] }
-  );
-
-  const projectObjectSource = useMemo(() => {
-    const source = new VectorSource();
-    if (projectObjects?.data) {
-      for (const projObj of projectObjects.data) {
-        if (projObj.geom) {
-          const geoJson = JSON.parse(projObj.geom);
-          const features = geoJson ? featuresFromGeoJSON(geoJson) : [];
-          for (const feature of features) {
-            source.addFeature(feature);
-          }
-        }
-      }
-    }
-    return source;
-  }, [projectObjects.data]);
-
-  const projectObjectsLayer = useMemo(() => {
-    return new VectorLayer({
-      zIndex: DRAW_LAYER_Z_INDEX + 1,
-      source: projectObjectSource,
-      style: PROJ_OBJ_STYLE,
-      properties: {
-        id: 'projectObjects',
-        type: 'vector',
-      },
-    });
-  }, [projectObjects.data]);
-
   if (projectId && project.isLoading) {
     return <Typography>{tr('loading')}</Typography>;
   }
@@ -145,19 +110,25 @@ export function Project() {
   }
 
   return (
-    <Box>
+    <Box
+      css={css`
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      `}
+    >
       <Breadcrumbs sx={{ mb: 1 }}>
         {project.data ? (
           <Chip label={project.data?.projectName} />
         ) : (
-          <Chip variant="outlined" label={tr('newProject.formTitle')} />
+          <Chip variant="outlined" label={tr('newDetailplanProject.formTitle')} />
         )}
       </Breadcrumbs>
 
       <div css={pageContentStyle}>
-        <Paper sx={{ p: 3, height: '100%' }} variant="outlined">
-          <ProjectForm project={project.data} />
-          {project.data && <DeleteProjectDialog projectId={project.data.id} />}
+        <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
+          <DetailplanProjectForm project={project.data} />
+          {project.data && <DeleteProjectDialog projectId={project.data.id ?? ''} />}
         </Paper>
 
         <Paper
@@ -190,23 +161,21 @@ export function Project() {
           {!routeParams.tabView && (
             <Box css={mapContainerStyle}>
               <MapWrapper
-                geoJson={project?.data?.geom}
+                geoJson={project.data?.geom}
                 drawStyle={PROJECT_AREA_STYLE}
                 fitExtent="geoJson"
                 editable={Boolean(projectId)}
                 onFeaturesSaved={(features) => {
                   geometryUpdate.mutate({ id: projectId, features: features });
                 }}
-                vectorLayers={[projectObjectsLayer]}
               />
             </Box>
           )}
 
           {routeParams.tabView && (
             <Box sx={{ m: 2 }}>
-              {routeParams.tabView === 'talous' && <ProjectFinances project={project.data} />}
               {routeParams.tabView === 'kohteet' && (
-                <ProjectObjectList projectId={projectId} projectType="hanke" />
+                <ProjectObjectList projectId={projectId} projectType="asemakaavahanke" />
               )}
               {routeParams.tabView === 'sidoshankkeet' && (
                 <ProjectRelations projectId={routeParams.projectId} />

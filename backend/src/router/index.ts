@@ -5,7 +5,9 @@ import superjson from 'superjson';
 import { logger } from '@backend/logging';
 import { createCodeRouter } from '@backend/router/code';
 import { createContractorRouter } from '@backend/router/contractor';
-import { createProjectRouter } from '@backend/router/project';
+import { createProjectRouter } from '@backend/router/project/base';
+import { createCommonProjectRouter } from '@backend/router/project/common';
+import { createDetailplanProjectRouter } from '@backend/router/project/detailplan';
 import { createProjectObjectRouter } from '@backend/router/projectObject';
 import { createSapRouter } from '@backend/router/sap';
 import { createTaskRouter } from '@backend/router/task';
@@ -35,6 +37,8 @@ const t = initTRPC.context<Context>().create({
 
 export const appRouter = t.router({
   project: createProjectRouter(t),
+  projectCommon: createCommonProjectRouter(t),
+  projectDetailplan: createDetailplanProjectRouter(t),
   projectObject: createProjectObjectRouter(t),
   code: createCodeRouter(t),
   sap: createSapRouter(t),

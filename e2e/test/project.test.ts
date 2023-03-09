@@ -43,7 +43,9 @@ const lifecycleStateToText = {
 
 async function createProject(page: Page, project: UpsertProject) {
   // Go to the new project page
-  await page.getByRole('link', { name: 'Luo uusi hanke' }).click();
+  await page.pause();
+  await page.getByRole('button', { name: 'Luo uusi hanke' }).click();
+  await page.getByRole('menuitem', { name: 'Uusi hanke' }).click();
   await expect(page).toHaveURL('https://localhost:1443/hanke/luo');
 
   // Fill in the project data and save the project

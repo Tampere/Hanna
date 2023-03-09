@@ -1,8 +1,19 @@
 import { css } from '@emotion/react';
-import { AddCircle, Download, NavigateNext } from '@mui/icons-material';
-import { Box, Button, Card, CardActionArea, Chip, Typography } from '@mui/material';
+import { Add, AddCircle, Download, NavigateNext } from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  Chip,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Typography,
+} from '@mui/material';
 import dayjs from 'dayjs';
-import { ReactNode } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
@@ -13,7 +24,7 @@ import { getProjectSearchParams } from '@frontend/stores/search/project';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { ResultsMap } from '@frontend/views/Project/ResultsMap';
 
-import { DbProject } from '@shared/schema/project';
+import { DbCommonProject } from '@shared/schema/project/common';
 
 import { SearchControls } from './SearchControls';
 
@@ -26,13 +37,15 @@ const toolbarContainerStyle = css`
 
 function Toolbar() {
   const tr = useTranslations();
+  const [newProjectMenuOpen, setNewProjectMenuOpen] = useState(false);
+  const newProjectMenuAnchor = useRef<HTMLButtonElement>(null);
   return (
     <Box css={toolbarContainerStyle}>
       <Typography variant="h4">{tr('pages.projectsTitle')}</Typography>
       <div>
         <Button
-          component={Link}
-          to="/hanke/luo"
+          ref={newProjectMenuAnchor}
+          onClick={() => setNewProjectMenuOpen(true)}
           variant="contained"
           size="large"
           style={{ alignItems: 'flex-start' }}
@@ -40,6 +53,32 @@ function Toolbar() {
         >
           {tr('newProject.btnLabel')}
         </Button>
+        <Menu
+          open={newProjectMenuOpen}
+          onClose={() => setNewProjectMenuOpen(false)}
+          anchorEl={newProjectMenuAnchor.current}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+        >
+          <MenuItem component={Link} to="/hanke/luo">
+            <ListItemIcon>
+              <Add />
+            </ListItemIcon>
+            <ListItemText>{tr('newProject.newProject')}</ListItemText>
+          </MenuItem>
+          <MenuItem component={Link} to="/asemakaavahanke/luo">
+            <ListItemIcon>
+              <Add />
+            </ListItemIcon>
+            <ListItemText>{tr('newProject.newDetailplanProject')}</ListItemText>
+          </MenuItem>
+        </Menu>
       </div>
     </Box>
   );
@@ -56,7 +95,7 @@ const projectCardStyle = css`
   transition: background 0.5s;
 `;
 
-function ProjectCard({ result }: { result: DbProject }) {
+function ProjectCard({ result }: { result: DbCommonProject }) {
   const tr = useTranslations();
   return (
     <CardActionArea key={result.id} component={Link} to={`/hanke/${result.id}`}>
@@ -77,7 +116,7 @@ function ProjectCard({ result }: { result: DbProject }) {
 }
 
 interface SearchResultsProps {
-  results: readonly DbProject[];
+  results: readonly DbCommonProject[];
   loading?: boolean;
 }
 
@@ -116,7 +155,9 @@ function SearchResults({ results, loading }: SearchResultsProps) {
           `}
         >
           {tr('projectListing.searchResultsTitle')}
-          <Chip label={results?.length ?? 0} sx={{ ml: 1 }} size="small" variant="outlined" />
+          {!loading && (
+            <Chip label={results?.length ?? 0} sx={{ ml: 1 }} size="small" variant="outlined" />
+          )}
         </Typography>
         <AsyncJobButton
           label={tr('projectSearch.generateReport')}

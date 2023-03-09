@@ -11,6 +11,7 @@ import {
 import SuperJSON from 'superjson';
 
 import { Layout } from '@frontend/Layout';
+import { DetailplanProject } from '@frontend/views/DetailplanProject/DetailplanProject';
 import { Management } from '@frontend/views/Management';
 import { NotFound } from '@frontend/views/NotFound';
 import { Project } from '@frontend/views/Project/Project';
@@ -40,12 +41,30 @@ const router = createBrowserRouter(
         <Route path="hankkeet" element={<ProjectsPage />} />
         <Route path="hanke/luo" element={<Project />} />
         <Route path="hanke/:projectId" element={<Project />} />
-        <Route path="hanke/:projectId/uusi-kohde" element={<ProjectObject />} />
+        <Route path="hanke/:projectId/uusi-kohde" element={<ProjectObject projectType="hanke" />} />
         <Route path="hanke/:projectId/:tabView" element={<Project />} />
-        <Route path="hanke/:projectId/kohde/:projectObjectId" element={<ProjectObject />} />
+        <Route
+          path="hanke/:projectId/kohde/:projectObjectId"
+          element={<ProjectObject projectType="hanke" />}
+        />
         <Route
           path="hanke/:projectId/kohde/:projectObjectId/:tabView"
-          element={<ProjectObject />}
+          element={<ProjectObject projectType="hanke" />}
+        />
+        <Route path="asemakaavahanke/luo" element={<DetailplanProject />} />
+        <Route path="asemakaavahanke/:projectId" element={<DetailplanProject />} />
+        <Route
+          path="asemakaavahanke/:projectId/uusi-kohde"
+          element={<ProjectObject projectType="asemakaavahanke" />}
+        />
+        <Route path="asemakaavahanke/:projectId/:tabView" element={<DetailplanProject />} />
+        <Route
+          path="asemakaavahanke/:projectId/kohde/:projectObjectId"
+          element={<ProjectObject projectType="asemakaavahanke" />}
+        />
+        <Route
+          path="asemakaavahanke/:projectId/kohde/:projectObjectId/:tabView"
+          element={<ProjectObject projectType="asemakaavahanke" />}
         />
         <Route path="hallinta/:tabView" element={<Management />} />
         <Route path="saptest/:sapProjectId" element={<SapDebugView />} />

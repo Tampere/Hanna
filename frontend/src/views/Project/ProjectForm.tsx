@@ -19,7 +19,7 @@ import { useTranslations } from '@frontend/stores/lang';
 import { getRequiredFields } from '@frontend/utils/form';
 
 import { mergeErrors } from '@shared/formerror';
-import { DbProject, UpsertProject, upsertProjectSchema } from '@shared/schema/project';
+import { CommonProject, DbCommonProject, commonProjectSchema } from '@shared/schema/project/common';
 
 const newProjectFormStyle = css`
   display: grid;
@@ -27,7 +27,7 @@ const newProjectFormStyle = css`
 `;
 
 interface ProjectFormProps {
-  project?: DbProject | null;
+  project?: DbCommonProject | null;
 }
 
 export function ProjectForm(props: ProjectFormProps) {
@@ -49,34 +49,8 @@ export function ProjectForm(props: ProjectFormProps) {
     } as const;
   }, [editing]);
 
-  const { project } = trpc.useContext();
-  const formValidator = useMemo(() => {
-    const schemaValidation = zodResolver(upsertProjectSchema);
-
-    return async function formValidation(
-      values: UpsertProject,
-      context: any,
-      options: ResolverOptions<UpsertProject>
-    ) {
-      const fields = options.names ?? [];
-      const isFormValidation = fields && fields.length > 1;
-      const serverErrors = isFormValidation ? project.upsertValidate.fetch(values) : null;
-      const shapeErrors = schemaValidation(values, context, options);
-      const errors = await Promise.all([serverErrors, shapeErrors]);
-      return {
-        values,
-        errors: mergeErrors<UpsertProject>(errors).errors,
-      };
-    };
-  }, []);
-
-  const form = useForm<UpsertProject>({
-    mode: 'all',
-    resolver: formValidator,
-    context: {
-      requiredFields: getRequiredFields(upsertProjectSchema),
-    },
-    defaultValues: props.project ?? {
+  const formDefaultValues = useMemo<Partial<DbCommonProject>>(
+    () => ({
       owner: currentUser?.id,
       personInCharge: currentUser?.id,
       projectName: '',
@@ -84,24 +58,46 @@ export function ProjectForm(props: ProjectFormProps) {
       startDate: '',
       endDate: '',
       lifecycleState: '01',
+      sapProjectId: null,
+    }),
+    [currentUser]
+  );
+
+  const { projectCommon } = trpc.useContext();
+  const formValidator = useMemo(() => {
+    const schemaValidation = zodResolver(commonProjectSchema);
+
+    return async function formValidation(
+      values: CommonProject,
+      context: any,
+      options: ResolverOptions<CommonProject>
+    ) {
+      const fields = options.names ?? [];
+      const isFormValidation = fields && fields.length > 1;
+      const serverErrors = isFormValidation ? projectCommon.upsertValidate.fetch(values) : null;
+      const shapeErrors = schemaValidation(values, context, options);
+      const errors = await Promise.all([serverErrors, shapeErrors]);
+      return {
+        values,
+        errors: mergeErrors<CommonProject>(errors).errors,
+      };
+    };
+  }, []);
+
+  const form = useForm<CommonProject>({
+    mode: 'all',
+    resolver: formValidator,
+    context: {
+      requiredFields: getRequiredFields(commonProjectSchema),
     },
+    defaultValues: props.project ?? formDefaultValues,
   });
 
   useEffect(() => {
-    form.reset(
-      props.project ?? {
-        owner: currentUser?.id,
-        personInCharge: currentUser?.id,
-        projectName: '',
-        description: '',
-        startDate: '',
-        endDate: '',
-        sapProjectId: null,
-      }
-    );
+    form.reset(props.project ?? formDefaultValues);
   }, [props.project]);
 
-  const projectUpsert = trpc.project.upsert.useMutation({
+  const projectUpsert = trpc.projectCommon.upsert.useMutation({
     onSuccess: (data) => {
       // Navigate to new url if we are creating a new project
       if (!props.project && data.id) {
@@ -127,7 +123,7 @@ export function ProjectForm(props: ProjectFormProps) {
     },
   });
 
-  const onSubmit = (data: UpsertProject | DbProject) => projectUpsert.mutate(data);
+  const onSubmit = (data: CommonProject | DbCommonProject) => projectUpsert.mutate(data);
 
   return (
     <FormProvider {...form}>
