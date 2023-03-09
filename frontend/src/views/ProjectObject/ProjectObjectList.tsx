@@ -1,13 +1,15 @@
 import { AddCircle, NavigateNext } from '@mui/icons-material';
-import { Box, Button, Card, CardActionArea, List, ListItem, Typography, css } from '@mui/material';
+import { Box, Button, Card, CardActionArea, List, Typography, css } from '@mui/material';
 import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { useTranslations } from '@frontend/stores/lang';
+import { ProjectType } from '@frontend/types';
 
 interface Props {
   projectId: string;
+  projectType: ProjectType;
 }
 
 const cardStyle = css`
@@ -36,13 +38,13 @@ export function ProjectObjectList(props: Props) {
       >
         <Button
           component={Link}
-          to={`/hanke/${props.projectId}/uusi-kohde`}
+          to={`/${props.projectType}/${props.projectId}/uusi-kohde`}
           variant="contained"
           color="primary"
           size="small"
           endIcon={<AddCircle />}
         >
-          Luo uusi kohde
+          {tr('projectObject.createNewBtnLabel')}
         </Button>
       </Box>
       {projObjects.data?.length === 0 ? (
@@ -53,7 +55,7 @@ export function ProjectObjectList(props: Props) {
             <CardActionArea
               key={projObj.id}
               component={Link}
-              to={`/hanke/${props.projectId}/kohde/${projObj.id}`}
+              to={`/${props.projectType}/${props.projectId}/kohde/${projObj.id}`}
             >
               <Card variant="outlined" css={cardStyle}>
                 <NavigateNext sx={{ color: '#aaa', mr: 1 }} />

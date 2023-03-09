@@ -205,9 +205,11 @@ export function Project() {
           {routeParams.tabView && (
             <Box sx={{ m: 2 }}>
               {routeParams.tabView === 'talous' && <ProjectFinances project={project.data} />}
-              {routeParams.tabView === 'kohteet' && <ProjectObjectList projectId={projectId} />}
+              {routeParams.tabView === 'kohteet' && (
+                <ProjectObjectList projectId={projectId} projectType="hanke" />
+              )}
               {routeParams.tabView === 'sidoshankkeet' && (
-                <ProjectRelations project={project.data as DbCommonProject} />
+                <ProjectRelations projectId={routeParams.projectId} />
               )}
             </Box>
           )}

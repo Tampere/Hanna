@@ -3,10 +3,9 @@ import { httpLink } from '@trpc/client';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { Suspense, useState } from 'react';
 import {
-  Route,
-  RouterProvider,
   createBrowserRouter,
-  createRoutesFromElements,
+  createRoutesFromElements, Route,
+  RouterProvider
 } from 'react-router-dom';
 import SuperJSON from 'superjson';
 
@@ -18,10 +17,10 @@ import { ProjectsPage } from '@frontend/views/Project/Projects';
 import { ProjectObject } from '@frontend/views/ProjectObject/ProjectObject';
 import { SapDebugView } from '@frontend/views/SapDebug';
 
+import { DetailplanProject } from '@frontend/views/DetailPlanProject/DetailPlanProject';
 import { trpc } from './client';
 import { authAtom, getUserAtom, sessionExpiredAtom } from './stores/auth';
 import { useTranslations } from './stores/lang';
-import { DetailPlanProject } from './views/DetailPlanProject/DetailPlanProject';
 import { Manual } from './views/Manual/Manual';
 import { SessionRenewed } from './views/SessionRenewed';
 
@@ -41,15 +40,31 @@ const router = createBrowserRouter(
         <Route path="hankkeet" element={<ProjectsPage />} />
         <Route path="hanke/luo" element={<Project />} />
         <Route path="hanke/:projectId" element={<Project />} />
-        <Route path="hanke/:projectId/uusi-kohde" element={<ProjectObject />} />
+        <Route path="hanke/:projectId/uusi-kohde" element={<ProjectObject projectType="hanke" />} />
         <Route path="hanke/:projectId/:tabView" element={<Project />} />
-        <Route path="hanke/:projectId/kohde/:projectObjectId" element={<ProjectObject />} />
+        <Route
+          path="hanke/:projectId/kohde/:projectObjectId"
+          element={<ProjectObject projectType="hanke" />}
+        />
         <Route
           path="hanke/:projectId/kohde/:projectObjectId/:tabView"
-          element={<ProjectObject />}
+          element={<ProjectObject projectType="hanke" />}
         />
-        <Route path="asemakaavahanke/luo" element={<DetailPlanProject />} />
-        <Route path="asemakaavahanke/:projectId" element={<DetailPlanProject />} />
+        <Route path="asemakaavahanke/luo" element={<DetailplanProject() />} />
+        <Route path="asemakaavahanke/:projectId" element={<DetailplanProject />} />
+        <Route
+          path="asemakaavahanke/:projectId/uusi-kohde"
+          element={<ProjectObject projectType="asemakaavahanke" />}
+        />
+        <Route path="asemakaavahanke/:projectId/:tabView" element={<DetailplanProject />} />
+        <Route
+          path="asemakaavahanke/:projectId/kohde/:projectObjectId"
+          element={<ProjectObject projectType="asemakaavahanke" />}
+        />
+        <Route
+          path="asemakaavahanke/:projectId/kohde/:projectObjectId/:tabView"
+          element={<ProjectObject projectType="asemakaavahanke" />}
+        />
         <Route path="hallinta/:tabView" element={<Management />} />
         <Route path="saptest/:sapProjectId" element={<SapDebugView />} />
         <Route path="session-renewed" element={<SessionRenewed />} />

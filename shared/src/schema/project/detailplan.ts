@@ -8,8 +8,8 @@ export const detailplanProjectSchema = upsertProjectSchema.extend({
   id: z.string().optional(),
   diaryId: z.string().optional(),
   diaryDate: isoDateString.nullish(),
-  subtype: codeId.optional(),
-  planningZone: codeId.optional(),
+  subtype: codeId.nullish(),
+  planningZone: codeId.nullish(),
   preparer: nonEmptyString,
   technicalPlanner: z.string().nullish(),
   district: nonEmptyString,
@@ -19,7 +19,7 @@ export const detailplanProjectSchema = upsertProjectSchema.extend({
   applicantName: z.string().optional(),
   applicantAddress: z.string().optional(),
   applicantObjective: z.string().optional(),
-  additionalInfo: z.string().optional(),
+  additionalInfo: z.string().nullish(),
 });
 
 export type DetailplanProject = z.infer<typeof detailplanProjectSchema>;

@@ -236,7 +236,7 @@ function costEstimateWhereFragment(costEstimateInput: CostEstimatesInput) {
 // !FIXME: This should not depend on the project common schema
 const searchProjectFragment = sql.fragment`
   SELECT
-    project_common.id,
+    project.id,
     project_name AS "projectName",
     description,
     owner,
@@ -248,8 +248,8 @@ const searchProjectFragment = sql.fragment`
     (lifecycle_state).id AS "lifecycleState",
     (project_type).id AS "projectType",
     sap_project_id AS "sapProjectId"
-  FROM app.project
-  LEFT JOIN app.project_common ON project.id = project_common.id
+  FROM app.project_common
+  INNER JOIN app.project ON project.id = project_common.id
   WHERE deleted = false
 `;
 

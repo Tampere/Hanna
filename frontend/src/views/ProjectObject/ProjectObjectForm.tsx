@@ -18,6 +18,7 @@ import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
 import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
+import { ProjectType } from '@frontend/types';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
@@ -30,6 +31,7 @@ const newProjectFormStyle = css`
 
 interface Props {
   projectId: string;
+  projectType: ProjectType;
   projectObject?: UpsertProjectObject | null;
 }
 
@@ -102,7 +104,7 @@ export function ProjectObjectForm(props: Props) {
     onSuccess: (data) => {
       // Navigate to new url if we are creating a new project
       if (!props.projectObject && data.id) {
-        navigate(`/hanke/${data.projectId}/kohde/${data.id}`);
+        navigate(`/${props.projectType}/${data.projectId}/kohde/${data.id}`);
       } else {
         queryClient.invalidateQueries({
           queryKey: [['project', 'get'], { input: { id: data.id } }],

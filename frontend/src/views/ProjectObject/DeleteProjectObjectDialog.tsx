@@ -6,13 +6,15 @@ import { useNavigate } from 'react-router';
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
+import { ProjectType } from '@frontend/types';
 
 interface Props {
   projectId: string;
+  projectType: ProjectType;
   projectObjectId: string;
 }
 
-export function DeleteProjectObjectDialog({ projectId, projectObjectId }: Props) {
+export function DeleteProjectObjectDialog({ projectId, projectType, projectObjectId }: Props) {
   const navigate = useNavigate();
   const notify = useNotifications();
   const tr = useTranslations();
@@ -20,7 +22,7 @@ export function DeleteProjectObjectDialog({ projectId, projectObjectId }: Props)
 
   const projectObjectDeleteMutation = trpc.projectObject.delete.useMutation({
     onSuccess: () => {
-      navigate(`/hanke/${projectId}`);
+      navigate(`/${projectType}/${projectId}`);
       notify({
         severity: 'success',
         title: tr('projectObjectDelete.notifyDelete'),

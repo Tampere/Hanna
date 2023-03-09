@@ -76,7 +76,7 @@ function Toolbar() {
             <ListItemIcon>
               <Add />
             </ListItemIcon>
-            <ListItemText>{tr('newProject.newDetailPlanProject')}</ListItemText>
+            <ListItemText>{tr('newProject.newDetailplanProject')}</ListItemText>
           </MenuItem>
         </Menu>
       </div>

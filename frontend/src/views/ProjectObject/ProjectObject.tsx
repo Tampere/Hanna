@@ -14,6 +14,7 @@ import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
+import { ProjectType } from '@frontend/types';
 import Tasks from '@frontend/views/Task/Tasks';
 
 import { TranslationKey } from '@shared/language';
@@ -38,23 +39,27 @@ const pageContentStyle = css`
   height: 100%;
 `;
 
-function projectObjectTabs(projectId: string, projectObjectId: string): Tab[] {
+function projectObjectTabs(
+  projectId: string,
+  projectType: ProjectType,
+  projectObjectId: string
+): Tab[] {
   return [
     {
       tabView: 'default',
-      url: `/hanke/${projectId}/kohde/${projectObjectId}`,
+      url: `/${projectType}/${projectId}/kohde/${projectObjectId}`,
       label: 'projectObject.mapTabLabel',
       icon: <Map fontSize="small" />,
     },
     {
       tabView: 'talous',
-      url: `/hanke/${projectId}/kohde/${projectObjectId}/talous`,
+      url: `/${projectType}/${projectId}/kohde/${projectObjectId}/talous`,
       label: 'project.financeTabLabel',
       icon: <Euro fontSize="small" />,
     },
     {
       tabView: 'tehtavat',
-      url: `/hanke/${projectId}/kohde/${projectObjectId}/tehtavat`,
+      url: `/${projectType}/${projectId}/kohde/${projectObjectId}/tehtavat`,
       label: 'task.tasks',
       icon: <Assignment fontSize="small" />,
     },
@@ -66,7 +71,11 @@ const mapContainerStyle = css`
   min-height: 600px;
 `;
 
-export function ProjectObject() {
+interface Props {
+  projectType: ProjectType;
+}
+
+export function ProjectObject(props: Props) {
   const routeParams = useParams() as {
     projectId: string;
     projectObjectId: string;
@@ -74,7 +83,7 @@ export function ProjectObject() {
   };
   const projectObjectId = routeParams?.projectObjectId;
   const tabView = routeParams.tabView || 'default';
-  const tabs = projectObjectTabs(routeParams.projectId, projectObjectId);
+  const tabs = projectObjectTabs(routeParams.projectId, props.projectType, projectObjectId);
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
 
   const projectObject = trpc.projectObject.get.useQuery(
@@ -154,7 +163,7 @@ export function ProjectObject() {
         <Chip
           clickable={true}
           component={Link}
-          to={`/hanke/${routeParams.projectId}/kohteet`}
+          to={`/${props.projectType}/${routeParams.projectId}/kohteet`}
           label={<u>{project.data?.projectName}</u>}
         />
         {projectObject.data ? (
@@ -166,10 +175,15 @@ export function ProjectObject() {
 
       <div css={pageContentStyle}>
         <Paper sx={{ p: 3, height: '100%' }} variant="outlined">
-          <ProjectObjectForm projectId={routeParams.projectId} projectObject={projectObject.data} />
+          <ProjectObjectForm
+            projectId={routeParams.projectId}
+            projectType={props.projectType}
+            projectObject={projectObject.data}
+          />
           {projectObject.data && (
             <DeleteProjectObjectDialog
               projectId={routeParams.projectId}
+              projectType={props.projectType}
               projectObjectId={projectObjectId}
             />
           )}

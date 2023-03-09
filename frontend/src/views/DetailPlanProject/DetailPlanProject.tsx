@@ -1,4 +1,4 @@
-import { Map } from '@mui/icons-material';
+import { AccountTree, ListAlt, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography, css } from '@mui/material';
 import { ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -9,13 +9,15 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { PROJECT_AREA_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
+import { DeleteProjectDialog } from '@frontend/views/Project/DeleteProjectDialog';
+import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
+import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
 
 import { TranslationKey } from '@shared/language';
 
-import { DeleteDetailPlanProjectDialog } from './DeleteDetailPlanProjectDialog';
-import { DetailPlanProjectForm } from './DetailPlanProjectForm';
+import { DetailplanProjectForm } from './DetailplanProjectForm';
 
-type TabView = 'default';
+type TabView = 'default' | 'kohteet' | 'sidoshankkeet';
 
 interface Tab {
   tabView: TabView;
@@ -46,10 +48,22 @@ function getTabs(projectId: string): Tab[] {
       label: 'project.mapTabLabel',
       icon: <Map fontSize="small" />,
     },
+    {
+      tabView: 'kohteet',
+      url: `/asemakaavahanke/${projectId}/kohteet`,
+      label: 'project.projectObjectsTabLabel',
+      icon: <ListAlt fontSize="small" />,
+    },
+    {
+      tabView: 'sidoshankkeet',
+      url: `/asemakaavahanke/${projectId}/sidoshankkeet`,
+      label: 'project.relatedProjectsTabLabel',
+      icon: <AccountTree fontSize="small" />,
+    },
   ];
 }
 
-export function DetailPlanProject() {
+export function DetailplanProject() {
   const routeParams = useParams() as { projectId: string; tabView: TabView };
   const tabView = routeParams.tabView ?? 'default';
   const tabs = getTabs(routeParams.projectId);
@@ -107,14 +121,14 @@ export function DetailPlanProject() {
         {project.data ? (
           <Chip label={project.data?.projectName} />
         ) : (
-          <Chip variant="outlined" label={tr('newDetailPlanProject.formTitle')} />
+          <Chip variant="outlined" label={tr('newDetailplanProject.formTitle')} />
         )}
       </Breadcrumbs>
 
       <div css={pageContentStyle}>
         <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
-          <DetailPlanProjectForm project={project.data} />
-          {project.data && <DeleteDetailPlanProjectDialog projectId={project.data.id ?? ''} />}
+          <DetailplanProjectForm project={project.data} />
+          {project.data && <DeleteProjectDialog projectId={project.data.id ?? ''} />}
         </Paper>
 
         <Paper
@@ -160,11 +174,12 @@ export function DetailPlanProject() {
 
           {routeParams.tabView && (
             <Box sx={{ m: 2 }}>
-              {/* {routeParams.tabView === 'talous' && <ProjectFinances project={project.data} />}
-              {routeParams.tabView === 'kohteet' && <ProjectObjectList projectId={projectId} />}
+              {routeParams.tabView === 'kohteet' && (
+                <ProjectObjectList projectId={projectId} projectType="asemakaavahanke" />
+              )}
               {routeParams.tabView === 'sidoshankkeet' && (
-                <ProjectRelations project={project.data as DbProject} />
-              )} */}
+                <ProjectRelations projectId={routeParams.projectId} />
+              )}
             </Box>
           )}
         </Paper>
