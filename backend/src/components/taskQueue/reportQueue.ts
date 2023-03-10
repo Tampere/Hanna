@@ -1,29 +1,25 @@
 import { buildProjectReport } from '@backend/components/report/projectReport';
+import { env } from '@backend/env';
 
 import { ProjectSearch } from '@shared/schema/project';
 
-import { getJob, getTaskQueue } from '.';
+import { getTaskQueue, startJob } from '.';
 
 const queueName = 'report';
 
-async function generateReport({ id, data }: { id: string; data: ProjectSearch }) {
-  await buildProjectReport(id, data);
-}
-
-export async function initializeReportQueue() {
-  const queue = getTaskQueue();
-  queue.work<ProjectSearch, void>(queueName, generateReport);
+export async function setupReportQueue() {
+  getTaskQueue().work<ProjectSearch, void>(
+    queueName,
+    {
+      teamSize: env.report.queueConcurrency,
+      teamConcurrency: env.report.queueConcurrency,
+    },
+    async ({ id, data }) => {
+      await buildProjectReport(id, data);
+    }
+  );
 }
 
 export async function startReportJob(data: ProjectSearch) {
-  const queue = getTaskQueue();
-  const jobId = await queue.send(queueName, data);
-  if (!jobId) {
-    throw new Error(`Error assigning job ID for report job`);
-  }
-  return jobId;
-}
-
-export async function getReportJob(jobId: string) {
-  return getJob(jobId);
+  return startJob(queueName, data);
 }

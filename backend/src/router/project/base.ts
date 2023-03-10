@@ -10,7 +10,8 @@ import {
   updateProjectGeometry,
 } from '@backend/components/project';
 import { deleteProject, getProject } from '@backend/components/project/base';
-import { getReportJob, startReportJob } from '@backend/components/taskQueue/reportQueue';
+import { getJob } from '@backend/components/taskQueue';
+import { startReportJob } from '@backend/components/taskQueue/reportQueue';
 import { TRPC } from '@backend/router';
 
 import {
@@ -74,14 +75,14 @@ export const createProjectRouter = (t: TRPC) =>
     getReportJobStatus: t.procedure
       .input(z.object({ jobId: z.string() }))
       .query(async ({ input }) => {
-        const { state, isFinished } = await getReportJob(input.jobId);
+        const { state, isFinished } = await getJob(input.jobId);
         return { state, isFinished };
       }),
 
     getReportJobOutput: t.procedure
       .input(z.object({ jobId: z.string() }))
       .query(async ({ input }) => {
-        const { output } = await getReportJob(input.jobId);
+        const { output } = await getJob(input.jobId);
         return output;
       }),
   });
