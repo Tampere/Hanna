@@ -67,6 +67,10 @@ const schema = z.object({
       }),
     ]),
   }),
+  detailplan: z.object({
+    notificationRecipients: z.array(z.string()),
+    notificationSignatureFrom: z.string(),
+  }),
 });
 
 function getEnv() {
@@ -128,6 +132,10 @@ function getEnv() {
           : {
               method: 'none',
             },
+    },
+    detailplan: {
+      notificationRecipients: process.env.DETAILPLAN_NOTIFICATION_RECIPIENTS?.split(',') ?? [],
+      notificationSignatureFrom: process.env.DETAILPLAN_NOTIFICATION_SIGNATURE_FROM,
     },
   } as z.infer<typeof schema>);
 }

@@ -1,4 +1,3 @@
-// import Mail from 'nodemailer/lib/mailer';
 import { env } from '@backend/env';
 import { logger } from '@backend/logging';
 
@@ -19,6 +18,7 @@ export async function setupMailQueue() {
         await sendMail(data);
       } catch (error) {
         logger.error(`Error sending mail: ${error}`);
+        throw error;
       }
     }
   );

@@ -1,0 +1,17 @@
+doctype html
+html
+  head
+    style
+      include style.css
+  body
+    p Heipä hei!
+    p Perustettu uusi hanke: #{detailplanId} / "#{projectName}"
+    p
+      | Valmistelija: #{preparer}
+      br
+      | Alue/kaupunginosa: #{planningZone}
+      br
+      | Kortteli/tontti: #{blockName}
+      br
+      | Osoitteet: #{addressText}
+    p Terveisin #{signatureFrom}

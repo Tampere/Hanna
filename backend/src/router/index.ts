@@ -14,6 +14,7 @@ import { createTaskRouter } from '@backend/router/task';
 
 import { User } from '@shared/schema/user';
 
+import { createJobRouter } from './job';
 import { createSessionRouter } from './session';
 import { createUserRouter } from './user';
 
@@ -46,6 +47,7 @@ export const appRouter = t.router({
   task: createTaskRouter(t),
   user: createUserRouter(t),
   contractor: createContractorRouter(t),
+  job: createJobRouter(t),
 });
 
 export type TRPC = typeof t;

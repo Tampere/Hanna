@@ -5,6 +5,8 @@ import { resolve } from 'path';
 
 import { env } from '@backend/env';
 
+import { DbDetailplanProject } from '@shared/schema/project/detailplan';
+
 interface Template<Name extends string, Parameters extends Record<string, any>> {
   template: {
     name: Name;
@@ -17,14 +19,8 @@ export type Mail = {
   cc?: string | string[];
   bcc?: string | string[];
 } & Template<
-  'new-detail-plan-project',
-  {
-    planNumber: number;
-    projectName: string;
-    author: string;
-    zone: string;
-    lotNumber: string;
-    addresses: string;
+  'new-detailplan-project',
+  DbDetailplanProject & {
     signatureFrom: string;
   }
 >;
@@ -74,4 +70,19 @@ export async function sendMail(mail: Mail) {
     },
     locals: mail.template.parameters,
   });
+}
+
+export async function previewMail(mail: Pick<Mail, 'template'>) {
+  const email = new EmailTemplate({
+    views: {
+      root: resolve(__dirname, '../../..', 'email-templates'),
+    },
+    message: {
+      from: `${env.email.senderName} <${env.email.senderAddress}>`,
+    },
+    transport,
+    send: false,
+  });
+
+  return await email.renderAll(mail.template.name, mail.template.parameters);
 }
