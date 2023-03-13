@@ -1,6 +1,8 @@
 import { TRPCError } from '@trpc/server';
+import { User } from 'tre-hanna-shared/src/schema/user';
 import { z } from 'zod';
 
+import { addAuditEvent } from '@backend/components/audit';
 import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 
@@ -30,7 +32,7 @@ const taskFragment = sql.fragment`
   WHERE deleted = false
 `;
 
-async function upsertTask(task: UpsertTask, userId: string) {
+async function upsertTask(task: UpsertTask, userId: User['id']) {
   const data = {
     project_object_id: task.projectObjectId,
     task_name: task.taskName,
@@ -46,20 +48,27 @@ async function upsertTask(task: UpsertTask, userId: string) {
   const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
   const values = Object.values(data);
 
-  if (task.id) {
-    return getPool().one(sql.type(taskIdSchema)`
-      UPDATE app.task
-      SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
-      WHERE id = ${task.id}
-      RETURNING id
-    `);
-  } else {
-    return getPool().one(sql.type(taskIdSchema)`
-    INSERT INTO app.task (${sql.join(identifiers, sql.fragment`,`)})
-    VALUES (${sql.join(values, sql.fragment`,`)})
-    RETURNING id
-    `);
-  }
+  return getPool().transaction(async (tx) => {
+    await addAuditEvent(tx, {
+      eventType: 'task.upsert',
+      eventData: task,
+      eventUser: userId,
+    });
+    if (task.id) {
+      return tx.one(sql.type(taskIdSchema)`
+        UPDATE app.task
+        SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
+        WHERE id = ${task.id}
+        RETURNING id
+      `);
+    } else {
+      return tx.one(sql.type(taskIdSchema)`
+        INSERT INTO app.task (${sql.join(identifiers, sql.fragment`,`)})
+        VALUES (${sql.join(values, sql.fragment`,`)})
+        RETURNING id
+      `);
+    }
+  });
 }
 
 async function getTask(id: string) {
@@ -69,20 +78,27 @@ async function getTask(id: string) {
   `);
 }
 
-async function deleteTask(id: string) {
-  const task = await getPool().any(sql.untyped`
-    UPDATE app.task
-    SET
-      deleted = true
-    WHERE
-      id = ${id}
-  `);
-  if (!task) {
-    throw new TRPCError({
-      code: 'NOT_FOUND',
+async function deleteTask(id: string, userId: User['id']) {
+  return getPool().transaction(async (tx) => {
+    await addAuditEvent(tx, {
+      eventType: 'task.delete',
+      eventData: { id },
+      eventUser: userId,
     });
-  }
-  return task;
+    const task = await tx.any(sql.untyped`
+      UPDATE app.task
+      SET
+        deleted = true
+      WHERE
+        id = ${id}
+    `);
+    if (!task) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+      });
+    }
+    return task;
+  });
 }
 
 export const createTaskRouter = (t: TRPC) =>
@@ -105,7 +121,7 @@ export const createTaskRouter = (t: TRPC) =>
         `);
       }),
 
-    delete: t.procedure.input(taskIdSchema).mutation(async ({ input }) => {
-      return deleteTask(input.id);
+    delete: t.procedure.input(taskIdSchema).mutation(async ({ input, ctx }) => {
+      return deleteTask(input.id, ctx.user.id);
     }),
   });

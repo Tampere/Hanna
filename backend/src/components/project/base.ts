@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { DatabaseTransactionConnection } from 'slonik';
 import { z } from 'zod';
 
+import { addAuditEvent } from '@backend/components/audit';
 import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
 
@@ -67,19 +68,19 @@ export async function getProject(id: string) {
   return project;
 }
 
-export async function deleteProject(id: string) {
-  const project = await getPool().any(sql.type(projectIdSchema)`
-    UPDATE app.project
-    SET
-      deleted = true
-    WHERE id = ${id}
-  `);
-  if (!project) {
-    throw new TRPCError({
-      code: 'NOT_FOUND',
-    });
-  }
-  return project;
+export async function deleteProject(id: string, userId: User['id']) {
+  await getPool().transaction(async (tx) => {
+    await addAuditEvent(tx, { eventType: 'deleteProject', eventData: { id }, eventUser: userId });
+    const project = await tx.any(sql.type(projectIdSchema)`
+      UPDATE app.project SET deleted = true WHERE id = ${id}
+    `);
+    if (!project) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+      });
+    }
+    return project;
+  });
 }
 
 export async function validateUpsertProject(

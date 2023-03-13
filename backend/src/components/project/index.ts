@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { addAuditEvent } from '@backend/components/audit';
 import { getPool, sql } from '@backend/db';
 
 import {
@@ -14,6 +15,7 @@ import {
   relationsSchema,
   updateGeometryResultSchema,
 } from '@shared/schema/project';
+import { User } from '@shared/schema/user';
 
 function textSearchFragment(text: ProjectSearch['text']) {
   if (text && text.trim().length > 0) {
@@ -101,7 +103,8 @@ export function getFilterFragment(input: ProjectSearch) {
 export async function addProjectRelation(
   projectId: string,
   targetProjectId: string,
-  relation: Relation
+  relation: Relation,
+  user: User
 ) {
   let projectRelation = '';
   let subjectProject = projectId;
@@ -120,16 +123,24 @@ export async function addProjectRelation(
   } else {
     projectRelation = 'relates_to';
   }
-  return getPool().any(sql.type(relationsSchema)`
-    INSERT INTO app.project_relation (project_id, target_project_id, relation_type)
-    VALUES (${subjectProject}, ${objectProject}, ${projectRelation});
-  `);
+  await getPool().transaction(async (tx) => {
+    await addAuditEvent(tx, {
+      eventType: 'project.updateRelations',
+      eventData: { projectId, targetProjectId, relation },
+      eventUser: user.id,
+    });
+    await tx.any(sql.type(relationsSchema)`
+      INSERT INTO app.project_relation (project_id, target_project_id, relation_type)
+      VALUES (${subjectProject}, ${objectProject}, ${projectRelation});
+    `);
+  });
 }
 
 export async function removeProjectRelation(
   projectId: string,
   targetProjectId: string,
-  relation: Relation
+  relation: Relation,
+  user: User
 ) {
   let projectRelation = '';
   let subjectProject = projectId;
@@ -143,11 +154,18 @@ export async function removeProjectRelation(
   } else {
     projectRelation = 'relates_to';
   }
-  return getPool().any(sql.type(relationsSchema)`
-    DELETE FROM app.project_relation
-    WHERE project_id = ${subjectProject} AND target_project_id = ${objectProject} AND relation_type = ${projectRelation}
-    OR project_id = ${objectProject} AND target_project_id = ${subjectProject} AND relation_type = ${projectRelation}
-  `);
+  await getPool().transaction(async (tx) => {
+    await addAuditEvent(tx, {
+      eventType: 'project.removeRelation',
+      eventData: { projectId, targetProjectId, relation },
+      eventUser: user.id,
+    });
+    await tx.any(sql.type(relationsSchema)`
+      DELETE FROM app.project_relation
+      WHERE project_id = ${subjectProject} AND target_project_id = ${objectProject} AND relation_type = ${projectRelation}
+      OR project_id = ${objectProject} AND target_project_id = ${subjectProject} AND relation_type = ${projectRelation}
+    `);
+  });
 }
 
 export async function getRelatedProjects(id: string) {
@@ -272,21 +290,28 @@ export async function projectSearch(input: ProjectSearch) {
   return dbResult.result;
 }
 
-export async function updateProjectGeometry(geometryUpdate: UpdateGeometry) {
+export async function updateProjectGeometry(geometryUpdate: UpdateGeometry, user: User) {
   const { id, features } = geometryUpdate;
-  return getPool().one(sql.type(updateGeometryResultSchema)`
-    WITH featureCollection AS (
-      SELECT ST_Collect(
-        ST_GeomFromGeoJSON(value->'geometry')
-      ) AS resultGeom
-      FROM jsonb_array_elements(${features}::jsonb)
-    )
-    UPDATE app.project
-    SET geom = featureCollection.resultGeom
-    FROM featureCollection
-    WHERE id = ${id}
-    RETURNING id, ST_AsGeoJSON(geom) AS geom
-  `);
+  return getPool().transaction(async (tx) => {
+    await addAuditEvent(tx, {
+      eventType: 'project.updateGeometry',
+      eventData: geometryUpdate,
+      eventUser: user.id,
+    });
+    return tx.one(sql.type(updateGeometryResultSchema)`
+      WITH featureCollection AS (
+        SELECT ST_Collect(
+          ST_GeomFromGeoJSON(value->'geometry')
+        ) AS resultGeom
+        FROM jsonb_array_elements(${features}::jsonb)
+      )
+      UPDATE app.project
+      SET geom = featureCollection.resultGeom
+      FROM featureCollection
+      WHERE id = ${id}
+      RETURNING id, ST_AsGeoJSON(geom) AS geom
+    `);
+  });
 }
 
 export async function getCostEstimates(costEstimates: CostEstimatesInput) {
@@ -306,7 +331,7 @@ export async function getCostEstimates(costEstimates: CostEstimatesInput) {
   `);
 }
 
-export async function updateCostEstimates(updates: CostEstimatesUpdate) {
+export async function updateCostEstimates(updates: CostEstimatesUpdate, user: User) {
   const { projectId, projectObjectId, taskId, costEstimates } = updates;
 
   const newRows = costEstimates.reduce(
@@ -319,23 +344,28 @@ export async function updateCostEstimates(updates: CostEstimatesUpdate) {
     [] as { year: number; amount: number }[]
   );
 
-  await getPool().transaction(async (connection) => {
-    await connection.any(sql.untyped`
+  await getPool().transaction(async (tx) => {
+    await addAuditEvent(tx, {
+      eventType: 'project.updateCostEstimates',
+      eventData: updates,
+      eventUser: user.id,
+    });
+    await tx.any(sql.untyped`
         DELETE FROM app.cost_estimate
         WHERE ${costEstimateWhereFragment(updates)}
     `);
     await Promise.all(
       newRows.map((row) =>
-        connection.any(sql.untyped`
-                INSERT INTO app.cost_estimate (project_id, project_object_id, task_id, year, amount)
-                VALUES (
-                  ${projectId ?? null},
-                  ${projectObjectId ?? null},
-                  ${taskId ?? null},
-                  ${row.year},
-                  ${row.amount}
-                )
-              `)
+        tx.any(sql.untyped`
+            INSERT INTO app.cost_estimate (project_id, project_object_id, task_id, year, amount)
+            VALUES (
+              ${projectId ?? null},
+              ${projectObjectId ?? null},
+              ${taskId ?? null},
+              ${row.year},
+              ${row.amount}
+            )
+          `)
       )
     );
   });

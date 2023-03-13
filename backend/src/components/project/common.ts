@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { DatabaseTransactionConnection } from 'slonik';
 import { z } from 'zod';
 
+import { addAuditEvent } from '@backend/components/audit';
 import { baseProjectUpsert } from '@backend/components/project/base';
 import { getPool, sql } from '@backend/db';
 import { codeIdFragment } from '@backend/router/code';
@@ -52,6 +53,11 @@ export async function getProject(id: string, tx?: DatabaseTransactionConnection)
 export async function projectUpsert(project: CommonProject, user: User) {
   return getPool().transaction(async (tx) => {
     const id = await baseProjectUpsert(tx, project, user);
+    await addAuditEvent(tx, {
+      eventType: 'projectCommon.upsertProject',
+      eventData: project,
+      eventUser: user.id,
+    });
 
     const data = {
       id,
