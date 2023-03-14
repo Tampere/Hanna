@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { sql } from 'slonik';
 import { z } from 'zod';
 
+import { addAuditEvent } from '@backend/components/audit';
 import { getPool } from '@backend/db';
 import { TRPC } from '@backend/router';
 
@@ -16,6 +17,7 @@ import {
   updateGeometrySchema,
   upsertProjectObjectSchema,
 } from '@shared/schema/projectObject';
+import { User } from '@shared/schema/user';
 
 const projectObjectFragment = sql.fragment`
   SELECT
@@ -54,21 +56,28 @@ function codeIdFragment(codeListId: CodeId['codeListId'], codeId: CodeId['id'] |
   `;
 }
 
-async function deleteProjectObject(id: string) {
-  const projectObject = await getPool().maybeOne(sql.type(dbProjectObjectSchema)`
-    UPDATE app.project_object
-    SET
-      deleted = true
-    WHERE id = ${id}
-    RETURNING id
-  `);
-
-  if (!projectObject) {
-    throw new TRPCError({
-      code: 'NOT_FOUND',
+async function deleteProjectObject(id: string, user: User) {
+  await getPool().transaction(async (tx) => {
+    await addAuditEvent(tx, {
+      eventType: 'projectObject.delete',
+      eventData: { id },
+      eventUser: user.id,
     });
-  }
-  return projectObject;
+    const projectObject = await tx.maybeOne(sql.type(dbProjectObjectSchema)`
+      UPDATE app.project_object
+      SET
+        deleted = true
+      WHERE id = ${id}
+      RETURNING id
+    `);
+
+    if (!projectObject) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+      });
+    }
+    return projectObject;
+  });
 }
 
 async function upsertProjectObject(projectObject: UpsertProjectObject, userId: string) {
@@ -96,23 +105,31 @@ async function upsertProjectObject(projectObject: UpsertProjectObject, userId: s
   const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
   const values = Object.values(data);
 
-  if (projectObject.id) {
-    return getPool().one(
-      sql.type(z.object({ id: z.string() }))`
+  return getPool().transaction(async (tx) => {
+    await addAuditEvent(tx, {
+      eventType: 'projectObject.upsert',
+      eventData: projectObject,
+      eventUser: userId,
+    });
+
+    if (projectObject.id) {
+      return tx.one(
+        sql.type(z.object({ id: z.string() }))`
         UPDATE app.project_object
         SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
         WHERE project_id = ${projectObject.projectId}
           AND id = ${projectObject.id}
         RETURNING id`
-    );
-  } else {
-    return getPool().one(
-      sql.type(z.object({ id: z.string() }))`
+      );
+    } else {
+      return tx.one(
+        sql.type(z.object({ id: z.string() }))`
         INSERT INTO app.project_object (${sql.join(identifiers, sql.fragment`,`)})
         VALUES (${sql.join(values, sql.fragment`,`)})
         RETURNING id`
-    );
-  }
+      );
+    }
+  });
 }
 
 export const createProjectObjectRouter = (t: TRPC) =>
@@ -124,19 +141,27 @@ export const createProjectObjectRouter = (t: TRPC) =>
 
     updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input, ctx }) => {
       const { id, features } = input;
-      return getPool().one(sql.type(updateGeometryResultSchema)`
-        WITH featureCollection AS (
-          SELECT ST_Collect(
-            ST_GeomFromGeoJSON(value->'geometry')
-          ) AS resultGeom
-          FROM jsonb_array_elements(${features}::jsonb)
-        )
-        UPDATE app.project_object
-        SET geom = featureCollection.resultGeom
-        FROM featureCollection
-        WHERE id = ${id}
-        RETURNING id, ST_AsGeoJSON(geom) AS geom
-      `);
+
+      return getPool().transaction(async (tx) => {
+        await addAuditEvent(tx, {
+          eventType: 'projectObject.updateGeometry',
+          eventData: input,
+          eventUser: ctx.user.id,
+        });
+        return tx.one(sql.type(updateGeometryResultSchema)`
+          WITH featureCollection AS (
+            SELECT ST_Collect(
+              ST_GeomFromGeoJSON(value->'geometry')
+            ) AS resultGeom
+            FROM jsonb_array_elements(${features}::jsonb)
+          )
+          UPDATE app.project_object
+          SET geom = featureCollection.resultGeom
+          FROM featureCollection
+          WHERE id = ${id}
+          RETURNING id, ST_AsGeoJSON(geom) AS geom
+        `);
+      });
     }),
 
     get: t.procedure.input(getProjectObjectParams).query(async ({ input, ctx }) => {
@@ -152,8 +177,8 @@ export const createProjectObjectRouter = (t: TRPC) =>
       `);
       }),
 
-    delete: t.procedure.input(deleteProjectObjectSchema).mutation(async ({ input }) => {
+    delete: t.procedure.input(deleteProjectObjectSchema).mutation(async ({ input, ctx }) => {
       const { id } = input;
-      return await deleteProjectObject(id);
+      return await deleteProjectObject(id, ctx.user);
     }),
   });

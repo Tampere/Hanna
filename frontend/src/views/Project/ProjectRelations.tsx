@@ -44,7 +44,7 @@ export function ProjectRelations({ projectId }: Props) {
     },
   });
 
-  const deleteRelation = trpc.project.remoteRelation.useMutation({
+  const deleteRelation = trpc.project.removeRelation.useMutation({
     onSuccess: () => {
       relations.refetch();
       notify({

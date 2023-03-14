@@ -39,13 +39,13 @@ export const createProjectRouter = (t: TRPC) =>
       return getRelatedProjects(id);
     }),
 
-    delete: t.procedure.input(projectIdSchema).mutation(async ({ input }) => {
+    delete: t.procedure.input(projectIdSchema).mutation(async ({ input, ctx }) => {
       const { id } = input;
-      return deleteProject(id);
+      return deleteProject(id, ctx.user.id);
     }),
 
-    updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input }) => {
-      return updateProjectGeometry(input);
+    updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input, ctx }) => {
+      return updateProjectGeometry(input, ctx.user);
     }),
 
     getCostEstimates: t.procedure.input(getCostEstimatesInputSchema).query(async ({ input }) => {
@@ -54,18 +54,18 @@ export const createProjectRouter = (t: TRPC) =>
 
     updateCostEstimates: t.procedure
       .input(updateCostEstimatesInputSchema)
-      .mutation(async ({ input }) => {
-        return updateCostEstimates(input);
+      .mutation(async ({ input, ctx }) => {
+        return updateCostEstimates(input, ctx.user);
       }),
 
-    updateRelations: t.procedure.input(relationsSchema).mutation(async ({ input }) => {
+    updateRelations: t.procedure.input(relationsSchema).mutation(async ({ input, ctx }) => {
       const { subjectProjectId, objectProjectId, relation } = input;
-      return await addProjectRelation(subjectProjectId, objectProjectId, relation);
+      return await addProjectRelation(subjectProjectId, objectProjectId, relation, ctx.user);
     }),
 
-    remoteRelation: t.procedure.input(relationsSchema).mutation(async ({ input }) => {
+    removeRelation: t.procedure.input(relationsSchema).mutation(async ({ input, ctx }) => {
       const { subjectProjectId: projectId, objectProjectId: targetProjectId, relation } = input;
-      return await removeProjectRelation(projectId, targetProjectId, relation);
+      return await removeProjectRelation(projectId, targetProjectId, relation, ctx.user);
     }),
 
     startReportJob: t.procedure.input(projectSearchSchema).query(async ({ input }) => {

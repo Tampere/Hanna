@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { addAuditEvent } from '@backend/components/audit';
 import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 
@@ -24,20 +25,34 @@ const selectCompanyFragment = sql.fragment`
 export const createContractorRouter = (t: TRPC) =>
   t.router({
     upsertCompany: t.procedure.input(companySchema).mutation(async ({ ctx, input }) => {
-      await getPool().any(sql.untyped`
-        INSERT INTO app.contractor_company (business_id, company_name, modified_by)
-        VALUES (${input.businessId}, ${input.companyName}, ${ctx.user.id})
-        ON CONFLICT (business_id)
-        DO UPDATE SET company_name = ${input.companyName}, modified_by = ${ctx.user.id}
-      `);
+      await getPool().transaction(async (tx) => {
+        await addAuditEvent(tx, {
+          eventType: 'contractor.upsertCompany',
+          eventData: input,
+          eventUser: ctx.user.id,
+        });
+        await tx.any(sql.untyped`
+          INSERT INTO app.contractor_company (business_id, company_name, modified_by)
+          VALUES (${input.businessId}, ${input.companyName}, ${ctx.user.id})
+          ON CONFLICT (business_id)
+          DO UPDATE SET company_name = ${input.companyName}, modified_by = ${ctx.user.id}
+        `);
+      });
     }),
 
     deleteCompany: t.procedure.input(companyIdSchema).mutation(async ({ ctx, input }) => {
-      await getPool().any(sql.untyped`
-        UPDATE app.contractor_company
-        SET deleted = TRUE, modified_by = ${ctx.user.id}
-        WHERE business_id = ${input.businessId}
-      `);
+      await getPool().transaction(async (tx) => {
+        await addAuditEvent(tx, {
+          eventType: 'contractor.deleteCompany',
+          eventData: input,
+          eventUser: ctx.user.id,
+        });
+        await tx.any(sql.untyped`
+          UPDATE app.contractor_company
+          SET deleted = TRUE, modified_by = ${ctx.user.id}
+          WHERE business_id = ${input.businessId}
+        `);
+      });
     }),
 
     getCompanies: t.procedure.query(async () => {
@@ -68,44 +83,59 @@ export const createContractorRouter = (t: TRPC) =>
       const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
       const values = Object.values(data);
 
-      if (input.id) {
-        await getPool().any(sql.untyped`
-          UPDATE app.contractor
-          SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
-          WHERE id = ${input.id}
-        `);
-      } else {
-        await getPool().any(sql.untyped`
-          INSERT INTO app.contractor (${sql.join(identifiers, sql.fragment`,`)})
-          VALUES (${sql.join(values, sql.fragment`,`)})
-        `);
-      }
+      await getPool().transaction(async (tx) => {
+        await addAuditEvent(tx, {
+          eventType: 'contractor.upsertContractor',
+          eventData: input,
+          eventUser: ctx.user.id,
+        });
+
+        if (input.id) {
+          await tx.any(sql.untyped`
+            UPDATE app.contractor
+            SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
+            WHERE id = ${input.id}
+          `);
+        } else {
+          await tx.any(sql.untyped`
+            INSERT INTO app.contractor (${sql.join(identifiers, sql.fragment`,`)})
+            VALUES (${sql.join(values, sql.fragment`,`)})
+          `);
+        }
+      });
     }),
 
     getContractorById: t.procedure
       .input(z.object({ id: nonEmptyString }))
       .query(async ({ input }) => {
         return getPool().one(sql.type(searchResultSchema)`
-        SELECT
-          id,
-          contact_name AS "contactName",
-          phone_number AS "phoneNumber",
-          email_address AS "emailAddress",
-          contractor.business_id AS "businessId",
-          company_name AS "companyName"
-        FROM app.contractor
-        LEFT JOIN app.contractor_company ON contractor.business_id = contractor_company.business_id
-        WHERE contractor.deleted IS FALSE
-          AND id = ${input.id}
-      `);
+          SELECT
+            id,
+            contact_name AS "contactName",
+            phone_number AS "phoneNumber",
+            email_address AS "emailAddress",
+            contractor.business_id AS "businessId",
+            company_name AS "companyName"
+          FROM app.contractor
+          LEFT JOIN app.contractor_company ON contractor.business_id = contractor_company.business_id
+          WHERE contractor.deleted IS FALSE
+            AND id = ${input.id}
+        `);
       }),
 
     deleteContractor: t.procedure.input(contractorIdSchema).mutation(async ({ ctx, input }) => {
-      await getPool().any(sql.untyped`
-        UPDATE app.contractor
-        SET deleted = TRUE, modified_by = ${ctx.user.id}
-        WHERE id = ${input.id}
-      `);
+      await getPool().transaction(async (tx) => {
+        await addAuditEvent(tx, {
+          eventType: 'contractor.deleteContractor',
+          eventData: input,
+          eventUser: ctx.user.id,
+        });
+        await tx.any(sql.untyped`
+          UPDATE app.contractor
+          SET deleted = TRUE, modified_by = ${ctx.user.id}
+          WHERE id = ${input.id}
+        `);
+      });
     }),
 
     search: t.procedure.input(searchQuerySchema).query(async ({ input }) => {
