@@ -1,6 +1,6 @@
-import { userSchema } from 'tre-hanna-shared/src/schema/user';
-
 import { getPool, sql } from '@backend/db';
+
+import { userSchema } from '@shared/schema/user';
 
 const userSelectFragment = sql.fragment`
   SELECT id, email, name FROM app.user

@@ -1,5 +1,4 @@
 import { TRPCError } from '@trpc/server';
-import { User } from 'tre-hanna-shared/src/schema/user';
 import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
@@ -15,6 +14,7 @@ import {
   taskIdSchema,
   upsertTaskSchema,
 } from '@shared/schema/task';
+import { User } from '@shared/schema/user';
 
 const taskFragment = sql.fragment`
   SELECT
