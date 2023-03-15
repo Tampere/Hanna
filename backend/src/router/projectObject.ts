@@ -3,10 +3,10 @@ import { sql } from 'slonik';
 import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
+import { codeIdFragment } from '@backend/components/code';
 import { getPool } from '@backend/db';
 import { TRPC } from '@backend/router';
 
-import { CodeId } from '@shared/schema/code';
 import { nonEmptyString } from '@shared/schema/common';
 import {
   UpsertProjectObject,
@@ -47,13 +47,6 @@ async function getProjectObject(projectId: string, id: string) {
     AND project_id = ${projectId}
     AND id = ${id}
   `);
-}
-
-function codeIdFragment(codeListId: CodeId['codeListId'], codeId: CodeId['id'] | undefined | null) {
-  if (!codeId) return sql.fragment`NULL`;
-  return sql.fragment`
-    (${sql.join([codeListId, codeId], sql.fragment`,`)})
-  `;
 }
 
 async function deleteProjectObject(id: string, user: User) {

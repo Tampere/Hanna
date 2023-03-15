@@ -3,6 +3,7 @@ import { User } from 'tre-hanna-shared/src/schema/user';
 import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
+import { codeIdFragment } from '@backend/components/code';
 import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 
@@ -14,8 +15,6 @@ import {
   taskIdSchema,
   upsertTaskSchema,
 } from '@shared/schema/task';
-
-import { codeIdFragment } from './code';
 
 const taskFragment = sql.fragment`
   SELECT

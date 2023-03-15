@@ -3,9 +3,9 @@ import { DatabaseTransactionConnection } from 'slonik';
 import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
+import { codeIdFragment } from '@backend/components/code';
 import { baseProjectUpsert } from '@backend/components/project/base';
 import { getPool, sql } from '@backend/db';
-import { codeIdFragment } from '@backend/router/code';
 
 import { projectIdSchema } from '@shared/schema/project/base';
 import { DetailplanProject, dbDetailplanSchema } from '@shared/schema/project/detailplan';

@@ -275,5 +275,12 @@
   "detailplanProject.applicantAddressLabel": "Hakijan osoite",
   "detailplanProject.applicantObjectiveLabel": "Hakijan tavoitteet",
   "detailplanProject.additionalInfoLabel": "Lisätiedot",
-  "detailplanProject.detailplanIdLabel": "Kaavanumero"
+  "detailplanProject.notification": "Tiedotus",
+  "detailplanProject.notificationPreview": "Tiedotteen esikatselu",
+  "detailplanProject.sendNotification": "Lähetä tiedote",
+  "detailplanProject.recipients": "Sähköpostivastaanottajat",
+  "detailplanProject.notifySendNotification": "Tiedote lähetetty",
+  "detailplanProject.notifySendNotificationFailed": "Tiedotteen lähetys epäonnistui",
+  "email.subject": "Aihe",
+  "send": "Lähetä"
 }

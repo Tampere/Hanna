@@ -1,22 +1,20 @@
-import { Button, CircularProgress } from '@mui/material';
-import { ReactNode, useEffect, useState } from 'react';
+import { ButtonProps } from '@mui/material';
+import { useEffect, useState } from 'react';
 
-interface Props<ErrorType> {
-  label: string;
-  icon: ReactNode;
+import { trpc } from '@frontend/client';
+
+import { LoadingButton } from './LoadingButton';
+
+interface Props extends ButtonProps {
   onStart: () => Promise<string>;
-  getStatus: (jobId: string) => Promise<{
-    finished: boolean;
-    error?: ErrorType;
-  }>;
-  onFinished: (jobId: string) => Promise<void>;
-  onError: (error: ErrorType) => void;
+  onFinished?: (jobId: string) => void | Promise<void>;
+  onError?: () => void | Promise<void>;
   pollingIntervalTimeout?: number;
-  disabled?: boolean;
 }
 
-export function AsyncJobButton<ErrorType>(props: Props<ErrorType>) {
-  const { label, icon, onStart, getStatus, onFinished, onError, pollingIntervalTimeout } = props;
+export function AsyncJobButton(props: Props) {
+  const { onStart, onFinished, onError, pollingIntervalTimeout, ...buttonProps } = props;
+  const { job } = trpc.useContext();
 
   const [loading, setLoading] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
@@ -29,12 +27,16 @@ export function AsyncJobButton<ErrorType>(props: Props<ErrorType>) {
     setLoading(true);
 
     const interval = setInterval(async () => {
-      const status = await getStatus(jobId);
-      if (status.error) {
-        onError(status.error);
-      } else if (status.finished) {
-        onFinished(jobId);
+      // Get the job status from the server
+      const { isFinished, state } = await job.getStatus.fetch({ jobId });
+
+      // Handle error & finished states
+      if (state === 'failed') {
+        onError?.();
+      } else if (isFinished) {
+        onFinished?.(jobId);
       } else {
+        // Not finished or errors - continue polling
         return;
       }
 
@@ -48,31 +50,15 @@ export function AsyncJobButton<ErrorType>(props: Props<ErrorType>) {
   }, [jobId]);
 
   return (
-    // Lay the loading indicator on top of the disabled icon to avoid UI jumps
-    <div style={{ position: 'relative' }}>
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          left: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {loading && <CircularProgress size={20} />}
-      </div>
-      <Button
-        disabled={loading || props.disabled}
-        onClick={async () => {
-          setJobId(await onStart());
-        }}
-        endIcon={icon}
-      >
-        {label}
-      </Button>
-    </div>
+    <LoadingButton
+      {...buttonProps}
+      loading={loading}
+      disabled={loading || props.disabled}
+      onClick={async () => {
+        setJobId(await onStart());
+      }}
+    >
+      {buttonProps.children}
+    </LoadingButton>
   );
 }

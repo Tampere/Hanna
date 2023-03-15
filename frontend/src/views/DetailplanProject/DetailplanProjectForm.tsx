@@ -120,6 +120,9 @@ export function DetailplanProjectForm(props: Props) {
         queryClient.invalidateQueries({
           queryKey: [['projectDetailplan', 'get'], { input: { id: data.id } }],
         });
+        queryClient.invalidateQueries({
+          queryKey: [['projectDetailplan', 'previewNotificationMail'], { input: { id: data.id } }],
+        });
         setEditing(false);
         form.reset(data);
       }

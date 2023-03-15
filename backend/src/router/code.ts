@@ -1,26 +1,8 @@
-import { sql } from 'slonik';
+import { getCodesForCodeList } from '@backend/components/code';
 
-import { getPool } from '@backend/db';
-
-import { Code, CodeId, codeSchema, codeSearchSchema } from '@shared/schema/code';
+import { codeSearchSchema } from '@shared/schema/code';
 
 import { TRPC } from '.';
-
-async function getCodesForCodeList(codeListId: Code['id']['codeListId']) {
-  return getPool().any(sql.type(codeSchema)`
-    SELECT
-      json_build_object(
-        'codeListId', (code.id).code_list_id,
-        'id', (code.id).id
-      ) AS id,
-      json_build_object(
-        'fi', text_fi,
-        'en', text_en
-      ) AS text
-    FROM app.code
-    WHERE (code.id).code_list_id = ${codeListId}
-  `);
-}
 
 export const createCodeRouter = (t: TRPC) =>
   t.router({
@@ -28,13 +10,3 @@ export const createCodeRouter = (t: TRPC) =>
       return getCodesForCodeList(input.codeListId);
     }),
   });
-
-export function codeIdFragment(
-  codeListId: CodeId['codeListId'],
-  codeId: CodeId['id'] | undefined | null
-) {
-  if (!codeId) return sql.fragment`NULL`;
-  return sql.fragment`
-      (${sql.join([codeListId, codeId], sql.fragment`,`)})
-    `;
-}

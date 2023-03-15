@@ -160,23 +160,10 @@ function SearchResults({ results, loading }: SearchResultsProps) {
           )}
         </Typography>
         <AsyncJobButton
-          label={tr('projectSearch.generateReport')}
+          endIcon={<Download />}
           disabled={results?.length < 1}
           onStart={async () => {
             return await project.startReportJob.fetch(projectSearchParams);
-          }}
-          getStatus={async (jobId) => {
-            const { isFinished, state } = await project.getReportJobStatus.fetch({ jobId });
-            if (state === 'failed') {
-              return {
-                finished: true,
-                error: tr('projectSearch.reportFailed'),
-              };
-            }
-
-            return {
-              finished: isFinished,
-            };
           }}
           onFinished={async (jobId) => {
             // Create a link element to automatically download the new report
@@ -184,15 +171,16 @@ function SearchResults({ results, loading }: SearchResultsProps) {
             link.href = `/api/v1/report/file?id=${jobId}`;
             link.click();
           }}
-          onError={(error: string) => {
+          onError={() => {
             notify({
-              title: error,
+              title: tr('projectSearch.reportFailed'),
               severity: 'error',
             });
           }}
-          icon={<Download />}
           pollingIntervalTimeout={1000}
-        />
+        >
+          {tr('projectSearch.generateReport')}
+        </AsyncJobButton>
       </Box>
       {results?.length > 0
         ? results.map((result) => <ProjectCard result={result} key={result.id} />)

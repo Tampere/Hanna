@@ -1,4 +1,4 @@
-import { AccountTree, ListAlt, Map } from '@mui/icons-material';
+import { AccountTree, ListAlt, Mail, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography, css } from '@mui/material';
 import { ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -16,8 +16,9 @@ import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectLi
 import { TranslationKey } from '@shared/language';
 
 import { DetailplanProjectForm } from './DetailplanProjectForm';
+import { DetailplanProjectNotification } from './DetailplanProjectNotification';
 
-type TabView = 'default' | 'kohteet' | 'sidoshankkeet';
+type TabView = 'default' | 'kohteet' | 'sidoshankkeet' | 'tiedotus';
 
 interface Tab {
   tabView: TabView;
@@ -59,6 +60,12 @@ function getTabs(projectId: string): Tab[] {
       url: `/asemakaavahanke/${projectId}/sidoshankkeet`,
       label: 'project.relatedProjectsTabLabel',
       icon: <AccountTree fontSize="small" />,
+    },
+    {
+      tabView: 'tiedotus',
+      url: `/asemakaavahanke/${projectId}/tiedotus`,
+      label: 'detailplanProject.notification',
+      icon: <Mail fontSize="small" />,
     },
   ];
 }
@@ -137,6 +144,7 @@ export function DetailplanProject() {
             display: flex;
             flex-direction: column;
             height: 100%;
+            overflow-y: auto;
           `}
         >
           <Tabs
@@ -173,12 +181,15 @@ export function DetailplanProject() {
           )}
 
           {routeParams.tabView && (
-            <Box sx={{ m: 2 }}>
+            <Box sx={{ p: 2, overflowY: 'auto' }}>
               {routeParams.tabView === 'kohteet' && (
                 <ProjectObjectList projectId={projectId} projectType="asemakaavahanke" />
               )}
               {routeParams.tabView === 'sidoshankkeet' && (
                 <ProjectRelations projectId={routeParams.projectId} />
+              )}
+              {routeParams.tabView === 'tiedotus' && (
+                <DetailplanProjectNotification projectId={routeParams.projectId} />
               )}
             </Box>
           )}
