@@ -1,27 +1,60 @@
 import dayjs from 'dayjs';
 import { atom } from 'jotai';
+import { focusAtom } from 'jotai-optics';
 
 import { mapOptions } from '@frontend/components/Map/mapOptions';
-import { unwrapAtomSetters, unwrapAtomValues } from '@frontend/utils/atom';
 
 import { MapSearch, Period } from '@shared/schema/project';
 import { ProjectType } from '@shared/schema/project/type';
 
-export const projectSearchParamAtoms = {
-  text: atom(''),
-  dateRange: atom<Period>({
+interface ProjectTypeFilters {
+  investmentProject: {
+    committees: string[];
+  };
+  detailplanProject: object;
+}
+
+interface ProjectSearch {
+  text: string;
+  dateRange: Period;
+  lifecycleStates: string[];
+  projectTypes: ProjectType[];
+  committees: string[];
+  map: MapSearch;
+  includeWithoutGeom: boolean;
+  filters: ProjectTypeFilters;
+}
+
+export const projectSearchParamAtom = atom<ProjectSearch>({
+  text: '',
+  dateRange: {
     startDate: dayjs().startOf('year').format('YYYY-MM-DD'),
     endDate: dayjs().endOf('year').format('YYYY-MM-DD'),
-  }),
-  lifecycleStates: atom<string[]>([]),
-  projectTypes: atom<ProjectType[]>([]),
-  committees: atom<string[]>([]),
-  map: atom<MapSearch>({
+  },
+  lifecycleStates: [],
+  projectTypes: [],
+  committees: [],
+  map: {
     zoom: mapOptions.tre.defaultZoom,
     extent: mapOptions.tre.extent,
-  }),
-  includeWithoutGeom: atom<boolean>(false),
-};
+  },
+  includeWithoutGeom: false,
+  filters: {
+    investmentProject: { committees: [] },
+    detailplanProject: {},
+  },
+});
 
-export const getProjectSearchParams = () => unwrapAtomValues(projectSearchParamAtoms);
-export const getProjectSearchParamSetters = () => unwrapAtomSetters(projectSearchParamAtoms);
+export const textAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('text'));
+export const dateRangeAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('dateRange'));
+export const lifecycleStatesAtom = focusAtom(projectSearchParamAtom, (o) =>
+  o.prop('lifecycleStates')
+);
+export const projectTypesAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('projectTypes'));
+export const includeWithoutGeomAtom = focusAtom(projectSearchParamAtom, (o) =>
+  o.prop('includeWithoutGeom')
+);
+
+export const investmentProjectFiltersAtom = focusAtom(projectSearchParamAtom, (o) =>
+  o.prop('filters').prop('investmentProject')
+);

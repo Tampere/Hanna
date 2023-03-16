@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { isoDateString } from '../common';
+import { dbProjectSchema, upsertProjectSchema } from './base';
 
 export const periodSchema = z.object({
   startDate: isoDateString,
@@ -27,8 +28,7 @@ export const projectSearchSchema = z.object({
 });
 
 export const projectSearchResultSchema = z.object({
-  // !FIXME: search specific schema
-  projects: z.array(z.any()),
+  projects: z.array(dbProjectSchema),
   clusters: z.array(
     z.object({
       clusterCount: z.number(),

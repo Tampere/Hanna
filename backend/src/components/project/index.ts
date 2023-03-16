@@ -247,8 +247,14 @@ const searchProjectFragment = sql.fragment`
     end_date AS "endDate",
     geohash,
     ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
-    (lifecycle_state).id AS "lifecycleState"
+    (lifecycle_state).id AS "lifecycleState",
+    CASE
+      WHEN project_investment.id IS NOT NULL THEN 'investmentProject'
+      WHEN project_detailplan.id IS NOT NULL THEN 'detailplanProject'
+    END AS "projectType"
   FROM app.project
+  LEFT JOIN app.project_investment ON project.id = project_investment.id
+  LEFT JOIN app.project_detailplan ON project.id = project_detailplan.id
   WHERE deleted = false
 `;
 

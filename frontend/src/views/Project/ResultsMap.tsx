@@ -1,5 +1,7 @@
 import { css } from '@emotion/react';
 import { Paper } from '@mui/material';
+import { useSetAtom } from 'jotai';
+import { focusAtom } from 'jotai-optics';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { useEffect, useMemo } from 'react';
@@ -7,7 +9,7 @@ import { useEffect, useMemo } from 'react';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { addFeaturesFromGeoJson } from '@frontend/components/Map/mapInteractions';
 import { PROJECT_AREA_STYLE, clusterStyle } from '@frontend/components/Map/styles';
-import { getProjectSearchParamSetters } from '@frontend/stores/search/project';
+import { projectSearchParamAtom } from '@frontend/stores/search/project';
 
 import { ProjectSearchResult } from '@shared/schema/project';
 
@@ -82,7 +84,7 @@ function getProjectsLayer(source: VectorSource) {
 }
 
 export function ResultsMap(props: Props) {
-  const setSearchParams = getProjectSearchParamSetters();
+  const setMap = useSetAtom(focusAtom(projectSearchParamAtom, (o) => o.prop('map')));
   const clusterSource = useMemo(() => new VectorSource({}), []);
   const projectSource = useMemo(() => new VectorSource({}), []);
   const clusterLayer = useMemo(() => getClusterLayer(clusterSource), [clusterSource]);
@@ -114,7 +116,7 @@ export function ResultsMap(props: Props) {
         editable={false}
         vectorLayers={[projectLayer, clusterLayer]}
         onMoveEnd={(zoom, extent) => {
-          setSearchParams.map({ zoom: Math.floor(zoom), extent });
+          setMap({ zoom: Math.floor(zoom), extent });
         }}
       />
     </Paper>

@@ -13,6 +13,7 @@ import {
   css,
 } from '@mui/material';
 import dayjs from 'dayjs';
+import { useAtom } from 'jotai';
 import { useState } from 'react';
 
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
@@ -20,8 +21,11 @@ import { DateRange } from '@frontend/components/forms/DateRange';
 import { ProjectTypeSelect } from '@frontend/components/forms/ProjectTypeSelect';
 import { useTranslations } from '@frontend/stores/lang';
 import {
-  getProjectSearchParamSetters,
-  getProjectSearchParams,
+  dateRangeAtom,
+  includeWithoutGeomAtom,
+  lifecycleStatesAtom,
+  projectTypesAtom,
+  textAtom,
 } from '@frontend/stores/search/project';
 
 import { DetailplanProjectSearch } from './DetailplanProjectSearch';
@@ -72,9 +76,11 @@ export function SearchControls() {
   const tr = useTranslations();
 
   const [expanded, setExpanded] = useState(false);
-
-  const searchParams = getProjectSearchParams();
-  const setSearchParams = getProjectSearchParamSetters();
+  const [text, setText] = useAtom(textAtom);
+  const [dateRange, setDateRange] = useAtom(dateRangeAtom);
+  const [lifecycleStates, setLifecycleStates] = useAtom(lifecycleStatesAtom);
+  const [projectTypes, setProjectTypes] = useAtom(projectTypesAtom);
+  const [includeWithoutGeom, setIncludeWithoutGeom] = useAtom(includeWithoutGeomAtom);
 
   return (
     <Paper
@@ -93,9 +99,9 @@ export function SearchControls() {
             id="text-search"
             size="small"
             placeholder={tr('projectSearch.textSearchTip')}
-            value={searchParams.text}
+            value={text}
             onChange={(event) => {
-              setSearchParams.text(event.currentTarget.value);
+              setText(event.currentTarget.value);
             }}
             InputProps={{
               startAdornment: (
@@ -110,8 +116,8 @@ export function SearchControls() {
           <FormControl>
             <FormLabel>{tr('projectSearch.dateRange')}</FormLabel>
             <DateRange
-              value={searchParams.dateRange}
-              onChange={(period) => setSearchParams.dateRange(period)}
+              value={dateRange}
+              onChange={(period) => setDateRange(period)}
               quickSelections={makeCalendarQuickSelections(tr)}
             />
           </FormControl>
@@ -122,17 +128,13 @@ export function SearchControls() {
             id="lifecycle-state"
             codeListId="HankkeenElinkaarentila"
             multiple
-            value={searchParams.lifecycleStates}
-            onChange={setSearchParams.lifecycleStates}
+            value={lifecycleStates}
+            onChange={setLifecycleStates}
           />
         </FormControl>
         <FormControl>
           <FormLabel htmlFor="project-type">{tr('projectSearch.projectType')}</FormLabel>
-          <ProjectTypeSelect
-            id="project-type"
-            value={searchParams.projectTypes}
-            onChange={setSearchParams.projectTypes}
-          />
+          <ProjectTypeSelect id="project-type" value={projectTypes} onChange={setProjectTypes} />
         </FormControl>
       </div>
       {expanded && (
@@ -142,17 +144,17 @@ export function SearchControls() {
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={searchParams.includeWithoutGeom}
+                  checked={includeWithoutGeom}
                   onChange={(_, checked) => {
-                    setSearchParams.includeWithoutGeom(checked);
+                    setIncludeWithoutGeom(checked);
                   }}
                 />
               }
               label={tr('projectSearch.showWithoutGeom')}
             />
           </FormGroup>
-          {searchParams.projectTypes.includes('investmentProject') && <InvestmentProjectSearch />}
-          {searchParams.projectTypes.includes('detailplanProject') && <DetailplanProjectSearch />}
+          {projectTypes.includes('investmentProject') && <InvestmentProjectSearch />}
+          {projectTypes.includes('detailplanProject') && <DetailplanProjectSearch />}
         </>
       )}
       <Button

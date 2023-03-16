@@ -28,6 +28,8 @@
   "projectSearch.reportFailed": "Raportin luonti epäonnistui",
   "projectType.investmentProject": "Investointihanke",
   "projectType.detailplanProject": "Asemakaavahanke",
+  "projectType.investmentProject.short": "Investointi",
+  "projectType.detailplanProject.short": "Asemakaava",
   "projectListing.searchResultsTitle": "Hakutulokset",
   "project.projectNameLabel": "Hankkeen nimi",
   "project.descriptionLabel": "Kuvaus",

@@ -12,6 +12,7 @@ export function Fieldset({ legend, children }: Props) {
       css={css`
         border: 1px solid #ccc;
         border-radius: 4px;
+        padding: 8px 16px 20px 16px;
       `}
     >
       {legend && (

@@ -13,6 +13,7 @@ import {
   Typography,
 } from '@mui/material';
 import dayjs from 'dayjs';
+import { useAtomValue } from 'jotai';
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -20,11 +21,11 @@ import { trpc } from '@frontend/client';
 import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
-import { getProjectSearchParams } from '@frontend/stores/search/project';
+import { projectSearchParamAtom } from '@frontend/stores/search/project';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { ResultsMap } from '@frontend/views/Project/ResultsMap';
 
-import { DbInvestmentProject } from '@shared/schema/project/investment';
+import { DbProject } from '@shared/schema/project/base';
 
 import { SearchControls } from './SearchControls';
 
@@ -93,12 +94,20 @@ const projectCardStyle = css`
     background: #eee;
   }
   transition: background 0.5s;
+  position: relative;
 `;
 
-function ProjectCard({ result }: { result: DbInvestmentProject }) {
+const projectTypeRootUrl = {
+  detailplanProject: '/asemakaavahanke',
+  investmentProject: '/hanke',
+};
+
+function ProjectCard({ result }: { result: DbProject }) {
   const tr = useTranslations();
+  const projectUrl = `${projectTypeRootUrl[result.projectType]}/${result.id}`;
+
   return (
-    <CardActionArea key={result.id} component={Link} to={`/hanke/${result.id}`}>
+    <CardActionArea key={result.id} component={Link} to={projectUrl}>
       <Card variant="outlined" css={projectCardStyle}>
         <NavigateNext sx={{ color: '#aaa', mr: 1 }} />
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -110,19 +119,35 @@ function ProjectCard({ result }: { result: DbInvestmentProject }) {
             {dayjs(result.endDate).format(tr('date.format'))}
           </Typography>
         </Box>
+
+        <span
+          css={css`
+            position: absolute;
+            padding: 2px 6px;
+            bottom: 6px;
+            right: 6px;
+            font-size: x-small;
+            font-weight: 300;
+            border: 1px solid #ddd;
+            color: #333;
+            border-radius: 8px;
+          `}
+        >
+          {tr(`projectType.${result.projectType}.short`)}
+        </span>
       </Card>
     </CardActionArea>
   );
 }
 
 interface SearchResultsProps {
-  results: readonly DbInvestmentProject[];
+  results: readonly DbProject[];
   loading?: boolean;
 }
 
 function SearchResults({ results, loading }: SearchResultsProps) {
   const tr = useTranslations();
-  const projectSearchParams = getProjectSearchParams();
+  const projectSearchParams = useAtomValue(projectSearchParamAtom);
   const { project } = trpc.useContext();
   const notify = useNotifications();
 
@@ -203,7 +228,7 @@ const resultsContainerStyle = css`
 `;
 
 function ProjectResults() {
-  const projectSearchParams = getProjectSearchParams();
+  const projectSearchParams = useAtomValue(projectSearchParamAtom);
   const search = trpc.project.search.useQuery({
     ...projectSearchParams,
     map: useDebounce(projectSearchParams.map, 400),
