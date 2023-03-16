@@ -17,14 +17,17 @@ import { useState } from 'react';
 
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { DateRange } from '@frontend/components/forms/DateRange';
+import { ProjectTypeSelect } from '@frontend/components/forms/ProjectTypeSelect';
 import { useTranslations } from '@frontend/stores/lang';
 import {
   getProjectSearchParamSetters,
   getProjectSearchParams,
 } from '@frontend/stores/search/project';
 
+import { DetailplanProjectSearch } from './DetailplanProjectSearch';
+import { InvestmentProjectSearch } from './InvestmentProjectSearch';
+
 const searchControlContainerStyle = css`
-  padding: 16px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
@@ -74,68 +77,66 @@ export function SearchControls() {
   const setSearchParams = getProjectSearchParamSetters();
 
   return (
-    <Paper elevation={1} css={searchControlContainerStyle}>
-      <FormControl>
-        <FormLabel htmlFor="text-search">{tr('projectSearch.textSearchLabel')}</FormLabel>
-        <TextField
-          id="text-search"
-          size="small"
-          placeholder={tr('projectSearch.textSearchTip')}
-          value={searchParams.text}
-          onChange={(event) => {
-            setSearchParams.text(event.currentTarget.value);
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search />
-              </InputAdornment>
-            ),
-          }}
-        />
-      </FormControl>
-      <Box sx={{ display: 'flex' }}>
+    <Paper
+      elevation={1}
+      css={css`
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      `}
+    >
+      <div css={searchControlContainerStyle}>
         <FormControl>
-          <FormLabel>{tr('projectSearch.dateRange')}</FormLabel>
-          <DateRange
-            value={searchParams.dateRange}
-            onChange={(period) => setSearchParams.dateRange(period)}
-            quickSelections={makeCalendarQuickSelections(tr)}
+          <FormLabel htmlFor="text-search">{tr('projectSearch.textSearchLabel')}</FormLabel>
+          <TextField
+            id="text-search"
+            size="small"
+            placeholder={tr('projectSearch.textSearchTip')}
+            value={searchParams.text}
+            onChange={(event) => {
+              setSearchParams.text(event.currentTarget.value);
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
           />
         </FormControl>
-      </Box>
-      <FormControl>
-        <FormLabel htmlFor="lifecycle-state">{tr('project.lifecycleStateLabel')}</FormLabel>
-        <CodeSelect
-          id="lifecycle-state"
-          codeListId="HankkeenElinkaarentila"
-          multiple
-          value={searchParams.lifecycleStates}
-          onChange={setSearchParams.lifecycleStates}
-        />
-      </FormControl>
-      <FormControl>
-        <FormLabel htmlFor="project-type">{tr('project.projectTypeLabel')}</FormLabel>
-        <CodeSelect
-          id="project-type"
-          codeListId="HankeTyyppi"
-          multiple
-          value={searchParams.projectTypes}
-          onChange={setSearchParams.projectTypes}
-        />
-      </FormControl>
-      {expanded && (
-        <>
+        <Box sx={{ display: 'flex' }}>
           <FormControl>
-            <FormLabel htmlFor="committee">{tr('project.committeeLabel')}</FormLabel>
-            <CodeSelect
-              id="committee"
-              codeListId="Lautakunta"
-              multiple
-              value={searchParams.committees}
-              onChange={setSearchParams.committees}
+            <FormLabel>{tr('projectSearch.dateRange')}</FormLabel>
+            <DateRange
+              value={searchParams.dateRange}
+              onChange={(period) => setSearchParams.dateRange(period)}
+              quickSelections={makeCalendarQuickSelections(tr)}
             />
           </FormControl>
+        </Box>
+        <FormControl>
+          <FormLabel htmlFor="lifecycle-state">{tr('project.lifecycleStateLabel')}</FormLabel>
+          <CodeSelect
+            id="lifecycle-state"
+            codeListId="HankkeenElinkaarentila"
+            multiple
+            value={searchParams.lifecycleStates}
+            onChange={setSearchParams.lifecycleStates}
+          />
+        </FormControl>
+        <FormControl>
+          <FormLabel htmlFor="project-type">{tr('projectSearch.projectType')}</FormLabel>
+          <ProjectTypeSelect
+            id="project-type"
+            value={searchParams.projectTypes}
+            onChange={setSearchParams.projectTypes}
+          />
+        </FormControl>
+      </div>
+      {expanded && (
+        <>
           <FormGroup>
             <FormLabel>{tr('projectSearch.geometry')}</FormLabel>
             <FormControlLabel
@@ -150,11 +151,15 @@ export function SearchControls() {
               label={tr('projectSearch.showWithoutGeom')}
             />
           </FormGroup>
+          {searchParams.projectTypes.includes('investmentProject') && <InvestmentProjectSearch />}
+          {searchParams.projectTypes.includes('detailplanProject') && <DetailplanProjectSearch />}
         </>
       )}
       <Button
         size="small"
-        sx={{ gridColumnStart: 4 }}
+        css={css`
+          align-self: flex-end;
+        `}
         endIcon={expanded ? <UnfoldLess /> : <UnfoldMore />}
         onClick={() => {
           setExpanded((previous) => !previous);

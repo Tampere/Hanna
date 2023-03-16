@@ -10,7 +10,7 @@ import { useTranslations } from '@frontend/stores/lang';
 import { useDebounce } from '@frontend/utils/useDebounce';
 
 import { ProjectRelation, Relation } from '@shared/schema/project';
-import { DbCommonProject } from '@shared/schema/project/common';
+import { DbInvestmentProject } from '@shared/schema/project/investment';
 
 const rowStyle = css`
   display: flex;
@@ -96,7 +96,7 @@ export function RelationsContainer({
             id="project-relation-search"
             options={
               projects?.data?.projects.filter(
-                (project: DbCommonProject) => !unrelatableProjectIds.includes(project.id)
+                (project: DbInvestmentProject) => !unrelatableProjectIds.includes(project.id)
               ) ?? []
             }
             noOptionsText={tr('projectRelations.noFoundProjects')}
@@ -105,13 +105,13 @@ export function RelationsContainer({
               <TextField {...params} label={tr('project.projectNameLabel')} />
             )}
             size="small"
-            getOptionLabel={(option: DbCommonProject) => option.projectName}
+            getOptionLabel={(option: DbInvestmentProject) => option.projectName}
             loading={projects.isLoading}
-            onChange={(event: React.SyntheticEvent, newValue: DbCommonProject | null) => {
+            onChange={(event: React.SyntheticEvent, newValue: DbInvestmentProject | null) => {
               setSelectedObjectProjectId(newValue?.id ?? null);
             }}
             value={projects?.data?.projects?.find(
-              (project: DbCommonProject) => project.id === selectedObjectProjectId
+              (project: DbInvestmentProject) => project.id === selectedObjectProjectId
             )}
           />
         </Box>

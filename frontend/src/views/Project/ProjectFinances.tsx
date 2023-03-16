@@ -6,12 +6,12 @@ import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { getRange } from '@frontend/utils/array';
 
-import { DbCommonProject } from '@shared/schema/project/common';
+import { DbInvestmentProject } from '@shared/schema/project/investment';
 
 import { CostEstimatesTable } from './CostEstimatesTable';
 
 interface Props {
-  project?: DbCommonProject | null;
+  project?: DbInvestmentProject | null;
 }
 
 export function ProjectFinances(props: Props) {

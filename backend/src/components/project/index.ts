@@ -36,7 +36,7 @@ function timePeriodFragment(input: ProjectSearch) {
   const endDate = input.dateRange?.endDate;
   if (startDate && endDate) {
     return sql.fragment`
-      daterange(project_common.start_date, project_common.end_date, '[]') && daterange(${startDate}, ${endDate}, '[]')
+      daterange(project.start_date, project.end_date, '[]') && daterange(${startDate}, ${endDate}, '[]')
     `;
   }
   return sql.fragment`true`;
@@ -65,7 +65,7 @@ function orderByFragment(input: ProjectSearch) {
   if (input?.text && input.text.trim().length > 0) {
     return sql.fragment`ORDER BY ts_rank(tsv, to_tsquery('simple', ${input.text})) DESC`;
   }
-  return sql.fragment`ORDER BY project_common.start_date DESC`;
+  return sql.fragment`ORDER BY project.start_date DESC`;
 }
 
 export function getFilterFragment(input: ProjectSearch) {
@@ -75,25 +75,11 @@ export function getFilterFragment(input: ProjectSearch) {
       AND ${timePeriodFragment(input)}
       AND ${
         input.lifecycleStates && input.lifecycleStates?.length > 0
-          ? sql.fragment`(project_common.lifecycle_state).id = ANY(${sql.array(
+          ? sql.fragment`(project.lifecycle_state).id = ANY(${sql.array(
               input.lifecycleStates,
               'text'
             )})
           `
-          : sql.fragment`true`
-      }
-      AND ${
-        input.projectTypes && input.projectTypes?.length > 0
-          ? sql.fragment`(project_type).id = ANY(${sql.array(input.projectTypes, 'text')})
-          `
-          : sql.fragment`true`
-      }
-      AND ${
-        input.committees && input.committees.length > 0
-          ? sql.fragment`project.id IN (
-            SELECT project_id FROM app.project_committee
-            WHERE (committee_type).id = ANY(${sql.array(input.committees, 'text')})
-          )`
           : sql.fragment`true`
       }
       ${orderByFragment(input)}
@@ -251,23 +237,18 @@ function costEstimateWhereFragment(costEstimateInput: CostEstimatesInput) {
   `;
 }
 
-// !FIXME: This should not depend on the project common schema
 const searchProjectFragment = sql.fragment`
   SELECT
     project.id,
     project_name AS "projectName",
     description,
     owner,
-    person_in_charge AS "personInCharge",
     start_date AS "startDate",
     end_date AS "endDate",
     geohash,
     ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
-    (lifecycle_state).id AS "lifecycleState",
-    (project_type).id AS "projectType",
-    sap_project_id AS "sapProjectId"
-  FROM app.project_common
-  INNER JOIN app.project ON project.id = project_common.id
+    (lifecycle_state).id AS "lifecycleState"
+  FROM app.project
   WHERE deleted = false
 `;
 

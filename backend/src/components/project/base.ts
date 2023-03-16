@@ -10,6 +10,8 @@ import { FormErrors, fieldError, hasErrors } from '@shared/formerror';
 import { UpsertProject, projectIdSchema } from '@shared/schema/project/base';
 import { User } from '@shared/schema/user';
 
+import { codeIdFragment } from '../code';
+
 async function upsertBaseProject(
   tx: DatabaseTransactionConnection,
   project: UpsertProject,
@@ -18,6 +20,9 @@ async function upsertBaseProject(
   const data = {
     project_name: project.projectName,
     description: project.description,
+    start_date: project.startDate,
+    end_date: project.endDate,
+    lifecycle_state: codeIdFragment('HankkeenElinkaarentila', project.lifecycleState),
     owner: project.owner,
     sap_project_id: project.sapProjectId,
     updated_by: userId,

@@ -4,19 +4,19 @@ import {
   getProject,
   projectUpsert,
   validateUpsertProject,
-} from '@backend/components/project/common';
+} from '@backend/components/project/investment';
 import { TRPC } from '@backend/router';
 
 import { projectIdSchema } from '@shared/schema/project/base';
-import { commonProjectSchema } from '@shared/schema/project/common';
+import { investmentProjectSchema } from '@shared/schema/project/investment';
 
-export const createCommonProjectRouter = (t: TRPC) =>
+export const createInvestmentProjectRouter = (t: TRPC) =>
   t.router({
     upsertValidate: t.procedure.input(z.any()).query(async ({ input }) => {
       return validateUpsertProject(input);
     }),
 
-    upsert: t.procedure.input(commonProjectSchema).mutation(async ({ input, ctx }) => {
+    upsert: t.procedure.input(investmentProjectSchema).mutation(async ({ input, ctx }) => {
       return projectUpsert(input, ctx.user);
     }),
 

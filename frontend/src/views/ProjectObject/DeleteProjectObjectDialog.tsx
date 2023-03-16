@@ -6,11 +6,11 @@ import { useNavigate } from 'react-router';
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
-import { ProjectType } from '@frontend/types';
+import { ProjectTypePath } from '@frontend/types';
 
 interface Props {
   projectId: string;
-  projectType: ProjectType;
+  projectType: ProjectTypePath;
   projectObjectId: string;
 }
 

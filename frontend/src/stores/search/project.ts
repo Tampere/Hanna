@@ -5,6 +5,7 @@ import { mapOptions } from '@frontend/components/Map/mapOptions';
 import { unwrapAtomSetters, unwrapAtomValues } from '@frontend/utils/atom';
 
 import { MapSearch, Period } from '@shared/schema/project';
+import { ProjectType } from '@shared/schema/project/type';
 
 export const projectSearchParamAtoms = {
   text: atom(''),
@@ -13,7 +14,7 @@ export const projectSearchParamAtoms = {
     endDate: dayjs().endOf('year').format('YYYY-MM-DD'),
   }),
   lifecycleStates: atom<string[]>([]),
-  projectTypes: atom<string[]>([]),
+  projectTypes: atom<ProjectType[]>([]),
   committees: atom<string[]>([]),
   map: atom<MapSearch>({
     zoom: mapOptions.tre.defaultZoom,

@@ -18,7 +18,7 @@ import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
 import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
-import { ProjectType } from '@frontend/types';
+import { ProjectTypePath } from '@frontend/types';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
@@ -31,7 +31,7 @@ const newProjectFormStyle = css`
 
 interface Props {
   projectId: string;
-  projectType: ProjectType;
+  projectType: ProjectTypePath;
   projectObject?: UpsertProjectObject | null;
 }
 

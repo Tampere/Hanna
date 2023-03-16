@@ -15,7 +15,7 @@ function assertTaskQueueInitialized(boss: PgBoss | null): asserts boss is PgBoss
 
 export async function initializeTaskQueue() {
   boss = new PgBoss(connectionDsn);
-  boss.on('error', (error) => logger.error(`Error in task queue: ${error}`));
+  boss.on('error', (error) => logger.error(`Error in task queue: ${JSON.stringify(error)}`));
 
   await boss.start();
 }

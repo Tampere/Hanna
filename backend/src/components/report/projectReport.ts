@@ -17,13 +17,12 @@ const projectReportFragment = sql.fragment`
     project.id AS "projectId",
     project.description AS "projectDescription",
     project.created_at AS "projectCreatedAt",
-    project_common.start_date AS "projectStartDate",
-    project_common.end_date AS "projectEndDate",
-    (SELECT text_fi FROM app.code WHERE id = project_common.lifecycle_state) AS "projectLifecycleState",
-    (SELECT text_fi FROM app.code WHERE id = project_common.project_type) AS "projectType",
+    project.start_date AS "projectStartDate",
+    project.end_date AS "projectEndDate",
+    (SELECT text_fi FROM app.code WHERE id = project.lifecycle_state) AS "projectLifecycleState",
     project.sap_project_id AS "projectSAPProjectId",
     (SELECT email FROM app.user WHERE id = project.owner) AS "projectOwnerEmail",
-    (SELECT email FROM app.user WHERE id = project_common.person_in_charge) AS "projectPersonInChargeEmail",
+    (SELECT email FROM app.user WHERE id = project_investment.person_in_charge) AS "projectPersonInChargeEmail",
     project_object.id AS "projectObjectId",
     project_object.object_name AS "projectObjectName",
     project_object.description AS "projectObjectDescription",
@@ -38,8 +37,8 @@ const projectReportFragment = sql.fragment`
     (SELECT text_fi FROM app.code WHERE id = project_object.landownership) AS "projectObjectLandownership",
     (SELECT text_fi FROM app.code WHERE id = project_object.location_on_property) AS "projectObjectLocationOnProperty",
     project_object.sap_wbs_id AS "projectObjectSAPWBSId"
-  FROM app.project_common
-  INNER JOIN app.project ON (project_common.id = project.id AND project.deleted IS FALSE)
+  FROM app.project_investment
+  INNER JOIN app.project ON (project_investment.id = project.id AND project.deleted IS FALSE)
   LEFT JOIN app.project_object ON (project.id = project_object.project_id AND project_object.deleted IS FALSE)
 `;
 
@@ -51,7 +50,6 @@ const reportRowSchema = z.object({
   projectStartDate: dateStringSchema,
   projectEndDate: dateStringSchema,
   projectLifecycleState: z.string(),
-  projectType: z.string(),
   projectSAPProjectId: z.string().nullish(),
   projectOwnerEmail: z.string(),
   projectPersonInChargeEmail: z.string(),

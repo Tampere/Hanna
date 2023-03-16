@@ -22,8 +22,6 @@ export const projectSearchSchema = z.object({
   dateRange: periodSchema.optional(),
   lifecycleStates: z.array(z.string()).optional(),
   projectTypes: z.array(z.string()).optional(),
-  financingTypes: z.array(z.string()).optional(),
-  committees: z.array(z.string()).optional(),
   map: mapSearchSchema.optional(),
   includeWithoutGeom: z.boolean().optional(),
 });

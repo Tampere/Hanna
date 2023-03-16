@@ -24,7 +24,7 @@ import { getProjectSearchParams } from '@frontend/stores/search/project';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { ResultsMap } from '@frontend/views/Project/ResultsMap';
 
-import { DbCommonProject } from '@shared/schema/project/common';
+import { DbInvestmentProject } from '@shared/schema/project/investment';
 
 import { SearchControls } from './SearchControls';
 
@@ -70,7 +70,7 @@ function Toolbar() {
             <ListItemIcon>
               <Add />
             </ListItemIcon>
-            <ListItemText>{tr('newProject.newProject')}</ListItemText>
+            <ListItemText>{tr('newProject.newInvestmentProject')}</ListItemText>
           </MenuItem>
           <MenuItem component={Link} to="/asemakaavahanke/luo">
             <ListItemIcon>
@@ -95,7 +95,7 @@ const projectCardStyle = css`
   transition: background 0.5s;
 `;
 
-function ProjectCard({ result }: { result: DbCommonProject }) {
+function ProjectCard({ result }: { result: DbInvestmentProject }) {
   const tr = useTranslations();
   return (
     <CardActionArea key={result.id} component={Link} to={`/hanke/${result.id}`}>
@@ -116,7 +116,7 @@ function ProjectCard({ result }: { result: DbCommonProject }) {
 }
 
 interface SearchResultsProps {
-  results: readonly DbCommonProject[];
+  results: readonly DbInvestmentProject[];
   loading?: boolean;
 }
 

@@ -77,9 +77,9 @@ export function DetailplanProject() {
   const projectId = routeParams?.projectId;
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
 
-  const project = trpc.projectDetailplan.get.useQuery(
+  const project = trpc.detailplanProject.get.useQuery(
     { id: projectId },
-    { enabled: Boolean(projectId), queryKey: ['projectDetailplan.get', { id: projectId }] }
+    { enabled: Boolean(projectId), queryKey: ['detailplanProject.get', { id: projectId }] }
   );
   const tr = useTranslations();
   const notify = useNotifications();
