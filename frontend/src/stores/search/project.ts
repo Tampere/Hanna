@@ -5,24 +5,30 @@ import { focusAtom } from 'jotai-optics';
 import { mapOptions } from '@frontend/components/Map/mapOptions';
 
 import { MapSearch, Period } from '@shared/schema/project';
-import { ProjectType } from '@shared/schema/project/type';
 
-interface ProjectTypeFilters {
-  investmentProject: {
-    committees: string[];
+interface Filters {
+  investmentProject?: {
+    committees?: string[];
   };
-  detailplanProject: object;
+  detailplanProject?: {
+    planningZones?: string[];
+  };
 }
 
 interface ProjectSearch {
   text: string;
   dateRange: Period;
   lifecycleStates: string[];
-  projectTypes: ProjectType[];
-  committees: string[];
   map: MapSearch;
   includeWithoutGeom: boolean;
-  filters: ProjectTypeFilters;
+  filters: {
+    investmentProject?: {
+      committees?: string[];
+    };
+    detailplanProject?: {
+      planningZones?: string[];
+    };
+  };
 }
 
 export const projectSearchParamAtom = atom<ProjectSearch>({
@@ -32,17 +38,12 @@ export const projectSearchParamAtom = atom<ProjectSearch>({
     endDate: dayjs().endOf('year').format('YYYY-MM-DD'),
   },
   lifecycleStates: [],
-  projectTypes: [],
-  committees: [],
   map: {
     zoom: mapOptions.tre.defaultZoom,
     extent: mapOptions.tre.extent,
   },
   includeWithoutGeom: false,
-  filters: {
-    investmentProject: { committees: [] },
-    detailplanProject: {},
-  },
+  filters: {} as const,
 });
 
 export const textAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('text'));
@@ -50,11 +51,16 @@ export const dateRangeAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('da
 export const lifecycleStatesAtom = focusAtom(projectSearchParamAtom, (o) =>
   o.prop('lifecycleStates')
 );
-export const projectTypesAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('projectTypes'));
 export const includeWithoutGeomAtom = focusAtom(projectSearchParamAtom, (o) =>
   o.prop('includeWithoutGeom')
 );
 
-export const investmentProjectFiltersAtom = focusAtom(projectSearchParamAtom, (o) =>
-  o.prop('filters').prop('investmentProject')
+export const filtersAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('filters'));
+
+export const investmentProjectFiltersAtom = focusAtom(filtersAtom, (o) =>
+  o.prop('investmentProject')
+);
+
+export const detailplanProjectFiltersAtom = focusAtom(filtersAtom, (o) =>
+  o.prop('detailplanProject')
 );

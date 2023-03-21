@@ -92,6 +92,7 @@ export function RelationsContainer({
 
   const projects = trpc.project.search.useQuery({
     text: useDebounce('', 250),
+    filters: {},
   });
 
   function ProjectRelationSearch() {

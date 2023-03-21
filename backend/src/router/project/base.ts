@@ -4,12 +4,12 @@ import {
   addProjectRelation,
   getCostEstimates,
   getRelatedProjects,
-  projectSearch,
   removeProjectRelation,
   updateCostEstimates,
   updateProjectGeometry,
 } from '@backend/components/project';
 import { deleteProject, getProject } from '@backend/components/project/base';
+import { projectSearch } from '@backend/components/project/search';
 import { getJob } from '@backend/components/taskQueue';
 import { startReportJob } from '@backend/components/taskQueue/reportQueue';
 import { TRPC } from '@backend/router';

@@ -22,9 +22,9 @@ import { ProjectTypeSelect } from '@frontend/components/forms/ProjectTypeSelect'
 import { useTranslations } from '@frontend/stores/lang';
 import {
   dateRangeAtom,
+  filtersAtom,
   includeWithoutGeomAtom,
   lifecycleStatesAtom,
-  projectTypesAtom,
   textAtom,
 } from '@frontend/stores/search/project';
 
@@ -79,7 +79,7 @@ export function SearchControls() {
   const [text, setText] = useAtom(textAtom);
   const [dateRange, setDateRange] = useAtom(dateRangeAtom);
   const [lifecycleStates, setLifecycleStates] = useAtom(lifecycleStatesAtom);
-  const [projectTypes, setProjectTypes] = useAtom(projectTypesAtom);
+  const [filters, setFilters] = useAtom(filtersAtom);
   const [includeWithoutGeom, setIncludeWithoutGeom] = useAtom(includeWithoutGeomAtom);
 
   return (
@@ -134,7 +134,18 @@ export function SearchControls() {
         </FormControl>
         <FormControl>
           <FormLabel htmlFor="project-type">{tr('projectSearch.projectType')}</FormLabel>
-          <ProjectTypeSelect id="project-type" value={projectTypes} onChange={setProjectTypes} />
+          <ProjectTypeSelect
+            id="project-type"
+            value={Object.keys(filters) as Array<keyof typeof filters>}
+            onChange={(projectTypes) => {
+              setFilters(
+                projectTypes.reduce((acc, projectType) => {
+                  acc[projectType] = {};
+                  return acc;
+                }, {} as typeof filters)
+              );
+            }}
+          />
         </FormControl>
       </div>
       {expanded && (
@@ -153,8 +164,8 @@ export function SearchControls() {
               label={tr('projectSearch.showWithoutGeom')}
             />
           </FormGroup>
-          {projectTypes.includes('investmentProject') && <InvestmentProjectSearch />}
-          {projectTypes.includes('detailplanProject') && <DetailplanProjectSearch />}
+          {filters['investmentProject'] && <InvestmentProjectSearch />}
+          {filters['detailplanProject'] && <DetailplanProjectSearch />}
         </>
       )}
       <Button

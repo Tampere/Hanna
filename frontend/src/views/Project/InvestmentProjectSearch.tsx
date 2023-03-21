@@ -26,7 +26,7 @@ export function InvestmentProjectSearch() {
             id="investment-project-committee"
             codeListId="Lautakunta"
             multiple
-            value={searchParams.committees}
+            value={searchParams?.committees}
             onChange={(committees) => setSearchParams({ ...searchParams, committees })}
           />
         </FormGroup>

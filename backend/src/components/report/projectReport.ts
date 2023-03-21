@@ -1,7 +1,7 @@
 import { Workbook } from 'excel4node';
 import { z } from 'zod';
 
-import { getFilterFragment } from '@backend/components/project';
+import { getFilterFragment } from '@backend/components/project/search';
 import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
 
