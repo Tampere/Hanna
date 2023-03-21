@@ -16,8 +16,5 @@
       "@shared/*": ["node_modules/tre-hanna-shared/src/*", "node_modules/tre-hanna-shared/dist/*"]
     }
   },
-  "include": ["types", "src"],
-  "ts-node": {
-    "files": true
-  }
+  "include": ["types", "src"]
 }

@@ -18,7 +18,7 @@ import { getClient } from '@backend/oidc';
 import { appRouter, createContext } from '@backend/router';
 
 import { initializeTaskQueue } from './components/taskQueue';
-import { setupMailQueue, startSendMailJob } from './components/taskQueue/mailQueue';
+import { setupMailQueue } from './components/taskQueue/mailQueue';
 import { setupReportQueue } from './components/taskQueue/reportQueue';
 
 async function run() {

@@ -1,4 +1,4 @@
-import { buildProjectReport } from '@backend/components/report/projectReport';
+import { buildReport } from '@backend/components/report';
 import { env } from '@backend/env';
 
 import { ProjectSearch } from '@shared/schema/project';
@@ -15,7 +15,7 @@ export async function setupReportQueue() {
       teamConcurrency: env.report.queueConcurrency,
     },
     async ({ id, data }) => {
-      await buildProjectReport(id, data);
+      await buildReport(id, data);
     }
   );
 }

@@ -9,9 +9,11 @@
   "scripts": {
     "build": "tsc",
     "start": "node -r tsconfig-paths/register dist/app.js",
-    "dev": "node-dev -r tsconfig-paths/register src/app.ts",
+    "dev": "concurrently 'npm:dev:*'",
+    "dev:tsc": "tsc --watch --noEmit --preserveWatchOutput --pretty",
+    "dev:server": "tsx watch --clear-screen=false src/app.ts",
     "test": "vitest run",
-    "db-migrate": "PGOPTIONS='-c search_path=app,public' ts-node -r tsconfig-paths/register src/migration.ts",
+    "db-migrate": "PGOPTIONS='-c search_path=app,public' tsx src/migration.ts",
     "db-migrate:prod": "PGOPTIONS='-c search_path=app,public' node -r tsconfig-paths/register dist/migration.js"
   },
   "repository": {
@@ -37,11 +39,12 @@
     "@types/nodemailer": "^6.4.7",
     "@typescript-eslint/eslint-plugin": "^5.55.0",
     "@typescript-eslint/parser": "^5.55.0",
+    "concurrently": "^7.6.0",
     "eslint": "^8.36.0",
     "node-dev": "^8.0.0",
     "pino-pretty": "^10.0.0",
-    "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.2",
+    "tsx": "^3.12.6",
     "typescript": "^5.0.2",
     "vite-tsconfig-paths": "^4.0.7",
     "vitest": "^0.29.3"

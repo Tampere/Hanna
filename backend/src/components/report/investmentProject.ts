@@ -6,10 +6,10 @@ import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
 
 import { translations } from '@shared/language';
+import { dateStringSchema, datetimeSchema } from '@shared/schema/common';
 import { ProjectSearch } from '@shared/schema/project';
 
-const dateStringSchema = z.string().transform((value) => new Date(value));
-const datetimeSchema = z.number().transform((value) => new Date(value));
+import { buildSheet } from '.';
 
 const projectReportFragment = sql.fragment`
   SELECT
@@ -69,67 +69,22 @@ const reportRowSchema = z.object({
   projectObjectSAPWBSId: z.string().nullish(),
 });
 
-type ReportRow = z.infer<typeof reportRowSchema>;
-
-async function dbResultToXlsx(rows: ReportRow[]) {
-  const reportFields = Object.keys(rows[0]) as (keyof ReportRow)[];
-  const headers = reportFields.map((field) => translations['fi'][`report.columns.${field}`]);
-
-  const workbook = new Workbook({
-    dateFormat: 'd.m.yyyy',
-  });
-  const worksheet = workbook.addWorksheet('Raportti');
-  const headerStyle = workbook.createStyle({
-    font: {
-      bold: true,
-    },
-  });
-
-  headers.forEach((header, index) => {
-    worksheet
-      .cell(1, index + 1)
-      .string(header)
-      .style(headerStyle);
-  });
-
-  rows.forEach((row, rowIndex) => {
-    Object.values(row).forEach((value, column) => {
-      // Skip empty values
-      if (value == null) {
-        return;
-      }
-
-      const cell = worksheet.cell(rowIndex + 2, column + 1);
-      if (value instanceof Date) {
-        cell.date(value);
-      } else {
-        cell.string(value);
-      }
-    });
-  });
-
-  return await workbook.writeToBuffer();
-}
-export async function buildProjectReport(jobId: string, data: ProjectSearch) {
+export async function buildInvestmentProjectReportSheet(
+  workbook: Workbook,
+  searchParams: ProjectSearch
+) {
   const reportQuery = sql.type(reportRowSchema)`
     ${projectReportFragment}
-    ${getFilterFragment(data)}
+    ${getFilterFragment(searchParams)}
   `;
 
-  try {
-    logger.debug(`Running report query for job ${jobId} with data: ${JSON.stringify(data)}`);
-    const reportResult = await getPool().any(reportQuery);
-    const reportRows = z.array(reportRowSchema).parse(reportResult);
-    const buffer = await dbResultToXlsx(reportRows);
-    logger.debug(`Saving report to database, ${buffer.length} bytes...`);
-    const queryResult = await getPool().query(sql.untyped`
-      INSERT INTO app.report_file (pgboss_job_id, report_filename, report_data)
-      VALUES (${jobId}, 'raportti.xlsx', ${sql.binary(buffer)})
-    `);
-    logger.debug(`Report saved to database, ${queryResult.rowCount} rows affected.`);
-  } catch (error) {
-    // Log and rethrow the error to make the job state failed
-    logger.error(error);
-    throw error;
-  }
+  const reportResult = await getPool().any(reportQuery);
+  logger.debug(`Fetched ${reportResult.length} rows for the investment project report`);
+  const rows = z.array(reportRowSchema).parse(reportResult);
+
+  buildSheet({
+    workbook,
+    sheetTitle: translations['fi']['report.investmentProjects'],
+    rows,
+  });
 }
