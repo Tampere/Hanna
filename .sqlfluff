@@ -1,5 +1,6 @@
 [sqlfluff]
 exclude_rules = L031
+dialect = postgres
 
 [sqlfluff:rules]
 tab_space_size = 2

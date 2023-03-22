@@ -17,11 +17,9 @@ import { useTranslations } from '@frontend/stores/lang';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
 
-import { DbCommonProject } from '@shared/schema/project/common';
-
 import { DeleteProjectDialog } from './DeleteProjectDialog';
+import { InvestmentProjectForm } from './InvestmentProjectForm';
 import { ProjectFinances } from './ProjectFinances';
-import { ProjectForm } from './ProjectForm';
 
 const pageContentStyle = css`
   display: grid;
@@ -66,15 +64,15 @@ function projectTabs(projectId: string) {
   ] as const;
 }
 
-export function Project() {
+export function InvestmentProject() {
   const routeParams = useParams() as { projectId: string; tabView?: TabView };
   const tabView = routeParams.tabView || 'default';
   const tabs = projectTabs(routeParams.projectId);
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
   const projectId = routeParams?.projectId;
-  const project = trpc.projectCommon.get.useQuery(
+  const project = trpc.investmentProject.get.useQuery(
     { id: projectId },
-    { enabled: Boolean(projectId), queryKey: ['projectCommon.get', { id: projectId }] }
+    { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { id: projectId }] }
   );
 
   const tr = useTranslations();
@@ -156,7 +154,7 @@ export function Project() {
 
       <div css={pageContentStyle}>
         <Paper sx={{ p: 3, height: '100%' }} variant="outlined">
-          <ProjectForm project={project.data} />
+          <InvestmentProjectForm project={project.data} />
           {project.data && <DeleteProjectDialog projectId={project.data.id} />}
         </Paper>
 
@@ -206,7 +204,7 @@ export function Project() {
             <Box sx={{ m: 2 }}>
               {routeParams.tabView === 'talous' && <ProjectFinances project={project.data} />}
               {routeParams.tabView === 'kohteet' && (
-                <ProjectObjectList projectId={projectId} projectType="hanke" />
+                <ProjectObjectList projectId={projectId} projectType="investointihanke" />
               )}
               {routeParams.tabView === 'sidoshankkeet' && (
                 <ProjectRelations projectId={routeParams.projectId} />

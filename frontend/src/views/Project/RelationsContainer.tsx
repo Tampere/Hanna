@@ -1,7 +1,14 @@
 import { css } from '@emotion/react';
 import { Add, Cancel } from '@mui/icons-material';
-import { Autocomplete, Button, IconButton, TextField, Tooltip, Typography } from '@mui/material';
-import { Box } from '@mui/system';
+import {
+  Autocomplete,
+  Box,
+  Button,
+  IconButton,
+  TextField,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -10,7 +17,6 @@ import { useTranslations } from '@frontend/stores/lang';
 import { useDebounce } from '@frontend/utils/useDebounce';
 
 import { ProjectRelation, Relation } from '@shared/schema/project';
-import { DbCommonProject } from '@shared/schema/project/common';
 
 const rowStyle = css`
   display: flex;
@@ -86,6 +92,7 @@ export function RelationsContainer({
 
   const projects = trpc.project.search.useQuery({
     text: useDebounce('', 250),
+    filters: {},
   });
 
   function ProjectRelationSearch() {
@@ -96,7 +103,7 @@ export function RelationsContainer({
             id="project-relation-search"
             options={
               projects?.data?.projects.filter(
-                (project: DbCommonProject) => !unrelatableProjectIds.includes(project.id)
+                (project) => !unrelatableProjectIds.includes(project.id)
               ) ?? []
             }
             noOptionsText={tr('projectRelations.noFoundProjects')}
@@ -105,13 +112,13 @@ export function RelationsContainer({
               <TextField {...params} label={tr('project.projectNameLabel')} />
             )}
             size="small"
-            getOptionLabel={(option: DbCommonProject) => option.projectName}
+            getOptionLabel={(option) => option.projectName}
             loading={projects.isLoading}
-            onChange={(event: React.SyntheticEvent, newValue: DbCommonProject | null) => {
+            onChange={(_event: React.SyntheticEvent, newValue) => {
               setSelectedObjectProjectId(newValue?.id ?? null);
             }}
             value={projects?.data?.projects?.find(
-              (project: DbCommonProject) => project.id === selectedObjectProjectId
+              (project) => project.id === selectedObjectProjectId
             )}
           />
         </Box>

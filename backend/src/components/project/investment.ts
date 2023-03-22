@@ -8,35 +8,34 @@ import { baseProjectUpsert } from '@backend/components/project/base';
 import { getPool, sql } from '@backend/db';
 
 import { projectIdSchema } from '@shared/schema/project/base';
-import { CommonProject, dbCommonProjectSchema } from '@shared/schema/project/common';
+import { InvestmentProject, dbInvestmentProjectSchema } from '@shared/schema/project/investment';
 import { User } from '@shared/schema/user';
 
 const selectProjectFragment = sql.fragment`
   SELECT
-    project_common.id,
+    project_investment.id,
     project.id AS "parentId",
     project_name AS "projectName",
     description,
     owner,
     person_in_charge AS "personInCharge",
-    start_date AS "startDate",
-    end_date AS "endDate",
+    project.start_date AS "startDate",
+    project.end_date AS "endDate",
     geohash,
     ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
-    (lifecycle_state).id AS "lifecycleState",
-    (project_type).id AS "projectType",
+    (project.lifecycle_state).id AS "lifecycleState",
     sap_project_id AS "sapProjectId"
   FROM app.project
-  LEFT JOIN app.project_common ON project_common.id = project.id
+  LEFT JOIN app.project_investment ON project_investment.id = project.id
   WHERE deleted = false
 `;
 
 export async function getProject(id: string, tx?: DatabaseTransactionConnection) {
   const conn = tx ?? getPool();
 
-  const project = await conn.maybeOne(sql.type(dbCommonProjectSchema)`
+  const project = await conn.maybeOne(sql.type(dbInvestmentProjectSchema)`
     ${selectProjectFragment}
-    AND project_common.id = ${id}
+    AND project_investment.id = ${id}
   `);
 
   if (!project) throw new TRPCError({ code: 'NOT_FOUND' });
@@ -50,21 +49,17 @@ export async function getProject(id: string, tx?: DatabaseTransactionConnection)
   return { ...project, committees: committees.map(({ id }) => id) };
 }
 
-export async function projectUpsert(project: CommonProject, user: User) {
+export async function projectUpsert(project: InvestmentProject, user: User) {
   return getPool().transaction(async (tx) => {
     const id = await baseProjectUpsert(tx, project, user);
     await addAuditEvent(tx, {
-      eventType: 'projectCommon.upsertProject',
+      eventType: 'investmentProject.upsertProject',
       eventData: project,
       eventUser: user.id,
     });
 
     const data = {
       id,
-      start_date: project.startDate,
-      end_date: project.endDate,
-      lifecycle_state: codeIdFragment('HankkeenElinkaarentila', project.lifecycleState),
-      project_type: codeIdFragment('HankeTyyppi', project.projectType),
       person_in_charge: project.personInCharge,
     };
 
@@ -73,13 +68,13 @@ export async function projectUpsert(project: CommonProject, user: User) {
 
     const upsertResult = project.id
       ? await tx.one(sql.type(projectIdSchema)`
-        UPDATE app.project_common
+        UPDATE app.project_investment
         SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
         WHERE id = ${project.id}
         RETURNING id
       `)
       : await tx.one(sql.type(projectIdSchema)`
-        INSERT INTO app.project_common (${sql.join(identifiers, sql.fragment`,`)})
+        INSERT INTO app.project_investment (${sql.join(identifiers, sql.fragment`,`)})
         VALUES (${sql.join(values, sql.fragment`,`)})
         RETURNING id
       `);
@@ -105,7 +100,7 @@ export async function projectUpsert(project: CommonProject, user: User) {
   });
 }
 
-export async function validateUpsertProject(input: CommonProject) {
+export async function validateUpsertProject(input: InvestmentProject) {
   // !FIXME: implement, first validate base project, then common project
   /*
   if (values?.id) {

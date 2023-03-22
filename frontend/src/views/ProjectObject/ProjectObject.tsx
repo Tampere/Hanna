@@ -14,7 +14,7 @@ import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
-import { ProjectType } from '@frontend/types';
+import { ProjectTypePath } from '@frontend/types';
 import Tasks from '@frontend/views/Task/Tasks';
 
 import { TranslationKey } from '@shared/language';
@@ -41,7 +41,7 @@ const pageContentStyle = css`
 
 function projectObjectTabs(
   projectId: string,
-  projectType: ProjectType,
+  projectType: ProjectTypePath,
   projectObjectId: string
 ): Tab[] {
   return [
@@ -72,7 +72,7 @@ const mapContainerStyle = css`
 `;
 
 interface Props {
-  projectType: ProjectType;
+  projectType: ProjectTypePath;
 }
 
 export function ProjectObject(props: Props) {

@@ -5,11 +5,11 @@ import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { useTranslations } from '@frontend/stores/lang';
-import { ProjectType } from '@frontend/types';
+import { ProjectTypePath } from '@frontend/types';
 
 interface Props {
   projectId: string;
-  projectType: ProjectType;
+  projectType: ProjectTypePath;
 }
 
 const cardStyle = css`

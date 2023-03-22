@@ -16,19 +16,19 @@ export function DetailplanProjectNotification({ projectId }: Props) {
   const tr = useTranslations();
   const notify = useNotifications();
 
-  const { data: preview, isLoading } = trpc.projectDetailplan.previewNotificationMail.useQuery(
+  const { data: preview, isLoading } = trpc.detailplanProject.previewNotificationMail.useQuery(
     {
       id: projectId,
     },
     {
-      queryKey: ['projectDetailplan.previewNotificationMail', { id: projectId }],
+      queryKey: ['detailplanProject.previewNotificationMail', { id: projectId }],
     }
   );
   const { data: defaultRecipients, isLoading: defaultRecipientsLoading } =
-    trpc.projectDetailplan.getNotificationRecipients.useQuery();
+    trpc.detailplanProject.getNotificationRecipients.useQuery();
   const [recipients, setRecipients] = useState<string[]>([]);
   const [recipientInputValue, setRecipientInputValue] = useState('');
-  const sendNotificationMail = trpc.projectDetailplan.sendNotificationMail.useMutation();
+  const sendNotificationMail = trpc.detailplanProject.sendNotificationMail.useMutation();
 
   // Set default recipients once after they're loaded
   useEffect(() => {

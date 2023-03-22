@@ -16,9 +16,12 @@ const selectProjectFragment = sql.fragment`
     project.id,
     project_name AS "projectName",
     description,
+    project.start_date AS "startDate",
+    project.end_date AS "endDate",
     owner,
     created_at AS "createdAt",
     ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
+    (project.lifecycle_state).id AS "lifecycleState",
     sap_project_id AS "sapProjectId",
     diary_id AS "diaryId",
     diary_date AS "diaryDate",
@@ -64,7 +67,7 @@ export async function projectUpsert(project: DetailplanProject, user: User) {
   return await getPool().transaction(async (tx) => {
     const id = await baseProjectUpsert(tx, project, user);
     await addAuditEvent(tx, {
-      eventType: 'projectDetailplan.upsertProject',
+      eventType: 'detailplanProject.upsertProject',
       eventData: project,
       eventUser: user.id,
     });
@@ -108,6 +111,6 @@ export async function projectUpsert(project: DetailplanProject, user: User) {
 }
 
 export async function validateUpsertProject(input: DetailplanProject) {
-  // !FIXME: implement, first validate base project, then common project
+  // !FIXME: implement, first validate base project, then detailplan project
   return { errors: {} };
 }

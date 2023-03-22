@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AddCircle, Edit, HourglassFullTwoTone, Save, Undo } from '@mui/icons-material';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
+import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
@@ -59,6 +60,9 @@ export function DetailplanProjectForm(props: Props) {
       owner: currentUser?.id,
       projectName: '',
       description: '',
+      startDate: '',
+      endDate: '',
+      lifecycleState: '01',
       sapProjectId: null,
       diaryId: '',
       diaryDate: null,
@@ -77,7 +81,7 @@ export function DetailplanProjectForm(props: Props) {
     [currentUser]
   );
 
-  const { projectDetailplan } = trpc.useContext();
+  const { detailplanProject } = trpc.useContext();
   const formValidator = useMemo(() => {
     const schemaValidation = zodResolver(detailplanProjectSchema);
 
@@ -88,7 +92,7 @@ export function DetailplanProjectForm(props: Props) {
     ) {
       const fields = options.names ?? [];
       const isFormValidation = fields && fields.length > 1;
-      const serverErrors = isFormValidation ? projectDetailplan.upsertValidate.fetch(values) : null;
+      const serverErrors = isFormValidation ? detailplanProject.upsertValidate.fetch(values) : null;
       const shapeErrors = schemaValidation(values, context, options);
       const errors = await Promise.all([serverErrors, shapeErrors]);
       return {
@@ -111,17 +115,17 @@ export function DetailplanProjectForm(props: Props) {
     form.reset(props.project ?? formDefaultValues);
   }, [props.project]);
 
-  const projectUpsert = trpc.projectDetailplan.upsert.useMutation({
+  const projectUpsert = trpc.detailplanProject.upsert.useMutation({
     onSuccess: (data) => {
       // Navigate to new url if we are creating a new project
       if (!props.project && data.id) {
         navigate(`/asemakaavahanke/${data.id}`);
       } else {
         queryClient.invalidateQueries({
-          queryKey: [['projectDetailplan', 'get'], { input: { id: data.id } }],
+          queryKey: [['detailplanProject', 'get'], { input: { id: data.id } }],
         });
         queryClient.invalidateQueries({
-          queryKey: [['projectDetailplan', 'previewNotificationMail'], { input: { id: data.id } }],
+          queryKey: [['detailplanProject', 'previewNotificationMail'], { input: { id: data.id } }],
         });
         setEditing(false);
         form.reset(data);
@@ -192,6 +196,31 @@ export function DetailplanProjectForm(props: Props) {
           component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
         />
 
+        <FormField
+          formField="startDate"
+          label={tr('project.startDateLabel')}
+          tooltip={tr('newProject.startDateTooltip')}
+          component={(field) => (
+            <FormDatePicker
+              maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
+              readOnly={!editing}
+              field={field}
+            />
+          )}
+        />
+        <FormField
+          formField="endDate"
+          label={tr('project.endDateLabel')}
+          tooltip={tr('newProject.endDateTooltip')}
+          component={(field) => (
+            <FormDatePicker
+              minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
+              readOnly={!editing}
+              field={field}
+            />
+          )}
+        />
+
         <FormField<DetailplanProject>
           formField="owner"
           label={tr('project.ownerLabel')}
@@ -207,6 +236,21 @@ export function DetailplanProjectForm(props: Props) {
           tooltip={tr('newDetailplanProject.preparerTooltip')}
           component={({ id, onChange, value }) => (
             <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
+          )}
+        />
+
+        <FormField
+          formField="lifecycleState"
+          label={tr('project.lifecycleStateLabel')}
+          tooltip={tr('newProject.lifecycleStateTooltip')}
+          component={({ id, onChange, value }) => (
+            <CodeSelect
+              id={id}
+              value={value}
+              onChange={onChange}
+              readOnly={!editing}
+              codeListId="HankkeenElinkaarentila"
+            />
           )}
         />
 

@@ -19,18 +19,22 @@ import { useTranslations } from '@frontend/stores/lang';
 import { getRequiredFields } from '@frontend/utils/form';
 
 import { mergeErrors } from '@shared/formerror';
-import { CommonProject, DbCommonProject, commonProjectSchema } from '@shared/schema/project/common';
+import {
+  DbInvestmentProject,
+  InvestmentProject,
+  investmentProjectSchema,
+} from '@shared/schema/project/investment';
 
 const newProjectFormStyle = css`
   display: grid;
   margin-top: 16px;
 `;
 
-interface ProjectFormProps {
-  project?: DbCommonProject | null;
+interface InvestmentProjectFormProps {
+  project?: DbInvestmentProject | null;
 }
 
-export function ProjectForm(props: ProjectFormProps) {
+export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
   const tr = useTranslations();
   const notify = useNotifications();
   const queryClient = useQueryClient();
@@ -49,7 +53,7 @@ export function ProjectForm(props: ProjectFormProps) {
     } as const;
   }, [editing]);
 
-  const formDefaultValues = useMemo<Partial<DbCommonProject>>(
+  const formDefaultValues = useMemo<Partial<DbInvestmentProject>>(
     () => ({
       owner: currentUser?.id,
       personInCharge: currentUser?.id,
@@ -63,32 +67,32 @@ export function ProjectForm(props: ProjectFormProps) {
     [currentUser]
   );
 
-  const { projectCommon } = trpc.useContext();
+  const { investmentProject } = trpc.useContext();
   const formValidator = useMemo(() => {
-    const schemaValidation = zodResolver(commonProjectSchema);
+    const schemaValidation = zodResolver(investmentProjectSchema);
 
     return async function formValidation(
-      values: CommonProject,
+      values: InvestmentProject,
       context: any,
-      options: ResolverOptions<CommonProject>
+      options: ResolverOptions<InvestmentProject>
     ) {
       const fields = options.names ?? [];
       const isFormValidation = fields && fields.length > 1;
-      const serverErrors = isFormValidation ? projectCommon.upsertValidate.fetch(values) : null;
+      const serverErrors = isFormValidation ? investmentProject.upsertValidate.fetch(values) : null;
       const shapeErrors = schemaValidation(values, context, options);
       const errors = await Promise.all([serverErrors, shapeErrors]);
       return {
         values,
-        errors: mergeErrors<CommonProject>(errors).errors,
+        errors: mergeErrors<InvestmentProject>(errors).errors,
       };
     };
   }, []);
 
-  const form = useForm<CommonProject>({
+  const form = useForm<InvestmentProject>({
     mode: 'all',
     resolver: formValidator,
     context: {
-      requiredFields: getRequiredFields(commonProjectSchema),
+      requiredFields: getRequiredFields(investmentProjectSchema),
     },
     defaultValues: props.project ?? formDefaultValues,
   });
@@ -97,7 +101,7 @@ export function ProjectForm(props: ProjectFormProps) {
     form.reset(props.project ?? formDefaultValues);
   }, [props.project]);
 
-  const projectUpsert = trpc.projectCommon.upsert.useMutation({
+  const projectUpsert = trpc.investmentProject.upsert.useMutation({
     onSuccess: (data) => {
       // Navigate to new url if we are creating a new project
       if (!props.project && data.id) {
@@ -123,7 +127,7 @@ export function ProjectForm(props: ProjectFormProps) {
     },
   });
 
-  const onSubmit = (data: CommonProject | DbCommonProject) => projectUpsert.mutate(data);
+  const onSubmit = (data: InvestmentProject | DbInvestmentProject) => projectUpsert.mutate(data);
 
   return (
     <FormProvider {...form}>
@@ -227,21 +231,6 @@ export function ProjectForm(props: ProjectFormProps) {
               onChange={onChange}
               readOnly={!editing}
               codeListId="HankkeenElinkaarentila"
-            />
-          )}
-        />
-
-        <FormField
-          formField="projectType"
-          label={tr('project.projectTypeLabel')}
-          tooltip={tr('newProject.projectTypeTooltip')}
-          component={({ id, onChange, value }) => (
-            <CodeSelect
-              id={id}
-              value={value}
-              onChange={onChange}
-              readOnly={!editing}
-              codeListId="HankeTyyppi"
             />
           )}
         />

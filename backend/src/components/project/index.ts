@@ -1,104 +1,17 @@
-import { z } from 'zod';
-
 import { addAuditEvent } from '@backend/components/audit';
 import { getPool, sql } from '@backend/db';
 
 import {
   CostEstimatesInput,
   CostEstimatesUpdate,
-  ProjectSearch,
   Relation,
   UpdateGeometry,
   costEstimateSchema,
   projectRelationsSchema,
-  projectSearchResultSchema,
   relationsSchema,
   updateGeometryResultSchema,
 } from '@shared/schema/project';
 import { User } from '@shared/schema/user';
-
-function textSearchFragment(text: ProjectSearch['text']) {
-  if (text && text.trim().length > 0) {
-    const textQuery = text
-      .split(/\s+/)
-      .filter((term) => term.length > 0)
-      .map((term) => `${term}:*`)
-      .join(' & ');
-    return sql.fragment`
-      tsv @@ to_tsquery('simple', ${textQuery})
-    `;
-  }
-  return sql.fragment`true`;
-}
-
-function timePeriodFragment(input: ProjectSearch) {
-  const startDate = input.dateRange?.startDate;
-  const endDate = input.dateRange?.endDate;
-  if (startDate && endDate) {
-    return sql.fragment`
-      daterange(project_common.start_date, project_common.end_date, '[]') && daterange(${startDate}, ${endDate}, '[]')
-    `;
-  }
-  return sql.fragment`true`;
-}
-
-function mapExtentFragment(input: ProjectSearch) {
-  const extent = input.map?.extent;
-  if (!extent) return sql.fragment`true`;
-  const includeWithoutGeom = input.includeWithoutGeom ? sql.fragment`true` : sql.fragment`false`;
-
-  return sql.fragment`
-    (ST_Intersects(
-      project.geom,
-      ST_SetSRID(
-        ST_MakeBox2d(
-          ST_Point(${extent[0]}, ${extent[1]}),
-          ST_Point(${extent[2]}, ${extent[3]})
-        ),
-        3067
-      )
-    ) OR (${includeWithoutGeom} AND project.geom IS NULL))
-  `;
-}
-
-function orderByFragment(input: ProjectSearch) {
-  if (input?.text && input.text.trim().length > 0) {
-    return sql.fragment`ORDER BY ts_rank(tsv, to_tsquery('simple', ${input.text})) DESC`;
-  }
-  return sql.fragment`ORDER BY project_common.start_date DESC`;
-}
-
-export function getFilterFragment(input: ProjectSearch) {
-  return sql.fragment`
-      AND ${textSearchFragment(input.text)}
-      AND ${mapExtentFragment(input)}
-      AND ${timePeriodFragment(input)}
-      AND ${
-        input.lifecycleStates && input.lifecycleStates?.length > 0
-          ? sql.fragment`(project_common.lifecycle_state).id = ANY(${sql.array(
-              input.lifecycleStates,
-              'text'
-            )})
-          `
-          : sql.fragment`true`
-      }
-      AND ${
-        input.projectTypes && input.projectTypes?.length > 0
-          ? sql.fragment`(project_type).id = ANY(${sql.array(input.projectTypes, 'text')})
-          `
-          : sql.fragment`true`
-      }
-      AND ${
-        input.committees && input.committees.length > 0
-          ? sql.fragment`project.id IN (
-            SELECT project_id FROM app.project_committee
-            WHERE (committee_type).id = ANY(${sql.array(input.committees, 'text')})
-          )`
-          : sql.fragment`true`
-      }
-      ${orderByFragment(input)}
-  `;
-}
 
 export async function addProjectRelation(
   projectId: string,
@@ -214,82 +127,6 @@ export async function getRelatedProjects(id: string) {
   FROM related_projects`);
 }
 
-function zoomToGeohashLength(zoom: number) {
-  if (zoom < 9) {
-    return 5;
-  } else if (zoom < 10) {
-    return 6;
-  } else {
-    return 8;
-  }
-}
-
-function clusterResultsFragment(zoom: number | undefined) {
-  if (!zoom || zoom > 10) return sql.fragment`'[]'::jsonb`;
-
-  return sql.fragment`
-    (
-      SELECT jsonb_agg(clusters.*)
-      FROM (
-        SELECT
-          substr(geohash, 1, ${zoomToGeohashLength(zoom)}) AS "clusterGeohash",
-          count(*) AS "clusterCount",
-          ST_AsGeoJSON(ST_Centroid(ST_Collect(geom))) AS "clusterLocation"
-        FROM projects
-        GROUP BY "clusterGeohash"
-    ) clusters)
-  `;
-}
-
-function costEstimateWhereFragment(costEstimateInput: CostEstimatesInput) {
-  const { projectId, projectObjectId, taskId } = costEstimateInput;
-  const sqlFalse = sql.fragment`FALSE`;
-  return sql.fragment`
-    ${projectId ? sql.fragment`project_id = ${projectId}` : sqlFalse} OR
-    ${projectObjectId ? sql.fragment`project_object_id = ${projectObjectId}` : sqlFalse} OR
-    ${taskId ? sql.fragment`task_id = ${taskId}` : sqlFalse}
-  `;
-}
-
-// !FIXME: This should not depend on the project common schema
-const searchProjectFragment = sql.fragment`
-  SELECT
-    project.id,
-    project_name AS "projectName",
-    description,
-    owner,
-    person_in_charge AS "personInCharge",
-    start_date AS "startDate",
-    end_date AS "endDate",
-    geohash,
-    ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
-    (lifecycle_state).id AS "lifecycleState",
-    (project_type).id AS "projectType",
-    sap_project_id AS "sapProjectId"
-  FROM app.project_common
-  INNER JOIN app.project ON project.id = project_common.id
-  WHERE deleted = false
-`;
-
-export async function projectSearch(input: ProjectSearch) {
-  const { map, limit = 250 } = input;
-
-  const resultSchema = z.object({ result: projectSearchResultSchema });
-  const dbResult = await getPool().one(sql.type(resultSchema)`
-    WITH projects AS (
-      ${searchProjectFragment}
-      ${getFilterFragment(input) ?? ''}
-    ), limited AS (
-      SELECT * FROM projects LIMIT ${limit}
-    )
-    SELECT jsonb_build_object(
-      'projects', (SELECT jsonb_agg(limited.*) FROM limited),
-      'clusters', ${clusterResultsFragment(map?.zoom)}
-    ) AS result
-    `);
-  return dbResult.result;
-}
-
 export async function updateProjectGeometry(geometryUpdate: UpdateGeometry, user: User) {
   const { id, features } = geometryUpdate;
   return getPool().transaction(async (tx) => {
@@ -312,6 +149,16 @@ export async function updateProjectGeometry(geometryUpdate: UpdateGeometry, user
       RETURNING id, ST_AsGeoJSON(geom) AS geom
     `);
   });
+}
+
+function costEstimateWhereFragment(costEstimateInput: CostEstimatesInput) {
+  const { projectId, projectObjectId, taskId } = costEstimateInput;
+  const sqlFalse = sql.fragment`FALSE`;
+  return sql.fragment`
+    ${projectId ? sql.fragment`project_id = ${projectId}` : sqlFalse} OR
+    ${projectObjectId ? sql.fragment`project_object_id = ${projectObjectId}` : sqlFalse} OR
+    ${taskId ? sql.fragment`task_id = ${taskId}` : sqlFalse}
+  `;
 }
 
 export async function getCostEstimates(costEstimates: CostEstimatesInput) {

@@ -13,18 +13,25 @@ import {
   css,
 } from '@mui/material';
 import dayjs from 'dayjs';
+import { useAtom } from 'jotai';
 import { useState } from 'react';
 
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { DateRange } from '@frontend/components/forms/DateRange';
+import { ProjectTypeSelect } from '@frontend/components/forms/ProjectTypeSelect';
 import { useTranslations } from '@frontend/stores/lang';
 import {
-  getProjectSearchParamSetters,
-  getProjectSearchParams,
+  dateRangeAtom,
+  filtersAtom,
+  includeWithoutGeomAtom,
+  lifecycleStatesAtom,
+  textAtom,
 } from '@frontend/stores/search/project';
 
+import { DetailplanProjectSearch } from './DetailplanProjectSearch';
+import { InvestmentProjectSearch } from './InvestmentProjectSearch';
+
 const searchControlContainerStyle = css`
-  padding: 16px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
@@ -69,92 +76,119 @@ export function SearchControls() {
   const tr = useTranslations();
 
   const [expanded, setExpanded] = useState(false);
-
-  const searchParams = getProjectSearchParams();
-  const setSearchParams = getProjectSearchParamSetters();
+  const [text, setText] = useAtom(textAtom);
+  const [dateRange, setDateRange] = useAtom(dateRangeAtom);
+  const [lifecycleStates, setLifecycleStates] = useAtom(lifecycleStatesAtom);
+  const [filters, setFilters] = useAtom(filtersAtom);
+  const [includeWithoutGeom, setIncludeWithoutGeom] = useAtom(includeWithoutGeomAtom);
 
   return (
-    <Paper elevation={1} css={searchControlContainerStyle}>
-      <FormControl>
-        <FormLabel htmlFor="text-search">{tr('projectSearch.textSearchLabel')}</FormLabel>
-        <TextField
-          id="text-search"
-          size="small"
-          placeholder={tr('projectSearch.textSearchTip')}
-          value={searchParams.text}
-          onChange={(event) => {
-            setSearchParams.text(event.currentTarget.value);
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search />
-              </InputAdornment>
-            ),
-          }}
-        />
-      </FormControl>
-      <Box sx={{ display: 'flex' }}>
+    <Paper
+      elevation={1}
+      css={css`
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      `}
+    >
+      <div css={searchControlContainerStyle}>
         <FormControl>
-          <FormLabel>{tr('projectSearch.dateRange')}</FormLabel>
-          <DateRange
-            value={searchParams.dateRange}
-            onChange={(period) => setSearchParams.dateRange(period)}
-            quickSelections={makeCalendarQuickSelections(tr)}
+          <FormLabel htmlFor="text-search">{tr('projectSearch.textSearchLabel')}</FormLabel>
+          <TextField
+            id="text-search"
+            size="small"
+            placeholder={tr('projectSearch.textSearchTip')}
+            value={text}
+            onChange={(event) => {
+              setText(event.currentTarget.value);
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
           />
         </FormControl>
-      </Box>
-      <FormControl>
-        <FormLabel htmlFor="lifecycle-state">{tr('project.lifecycleStateLabel')}</FormLabel>
-        <CodeSelect
-          id="lifecycle-state"
-          codeListId="HankkeenElinkaarentila"
-          multiple
-          value={searchParams.lifecycleStates}
-          onChange={setSearchParams.lifecycleStates}
-        />
-      </FormControl>
-      <FormControl>
-        <FormLabel htmlFor="project-type">{tr('project.projectTypeLabel')}</FormLabel>
-        <CodeSelect
-          id="project-type"
-          codeListId="HankeTyyppi"
-          multiple
-          value={searchParams.projectTypes}
-          onChange={setSearchParams.projectTypes}
-        />
-      </FormControl>
-      {expanded && (
-        <>
+        <Box sx={{ display: 'flex' }}>
           <FormControl>
-            <FormLabel htmlFor="committee">{tr('project.committeeLabel')}</FormLabel>
-            <CodeSelect
-              id="committee"
-              codeListId="Lautakunta"
-              multiple
-              value={searchParams.committees}
-              onChange={setSearchParams.committees}
+            <FormLabel>{tr('projectSearch.dateRange')}</FormLabel>
+            <DateRange
+              value={dateRange}
+              onChange={(period) => setDateRange(period)}
+              quickSelections={makeCalendarQuickSelections(tr)}
             />
           </FormControl>
+        </Box>
+        <FormControl>
+          <FormLabel htmlFor="lifecycle-state">{tr('project.lifecycleStateLabel')}</FormLabel>
+          <CodeSelect
+            id="lifecycle-state"
+            codeListId="HankkeenElinkaarentila"
+            multiple
+            value={lifecycleStates}
+            onChange={setLifecycleStates}
+          />
+        </FormControl>
+        <FormControl>
+          <FormLabel htmlFor="project-type">{tr('projectSearch.projectType')}</FormLabel>
+          <ProjectTypeSelect
+            id="project-type"
+            value={Object.keys(filters) as Array<keyof typeof filters>}
+            onChange={(projectTypes) => {
+              setFilters((filters) => {
+                const previousTypes = new Set(Object.keys(filters)) as Set<keyof typeof filters>;
+                const newTypes = new Set(projectTypes);
+
+                // Remove type filters that are no longer selected
+                for (const type of previousTypes) {
+                  if (!newTypes.has(type)) {
+                    delete filters[type];
+                  }
+                }
+
+                // Add new types
+                for (const type of newTypes) {
+                  if (!previousTypes.has(type)) {
+                    filters[type] = {};
+                  }
+                }
+
+                return {
+                  ...filters,
+                };
+              });
+            }}
+          />
+        </FormControl>
+      </div>
+      {expanded && (
+        <>
           <FormGroup>
             <FormLabel>{tr('projectSearch.geometry')}</FormLabel>
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={searchParams.includeWithoutGeom}
+                  checked={includeWithoutGeom}
                   onChange={(_, checked) => {
-                    setSearchParams.includeWithoutGeom(checked);
+                    setIncludeWithoutGeom(checked);
                   }}
                 />
               }
               label={tr('projectSearch.showWithoutGeom')}
             />
           </FormGroup>
+          {filters['investmentProject'] && <InvestmentProjectSearch />}
+          {filters['detailplanProject'] && <DetailplanProjectSearch />}
         </>
       )}
       <Button
         size="small"
-        sx={{ gridColumnStart: 4 }}
+        css={css`
+          align-self: flex-end;
+        `}
         endIcon={expanded ? <UnfoldLess /> : <UnfoldMore />}
         onClick={() => {
           setExpanded((previous) => !previous);

@@ -1,1 +1,1 @@
-export type ProjectType = 'hanke' | 'asemakaavahanke';
+export type ProjectTypePath = 'investointihanke' | 'asemakaavahanke';

@@ -25,7 +25,7 @@ test.describe('Project endpoints', () => {
     // There should be at least one user because this is executed after login
     const [user] = await client.user.getAll.query();
 
-    const project = await client.projectCommon.upsert.mutate({
+    const project = await client.investmentProject.upsert.mutate({
       projectName: 'Test project',
       description: 'Test description',
       owner: user.id,
@@ -33,7 +33,6 @@ test.describe('Project endpoints', () => {
       startDate: '2021-01-01',
       endDate: '2022-01-01',
       lifecycleState: '01',
-      projectType: '01',
       committees: ['01'],
       sapProjectId: null,
     });

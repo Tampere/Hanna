@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { isoDateString } from '../common';
+import { dbProjectSchema } from './base';
 
 export const periodSchema = z.object({
   startDate: isoDateString,
@@ -22,15 +23,24 @@ export const projectSearchSchema = z.object({
   dateRange: periodSchema.optional(),
   lifecycleStates: z.array(z.string()).optional(),
   projectTypes: z.array(z.string()).optional(),
-  financingTypes: z.array(z.string()).optional(),
-  committees: z.array(z.string()).optional(),
   map: mapSearchSchema.optional(),
   includeWithoutGeom: z.boolean().optional(),
+  filters: z.object({
+    investmentProject: z
+      .object({
+        committees: z.array(z.string()).optional(),
+      })
+      .optional(),
+    detailplanProject: z
+      .object({
+        planningZones: z.array(z.string()).optional(),
+      })
+      .optional(),
+  }),
 });
 
 export const projectSearchResultSchema = z.object({
-  // !FIXME: search specific schema
-  projects: z.array(z.any()),
+  projects: z.array(dbProjectSchema),
   clusters: z.array(
     z.object({
       clusterCount: z.number(),
