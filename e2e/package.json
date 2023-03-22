@@ -17,8 +17,8 @@
     "playwright": "^1.31.2"
   },
   "dependencies": {
-    "@trpc/client": "^10.16.0",
-    "@trpc/server": "^10.16.0",
+    "@trpc/client": "^10.17.0",
+    "@trpc/server": "^10.17.0",
     "node-fetch": "^2.6.9",
     "superjson": "^1.12.2"
   }

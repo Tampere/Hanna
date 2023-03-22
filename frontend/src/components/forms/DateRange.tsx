@@ -1,7 +1,12 @@
 import { css } from '@emotion/react';
 import { CalendarMonthTwoTone } from '@mui/icons-material';
 import { Box, Chip, IconButton, Popover, TextField, Typography } from '@mui/material';
-import { CalendarPicker, LocalizationProvider, PickersDay } from '@mui/x-date-pickers';
+import {
+  DateCalendar,
+  LocalizationProvider,
+  PickersDay,
+  PickersDayProps,
+} from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import { useAtomValue } from 'jotai';
@@ -30,14 +35,14 @@ interface Props {
   readOnly?: boolean;
 }
 
-function widgetDayCSSProps(day: Dayjs, selectedDate: Dayjs, inRange: (day: Dayjs) => boolean) {
+function widgetDayCSSProps(day: Dayjs, selectedDate: Dayjs, inRange: boolean) {
   if (day.isSame(selectedDate, 'day')) {
     return {
       css: css`
         border-radius: 0px;
       `,
     };
-  } else if (inRange(day)) {
+  } else if (inRange) {
     return {
       css: css`
         border-radius: 0px;
@@ -45,6 +50,24 @@ function widgetDayCSSProps(day: Dayjs, selectedDate: Dayjs, inRange: (day: Dayjs
       `,
     };
   }
+}
+
+type CustomDayProps = PickersDayProps<Dayjs> & {
+  selectedDay: Dayjs;
+  inRange: (day: Dayjs) => boolean;
+  dateFormat: string;
+};
+
+function CustomDay(props: CustomDayProps) {
+  const { selectedDay, inRange, dateFormat, ...pickersDayProps } = props;
+  return (
+    <PickersDay
+      aria-label={`${pickersDayProps.day.format(dateFormat)}`}
+      disableMargin
+      {...widgetDayCSSProps(selectedDay, pickersDayProps.day, inRange(pickersDayProps.day))}
+      {...pickersDayProps}
+    />
+  );
 }
 
 export function DateRange(props: Props) {
@@ -154,45 +177,41 @@ export function DateRange(props: Props) {
                 </Box>
               </Box>
             )}
-            <CalendarPicker
+            <DateCalendar
               {...commonProps}
               view={startPickerView}
               onYearChange={() => setStartPickerView('month')}
               onMonthChange={() => setStartPickerView('day')}
               onViewChange={(newView) => setStartPickerView(newView)}
-              renderDay={(day, selectedDays, pickerDayProps) => {
-                return (
-                  <PickersDay
-                    aria-label={`${day.format(dateFormat)}`}
-                    disableMargin={true}
-                    {...pickerDayProps}
-                    {...widgetDayCSSProps(day, startDate, (d) => d > startDate && d < endDate)}
-                  />
-                );
+              slots={{ day: CustomDay as any }}
+              slotProps={{
+                day: {
+                  selectedDay: startDate,
+                  inRange: (d: Dayjs) => d > startDate && d < endDate,
+                  dateFormat,
+                } as any,
               }}
               maxDate={endDate.subtract(1, 'day')}
               onChange={(date) => setStartDate(date as Dayjs)}
-              date={startDate}
+              value={startDate}
             />
-            <CalendarPicker
+            <DateCalendar
               {...commonProps}
               view={endPickerView}
               onYearChange={() => setEndPickerView('month')}
               onMonthChange={() => setEndPickerView('day')}
               onViewChange={(newView) => setEndPickerView(newView)}
-              renderDay={(day, selectedDays, pickerDayProps) => {
-                return (
-                  <PickersDay
-                    aria-label={`${day.format(dateFormat)}`}
-                    disableMargin={true}
-                    {...pickerDayProps}
-                    {...widgetDayCSSProps(day, endDate, (d) => d < endDate && d > startDate)}
-                  />
-                );
+              slots={{ day: CustomDay as any }}
+              slotProps={{
+                day: {
+                  selectedDay: endDate,
+                  inRange: (d: Dayjs) => d > startDate && d < endDate,
+                  dateFormat,
+                } as any,
               }}
               minDate={startDate.add(1, 'day')}
               onChange={(date) => setEndDate(date as Dayjs)}
-              date={endDate}
+              value={endDate}
             />
           </Box>
         </LocalizationProvider>

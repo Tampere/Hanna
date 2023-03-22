@@ -123,7 +123,7 @@ export function FormDatePicker({ field, readOnly, minDate, maxDate }: FormDatePi
   return (
     <DatePicker
       id={field.id}
-      InputProps={{ name: field.name }}
+      name={field.name}
       value={field.value}
       onChange={(value) => field.onChange(value)}
       onClose={field.onBlur}

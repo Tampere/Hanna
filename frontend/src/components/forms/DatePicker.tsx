@@ -1,4 +1,4 @@
-import { InputProps, TextField } from '@mui/material';
+import { TextField, TextFieldProps } from '@mui/material';
 import { DesktopDatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
@@ -10,19 +10,34 @@ import { langAtom, useTranslations } from '@frontend/stores/lang';
 
 interface Props {
   id?: string;
+  name?: string;
   value: string | null;
   onChange: (value: string | null) => void;
   onClose?: () => void;
   readOnly?: boolean;
   minDate?: Dayjs;
   maxDate?: Dayjs;
-  InputProps?: InputProps;
 }
 
 const isoDateStringFormat = 'YYYY-MM-DD';
 
+function CustomTextField(props: TextFieldProps & { name?: string }) {
+  return (
+    <TextField
+      {...props}
+      // Only highlight error if the value is actually invalid (i.e. ignore empty values)
+      error={props.value != '' && props.value != null && props.error}
+      size="small"
+      InputProps={{
+        ...props.InputProps,
+        name: props.name,
+      }}
+    />
+  );
+}
+
 export function DatePicker(props: Props) {
-  const { id, value, onChange, onClose, readOnly, minDate, maxDate, InputProps } = props;
+  const { id, name, value, onChange, onClose, readOnly, minDate, maxDate } = props;
   const tr = useTranslations();
   const lang = useAtomValue(langAtom);
   const readonlyProps = {
@@ -37,40 +52,24 @@ export function DatePicker(props: Props) {
         readOnly={readOnly}
         minDate={minDate}
         maxDate={maxDate}
-        /**
-         * Chrome interprets unfinished date strings as valid (e.g. new Date("1") resolves to 2001-01-01) and this
-         * breaks the date picker's keyboard input.
-         *
-         * However, when the underlying input's onChange callback is overridden, the Chrome's faulty date parsing doesn't seem to get called
-         * and everything works just fine.
-         */
-        InputProps={{
-          onChange: () => null,
-          ...InputProps,
-        }}
-        inputFormat={tr('date.format')}
-        mask=""
-        disableMaskedInput={true}
+        format={tr('date.format')}
         value={dayjs(value, isoDateStringFormat)}
         onChange={(value) => onChange(value?.format(isoDateStringFormat) ?? null)}
         onAccept={(value) => onChange(value?.format(isoDateStringFormat) ?? null)}
         onClose={onClose}
-        renderInput={(props) => {
-          return (
-            <TextField
-              {...(readOnly && readonlyProps)}
-              {...props}
-              // Only highlight error if the value is actually invalid (i.e. ignore empty values)
-              error={value != '' && value != null && props.error}
-              size="small"
-              inputProps={{
-                ...props.inputProps,
+        slots={{ textField: CustomTextField as any }}
+        slotProps={
+          {
+            textField: {
+              ...(readOnly && readonlyProps),
+              name,
+              inputProps: {
                 placeholder: tr('date.format.placeholder'),
                 id,
-              }}
-            />
-          );
-        }}
+              },
+            },
+          } as any
+        }
       />
     </LocalizationProvider>
   );
