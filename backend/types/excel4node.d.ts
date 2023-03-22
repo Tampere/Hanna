@@ -14,6 +14,14 @@ declare module 'excel4node' {
     };
   }
 
+  export class Column {
+    setWidth(width: number): Column;
+  }
+
+  export class Row {
+    setHeight(height: number): Row;
+  }
+
   export class Cell {
     string(value: string): Cell;
     date(value: Date): Cell;
@@ -23,6 +31,8 @@ declare module 'excel4node' {
 
   export class Worksheet {
     cell(row: number, column: number): Cell;
+    column(column: number): Column;
+    row(row: number): Row;
   }
 
   export class Workbook {
