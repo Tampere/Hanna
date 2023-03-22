@@ -138,12 +138,28 @@ export function SearchControls() {
             id="project-type"
             value={Object.keys(filters) as Array<keyof typeof filters>}
             onChange={(projectTypes) => {
-              setFilters(
-                projectTypes.reduce((acc, projectType) => {
-                  acc[projectType] = {};
-                  return acc;
-                }, {} as typeof filters)
-              );
+              setFilters((filters) => {
+                const previousTypes = new Set(Object.keys(filters)) as Set<keyof typeof filters>;
+                const newTypes = new Set(projectTypes);
+
+                // Remove type filters that are no longer selected
+                for (const type of previousTypes) {
+                  if (!newTypes.has(type)) {
+                    delete filters[type];
+                  }
+                }
+
+                // Add new types
+                for (const type of newTypes) {
+                  if (!previousTypes.has(type)) {
+                    filters[type] = {};
+                  }
+                }
+
+                return {
+                  ...filters,
+                };
+              });
             }}
           />
         </FormControl>
