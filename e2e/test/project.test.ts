@@ -45,7 +45,7 @@ async function createProject(page: Page, project: UpsertProject) {
   // Go to the new project page
   await page.pause();
   await page.getByRole('button', { name: 'Luo uusi hanke' }).click();
-  await page.getByRole('menuitem', { name: 'Uusi hanke' }).click();
+  await page.getByRole('menuitem', { name: 'Uusi investointihanke' }).click();
   await expect(page).toHaveURL('https://localhost:1443/hanke/luo');
 
   // Fill in the project data and save the project
@@ -58,9 +58,6 @@ async function createProject(page: Page, project: UpsertProject) {
     await page.getByLabel('Elinkaaren tila').click();
     await page.getByRole('option', { name: lifecycleText }).click();
   }
-
-  await page.getByLabel('Hanketyyppi').click();
-  await page.getByRole('option', { name: 'Investointihanke' }).click();
 
   await page.getByLabel('Lautakunta').click();
   await page.getByRole('option', { name: 'Yhdyskuntalautakunta' }).click();
