@@ -4,9 +4,14 @@ import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
 import { codeIdFragment } from '@backend/components/code';
-import { baseProjectUpsert } from '@backend/components/project/base';
+import {
+  baseProjectUpsert,
+  validateUpsertProject as baseProjectValidate,
+} from '@backend/components/project/base';
 import { getPool, sql } from '@backend/db';
+import { logger } from '@backend/logging';
 
+import { hasErrors } from '@shared/formerror';
 import { projectIdSchema } from '@shared/schema/project/base';
 import { InvestmentProject, dbInvestmentProjectSchema } from '@shared/schema/project/investment';
 import { User } from '@shared/schema/user';
@@ -51,6 +56,11 @@ export async function getProject(id: string, tx?: DatabaseTransactionConnection)
 
 export async function projectUpsert(project: InvestmentProject, user: User) {
   return getPool().transaction(async (tx) => {
+    if (hasErrors(await validateUpsertProject(project, tx))) {
+      logger.error('Invalid project', { project });
+      throw new Error('Invalid project');
+    }
+
     const id = await baseProjectUpsert(tx, project, user);
     await addAuditEvent(tx, {
       eventType: 'investmentProject.upsertProject',
@@ -100,33 +110,10 @@ export async function projectUpsert(project: InvestmentProject, user: User) {
   });
 }
 
-export async function validateUpsertProject(input: InvestmentProject) {
-  // !FIXME: implement, first validate base project, then common project
-  /*
-  if (values?.id) {
-    const estimateRange = await getPool().maybeOne(sql.untyped`
-    SELECT
-      extract(year FROM ${values?.startDate}::date) <= min(cost_estimate.year) AS "validStartDate",
-      extract(year FROM ${values?.endDate}::date) >= max(cost_estimate.year) AS "validEndDate"
-    FROM app.cost_estimate
-    WHERE project_id = ${values?.id}
-    GROUP BY project_id;
-  `);
-
-    if (estimateRange?.validStartDate === false) {
-      validationErrors.errors['startDate'] = fieldError('project.error.costEstimateNotIncluded');
-    }
-
-    if (estimateRange?.validEndDate === false) {
-      validationErrors.errors['endDate'] = fieldError('project.error.costEstimateNotIncluded');
-    }
-  }
-
-  // Check that project start date is not after end date
-  if (values.startDate >= values.endDate) {
-    validationErrors.errors['startDate'] = fieldError('project.error.endDateBeforeStartDate');
-    validationErrors.errors['endDate'] = fieldError('project.error.endDateBeforeStartDate');
-  }
-  */
-  return { errors: {} };
+export async function validateUpsertProject(
+  project: InvestmentProject,
+  tx: DatabaseTransactionConnection | null
+) {
+  const conn = tx ?? getPool();
+  return baseProjectValidate(conn, project);
 }

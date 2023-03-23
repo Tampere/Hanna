@@ -94,6 +94,31 @@ export async function validateUpsertProject(
 ) {
   const validationErrors: FormErrors<UpsertProject> = { errors: {} };
 
+  if (values?.id) {
+    const estimateRange = await getPool().maybeOne(sql.untyped`
+    SELECT
+      extract(year FROM ${values?.startDate}::date) <= min(cost_estimate.year) AS "validStartDate",
+      extract(year FROM ${values?.endDate}::date) >= max(cost_estimate.year) AS "validEndDate"
+    FROM app.cost_estimate
+    WHERE project_id = ${values?.id}
+    GROUP BY project_id;
+  `);
+
+    if (estimateRange?.validStartDate === false) {
+      validationErrors.errors['startDate'] = fieldError('project.error.costEstimateNotIncluded');
+    }
+
+    if (estimateRange?.validEndDate === false) {
+      validationErrors.errors['endDate'] = fieldError('project.error.costEstimateNotIncluded');
+    }
+  }
+
+  // Check that project start date is not after end date
+  if (values.startDate >= values.endDate) {
+    validationErrors.errors['startDate'] = fieldError('project.error.endDateBeforeStartDate');
+    validationErrors.errors['endDate'] = fieldError('project.error.endDateBeforeStartDate');
+  }
+
   // Check that SAP project ID is not changed if project has project objects
   // with selected SAP WBS elements
   if (values?.id) {

@@ -4,9 +4,14 @@ import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
 import { codeIdFragment } from '@backend/components/code';
-import { baseProjectUpsert } from '@backend/components/project/base';
+import {
+  baseProjectUpsert,
+  validateUpsertProject as baseProjectValidate,
+} from '@backend/components/project/base';
 import { getPool, sql } from '@backend/db';
+import { logger } from '@backend/logging';
 
+import { hasErrors } from '@shared/formerror';
 import { projectIdSchema } from '@shared/schema/project/base';
 import { DetailplanProject, dbDetailplanSchema } from '@shared/schema/project/detailplan';
 import { User } from '@shared/schema/user';
@@ -65,6 +70,11 @@ export async function getProject(id: string, tx?: DatabaseTransactionConnection)
 
 export async function projectUpsert(project: DetailplanProject, user: User) {
   return await getPool().transaction(async (tx) => {
+    if (hasErrors(await baseProjectValidate(tx, project))) {
+      logger.error('projectUpsert: validation failed', { project });
+      throw new Error('Invalid project data');
+    }
+
     const id = await baseProjectUpsert(tx, project, user);
     await addAuditEvent(tx, {
       eventType: 'detailplanProject.upsertProject',
@@ -110,7 +120,10 @@ export async function projectUpsert(project: DetailplanProject, user: User) {
   });
 }
 
-export async function validateUpsertProject(input: DetailplanProject) {
-  // !FIXME: implement, first validate base project, then detailplan project
-  return { errors: {} };
+export async function validateUpsertProject(
+  project: DetailplanProject,
+  tx: DatabaseTransactionConnection | null
+) {
+  const conn = tx ?? getPool();
+  return baseProjectValidate(conn, project);
 }

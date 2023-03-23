@@ -83,7 +83,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
       const errors = await Promise.all([serverErrors, shapeErrors]);
       return {
         values,
-        errors: mergeErrors<InvestmentProject>(errors).errors,
+        errors: mergeErrors(errors).errors,
       };
     };
   }, []);
