@@ -1,6 +1,7 @@
 {
   "strict": true,
   "compilerOptions": {
+    "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {
       "@utils/*": ["utils/*"],

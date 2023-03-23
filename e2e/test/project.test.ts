@@ -1,8 +1,9 @@
-import { expect, Page, test } from '@playwright/test';
-import type { UpsertProject } from '@shared/schema/project';
+import { expect, Locator, Page, test } from '@playwright/test';
 import { sleep } from '@shared/utils';
 import { login } from '@utils/page';
 import { client } from '@utils/trpc';
+import type { InvestmentProject } from '@shared/schema/project/investment';
+import { fillDatePickerValue, getDatePickerValue } from '@utils/date-picker';
 
 const keskustoriGeom = {
   type: 'Polygon',
@@ -41,9 +42,8 @@ const lifecycleStateToText = {
   '04': 'Odottaa',
 } as const;
 
-async function createProject(page: Page, project: UpsertProject) {
+async function createProject(page: Page, project: InvestmentProject) {
   // Go to the new project page
-  await page.pause();
   await page.getByRole('button', { name: 'Luo uusi hanke' }).click();
   await page.getByRole('menuitem', { name: 'Uusi investointihanke' }).click();
   await expect(page).toHaveURL('https://localhost:1443/hanke/luo');
@@ -51,8 +51,13 @@ async function createProject(page: Page, project: UpsertProject) {
   // Fill in the project data and save the project
   await page.locator('input[name="projectName"]').fill(project.projectName);
   await page.locator('textarea[name="description"]').fill(project.description);
-  await page.locator('input[name="startDate"]').fill(project.startDate);
-  await page.locator('input[name="endDate"]').fill(project.endDate);
+
+  await fillDatePickerValue(page.locator('input[name="startDate"]'), project.startDate);
+  await fillDatePickerValue(page.locator('input[name="endDate"]'), project.endDate);
+
+  // await page.locator('input[name="startDate"]').type(project.startDate);
+  // await page.locator('input[name="endDate"]').type(project.endDate);
+
   const lifecycleText = lifecycleStateToText[project.lifecycleState];
   if (lifecycleText) {
     await page.getByLabel('Elinkaaren tila').click();
@@ -78,7 +83,7 @@ async function createProject(page: Page, project: UpsertProject) {
   return {
     ...project,
     id: projectId,
-  } as UpsertProject;
+  } as InvestmentProject;
 }
 
 async function deleteProject(page: Page, projectId: string) {
@@ -102,7 +107,7 @@ test.describe('Projects', () => {
   });
 
   test('Create a project', async ({ page }) => {
-    let project: UpsertProject = {
+    let project: InvestmentProject = {
       projectName: `Testihanke ${Date.now()}`,
       description: 'Testikuvaus',
       startDate: '1.12.2022',
@@ -118,8 +123,11 @@ test.describe('Projects', () => {
     // Check that all fields still have the same values
     await expect(page.locator('input[name="projectName"]')).toHaveValue(project.projectName);
     await expect(page.locator('textarea[name="description"]')).toHaveValue(project.description);
-    await expect(page.locator('input[name="startDate"]')).toHaveValue(project.startDate);
-    await expect(page.locator('input[name="endDate"]')).toHaveValue(project.endDate);
+
+    expect(await getDatePickerValue(page.locator('input[name="startDate"]'))).toBe(
+      project.startDate
+    );
+    expect(await getDatePickerValue(page.locator('input[name="endDate"]'))).toBe(project.endDate);
 
     await deleteProject(page, project.id);
   });
