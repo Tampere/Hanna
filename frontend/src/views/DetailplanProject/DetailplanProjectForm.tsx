@@ -97,7 +97,7 @@ export function DetailplanProjectForm(props: Props) {
       const errors = await Promise.all([serverErrors, shapeErrors]);
       return {
         values,
-        errors: mergeErrors<DbDetailplanProject>(errors).errors,
+        errors: mergeErrors(errors).errors,
       };
     };
   }, []);

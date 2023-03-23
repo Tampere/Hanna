@@ -13,7 +13,7 @@ import { investmentProjectSchema } from '@shared/schema/project/investment';
 export const createInvestmentProjectRouter = (t: TRPC) =>
   t.router({
     upsertValidate: t.procedure.input(z.any()).query(async ({ input }) => {
-      return validateUpsertProject(input);
+      return validateUpsertProject(input, null);
     }),
 
     upsert: t.procedure.input(investmentProjectSchema).mutation(async ({ input, ctx }) => {

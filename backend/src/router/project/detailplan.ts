@@ -36,7 +36,7 @@ async function getNotificationMailTemplate(
 export const createDetailplanProjectRouter = (t: TRPC) =>
   t.router({
     upsertValidate: t.procedure.input(z.any()).query(async ({ input }) => {
-      return validateUpsertProject(input);
+      return validateUpsertProject(input, null);
     }),
 
     upsert: t.procedure.input(detailplanProjectSchema).mutation(async ({ input, ctx }) => {
