@@ -19,12 +19,14 @@ import { useState } from 'react';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { DateRange } from '@frontend/components/forms/DateRange';
 import { ProjectTypeSelect } from '@frontend/components/forms/ProjectTypeSelect';
+import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useTranslations } from '@frontend/stores/lang';
 import {
   dateRangeAtom,
   filtersAtom,
   includeWithoutGeomAtom,
   lifecycleStatesAtom,
+  ownersAtom,
   textAtom,
 } from '@frontend/stores/search/project';
 
@@ -79,6 +81,7 @@ export function SearchControls() {
   const [text, setText] = useAtom(textAtom);
   const [dateRange, setDateRange] = useAtom(dateRangeAtom);
   const [lifecycleStates, setLifecycleStates] = useAtom(lifecycleStatesAtom);
+  const [owners, setOwners] = useAtom(ownersAtom);
   const [filters, setFilters] = useAtom(filtersAtom);
   const [includeWithoutGeom, setIncludeWithoutGeom] = useAtom(includeWithoutGeomAtom);
 
@@ -162,6 +165,10 @@ export function SearchControls() {
               });
             }}
           />
+        </FormControl>
+        <FormControl>
+          <FormLabel htmlFor="owner">{tr('project.ownerLabel')}</FormLabel>
+          <UserSelect id="owner" multiple value={owners} onChange={setOwners} />
         </FormControl>
       </div>
       {expanded && (

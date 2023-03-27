@@ -4,32 +4,7 @@ import { focusAtom } from 'jotai-optics';
 
 import { mapOptions } from '@frontend/components/Map/mapOptions';
 
-import { MapSearch, Period } from '@shared/schema/project';
-
-interface Filters {
-  investmentProject?: {
-    committees?: string[];
-  };
-  detailplanProject?: {
-    planningZones?: string[];
-  };
-}
-
-interface ProjectSearch {
-  text: string;
-  dateRange: Period;
-  lifecycleStates: string[];
-  map: MapSearch;
-  includeWithoutGeom: boolean;
-  filters: {
-    investmentProject?: {
-      committees?: string[];
-    };
-    detailplanProject?: {
-      planningZones?: string[];
-    };
-  };
-}
+import { ProjectSearch } from '@shared/schema/project';
 
 export const projectSearchParamAtom = atom<ProjectSearch>({
   text: '',
@@ -38,6 +13,7 @@ export const projectSearchParamAtom = atom<ProjectSearch>({
     endDate: dayjs().endOf('year').format('YYYY-MM-DD'),
   },
   lifecycleStates: [],
+  owners: [],
   map: {
     zoom: mapOptions.tre.defaultZoom,
     extent: mapOptions.tre.extent,
@@ -51,6 +27,7 @@ export const dateRangeAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('da
 export const lifecycleStatesAtom = focusAtom(projectSearchParamAtom, (o) =>
   o.prop('lifecycleStates')
 );
+export const ownersAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('owners'));
 export const includeWithoutGeomAtom = focusAtom(projectSearchParamAtom, (o) =>
   o.prop('includeWithoutGeom')
 );

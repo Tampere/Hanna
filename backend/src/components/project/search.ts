@@ -55,11 +55,19 @@ function orderByFragment(input: ProjectSearch) {
   return sql.fragment`ORDER BY project.start_date DESC`;
 }
 
+function ownerFragment(input: ProjectSearch) {
+  if (input.owners.length === 0) {
+    return sql.fragment`true`;
+  }
+  return sql.fragment`project.owner = ANY(${sql.array(input.owners, 'text')})`;
+}
+
 export function getFilterFragment(input: ProjectSearch) {
   return sql.fragment`
       AND ${textSearchFragment(input.text)}
       AND ${mapExtentFragment(input)}
       AND ${timePeriodFragment(input)}
+      AND ${ownerFragment(input)}
       AND ${
         input.lifecycleStates && input.lifecycleStates?.length > 0
           ? sql.fragment`(project.lifecycle_state).id = ANY(${sql.array(

@@ -9,6 +9,7 @@ const userSelectFragment = sql.fragment`
 export async function getAllUsers() {
   const users = await getPool().many(sql.type(userSchema)`
     ${userSelectFragment}
+    ORDER BY name ASC
   `);
   return users;
 }
