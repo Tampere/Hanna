@@ -4,15 +4,24 @@ import { getPool, sql } from '@backend/db';
 
 import { ProjectSearch, projectSearchResultSchema } from '@shared/schema/project';
 
+const tsvectorFragment = sql.fragment`
+  COALESCE(project_detailplan.tsv, '') ||
+  COALESCE(project.tsv, '')
+`;
+
+function tsqueryFragment(text: string) {
+  const textQuery = text
+    .split(/\s+/)
+    .filter((term) => term.length > 0)
+    .map((term) => `${term}:*`)
+    .join(' & ');
+  return sql.fragment`to_tsquery('simple', ${textQuery})`;
+}
+
 function textSearchFragment(text: ProjectSearch['text']) {
   if (text && text.trim().length > 0) {
-    const textQuery = text
-      .split(/\s+/)
-      .filter((term) => term.length > 0)
-      .map((term) => `${term}:*`)
-      .join(' & ');
     return sql.fragment`
-      tsv @@ to_tsquery('simple', ${textQuery})
+      ${tsvectorFragment} @@ ${tsqueryFragment(text)}
     `;
   }
   return sql.fragment`true`;
@@ -50,7 +59,7 @@ function mapExtentFragment(input: ProjectSearch) {
 
 function orderByFragment(input: ProjectSearch) {
   if (input?.text && input.text.trim().length > 0) {
-    return sql.fragment`ORDER BY ts_rank(tsv, to_tsquery('simple', ${input.text})) DESC`;
+    return sql.fragment`ORDER BY ts_rank(${tsvectorFragment}, ${tsqueryFragment(input.text)}) DESC`;
   }
   return sql.fragment`ORDER BY project.start_date DESC`;
 }
@@ -143,15 +152,19 @@ export async function projectSearch(input: ProjectSearch) {
     WITH all_projects AS (
       SELECT
         project.id,
-        project_name AS "projectName",
-        description,
-        owner,
-        start_date AS "startDate",
-        end_date AS "endDate",
-        geohash,
-        ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
-        (lifecycle_state).id AS "lifecycleState"
+        project.project_name AS "projectName",
+        project.description,
+        project.owner,
+        project.start_date AS "startDate",
+        project.end_date AS "endDate",
+        project.geohash,
+        ST_AsGeoJSON(ST_CollectionExtract(project.geom)) AS geom,
+        (project.lifecycle_state).id AS "lifecycleState",
+        -- Select tsvectors from all tables for universal text filtering
+        project.tsv,
+        project_detailplan.tsv
       FROM app.project
+      LEFT JOIN app.project_detailplan ON project.id = project_detailplan.id
       WHERE deleted = false
       ${getFilterFragment(input) ?? ''}
     ), investment_projects AS (
