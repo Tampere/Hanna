@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { codeId } from '../code';
 import { isoDateString } from '../common';
 import { dbProjectSchema } from './base';
 
@@ -34,7 +35,9 @@ export const projectSearchSchema = z.object({
       .optional(),
     detailplanProject: z
       .object({
+        preparers: z.array(z.string()).optional(),
         planningZones: z.array(z.string()).optional(),
+        subtypes: z.array(codeId).optional(),
       })
       .optional(),
   }),
