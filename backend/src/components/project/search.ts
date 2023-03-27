@@ -133,11 +133,21 @@ function filterInvestmentProjectFragment(input: ProjectSearch['filters']['invest
 function filterDetailplanProjectFragment(input: ProjectSearch['filters']['detailplanProject']) {
   return sql.fragment`
     ${
+      input?.preparers && input.preparers.length > 0
+        ? sql.fragment`project_detailplan.preparer = ANY(${sql.array(input.preparers, 'text')})`
+        : sql.fragment`true`
+    }
+    AND ${
       input?.planningZones && input.planningZones.length > 0
         ? sql.fragment`(project_detailplan.planning_zone).id = ANY(${sql.array(
             input.planningZones,
             'text'
           )})`
+        : sql.fragment`true`
+    }
+    AND ${
+      input?.subtypes && input.subtypes.length > 0
+        ? sql.fragment`(project_detailplan.subtype).id = ANY(${sql.array(input.subtypes, 'text')})`
         : sql.fragment`true`
     }
   `;
