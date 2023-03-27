@@ -35,12 +35,14 @@ export const createSapRouter = (t: TRPC) =>
         `);
         if (result?.sapProjectId) {
           const sapProject = await getSapProject(result?.sapProjectId);
-          return sapProject?.wbs.map((wbs) => {
-            return {
-              wbsId: wbs.wbsId,
-              shortDescription: wbs.shortDescription,
-            };
-          });
+          return sapProject?.wbs
+            .filter((wbs) => wbs.hierarchyLevel > 1)
+            .map((wbs) => {
+              return {
+                wbsId: wbs.wbsId,
+                shortDescription: wbs.shortDescription,
+              };
+            });
         } else {
           return null;
         }
