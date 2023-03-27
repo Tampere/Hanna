@@ -105,7 +105,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
     onSuccess: (data) => {
       // Navigate to new url if we are creating a new project
       if (!props.project && data.id) {
-        navigate(`/hanke/${data.id}`);
+        navigate(`/investointihanke/${data.id}`);
       } else {
         queryClient.invalidateQueries({
           queryKey: [['project', 'get'], { input: { id: data.id } }],

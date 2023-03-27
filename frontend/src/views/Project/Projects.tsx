@@ -67,7 +67,7 @@ function Toolbar() {
             horizontal: 'right',
           }}
         >
-          <MenuItem component={Link} to="/hanke/luo">
+          <MenuItem component={Link} to="/investointihanke/luo">
             <ListItemIcon>
               <Add />
             </ListItemIcon>
@@ -99,7 +99,7 @@ const projectCardStyle = css`
 
 const projectTypeRootUrl = {
   detailplanProject: '/asemakaavahanke',
-  investmentProject: '/hanke',
+  investmentProject: '/investointihanke',
 };
 
 function ProjectCard({ result }: { result: DbProject }) {

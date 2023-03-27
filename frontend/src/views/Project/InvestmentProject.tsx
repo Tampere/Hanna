@@ -39,25 +39,25 @@ function projectTabs(projectId: string) {
   return [
     {
       tabView: 'default',
-      url: `/hanke/${projectId}`,
+      url: `/investointihanke/${projectId}`,
       label: 'project.mapTabLabel',
       icon: <Map fontSize="small" />,
     },
     {
       tabView: 'talous',
-      url: `/hanke/${projectId}/talous`,
+      url: `/investointihanke/${projectId}/talous`,
       label: 'project.financeTabLabel',
       icon: <Euro fontSize="small" />,
     },
     {
       tabView: 'kohteet',
-      url: `/hanke/${projectId}/kohteet`,
+      url: `/investointihanke/${projectId}/kohteet`,
       label: 'project.projectObjectsTabLabel',
       icon: <ListAlt fontSize="small" />,
     },
     {
       tabView: 'sidoshankkeet',
-      url: `/hanke/${projectId}/sidoshankkeet`,
+      url: `/investointihanke/${projectId}/sidoshankkeet`,
       label: 'project.relatedProjectsTabLabel',
       icon: <AccountTree fontSize="small" />,
     },
