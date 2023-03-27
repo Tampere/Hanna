@@ -46,7 +46,7 @@ async function createProject(page: Page, project: InvestmentProject) {
   // Go to the new project page
   await page.getByRole('button', { name: 'Luo uusi hanke' }).click();
   await page.getByRole('menuitem', { name: 'Uusi investointihanke' }).click();
-  await expect(page).toHaveURL('https://localhost:1443/hanke/luo');
+  await expect(page).toHaveURL('https://localhost:1443/investointihanke/luo');
 
   // Fill in the project data and save the project
   await page.locator('input[name="projectName"]').fill(project.projectName);
@@ -70,7 +70,7 @@ async function createProject(page: Page, project: InvestmentProject) {
   await page.getByRole('button', { name: 'Lisää hanke' }).click();
 
   // URL should include the newly created project ID, parse it from the URL
-  await expect(page).toHaveURL(/https:\/\/localhost:1443\/hanke\/[0-9a-f-]+/);
+  await expect(page).toHaveURL(/https:\/\/localhost:1443\/investointihanke\/[0-9a-f-]+/);
   const projectId = page.url().split('/').at(-1);
 
   await client.project.updateGeometry.mutate(geometryPayload(projectId, keskustoriGeom));
@@ -88,7 +88,7 @@ async function createProject(page: Page, project: InvestmentProject) {
 
 async function deleteProject(page: Page, projectId: string) {
   // Go to the project page
-  await page.goto(`https://localhost:1443/hanke/${projectId}`);
+  await page.goto(`https://localhost:1443/investointihanke/${projectId}`);
 
   // Delete the project
   await page.getByRole('button', { name: 'Poista hanke' }).click();
@@ -96,7 +96,7 @@ async function deleteProject(page: Page, projectId: string) {
   await expect(page).toHaveURL('https://localhost:1443/hankkeet');
 
   // Expect the project page to not exist anymore
-  await page.goto(`https://localhost:1443/hanke/${projectId}`);
+  await page.goto(`https://localhost:1443/investointihanke/${projectId}`);
   await expect(page.getByText('Hanketta ei löytynyt')).toBeVisible();
   await page.goto('https://localhost:1443/hankkeet');
 }
@@ -118,7 +118,7 @@ test.describe('Projects', () => {
 
     // Click on the new project button to go back to the project page
     await page.locator(`text=${project.projectName}`).click();
-    await expect(page).toHaveURL(`https://localhost:1443/hanke/${project.id}`);
+    await expect(page).toHaveURL(`https://localhost:1443/investointihanke/${project.id}`);
 
     // Check that all fields still have the same values
     await expect(page.locator('input[name="projectName"]')).toHaveValue(project.projectName);

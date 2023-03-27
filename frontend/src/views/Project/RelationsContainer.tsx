@@ -150,7 +150,7 @@ export function RelationsContainer({
                   objectOfRelation.projectName
                 )}
               >
-                <Link css={linkStyle} to={`/hanke/${objectOfRelation.projectId}`}>
+                <Link css={linkStyle} to={`/investointihanke/${objectOfRelation.projectId}`}>
                   {objectOfRelation.projectName}
                 </Link>
               </Tooltip>

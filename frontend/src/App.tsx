@@ -39,19 +39,19 @@ const router = createBrowserRouter(
       <Route path="/" element={<Layout />}>
         <Route index element={<ProjectsPage />} />
         <Route path="hankkeet" element={<ProjectsPage />} />
-        <Route path="hanke/luo" element={<InvestmentProject />} />
-        <Route path="hanke/:projectId" element={<InvestmentProject />} />
+        <Route path="investointihanke/luo" element={<InvestmentProject />} />
+        <Route path="investointihanke/:projectId" element={<InvestmentProject />} />
         <Route
-          path="hanke/:projectId/uusi-kohde"
+          path="investointihanke/:projectId/uusi-kohde"
           element={<ProjectObject projectType="investointihanke" />}
         />
-        <Route path="hanke/:projectId/:tabView" element={<InvestmentProject />} />
+        <Route path="investointihanke/:projectId/:tabView" element={<InvestmentProject />} />
         <Route
-          path="hanke/:projectId/kohde/:projectObjectId"
+          path="investointihanke/:projectId/kohde/:projectObjectId"
           element={<ProjectObject projectType="investointihanke" />}
         />
         <Route
-          path="hanke/:projectId/kohde/:projectObjectId/:tabView"
+          path="investointihanke/:projectId/kohde/:projectObjectId/:tabView"
           element={<ProjectObject projectType="investointihanke" />}
         />
         <Route path="asemakaavahanke/luo" element={<DetailplanProject />} />
