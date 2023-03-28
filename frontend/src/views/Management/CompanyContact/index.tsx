@@ -14,8 +14,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { trpc } from '@frontend/client';
 import { useTranslations } from '@frontend/stores/lang';
 import { useDebounce } from '@frontend/utils/useDebounce';
-import { ContractorForm } from '@frontend/views/Management/Contractor/ContractorForm';
-import { ContractorTable } from '@frontend/views/Management/Contractor/ContractorTable';
+import { CompanyContactForm } from '@frontend/views/Management/CompanyContact/CompanyContactForm';
+import { CompanyContactTable } from '@frontend/views/Management/CompanyContact/CompanyContactTable';
 
 type Props =
   | { dialog?: undefined }
@@ -24,16 +24,16 @@ type Props =
     }
   | {
       dialog: 'edit';
-      contractorId: string;
+      contactId: string;
     };
 
-export function ContractorPage(props: Props) {
+export function CompanyContactPage(props: Props) {
   const [query, setQuery] = useState('');
   const tr = useTranslations();
-  const contractors = trpc.contractor.search.useQuery({ query: useDebounce(query, 500) });
+  const contacts = trpc.company.searchContacts.useQuery({ query: useDebounce(query, 500) });
 
-  const loading = contractors.isLoading;
-  const noResults = contractors.data && contractors.data.length === 0;
+  const loading = contacts.isLoading;
+  const noResults = contacts.data && contacts.data.length === 0;
 
   const navigate = useNavigate();
 
@@ -63,7 +63,7 @@ export function ContractorPage(props: Props) {
             variant="contained"
             endIcon={<AddCircle />}
           >
-            {tr('contractor.addContractor')}
+            {tr('companyContact.addContact')}
           </Button>
         </Box>
       </Box>
@@ -73,7 +73,7 @@ export function ContractorPage(props: Props) {
         size="medium"
         value={query}
         fullWidth={true}
-        placeholder={tr('contractor.searchPlaceholder')}
+        placeholder={tr('companyContact.searchPlaceholder')}
         onChange={(e) => setQuery(e.target.value)}
       />
 
@@ -83,8 +83,10 @@ export function ContractorPage(props: Props) {
         `}
       >
         {loading && <CircularProgress />}
-        {noResults && <div>{tr('contractor.noSearchResults')}</div>}
-        {!noResults && contractors.data && <ContractorTable contractors={contractors.data} />}
+        {noResults && <div>{tr('companyContact.noSearchResults')}</div>}
+        {!noResults && contacts.data && (
+          <CompanyContactTable contacts={contacts.data} onDeleted={() => contacts.refetch()} />
+        )}
       </Box>
 
       <Dialog open={Boolean(props.dialog)} onClose={() => navigate('', { replace: true })}>
@@ -93,11 +95,11 @@ export function ContractorPage(props: Props) {
             min-width: 480px;
           `}
         >
-          {props.dialog === 'new' && <ContractorForm onSubmitted={() => contractors.refetch()} />}
+          {props.dialog === 'new' && <CompanyContactForm onSubmitted={() => contacts.refetch()} />}
           {props.dialog === 'edit' && (
-            <ContractorForm
-              contractorId={props.contractorId}
-              onSubmitted={() => contractors.refetch()}
+            <CompanyContactForm
+              contactId={props.contactId}
+              onSubmitted={() => contacts.refetch()}
             />
           )}
         </DialogContent>

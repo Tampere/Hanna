@@ -4,7 +4,7 @@ import superjson from 'superjson';
 
 import { logger } from '@backend/logging';
 import { createCodeRouter } from '@backend/router/code';
-import { createContractorRouter } from '@backend/router/contractor';
+import { createCompanyRouter } from '@backend/router/company';
 import { createProjectRouter } from '@backend/router/project/base';
 import { createDetailplanProjectRouter } from '@backend/router/project/detailplan';
 import { createInvestmentProjectRouter } from '@backend/router/project/investment';
@@ -46,7 +46,7 @@ export const appRouter = t.router({
   session: createSessionRouter(t),
   task: createTaskRouter(t),
   user: createUserRouter(t),
-  contractor: createContractorRouter(t),
+  company: createCompanyRouter(t),
   job: createJobRouter(t),
 });
 

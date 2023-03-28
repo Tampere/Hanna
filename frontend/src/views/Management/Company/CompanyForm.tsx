@@ -12,7 +12,7 @@ import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { getRequiredFields } from '@frontend/utils/form';
 
-import { Company, companySchema } from '@shared/schema/contractor';
+import { Company, companySchema } from '@shared/schema/company';
 
 interface Props {
   businessId?: string;
@@ -24,7 +24,7 @@ export function CompanyForm(props: Props) {
   const notify = useNotifications();
   const navigate = useNavigate();
 
-  const company = trpc.contractor.getCompanyById.useQuery(
+  const company = trpc.company.getById.useQuery(
     { businessId: props.businessId } as { businessId: string },
     { enabled: !!props.businessId }
   );
@@ -47,7 +47,7 @@ export function CompanyForm(props: Props) {
     },
   });
 
-  const companyUpsert = trpc.contractor.upsertCompany.useMutation({
+  const companyUpsert = trpc.company.upsert.useMutation({
     onSuccess: () => {
       props.onSubmitted?.();
       navigate('/hallinta/yritykset', { replace: true });

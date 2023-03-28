@@ -6,7 +6,10 @@ import { mapOptions } from '@frontend/components/Map/mapOptions';
 
 import { ProjectSearch } from '@shared/schema/project';
 
-export const projectSearchParamAtom = atom<ProjectSearch>({
+// Use the shared schema as base, but omit unused fields and mark the rest as required
+type SearchParams = Omit<Required<ProjectSearch>, 'limit' | 'projectTypes'>;
+
+export const projectSearchParamAtom = atom<SearchParams>({
   text: '',
   dateRange: {
     startDate: dayjs().startOf('year').format('YYYY-MM-DD'),

@@ -4,20 +4,20 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 
 import { useTranslations } from '@frontend/stores/lang';
 import { CompanyPage } from '@frontend/views/Management/Company';
-import { ContractorPage } from '@frontend/views/Management/Contractor';
+import { CompanyContactPage } from '@frontend/views/Management/CompanyContact';
 
 const tabs = [
-  {
-    tabView: 'urakoitsijat',
-    label: 'management.tabs.contractors',
-    icon: <PersonTwoTone />,
-    to: '/hallinta/urakoitsijat',
-  },
   {
     tabView: 'yritykset',
     label: 'management.tabs.companies',
     icon: <BusinessCenterTwoTone />,
     to: '/hallinta/yritykset',
+  },
+  {
+    tabView: 'yritysten-yhteyshenkilot',
+    label: 'management.tabs.companyContacts',
+    icon: <PersonTwoTone />,
+    to: '/hallinta/yritysten-yhteyshenkilot',
   },
 ] as const;
 
@@ -50,7 +50,7 @@ export function Management() {
           />
         ))}
       </Tabs>
-      {routeParams.tabView === 'urakoitsijat' && <ContractorPage {...viewParams} />}
+      {routeParams.tabView === 'yritysten-yhteyshenkilot' && <CompanyContactPage {...viewParams} />}
       {routeParams.tabView === 'yritykset' && <CompanyPage {...viewParams} />}
     </Box>
   );

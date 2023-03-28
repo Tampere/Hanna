@@ -65,10 +65,10 @@ function orderByFragment(input: ProjectSearch) {
 }
 
 function ownerFragment(input: ProjectSearch) {
-  if (input.owners.length === 0) {
-    return sql.fragment`true`;
+  if (input?.owners && input.owners.length > 0) {
+    return sql.fragment`project.owner = ANY(${sql.array(input.owners, 'text')})`;
   }
-  return sql.fragment`project.owner = ANY(${sql.array(input.owners, 'text')})`;
+  return sql.fragment`true`;
 }
 
 export function getFilterFragment(input: ProjectSearch) {
