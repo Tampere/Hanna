@@ -4,27 +4,14 @@ import { getPool, sql } from '@backend/db';
 
 import { ProjectSearch, projectSearchResultSchema } from '@shared/schema/project';
 
-const tsvectorFragment = sql.fragment`
-  COALESCE(project_detailplan.tsv, '') ||
-  COALESCE(project.tsv, '')
-`;
-
-function tsqueryFragment(text: string) {
-  const textQuery = text
-    .split(/\s+/)
-    .filter((term) => term.length > 0)
-    .map((term) => `${term}:*`)
-    .join(' & ');
-  return sql.fragment`to_tsquery('simple', ${textQuery})`;
-}
-
-function textSearchFragment(text: ProjectSearch['text']) {
-  if (text && text.trim().length > 0) {
-    return sql.fragment`
-      ${tsvectorFragment} @@ ${tsqueryFragment(text)}
-    `;
-  }
-  return sql.fragment`true`;
+export function textToSearchTerms(text: string | undefined) {
+  return (
+    text
+      ?.split(/\s+/)
+      .filter((term) => term.length > 0)
+      .map((term) => `${term}:*`)
+      .join(' & ') || null
+  );
 }
 
 function timePeriodFragment(input: ProjectSearch) {
@@ -57,13 +44,6 @@ function mapExtentFragment(input: ProjectSearch) {
   `;
 }
 
-function orderByFragment(input: ProjectSearch) {
-  if (input?.text && input.text.trim().length > 0) {
-    return sql.fragment`ORDER BY ts_rank(${tsvectorFragment}, ${tsqueryFragment(input.text)}) DESC`;
-  }
-  return sql.fragment`ORDER BY project.start_date DESC`;
-}
-
 function ownerFragment(input: ProjectSearch) {
   if (input?.owners && input.owners.length > 0) {
     return sql.fragment`project.owner = ANY(${sql.array(input.owners, 'text')})`;
@@ -73,8 +53,7 @@ function ownerFragment(input: ProjectSearch) {
 
 export function getFilterFragment(input: ProjectSearch) {
   return sql.fragment`
-      AND ${textSearchFragment(input.text)}
-      AND ${mapExtentFragment(input)}
+      ${mapExtentFragment(input)}
       AND ${timePeriodFragment(input)}
       AND ${ownerFragment(input)}
       AND ${
@@ -82,11 +61,9 @@ export function getFilterFragment(input: ProjectSearch) {
           ? sql.fragment`(project.lifecycle_state).id = ANY(${sql.array(
               input.lifecycleStates,
               'text'
-            )})
-          `
+            )})`
           : sql.fragment`true`
       }
-      ${orderByFragment(input)}
   `;
 }
 
@@ -117,38 +94,67 @@ function clusterResultsFragment(zoom: number | undefined) {
   `;
 }
 
-function filterInvestmentProjectFragment(input: ProjectSearch['filters']['investmentProject']) {
+export function investmentProjectFragment(input: ProjectSearch) {
+  const filters = input.filters.investmentProject;
   return sql.fragment`
-    ${
-      input?.committees && input.committees.length > 0
-        ? sql.fragment`(project_committee.committee_type).id = ANY(${sql.array(
-            input.committees,
-            'text'
-          )})`
-        : sql.fragment`true`
+    SELECT
+      project_investment.id,
+      'investmentProject' AS "projectType"
+    FROM app.project_investment
+    LEFT JOIN app.project_committee ON project_committee.project_id = project_investment.id
+    WHERE ${
+      Object.keys(input.filters).length !== 0 && !filters
+        ? sql.fragment`false`
+        : sql.fragment`
+          ${
+            filters?.committees && filters.committees.length > 0
+              ? sql.fragment`(project_committee.committee_type).id = ANY(${sql.array(
+                  filters.committees,
+                  'text'
+                )})`
+              : sql.fragment`true`
+          }
+        `
     }
   `;
 }
 
-function filterDetailplanProjectFragment(input: ProjectSearch['filters']['detailplanProject']) {
+export function detailplanProjectFragment(input: ProjectSearch) {
+  const filters = input.filters.detailplanProject;
   return sql.fragment`
-    ${
-      input?.preparers && input.preparers.length > 0
-        ? sql.fragment`project_detailplan.preparer = ANY(${sql.array(input.preparers, 'text')})`
-        : sql.fragment`true`
-    }
-    AND ${
-      input?.planningZones && input.planningZones.length > 0
-        ? sql.fragment`(project_detailplan.planning_zone).id = ANY(${sql.array(
-            input.planningZones,
-            'text'
-          )})`
-        : sql.fragment`true`
-    }
-    AND ${
-      input?.subtypes && input.subtypes.length > 0
-        ? sql.fragment`(project_detailplan.subtype).id = ANY(${sql.array(input.subtypes, 'text')})`
-        : sql.fragment`true`
+    SELECT
+      project_detailplan.id,
+      'detailplanProject' AS "projectType"
+    FROM app.project_detailplan
+    WHERE ${
+      Object.keys(input.filters).length !== 0 && !filters
+        ? sql.fragment`false`
+        : sql.fragment`
+          ${
+            filters?.preparers && filters.preparers.length > 0
+              ? sql.fragment`project_detailplan.preparer = ANY(${sql.array(
+                  filters.preparers,
+                  'text'
+                )})`
+              : sql.fragment`true`
+          }
+          AND ${
+            filters?.planningZones && filters.planningZones.length > 0
+              ? sql.fragment`(project_detailplan.planning_zone).id = ANY(${sql.array(
+                  filters.planningZones,
+                  'text'
+                )})`
+              : sql.fragment`true`
+          }
+          AND ${
+            filters?.subtypes && filters.subtypes.length > 0
+              ? sql.fragment`(project_detailplan.subtype).id = ANY(${sql.array(
+                  filters.subtypes,
+                  'text'
+                )})`
+              : sql.fragment`true`
+          }
+        `
     }
   `;
 }
@@ -156,48 +162,37 @@ function filterDetailplanProjectFragment(input: ProjectSearch['filters']['detail
 export async function projectSearch(input: ProjectSearch) {
   const { map, limit = 250 } = input;
 
-  const filteredTypes = new Set(Object.keys(input.filters));
   const resultSchema = z.object({ result: projectSearchResultSchema });
   const dbResult = await getPool().one(sql.type(resultSchema)`
-    WITH all_projects AS (
+    WITH ranked_projects AS (
       SELECT
-        project.id,
-        project.project_name AS "projectName",
-        project.description,
-        project.owner,
-        project.start_date AS "startDate",
-        project.end_date AS "endDate",
-        project.geohash,
-        ST_AsGeoJSON(ST_CollectionExtract(project.geom)) AS geom,
-        (project.lifecycle_state).id AS "lifecycleState",
-        -- Select tsvectors from all tables for universal text filtering
-        project.tsv,
-        project_detailplan.tsv
+        project.*,
+        ts_rank(
+          COALESCE(project.tsv, '') || COALESCE(project_detailplan.tsv, ''),
+          to_tsquery('simple', ${textToSearchTerms(input.text)})
+        ) AS tsrank
       FROM app.project
       LEFT JOIN app.project_detailplan ON project.id = project_detailplan.id
-      WHERE deleted = false
-      ${getFilterFragment(input) ?? ''}
+      WHERE
+        deleted = false AND ${getFilterFragment(input) ?? ''}
+    ), all_projects AS (
+      SELECT
+        id,
+        project_name AS "projectName",
+        description,
+        owner,
+        start_date AS "startDate",
+        end_date AS "endDate",
+        geohash,
+        ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
+        (lifecycle_state).id AS "lifecycleState",
+        tsrank
+      FROM ranked_projects
+      WHERE tsrank IS NULL OR tsrank > 0
     ), investment_projects AS (
-      SELECT
-        project_investment.id,
-        'investmentProject' AS "projectType"
-      FROM app.project_investment
-      LEFT JOIN app.project_committee ON project_committee.project_id = project_investment.id
-      WHERE ${
-        filteredTypes.size !== 0 && !filteredTypes.has('investmentProject')
-          ? sql.fragment`false`
-          : filterInvestmentProjectFragment(input.filters?.investmentProject)
-      }
-     ), detailplan_projects AS (
-      SELECT
-        project_detailplan.id,
-        'detailplanProject' AS "projectType"
-      FROM app.project_detailplan
-      WHERE ${
-        filteredTypes.size !== 0 && !filteredTypes.has('detailplanProject')
-          ? sql.fragment`false`
-          : filterDetailplanProjectFragment(input.filters?.detailplanProject)
-      }
+      ${investmentProjectFragment(input)}
+    ), detailplan_projects AS (
+      ${detailplanProjectFragment(input)}
     ), projects AS (
       SELECT *
       FROM (
@@ -209,6 +204,7 @@ export async function projectSearch(input: ProjectSearch) {
     ), limited AS (
       SELECT *
       FROM projects
+      ORDER BY tsrank DESC, "startDate" DESC
       LIMIT ${limit}
     )
    SELECT jsonb_build_object(

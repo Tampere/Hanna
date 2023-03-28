@@ -31,6 +31,10 @@ export function buildSheet<ColumnKey extends ReportColumnKey>({
   sheetTitle: string;
   rows: { [field in ColumnKey]?: ReportFieldValue }[];
 }) {
+  if (!rows.length) {
+    return;
+  }
+
   const headerStyle = workbook.createStyle({
     font: {
       bold: true,
