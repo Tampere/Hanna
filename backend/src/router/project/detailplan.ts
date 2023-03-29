@@ -3,12 +3,14 @@ import { z } from 'zod';
 import { getCodeText } from '@backend/components/code';
 import { Mail, previewMail } from '@backend/components/mail';
 import {
+  getNextDetailplanId,
   getProject,
   projectUpsert,
   validateUpsertProject,
 } from '@backend/components/project/detailplan';
 import { startSendMailJob } from '@backend/components/taskQueue/mailQueue';
 import { getUser } from '@backend/components/user';
+import { getPool, sql } from '@backend/db';
 import { env } from '@backend/env';
 import { TRPC } from '@backend/router';
 
@@ -46,6 +48,10 @@ export const createDetailplanProjectRouter = (t: TRPC) =>
     get: t.procedure.input(projectIdSchema).query(async ({ input }) => {
       const { id } = input;
       return getProject(id);
+    }),
+
+    getNextDetailplanId: t.procedure.query(async () => {
+      return getNextDetailplanId();
     }),
 
     getNotificationRecipients: t.procedure.query(async () => {
