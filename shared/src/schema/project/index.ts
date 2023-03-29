@@ -25,7 +25,7 @@ export const projectSearchSchema = z.object({
   lifecycleStates: z.array(z.string()).optional(),
   projectTypes: z.array(z.string()).optional(),
   map: mapSearchSchema.optional(),
-  owners: z.array(z.string()),
+  owners: z.array(z.string()).optional(),
   includeWithoutGeom: z.boolean().optional(),
   filters: z.object({
     investmentProject: z

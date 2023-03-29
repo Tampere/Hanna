@@ -6,7 +6,7 @@ import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
-import { Company } from '@shared/schema/contractor';
+import { Company } from '@shared/schema/company';
 
 interface Props {
   companies: readonly Company[];
@@ -17,7 +17,7 @@ export function CompanyTable(props: Props) {
   const tr = useTranslations();
   const notify = useNotifications();
 
-  const companyDeletion = trpc.contractor.deleteCompany.useMutation({
+  const companyDeletion = trpc.company.delete.useMutation({
     onSuccess: () => {
       props.onDeleted?.();
       notify({

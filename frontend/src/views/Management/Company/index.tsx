@@ -19,7 +19,7 @@ type Props =
 
 export function CompanyPage(props: Props) {
   const tr = useTranslations();
-  const companies = trpc.contractor.getCompanies.useQuery();
+  const companies = trpc.company.getAll.useQuery();
   const loading = companies.isLoading;
   const noResults = companies.data && companies.data.length === 0;
 

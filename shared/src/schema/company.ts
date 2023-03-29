@@ -11,7 +11,7 @@ export const companyIdSchema = z.object({
   businessId: nonEmptyString,
 });
 
-export const contractorSchema = z.object({
+export const companyContactSchema = z.object({
   id: z.string().optional(),
   contactName: nonEmptyString,
   phoneNumber: nonEmptyString,
@@ -19,15 +19,15 @@ export const contractorSchema = z.object({
   businessId: nonEmptyString,
 });
 
-export const contractorIdSchema = z.object({
+export const companyContactIdSchema = z.object({
   id: nonEmptyString,
 });
 
-export const searchQuerySchema = z.object({
+export const companyContactSearchQuerySchema = z.object({
   query: z.string(),
 });
 
-export const searchResultSchema = z.object({
+export const companyContactSearchResultSchema = z.object({
   id: z.string(),
   contactName: nonEmptyString,
   phoneNumber: nonEmptyString,
@@ -36,11 +36,11 @@ export const searchResultSchema = z.object({
   businessId: nonEmptyString,
 });
 
-const dbContractor = contractorSchema.required();
+const dbCompanyContact = companyContactSchema.required();
 
 export type Company = z.infer<typeof companySchema>;
-export type Contractor = z.infer<typeof dbContractor>;
+export type CompanyContact = z.infer<typeof dbCompanyContact>;
 export type DeleteCompany = z.infer<typeof companyIdSchema>;
-export type UpsertContractor = z.infer<typeof contractorSchema>;
-export type DeleteContractor = z.infer<typeof contractorIdSchema>;
-export type SearchResult = z.infer<typeof searchResultSchema>;
+export type UpsertCompanyContact = z.infer<typeof companyContactSchema>;
+export type DeleteCompanyContact = z.infer<typeof companyContactIdSchema>;
+export type CompanyContactSearchResult = z.infer<typeof companyContactSearchResultSchema>;

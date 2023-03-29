@@ -115,7 +115,7 @@ function Navbar() {
             </Button>
             <Button
               component={Link}
-              to="/hallinta/urakoitsijat"
+              to="/hallinta/yritykset"
               sx={{ color: 'white', float: 'right' }}
               startIcon={<Settings />}
             >

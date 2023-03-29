@@ -12,40 +12,37 @@ import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { getRequiredFields } from '@frontend/utils/form';
 
-import { Contractor, contractorSchema } from '@shared/schema/contractor';
+import { CompanyContact, companyContactSchema } from '@shared/schema/company';
 
 interface Props {
-  contractorId?: string;
+  contactId?: string;
   onSubmitted?: () => void;
 }
 
-export function ContractorForm(props: Props) {
+export function CompanyContactForm(props: Props) {
   const tr = useTranslations();
   const notify = useNotifications();
   const navigate = useNavigate();
 
-  const contractor = trpc.contractor.getContractorById.useQuery(
-    { id: props.contractorId } as { id: string },
-    {
-      enabled: !!props.contractorId,
-    }
-  );
+  const contact = trpc.company.getContactById.useQuery({ id: props.contactId } as { id: string }, {
+    enabled: !!props.contactId,
+  });
 
-  const companies = trpc.contractor.getCompanies.useQuery();
+  const companies = trpc.company.getAll.useQuery();
 
   useEffect(() => {
-    if (props.contractorId && contractor.data) {
-      form.reset(contractor.data);
+    if (props.contactId && contact.data) {
+      form.reset(contact.data);
     }
-  }, [contractor.data, props.contractorId]);
+  }, [contact.data, props.contactId]);
 
-  const form = useForm<Contractor>({
+  const form = useForm<CompanyContact>({
     mode: 'all',
-    resolver: zodResolver(contractorSchema),
+    resolver: zodResolver(companyContactSchema),
     context: {
-      requiredFields: getRequiredFields(contractorSchema),
+      requiredFields: getRequiredFields(companyContactSchema),
     },
-    defaultValues: contractor.data ?? {
+    defaultValues: contact.data ?? {
       contactName: '',
       phoneNumber: '',
       emailAddress: '',
@@ -53,10 +50,10 @@ export function ContractorForm(props: Props) {
     },
   });
 
-  const contractorUpsert = trpc.contractor.upsertContractor.useMutation({
+  const contactUpsert = trpc.company.upsertContact.useMutation({
     onSuccess: () => {
       props.onSubmitted?.();
-      navigate('/hallinta/urakoitsijat', { replace: true });
+      navigate('/hallinta/yritysten-yhteyshenkilot', { replace: true });
       notify({
         severity: 'success',
         title: tr('genericForm.notifySubmitSuccess'),
@@ -71,18 +68,18 @@ export function ContractorForm(props: Props) {
     },
   });
 
-  const onSubmit = (data: Contractor) => {
-    contractorUpsert.mutate(data);
+  const onSubmit = (data: CompanyContact) => {
+    contactUpsert.mutate(data);
   };
 
-  if (props.contractorId && contractor.isLoading) {
+  if (props.contactId && contact.isLoading) {
     return <CircularProgress />;
   }
 
   return (
     <FormProvider {...form}>
-      <SectionTitle title={tr('contractorForm.title')} />
-      {props.contractorId && (
+      <SectionTitle title={tr('companyContactForm.title')} />
+      {props.contactId && (
         <Box
           css={css`
             display: flex;
@@ -110,17 +107,17 @@ export function ContractorForm(props: Props) {
       >
         <FormField
           formField="contactName"
-          label={tr('contractor.name')}
+          label={tr('companyContact.name')}
           component={(field) => <TextField {...field} size="small" autoFocus={true} />}
         />
         <FormField
           formField="phoneNumber"
-          label={tr('contractor.phone')}
+          label={tr('companyContact.phone')}
           component={(field) => <TextField {...field} size="small" />}
         />
         <FormField
           formField="emailAddress"
-          label={tr('contractor.email')}
+          label={tr('companyContact.email')}
           component={({ ref, ...field }) => <TextField {...field} size="small" />}
         />
         <FormField

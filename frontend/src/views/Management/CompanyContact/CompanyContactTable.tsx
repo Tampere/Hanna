@@ -6,18 +6,18 @@ import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
-import { SearchResult } from '@shared/schema/contractor';
+import { CompanyContactSearchResult } from '@shared/schema/company';
 
 interface Props {
-  contractors: readonly SearchResult[];
+  contacts: readonly CompanyContactSearchResult[];
   onDeleted?: () => void;
 }
 
-export function ContractorTable(props: Props) {
+export function CompanyContactTable(props: Props) {
   const tr = useTranslations();
   const notify = useNotifications();
 
-  const contractorDeletion = trpc.contractor.deleteContractor.useMutation({
+  const contactDeletion = trpc.company.deleteContact.useMutation({
     onSuccess: () => {
       props.onDeleted?.();
       notify({
@@ -38,29 +38,29 @@ export function ContractorTable(props: Props) {
     <Table size="small">
       <TableHead>
         <TableRow>
-          <TableCell>{tr('contractor.name')}</TableCell>
-          <TableCell>{tr('contractor.phone')}</TableCell>
-          <TableCell>{tr('contractor.email')}</TableCell>
+          <TableCell>{tr('companyContact.name')}</TableCell>
+          <TableCell>{tr('companyContact.phone')}</TableCell>
+          <TableCell>{tr('companyContact.email')}</TableCell>
           <TableCell>{tr('company.name')}</TableCell>
           <TableCell>{tr('company.businessId')}</TableCell>
           <TableCell sx={{ width: '128px' }}></TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
-        {props.contractors.map((contractor) => (
-          <TableRow key={contractor.id}>
-            <TableCell>{contractor.contactName}</TableCell>
-            <TableCell>{contractor.phoneNumber}</TableCell>
-            <TableCell>{contractor.emailAddress}</TableCell>
-            <TableCell>{contractor.companyName}</TableCell>
-            <TableCell>{contractor.businessId}</TableCell>
+        {props.contacts.map((contact) => (
+          <TableRow key={contact.id}>
+            <TableCell>{contact.contactName}</TableCell>
+            <TableCell>{contact.phoneNumber}</TableCell>
+            <TableCell>{contact.emailAddress}</TableCell>
+            <TableCell>{contact.companyName}</TableCell>
+            <TableCell>{contact.businessId}</TableCell>
             <TableCell sx={{ display: 'flex', gap: '8px' }}>
               <Button
                 size="small"
                 variant="outlined"
                 component={Link}
                 replace={true}
-                to={`?dialog=edit&contractorId=${contractor.id}`}
+                to={`?dialog=edit&contactId=${contact.id}`}
                 startIcon={<EditTwoTone />}
               >
                 {tr('genericForm.editBtnLabel')}
@@ -68,7 +68,7 @@ export function ContractorTable(props: Props) {
               <Button
                 onClick={() => {
                   if (confirm(tr('genericForm.deleteConfirmation'))) {
-                    contractorDeletion.mutate({ id: contractor.id });
+                    contactDeletion.mutate({ id: contact.id });
                   }
                 }}
                 color="secondary"
