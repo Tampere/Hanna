@@ -1,9 +1,9 @@
-import { expect, Locator, Page, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
+import type { InvestmentProject } from '@shared/schema/project/investment';
 import { sleep } from '@shared/utils';
+import { fillDatePickerValue, getDatePickerValue } from '@utils/date-picker';
 import { login } from '@utils/page';
 import { client } from '@utils/trpc';
-import type { InvestmentProject } from '@shared/schema/project/investment';
-import { fillDatePickerValue, getDatePickerValue } from '@utils/date-picker';
 
 const keskustoriGeom = {
   type: 'Polygon',
@@ -54,9 +54,6 @@ async function createProject(page: Page, project: InvestmentProject) {
 
   await fillDatePickerValue(page.locator('input[name="startDate"]'), project.startDate);
   await fillDatePickerValue(page.locator('input[name="endDate"]'), project.endDate);
-
-  // await page.locator('input[name="startDate"]').type(project.startDate);
-  // await page.locator('input[name="endDate"]').type(project.endDate);
 
   const lifecycleText = lifecycleStateToText[project.lifecycleState];
   if (lifecycleText) {
