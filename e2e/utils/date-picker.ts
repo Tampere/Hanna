@@ -13,8 +13,14 @@ dayjs.extend(customParseFormat);
  */
 export async function fillDatePickerValue(locator: Locator, date: string) {
   const inputString = dayjs(date, 'D.M.YYYY').format('DDMMYYYY');
+  await locator.page().pause();
   await locator.focus();
-  await locator.type(inputString);
+  // TODO: Try to remove at some point. Now there is a need to press left arrow three times
+  // due to potential playwright regression in focus handling with MUI date picker.
+  for (let i = 0; i < 3; i++) {
+    await locator.press('ArrowLeft');
+  }
+  await locator.type(inputString, { delay: 50 });
 }
 
 /**
