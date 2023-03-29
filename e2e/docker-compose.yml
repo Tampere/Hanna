@@ -8,6 +8,7 @@ services:
         - CI=${CI:-}
     environment:
       - CI=${CI:-}
+      - BACKEND_HOST=backend
     volumes:
       # For container based development to show git changes in the whole workspace
       - ../.git:/app/.git:cached
@@ -88,6 +89,8 @@ services:
     image: caddy:2-alpine
     ports:
       - '127.0.0.1:1443:443'
+    environment:
+      - PROXY_TARGET_HOST=frontend
     volumes:
       - ../docker/proxy/Caddyfile:/etc/caddy/Caddyfile
       - ../docker/proxy/data:/data

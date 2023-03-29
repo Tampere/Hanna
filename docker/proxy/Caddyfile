@@ -1,4 +1,4 @@
 localhost {
   log
-  reverse_proxy frontend:8080
+  reverse_proxy {$PROXY_TARGET_HOST}:8080
 }
