@@ -271,7 +271,6 @@
   "newDetailplanProject.formTitle": "Uusi asemakaavahanke",
   "newDetailplanProject.notifyUpsert": "Asemakaavahanke tallennettu",
   "newDetailplanProject.notifyUpsertFailed": "Asemakaavahankkeen tallennus epäonnistui",
-  "newDetailplanProject.detailplanIdPlaceholder": "Generoidaan automaattisesti",
   "newDetailplanProject.preparerTooltip": "Valitse valmistelija",
   "newDetailplanProject.districtTooltip": "Syötä alue/kaupunginosa",
   "newDetailplanProject.blockNameTooltip": "Syötä kortteli/tontti",

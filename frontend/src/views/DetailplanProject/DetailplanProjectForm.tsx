@@ -47,6 +47,7 @@ export function DetailplanProjectForm(props: Props) {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(!props.project);
   const currentUser = useAtomValue(authAtom);
+  const [nextDetailplanId, setNextDetailplanId] = useState<number | null>(null);
 
   const readonlyProps = useMemo(() => {
     if (editing) {
@@ -113,6 +114,13 @@ export function DetailplanProjectForm(props: Props) {
 
   useEffect(() => {
     form.reset(props.project ?? formDefaultValues);
+
+    // Fetch the next available detailplan ID once when the form has been loaded
+    if (!props.project) {
+      detailplanProject.getNextDetailplanId.fetch().then((id) => {
+        setNextDetailplanId(id);
+      });
+    }
   }, [props.project]);
 
   const projectUpsert = trpc.detailplanProject.upsert.useMutation({
@@ -303,7 +311,7 @@ export function DetailplanProjectForm(props: Props) {
               {...field}
               value={props.project?.detailplanId ?? ''}
               size="small"
-              placeholder={tr('newDetailplanProject.detailplanIdPlaceholder')}
+              placeholder={nextDetailplanId != null ? String(nextDetailplanId) : ''}
             />
           )}
         />

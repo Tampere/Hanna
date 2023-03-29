@@ -127,3 +127,12 @@ export async function validateUpsertProject(
   const conn = tx ?? getPool();
   return baseProjectValidate(conn, project);
 }
+
+export async function getNextDetailplanId() {
+  const { id } = await getPool().one(
+    sql.type(
+      z.object({ id: z.number() })
+    )`SELECT COALESCE(MAX(detailplan_id) + 1, 1) AS id FROM app.project_detailplan`
+  );
+  return id;
+}
