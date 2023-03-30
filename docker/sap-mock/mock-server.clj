@@ -146,7 +146,7 @@
 (defn random-project-data [project-id]
   (let [;; decode mock data parameters from the id part
         ;; e.g. I1112_34567
-        ;; -> 3 WBS elements, 4 activities per WBS 
+        ;; -> 3 WBS elements, 4 activities per WBS
         [_ id] (str/split project-id #"_")
         [wbs-count activity-count] (take 2 id)
         wbs-count (- (int wbs-count) 48)
@@ -334,9 +334,43 @@
        [:BEKNZ BEKNZ]])
     actuals)])
 
+(def not-found-response
+  [[:MESSAGES [:item
+               [:TYPE "E"]
+               [:ID]
+               [:NUMBER "000"]
+               [:MESSAGE "Projektia ei löydy"]
+               [:LOG_NO]
+               [:MESSAGE_V1]
+               [:MESSAGE_V2]
+               [:MESSAGE_V3]
+               [:MESSAGE_V4]
+               [:PARAMETER]
+               [:ROW]
+               [:FIELD]
+               [:SYSTEM]]]
+   [:PROJECT_INFO
+    [:PSPNR "00000000"]
+    [:PSPID]
+    [:POST1]
+    [:ERNAM]
+    [:ERDAT "0000-00-00"]
+    [:AENAM]
+    [:AEDAT]
+    [:VERNR "00000000"]
+    [:VERNA]
+    [:ASTNR "00000000"]
+    [:ASTNA]
+    [:VBUKR]
+    [:PRCTR]
+    [:PLFAZ "0000-00-00"]
+    [:PLSEZ "0000-00-00"]
+    [:WERKS]
+    [:WBS]]])
+
 ;;
 ;; XML utils
-;; 
+;;
 
 (defn tag-name [tag]
   (some-> tag name keyword))
@@ -352,12 +386,15 @@
       (some? tag)
       {tag (apply merge (map preprocess-elem content))})))
 
-(defn ->soap-envelope [body]
-  (xml/indent-str
-   (xml/sexp-as-element
-    [:SOAP:Envelope
-     {:xmlns:SOAP "http://schemas.xmlsoap.org/soap/envelope/"}
-     [:SOAP:Body body]])))
+(defn ->soap-response [operation & body]
+  (let [operation-kw (keyword (str "rfc:" (name operation) ".Response"))]
+    (xml/indent-str
+     (xml/sexp-as-element
+      [:SOAP:Envelope
+       {:xmlns:SOAP "http://schemas.xmlsoap.org/soap/envelope/"}
+       [:SOAP:Body [operation-kw
+                    {:xmlns:rfc "urn:sap-com:document:sap:rfc:functions"}
+                    body]]]))))
 
 ;;
 ;; SOAP endpoints
@@ -376,15 +413,17 @@
           project-id (get-in root-elem [:Envelope :Body :ZPS_WS_GET_PROJECT_INFO :PROJECT])
           [_ id] (str/split project-id #"_")
           _ (set-seed! (Integer/parseInt id))
-          project (random-project-data project-id)]
+          project (random-project-data project-id)
+          not-found? (= id "404")
+          make-response (partial apply ->soap-response :ZPS_WS_GET_PROJECT_INFO)]
       (s/validate ProjectInfoSoapMessage root-elem)
       {:status 200
        :content-type "text/xml"
-       :body (->soap-envelope
-              [:rfc:ZPS_WS_GET_PROJECT_INFO.Response
-               {:xmlns:rfc "urn:sap-com:document:sap:rfc:functions"}
-               [:MESSAGES]
-               (generate-project-data project)])})))
+       :body (make-response
+              (if not-found?
+                not-found-response
+                [[:MESSAGES]
+                 (generate-project-data project)]))})))
 
 (s/defschema ActualsSoapMessage
   {:Envelope
@@ -423,11 +462,10 @@
                          (filter-by-date-range query-date-range))]
         {:status 200
          :content-type "text/xml"
-         :body (->soap-envelope
-                [:rfc:ZPS_WS_GET_ACTUALS.Response
-                 {:xmlns:rfc "urn:sap-com:document:sap:rfc:functions"}
-                 [:MESSAGES]
-                 (generate-actuals-data actuals)])}))))
+         :body (->soap-response
+                :ZPS_WS_GET_ACTUALS
+                [:MESSAGES]
+                (generate-actuals-data actuals))}))))
 
 ;;
 ;; Web server

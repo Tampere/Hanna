@@ -10,7 +10,6 @@ import {
 } from '@backend/components/project/detailplan';
 import { startSendMailJob } from '@backend/components/taskQueue/mailQueue';
 import { getUser } from '@backend/components/user';
-import { getPool, sql } from '@backend/db';
 import { env } from '@backend/env';
 import { TRPC } from '@backend/router';
 

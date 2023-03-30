@@ -11,6 +11,7 @@ import { UpsertProject, projectIdSchema } from '@shared/schema/project/base';
 import { User } from '@shared/schema/user';
 
 import { codeIdFragment } from '../code';
+import { sapProjectExists } from '../sap/dataImport';
 
 async function upsertBaseProject(
   tx: DatabaseTransactionConnection,
@@ -93,6 +94,12 @@ export async function validateUpsertProject(
   values: UpsertProject
 ) {
   const validationErrors: FormErrors<UpsertProject> = { errors: {} };
+
+  if (values?.sapProjectId) {
+    if (!(await sapProjectExists(values.sapProjectId))) {
+      validationErrors.errors['sapProjectId'] = fieldError('project.error.sapProjectNotFound');
+    }
+  }
 
   if (values?.id) {
     const estimateRange = await getPool().maybeOne(sql.untyped`

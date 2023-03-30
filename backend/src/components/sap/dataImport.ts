@@ -371,3 +371,10 @@ export async function getSapActuals(sapProjectId: string, year: string) {
     return maybeCacheSapActuals(sapProjectId, year, actuals);
   }
 }
+
+export async function sapProjectExists(projectId: string) {
+  const wsClient = ProjectInfoService.getClient();
+  const [wsResult] = await wsClient.SI_ZPS_WS_GET_PROJECT_INFOAsync({ PROJECT: projectId });
+  const containsErrorItem = wsResult.MESSAGES?.item?.some((item: any) => item.TYPE === 'E');
+  return !containsErrorItem;
+}

@@ -67,6 +67,7 @@
   "project.error.endDateBeforeStartDate": "Loppuajankohdan oltava alkuajankohdan jälkeen",
   "project.error.existingProjectObjectWBS": "Hankkeen kohteilla rakenneosia",
   "project.error.costEstimateNotIncluded": "Kustannusarvioita ajankohdan ulkopuolella",
+  "project.error.sapProjectNotFound": "SAP-projektia ei löytynyt annetulla ID:llä",
   "projectForm.saveBtnLabel": "Tallenna",
   "projectForm.editBtnLabel": "Muokkaa",
   "projectForm.undoBtnLabel": "Peruuta muutokset",
