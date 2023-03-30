@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  oidc-provider:
+    build:
+      context: ./docker/oidc-provider/
+      dockerfile: Dockerfile
+    network_mode: service:backend
+
+  proxy:
+    environment:
+      - PROXY_TARGET_HOST=frontend
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - BACKEND_HOST=backend
+    volumes:
+      # For container based development to show git changes in the whole workspace
+      - .git:/app/.git:cached
+      - ./:/app/
+      - /app/frontend/node_modules
+      - /app/shared/node_modules
+      - /app/backend/node_modules
+    ports:
+      - '127.0.0.1:8080:8080'
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - PG_HOST=db
+      - EMAIL_HOST=mailhog
+      - SAP_WS_PROJECTINFO_ENDPOINT=http://sap-mock:3000/projectinfo
+      - SAP_WS_ACTUALS_ENDPOINT=http://sap-mock:3000/actuals
+      - SAP_WS_ENDPOINT=http://sap-mock:3000/projectinfo
+      - OIDC_CLIENT_DISCOVERY_URL=http://localhost:9090
+      - OIDC_REDIRECT_URI=https://localhost/api/v1/auth/callback
+      - AUTH_LOGOUT_URL=http://localhost:9090/session/end
+
+    volumes:
+      - .git:/app/.git:cached
+      - ./:/app/
+      - /app/backend/node_modules
+      - /app/shared/node_modules
+    ports:
+      - '127.0.0.1:3003:3003'
+      - '127.0.0.1:9090:9090'
+    depends_on:
+      db:
+        condition: service_healthy

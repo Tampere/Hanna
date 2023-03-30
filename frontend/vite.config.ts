@@ -9,13 +9,16 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // Use customized instance of MarkdownIt to enable anchor links
 const markdownIt = MarkdownIt().use(MarkdownItAnchor, {});
 
+const backendHost = process.env.BACKEND_HOST ?? '127.0.0.1';
+const proxyAddress = `http://${backendHost}:3003`;
+
 const serverOptions: CommonServerOptions = {
   host: '0.0.0.0',
   port: 8080,
   proxy: {
-    '/logout': 'http://backend:3003',
-    '/api': 'http://backend:3003',
-    '/trpc': 'http://backend:3003',
+    '/logout': proxyAddress,
+    '/api': proxyAddress,
+    '/trpc': proxyAddress,
   },
 };
 
