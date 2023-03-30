@@ -6,7 +6,7 @@ import { upsertProjectSchema } from './base';
 
 export const detailplanProjectSchema = upsertProjectSchema.extend({
   id: z.string().optional(),
-  diaryId: z.string().optional(),
+  diaryId: nonEmptyString,
   diaryDate: isoDateString.nullish(),
   subtype: codeId.nullish(),
   planningZone: codeId.nullish(),
