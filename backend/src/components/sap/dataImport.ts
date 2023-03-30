@@ -88,8 +88,8 @@ async function insertProject(conn: DatabaseTransactionConnection, project: SAPPr
       ${project.createdBy},
       ${project.updatedAt ?? null},
       ${project.updatedBy ?? null},
-      ${project.projectManagerName},
-      ${project.applicantName},
+      ${project.projectManagerName ?? null},
+      ${project.applicantName ?? null},
       ${project.plannedStartDate ?? null},
       ${project.plannedEndDate ?? null},
       ${project.plant ?? null}
