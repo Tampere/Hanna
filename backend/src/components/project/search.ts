@@ -15,14 +15,14 @@ export function textToSearchTerms(text: string | undefined) {
 }
 
 function timePeriodFragment(input: ProjectSearch) {
-  const startDate = input.dateRange?.startDate;
-  const endDate = input.dateRange?.endDate;
-  if (startDate && endDate) {
-    return sql.fragment`
-      daterange(project.start_date, project.end_date, '[]') && daterange(${startDate}, ${endDate}, '[]')
-    `;
+  const startDate = input.dateRange?.startDate ?? null;
+  const endDate = input.dateRange?.endDate ?? null;
+  if (!startDate && !endDate) {
+    return sql.fragment`true`;
   }
-  return sql.fragment`true`;
+  return sql.fragment`
+    daterange(project.start_date, project.end_date, '[]') && daterange(${startDate}, ${endDate}, '[]')
+  `;
 }
 
 function mapExtentFragment(input: ProjectSearch) {

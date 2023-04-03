@@ -9,6 +9,7 @@ services:
     environment:
       - CI=${CI:-}
       - BACKEND_HOST=backend
+      - HMR_PORT=1443
     volumes:
       # For container based development to show git changes in the whole workspace
       - ../.git:/app/.git:cached

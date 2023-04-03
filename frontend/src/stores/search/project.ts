@@ -1,4 +1,3 @@
-import dayjs from 'dayjs';
 import { atom } from 'jotai';
 import { focusAtom } from 'jotai-optics';
 
@@ -12,8 +11,8 @@ type SearchParams = Omit<Required<ProjectSearch>, 'limit' | 'projectTypes'>;
 export const projectSearchParamAtom = atom<SearchParams>({
   text: '',
   dateRange: {
-    startDate: dayjs().startOf('year').format('YYYY-MM-DD'),
-    endDate: dayjs().endOf('year').format('YYYY-MM-DD'),
+    startDate: null,
+    endDate: null,
   },
   lifecycleStates: [],
   owners: [],

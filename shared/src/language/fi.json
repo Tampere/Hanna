@@ -298,5 +298,6 @@
   "detailplanProject.notifySendNotification": "Tiedote lähetetty",
   "detailplanProject.notifySendNotificationFailed": "Tiedotteen lähetys epäonnistui",
   "email.subject": "Aihe",
-  "send": "Lähetä"
+  "send": "Lähetä",
+  "clear": "Tyhjennä"
 }

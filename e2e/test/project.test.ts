@@ -134,7 +134,8 @@ test.describe('Projects', () => {
       projectName: 'Tuhottava hanke',
       description: 'Testikuvaus',
       startDate: '1.12.2022',
-      endDate: '31.12.2022',
+      // TODO 31st days don't work via keyboard input: https://github.com/mui/mui-x/issues/8485
+      endDate: '30.12.2022',
     });
 
     await deleteProject(page, project.id);

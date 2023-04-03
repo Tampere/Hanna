@@ -5,8 +5,8 @@ import { isoDateString } from '../common';
 import { dbProjectSchema } from './base';
 
 export const periodSchema = z.object({
-  startDate: isoDateString,
-  endDate: isoDateString,
+  startDate: isoDateString.nullable(),
+  endDate: isoDateString.nullable(),
 });
 
 export type Period = z.infer<typeof periodSchema>;

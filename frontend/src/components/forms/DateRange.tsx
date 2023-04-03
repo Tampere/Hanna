@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
-import { CalendarMonthTwoTone } from '@mui/icons-material';
-import { Box, Chip, IconButton, Popover, TextField, Typography } from '@mui/material';
+import { CalendarMonthTwoTone, Clear } from '@mui/icons-material';
+import { Box, Button, Chip, IconButton, Popover, TextField, Typography } from '@mui/material';
 import {
   DateCalendar,
   LocalizationProvider,
@@ -17,8 +17,8 @@ import { langAtom, useTranslations } from '@frontend/stores/lang';
 const isoFormat = 'YYYY-MM-DD';
 
 interface Period {
-  startDate: string;
-  endDate: string;
+  startDate: string | null;
+  endDate: string | null;
 }
 
 interface QuickSelection {
@@ -36,7 +36,7 @@ interface Props {
 }
 
 function widgetDayCSSProps(day: Dayjs, selectedDate: Dayjs, inRange: boolean) {
-  if (day.isSame(selectedDate, 'day')) {
+  if (day?.isSame(selectedDate, 'day')) {
     return {
       css: css`
         border-radius: 0px;
@@ -71,8 +71,12 @@ function CustomDay(props: CustomDayProps) {
 }
 
 export function DateRange(props: Props) {
-  const [startDate, setStartDate] = useState<Dayjs>(dayjs(props.value.startDate));
-  const [endDate, setEndDate] = useState<Dayjs>(dayjs(props.value.endDate));
+  const [startDate, setStartDate] = useState<Dayjs | null>(
+    props.value.startDate ? dayjs(props.value.startDate) : null
+  );
+  const [endDate, setEndDate] = useState<Dayjs | null>(
+    props.value.endDate ? dayjs(props.value.endDate) : null
+  );
 
   const [open, setOpen] = useState(false);
   const [startPickerView, setStartPickerView] = useState<'day' | 'month' | 'year'>('day');
@@ -90,12 +94,14 @@ export function DateRange(props: Props) {
 
   useEffect(
     function validateDateRange() {
-      if (startDate < endDate) {
-        props.onChange({
-          startDate: startDate.format(isoFormat),
-          endDate: endDate.format(isoFormat),
-        });
+      if (startDate && endDate && startDate >= endDate) {
+        return;
       }
+
+      props.onChange({
+        startDate: startDate?.format(isoFormat) ?? null,
+        endDate: endDate?.format(isoFormat) ?? null,
+      });
     },
     [startDate, endDate]
   );
@@ -115,7 +121,7 @@ export function DateRange(props: Props) {
           variant={props.readOnly ? 'filled' : 'outlined'}
           inputProps={{ readOnly: true }}
           ref={startInput}
-          value={dayjs(props.value.startDate).format(dateFormat)}
+          value={props.value.startDate ? dayjs(props.value.startDate).format(dateFormat) : ''}
           size="small"
           onClick={() => setOpen(true)}
           placeholder={tr('date.format.placeholder')}
@@ -126,7 +132,7 @@ export function DateRange(props: Props) {
           hiddenLabel={props.readOnly}
           variant={props.readOnly ? 'filled' : 'outlined'}
           inputProps={{ readOnly: props.readOnly }}
-          value={dayjs(props.value.endDate).format(dateFormat)}
+          value={props.value.endDate ? dayjs(props.value.endDate).format(dateFormat) : ''}
           size="small"
           onClick={() => setOpen(true)}
           placeholder={tr('date.format.placeholder')}
@@ -146,73 +152,88 @@ export function DateRange(props: Props) {
         onClose={() => setOpen(false)}
       >
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang}>
-          <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-            {props.quickSelections && (
-              <Box
-                css={css`
-                  padding: 16px;
-                `}
-              >
-                <Typography variant="overline">{tr('dateRange.quickSelections')}</Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+              {props.quickSelections && (
                 <Box
                   css={css`
-                    display: flex;
-                    flex-direction: column;
-                    align-items: flex-start;
+                    padding: 16px;
                   `}
                 >
-                  {props.quickSelections.map((selection, idx) => (
-                    <Chip
-                      key={idx}
-                      css={css`
-                        margin: 4px 0px;
-                        width: 100%;
-                      `}
-                      color="primary"
-                      variant="outlined"
-                      onClick={() => handleQuickSelection(selection)}
-                      label={selection.label}
-                    />
-                  ))}
+                  <Typography variant="overline">{tr('dateRange.quickSelections')}</Typography>
+                  <Box
+                    css={css`
+                      display: flex;
+                      flex-direction: column;
+                      align-items: flex-start;
+                    `}
+                  >
+                    {props.quickSelections.map((selection, idx) => (
+                      <Chip
+                        key={idx}
+                        css={css`
+                          margin: 4px 0px;
+                          width: 100%;
+                        `}
+                        color="primary"
+                        variant="outlined"
+                        onClick={() => handleQuickSelection(selection)}
+                        label={selection.label}
+                      />
+                    ))}
+                  </Box>
                 </Box>
-              </Box>
-            )}
-            <DateCalendar
-              {...commonProps}
-              view={startPickerView}
-              onYearChange={() => setStartPickerView('month')}
-              onMonthChange={() => setStartPickerView('day')}
-              onViewChange={(newView) => setStartPickerView(newView)}
-              slots={{ day: CustomDay as any }}
-              slotProps={{
-                day: {
-                  selectedDay: startDate,
-                  inRange: (d: Dayjs) => d > startDate && d < endDate,
-                  dateFormat,
-                } as any,
+              )}
+              <DateCalendar
+                {...commonProps}
+                view={startPickerView}
+                onYearChange={() => setStartPickerView('month')}
+                onMonthChange={() => setStartPickerView('day')}
+                onViewChange={(newView) => setStartPickerView(newView)}
+                slots={{ day: CustomDay as any }}
+                slotProps={{
+                  day: {
+                    selectedDay: startDate,
+                    inRange: (d: Dayjs) => startDate && endDate && d > startDate && d < endDate,
+                    dateFormat,
+                  } as any,
+                }}
+                maxDate={endDate?.subtract(1, 'day')}
+                onChange={(date) => setStartDate(date)}
+                value={startDate}
+              />
+              <DateCalendar
+                {...commonProps}
+                view={endPickerView}
+                onYearChange={() => setEndPickerView('month')}
+                onMonthChange={() => setEndPickerView('day')}
+                onViewChange={(newView) => setEndPickerView(newView)}
+                slots={{ day: CustomDay as any }}
+                slotProps={{
+                  day: {
+                    selectedDay: endDate,
+                    inRange: (d: Dayjs) => startDate && endDate && d > startDate && d < endDate,
+                    dateFormat,
+                  } as any,
+                }}
+                minDate={startDate?.add(1, 'day')}
+                onChange={(date) => setEndDate(date)}
+                value={endDate}
+              />
+            </Box>
+            <Button
+              startIcon={<Clear />}
+              css={css`
+                align-self: flex-end;
+                margin: 16px;
+              `}
+              onClick={() => {
+                setStartDate(null);
+                setEndDate(null);
               }}
-              maxDate={endDate.subtract(1, 'day')}
-              onChange={(date) => setStartDate(date as Dayjs)}
-              value={startDate}
-            />
-            <DateCalendar
-              {...commonProps}
-              view={endPickerView}
-              onYearChange={() => setEndPickerView('month')}
-              onMonthChange={() => setEndPickerView('day')}
-              onViewChange={(newView) => setEndPickerView(newView)}
-              slots={{ day: CustomDay as any }}
-              slotProps={{
-                day: {
-                  selectedDay: endDate,
-                  inRange: (d: Dayjs) => d > startDate && d < endDate,
-                  dateFormat,
-                } as any,
-              }}
-              minDate={startDate.add(1, 'day')}
-              onChange={(date) => setEndDate(date as Dayjs)}
-              value={endDate}
-            />
+            >
+              {tr('clear')}
+            </Button>
           </Box>
         </LocalizationProvider>
       </Popover>
