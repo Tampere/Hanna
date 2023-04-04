@@ -124,7 +124,7 @@ export function DateRange(props: Props) {
           value={props.value.startDate ? dayjs(props.value.startDate).format(dateFormat) : ''}
           size="small"
           onClick={() => setOpen(true)}
-          placeholder={tr('date.format.placeholder')}
+          placeholder={tr('dateRange.startDate')}
         />
         <span>—</span>
         <TextField
@@ -135,7 +135,7 @@ export function DateRange(props: Props) {
           value={props.value.endDate ? dayjs(props.value.endDate).format(dateFormat) : ''}
           size="small"
           onClick={() => setOpen(true)}
-          placeholder={tr('date.format.placeholder')}
+          placeholder={tr('dateRange.endDate')}
         />
         <IconButton
           aria-label="open-calendar"
@@ -199,7 +199,7 @@ export function DateRange(props: Props) {
                   } as any,
                 }}
                 maxDate={endDate?.subtract(1, 'day')}
-                onChange={(date) => setStartDate(date)}
+                onChange={(date) => setStartDate(startDate?.isSame(date) ? null : date)}
                 value={startDate}
               />
               <DateCalendar
@@ -217,7 +217,7 @@ export function DateRange(props: Props) {
                   } as any,
                 }}
                 minDate={startDate?.add(1, 'day')}
-                onChange={(date) => setEndDate(date)}
+                onChange={(date) => setEndDate(endDate?.isSame(date) ? null : date)}
                 value={endDate}
               />
             </Box>
@@ -230,6 +230,7 @@ export function DateRange(props: Props) {
               onClick={() => {
                 setStartDate(null);
                 setEndDate(null);
+                setOpen(false);
               }}
             >
               {tr('clear')}

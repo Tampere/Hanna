@@ -1,6 +1,7 @@
 import { TextField, TextFieldProps } from '@mui/material';
 import { DesktopDatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { fiFI } from '@mui/x-date-pickers/locales';
 import dayjs, { Dayjs } from 'dayjs';
 import 'dayjs/locale/en';
 import 'dayjs/locale/fi';
@@ -47,13 +48,23 @@ export function DatePicker(props: Props) {
   } as const;
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang}>
+    <LocalizationProvider
+      dateAdapter={AdapterDayjs}
+      adapterLocale={lang}
+      localeText={{
+        ...fiFI.components.MuiLocalizationProvider.defaultProps.localeText,
+        // Add missing localizations for field placeholders
+        fieldDayPlaceholder: () => tr('date.dayPlaceholder'),
+        fieldMonthPlaceholder: () => tr('date.monthPlaceholder'),
+        fieldYearPlaceholder: () => tr('date.yearPlaceholder'),
+      }}
+    >
       <DesktopDatePicker<Dayjs>
         readOnly={readOnly}
         minDate={minDate}
         maxDate={maxDate}
         format={tr('date.format')}
-        value={dayjs(value, isoDateStringFormat)}
+        value={!value ? null : dayjs(value, isoDateStringFormat)}
         onChange={(value) => onChange(value?.format(isoDateStringFormat) ?? null)}
         onAccept={(value) => onChange(value?.format(isoDateStringFormat) ?? null)}
         onClose={onClose}
