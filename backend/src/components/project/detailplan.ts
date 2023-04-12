@@ -70,10 +70,10 @@ export async function getProject(id: string, tx?: DatabaseTransactionConnection)
 
 export async function projectUpsert(project: DetailplanProject, user: User) {
   return await getPool().transaction(async (tx) => {
-    if (hasErrors(await baseProjectValidate(tx, project))) {
-      logger.error('projectUpsert: validation failed', { project });
-      throw new Error('Invalid project data');
-    }
+    // if (hasErrors(await baseProjectValidate(tx, project))) {
+    //   logger.error('projectUpsert: validation failed', { project });
+    //   throw new Error('Invalid project data');
+    // }
 
     const id = await baseProjectUpsert(tx, project, user);
     await addAuditEvent(tx, {
@@ -84,6 +84,7 @@ export async function projectUpsert(project: DetailplanProject, user: User) {
 
     const data = {
       id,
+      detailplan_id: project.detailplanId ?? null,
       diary_id: project.diaryId ?? null,
       diary_date: project.diaryDate ?? null,
       subtype: codeIdFragment('AsemakaavaHanketyyppi', project.subtype) ?? null,

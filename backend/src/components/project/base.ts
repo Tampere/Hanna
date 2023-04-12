@@ -96,9 +96,9 @@ export async function validateUpsertProject(
   const validationErrors: FormErrors<UpsertProject> = { errors: {} };
 
   if (values?.sapProjectId) {
-    if (!(await sapProjectExists(values.sapProjectId))) {
-      validationErrors.errors['sapProjectId'] = fieldError('project.error.sapProjectNotFound');
-    }
+    // if (!(await sapProjectExists(values.sapProjectId))) {
+    //   validationErrors.errors['sapProjectId'] = fieldError('project.error.sapProjectNotFound');
+    // }
   }
 
   if (values?.id) {
