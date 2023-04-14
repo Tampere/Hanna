@@ -6,6 +6,9 @@
   "unknownError": "Tunnistamaton virhe",
   "date.format": "D.M.YYYY",
   "date.format.placeholder": "pp.kk.vvvv",
+  "date.dayPlaceholder": "pp",
+  "date.monthPlaceholder": "kk",
+  "date.yearPlaceholder": "vvvv",
   "pages.projectsTitle": "Hankkeet",
   "pages.managementTitle": "Hallinta",
   "pages.manualTitle": "Ohje",
@@ -21,6 +24,7 @@
   "projectSearch.calendarQuickSelection.lastYear": "Viime vuosi",
   "projectSearch.calendarQuickSelection.thisYear": "Kuluva vuosi",
   "projectSearch.calendarQuickSelection.nextYear": "Seuraava vuosi",
+  "projectSearch.calendarQuickSelection.year": "Vuosi {year}",
   "projectSearch.projectType": "Hanketyyppi",
   "projectSearch.geometry": "Alue",
   "projectSearch.showWithoutGeom": "Sisällytä hankkeet ilman alueita",
@@ -165,6 +169,8 @@
   "errorPage.warning": "Varoitus",
   "errorPage.navigateBack": "Palaa takaisin",
   "dateRange.quickSelections": "Pikavalinnat",
+  "dateRange.startDate": "Alkupäivä",
+  "dateRange.endDate": "Loppupäivä",
   "costEstimatesTable.title": "Kustannukset",
   "costEstimatesTable.year": "Vuosi",
   "costEstimatesTable.estimate": "Arvio",
@@ -298,5 +304,6 @@
   "detailplanProject.notifySendNotification": "Tiedote lähetetty",
   "detailplanProject.notifySendNotificationFailed": "Tiedotteen lähetys epäonnistui",
   "email.subject": "Aihe",
-  "send": "Lähetä"
+  "send": "Lähetä",
+  "clear": "Tyhjennä"
 }

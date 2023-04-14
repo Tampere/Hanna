@@ -1,10 +1,12 @@
 import { TextField, TextFieldProps } from '@mui/material';
 import { DesktopDatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { fiFI } from '@mui/x-date-pickers/locales';
 import dayjs, { Dayjs } from 'dayjs';
 import 'dayjs/locale/en';
 import 'dayjs/locale/fi';
 import { useAtomValue } from 'jotai';
+import { useRef, useState } from 'react';
 
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 
@@ -21,7 +23,7 @@ interface Props {
 
 const isoDateStringFormat = 'YYYY-MM-DD';
 
-function CustomTextField(props: TextFieldProps & { name?: string }) {
+function CustomTextField(props: TextFieldProps & { name?: string; onClick?: () => void }) {
   return (
     <TextField
       {...props}
@@ -32,6 +34,9 @@ function CustomTextField(props: TextFieldProps & { name?: string }) {
         ...props.InputProps,
         name: props.name,
       }}
+      // TODO temporarily disabled keyboard input because of https://github.com/mui/mui-x/issues/8485
+      inputProps={{ ...props.inputProps, readOnly: true }}
+      onClick={props.onClick}
     />
   );
 }
@@ -46,17 +51,35 @@ export function DatePicker(props: Props) {
     InputProps: { readOnly: true },
   } as const;
 
+  // TODO "open" state is controlled here only because it is opened on click as a workaround to the MUI bug
+  const [open, setOpen] = useState(false);
+
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang}>
+    <LocalizationProvider
+      dateAdapter={AdapterDayjs}
+      adapterLocale={lang}
+      localeText={{
+        ...fiFI.components.MuiLocalizationProvider.defaultProps.localeText,
+        // Add missing localizations for field placeholders
+        fieldDayPlaceholder: () => tr('date.dayPlaceholder'),
+        fieldMonthPlaceholder: () => tr('date.monthPlaceholder'),
+        fieldYearPlaceholder: () => tr('date.yearPlaceholder'),
+      }}
+    >
       <DesktopDatePicker<Dayjs>
         readOnly={readOnly}
         minDate={minDate}
         maxDate={maxDate}
         format={tr('date.format')}
-        value={dayjs(value, isoDateStringFormat)}
+        value={!value ? null : dayjs(value, isoDateStringFormat)}
         onChange={(value) => onChange(value?.format(isoDateStringFormat) ?? null)}
         onAccept={(value) => onChange(value?.format(isoDateStringFormat) ?? null)}
-        onClose={onClose}
+        open={open}
+        onOpen={() => setOpen(true)}
+        onClose={() => {
+          setOpen(false);
+          onClose?.();
+        }}
         slots={{ textField: CustomTextField as any }}
         slotProps={
           {
@@ -66,6 +89,9 @@ export function DatePicker(props: Props) {
               inputProps: {
                 placeholder: tr('date.format.placeholder'),
                 id,
+              },
+              onClick: () => {
+                setOpen(true);
               },
             },
           } as any

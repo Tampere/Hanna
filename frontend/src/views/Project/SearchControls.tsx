@@ -46,7 +46,10 @@ function makeCalendarQuickSelections(tr: ReturnType<typeof useTranslations>) {
   const yearSelections = [];
   for (let i = 1; i <= 5; i++) {
     yearSelections.push({
-      label: dayjs().subtract(i, 'year').format('YYYY'),
+      label: tr('projectSearch.calendarQuickSelection.year').replace(
+        '{year}',
+        dayjs().subtract(i, 'year').format('YYYY')
+      ),
       period: {
         startDate: dayjs().subtract(i, 'year').startOf('year').format(isoFormat),
         endDate: dayjs().subtract(i, 'year').endOf('year').format(isoFormat),
