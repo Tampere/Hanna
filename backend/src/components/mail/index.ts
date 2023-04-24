@@ -40,6 +40,7 @@ const transport = createTransport({
           clientId: env.email.auth.clientId,
           clientSecret: env.email.auth.clientSecret,
           refreshToken: env.email.auth.refreshToken,
+          accessUrl: env.email.auth.accessUrl,
         }
       : env.email.auth.method === 'login'
       ? {

@@ -56,6 +56,7 @@ const schema = z.object({
         clientId: z.string(),
         clientSecret: z.string(),
         refreshToken: z.string(),
+        accessUrl: z.string()
       }),
       z.object({
         method: z.literal('login'),
@@ -121,7 +122,8 @@ function getEnv() {
               method: 'oauth',
               clientId: process.env.EMAIL_AUTH_CLIENT_ID,
               clientSecret: process.env.EMAIL_AUTH_CLIENT_SECRET,
-              refreshToken: process.env.EMAIL_REFRESH_TOKEN,
+              refreshToken: process.env.EMAIL_AUTH_REFRESH_TOKEN,
+              accessUrl: process.env.EMAIL_AUTH_ACCESS_URL,
             }
           : process.env.EMAIL_AUTH_METHOD === 'login'
           ? {
