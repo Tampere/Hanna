@@ -37,6 +37,8 @@ const transport = createTransport({
   auth:
     env.email.auth.method === 'oauth'
       ? {
+          type: 'OAuth2',
+          user: env.email.senderAddress,
           clientId: env.email.auth.clientId,
           clientSecret: env.email.auth.clientSecret,
           refreshToken: env.email.auth.refreshToken,
