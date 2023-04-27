@@ -93,7 +93,9 @@ export function DetailplanProjectForm(props: Props) {
     ) {
       const fields = options.names ?? [];
       const isFormValidation = fields && fields.length > 1;
-      const serverErrors = isFormValidation ? detailplanProject.upsertValidate.fetch(values) : null;
+      const serverErrors = isFormValidation
+        ? detailplanProject.upsertValidate.fetch(values).catch(() => null)
+        : null;
       const shapeErrors = schemaValidation(values, context, options);
       const errors = await Promise.all([serverErrors, shapeErrors]);
       return {
