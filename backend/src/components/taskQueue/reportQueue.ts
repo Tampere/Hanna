@@ -8,7 +8,7 @@ import { getTaskQueue, startJob } from '.';
 const queueName = 'report';
 
 export async function setupReportQueue() {
-  getTaskQueue().work<ProjectSearch, void>(
+  getTaskQueue().work<ProjectSearch>(
     queueName,
     {
       teamSize: env.report.queueConcurrency,
