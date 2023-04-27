@@ -1,4 +1,4 @@
-import { AccountTree, ListAlt, Mail, Map } from '@mui/icons-material';
+import { AccountTree, Mail, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography, css } from '@mui/material';
 import { ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -11,14 +11,13 @@ import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { DeleteProjectDialog } from '@frontend/views/Project/DeleteProjectDialog';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
-import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
 
 import { TranslationKey } from '@shared/language';
 
 import { DetailplanProjectForm } from './DetailplanProjectForm';
 import { DetailplanProjectNotification } from './DetailplanProjectNotification';
 
-type TabView = 'default' | 'kohteet' | 'sidoshankkeet' | 'tiedotus';
+type TabView = 'default' | 'sidoshankkeet' | 'tiedotus';
 
 interface Tab {
   tabView: TabView;
@@ -48,12 +47,6 @@ function getTabs(projectId: string): Tab[] {
       url: `/asemakaavahanke/${projectId}`,
       label: 'project.mapTabLabel',
       icon: <Map fontSize="small" />,
-    },
-    {
-      tabView: 'kohteet',
-      url: `/asemakaavahanke/${projectId}/kohteet`,
-      label: 'project.projectObjectsTabLabel',
-      icon: <ListAlt fontSize="small" />,
     },
     {
       tabView: 'sidoshankkeet',
@@ -182,9 +175,6 @@ export function DetailplanProject() {
 
           {routeParams.tabView && (
             <Box sx={{ p: 2, overflowY: 'auto' }}>
-              {routeParams.tabView === 'kohteet' && (
-                <ProjectObjectList projectId={projectId} projectType="asemakaavahanke" />
-              )}
               {routeParams.tabView === 'sidoshankkeet' && (
                 <ProjectRelations projectId={routeParams.projectId} />
               )}
