@@ -7,7 +7,7 @@ import { Mail, sendMail } from '../mail';
 const queueName = 'mail';
 
 export async function setupMailQueue() {
-  getTaskQueue().work<Mail, void>(
+  getTaskQueue().work<Mail>(
     queueName,
     {
       teamSize: env.email.queueConcurrency,
