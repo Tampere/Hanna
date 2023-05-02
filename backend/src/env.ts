@@ -10,7 +10,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 const schema = z.object({
-  nodeEnv: z.enum(['development', 'production']),
+  nodeEnv: z.enum(['development', 'production', 'test']),
   logLevel: z.enum(['debug', 'info', 'warn', 'error']),
   serverPort: z.number(),
   cookieSecret: z.string(),
@@ -56,7 +56,7 @@ const schema = z.object({
         clientId: z.string(),
         clientSecret: z.string(),
         refreshToken: z.string(),
-        accessUrl: z.string()
+        accessUrl: z.string(),
       }),
       z.object({
         method: z.literal('login'),

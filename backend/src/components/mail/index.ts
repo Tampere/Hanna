@@ -52,6 +52,10 @@ const transport = createTransport({
       : {},
 } as SMTPPool.Options);
 
+function getTemplateLocals(mail: Pick<Mail, 'template'>) {
+  return { ...mail.template.parameters, production: env.nodeEnv === 'production' };
+}
+
 export async function sendMail(mail: Mail) {
   const email = new EmailTemplate({
     views: {
@@ -71,7 +75,7 @@ export async function sendMail(mail: Mail) {
       cc: mail.cc,
       bcc: mail.bcc,
     },
-    locals: mail.template.parameters,
+    locals: getTemplateLocals(mail),
   });
 }
 
@@ -87,5 +91,5 @@ export async function previewMail(mail: Pick<Mail, 'template'>) {
     send: false,
   });
 
-  return await email.renderAll(mail.template.name, mail.template.parameters);
+  return await email.renderAll(mail.template.name, getTemplateLocals(mail));
 }

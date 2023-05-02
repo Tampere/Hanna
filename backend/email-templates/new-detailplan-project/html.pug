@@ -4,7 +4,7 @@ html
     style
       include style.css
   body
-    p Heipä hei!
+    p= production ? "Heipä hei!" : "Hannassa perustettu testihanke, älä huomioi"
     p Perustettu uusi hanke: #{detailplanId} / "#{projectName}"
     p
       | Valmistelija: #{preparer}
