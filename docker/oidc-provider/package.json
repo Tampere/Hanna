@@ -6,6 +6,6 @@
     "ts-node": "^10.9.1"
   },
   "devDependencies": {
-    "@types/node": "^18.16.1"
+    "@types/node": "^18.16.3"
   }
 }
