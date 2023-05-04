@@ -88,3 +88,12 @@ export function debounce<T extends (...args: any[]) => any>(f: T, interval: numb
     });
   };
 }
+
+/**
+ * Coerces given value into an array.
+ * @param value Value
+ * @returns Array
+ */
+export function coerceArray<T>(value: T | T[] | null | undefined) {
+  return value == null ? [] : Array.isArray(value) ? value : [value];
+}

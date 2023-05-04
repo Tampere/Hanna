@@ -1,13 +1,21 @@
 import { env } from '@backend/env';
 import { logger } from '@backend/logging';
 
+import { User } from '@shared/schema/user';
+
 import { getTaskQueue, startJob } from '.';
 import { Mail, sendMail } from '../mail';
 
 const queueName = 'mail';
 
+interface MailJobData {
+  mail: Mail;
+  userId: User['id'];
+  projectId?: string;
+}
+
 export async function setupMailQueue() {
-  getTaskQueue().work<Mail>(
+  getTaskQueue().work<MailJobData>(
     queueName,
     {
       teamSize: env.email.queueConcurrency,
@@ -15,7 +23,7 @@ export async function setupMailQueue() {
     },
     async ({ data }) => {
       try {
-        await sendMail(data);
+        await sendMail(data.mail, { userId: data.userId, projectId: data.projectId });
       } catch (error) {
         logger.error(`Error sending mail: ${error}`);
         throw error;
@@ -24,6 +32,6 @@ export async function setupMailQueue() {
   );
 }
 
-export async function startSendMailJob(data: Mail) {
+export async function startSendMailJob(data: MailJobData) {
   return startJob(queueName, data);
 }

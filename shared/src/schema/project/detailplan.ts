@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { codeId } from '../code';
 import { isoDateString, nonEmptyString } from '../common';
-import { upsertProjectSchema } from './base';
+import { projectIdSchema, upsertProjectSchema } from './base';
 
 export const detailplanProjectSchema = upsertProjectSchema.extend({
   id: z.string().optional(),
@@ -31,3 +31,30 @@ export const dbDetailplanSchema = detailplanProjectSchema.extend({
 });
 
 export type DbDetailplanProject = z.infer<typeof dbDetailplanSchema>;
+
+export const detailplanNotificationTemplates = [
+  'new-detailplan-project',
+  'update-detailplan-project',
+] as const;
+
+export type DetailplanNotificationTemplate = typeof detailplanNotificationTemplates[number];
+
+export const detailplanNotificationSchema = projectIdSchema.extend({
+  template: z.enum(detailplanNotificationTemplates),
+});
+
+export type DetailplanNotification = z.infer<typeof detailplanNotificationSchema>;
+
+export const detailplanNotificationMailEventSchema = z.object({
+  id: z.string(),
+  sentAt: z.date(),
+  sentBy: z.string(),
+  templateName: z.enum(detailplanNotificationTemplates),
+  to: z.array(z.string()),
+  cc: z.array(z.string()),
+  bcc: z.array(z.string()),
+  subject: z.string(),
+  html: z.string(),
+});
+
+export type DetailPlanNotificationMailEvent = z.infer<typeof detailplanNotificationMailEventSchema>;
