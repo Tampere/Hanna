@@ -1,6 +1,6 @@
-import { detailplanNotificationMailEventSchema } from 'tre-hanna-shared/src/schema/project/detailplan';
-
 import { getPool, sql } from '@backend/db';
+
+import { detailplanNotificationMailEventSchema } from '@shared/schema/project/detailplan';
 
 export async function getMailEvents(projectId: string) {
   return await getPool().any(sql.type(detailplanNotificationMailEventSchema)`
