@@ -1,11 +1,14 @@
 import EmailTemplate from 'email-templates';
-import { createTransport } from 'nodemailer';
+import { SendMailOptions, createTransport } from 'nodemailer';
 import SMTPPool from 'nodemailer/lib/smtp-pool';
 import { resolve } from 'path';
 
+import { getPool, sql } from '@backend/db';
 import { env } from '@backend/env';
 
 import { DbDetailplanProject } from '@shared/schema/project/detailplan';
+import { User } from '@shared/schema/user';
+import { coerceArray } from '@shared/utils';
 
 interface Template<Name extends string, Parameters extends Record<string, any>> {
   template: {
@@ -19,7 +22,7 @@ export type Mail = {
   cc?: string | string[];
   bcc?: string | string[];
 } & Template<
-  'new-detailplan-project',
+  'new-detailplan-project' | 'update-detailplan-project',
   DbDetailplanProject & {
     signatureFrom: string;
   }
@@ -56,7 +59,7 @@ function getTemplateLocals(mail: Pick<Mail, 'template'>) {
   return { ...mail.template.parameters, production: env.nodeEnv === 'production' };
 }
 
-export async function sendMail(mail: Mail) {
+export async function sendMail(mail: Mail, metadata?: { userId: User['id']; projectId?: string }) {
   const email = new EmailTemplate({
     views: {
       root: resolve(__dirname, '../../..', 'email-templates'),
@@ -68,7 +71,7 @@ export async function sendMail(mail: Mail) {
     send: true,
   });
 
-  await email.send({
+  const { originalMessage } = (await email.send({
     template: mail.template.name,
     message: {
       to: mail.to,
@@ -76,6 +79,15 @@ export async function sendMail(mail: Mail) {
       bcc: mail.bcc,
     },
     locals: getTemplateLocals(mail),
+  })) as {
+    originalMessage: SendMailOptions;
+  };
+
+  await addMailEvent({
+    data: originalMessage,
+    templateName: mail.template.name,
+    projectId: metadata?.projectId,
+    userId: metadata?.userId,
   });
 }
 
@@ -92,4 +104,31 @@ export async function previewMail(mail: Pick<Mail, 'template'>) {
   });
 
   return await email.renderAll(mail.template.name, getTemplateLocals(mail));
+}
+
+function addressesToStringArray(addresses: SendMailOptions['to']) {
+  // Force addresses to string array - coerce into an array and transform Address objects into strings
+  return coerceArray(addresses).map((address) =>
+    typeof address === 'string' ? address : `${address.name} <${address.address}>`
+  );
+}
+
+async function addMailEvent(event: {
+  data: SendMailOptions;
+  templateName: string;
+  userId?: User['id'];
+  projectId?: string;
+}) {
+  await getPool().any(sql.untyped`
+    INSERT INTO app.mail_event (sent_by, template_name, "to", cc, bcc, subject, html, project_id)
+    VALUES (
+      ${event.userId ?? null},
+      ${event.templateName},
+      ${sql.array(addressesToStringArray(event.data.to), 'text')},
+      ${sql.array(addressesToStringArray(event.data.cc), 'text')},
+      ${sql.array(addressesToStringArray(event.data.bcc), 'text')},
+      ${event.data.subject ?? null},
+      ${event.data.html?.toString() ?? null},
+      ${event.projectId ?? null})
+  `);
 }

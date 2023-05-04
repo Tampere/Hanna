@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { getCodeText } from '@backend/components/code';
 import { Mail, previewMail } from '@backend/components/mail';
+import { getMailEvents } from '@backend/components/mail/mail-event';
 import {
   getNextDetailplanId,
   getProject,
@@ -14,14 +15,20 @@ import { env } from '@backend/env';
 import { TRPC } from '@backend/router';
 
 import { projectIdSchema } from '@shared/schema/project/base';
-import { DbDetailplanProject, detailplanProjectSchema } from '@shared/schema/project/detailplan';
+import {
+  DbDetailplanProject,
+  DetailplanNotification,
+  detailplanNotificationSchema,
+  detailplanProjectSchema,
+} from '@shared/schema/project/detailplan';
 
 async function getNotificationMailTemplate(
-  project: DbDetailplanProject
+  project: DbDetailplanProject,
+  template: DetailplanNotification['template']
 ): Promise<Mail['template']> {
   // Use actual values on the template instead of IDs
   return {
-    name: 'new-detailplan-project',
+    name: template,
     parameters: {
       ...project,
       preparer: !project.preparer ? '' : (await getUser(project.preparer)).name,
@@ -57,21 +64,31 @@ export const createDetailplanProjectRouter = (t: TRPC) =>
       return env.detailplan.notificationRecipients;
     }),
 
-    previewNotificationMail: t.procedure.input(projectIdSchema).query(async ({ input }) => {
-      const project = await getProject(input.id);
-      return previewMail({
-        template: await getNotificationMailTemplate(project),
-      });
+    getNotificationHistory: t.procedure.input(projectIdSchema).query(async ({ input }) => {
+      return await getMailEvents(input.id);
     }),
 
+    previewNotificationMail: t.procedure
+      .input(detailplanNotificationSchema)
+      .query(async ({ input }) => {
+        const project = await getProject(input.id);
+        return previewMail({
+          template: await getNotificationMailTemplate(project, input.template),
+        });
+      }),
+
     sendNotificationMail: t.procedure
-      .input(projectIdSchema.extend({ recipients: z.array(z.string()) }))
-      .mutation(async ({ input }) => {
+      .input(detailplanNotificationSchema.extend({ recipients: z.array(z.string()) }))
+      .mutation(async ({ input, ctx }) => {
         const project = await getProject(input.id);
 
         return await startSendMailJob({
-          to: input.recipients,
-          template: await getNotificationMailTemplate(project),
+          mail: {
+            to: input.recipients,
+            template: await getNotificationMailTemplate(project, input.template),
+          },
+          userId: ctx.user.id,
+          projectId: input.id,
         });
       }),
   });
