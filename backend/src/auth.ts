@@ -134,7 +134,7 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
     return fastifyPassport
       .authenticate('oidc', {
         // Redirect to the original URL if one was found from session, otherwise to the home page
-        successRedirect: req.session.get<string>('redirectUrl') ?? '/',
+        successRedirect: req.session.get('redirectUrl') ?? '/',
         failureRedirect: '/',
       })
       .call(fastify, req, res);
