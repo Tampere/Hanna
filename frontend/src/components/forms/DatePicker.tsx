@@ -78,6 +78,7 @@ export function DatePicker(props: Props) {
                 placeholder: tr('date.format.placeholder'),
                 id,
               },
+              shouldRespectLeadingZeros: true,
             },
           } as any
         }
