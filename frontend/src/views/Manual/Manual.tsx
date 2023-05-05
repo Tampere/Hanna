@@ -5,6 +5,7 @@ import { useLocation } from 'react-router';
 import { useOnContentLoaded } from '@frontend/utils/useOnContentLoaded';
 
 import { ReactComponent as ManualContent } from './fi.md';
+import './manual.css';
 
 export function Manual() {
   const containerRef = useRef<HTMLDivElement>(null);
