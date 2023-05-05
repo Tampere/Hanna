@@ -7,7 +7,7 @@ import mdPlugin, { Mode } from 'vite-plugin-markdown';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Use customized instance of MarkdownIt to enable anchor links
-const markdownIt = MarkdownIt().use(MarkdownItAnchor, {});
+const markdownIt = MarkdownIt({ html: true }).use(MarkdownItAnchor, {});
 
 const backendHost = process.env.BACKEND_HOST ?? '127.0.0.1';
 const proxyAddress = `http://${backendHost}:3003`;
