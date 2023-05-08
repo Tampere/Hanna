@@ -173,39 +173,41 @@ export function SearchControls() {
           <FormLabel htmlFor="owner">{tr('project.ownerLabel')}</FormLabel>
           <UserSelect id="owner" multiple value={owners} onChange={setOwners} />
         </FormControl>
+        <FormGroup>
+          <FormLabel>{tr('projectSearch.geometry')}</FormLabel>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={includeWithoutGeom}
+                onChange={(_, checked) => {
+                  setIncludeWithoutGeom(checked);
+                }}
+              />
+            }
+            label={tr('projectSearch.showWithoutGeom')}
+          />
+        </FormGroup>
       </div>
       {expanded && (
         <>
-          <FormGroup>
-            <FormLabel>{tr('projectSearch.geometry')}</FormLabel>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={includeWithoutGeom}
-                  onChange={(_, checked) => {
-                    setIncludeWithoutGeom(checked);
-                  }}
-                />
-              }
-              label={tr('projectSearch.showWithoutGeom')}
-            />
-          </FormGroup>
           {filters['investmentProject'] && <InvestmentProjectSearch />}
           {filters['detailplanProject'] && <DetailplanProjectSearch />}
         </>
       )}
-      <Button
-        size="small"
-        css={css`
-          align-self: flex-end;
-        `}
-        endIcon={expanded ? <UnfoldLess /> : <UnfoldMore />}
-        onClick={() => {
-          setExpanded((previous) => !previous);
-        }}
-      >
-        {expanded ? tr('projectSearch.showLessBtnLabel') : tr('projectSearch.showMoreBtnLabel')}
-      </Button>
+      {(filters.investmentProject || filters.detailplanProject) && (
+        <Button
+          size="small"
+          css={css`
+            align-self: flex-end;
+          `}
+          endIcon={expanded ? <UnfoldLess /> : <UnfoldMore />}
+          onClick={() => {
+            setExpanded((previous) => !previous);
+          }}
+        >
+          {expanded ? tr('projectSearch.showLessBtnLabel') : tr('projectSearch.showMoreBtnLabel')}
+        </Button>
+      )}
     </Paper>
   );
 }

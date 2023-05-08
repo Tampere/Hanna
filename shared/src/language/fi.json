@@ -52,6 +52,7 @@
   "project.projectObjectsTabLabel": "Kohteet",
   "project.personInChargeLabel": "Vastuuhenkilö",
   "project.noProjectObjects": "Hankkeella ei ole kohteita",
+  "project.deleteDialogMessage": "Olet poistamassa hanketta. Huomaa, että poistamalla hankkeen poistetaan samalla hankkeesseen liittyvät kohteet sekä tehtävät. Haluatko varmasti poistaa hankkeen?",
   "newProject.formTitle": "Uusi investointihanke",
   "newProject.projectNameTooltip": "Syötä hankkeelle nimi",
   "newProject.descriptionTooltip": "Syötä hankkeelle kuvaus",
@@ -135,7 +136,6 @@
   "projectDelete.notifyDelete": "Hanke poistettu",
   "projectDelete.notifyDeleteFailed": "Hankkeen poisto epäonnistui",
   "deleteProjectDialog.title": "Hankkeen poistaminen",
-  "deleteProjectDialog.content": "Olet poistamassa hanketta. Huomaa, että poistamalla hankkeen poistetaan samalla hankkeesseen liittyvät kohteet sekä tehtävät. Haluatko varmasti poistaa hankkeen?",
   "projectObjectDelete.delete": "Poista kohde",
   "projectObjectDelete.notifyDelete": "Kohde poistettu",
   "projectObjectDelete.notifyDeleteFailed": "Kohteen poisto epäonnistui",
@@ -312,6 +312,7 @@
   "detailplanProject.recipients": "Sähköpostivastaanottajat",
   "detailplanProject.notifySendNotification": "Tiedote lähetetty",
   "detailplanProject.notifySendNotificationFailed": "Tiedotteen lähetys epäonnistui",
+  "detailplanProject.deleteDialogMessage": "Haluatko varmasti poistaa hankkeen?",
   "email.subject": "Aihe",
   "send": "Lähetä",
   "clear": "Tyhjennä"
