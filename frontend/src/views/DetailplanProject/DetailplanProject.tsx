@@ -128,7 +128,12 @@ export function DetailplanProject() {
       <div css={pageContentStyle}>
         <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
           <DetailplanProjectForm project={project.data} />
-          {project.data && <DeleteProjectDialog projectId={project.data.id ?? ''} />}
+          {project.data && (
+            <DeleteProjectDialog
+              projectId={project.data.id ?? ''}
+              message={tr('detailplanProject.deleteDialogMessage')}
+            />
+          )}
         </Paper>
 
         <Paper

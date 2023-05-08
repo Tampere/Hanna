@@ -155,7 +155,12 @@ export function InvestmentProject() {
       <div css={pageContentStyle}>
         <Paper sx={{ p: 3, height: '100%' }} variant="outlined">
           <InvestmentProjectForm project={project.data} />
-          {project.data && <DeleteProjectDialog projectId={project.data.id} />}
+          {project.data && (
+            <DeleteProjectDialog
+              projectId={project.data.id}
+              message={tr('project.deleteDialogMessage')}
+            />
+          )}
         </Paper>
 
         <Paper

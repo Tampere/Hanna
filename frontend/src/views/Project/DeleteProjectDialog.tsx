@@ -9,9 +9,10 @@ import { useTranslations } from '@frontend/stores/lang';
 
 interface Props {
   projectId: string;
+  message: string;
 }
 
-export function DeleteProjectDialog({ projectId }: Props) {
+export function DeleteProjectDialog({ projectId, message }: Props) {
   const navigate = useNavigate();
   const notify = useNotifications();
   const tr = useTranslations();
@@ -54,7 +55,7 @@ export function DeleteProjectDialog({ projectId }: Props) {
       </Button>
       <Dialog open={isDialogOpen}>
         <DialogTitle>{tr('deleteProjectDialog.title')}</DialogTitle>
-        <DialogContent>{tr('deleteProjectDialog.content')}</DialogContent>
+        <DialogContent>{message}</DialogContent>
         <DialogActions>
           <Button
             sx={{ mt: '1rem' }}
