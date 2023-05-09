@@ -8,6 +8,8 @@ html
       p Hannassa muutettu testihanke, älä huomioi
     p Hankkeen #{detailplanId} / "#{projectName}" tietoja on muutettu
     p
+      a(href=`${projectPageUrl}` target='_blank') Siirry hankesivulle
+    p
       | Valmistelija: #{preparer}
       br
       | Alue/kaupunginosa: #{district}
@@ -15,4 +17,6 @@ html
       | Kortteli/tontti: #{blockName}
       br
       | Osoitteet: #{addressText}
+      br
+      | Diaarinumero: #{diaryId}
     p Terveisin #{signatureFrom}

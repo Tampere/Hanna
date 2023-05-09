@@ -36,6 +36,7 @@ async function getNotificationMailTemplate(
         ? ''
         : (await getCodeText({ codeListId: 'AsemakaavaSuunnittelualue', id: project.planningZone }))
             .fi,
+      projectPageUrl: `${env.appUrl}/asemakaavahanke/${project.id}`,
       signatureFrom: env.detailplan.notificationSignatureFrom,
     },
   };
