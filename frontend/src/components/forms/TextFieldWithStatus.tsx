@@ -60,13 +60,13 @@ export function TextFieldWithStatus(props: Props) {
       case 'error':
         return (
           <Tooltip title={tooltipMessages.error}>
-            <Warning style={{ color: 'orange' }} />
+            <Warning style={{ color: 'red' }} />
           </Tooltip>
         );
       case 'invalid':
         return (
           <Tooltip title={tooltipMessages.invalid}>
-            <Error style={{ color: 'red' }} />
+            <Error style={{ color: 'orange' }} />
           </Tooltip>
         );
       case 'valid':
