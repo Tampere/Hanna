@@ -20,7 +20,7 @@
     "@trpc/client": "^10.25.0",
     "@trpc/server": "^10.25.0",
     "dayjs": "^1.11.7",
-    "node-fetch": "^2.6.9",
+    "node-fetch": "^2.6.10",
     "superjson": "^1.12.3"
   }
 }
