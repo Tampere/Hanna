@@ -19,6 +19,7 @@ const serverOptions: CommonServerOptions = {
     '/logout': proxyAddress,
     '/api': proxyAddress,
     '/trpc': proxyAddress,
+    '/proxy': proxyAddress,
   },
 };
 

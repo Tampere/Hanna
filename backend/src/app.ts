@@ -17,6 +17,7 @@ import { logger } from '@backend/logging';
 import { getClient } from '@backend/oidc';
 import { appRouter, createContext } from '@backend/router';
 
+import { georasterProxy } from './components/proxy/georaster';
 import { initializeTaskQueue } from './components/taskQueue';
 import { setupMailQueue } from './components/taskQueue/mailQueue';
 import { setupReportQueue } from './components/taskQueue/reportQueue';
@@ -70,8 +71,8 @@ async function run() {
   server.register(fastifyCompress);
   server.setNotFoundHandler((req, reply) => {
     const url = req.raw.url;
-    // For not found /api or /trpc routes -> throw a 404 error
-    if (url?.startsWith('/api') || url?.startsWith('/trpc')) {
+    // For not found backend routes -> throw a 404 error
+    if (['/api', '/trpc', '/proxy'].some((prefix) => url?.startsWith(prefix))) {
       throw server.httpErrors.notFound(`${url} not found`);
     }
     // For other routes -> let the frontend handle the client-side routing
@@ -95,6 +96,7 @@ async function run() {
 
   server.register(healthApi, { prefix: '/api/v1' });
   server.register(reportDownloadApi, { prefix: '/api/v1' });
+  server.register(georasterProxy);
 
   const defaultErrorHandler = server.errorHandler;
 

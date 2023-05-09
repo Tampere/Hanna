@@ -97,7 +97,7 @@ export const mapOptions = {
       type: 'base',
       options: {
         protocol: 'wmts',
-        url: 'https://georaster.tampere.fi/geoserver/gwc/service/wmts?service=WMTS',
+        url: '/proxy/georaster/gwc/service/wmts?service=WMTS',
         layer: 'georaster:kantakartta_mml_harmaa_EPSG_3067',
         matrixSet: 'JHS',
         projection: 'EPSG:3067',
