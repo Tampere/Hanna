@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router';
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
+import { SapProjectIdField } from '@frontend/components/forms/SapProjectIdField';
 import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
 import { authAtom } from '@frontend/stores/auth';
@@ -257,7 +258,12 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
           formField="sapProjectId"
           label={tr('project.sapProjectIdLabel')}
           component={(field) => (
-            <TextField {...readonlyProps} {...field} value={field.value ?? ''} size="small" />
+            <SapProjectIdField
+              {...readonlyProps}
+              {...field}
+              value={field.value ?? ''}
+              size="small"
+            />
           )}
         />
 
