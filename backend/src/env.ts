@@ -72,6 +72,13 @@ const schema = z.object({
     notificationRecipients: z.array(z.string()),
     notificationSignatureFrom: z.string(),
   }),
+  proxy: z.object({
+    georaster: z.object({
+      upstream: z.string(),
+      username: z.string(),
+      password: z.string(),
+    }),
+  }),
 });
 
 function getEnv() {
@@ -138,6 +145,13 @@ function getEnv() {
     detailplan: {
       notificationRecipients: process.env.DETAILPLAN_NOTIFICATION_RECIPIENTS?.split(',') ?? [],
       notificationSignatureFrom: process.env.DETAILPLAN_NOTIFICATION_SIGNATURE_FROM,
+    },
+    proxy: {
+      georaster: {
+        upstream: process.env.PROXY_GEORASTER_UPSTREAM,
+        username: process.env.PROXY_GEORASTER_USERNAME,
+        password: process.env.PROXY_GEORASTER_PASSWORD,
+      },
     },
   } as z.infer<typeof schema>);
 }
