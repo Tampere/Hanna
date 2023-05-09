@@ -313,6 +313,10 @@
   "detailplanProject.notifySendNotification": "Tiedote lähetetty",
   "detailplanProject.notifySendNotificationFailed": "Tiedotteen lähetys epäonnistui",
   "detailplanProject.deleteDialogMessage": "Haluatko varmasti poistaa hankkeen?",
+  "sapProjectIdField.loading": "Etsitään ja validoidaan annettua SAP-projektia...",
+  "sapProjectIdField.unexpectedError": "SAP-projektin haussa tapahtui odottamaton virhe.",
+  "sapProjectIdField.validId": "SAP-projekti löytyi ja sen tiedot haettiin onnistuneesti.",
+  "sapProjectIdField.invalidId": "Annetulla tunnisteella ei löytynyt SAP-projektia tai sen tiedoissa oli virhe.",
   "email.subject": "Aihe",
   "send": "Lähetä",
   "clear": "Tyhjennä"

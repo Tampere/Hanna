@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { getSapActuals, getSapProject } from '@backend/components/sap/dataImport';
+import { getSapActuals, getSapProject, sapProjectExists } from '@backend/components/sap/dataImport';
 import { getPool, sql } from '@backend/db';
 
 import { yearlyActualsSchema } from '@shared/schema/sapActuals';
@@ -147,5 +147,11 @@ export const createSapRouter = (t: TRPC) =>
         `);
 
         return dbResult?.result;
+      }),
+
+    doesSapProjectIdExist: t.procedure
+      .input(z.object({ projectId: z.string() }))
+      .query(async ({ input }) => {
+        return await sapProjectExists(input.projectId);
       }),
   });
