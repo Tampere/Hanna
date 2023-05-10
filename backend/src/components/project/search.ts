@@ -124,6 +124,7 @@ export function detailplanProjectFragment(input: ProjectSearch) {
   return sql.fragment`
     SELECT
       project_detailplan.id,
+      project_detailplan.detailplan_id AS "detailplanId",
       'detailplanProject' AS "projectType"
     FROM app.project_detailplan
     WHERE ${
@@ -196,9 +197,9 @@ export async function projectSearch(input: ProjectSearch) {
     ), projects AS (
       SELECT *
       FROM (
-        SELECT id, "projectType" from investment_projects
+        SELECT id, "projectType", NULL AS "detailplanId" from investment_projects
           UNION ALL
-        SELECT id, "projectType" from detailplan_projects
+        SELECT id, "projectType", "detailplanId" from detailplan_projects
       ) AS filtered_projects
       INNER JOIN all_projects ON all_projects.id = filtered_projects.id
     ), limited AS (
