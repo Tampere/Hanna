@@ -23,6 +23,7 @@ export const dbProjectSchema = upsertProjectSchema.extend({
   id: z.string(),
   geom: z.string().nullable(),
   projectType: z.enum(projectTypes),
+  detailplanId: z.number().nullable(),
 });
 
 export type UpsertProject = z.infer<typeof upsertProjectSchema>;

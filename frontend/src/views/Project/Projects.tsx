@@ -113,6 +113,18 @@ function ProjectCard({ result }: { result: DbProject }) {
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography sx={{ lineHeight: '120%' }} variant="button">
             {result.projectName}
+            {result.detailplanId && (
+              <>
+                ,{' '}
+                <span
+                  css={css`
+                    color: #aaa;
+                  `}
+                >
+                  ({result.detailplanId})
+                </span>
+              </>
+            )}
           </Typography>
           <Typography sx={{ lineHeight: '120%' }} variant="overline">
             {dayjs(result.startDate).format(tr('date.format'))} —{' '}
