@@ -24,6 +24,7 @@ export type Mail = {
 } & Template<
   'new-detailplan-project' | 'update-detailplan-project',
   DbDetailplanProject & {
+    projectPageUrl: string;
     signatureFrom: string;
   }
 >;
