@@ -1,3 +1,5 @@
+import { FeatureLike } from 'ol/Feature';
+
 const geodataBaseUrl = 'https://geodata.tampere.fi/geoserver';
 
 const createWfsParams = (typeName: string, projectionCode: string) => {
@@ -20,8 +22,11 @@ export interface WFSLayer {
   url: string;
   style: {
     strokeColor: string;
+    strokeWidth?: number;
     fillColor: string;
     fillOpacity: number;
+    label?: (feature: FeatureLike) => string;
+    font?: `${'Bold' | 'Normal'} ${number}px/${number} ${string}`;
   };
   attributions?: string[];
 }
@@ -155,6 +160,23 @@ export const mapOptions = {
   ],
   wfsLayers: [
     {
+      id: 'kaupunginosat',
+      title: 'Kaupunginosat',
+      name: 'Kaupunginosat',
+      visible: true,
+      type: 'wfs',
+      url: `${geodataBaseUrl}/hallinnolliset_yksikot/wfs?${createWfsParams(
+        'hallinnolliset_yksikot:KH_TILASTO',
+        'EPSG:3067'
+      )}`,
+      style: {
+        strokeColor: '#00000',
+        fillColor: 'rgba(255, 255, 255, 0)',
+        label: (feature) => feature.get('NIMI'),
+        font: 'Bold 12px/1 Verdana',
+      },
+    },
+    {
       id: 'kiinteistot',
       title: 'Kiinteistöt',
       name: 'Kiinteistöt',
@@ -197,6 +219,22 @@ export const mapOptions = {
       )}`,
       style: {
         strokeColor: '#0000ff',
+        fillColor: '#ffffff',
+      },
+    },
+    {
+      id: 'kevyenliikenteenvaylat',
+      title: 'Kevyen liikenteen väylät',
+      name: 'Kevyen liikenteen väylät',
+      visible: true,
+      type: 'wfs',
+      url: `${geodataBaseUrl}/locus/wfs?${createWfsParams(
+        'locus:Katualueen_osa_klv_RpaStreetPart_Polygon_gsview',
+        'EPSG:3067'
+      )}`,
+      style: {
+        strokeColor: '#000000',
+        strokeWidth: 2,
         fillColor: '#ffffff',
       },
     },
