@@ -2,7 +2,12 @@ import { atom } from 'jotai';
 
 export const baseLayerIdAtom = atom<string>('virastokartta');
 
-export type VectorLayerKey = 'kiinteistot' | 'rakennukset' | 'kadut';
+export type VectorLayerKey =
+  | 'kaupunginosat'
+  | 'kiinteistot'
+  | 'rakennukset'
+  | 'kadut'
+  | 'kevyenliikenteenvaylat';
 
 export interface LayerState {
   id: VectorLayerKey;
@@ -11,6 +16,11 @@ export interface LayerState {
 }
 
 const defaultLayerState = [
+  {
+    id: 'kaupunginosat' as const,
+    selected: false,
+    opacity: 1,
+  },
   {
     id: 'kiinteistot' as const,
     selected: false,
@@ -23,6 +33,11 @@ const defaultLayerState = [
   },
   {
     id: 'kadut' as const,
+    selected: false,
+    opacity: 1,
+  },
+  {
+    id: 'kevyenliikenteenvaylat' as const,
     selected: false,
     opacity: 1,
   },

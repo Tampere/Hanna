@@ -15,6 +15,7 @@ import WMTS from 'ol/source/WMTS';
 import Fill from 'ol/style/Fill';
 import Stroke from 'ol/style/Stroke';
 import Style from 'ol/style/Style';
+import Text from 'ol/style/Text';
 import WMTSTileGrid from 'ol/tilegrid/WMTS';
 import proj4 from 'proj4';
 
@@ -216,15 +217,20 @@ export function createWebGLWFSLayer(layer: WFSLayer) {
 export function createWFSLayer(layer: WFSLayer) {
   return new VectorLayer({
     source: createVectorSource(layer.url),
-    style: new Style({
-      fill: new Fill({
-        color: layer.style.fillColor,
+    style: (feature) =>
+      new Style({
+        fill: new Fill({
+          color: layer.style.fillColor,
+        }),
+        stroke: new Stroke({
+          color: layer.style.strokeColor,
+          width: layer.style.strokeWidth ?? 1.2,
+        }),
+        text: new Text({
+          text: layer.style.label?.(feature),
+          font: layer.style.font,
+        }),
       }),
-      stroke: new Stroke({
-        color: layer.style.strokeColor,
-        width: 1.2,
-      }),
-    }),
     properties: {
       id: layer.id,
       type: 'wfs',

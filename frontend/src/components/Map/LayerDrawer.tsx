@@ -40,7 +40,6 @@ const containerStyles = css`
 
 const drawerStyles = css`
   height: 100%;
-  width: 200px;
   background-color: white;
   transition: opacity 0.15s ease-in-out;
   display: flex;
