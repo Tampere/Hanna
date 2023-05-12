@@ -73,7 +73,7 @@ function Navbar() {
   const profileMenuAnchor = useRef<HTMLButtonElement>(null);
 
   const logoStyle = css`
-    font-family: monospace;
+    font-family: Consolas, Menlo, sans-serif, monospace;
     text-transform: uppercase;
     font-weight: bold;
     letter-spacing: 0.3rem;
@@ -84,7 +84,7 @@ function Navbar() {
       <Toolbar>
         <Box sx={{ mr: 2 }}>
           <Typography variant="h6" noWrap component="div" css={logoStyle}>
-            Hanna|TRE
+            Hanna
           </Typography>
         </Box>
         <Box
