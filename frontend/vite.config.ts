@@ -3,7 +3,9 @@ import MarkdownIt from 'markdown-it';
 import MarkdownItAnchor from 'markdown-it-anchor';
 import { CommonServerOptions, defineConfig } from 'vite';
 import checker from 'vite-plugin-checker';
+import faviconsInject from 'vite-plugin-favicons-inject';
 import mdPlugin, { Mode } from 'vite-plugin-markdown';
+import svgr from 'vite-plugin-svgr';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Use customized instance of MarkdownIt to enable anchor links
@@ -25,6 +27,8 @@ const serverOptions: CommonServerOptions = {
 
 export default defineConfig({
   plugins: [
+    svgr(),
+    faviconsInject('./src/assets/logo.svg') as any,
     mdPlugin({
       mode: [Mode.REACT],
       markdownIt,
