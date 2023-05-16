@@ -82,7 +82,7 @@ function Navbar() {
   return (
     <AppBar position="static">
       <Toolbar>
-        <Box sx={{ mr: 2 }}>
+        <Box sx={{ mr: 2 }} title={`Hanna ${APP_VERSION}`}>
           <Typography variant="h6" noWrap component="div" css={logoStyle}>
             Hanna
           </Typography>

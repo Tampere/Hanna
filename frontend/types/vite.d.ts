@@ -24,3 +24,8 @@ declare module '*.svg' {
   >
   export default ReactComponent
 }
+
+/**
+ * App version injected as a build-time global variable in Vite.
+ */
+declare const APP_VERSION: string;

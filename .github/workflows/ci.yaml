@@ -14,6 +14,7 @@ on:
 env:
   NODE_VERSION: 18
   IMAGE_NAME: ${{ secrets.REGISTRY_ADDRESS }}/hanna
+  APP_VERSION: ${{ github.event_name == 'release' && github.event.release.name || format('build {0}', github.sha) }}
 
 jobs:
   test-frontend:
@@ -125,6 +126,8 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
+          build-args: |
+            APP_VERSION=${{ env.APP_VERSION }}
           tags: ${{ env.IMAGE_NAME }}:latest
           cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:latest
           cache-to: type=inline
@@ -153,7 +156,8 @@ jobs:
         with:
           push: true
           build-args: |
-            "EXTRA_HOSTS=${{ secrets.IMAGE_EXTRA_HOSTS }}"
+            EXTRA_HOSTS=${{ secrets.IMAGE_EXTRA_HOSTS }}
+            APP_VERSION=${{ env.APP_VERSION }}
           tags: ${{ env.IMAGE_NAME }}:${{ env.ENV_NAME }}
           cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:latest
           cache-to: type=inline
