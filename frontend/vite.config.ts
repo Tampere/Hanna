@@ -11,6 +11,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // Use customized instance of MarkdownIt to enable anchor links
 const markdownIt = MarkdownIt({ html: true }).use(MarkdownItAnchor, {});
 
+const appVersion = process.env.APP_VERSION ?? 'local-dev';
 const backendHost = process.env.BACKEND_HOST ?? '127.0.0.1';
 const proxyAddress = `http://${backendHost}:3003`;
 
@@ -28,7 +29,7 @@ const serverOptions: CommonServerOptions = {
 export default defineConfig({
   plugins: [
     svgr(),
-    faviconsInject('./src/assets/logo.svg') as any,
+    process.env.NODE_ENV !== 'development' && (faviconsInject('./src/assets/logo.svg') as any),
     mdPlugin({
       mode: [Mode.REACT],
       markdownIt,
@@ -58,4 +59,7 @@ export default defineConfig({
     },
   },
   preview: serverOptions,
+  define: {
+    APP_VERSION: JSON.stringify(appVersion),
+  },
 });
