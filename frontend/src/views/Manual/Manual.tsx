@@ -1,4 +1,5 @@
 import { Box, CssBaseline, css } from '@mui/material';
+import 'github-markdown-css/github-markdown-light.css';
 import { useRef } from 'react';
 import { useLocation } from 'react-router';
 
@@ -30,6 +31,7 @@ export function Manual() {
           margin: 0 auto;
           padding: 20px;
         `}
+        className="markdown-body"
       >
         <ManualContent />
       </Box>
