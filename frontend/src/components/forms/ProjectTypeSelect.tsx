@@ -8,9 +8,10 @@ interface Props {
   id?: string;
   value: ProjectType[];
   onChange: (value: ProjectType[]) => void;
+  maxTags?: number;
 }
 
-export function ProjectTypeSelect({ id, value, onChange }: Props) {
+export function ProjectTypeSelect({ id, value, onChange, maxTags }: Props) {
   const tr = useTranslations();
   return (
     <MultiSelect
@@ -21,6 +22,7 @@ export function ProjectTypeSelect({ id, value, onChange }: Props) {
       value={value}
       onChange={onChange}
       multiple
+      maxTags={maxTags}
     />
   );
 }

@@ -20,11 +20,13 @@ type Props = {
       multiple: true;
       value?: CodeId['id'][];
       onChange: (newValue: CodeId['id'][]) => void;
+      maxTags?: number;
     }
   | {
       multiple?: false;
       value?: CodeId['id'];
       onChange: (newValue: CodeId['id'] | null) => void;
+      maxTags?: never;
     }
 );
 
@@ -37,6 +39,7 @@ export function CodeSelect({
   onChange,
   onBlur,
   showIdInLabel,
+  maxTags,
 }: Props) {
   const codes = trpc.code.get.useQuery({ codeListId }, { staleTime: 60 * 60 * 1000 });
   const lang = useAtomValue(langAtom);
@@ -53,7 +56,7 @@ export function CodeSelect({
     if (!value) {
       return multiple ? [] : null;
     }
-    return multiple ? value.map(getCode) : getCode(value);
+    return multiple ? value.map(getCode).filter(Boolean) : getCode(value);
   }, [multiple, value, codes.data]);
 
   return multiple ? (
@@ -70,6 +73,7 @@ export function CodeSelect({
         onChange(value?.map((option) => option.id.id) ?? []);
       }}
       multiple
+      maxTags={maxTags}
     />
   ) : (
     <MultiSelect

@@ -32,9 +32,6 @@ function projectReportFragment(searchParams: ProjectSearch) {
       project_object.object_name AS "projectObjectName",
       project_object.description AS "projectObjectDescription",
       (SELECT text_fi FROM app.code WHERE id = project_object.lifecycle_state) AS "projectObjectLifecycleState",
-      (SELECT text_fi FROM app.code WHERE id = project_object.object_type) AS "projectObjectType",
-      (SELECT text_fi FROM app.code WHERE id = project_object.object_category) AS "projectObjectCategory",
-      (SELECT text_fi FROM app.code WHERE id = project_object.object_usage) AS "projectObjectUsage",
       (SELECT email FROM app.user WHERE id = project_object.person_in_charge) AS "projectObjectPersonInChargeEmail",
       project_object.created_at AS "projectObjectCreatedAt",
       project_object.start_date AS "projectObjectStartDate",
@@ -60,6 +57,7 @@ const reportRowSchema = z.object({
   projectStartDate: dateStringSchema,
   projectEndDate: dateStringSchema,
   projectLifecycleState: z.string(),
+  projectCommittee: z.string().nullish(),
   projectSAPProjectId: z.string().nullish(),
   projectOwnerEmail: z.string(),
   projectPersonInChargeEmail: z.string(),
@@ -93,7 +91,47 @@ export async function buildInvestmentProjectReportSheet(
       SELECT * FROM investment_projects
       INNER JOIN projects ON projects."projectId" = investment_projects.id
     )
-    SELECT * FROM filtered_projects
+    SELECT
+      fp.*,
+      "projectCommittee",
+      "projectObjectType",
+      "projectObjectCategory",
+      "projectObjectUsage"
+    FROM
+      filtered_projects fp
+      -- Aggregate each multiselect codes into one localized column each
+      LEFT JOIN (
+        SELECT
+          project_id,
+          string_agg(c.text_fi, ', ') AS "projectCommittee"
+        FROM app.project_committee pc
+        LEFT JOIN app.code c ON c.id = pc.committee_type
+        GROUP BY project_id
+      ) committees ON fp.id = committees.project_id
+      LEFT JOIN (
+        SELECT
+          project_object_id,
+          string_agg(c.text_fi, ', ') AS "projectObjectType"
+        FROM app.project_object_type pot
+        LEFT JOIN app.code c ON c.id = pot.object_type
+        GROUP BY project_object_id
+      ) object_types ON fp."projectObjectId" = object_types.project_object_id
+      LEFT JOIN (
+        SELECT
+          project_object_id,
+          string_agg(c.text_fi, ', ') AS "projectObjectCategory"
+        FROM app.project_object_category poc
+        LEFT JOIN app.code c ON c.id = poc.object_category
+        GROUP BY project_object_id
+      ) object_categories ON fp."projectObjectId" = object_categories.project_object_id
+      LEFT JOIN (
+        SELECT
+          project_object_id,
+          string_agg(c.text_fi, ', ') AS "projectObjectUsage"
+        FROM app.project_object_usage pou
+        LEFT JOIN app.code c ON c.id = pou.object_usage
+        GROUP BY project_object_id
+      ) object_usages ON fp."projectObjectId" = object_usages.project_object_id
     WHERE tsrank IS NULL OR tsrank > 0
     ORDER BY tsrank DESC, "projectStartDate" DESC
   `;

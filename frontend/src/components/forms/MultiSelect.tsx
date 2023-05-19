@@ -19,11 +19,13 @@ export type Props<T> = {
       multiple: true;
       value: T[] | null;
       onChange: (newValue: T[]) => void;
+      maxTags?: number;
     }
   | {
       multiple?: false;
       value: T | null;
       onChange: (newValue: T | null) => void;
+      maxTags?: never;
     }
 );
 
@@ -39,6 +41,7 @@ export function MultiSelect<T>({
   onBlur,
   getOptionLabel,
   getOptionId,
+  maxTags,
 }: Props<T>) {
   const tr = useTranslations();
 
@@ -78,7 +81,7 @@ export function MultiSelect<T>({
         },
       }}
       onChange={(_, newSelection) => {
-        if (!newSelection || newSelection.length === 1) {
+        if (maxTags != null && (!newSelection || newSelection.length <= maxTags)) {
           setPopoverOpen(false);
         }
 
@@ -97,8 +100,8 @@ export function MultiSelect<T>({
       onBlur={onBlur}
       getOptionLabel={getLabel}
       renderTags={(value, getTagProps) => {
-        return value.length > 1 ? (
-          // Render the popover if there are multiple selections
+        return maxTags != null && value.length > maxTags ? (
+          // Render the popover if selections exceed the maximum tag count
           <>
             <Chip
               size="small"
@@ -132,14 +135,16 @@ export function MultiSelect<T>({
               </ul>
             </Popover>
           </>
-        ) : value.length === 1 ? (
-          // Only render the only value as its own chip if there is 1 selection
-          <Chip
-            {...getTagProps({ index: 0 })}
-            size="small"
-            title={getLabel(value[0])}
-            label={getLabel(value[0])}
-          />
+        ) : maxTags == null || value.length <= maxTags ? (
+          // Only render the tags if the limit is not exceeded
+          value.map((tag, index) => (
+            <Chip
+              {...getTagProps({ index })}
+              size="small"
+              title={getLabel(tag)}
+              label={getLabel(tag)}
+            ></Chip>
+          ))
         ) : null;
       }}
       renderOption={(props, id, { selected }) => (
@@ -163,7 +168,6 @@ export function MultiSelect<T>({
           hiddenLabel={readOnly}
           InputProps={{
             ...params.InputProps,
-            style: { flexWrap: 'nowrap' },
             endAdornment: (
               <>
                 {loading ? <CircularProgress color="inherit" size={20} /> : null}

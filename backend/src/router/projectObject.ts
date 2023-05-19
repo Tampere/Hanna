@@ -1,10 +1,10 @@
 import { TRPCError } from '@trpc/server';
-import { sql } from 'slonik';
+import { DatabaseTransactionConnection } from 'slonik';
 import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
 import { codeIdFragment } from '@backend/components/code';
-import { getPool } from '@backend/db';
+import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 
 import { nonEmptyString } from '@shared/schema/common';
@@ -26,9 +26,6 @@ const projectObjectFragment = sql.fragment`
      object_name AS "objectName",
      description AS "description",
      (lifecycle_state).id AS "lifecycleState",
-     (object_type).id AS "objectType",
-     (object_category).id AS "objectCategory",
-     (object_usage).id AS "objectUsage",
      person_in_charge AS "personInCharge",
      start_date AS "startDate",
      end_date AS "endDate",
@@ -41,12 +38,74 @@ const projectObjectFragment = sql.fragment`
   WHERE deleted = false
 `;
 
-async function getProjectObject(projectId: string, id: string) {
-  return await getPool().one(sql.type(dbProjectObjectSchema)`
+async function getObjectTypes(projectObjectId: string) {
+  return getPool()
+    .any(
+      sql.type(z.object({ id: z.string() }))`
+    SELECT (object_type).id
+    FROM app.project_object_type
+    WHERE project_object_id = ${projectObjectId}
+  `
+    )
+    .then((types) => types.map(({ id }) => id));
+}
+
+async function getObjectCategories(projectObjectId: string) {
+  return getPool()
+    .any(
+      sql.type(z.object({ id: z.string() }))`
+    SELECT (object_category).id
+    FROM app.project_object_category
+    WHERE project_object_id = ${projectObjectId}
+  `
+    )
+    .then((categories) => categories.map(({ id }) => id));
+}
+
+async function getObjectUsages(projectObjectId: string) {
+  return getPool()
+    .any(
+      sql.type(z.object({ id: z.string() }))`
+    SELECT (object_usage).id
+    FROM app.project_object_usage
+    WHERE project_object_id = ${projectObjectId}
+  `
+    )
+    .then((usages) => usages.map(({ id }) => id));
+}
+
+async function getProjectObject(projectObjectId: string) {
+  const projectObject = await getPool().one(sql.type(dbProjectObjectSchema)`
+    ${projectObjectFragment}
+    AND id = ${projectObjectId}
+  `);
+
+  const [objectTypes, objectCategories, objectUsages] = await Promise.all([
+    getObjectTypes(projectObject.id),
+    getObjectCategories(projectObject.id),
+    getObjectUsages(projectObject.id),
+  ]);
+
+  return { ...projectObject, objectTypes, objectCategories, objectUsages };
+}
+
+async function getProjectObjectsByProjectId(projectId: string) {
+  const projectObjects = await getPool().any(sql.type(dbProjectObjectSchema)`
     ${projectObjectFragment}
     AND project_id = ${projectId}
-    AND id = ${id}
   `);
+
+  return Promise.all(
+    projectObjects.map(async (projectObject) => {
+      const [objectTypes, objectCategories, objectUsages] = await Promise.all([
+        getObjectTypes(projectObject.id),
+        getObjectCategories(projectObject.id),
+        getObjectUsages(projectObject.id),
+      ]);
+
+      return { ...projectObject, objectTypes, objectCategories, objectUsages };
+    })
+  );
 }
 
 async function deleteProjectObject(id: string, user: User) {
@@ -73,15 +132,78 @@ async function deleteProjectObject(id: string, user: User) {
   });
 }
 
+async function updateObjectTypes(
+  tx: DatabaseTransactionConnection,
+  projectObject: UpsertProjectObject & { id: string }
+) {
+  tx.query(sql.untyped`
+    DELETE FROM app.project_object_type
+    WHERE project_object_id = ${projectObject.id}
+  `);
+
+  await Promise.all(
+    projectObject.objectType.map((type) =>
+      tx.any(sql.untyped`
+        INSERT INTO app.project_object_type (project_object_id, object_type)
+        VALUES (
+          ${projectObject.id},
+          ${codeIdFragment('KohdeTyyppi', type)}
+        );
+      `)
+    )
+  );
+}
+
+async function updateObjectCategories(
+  tx: DatabaseTransactionConnection,
+  projectObject: UpsertProjectObject & { id: string }
+) {
+  tx.query(sql.untyped`
+    DELETE FROM app.project_object_category
+    WHERE project_object_id = ${projectObject.id}
+  `);
+
+  await Promise.all(
+    projectObject.objectCategory.map((category) =>
+      tx.any(sql.untyped`
+        INSERT INTO app.project_object_category (project_object_id, object_category)
+        VALUES (
+          ${projectObject.id},
+          ${codeIdFragment('KohteenOmaisuusLuokka', category)}
+        );
+      `)
+    )
+  );
+}
+
+async function updateObjectUsages(
+  tx: DatabaseTransactionConnection,
+  projectObject: UpsertProjectObject & { id: string }
+) {
+  tx.query(sql.untyped`
+    DELETE FROM app.project_object_usage
+    WHERE project_object_id = ${projectObject.id}
+  `);
+
+  await Promise.all(
+    projectObject.objectUsage.map((usage) =>
+      tx.any(sql.untyped`
+        INSERT INTO app.project_object_usage (project_object_id, object_usage)
+        VALUES (
+          ${projectObject.id},
+          ${codeIdFragment('KohteenToiminnallinenKayttoTarkoitus', usage)}
+        );
+      `)
+    )
+  );
+}
+
 async function upsertProjectObject(projectObject: UpsertProjectObject, userId: string) {
   const data = {
     project_id: projectObject.projectId,
     object_name: projectObject.objectName,
     description: projectObject.description,
     lifecycle_state: codeIdFragment('KohteenElinkaarentila', projectObject.lifecycleState),
-    object_type: codeIdFragment('KohdeTyyppi', projectObject.objectType),
-    object_category: codeIdFragment('KohteenOmaisuusLuokka', projectObject.objectCategory),
-    object_usage: codeIdFragment('KohteenToiminnallinenKayttoTarkoitus', projectObject.objectUsage),
     person_in_charge: projectObject.personInCharge,
     start_date: projectObject.startDate,
     end_date: projectObject.endDate,
@@ -105,23 +227,25 @@ async function upsertProjectObject(projectObject: UpsertProjectObject, userId: s
       eventUser: userId,
     });
 
-    if (projectObject.id) {
-      return tx.one(
-        sql.type(z.object({ id: z.string() }))`
+    const upsertResult = projectObject.id
+      ? await tx.one(sql.type(z.object({ id: z.string() }))`
         UPDATE app.project_object
         SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
         WHERE project_id = ${projectObject.projectId}
           AND id = ${projectObject.id}
-        RETURNING id`
-      );
-    } else {
-      return tx.one(
-        sql.type(z.object({ id: z.string() }))`
+        RETURNING id`)
+      : await tx.one(sql.type(z.object({ id: z.string() }))`
         INSERT INTO app.project_object (${sql.join(identifiers, sql.fragment`,`)})
         VALUES (${sql.join(values, sql.fragment`,`)})
-        RETURNING id`
-      );
-    }
+        RETURNING id`);
+
+    await Promise.all([
+      updateObjectTypes(tx, { ...projectObject, id: upsertResult.id }),
+      updateObjectCategories(tx, { ...projectObject, id: upsertResult.id }),
+      updateObjectUsages(tx, { ...projectObject, id: upsertResult.id }),
+    ]);
+
+    return upsertResult;
   });
 }
 
@@ -129,7 +253,7 @@ export const createProjectObjectRouter = (t: TRPC) =>
   t.router({
     upsert: t.procedure.input(upsertProjectObjectSchema).mutation(async ({ input, ctx }) => {
       const result = await upsertProjectObject(input, ctx.user.id);
-      return getProjectObject(input.projectId, result.id);
+      return getProjectObject(result.id);
     }),
 
     updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input, ctx }) => {
@@ -157,17 +281,14 @@ export const createProjectObjectRouter = (t: TRPC) =>
       });
     }),
 
-    get: t.procedure.input(getProjectObjectParams).query(async ({ input, ctx }) => {
-      return getProjectObject(input.projectId, input.id);
+    get: t.procedure.input(getProjectObjectParams).query(async ({ input }) => {
+      return getProjectObject(input.id);
     }),
 
     getByProjectId: t.procedure
       .input(z.object({ projectId: nonEmptyString }))
-      .query(async ({ input, ctx }) => {
-        return getPool().any(sql.type(dbProjectObjectSchema)`
-        ${projectObjectFragment}
-        AND project_id = ${input.projectId}
-      `);
+      .query(async ({ input }) => {
+        return getProjectObjectsByProjectId(input.projectId);
       }),
 
     delete: t.procedure.input(deleteProjectObjectSchema).mutation(async ({ input, ctx }) => {

@@ -15,16 +15,18 @@ type Props = {
       multiple: true;
       value: string[];
       onChange: (userIds: string[]) => void;
+      maxTags?: number;
     }
   | {
       multiple?: false;
       value: string;
       onChange: (userId: string | null) => void;
+      maxTags?: never;
     }
 );
 
 export function UserSelect(props: Props) {
-  const { id, readOnly, onBlur, multiple, value, onChange } = props;
+  const { id, readOnly, onBlur, multiple, value, onChange, maxTags } = props;
   const users = trpc.user.getAll.useQuery();
 
   function getUser(id: string) {
@@ -49,6 +51,7 @@ export function UserSelect(props: Props) {
       getOptionId={(user) => user.id}
       getOptionLabel={(user) => user.name}
       onChange={(users) => onChange(users.map((user) => user.id))}
+      maxTags={maxTags}
       multiple
     />
   ) : (
