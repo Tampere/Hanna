@@ -136,6 +136,7 @@ export function SearchControls() {
             multiple
             value={lifecycleStates}
             onChange={setLifecycleStates}
+            maxTags={1}
           />
         </FormControl>
         <FormControl>
@@ -143,6 +144,7 @@ export function SearchControls() {
           <ProjectTypeSelect
             id="project-type"
             value={Object.keys(filters) as Array<keyof typeof filters>}
+            maxTags={1}
             onChange={(projectTypes) => {
               setFilters((filters) => {
                 const previousTypes = new Set(Object.keys(filters)) as Set<keyof typeof filters>;
@@ -171,7 +173,7 @@ export function SearchControls() {
         </FormControl>
         <FormControl>
           <FormLabel htmlFor="owner">{tr('project.ownerLabel')}</FormLabel>
-          <UserSelect id="owner" multiple value={owners} onChange={setOwners} />
+          <UserSelect id="owner" multiple value={owners} onChange={setOwners} maxTags={1} />
         </FormControl>
         <FormGroup>
           <FormLabel>{tr('projectSearch.geometry')}</FormLabel>

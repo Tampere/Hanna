@@ -204,7 +204,13 @@ export function ProjectObjectForm(props: Props) {
           label={tr('projectObject.objectTypeLabel')}
           tooltip={tr('projectObject.objectTypeTooltip')}
           component={({ ref, ...field }) => (
-            <CodeSelect {...field} codeListId="KohdeTyyppi" readOnly={!editing} />
+            <CodeSelect
+              {...field}
+              multiple
+              codeListId="KohdeTyyppi"
+              readOnly={!editing}
+              maxTags={3}
+            />
           )}
         />
 
@@ -213,7 +219,12 @@ export function ProjectObjectForm(props: Props) {
           label={tr('projectObject.objectCategoryLabel')}
           tooltip={tr('projectObject.objectCategoryTooltip')}
           component={({ ref, ...field }) => (
-            <CodeSelect {...field} codeListId="KohteenOmaisuusLuokka" readOnly={!editing} />
+            <CodeSelect
+              {...field}
+              multiple
+              codeListId="KohteenOmaisuusLuokka"
+              readOnly={!editing}
+            />
           )}
         />
 
@@ -224,6 +235,7 @@ export function ProjectObjectForm(props: Props) {
           component={({ ref, ...field }) => (
             <CodeSelect
               {...field}
+              multiple
               codeListId="KohteenToiminnallinenKayttoTarkoitus"
               readOnly={!editing}
             />

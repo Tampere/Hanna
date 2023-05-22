@@ -103,6 +103,7 @@
   "report.columns.projectStartDate": "Hankkeen aloituspvm",
   "report.columns.projectEndDate": "Hankkeen lopetuspvm",
   "report.columns.projectLifecycleState": "Elinkaaren tila",
+  "report.columns.projectCommittee": "Lautakunta",
   "report.columns.projectType": "Hanketyyppi",
   "report.columns.projectSAPProjectId": "Hankkeen SAP-projekti",
   "report.columns.projectOwnerEmail": "Hankkeen omistaja",
