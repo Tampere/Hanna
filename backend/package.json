@@ -63,7 +63,7 @@
     "axios": "^1.4.0",
     "connect-pg-simple": "^8.0.0",
     "dotenv": "^16.0.3",
-    "email-templates": "^11.0.3",
+    "email-templates": "^11.0.5",
     "excel4node": "^1.8.2",
     "fast-json-stable-stringify": "^2.1.0",
     "fastify": "^4.17.0",
