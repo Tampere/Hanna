@@ -33,79 +33,32 @@ const projectObjectFragment = sql.fragment`
      ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
      (landownership).id AS "landownership",
      (location_on_property).id AS "locationOnProperty",
+     (SELECT json_agg((object_type).id)
+      FROM app.project_object_type
+      WHERE project_object.id = project_object_type.project_object_id) AS "objectType",
+     (SELECT json_agg((object_category).id)
+      FROM app.project_object_category
+      WHERE project_object.id = project_object_category.project_object_id) AS "objectCategory",
+     (SELECT json_agg((object_usage).id)
+      FROM app.project_object_usage
+      WHERE project_object.id = project_object_usage.project_object_id) AS "objectUsage",
      height
   FROM app.project_object
   WHERE deleted = false
 `;
 
-async function getObjectTypes(projectObjectId: string) {
-  return getPool()
-    .any(
-      sql.type(z.object({ id: z.string() }))`
-    SELECT (object_type).id
-    FROM app.project_object_type
-    WHERE project_object_id = ${projectObjectId}
-  `
-    )
-    .then((types) => types.map(({ id }) => id));
-}
-
-async function getObjectCategories(projectObjectId: string) {
-  return getPool()
-    .any(
-      sql.type(z.object({ id: z.string() }))`
-    SELECT (object_category).id
-    FROM app.project_object_category
-    WHERE project_object_id = ${projectObjectId}
-  `
-    )
-    .then((categories) => categories.map(({ id }) => id));
-}
-
-async function getObjectUsages(projectObjectId: string) {
-  return getPool()
-    .any(
-      sql.type(z.object({ id: z.string() }))`
-    SELECT (object_usage).id
-    FROM app.project_object_usage
-    WHERE project_object_id = ${projectObjectId}
-  `
-    )
-    .then((usages) => usages.map(({ id }) => id));
-}
-
 async function getProjectObject(projectObjectId: string) {
-  const projectObject = await getPool().one(sql.type(dbProjectObjectSchema)`
+  return getPool().one(sql.type(dbProjectObjectSchema)`
     ${projectObjectFragment}
     AND id = ${projectObjectId}
   `);
-
-  const [objectTypes, objectCategories, objectUsages] = await Promise.all([
-    getObjectTypes(projectObject.id),
-    getObjectCategories(projectObject.id),
-    getObjectUsages(projectObject.id),
-  ]);
-
-  return { ...projectObject, objectTypes, objectCategories, objectUsages };
 }
 
 async function getProjectObjectsByProjectId(projectId: string) {
-  const projectObjects = await getPool().any(sql.type(dbProjectObjectSchema)`
+  return getPool().any(sql.type(dbProjectObjectSchema)`
     ${projectObjectFragment}
     AND project_id = ${projectId}
   `);
-
-  return Promise.all(
-    projectObjects.map(async (projectObject) => {
-      const [objectTypes, objectCategories, objectUsages] = await Promise.all([
-        getObjectTypes(projectObject.id),
-        getObjectCategories(projectObject.id),
-        getObjectUsages(projectObject.id),
-      ]);
-
-      return { ...projectObject, objectTypes, objectCategories, objectUsages };
-    })
-  );
 }
 
 async function deleteProjectObject(id: string, user: User) {
