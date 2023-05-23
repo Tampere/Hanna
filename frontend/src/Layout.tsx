@@ -82,7 +82,7 @@ function Navbar() {
   return (
     <AppBar position="static">
       <Toolbar>
-        <Box sx={{ mr: 2 }} title={`Hanna ${APP_VERSION}`}>
+        <Box sx={{ mr: 2 }}>
           <Typography variant="h6" noWrap component="div" css={logoStyle}>
             Hanna
           </Typography>
@@ -175,6 +175,24 @@ function Navbar() {
   );
 }
 
+function VersionIndicator() {
+  return (
+    <Typography
+      css={css`
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        padding: 4px 8px;
+        border-radius: 10px 0 0 0;
+        background: #fff;
+        opacity: 0.7;
+      `}
+    >
+      Hanna {APP_VERSION}
+    </Typography>
+  );
+}
+
 export function Layout() {
   const sessionExpired = useAtomValue(sessionExpiredAtom);
 
@@ -205,6 +223,7 @@ export function Layout() {
           <Box css={mainContentStyle}>
             <Outlet />
           </Box>
+          <VersionIndicator />
           <SessionExpiredWarning />
         </ThemeProvider>
       </Box>
