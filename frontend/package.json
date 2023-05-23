@@ -65,6 +65,7 @@
     "@trpc/react-query": "^10.26.0",
     "@trpc/server": "^10.26.0",
     "dayjs": "^1.11.7",
+    "github-markdown-css": "^5.2.0",
     "jotai": "^2.1.0",
     "jotai-optics": "^0.3.0",
     "ol": "^7.3.0",
