@@ -127,7 +127,7 @@ jobs:
         with:
           push: true
           build-args: |
-            APP_VERSION=${{ env.APP_VERSION }}
+            "APP_VERSION=${{ env.APP_VERSION }}"
           tags: ${{ env.IMAGE_NAME }}:latest
           cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:latest
           cache-to: type=inline
@@ -156,8 +156,8 @@ jobs:
         with:
           push: true
           build-args: |
-            EXTRA_HOSTS=${{ secrets.IMAGE_EXTRA_HOSTS }}
-            APP_VERSION=${{ env.APP_VERSION }}
+            "EXTRA_HOSTS=${{ secrets.IMAGE_EXTRA_HOSTS }}"
+            "APP_VERSION=${{ env.APP_VERSION }}"
           tags: ${{ env.IMAGE_NAME }}:${{ env.ENV_NAME }}
           cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:latest
           cache-to: type=inline
