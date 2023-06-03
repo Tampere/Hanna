@@ -4,7 +4,7 @@
   "description": "Tampere Hanna backend/frontend shared code",
   "scripts": {
     "build": "tsc",
-    "test": "echo \"No tests specified\""
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +15,7 @@
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.1.1",
     "@types/node": "^20.2.3",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "vitest": "^0.31.2"
   }
 }

@@ -345,6 +345,7 @@ async function maybeCacheSapActuals(projectId: string, year: string, actuals: SA
   return actuals;
 }
 
+// TODO: instead of single year parameter, accept a range of years
 export async function getSapActuals(sapProjectId: string, year: string) {
   if (!env.enabledFeatures.sapActuals) {
     logger.info('SAP actuals are disabled.');
@@ -377,4 +378,18 @@ export async function sapProjectExists(projectId: string) {
   const [wsResult] = await wsClient.SI_ZPS_WS_GET_PROJECT_INFOAsync({ PROJECT: projectId });
   const containsErrorItem = wsResult.MESSAGES?.item?.some((item: any) => item.TYPE === 'E');
   return !containsErrorItem;
+}
+
+interface ProjectListItem {
+  PSPID: string;
+}
+
+export async function getCompanyProjectList(companyId: string): Promise<ProjectListItem[]> {
+  const wsClient = ProjectInfoService.getClient();
+  const [wsResult] = await wsClient.SI_ZPS_WS_GET_PROJECT_INFOAsync({ COMPANY: companyId });
+  const containsErrorItem = wsResult.MESSAGES?.item?.some((item: any) => item.TYPE === 'E');
+  if (containsErrorItem) {
+    throw new Error(`Unable to get company project list from SAP for company id: ${companyId}`);
+  }
+  return wsResult?.PROJECT_INFO.item;
 }

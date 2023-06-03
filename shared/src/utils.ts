@@ -1,3 +1,5 @@
+import { assert } from 'console';
+
 /**
  * Retries a given promise until it's resolved or it gets rejected after given amount of times.
  *
@@ -96,4 +98,18 @@ export function debounce<T extends (...args: any[]) => any>(f: T, interval: numb
  */
 export function coerceArray<T>(value: T | T[] | null | undefined) {
   return value == null ? [] : Array.isArray(value) ? value : [value];
+}
+
+/**
+ * Returns an array of chunks of given size.
+ */
+export function arrayChunks<T>(array: T[], chunkSize: number): T[][] {
+  if (chunkSize < 1) {
+    throw new Error('Chunk size must be a positive number');
+  }
+  const chunkedArray = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunkedArray.push(array.slice(i, i + chunkSize));
+  }
+  return chunkedArray;
 }

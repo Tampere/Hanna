@@ -39,6 +39,13 @@ const schema = z.object({
   }),
   enabledFeatures: z.object({
     sapActuals: z.boolean(),
+    sapSync: z.boolean(),
+  }),
+  sapSync: z.object({
+    queueTeamSize: z.number(),
+    queueTeamConcurrency: z.number(),
+    cronStartHour: z.number(),
+    companies: z.array(z.string()),
   }),
   report: z.object({
     queueConcurrency: z.number(),
@@ -113,6 +120,13 @@ function getEnv() {
     },
     enabledFeatures: {
       sapActuals: process.env.FEATURE_ENABLED_SAP_ACTUALS === 'true',
+      sapSync: process.env.FEATURE_ENABLED_SAP_SYNC === 'true',
+    },
+    sapSync: {
+      queueTeamSize: Number(process.env.SAP_SYNC_QUEUE_TEAM_SIZE),
+      queueTeamConcurrency: Number(process.env.SAP_SYNC_QUEUE_CONCURRENCY),
+      cronStartHour: Number(process.env.SAP_SYNC_CRON_START_HOUR),
+      companies: JSON.parse(process.env.SAP_SYNC_COMPANIES ?? '[]'),
     },
     report: {
       queueConcurrency: Number(process.env.REPORT_QUEUE_CONCURRENCY),

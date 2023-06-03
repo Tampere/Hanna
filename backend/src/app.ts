@@ -10,6 +10,8 @@ import { serialize } from 'superjson';
 import { registerAuth } from '@backend/auth';
 import healthApi from '@backend/components/health/api';
 import reportDownloadApi from '@backend/components/report/downloadApi';
+import { setupSapSyncQueue } from '@backend/components/sap/syncQueue';
+import syncQueueApi from '@backend/components/sap/syncQueueApi';
 import { ActualsService, ProjectInfoService } from '@backend/components/sap/webservice';
 import { SharedPool, createDatabasePool } from '@backend/db';
 import { env } from '@backend/env';
@@ -40,10 +42,24 @@ async function run() {
   await createDatabasePool();
   await initializeTaskQueue();
 
-  await Promise.all([setupReportQueue(), setupMailQueue()]);
+  await Promise.all([setupReportQueue(), setupMailQueue(), setupSapSyncQueue()]);
 
   const server = fastify({ logger });
   const oidcClient = await getClient();
+
+  // TODO: admin api routes that check the x-apikey header mathces configured one
+  /* pseudo-code:
+  registerAdminApis({
+    prefix: '/api/v1/admin',
+    apis: [ // Maybe add support for adding multiple apis here
+      // synqQueueApi,
+      // other possible admin apis
+    ]
+  };
+  */
+  // TODO: remove this placeholder route once admin api is implemented, this is for initial
+  // development to fill the queue with some data
+  server.register(syncQueueApi, { prefix: '/api/v1' });
 
   // Register auth-related functionality for server instance
   registerAuth(server, {
