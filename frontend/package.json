@@ -44,7 +44,7 @@
     "markdown-it": "^13.0.1",
     "markdown-it-anchor": "^8.6.7",
     "typescript": "5.0.4",
-    "vite": "^4.3.8",
+    "vite": "^4.3.9",
     "vite-plugin-checker": "^0.6.0",
     "vite-plugin-favicons-inject": "^2.2.0",
     "vite-plugin-markdown": "^2.2.0-2",
