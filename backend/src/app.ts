@@ -10,6 +10,11 @@ import { serialize } from 'superjson';
 import { registerAuth } from '@backend/auth';
 import healthApi from '@backend/components/health/api';
 import reportDownloadApi from '@backend/components/report/downloadApi';
+import {
+  setupScheduledSyncQueue as setupDailySapSyncQueue,
+  setupSapSyncQueue,
+} from '@backend/components/sap/syncQueue';
+import syncQueueApi from '@backend/components/sap/syncQueueApi';
 import { ActualsService, ProjectInfoService } from '@backend/components/sap/webservice';
 import { SharedPool, createDatabasePool } from '@backend/db';
 import { env } from '@backend/env';
@@ -17,6 +22,7 @@ import { logger } from '@backend/logging';
 import { getClient } from '@backend/oidc';
 import { appRouter, createContext } from '@backend/router';
 
+import { registerApiKeyRoutes } from './apiKey';
 import { georasterProxy } from './components/proxy/georaster';
 import { initializeTaskQueue } from './components/taskQueue';
 import { setupMailQueue } from './components/taskQueue/mailQueue';
@@ -40,10 +46,17 @@ async function run() {
   await createDatabasePool();
   await initializeTaskQueue();
 
-  await Promise.all([setupReportQueue(), setupMailQueue()]);
+  await Promise.all([
+    setupReportQueue(),
+    setupMailQueue(),
+    setupSapSyncQueue(),
+    setupDailySapSyncQueue(),
+  ]);
 
   const server = fastify({ logger });
   const oidcClient = await getClient();
+
+  registerApiKeyRoutes(server, { prefix: '/api/v1/admin', apis: [syncQueueApi] });
 
   // Register auth-related functionality for server instance
   registerAuth(server, {

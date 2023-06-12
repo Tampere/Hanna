@@ -1,5 +1,11 @@
 import { Pool, PoolConfig } from 'pg';
-import { DatabasePool, createPool, sql as slonikSql, stringifyDsn } from 'slonik';
+import {
+  DatabasePool,
+  createPool,
+  createTypeParserPreset,
+  sql as slonikSql,
+  stringifyDsn,
+} from 'slonik';
 
 import { env } from '@backend/env';
 import { logger } from '@backend/logging';
@@ -37,6 +43,22 @@ export async function createDatabasePool() {
   logger.info(`Connecting to ${redactedDsn}`);
   pool = await createPool(connectionDsn, {
     PgPool: SharedPool,
+    typeParsers: [
+      ...createTypeParserPreset(),
+      // Convert timestamps to JS dates
+      {
+        name: 'timestamp',
+        parse(value) {
+          return new Date(value + ' UTC');
+        },
+      },
+      {
+        name: 'timestamptz',
+        parse(value) {
+          return new Date(value);
+        },
+      },
+    ],
   });
 }
 

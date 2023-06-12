@@ -26,15 +26,17 @@ export function AsyncJobButton(props: Props) {
 
     setLoading(true);
 
+    // TODO: timeout
+
     const interval = setInterval(async () => {
       // Get the job status from the server
       const { isFinished, state } = await job.getStatus.fetch({ jobId });
 
       // Handle error & finished states
-      if (state === 'failed') {
-        onError?.();
-      } else if (isFinished) {
+      if (state === 'completed') {
         onFinished?.(jobId);
+      } else if (isFinished) {
+        onError?.();
       } else {
         // Not finished or errors - continue polling
         return;

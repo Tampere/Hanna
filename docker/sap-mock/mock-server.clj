@@ -58,8 +58,8 @@
         creation-date (generate-random-date project-creation-date 30)
         scheduled-start (generate-date-between start-date finish-date)
         scheduled-finish (generate-date-between scheduled-start finish-date)
-        profit-center-id (generate-random-id 999999 10)
-        operations-routing-number (generate-random-id 99999 10)]
+        profit-center-id (generate-random-id 9999999 10)
+        operations-routing-number (generate-random-id 999999999 10)]
     (into
      {}
      [[:AUFNR order-number]
@@ -114,7 +114,7 @@
         technically-completed-date (generate-date-between start-date finish-date)]
     (mapv
      (fn [id]
-       (let [wbs-id (generate-random-id 999999 8)]
+       (let [wbs-id (generate-random-id 9999999 8)]
          (into
           {}
           [[:PSPNR wbs-id]
@@ -155,7 +155,7 @@
         config {:area area :wbs-count wbs-count :activity-count activity-count}
         [plant _] (str/split project-id #"_")
         plant (subs plant 1)
-        internal-id (generate-random-id 100000 8)
+        internal-id (generate-random-id 99999999 8)
         project-creator (generate-random-name)
         project-creation-date (generate-random-date (java.time.LocalDate/of 2019 06 01) 365)
         project-updater (generate-random-name)
@@ -193,30 +193,31 @@
          :plant plant})]])))
 
 (defn random-actuals-data [project]
-  (for [num-of-actuals (range (+ (rand-int 1000) 250))
-        :let [amount (+ (rand-int 10000) 500)
-              amount-fmt (apply str amount "." (format "%02d" (rand-int 100)))
-              debit {:BEKNZ "S" :OBART "NV" :WTGBTR amount-fmt}
-              credit {:BEKNZ "H" :OBART "PR" :WTGBTR (str "-" amount-fmt)}
-              transaction (rand-nth [debit debit credit])
-              wbs (-> project :WBS rand-nth)
-              {:keys [GSTRS GLTRS]} (:NETWORK wbs)
-              item-date (generate-date-between GSTRS GLTRS)]]
-    {:BELNR (generate-random-id 999999999 10)
+  (when (seq (:WBS project))
+    (for [num-of-actuals (range (+ (rand-int 1000) 250))
+          :let [amount (+ (rand-int 10000) 500)
+                amount-fmt (apply str amount "." (format "%02d" (rand-int 100)))
+                debit {:BEKNZ "S" :OBART "NV" :WTGBTR amount-fmt}
+                credit {:BEKNZ "H" :OBART "PR" :WTGBTR (str "-" amount-fmt)}
+                transaction (rand-nth [debit debit credit])
+                wbs (-> project :WBS rand-nth)
+                {:keys [GSTRS GLTRS]} (:NETWORK wbs)
+                item-date (generate-date-between GSTRS GLTRS)]]
+      {:BELNR (generate-random-id 999999999 10)
        ;; TODO: random dates from valid range
-     :GJAHR (.getYear item-date)
-     :BLDAT (generate-random-date item-date (rand-int 2))
-     :BUDAT (generate-random-date item-date (rand-int 2))
-     :CPUDT (generate-random-date item-date (rand-int 2))
-     :PSPID (:PSPID project)
-     :POSID (:POSID wbs)
-     :AUFNR (-> wbs :NETWORK :AUFNR)
-     :VORNR ""
-     :OBJ_TXT (rand-nth ["Selvitys" "Valmistelu" "Aloitus" "Ehdotus"])
-     :OBART (:OBART transaction)
-     :TWAER "EUR"
-     :WTGBTR (:WTGBTR transaction)
-     :BEKNZ (:BEKNZ transaction)}))
+       :GJAHR (.getYear item-date)
+       :BLDAT (generate-random-date item-date (rand-int 2))
+       :BUDAT (generate-random-date item-date (rand-int 2))
+       :CPUDT (generate-random-date item-date (rand-int 2))
+       :PSPID (:PSPID project)
+       :POSID (:POSID wbs)
+       :AUFNR (-> wbs :NETWORK :AUFNR)
+       :VORNR ""
+       :OBJ_TXT (rand-nth ["Selvitys" "Valmistelu" "Aloitus" "Ehdotus"])
+       :OBART (:OBART transaction)
+       :TWAER "EUR"
+       :WTGBTR (:WTGBTR transaction)
+       :BEKNZ (:BEKNZ transaction)})))
 
   ;;
 ;; Data to output XML
@@ -405,18 +406,37 @@
    {:Header s/Any
     :Body
     {:ZPS_WS_GET_PROJECT_INFO
-     {:PROJECT s/Str}}}})
+     {(s/optional-key :PROJECT) s/Str
+      (s/optional-key :COMPANY) s/Str}}}})
 
-(defn process-projectinfo-request [body]
+(defn generate-company-project-listing [company-code]
   (binding [*random* (java.util.Random.)]
-    (let [root-elem (-> body xml/parse-str preprocess-elem)
-          project-id (get-in root-elem [:Envelope :Body :ZPS_WS_GET_PROJECT_INFO :PROJECT])
+    (let [make-response (partial apply ->soap-response :ZPS_WS_GET_PROJECT_INFO)
+          num-of-projects (Integer/parseInt company-code)
+          project-ids
+          (doall
+           (map
+            (fn [idx]
+              (let [wbs-count (rand-int 9)
+                    activity-count (rand-int 9)]
+                [:item
+                 [:PSPID (str "I" company-code "_" wbs-count activity-count (format "%05d" idx))]]))
+            (range num-of-projects)))]
+      {:status 200
+       :content-type "text/xml"
+       :body (make-response
+              [[:MESSAGES]
+               [:PROJECT_INFO
+                project-ids]])})))
+
+(defn generate-project-response [root-elem]
+  (binding [*random* (java.util.Random.)]
+    (let [project-id (get-in root-elem [:Envelope :Body :ZPS_WS_GET_PROJECT_INFO :PROJECT])
           [_ id] (str/split project-id #"_")
           _ (set-seed! (Integer/parseInt id))
           project (random-project-data project-id)
           not-found? (= id "404")
           make-response (partial apply ->soap-response :ZPS_WS_GET_PROJECT_INFO)]
-      (s/validate ProjectInfoSoapMessage root-elem)
       {:status 200
        :content-type "text/xml"
        :body (make-response
@@ -424,6 +444,15 @@
                 not-found-response
                 [[:MESSAGES]
                  (generate-project-data project)]))})))
+
+(defn process-projectinfo-request [body]
+  (let [root-elem (-> body xml/parse-str preprocess-elem)
+        project-id (get-in root-elem [:Envelope :Body :ZPS_WS_GET_PROJECT_INFO :PROJECT])
+        company-code (get-in root-elem [:Envelope :Body :ZPS_WS_GET_PROJECT_INFO :COMPANY])]
+    (s/validate ProjectInfoSoapMessage root-elem)
+    (cond
+      company-code (generate-company-project-listing company-code)
+      project-id (generate-project-response root-elem))))
 
 (s/defschema ActualsSoapMessage
   {:Envelope
@@ -498,6 +527,6 @@
   (http/run-server handler {:port port})
   (log/info "Started"))
 
-(start-server (or (Integer/parseInt (System/getenv "SAP_MOCK_PORT")) 3000))
+(start-server (or (some-> (System/getenv "SAP_MOCK_PORT") (Integer/parseInt)) 3000))
 
 @(promise)
