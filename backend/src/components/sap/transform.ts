@@ -39,13 +39,15 @@ function transformWBS(wbs: any) {
 }
 
 function preprocessProjectInfo(payload: any) {
-  if (!payload.PROJECT_INFO) {
+  // TODO Double-check if this change has been done for good - SAP now returns project info under <item> tag
+  const item = payload.PROJECT_INFO?.item ?? payload.PROJECT_INFO;
+  if (!item) {
     throw new Error('No PROJECT_INFO in payload');
   }
 
   const data = {
-    ...payload.PROJECT_INFO,
-    WBS: transformWBS(payload.PROJECT_INFO.WBS),
+    ...item,
+    WBS: transformWBS(item.WBS),
   } as const;
 
   return incomingSapProjectSchema.parse(data);
