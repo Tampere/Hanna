@@ -47,7 +47,9 @@ export function SapDebugView() {
             <option value="2023">2023</option>
           </select>
           <button
-            onClick={() => sapActualsData.mutate({ projectId: sapProjectId, year: actualsYear })}
+            onClick={() =>
+              sapActualsData.mutate({ projectId: sapProjectId, year: Number(actualsYear) })
+            }
           >
             Hae tapahtumat
           </button>

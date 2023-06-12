@@ -120,9 +120,9 @@ export async function buildReport(jobId: string, searchParams: ProjectSearch) {
 
     logger.debug(`Saving report to database, ${buffer.length} bytes...`);
     const queryResult = await getPool().query(sql.untyped`
-    INSERT INTO app.report_file (pgboss_job_id, report_filename, report_data)
-    VALUES (${jobId}, 'raportti.xlsx', ${sql.binary(buffer)})
-  `);
+      INSERT INTO app.report_file (pgboss_job_id, report_filename, report_data)
+      VALUES (${jobId}, 'raportti.xlsx', ${sql.binary(buffer)})
+    `);
     logger.debug(`Report saved to database, ${queryResult.rowCount} rows affected.`);
   } catch (error) {
     // Log and rethrow the error to make the job state failed

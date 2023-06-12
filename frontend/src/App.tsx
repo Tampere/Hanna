@@ -1,3 +1,4 @@
+import '@fontsource/roboto';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpLink } from '@trpc/client';
 import { useAtomValue, useSetAtom } from 'jotai';
@@ -23,6 +24,7 @@ import { trpc } from './client';
 import { authAtom, getUserAtom, sessionExpiredAtom } from './stores/auth';
 import { useTranslations } from './stores/lang';
 import { Manual } from './views/Manual/Manual';
+import { SapReports } from './views/SapReports';
 import { SessionRenewed } from './views/SessionRenewed';
 
 const UserLoader = () => {
@@ -69,6 +71,7 @@ const router = createBrowserRouter(
           path="asemakaavahanke/:projectId/kohde/:projectObjectId/:tabView"
           element={<ProjectObject projectType="asemakaavahanke" />}
         />
+        <Route path="sap-raportit/:tabView" element={<SapReports />} />
         <Route path="hallinta/:tabView" element={<Management />} />
         <Route path="saptest/:sapProjectId" element={<SapDebugView />} />
         <Route path="session-renewed" element={<SessionRenewed />} />

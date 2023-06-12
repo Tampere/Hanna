@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { HelpOutline, Logout, Settings } from '@mui/icons-material';
+import { BackupTable, HelpOutline, Logout, Settings } from '@mui/icons-material';
 import AccountCircleOutlined from '@mui/icons-material/AccountCircleOutlined';
 import AccountTreeOutlined from '@mui/icons-material/AccountTreeOutlined';
 import {
@@ -17,6 +17,7 @@ import {
   Typography,
   createTheme,
 } from '@mui/material';
+import { fiFI } from '@mui/material/locale';
 import { useAtom, useAtomValue } from 'jotai';
 import { useRef, useState } from 'react';
 import { Link, Outlet } from 'react-router-dom';
@@ -27,44 +28,47 @@ import { SessionExpiredWarning } from './SessionExpiredWarning';
 import NotificationList from './services/notification';
 import { authAtom, sessionExpiredAtom } from './stores/auth';
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#22437b',
+const theme = createTheme(
+  {
+    palette: {
+      primary: {
+        main: '#22437b',
+      },
+      secondary: {
+        main: '#c83e36',
+      },
     },
-    secondary: {
-      main: '#c83e36',
+    components: {
+      MuiTabs: {
+        styleOverrides: {
+          root: {
+            minHeight: '48px',
+            height: '48px',
+          },
+        },
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            minHeight: '48px',
+            height: '48px',
+          },
+        },
+      },
+      MuiTooltip: {
+        styleOverrides: {
+          tooltip: {
+            zIndex: 250,
+          },
+          popper: {
+            zIndex: 251,
+          },
+        },
+      },
     },
   },
-  components: {
-    MuiTabs: {
-      styleOverrides: {
-        root: {
-          minHeight: '48px',
-          height: '48px',
-        },
-      },
-    },
-    MuiTab: {
-      styleOverrides: {
-        root: {
-          minHeight: '48px',
-          height: '48px',
-        },
-      },
-    },
-    MuiTooltip: {
-      styleOverrides: {
-        tooltip: {
-          zIndex: 250,
-        },
-        popper: {
-          zIndex: 251,
-        },
-      },
-    },
-  },
-});
+  fiFI
+);
 
 function Navbar() {
   const [auth] = useAtom(authAtom);
@@ -94,10 +98,22 @@ function Navbar() {
             justify-content: space-between;
           `}
         >
-          <Button component={Link} to="/hankkeet" sx={{ color: 'white' }}>
-            <AccountTreeOutlined sx={{ mr: 1 }} />
-            {tr('pages.projectsTitle')}
-          </Button>
+          <Box
+            css={css`
+              display: flex;
+              gap: 10px;
+            `}
+          >
+            <Button component={Link} to="/hankkeet" sx={{ color: 'white' }}>
+              <AccountTreeOutlined sx={{ mr: 1 }} />
+              {tr('pages.projectsTitle')}
+            </Button>
+
+            <Button component={Link} to="/sap-raportit/ymparistokoodit" sx={{ color: 'white' }}>
+              <BackupTable sx={{ mr: 1 }} />
+              {tr('pages.sapReportsTitle')}
+            </Button>
+          </Box>
 
           <Box
             css={css`

@@ -1,11 +1,17 @@
 import PgBoss from 'pg-boss';
+import { z } from 'zod';
 
-import { connectionDsn } from '@backend/db';
+import { connectionDsn, getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
 
 let boss: PgBoss | null = null;
 
-const finishedStates: PgBoss.JobWithMetadata['state'][] = ['completed', 'expired', 'failed'];
+const finishedStates: PgBoss.JobWithMetadata['state'][] = [
+  'completed',
+  'expired',
+  'failed',
+  'cancelled',
+];
 
 function assertTaskQueueInitialized(boss: PgBoss | null): asserts boss is PgBoss {
   if (!boss) {
@@ -46,4 +52,14 @@ export async function startJob<T extends object>(queueName: string, data: T) {
     throw new Error(`Error assigning job ID in queue "${queueName}"`);
   }
   return jobId;
+}
+
+export async function getPendingJobs(queueName?: string) {
+  const result = await getPool().any(sql.type(z.object({ id: z.string() }))`
+    SELECT id
+    FROM pgboss.job
+    WHERE state IN ('active', 'created')
+    ${queueName != null ? sql.fragment`AND name = ${queueName}` : sql.fragment``}
+  `);
+  return result.map((result) => result.id);
 }

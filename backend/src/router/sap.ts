@@ -1,9 +1,24 @@
 import { z } from 'zod';
 
+import {
+  getBlanketContractReport,
+  getBlanketContractReportRowCount,
+} from '@backend/components/sap/blanketContractReport';
 import { getSapActuals, getSapProject, sapProjectExists } from '@backend/components/sap/dataImport';
+import {
+  getEnvironmentCodeReport,
+  getEnvironmentCodeReportRowCount,
+} from '@backend/components/sap/environmentCodeReport';
+import { getLastSyncedAt } from '@backend/components/sap/syncQueue';
 import { getPool, sql } from '@backend/db';
 
 import { yearlyActualsSchema } from '@shared/schema/sapActuals';
+import {
+  blanketContractReportFilterSchema,
+  blanketContractReportQuerySchema,
+  environmentCodeReportFilterSchema,
+  environmentCodeReportQuerySchema,
+} from '@shared/schema/sapReport';
 
 import { TRPC } from '.';
 
@@ -20,7 +35,7 @@ export const createSapRouter = (t: TRPC) =>
       }),
 
     getSapActuals: t.procedure
-      .input(z.object({ projectId: z.string(), year: z.string() }))
+      .input(z.object({ projectId: z.string(), year: z.number() }))
       .mutation(async ({ input }) => {
         return getSapActuals(input.projectId, input.year);
       }),
@@ -65,7 +80,7 @@ export const createSapRouter = (t: TRPC) =>
         if (result?.sapProjectId) {
           await Promise.all(
             yearRange(input.startYear, endYear).map((year) =>
-              getSapActuals(result.sapProjectId, year.toString())
+              getSapActuals(result.sapProjectId, year)
             )
           );
         }
@@ -123,7 +138,7 @@ export const createSapRouter = (t: TRPC) =>
 
         await Promise.all(
           yearRange(input.startYear, endYear).map((year) =>
-            getSapActuals(result.sapProjectId, year.toString())
+            getSapActuals(result.sapProjectId, year)
           )
         );
 
@@ -153,5 +168,33 @@ export const createSapRouter = (t: TRPC) =>
       .input(z.object({ projectId: z.string() }))
       .query(async ({ input }) => {
         return await sapProjectExists(input.projectId);
+      }),
+
+    getLastSyncedAt: t.procedure.query(async () => {
+      return await getLastSyncedAt();
+    }),
+
+    getEnvironmentCodeReport: t.procedure
+      .input(environmentCodeReportQuerySchema)
+      .query(async ({ input }) => {
+        return await getEnvironmentCodeReport(input);
+      }),
+
+    getEnvironmentCodeReportRowCount: t.procedure
+      .input(environmentCodeReportFilterSchema)
+      .query(async ({ input }) => {
+        return await getEnvironmentCodeReportRowCount(input);
+      }),
+
+    getBlanketContractReport: t.procedure
+      .input(blanketContractReportQuerySchema)
+      .query(async ({ input }) => {
+        return await getBlanketContractReport(input);
+      }),
+
+    getBlanketContractReportRowCount: t.procedure
+      .input(blanketContractReportFilterSchema)
+      .query(async ({ input }) => {
+        return await getBlanketContractReportRowCount(input);
       }),
   });

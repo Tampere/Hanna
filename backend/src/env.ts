@@ -87,6 +87,7 @@ const schema = z.object({
       password: z.string(),
     }),
   }),
+  adminApiKey: z.string().optional(),
 });
 
 function getEnv() {
@@ -169,6 +170,7 @@ function getEnv() {
         password: process.env.PROXY_GEORASTER_PASSWORD,
       },
     },
+    adminApiKey: process.env.ADMIN_API_KEY,
   } as z.infer<typeof schema>);
 }
 
