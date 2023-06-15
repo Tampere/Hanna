@@ -31,6 +31,11 @@ export const blanketContractReportSchema = z.object({
   networkId: z.string(),
   networkName: z.string(),
   projectManagerName: z.string(),
+  consultCompany: z.string(),
+  decisionMaker: z.string(),
+  decisionDateText: z.string(),
+  blanketOrderId: z.string(),
+  contractPriceInCurrencySubunit: z.number(),
   networkCreatedAt: z.date(),
   totalActuals: z.number(),
 });

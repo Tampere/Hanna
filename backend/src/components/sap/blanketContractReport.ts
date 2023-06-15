@@ -16,12 +16,16 @@ function blanketContractReportFragment(query?: Partial<BlanketContractReportQuer
         network.network_id "networkId",
         network.network_name "networkName",
         project.project_manager_name "projectManagerName",
-        network.created_at "networkCreatedAt",
+        wbs.consult_company "consultCompany",
+        wbs.decision_maker "decisionMaker",
+        wbs.decision_date_text "decisionDateText",
+        wbs.blanket_order_id "blanketOrderId",
+        wbs.contract_price_in_currency_subunit "contractPriceInCurrencySubunit",
         wbs.wbs_id "wbsId"
       FROM
-        app.sap_network network
+        app.sap_wbs wbs
+      LEFT JOIN app.sap_network network ON wbs.wbs_internal_id = network.wbs_internal_id
       LEFT JOIN app.sap_project project ON project.sap_project_internal_id = network.sap_project_internal_id
-      LEFT JOIN app.sap_wbs wbs ON network.wbs_internal_id = wbs.wbs_internal_id
     )
     SELECT
       network_elements.*,

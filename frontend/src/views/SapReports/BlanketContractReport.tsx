@@ -30,15 +30,29 @@ export function BlanketContractReport() {
           projectManagerName: {
             title: tr('sapReports.blanketContracts.projectManagerName'),
           },
-          networkCreatedAt: {
-            title: tr('sapReports.blanketContracts.createdAt'),
+          consultCompany: {
+            title: tr('sapReports.blanketContracts.consultCompany'),
+          },
+          decisionMaker: {
+            title: tr('sapReports.blanketContracts.decisionMaker'),
+          },
+          decisionDateText: {
+            title: tr('sapReports.blanketContracts.decisionDateText'),
+            align: 'right',
+          },
+          blanketOrderId: {
+            title: tr('sapReports.blanketContracts.blanketOrderId'),
+            align: 'right',
+          },
+          contractPriceInCurrencySubunit: {
+            title: tr('sapReports.blanketContracts.contractPrice'),
             format(value) {
-              return dayjs(value).format(tr('date.format'));
+              return numericValueToText(value);
             },
             align: 'right',
           },
           totalActuals: {
-            title: tr('sapReports.environmentCodes.totalActuals'),
+            title: tr('sapReports.blanketContracts.totalActuals'),
             format(value) {
               return numericValueToText(value);
             },
