@@ -64,9 +64,7 @@ export async function setupSapSyncQueue() {
           const actuals = await getSapActuals(
             data.projectId,
             new Date(project.plannedStartDate).getFullYear(),
-            project.plannedEndDate != null
-              ? new Date(project.plannedEndDate).getFullYear()
-              : undefined
+            new Date().getFullYear()
           );
           logger.info(`Loaded ${actuals.length} actuals for project ${data.projectId}`);
         } else {

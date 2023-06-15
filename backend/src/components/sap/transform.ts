@@ -5,7 +5,14 @@ import {
   incomingSapActualsSchema,
   sapActualsSchema,
 } from '@shared/schema/sapActuals';
-import { incomingSapProjectSchema, sapProjectSchema } from '@shared/schema/sapProject';
+import {
+  SAPActivity,
+  SAPNetwork,
+  SAPProject,
+  SAPWBS,
+  incomingSapProjectSchema,
+  sapProjectSchema,
+} from '@shared/schema/sapProject';
 
 function itemAsArray<T>(item: T | T[]) {
   if (item && Array.isArray(item)) {
@@ -22,10 +29,11 @@ function transformNetwork(network: any) {
   if (!networkItem) {
     return null;
   }
-  return {
+  const networkItems = itemAsArray(network?.item);
+  return networkItems.map((networkItem) => ({
     ...networkItem,
     ACTIVITY: itemAsArray(networkItem?.ACTIVITY?.item),
-  } as const;
+  }));
 }
 
 function transformWBS(wbs: any) {
@@ -39,10 +47,9 @@ function transformWBS(wbs: any) {
 }
 
 function preprocessProjectInfo(payload: any) {
-  // TODO Double-check if this change has been done for good - SAP now returns project info under <item> tag
-  const item = payload.PROJECT_INFO?.item ?? payload.PROJECT_INFO;
+  const item = payload.PROJECT_INFO?.item;
   if (!item) {
-    throw new Error('No PROJECT_INFO in payload');
+    return null;
   }
 
   const data = {
@@ -62,7 +69,10 @@ function handleSapDate(date?: string | null) {
 
 export function transformProjectInfo(response: object) {
   const payload = preprocessProjectInfo(response);
-  const transformed = {
+  if (!payload) {
+    return null;
+  }
+  const transformed: SAPProject = {
     sapProjectId: payload.PSPID,
     sapProjectInternalId: payload.PSPNR,
     shortDescription: payload.POST1,
@@ -75,7 +85,7 @@ export function transformProjectInfo(response: object) {
     plannedStartDate: handleSapDate(payload.PLFAZ),
     plannedEndDate: handleSapDate(payload.PLSEZ),
     plant: payload.WERKS,
-    wbs: payload.WBS.map((wbs) => {
+    wbs: payload.WBS.map((wbs): SAPWBS => {
       return {
         wbsId: wbs.POSID,
         wbsInternalId: wbs.PSPNR,
@@ -91,39 +101,46 @@ export function transformProjectInfo(response: object) {
         projectType: wbs.PRART,
         priority: wbs.PSPRI,
         plant: wbs.WERKS,
+        consultCompany: wbs.USR00,
+        blanketOrderId: wbs.USR01,
+        decisionMaker: wbs.USR02,
+        decisionDateText: wbs.USR03,
+        // For some reason the price in this field is shifted compared to other numeric currency fields
+        contractPriceInCurrencySubunit:
+          wbs.USR06 == null ? null : numericStringToInteger(wbs.USR06, { decimals: 3 }),
         technicallyCompletedAt: handleSapDate(wbs.TADAT),
         reasonForInvestment: wbs.IZWEK,
         reasonForEnvironmentalInvestment: wbs.IUMKZ,
         hierarchyLevel: parseInt(wbs.STUFE, 10),
-        network: wbs?.NETWORK
-          ? {
-              networkId: wbs.NETWORK.AUFNR,
-              networkName: wbs.NETWORK.KTEXT,
-              wbsInternalId: wbs.NETWORK.PSPEL,
-              sapProjectInternalId: wbs.NETWORK.PSPHI,
-              createdAt: handleSapDate(wbs.NETWORK.ERDAT),
-              createdBy: wbs.NETWORK.ERNAM,
-              actualStartDate: handleSapDate(wbs.NETWORK.GSTRI),
-              actualFinishDate: handleSapDate(wbs.NETWORK.GETRI),
-              companyCode: wbs.NETWORK.BUKRS,
-              plant: wbs.NETWORK.WERKS,
-              technicalCompletionDate: handleSapDate(wbs.NETWORK.IDAT2),
-              profitCenter: wbs.NETWORK.PRCTR,
-              activities: wbs.NETWORK.ACTIVITY.map((activity) => {
-                return {
-                  routingNumber: activity.AUFPL,
-                  orderCounter: activity.APLZL,
-                  activityNumber: activity.VORNR,
-                  networkId: activity.AUFNR,
-                  shortDescription: activity.LTXA1,
-                  sapProjectInternalId: activity.PSPHI,
-                  wbsInternalId: activity.PSPEL,
-                  profitCenter: activity.PRCTR,
-                  plant: activity.WERKS,
-                };
-              }),
-            }
-          : null,
+        network: wbs?.NETWORK.map(
+          (network): SAPNetwork => ({
+            networkId: network.AUFNR,
+            networkName: network.KTEXT,
+            wbsInternalId: network.PSPEL,
+            sapProjectInternalId: network.PSPHI,
+            createdAt: handleSapDate(network.ERDAT),
+            createdBy: network.ERNAM,
+            actualStartDate: handleSapDate(network.GSTRI),
+            actualFinishDate: handleSapDate(network.GETRI),
+            companyCode: network.BUKRS,
+            plant: network.WERKS,
+            technicalCompletionDate: handleSapDate(network.IDAT2),
+            profitCenter: network.PRCTR,
+            activities: network.ACTIVITY.map((activity): SAPActivity => {
+              return {
+                routingNumber: activity.AUFPL,
+                orderCounter: activity.APLZL,
+                activityNumber: activity.VORNR,
+                networkId: activity.AUFNR,
+                shortDescription: activity.LTXA1,
+                sapProjectInternalId: activity.PSPHI,
+                wbsInternalId: activity.PSPEL,
+                profitCenter: activity.PRCTR,
+                plant: activity.WERKS,
+              };
+            }),
+          })
+        ),
       };
     }),
   };
@@ -144,19 +161,13 @@ function preprocessActuals(payload: object) {
   return incomingSapActualsSchema.parse(result.ACTUALS?.item ?? []);
 }
 
-function currencyInSubunit(amount: string, separator = '.') {
-  const [whole, fraction] = amount.split(separator);
-  let amountInSubunit = parseInt(whole, 10) * 100;
-  if (fraction) {
-    // normalize fraction to 2 digits
-    const subunits = parseInt(fraction.padEnd(2, '0'), 10);
-    if (amountInSubunit < 0) {
-      amountInSubunit -= subunits;
-    } else {
-      amountInSubunit += subunits;
-    }
-  }
-  return amountInSubunit;
+function numericStringToInteger(value: string, config?: { separator?: string; decimals?: number }) {
+  const { separator = '.', decimals = 2 } = config ?? {};
+  const [whole, fraction] = value.split(separator);
+  // Truncate & normalize the fraction part
+  const truncatedFraction = fraction?.slice(0, decimals) ?? '';
+  // Concatenate the whole & zero-padded fraction part as a string and parse as an integer
+  return parseInt(`${whole}${truncatedFraction.padEnd(decimals, '0')}`);
 }
 
 export function transformActuals(response: object) {
@@ -176,7 +187,7 @@ export function transformActuals(response: object) {
       creationDate: handleSapDate(item.CPUDT),
       objectType: item.OBART,
       currency: item.TWAER,
-      valueInCurrencySubunit: currencyInSubunit(item.WTGBTR),
+      valueInCurrencySubunit: numericStringToInteger(item.WTGBTR),
       entryType: item.BEKNZ === 'S' ? 'DEBIT' : 'CREDIT',
     };
   });

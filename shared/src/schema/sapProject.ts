@@ -14,7 +14,7 @@ export const incomingActivitySchema = z.object({
   LTXA1: z.string(),
   PSPHI: z.string(),
   PSPEL: z.string(),
-  PRCTR: z.string(),
+  PRCTR: z.string().nullish(),
   WERKS: z.string().nullish(),
 });
 
@@ -22,7 +22,7 @@ export type IncomingActivity = z.infer<typeof incomingActivitySchema>;
 
 export const incomingNetworkSchema = z.object({
   AUFNR: z.string(),
-  KTEXT: z.string(),
+  KTEXT: z.string().nullish(),
   PSPEL: z.string(),
   PSPHI: z.string(),
   ERDAT: isoDateString,
@@ -42,7 +42,7 @@ export const incomingWBSSchema = z.object({
   POSID: z.string(),
   PSPNR: z.string(),
   PSPHI: z.string(),
-  POST1: z.string(),
+  POST1: z.string().nullish(),
   ERDAT: isoDateString,
   ERNAM: z.string(),
   AEDAT: isoDateString.nullish(),
@@ -57,7 +57,12 @@ export const incomingWBSSchema = z.object({
   IZWEK: z.string().nullish(),
   IUMKZ: z.string().nullish(),
   STUFE: z.string(),
-  NETWORK: incomingNetworkSchema.nullish(),
+  USR00: z.string().nullish(),
+  USR01: z.string().nullish(),
+  USR02: z.string().nullish(),
+  USR03: z.string().nullish(),
+  USR06: z.string().nullish(),
+  NETWORK: z.array(incomingNetworkSchema),
 });
 
 export type IncomingWBS = z.infer<typeof incomingWBSSchema>;
@@ -65,7 +70,7 @@ export type IncomingWBS = z.infer<typeof incomingWBSSchema>;
 export const incomingSapProjectSchema = z.object({
   PSPID: z.string(),
   PSPNR: z.string(),
-  POST1: z.string(),
+  POST1: z.string().nullish(),
   ERDAT: isoDateString,
   ERNAM: z.string(),
   AEDAT: isoDateString.nullish(),
@@ -92,7 +97,7 @@ export const sapActivity = z.object({
   shortDescription: z.string(),
   sapProjectInternalId: z.string(),
   wbsInternalId: z.string(),
-  profitCenter: z.string(),
+  profitCenter: z.string().nullish(),
   plant: z.string().nullish(),
 });
 
@@ -100,10 +105,10 @@ export type SAPActivity = z.infer<typeof sapActivity>;
 
 export const sapNetworkSchema = z.object({
   networkId: z.string(),
-  networkName: z.string(),
+  networkName: z.string().nullish(),
   wbsInternalId: z.string(),
   sapProjectInternalId: z.string(),
-  createdAt: isoDateString,
+  createdAt: isoDateString.nullish(),
   createdBy: z.string(),
   actualStartDate: isoDateString.nullish(),
   actualFinishDate: isoDateString.nullish(),
@@ -120,8 +125,8 @@ export const sapWBSSchema = z.object({
   wbsId: z.string(),
   wbsInternalId: z.string(),
   sapProjectInternalId: z.string(),
-  shortDescription: z.string(),
-  createdAt: isoDateString,
+  shortDescription: z.string().nullish(),
+  createdAt: isoDateString.nullish(),
   createdBy: z.string(),
   updatedAt: isoDateString.nullish(),
   updatedBy: z.string().nullish(),
@@ -131,11 +136,16 @@ export const sapWBSSchema = z.object({
   projectType: z.string().nullish(),
   priority: z.string().nullish(),
   plant: z.string().nullish(),
+  consultCompany: z.string().nullish(),
+  blanketOrderId: z.string().nullish(),
+  decisionMaker: z.string().nullish(),
+  decisionDateText: z.string().nullish(),
+  contractPriceInCurrencySubunit: z.number().int().nullish(),
   technicallyCompletedAt: isoDateString.nullish(),
   reasonForInvestment: z.string().nullish(),
   reasonForEnvironmentalInvestment: z.string().nullish(),
   hierarchyLevel: z.number(),
-  network: sapNetworkSchema.nullish(),
+  network: z.array(sapNetworkSchema),
 });
 
 export type SAPWBS = z.infer<typeof sapWBSSchema>;
@@ -143,8 +153,8 @@ export type SAPWBS = z.infer<typeof sapWBSSchema>;
 export const sapProjectSchema = z.object({
   sapProjectId: z.string(),
   sapProjectInternalId: z.string(),
-  shortDescription: z.string(),
-  createdAt: isoDateString,
+  shortDescription: z.string().nullish(),
+  createdAt: isoDateString.nullish(),
   createdBy: z.string(),
   updatedAt: isoDateString.nullish(),
   updatedBy: z.string().nullish(),

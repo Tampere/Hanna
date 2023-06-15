@@ -1,10 +1,10 @@
 #!/usr/bin/env bb
 (ns mock-server
-  (:require [org.httpkit.server :as http]
-            [clojure.data.xml :as xml]
-            [clojure.string :as str]
+  (:require [clojure.data.xml :as xml]
             [clojure.pprint :refer [pprint]]
+            [clojure.string :as str]
             [clojure.tools.logging :as log]
+            [org.httpkit.server :as http]
             [schema.core :as s])
   (:refer-clojure :exclude [rand rand-nth rand-int]))
 
@@ -135,6 +135,11 @@
            [:PRART "Y4"] ;; project type
            [:PSPRI "U"] ;; priority
            [:WERKS plant]
+           [:USR00 "Yritys Oy"] ;; consult company
+           [:USR01 "1234/01.01.01/2020"] ;; blanket order number
+           [:USR02 (str (:last-name applicant))] ;; decision maker
+           [:USR03 (.format wbs-created-date (java.time.format.DateTimeFormatter/ofPattern "d.M.yyyy"))] ;; decision date
+           [:USR06 "123.123"] ;; contract price
            [:TADAT (if (.isBefore technically-completed-date (java.time.LocalDate/now))
                      technically-completed-date
                      nil)]
@@ -288,6 +293,11 @@
       [:PRART (:PRART wbs)]
       [:PSPRI (:PSPRI wbs)]
       [:WERKS (:WERKS wbs)]
+      [:USR00 (:USR00 wbs)]
+      [:USR01 (:USR01 wbs)]
+      [:USR02 (:USR02 wbs)]
+      [:USR03 (:USR03 wbs)]
+      [:USR06 (:USR06 wbs)]
       [:TADAT (:TADAT wbs)]
       [:IZWEK (:IZWEK wbs)]
       [:IUMKZ (:IUMKZ wbs)]
@@ -296,23 +306,24 @@
 
 (defn generate-project-data [{:keys [WBS] :as project-data}]
   [:PROJECT_INFO
-   [:PSPNR (:PSPNR project-data)]
-   [:PSPID (:PSPID project-data)]
-   [:POST1 (:POST1 project-data)]
-   [:ERNAM (:ERNAM project-data)]
-   [:ERDAT (:ERDAT project-data)]
-   [:AENAM (:AENAM project-data)]
-   [:AEDAT (:AEDAT project-data)]
-   [:VERNR (:VERNR project-data)]
-   [:VERNA (:VERNA project-data)]
-   [:ASTNR (:ASTNR project-data)]
-   [:ASTNA (:ASTNA project-data)]
-   [:VBUKR (:VBUKR project-data)]
-   [:PRCTR (:PRCTR project-data)]
-   [:PLFAZ (:PLFAZ project-data)]
-   [:PLSEZ (:PLSEZ project-data)]
-   [:WERKS (:WERKS project-data)]
-   [:WBS (generate-wbs-elements WBS)]])
+   [:item
+    [:PSPNR (:PSPNR project-data)]
+    [:PSPID (:PSPID project-data)]
+    [:POST1 (:POST1 project-data)]
+    [:ERNAM (:ERNAM project-data)]
+    [:ERDAT (:ERDAT project-data)]
+    [:AENAM (:AENAM project-data)]
+    [:AEDAT (:AEDAT project-data)]
+    [:VERNR (:VERNR project-data)]
+    [:VERNA (:VERNA project-data)]
+    [:ASTNR (:ASTNR project-data)]
+    [:ASTNA (:ASTNA project-data)]
+    [:VBUKR (:VBUKR project-data)]
+    [:PRCTR (:PRCTR project-data)]
+    [:PLFAZ (:PLFAZ project-data)]
+    [:PLSEZ (:PLSEZ project-data)]
+    [:WERKS (:WERKS project-data)]
+    [:WBS (generate-wbs-elements WBS)]]])
 
 (defn generate-actuals-data [actuals]
   [:ACTUALS
