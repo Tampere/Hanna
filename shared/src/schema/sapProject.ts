@@ -62,7 +62,7 @@ export const incomingWBSSchema = z.object({
   USR02: z.string().nullish(),
   USR03: z.string().nullish(),
   USR06: z.string().nullish(),
-  NETWORK: z.array(incomingNetworkSchema),
+  NETWORK: z.array(incomingNetworkSchema).nullish(),
 });
 
 export type IncomingWBS = z.infer<typeof incomingWBSSchema>;
