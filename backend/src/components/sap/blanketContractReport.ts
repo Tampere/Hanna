@@ -26,6 +26,7 @@ function blanketContractReportFragment(query?: Partial<BlanketContractReportQuer
         app.sap_wbs wbs
       LEFT JOIN app.sap_network network ON wbs.wbs_internal_id = network.wbs_internal_id
       LEFT JOIN app.sap_project project ON project.sap_project_internal_id = network.sap_project_internal_id
+      WHERE network.network_id IS NOT NULL
     )
     SELECT
       network_elements.*,

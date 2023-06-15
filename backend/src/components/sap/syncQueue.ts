@@ -120,16 +120,18 @@ const summaryFragment = sql.fragment`
     job.id "id",
     job.startedon "startedAt",
     max(child.completedon)::timestamp "lastJobCompletedAt",
-    count(*) "totalProjects",
-    count(*) filter (where child.state = 'created') created,
-    count(*) filter (where child.state = 'cancelled') cancelled,
-    count(*) filter (where child.state = 'active') active,
-    count(*) filter (where child.state = 'failed') failed,
-    count(*) filter (where child.state = 'expired') expired,
-    count(*) filter (where child.state = 'completed') completed
+    count(*) FILTER (WHERE child.id IS NOT NULL) "totalProjects",
+    count(*) FILTER (WHERE child.state = 'created') created,
+    count(*) FILTER (WHERE child.state = 'cancelled') cancelled,
+    count(*) FILTER (WHERE child.state = 'active') active,
+    count(*) FILTER (WHERE child.state = 'failed') failed,
+    count(*) FILTER (WHERE child.state = 'expired') expired,
+    count(*) FILTER (WHERE child.state = 'completed') completed
   FROM pgboss.job job
   LEFT JOIN pgboss.job child ON child.data->>'parentJob' = job.id::text
-  WHERE job.name = 'scheduled-sap-sync'
+  WHERE
+    job.name = 'scheduled-sap-sync'
+    AND job.state = 'completed'
   GROUP BY job.id
   ORDER BY job.createdon DESC
 `;
