@@ -294,24 +294,24 @@
    wbs-seq))
 
 (defn generate-project-data [{:keys [WBS] :as project-data}]
-  [:PROJECT_INFO
-   [:PSPNR (:PSPNR project-data)]
-   [:PSPID (:PSPID project-data)]
-   [:POST1 (:POST1 project-data)]
-   [:ERNAM (:ERNAM project-data)]
-   [:ERDAT (:ERDAT project-data)]
-   [:AENAM (:AENAM project-data)]
-   [:AEDAT (:AEDAT project-data)]
-   [:VERNR (:VERNR project-data)]
-   [:VERNA (:VERNA project-data)]
-   [:ASTNR (:ASTNR project-data)]
-   [:ASTNA (:ASTNA project-data)]
-   [:VBUKR (:VBUKR project-data)]
-   [:PRCTR (:PRCTR project-data)]
-   [:PLFAZ (:PLFAZ project-data)]
-   [:PLSEZ (:PLSEZ project-data)]
-   [:WERKS (:WERKS project-data)]
-   [:WBS (generate-wbs-elements WBS)]])
+  [:PROJECT_INFO [:item
+                  [:PSPNR (:PSPNR project-data)]
+                  [:PSPID (:PSPID project-data)]
+                  [:POST1 (:POST1 project-data)]
+                  [:ERNAM (:ERNAM project-data)]
+                  [:ERDAT (:ERDAT project-data)]
+                  [:AENAM (:AENAM project-data)]
+                  [:AEDAT (:AEDAT project-data)]
+                  [:VERNR (:VERNR project-data)]
+                  [:VERNA (:VERNA project-data)]
+                  [:ASTNR (:ASTNR project-data)]
+                  [:ASTNA (:ASTNA project-data)]
+                  [:VBUKR (:VBUKR project-data)]
+                  [:PRCTR (:PRCTR project-data)]
+                  [:PLFAZ (:PLFAZ project-data)]
+                  [:PLSEZ (:PLSEZ project-data)]
+                  [:WERKS (:WERKS project-data)]
+                  [:WBS (generate-wbs-elements WBS)]]])
 
 (defn generate-actuals-data [actuals]
   [:ACTUALS
