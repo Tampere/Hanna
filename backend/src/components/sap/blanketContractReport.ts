@@ -11,8 +11,9 @@ function blanketContractReportFragment(query?: Partial<BlanketContractReportQuer
       SELECT wbs_element_id, sum(value_in_currency_subunit) AS "totalActuals"
       FROM app.sap_actuals_item
       GROUP BY wbs_element_id
-    ), network_elements AS (
+    ), report_items AS (
       SELECT
+        project.sap_project_id "projectId",
         network.network_id "networkId",
         network.network_name "networkName",
         project.project_manager_name "projectManagerName",
@@ -26,14 +27,16 @@ function blanketContractReportFragment(query?: Partial<BlanketContractReportQuer
         app.sap_wbs wbs
       LEFT JOIN app.sap_network network ON wbs.wbs_internal_id = network.wbs_internal_id
       LEFT JOIN app.sap_project project ON project.sap_project_internal_id = network.sap_project_internal_id
-      WHERE network.network_id IS NOT NULL
+      WHERE
+        network.network_id IS NOT NULL
+        AND project.system_status = 'VAPA'
     )
     SELECT
-      network_elements.*,
+      report_items.*,
       total_actuals."totalActuals"
     FROM
-      network_elements
-      LEFT JOIN total_actuals ON network_elements."wbsId" = total_actuals.wbs_element_id
+      report_items
+      LEFT JOIN total_actuals ON report_items."wbsId" = total_actuals.wbs_element_id
     ${
       query?.sort
         ? sql.fragment`ORDER BY ${sql.identifier([query.sort.key])} ${
@@ -52,12 +55,15 @@ export async function getBlanketContractReport(query: BlanketContractReportQuery
   `);
 }
 
-export async function getBlanketContractReportRowCount(
+export async function getBlanketContractReportSummary(
   filters: BlanketContractReportQuery['filters']
 ) {
-  const { count } = await getPool().one(sql.type(z.object({ count: z.number() }))`
-    SELECT count(*) AS count
+  return await getPool().one(sql.type(
+    z.object({ rowCount: z.number(), totalActualsSum: z.number() })
+  )`
+    SELECT
+      count(*) "rowCount",
+      sum("totalActuals") "totalActualsSum"
     FROM (${blanketContractReportFragment(filters)}) query
   `);
-  return count;
 }

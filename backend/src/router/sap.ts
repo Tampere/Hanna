@@ -2,12 +2,12 @@ import { z } from 'zod';
 
 import {
   getBlanketContractReport,
-  getBlanketContractReportRowCount,
+  getBlanketContractReportSummary,
 } from '@backend/components/sap/blanketContractReport';
 import { getSapActuals, getSapProject, sapProjectExists } from '@backend/components/sap/dataImport';
 import {
   getEnvironmentCodeReport,
-  getEnvironmentCodeReportRowCount,
+  getEnvironmentCodeReportSummary,
 } from '@backend/components/sap/environmentCodeReport';
 import { getLastSyncedAt } from '@backend/components/sap/syncQueue';
 import { getPool, sql } from '@backend/db';
@@ -180,10 +180,16 @@ export const createSapRouter = (t: TRPC) =>
         return await getEnvironmentCodeReport(input);
       }),
 
-    getEnvironmentCodeReportRowCount: t.procedure
+    getEnvironmentCodeReportSummary: t.procedure
       .input(environmentCodeReportFilterSchema)
       .query(async ({ input }) => {
-        return await getEnvironmentCodeReportRowCount(input);
+        const summary = await getEnvironmentCodeReportSummary(input);
+        return {
+          rowCount: summary.rowCount,
+          sums: {
+            totalActuals: summary.totalActualsSum,
+          },
+        };
       }),
 
     getBlanketContractReport: t.procedure
@@ -192,9 +198,15 @@ export const createSapRouter = (t: TRPC) =>
         return await getBlanketContractReport(input);
       }),
 
-    getBlanketContractReportRowCount: t.procedure
+    getBlanketContractReportSummary: t.procedure
       .input(blanketContractReportFilterSchema)
       .query(async ({ input }) => {
-        return await getBlanketContractReportRowCount(input);
+        const summary = await getBlanketContractReportSummary(input);
+        return {
+          rowCount: summary.rowCount,
+          sums: {
+            totalActuals: summary.totalActualsSum,
+          },
+        };
       }),
   });

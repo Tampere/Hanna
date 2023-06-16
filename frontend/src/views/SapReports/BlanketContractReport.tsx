@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 
 import { trpc } from '@frontend/client';
 import { DataTable } from '@frontend/components/DataTable';
-import { numericValueToText } from '@frontend/components/forms/CurrencyInput';
+import { formatCurrency, numericValueToText } from '@frontend/components/forms/CurrencyInput';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { BlanketContractReportFilters } from './BlanketContractReportFilters';
@@ -16,11 +16,14 @@ export function BlanketContractReport() {
       <BlanketContractReportFilters />
       <DataTable
         getRows={sap.getBlanketContractReport.fetch}
-        getRowCount={sap.getBlanketContractReportRowCount.fetch}
-        rowsPerPageOptions={[20, 50, 100]}
-        defaultRowsPerPage={20}
+        getSummary={sap.getBlanketContractReportSummary.fetch}
+        rowsPerPageOptions={[100, 200, 500, 1000]}
+        defaultRowsPerPage={10}
         filters={{}}
         columns={{
+          projectId: {
+            title: tr('sapReports.blanketContracts.projectId'),
+          },
           networkId: {
             title: tr('sapReports.blanketContracts.networkId'),
           },
@@ -47,14 +50,14 @@ export function BlanketContractReport() {
           contractPriceInCurrencySubunit: {
             title: tr('sapReports.blanketContracts.contractPrice'),
             format(value) {
-              return numericValueToText(value);
+              return formatCurrency(value);
             },
             align: 'right',
           },
           totalActuals: {
             title: tr('sapReports.blanketContracts.totalActuals'),
             format(value) {
-              return numericValueToText(value);
+              return formatCurrency(value);
             },
             align: 'right',
           },

@@ -76,9 +76,11 @@ async function insertProject(conn: DatabaseTransactionConnection, project: SAPPr
       updated_by,
       project_manager_name,
       applicant_name,
+      company_code,
       planned_start_date,
       planned_finish_date,
-      plant
+      plant,
+      system_status
     )
     VALUES (
       ${project.sapProjectId},
@@ -90,9 +92,11 @@ async function insertProject(conn: DatabaseTransactionConnection, project: SAPPr
       ${project.updatedBy ?? null},
       ${project.projectManagerName ?? null},
       ${project.applicantName ?? null},
+      ${project.companyCode},
       ${project.plannedStartDate ?? null},
       ${project.plannedEndDate ?? null},
-      ${project.plant ?? null}
+      ${project.plant ?? null},
+      ${project.systemStatus}
     )
   `);
 }

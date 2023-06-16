@@ -7,6 +7,7 @@ export const environmentCodeReportSchema = z.object({
   wbsName: z.string(),
   reasonForEnvironmentalInvestment: z.string(),
   companyCode: z.string(),
+  companyCodeTextFi: z.string(),
   totalActuals: z.number(),
 });
 
@@ -28,6 +29,7 @@ export const environmentCodeReportQuerySchema = environmentCodeReportFilterSchem
 export type EnvironmentCodeReportQuery = z.infer<typeof environmentCodeReportQuerySchema>;
 
 export const blanketContractReportSchema = z.object({
+  projectId: z.string(),
   networkId: z.string(),
   networkName: z.string(),
   projectManagerName: z.string(),
@@ -36,7 +38,6 @@ export const blanketContractReportSchema = z.object({
   decisionDateText: z.string(),
   blanketOrderId: z.string(),
   contractPriceInCurrencySubunit: z.number(),
-  networkCreatedAt: z.date(),
   totalActuals: z.number(),
 });
 
