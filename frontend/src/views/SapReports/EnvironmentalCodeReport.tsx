@@ -1,9 +1,13 @@
 import { trpc } from '@frontend/client';
 import { DataTable } from '@frontend/components/DataTable';
-import { numericValueToText } from '@frontend/components/forms/CurrencyInput';
+import { formatCurrency } from '@frontend/components/forms/CurrencyInput';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { EnvironmentalCodeReportFilters } from './EnvironmentalCodeReportFilters';
+
+function isInternalCompany(companyId: string) {
+  return /^[12]\d{3}$/.test(companyId);
+}
 
 export function EnvironmentalCodeReport() {
   const { sap } = trpc.useContext();
@@ -14,9 +18,9 @@ export function EnvironmentalCodeReport() {
       <EnvironmentalCodeReportFilters />
       <DataTable
         getRows={sap.getEnvironmentCodeReport.fetch}
-        getRowCount={sap.getEnvironmentCodeReportRowCount.fetch}
-        rowsPerPageOptions={[20, 50, 100]}
-        defaultRowsPerPage={20}
+        getSummary={sap.getEnvironmentCodeReportSummary.fetch}
+        rowsPerPageOptions={[100, 200, 500, 1000]}
+        defaultRowsPerPage={100}
         filters={{}}
         columns={{
           projectId: {
@@ -35,10 +39,10 @@ export function EnvironmentalCodeReport() {
           },
           totalActuals: {
             title: tr('sapReports.environmentCodes.totalActuals'),
-            format(value) {
-              return numericValueToText(value);
-            },
             align: 'right',
+            format(value) {
+              return formatCurrency(value);
+            },
           },
           reasonForEnvironmentalInvestment: {
             title: tr('sapReports.environmentCodes.reasonForEnvironmentalInvestment'),
@@ -47,6 +51,16 @@ export function EnvironmentalCodeReport() {
           companyCode: {
             title: tr('sapReports.environmentCodes.companyCode'),
             align: 'right',
+            format(value) {
+              return isInternalCompany(value) ? value : tr('sapReports.externalCompany');
+            },
+          },
+          companyCodeTextFi: {
+            title: tr('sapReports.environmentCodes.companyCodeText'),
+            align: 'right',
+            format(value, row) {
+              return row != null && isInternalCompany(row.companyCode) ? value : '';
+            },
           },
         }}
       />

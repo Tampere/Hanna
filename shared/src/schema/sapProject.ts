@@ -77,9 +77,11 @@ export const incomingSapProjectSchema = z.object({
   AENAM: z.string().nullish(),
   VERNA: z.string().nullish(),
   ASTNA: z.string().nullish(),
+  VBUKR: z.string(),
   PLFAZ: isoDateString.nullish(),
   PLSEZ: isoDateString.nullish(),
   WERKS: z.string().nullish(),
+  STTXT: z.string(),
   WBS: z.array(incomingWBSSchema),
 });
 
@@ -160,9 +162,11 @@ export const sapProjectSchema = z.object({
   updatedBy: z.string().nullish(),
   projectManagerName: z.string().nullish(),
   applicantName: z.string().nullish(),
+  companyCode: z.string(),
   plannedStartDate: isoDateString.nullish(),
   plannedEndDate: isoDateString.nullish(),
   plant: z.string().nullish(),
+  systemStatus: z.string(),
   wbs: z.array(sapWBSSchema),
 });
 

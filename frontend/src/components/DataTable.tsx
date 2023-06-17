@@ -13,7 +13,7 @@ import {
   Typography,
   css,
 } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 
 import { useTranslations } from '@frontend/stores/lang';
 
@@ -22,10 +22,15 @@ interface Sort<TRow extends object> {
   direction: 'asc' | 'desc';
 }
 
+interface Summary<TRow extends object> {
+  rowCount: number;
+  sums?: { [column in keyof TRow]?: number };
+}
+
 type ColumnSettings<TRow extends object> = {
   [key in keyof TRow]: {
     title: string;
-    format?: (value: TRow[key]) => string;
+    format?: (value: TRow[key], row?: TRow) => ReactNode;
     width?: number;
     align?: TableCellProps['align'];
   };
@@ -40,9 +45,9 @@ interface DataQueryParams<TRow extends object> {
 
 interface Props<TRow extends object, TQueryParams extends DataQueryParams<TRow>> {
   getRows: (params: TQueryParams) => Promise<readonly TRow[]>;
-  getRowCount: (
+  getSummary: (
     params: TQueryParams['filters'] extends object ? Pick<TQueryParams, 'filters'> : never
-  ) => Promise<number>;
+  ) => Promise<Summary<TRow>>;
   columns: ColumnSettings<TRow>;
   filters?: TQueryParams['filters'] extends object ? TQueryParams['filters'] : never;
   rowsPerPageOptions?: number[];
@@ -51,7 +56,7 @@ interface Props<TRow extends object, TQueryParams extends DataQueryParams<TRow>>
 
 export function DataTable<TRow extends object, TQueryParams extends DataQueryParams<TRow>>({
   getRows,
-  getRowCount,
+  getSummary,
   columns,
   filters,
   rowsPerPageOptions = [10, 20, 30, 500],
@@ -62,7 +67,7 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(defaultRowsPerPage);
   const [visibleRows, setVisibleRows] = useState<readonly TRow[] | null>(null);
-  const [totalRowCount, setTotalRowCount] = useState<number>(0);
+  const [summary, setSummary] = useState<Summary<TRow> | null>(null);
   const [sort, setSort] = useState<Sort<TRow> | undefined>(undefined);
 
   const tr = useTranslations();
@@ -78,7 +83,7 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
 
   useEffect(() => {
     // TODO Some weird TS issues regarding optionality of the filters, though the Props typings are working correctly (which matters the most)...
-    getRowCount({ filters } as any).then(setTotalRowCount);
+    getSummary({ filters } as any).then(setSummary);
   }, [filters]);
 
   useEffect(() => {
@@ -190,7 +195,7 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
                 <TableRow key={index}>
                   {columnKeys.map((key) => {
                     const formattedValue =
-                      columns[key].format?.(row[key]) ?? row[key]?.toString() ?? '';
+                      columns[key].format?.(row[key], row) ?? row[key]?.toString() ?? '';
                     return (
                       <TableCell key={key.toString()} align={columns[key].align}>
                         {formattedValue}
@@ -217,13 +222,33 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
                 <CircularProgress />
               </TableCell>
             </TableRow>
+            {summary?.sums && (
+              <TableRow>
+                {columnKeys.map((key) => {
+                  const value = summary.sums?.[key] as TRow[keyof TRow];
+                  const formattedValue =
+                    value == null ? '' : columns[key].format?.(value) ?? value?.toString() ?? '';
+                  return (
+                    <TableCell
+                      key={key.toString()}
+                      css={css`
+                        font-weight: 600;
+                        border-bottom: none;
+                      `}
+                    >
+                      {formattedValue}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
       <TablePagination
         rowsPerPageOptions={rowsPerPageOptions}
         component="div"
-        count={totalRowCount}
+        count={summary?.rowCount ?? 0}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={(_, page) => setPage(page)}

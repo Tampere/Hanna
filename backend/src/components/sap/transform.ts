@@ -82,9 +82,11 @@ export function transformProjectInfo(response: object) {
     updatedBy: payload.AENAM,
     projectManagerName: payload.VERNA,
     applicantName: payload.ASTNA,
+    companyCode: payload.VBUKR,
     plannedStartDate: handleSapDate(payload.PLFAZ),
     plannedEndDate: handleSapDate(payload.PLSEZ),
     plant: payload.WERKS,
+    systemStatus: payload.STTXT,
     wbs: payload.WBS.map((wbs): SAPWBS => {
       return {
         wbsId: wbs.POSID,

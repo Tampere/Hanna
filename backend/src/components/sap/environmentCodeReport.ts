@@ -11,25 +11,28 @@ function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQue
       SELECT wbs_element_id, sum(value_in_currency_subunit) AS "totalActuals"
       FROM app.sap_actuals_item
       GROUP BY wbs_element_id
-    ), wbs_elements AS (
+    ), report AS (
       SELECT
         project.sap_project_id "projectId",
         wbs.plant "plant",
         wbs.wbs_id "wbsId",
         wbs.short_description "wbsName",
         wbs.reason_for_environmental_investment "reasonForEnvironmentalInvestment",
-        network.company_code "companyCode"
+        network.company_code "companyCode",
+        code.text_fi "companyCodeTextFi"
       FROM
         app.sap_wbs wbs
-      LEFT JOIN app.sap_project project ON project.sap_project_internal_id = wbs.sap_project_internal_id
-      LEFT JOIN app.sap_network network ON network.wbs_internal_id = wbs.wbs_internal_id
+        LEFT JOIN app.sap_project project ON project.sap_project_internal_id = wbs.sap_project_internal_id
+        LEFT JOIN app.sap_network network ON network.wbs_internal_id = wbs.wbs_internal_id
+        LEFT JOIN app.code code ON code.id = ('Kumppani', network.company_code)::app.code_id
+      WHERE project.system_status = 'VAPA'
     )
     SELECT
-      wbs_elements.*,
+      report.*,
       total_actuals."totalActuals"
     FROM
-      wbs_elements
-      LEFT JOIN total_actuals ON wbs_elements."wbsId" = total_actuals.wbs_element_id
+      report
+      LEFT JOIN total_actuals ON report."wbsId" = total_actuals.wbs_element_id
     ${
       params?.sort
         ? sql.fragment`ORDER BY ${sql.identifier([params.sort.key])} ${
@@ -48,12 +51,15 @@ export async function getEnvironmentCodeReport(query: EnvironmentCodeReportQuery
   `);
 }
 
-export async function getEnvironmentCodeReportRowCount(
+export async function getEnvironmentCodeReportSummary(
   filters: EnvironmentCodeReportQuery['filters']
 ) {
-  const { count } = await getPool().one(sql.type(z.object({ count: z.number() }))`
-    SELECT count(*) AS count
+  return await getPool().one(sql.type(
+    z.object({ rowCount: z.number(), totalActualsSum: z.number() })
+  )`
+    SELECT
+      count(*) "rowCount",
+      sum("totalActuals") "totalActualsSum"
     FROM (${environmentCodeReportFragment(filters)}) query
   `);
-  return count;
 }

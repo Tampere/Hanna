@@ -166,7 +166,7 @@
         project-updater (generate-random-name)
         project-manager (generate-random-name)
         applicant (generate-random-name)
-        company-code (generate-random-id 9999 4)
+        company-code plant
         planned-start-date (generate-random-date project-creation-date 30)
         planned-finish-date (generate-random-date (.plusDays planned-start-date (rand-int (* 5 365))) 30)
         project-description (generate-project-description area)]
@@ -187,6 +187,7 @@
       [:PLFAZ planned-start-date]
       [:PLSEZ planned-finish-date]
       [:WERKS plant]
+      [:STTXT "VAPA"]
       [:WBS
        (random-wbs
         (assoc config :start-date planned-start-date :finish-date planned-finish-date)
@@ -323,6 +324,7 @@
     [:PLFAZ (:PLFAZ project-data)]
     [:PLSEZ (:PLSEZ project-data)]
     [:WERKS (:WERKS project-data)]
+    [:STTXT (:STTXT project-data)]
     [:WBS (generate-wbs-elements WBS)]]])
 
 (defn generate-actuals-data [actuals]
@@ -378,6 +380,7 @@
     [:PLFAZ "0000-00-00"]
     [:PLSEZ "0000-00-00"]
     [:WERKS]
+    [:STTXT]
     [:WBS]]])
 
 ;;
