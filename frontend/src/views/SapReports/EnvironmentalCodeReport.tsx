@@ -1,7 +1,11 @@
+import { useAtomValue } from 'jotai';
+
 import { trpc } from '@frontend/client';
 import { DataTable } from '@frontend/components/DataTable';
 import { formatCurrency } from '@frontend/components/forms/CurrencyInput';
 import { useTranslations } from '@frontend/stores/lang';
+import { environmentalCodeReportFilterAtom } from '@frontend/stores/sapReport/environmentalCodeReportFilters';
+import { useDebounce } from '@frontend/utils/useDebounce';
 
 import { EnvironmentalCodeReportFilters } from './EnvironmentalCodeReportFilters';
 
@@ -10,18 +14,22 @@ function isInternalCompany(companyId: string) {
 }
 
 export function EnvironmentalCodeReport() {
-  const { sap } = trpc.useContext();
+  const { sapReport } = trpc.useContext();
+
+  const filters = useAtomValue(environmentalCodeReportFilterAtom);
 
   const tr = useTranslations();
   return (
     <>
       <EnvironmentalCodeReportFilters />
       <DataTable
-        getRows={sap.getEnvironmentCodeReport.fetch}
-        getSummary={sap.getEnvironmentCodeReportSummary.fetch}
+        getRows={sapReport.getEnvironmentCodeReport.fetch}
+        getSummary={sapReport.getEnvironmentCodeReportSummary.fetch}
         rowsPerPageOptions={[100, 200, 500, 1000]}
-        defaultRowsPerPage={100}
-        filters={{}}
+        filters={{
+          ...filters,
+          text: useDebounce(filters.text, 250),
+        }}
         columns={{
           projectId: {
             title: tr('sapReports.environmentCodes.projectId'),
@@ -37,15 +45,12 @@ export function EnvironmentalCodeReport() {
             title: tr('sapReports.environmentCodes.wbsName'),
             width: 400,
           },
-          totalActuals: {
-            title: tr('sapReports.environmentCodes.totalActuals'),
-            align: 'right',
-            format(value) {
-              return formatCurrency(value);
-            },
-          },
           reasonForEnvironmentalInvestment: {
             title: tr('sapReports.environmentCodes.reasonForEnvironmentalInvestment'),
+            align: 'right',
+          },
+          reasonForEnvironmentalInvestmentTextFi: {
+            title: tr('sapReports.environmentCodes.reasonForEnvironmentalInvestmentText'),
             align: 'right',
           },
           companyCode: {
@@ -60,6 +65,13 @@ export function EnvironmentalCodeReport() {
             align: 'right',
             format(value, row) {
               return row != null && isInternalCompany(row.companyCode) ? value : '';
+            },
+          },
+          totalActuals: {
+            title: tr('sapReports.environmentCodes.totalActuals'),
+            align: 'right',
+            format(value) {
+              return formatCurrency(value);
             },
           },
         }}

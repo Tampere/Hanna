@@ -1,24 +1,9 @@
 import { z } from 'zod';
 
-import {
-  getBlanketContractReport,
-  getBlanketContractReportSummary,
-} from '@backend/components/sap/blanketContractReport';
 import { getSapActuals, getSapProject, sapProjectExists } from '@backend/components/sap/dataImport';
-import {
-  getEnvironmentCodeReport,
-  getEnvironmentCodeReportSummary,
-} from '@backend/components/sap/environmentCodeReport';
-import { getLastSyncedAt } from '@backend/components/sap/syncQueue';
 import { getPool, sql } from '@backend/db';
 
 import { yearlyActualsSchema } from '@shared/schema/sapActuals';
-import {
-  blanketContractReportFilterSchema,
-  blanketContractReportQuerySchema,
-  environmentCodeReportFilterSchema,
-  environmentCodeReportQuerySchema,
-} from '@shared/schema/sapReport';
 
 import { TRPC } from '.';
 
@@ -168,45 +153,5 @@ export const createSapRouter = (t: TRPC) =>
       .input(z.object({ projectId: z.string() }))
       .query(async ({ input }) => {
         return await sapProjectExists(input.projectId);
-      }),
-
-    getLastSyncedAt: t.procedure.query(async () => {
-      return await getLastSyncedAt();
-    }),
-
-    getEnvironmentCodeReport: t.procedure
-      .input(environmentCodeReportQuerySchema)
-      .query(async ({ input }) => {
-        return await getEnvironmentCodeReport(input);
-      }),
-
-    getEnvironmentCodeReportSummary: t.procedure
-      .input(environmentCodeReportFilterSchema)
-      .query(async ({ input }) => {
-        const summary = await getEnvironmentCodeReportSummary(input);
-        return {
-          rowCount: summary.rowCount,
-          sums: {
-            totalActuals: summary.totalActualsSum,
-          },
-        };
-      }),
-
-    getBlanketContractReport: t.procedure
-      .input(blanketContractReportQuerySchema)
-      .query(async ({ input }) => {
-        return await getBlanketContractReport(input);
-      }),
-
-    getBlanketContractReportSummary: t.procedure
-      .input(blanketContractReportFilterSchema)
-      .query(async ({ input }) => {
-        const summary = await getBlanketContractReportSummary(input);
-        return {
-          rowCount: summary.rowCount,
-          sums: {
-            totalActuals: summary.totalActualsSum,
-          },
-        };
       }),
   });

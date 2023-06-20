@@ -47,7 +47,7 @@ export function SapReports() {
     tabView: TabView;
   };
   const { data: lastSyncedAt, isLoading: lastSyncedAtLoading } =
-    trpc.sap.getLastSyncedAt.useQuery();
+    trpc.sapReport.getLastSyncedAt.useQuery();
   const lang = useAtomValue(langAtom);
 
   return (
@@ -56,6 +56,7 @@ export function SapReports() {
         display: flex;
         flex-direction: column;
         gap: 12px;
+        height: 100%;
       `}
     >
       <Tabs

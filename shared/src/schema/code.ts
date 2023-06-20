@@ -22,7 +22,9 @@ const codeListIdSchema = z.enum([
   'TehtäväTyyppi',
   'TehtävänElinkaarentila',
   'AsemakaavaHanketyyppi',
-  'AsemakaavaSuunnittelualue'
+  'AsemakaavaSuunnittelualue',
+  'Kumppani',
+  'YmpäristönsuojelunSyy',
 ]);
 
 export const codeIdSchema = z.object({

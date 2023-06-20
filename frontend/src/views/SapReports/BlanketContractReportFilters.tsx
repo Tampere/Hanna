@@ -1,27 +1,102 @@
-import { Download } from '@mui/icons-material';
-import { Paper, css } from '@mui/material';
+import { Download, Search } from '@mui/icons-material';
+import { FormControl, FormLabel, InputAdornment, Paper, TextField, css } from '@mui/material';
+import { useAtom } from 'jotai';
 
+import { trpc } from '@frontend/client';
 import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
+import { MultiSelect } from '@frontend/components/forms/MultiSelect';
 import { useTranslations } from '@frontend/stores/lang';
+import {
+  blanketOrderIdAtom,
+  consultCompanyAtom,
+  textAtom,
+} from '@frontend/stores/sapReport/blanketContractReportFilters';
 
 export function BlanketContractReportFilters() {
   const tr = useTranslations();
+
+  const [text, setText] = useAtom(textAtom);
+  const [consultCompany, setConsultCompany] = useAtom(consultCompanyAtom);
+  const [blanketOrderId, setBlanketOrderId] = useAtom(blanketOrderIdAtom);
+
+  const { data: allConsultCompanies, isLoading: allConsultCompaniesLoading } =
+    trpc.sapReport.getConsultCompanies.useQuery();
+
   return (
     <Paper
       css={css`
         padding: 16px;
+        display: flex;
+        flex-direction: column;
       `}
     >
-      {/* TODO filters */}
+      <div
+        css={css`
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 16px;
+          margin-bottom: 16px;
+        `}
+      >
+        <FormControl>
+          <FormLabel htmlFor="text-search">{tr('projectSearch.textSearchLabel')}</FormLabel>
+          <TextField
+            id="text-search"
+            size="small"
+            placeholder={tr('projectSearch.textSearchTip')}
+            value={text ?? ''}
+            onChange={(event) => {
+              setText(event.currentTarget.value);
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </FormControl>
+        <FormControl>
+          <FormLabel htmlFor="consultCompanies">
+            {tr('sapReports.blanketContracts.consultCompany')}
+          </FormLabel>
+          <MultiSelect
+            id="consultCompanies"
+            options={allConsultCompanies ?? []}
+            loading={allConsultCompaniesLoading}
+            value={consultCompany ?? ''}
+            onChange={(company) => setConsultCompany(company)}
+            multiple={false}
+          />
+        </FormControl>
+        <FormControl>
+          <FormLabel htmlFor="blanketOrderId">
+            {tr('sapReports.blanketContracts.blanketOrderId')}
+          </FormLabel>
+          <TextField
+            id="blanketOrderId"
+            size="small"
+            value={blanketOrderId ?? ''}
+            onChange={(event) => {
+              setBlanketOrderId(event.currentTarget.value);
+            }}
+          />
+        </FormControl>
+      </div>
       <AsyncJobButton
+        css={css`
+          align-self: flex-end;
+        `}
         variant="outlined"
+        disabled
         onStart={async () => {
           /**
            * TODO
            * - start report job with current filters
            * - return the job ID
            */
-          return 'foo';
+          return '';
         }}
         onFinished={(jobId) => {
           // TODO download report

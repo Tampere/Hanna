@@ -11,8 +11,8 @@ export type Props<T> = {
   disabled?: boolean;
   readOnly?: boolean;
   onBlur?: () => void;
-  getOptionLabel: (item: T) => string;
-  getOptionId: (item: T) => string;
+  getOptionLabel?: (item: T) => string;
+  getOptionId?: (item: T) => string;
   multiple: boolean;
 } & (
   | {
@@ -49,7 +49,7 @@ export function MultiSelect<T>({
   const autocompleteRef = useRef<HTMLElement>();
 
   function getOption(id: string | null) {
-    return options.find((option) => getOptionId(option) === id);
+    return options.find((option) => getOptionId?.(option) === id) ?? (id as T);
   }
 
   function getLabel(optionId: string | null) {
@@ -57,7 +57,11 @@ export function MultiSelect<T>({
     if (!option) {
       return '';
     }
-    return getOptionLabel(option);
+    return getOptionLabel?.(option) ?? String(option);
+  }
+
+  function getId(option: T) {
+    return getOptionId?.(option) ?? String(option);
   }
 
   return (
@@ -67,11 +71,11 @@ export function MultiSelect<T>({
       multiple={multiple}
       size="small"
       clearOnBlur={true}
-      options={options?.map((option) => getOptionId(option)) ?? []}
+      options={options?.map(getId) ?? []}
       disabled={disabled}
       disableCloseOnSelect={multiple}
       ref={autocompleteRef}
-      value={!value ? null : Array.isArray(value) ? value.map(getOptionId) : getOptionId(value)}
+      value={!value ? null : Array.isArray(value) ? value.map(getId) : getId(value)}
       noOptionsText={tr('select.noOptions')}
       componentsProps={{
         paper: {
@@ -148,7 +152,7 @@ export function MultiSelect<T>({
         ) : null;
       }}
       renderOption={(props, id, { selected }) => (
-        <li {...props} style={{ hyphens: 'auto' }}>
+        <li {...props} style={{ hyphens: 'auto' }} key={id}>
           {multiple && (
             <Checkbox
               icon={<CheckBoxOutlineBlank fontSize="small" />}
