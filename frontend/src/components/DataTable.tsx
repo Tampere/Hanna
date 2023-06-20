@@ -60,7 +60,7 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
   columns,
   filters,
   rowsPerPageOptions = [10, 20, 30, 500],
-  defaultRowsPerPage = 10,
+  defaultRowsPerPage = rowsPerPageOptions[0],
 }: Props<TRow, TQueryParams>) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -82,17 +82,34 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
   }, [columns]);
 
   useEffect(() => {
-    // TODO Some weird TS issues regarding optionality of the filters, though the Props typings are working correctly (which matters the most)...
-    getSummary({ filters } as any).then(setSummary);
-  }, [filters]);
+    let shouldUpdate = true;
+
+    async function reloadSummary() {
+      // TODO Some weird TS issues regarding optionality of the filters, though the Props typings are working correctly (which matters the most)...
+      const summary = await getSummary({ filters } as any);
+      if (shouldUpdate) {
+        setSummary(summary);
+      }
+    }
+
+    reloadSummary();
+
+    return () => {
+      shouldUpdate = false;
+    };
+  }, [JSON.stringify(filters)]);
 
   useEffect(() => {
+    let shouldUpdate = true;
+
     async function reloadTableData() {
-      const offset = page * rowsPerPage;
-      const limit = rowsPerPage;
       setLoading(true);
       try {
         const rows = await getRows({ offset, limit, filters, sort } as TQueryParams);
+        // On stacked requests, only update the UI when the latest request has been completed
+        if (!shouldUpdate) {
+          return;
+        }
         setVisibleRows(rows);
         setLoading(false);
         setError(false);
@@ -103,7 +120,11 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
     }
 
     reloadTableData();
-  }, [offset, limit, filters, sort]);
+
+    return () => {
+      shouldUpdate = false;
+    };
+  }, [offset, limit, JSON.stringify(filters), sort]);
 
   const InfoTextCell = useMemo(
     () => (props: TableCellProps) =>
@@ -123,128 +144,156 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
   );
 
   return (
-    <Paper>
-      <TableContainer>
-        <Table size="small">
-          <TableHead
-            css={(theme) => css`
-              background: ${theme.palette.primary.main};
-            `}
-          >
-            <TableRow>
-              {columnKeys.map((key) => (
-                <TableCell
-                  key={key.toString()}
-                  width={columns[key].width}
-                  align={columns[key].align}
-                >
-                  <TableSortLabel
-                    active={sort?.key === key}
-                    direction={sort?.key === key ? sort.direction : 'asc'}
-                    sx={{
-                      '&.MuiTableSortLabel-root': {
-                        color: '#fff',
-                      },
-                      '&.MuiTableSortLabel-root:hover': {
-                        color: '#eee',
-                      },
-                      '&.Mui-active': {
-                        fontWeight: 700,
-                        color: '#eee',
-                      },
-                      '& .MuiTableSortLabel-icon': {
-                        color: '#eee !important',
-                      },
-                    }}
-                    onClick={() => {
-                      setSort({
-                        key,
-                        direction:
-                          sort?.key === key ? (sort?.direction === 'asc' ? 'desc' : 'asc') : 'asc',
-                      });
-                    }}
+    <Paper
+      css={css`
+        flex-grow: 1;
+        overflow: hidden;
+      `}
+    >
+      <div
+        css={css`
+          position: relative;
+          /* TODO relies on fixed height pagination, but couldn't make scrolling work properly with flex boxes... */
+          height: calc(100% - 50px);
+        `}
+      >
+        <TableContainer
+          css={css`
+            height: 100%;
+          `}
+        >
+          <Table size="small">
+            <TableHead
+              css={(theme) => css`
+                background: ${theme.palette.primary.main};
+                position: sticky;
+                top: 0;
+                z-index: 1;
+              `}
+            >
+              <TableRow>
+                {columnKeys.map((key) => (
+                  <TableCell
+                    key={key.toString()}
+                    width={columns[key].width}
+                    align={columns[key].align}
                   >
-                    {columns[key].title}
-                  </TableSortLabel>
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody
-            css={css`
-              position: relative;
-            `}
-          >
-            {error ? (
-              <TableRow>
-                <InfoTextCell>{tr('dataTable.error')}</InfoTextCell>
+                    <TableSortLabel
+                      active={sort?.key === key}
+                      direction={sort?.key === key ? sort.direction : 'asc'}
+                      sx={{
+                        '&.MuiTableSortLabel-root': {
+                          color: '#fff',
+                        },
+                        '&.MuiTableSortLabel-root:hover': {
+                          color: '#eee',
+                        },
+                        '&.Mui-active': {
+                          fontWeight: 700,
+                          color: '#eee',
+                        },
+                        '& .MuiTableSortLabel-icon': {
+                          color: '#eee !important',
+                        },
+                      }}
+                      onClick={() => {
+                        setSort({
+                          key,
+                          direction:
+                            sort?.key === key
+                              ? sort?.direction === 'asc'
+                                ? 'desc'
+                                : 'asc'
+                              : 'asc',
+                        });
+                      }}
+                    >
+                      {columns[key].title}
+                    </TableSortLabel>
+                  </TableCell>
+                ))}
               </TableRow>
-            ) : visibleRows == null ? (
-              // Initial load
-              new Array(rowsPerPage).fill(null).map((_, index) => (
-                <TableRow key={index}>
-                  <TableCell colSpan={columnKeys.length}>&nbsp;</TableCell>
+            </TableHead>
+            <TableBody>
+              {error ? (
+                <TableRow>
+                  <InfoTextCell>{tr('dataTable.error')}</InfoTextCell>
                 </TableRow>
-              ))
-            ) : !visibleRows.length ? (
-              <TableRow>
-                <InfoTextCell>{tr('dataTable.noData')}</InfoTextCell>
+              ) : visibleRows == null ? (
+                // Initial load
+                new Array(rowsPerPage).fill(null).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell colSpan={columnKeys.length}>&nbsp;</TableCell>
+                  </TableRow>
+                ))
+              ) : !visibleRows.length ? (
+                <TableRow>
+                  <InfoTextCell>{tr('dataTable.noData')}</InfoTextCell>
+                </TableRow>
+              ) : (
+                visibleRows.map((row, index) => (
+                  <TableRow
+                    key={index}
+                    css={css`
+                      &:hover {
+                        background: #eee;
+                      }
+                    `}
+                  >
+                    {columnKeys.map((key) => {
+                      const formattedValue =
+                        columns[key].format?.(row[key], row) ?? row[key]?.toString() ?? '';
+                      return (
+                        <TableCell key={key.toString()} align={columns[key].align}>
+                          {formattedValue}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                ))
+              )}
+              <TableRow
+                css={css`
+                  position: absolute;
+                  inset: 0;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  pointer-events: none;
+                  background: rgba(0, 0, 0, 0.1);
+                  opacity: ${loading ? 1 : 0};
+                  transition: opacity 0.1s ease-in;
+                `}
+              >
+                <TableCell>
+                  <CircularProgress />
+                </TableCell>
               </TableRow>
-            ) : (
-              visibleRows.map((row, index) => (
-                <TableRow key={index}>
+              {summary?.sums && (
+                <TableRow>
                   {columnKeys.map((key) => {
+                    const value = summary.sums?.[key] as TRow[keyof TRow];
                     const formattedValue =
-                      columns[key].format?.(row[key], row) ?? row[key]?.toString() ?? '';
+                      value == null ? '' : columns[key].format?.(value) ?? value?.toString() ?? '';
                     return (
-                      <TableCell key={key.toString()} align={columns[key].align}>
+                      <TableCell
+                        key={key.toString()}
+                        align={columns[key].align}
+                        css={css`
+                          font-weight: 600;
+                          border-bottom: none;
+                        `}
+                      >
                         {formattedValue}
                       </TableCell>
                     );
                   })}
                 </TableRow>
-              ))
-            )}
-            <TableRow
-              css={css`
-                position: absolute;
-                inset: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                pointer-events: none;
-                background: rgba(0, 0, 0, 0.1);
-                opacity: ${loading ? 1 : 0};
-                transition: opacity 0.1s ease-in;
-              `}
-            >
-              <TableCell>
-                <CircularProgress />
-              </TableCell>
-            </TableRow>
-            {summary?.sums && (
-              <TableRow>
-                {columnKeys.map((key) => {
-                  const value = summary.sums?.[key] as TRow[keyof TRow];
-                  const formattedValue =
-                    value == null ? '' : columns[key].format?.(value) ?? value?.toString() ?? '';
-                  return (
-                    <TableCell
-                      key={key.toString()}
-                      css={css`
-                        font-weight: 600;
-                        border-bottom: none;
-                      `}
-                    >
-                      {formattedValue}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </div>
       <TablePagination
         rowsPerPageOptions={rowsPerPageOptions}
         component="div"

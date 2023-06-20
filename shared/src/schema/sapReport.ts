@@ -6,13 +6,19 @@ export const environmentCodeReportSchema = z.object({
   wbsId: z.string(),
   wbsName: z.string(),
   reasonForEnvironmentalInvestment: z.string(),
+  reasonForEnvironmentalInvestmentTextFi: z.string(),
   companyCode: z.string(),
   companyCodeTextFi: z.string(),
   totalActuals: z.number(),
 });
 
 export const environmentCodeReportFilterSchema = z.object({
-  filters: z.object({}),
+  filters: z.object({
+    text: z.string().nullable(),
+    plants: z.array(z.string()),
+    reasonsForEnvironmentalInvestment: z.array(z.string()),
+    year: z.number().nullable(),
+  }),
 });
 
 export const environmentCodeReportQuerySchema = environmentCodeReportFilterSchema.extend({
@@ -42,7 +48,11 @@ export const blanketContractReportSchema = z.object({
 });
 
 export const blanketContractReportFilterSchema = z.object({
-  filters: z.object({}),
+  filters: z.object({
+    text: z.string().nullable(),
+    consultCompany: z.string().nullable(),
+    blanketOrderId: z.string().nullable(),
+  }),
 });
 
 export const blanketContractReportQuerySchema = blanketContractReportFilterSchema.extend({

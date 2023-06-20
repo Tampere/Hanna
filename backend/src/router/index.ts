@@ -15,6 +15,7 @@ import { createTaskRouter } from '@backend/router/task';
 import { User } from '@shared/schema/user';
 
 import { createJobRouter } from './job';
+import { createSapReportRouter } from './sapReport';
 import { createSessionRouter } from './session';
 import { createUserRouter } from './user';
 
@@ -43,6 +44,7 @@ export const appRouter = t.router({
   projectObject: createProjectObjectRouter(t),
   code: createCodeRouter(t),
   sap: createSapRouter(t),
+  sapReport: createSapReportRouter(t),
   session: createSessionRouter(t),
   task: createTaskRouter(t),
   user: createUserRouter(t),

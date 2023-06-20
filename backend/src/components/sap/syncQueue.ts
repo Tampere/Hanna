@@ -137,9 +137,7 @@ const summaryFragment = sql.fragment`
 `;
 
 export async function getLastSyncedAt() {
-  const { lastJobCompletedAt } = await getPool().one(sql.type(
-    z.object({ lastJobCompletedAt: z.date() })
-  )`
+  const result = await getPool().maybeOne(sql.type(z.object({ lastJobCompletedAt: z.date() }))`
     WITH summary AS (
       ${summaryFragment}
     )
@@ -148,7 +146,7 @@ export async function getLastSyncedAt() {
     LIMIT 1
   `);
 
-  return lastJobCompletedAt;
+  return result?.lastJobCompletedAt ?? null;
 }
 
 export async function getSyncSummary(limit?: number) {

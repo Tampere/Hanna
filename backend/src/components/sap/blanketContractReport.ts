@@ -1,11 +1,10 @@
 import { z } from 'zod';
 
-import { getPool, sql } from '@backend/db';
+import { getPool, sql, textToTsQuery } from '@backend/db';
 
 import { BlanketContractReportQuery, blanketContractReportSchema } from '@shared/schema/sapReport';
 
-function blanketContractReportFragment(query?: Partial<BlanketContractReportQuery>) {
-  // TODO use filters
+function blanketContractReportFragment(params?: Partial<BlanketContractReportQuery>) {
   return sql.fragment`
     WITH total_actuals AS (
       SELECT wbs_element_id, sum(value_in_currency_subunit) AS "totalActuals"
@@ -37,10 +36,31 @@ function blanketContractReportFragment(query?: Partial<BlanketContractReportQuer
     FROM
       report_items
       LEFT JOIN total_actuals ON report_items."wbsId" = total_actuals.wbs_element_id
+    WHERE
+      ${
+        params?.filters?.text
+          ? sql.fragment`
+          ${textToTsQuery(params?.filters?.text)}
+          @@ to_tsvector(
+            'simple',
+            concat_ws(' ', "projectId", "networkId", "networkName", "projectManagerName", "decisionMaker")
+          )`
+          : sql.fragment`true`
+      }
+    AND ${
+      params?.filters?.consultCompany
+        ? sql.fragment`"consultCompany" = ${params.filters.consultCompany}`
+        : sql.fragment`true`
+    }
+    AND ${
+      params?.filters?.blanketOrderId
+        ? sql.fragment`"blanketOrderId" ~ ${params.filters.blanketOrderId}`
+        : sql.fragment`true`
+    }
     ${
-      query?.sort
-        ? sql.fragment`ORDER BY ${sql.identifier([query.sort.key])} ${
-            query.sort.direction === 'desc' ? sql.fragment`DESC` : sql.fragment`ASC`
+      params?.sort
+        ? sql.fragment`ORDER BY ${sql.identifier([params.sort.key])} ${
+            params.sort.direction === 'desc' ? sql.fragment`DESC` : sql.fragment`ASC`
           } NULLS LAST`
         : sql.fragment``
     }
@@ -56,7 +76,7 @@ export async function getBlanketContractReport(query: BlanketContractReportQuery
 }
 
 export async function getBlanketContractReportSummary(
-  filters: BlanketContractReportQuery['filters']
+  filters: Pick<BlanketContractReportQuery, 'filters'>
 ) {
   return await getPool().one(sql.type(
     z.object({ rowCount: z.number(), totalActualsSum: z.number() })

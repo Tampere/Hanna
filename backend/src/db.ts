@@ -75,3 +75,18 @@ export const sql = {
   unsafe: undefined,
   untyped: slonikSql.unsafe,
 };
+
+export function textToTsQuery(text: string) {
+  const searchTerm =
+    text
+      ?.trim()
+      .split(/\s+/)
+      .filter((term) => term.length > 0)
+      .map((term) => `${term}:*`)
+      .join(' & ') || null;
+  if (!searchTerm) {
+    return null;
+  }
+
+  return sql.fragment`to_tsquery('simple', ${searchTerm})`;
+}

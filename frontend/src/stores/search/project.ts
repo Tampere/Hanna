@@ -24,6 +24,8 @@ export const projectSearchParamAtom = atom<SearchParams>({
   filters: {} as const,
 });
 
+// TODO for some reason, jotai-optics type inference broke in current version of TS - ignore the TS errors for now
+// @ts-expect-error: Type instantiation is excessively deep and possibly infinite
 export const textAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('text'));
 export const dateRangeAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('dateRange'));
 export const lifecycleStatesAtom = focusAtom(projectSearchParamAtom, (o) =>

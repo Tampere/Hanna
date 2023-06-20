@@ -1,25 +1,33 @@
-import dayjs from 'dayjs';
+import { useAtomValue } from 'jotai';
 
 import { trpc } from '@frontend/client';
 import { DataTable } from '@frontend/components/DataTable';
-import { formatCurrency, numericValueToText } from '@frontend/components/forms/CurrencyInput';
+import { formatCurrency } from '@frontend/components/forms/CurrencyInput';
 import { useTranslations } from '@frontend/stores/lang';
+import { blanketContractReportFilterAtom } from '@frontend/stores/sapReport/blanketContractReportFilters';
+import { useDebounce } from '@frontend/utils/useDebounce';
 
 import { BlanketContractReportFilters } from './BlanketContractReportFilters';
 
 export function BlanketContractReport() {
-  const { sap } = trpc.useContext();
+  const { sapReport } = trpc.useContext();
 
   const tr = useTranslations();
+
+  const filters = useAtomValue(blanketContractReportFilterAtom);
+
   return (
     <>
       <BlanketContractReportFilters />
       <DataTable
-        getRows={sap.getBlanketContractReport.fetch}
-        getSummary={sap.getBlanketContractReportSummary.fetch}
+        getRows={sapReport.getBlanketContractReport.fetch}
+        getSummary={sapReport.getBlanketContractReportSummary.fetch}
         rowsPerPageOptions={[100, 200, 500, 1000]}
-        defaultRowsPerPage={10}
-        filters={{}}
+        filters={{
+          ...filters,
+          text: useDebounce(filters.text, 250),
+          blanketOrderId: useDebounce(filters.blanketOrderId, 250),
+        }}
         columns={{
           projectId: {
             title: tr('sapReports.blanketContracts.projectId'),
