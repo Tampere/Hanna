@@ -68,7 +68,7 @@
     "github-markdown-css": "^5.2.0",
     "jotai": "^2.2.1",
     "jotai-optics": "^0.3.0",
-    "ol": "^7.3.0",
+    "ol": "^7.4.0",
     "proj4": "^2.9.0",
     "react": "^18.2.0",
     "react-currency-input-field": "^3.6.10",
