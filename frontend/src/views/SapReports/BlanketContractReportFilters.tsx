@@ -8,7 +8,7 @@ import { MultiSelect } from '@frontend/components/forms/MultiSelect';
 import { useTranslations } from '@frontend/stores/lang';
 import {
   blanketOrderIdAtom,
-  consultCompanyAtom,
+  consultCompaniesAtom,
   textAtom,
 } from '@frontend/stores/sapReport/blanketContractReportFilters';
 
@@ -16,7 +16,7 @@ export function BlanketContractReportFilters() {
   const tr = useTranslations();
 
   const [text, setText] = useAtom(textAtom);
-  const [consultCompany, setConsultCompany] = useAtom(consultCompanyAtom);
+  const [consultCompanies, setConsultCompanies] = useAtom(consultCompaniesAtom);
   const [blanketOrderId, setBlanketOrderId] = useAtom(blanketOrderIdAtom);
 
   const { data: allConsultCompanies, isLoading: allConsultCompaniesLoading } =
@@ -65,9 +65,10 @@ export function BlanketContractReportFilters() {
             id="consultCompanies"
             options={allConsultCompanies ?? []}
             loading={allConsultCompaniesLoading}
-            value={consultCompany ?? ''}
-            onChange={(company) => setConsultCompany(company)}
-            multiple={false}
+            value={consultCompanies ?? []}
+            onChange={(value) => setConsultCompanies(value)}
+            multiple
+            maxTags={3}
           />
         </FormControl>
         <FormControl>
