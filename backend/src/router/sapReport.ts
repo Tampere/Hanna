@@ -63,21 +63,11 @@ export const createSapReportRouter = (t: TRPC) =>
       }),
 
     getPlants: t.procedure.query(async () => {
-      const { rows } = await getPool().query(sql.type(
-        z.object({ id: z.string(), label: z.string() })
-      )`
-        WITH plant_ids AS (
-          SELECT DISTINCT plant AS id FROM app.sap_wbs
-          WHERE plant IS NOT NULL
-        )
-        SELECT
-          plant_ids.id AS id,
-          code.text_fi AS label
-        FROM
-          plant_ids
-          LEFT JOIN app.code ON code.id = ('Kumppani', plant_ids.id)::app.code_id
+      const { rows } = await getPool().query(sql.type(z.object({ plant: z.string() }))`
+        SELECT DISTINCT plant FROM app.sap_wbs
+        WHERE plant IS NOT NULL
       `);
-      return rows;
+      return rows.map((row) => row.plant);
     }),
 
     getYears: t.procedure.query(async () => {

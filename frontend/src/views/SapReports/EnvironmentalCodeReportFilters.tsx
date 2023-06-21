@@ -80,15 +80,12 @@ export function EnvironmentalCodeReportFilters() {
           <FormLabel htmlFor="plants">{tr('sapReports.environmentCodes.plant')}</FormLabel>
           <MultiSelect
             id="plants"
-            options={allPlants?.map((plant) => plant.id) ?? []}
-            getOptionLabel={(id) => {
-              return `${id} ${allPlants?.find((plant) => plant.id === id)?.label ?? ''}`;
-            }}
-            getOptionId={(id) => String(id)}
+            options={allPlants ?? []}
             loading={allPlantsLoading}
             value={plants ?? []}
             onChange={setPlants}
             multiple
+            maxTags={3}
           />
         </FormControl>
         <FormControl>

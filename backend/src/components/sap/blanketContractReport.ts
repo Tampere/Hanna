@@ -48,8 +48,11 @@ function blanketContractReportFragment(params?: Partial<BlanketContractReportQue
           : sql.fragment`true`
       }
     AND ${
-      params?.filters?.consultCompany
-        ? sql.fragment`"consultCompany" = ${params.filters.consultCompany}`
+      params?.filters?.consultCompanies.length
+        ? sql.fragment`"consultCompany" = ANY(${sql.array(
+            params.filters.consultCompanies,
+            'text'
+          )})`
         : sql.fragment`true`
     }
     AND ${
