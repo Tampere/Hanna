@@ -9,11 +9,14 @@ import {
 import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
 
-import { translations } from '@shared/language';
+import { TranslationKey, translations } from '@shared/language';
 import { dateStringSchema } from '@shared/schema/common';
 import { ProjectSearch } from '@shared/schema/project';
+import { Suffix } from '@shared/util-types';
 
 import { buildSheet } from '.';
+
+type ReportColumnKey = Partial<Suffix<TranslationKey, 'report.columns.'>>;
 
 function projectReportFragment(searchParams: ProjectSearch) {
   return sql.fragment`
@@ -70,10 +73,18 @@ export async function buildDetailplanCatalogSheet(workbook: Workbook, searchPara
   const reportResult = await getPool().any(reportQuery);
   logger.debug(`Fetched ${reportResult.length} rows for the detailplan catalog`);
   const rows = z.array(reportRowSchema).parse(reportResult);
+  const headers = Object.keys(rows[0]).reduce(
+    (headers, key) => ({
+      ...headers,
+      [key]: translations['fi'][`report.columns.${key as ReportColumnKey}`],
+    }),
+    {} as { [key in ReportColumnKey]: string }
+  );
 
   buildSheet({
     workbook,
     sheetTitle: translations['fi']['report.detailplanCatalog'],
     rows,
+    headers,
   });
 }

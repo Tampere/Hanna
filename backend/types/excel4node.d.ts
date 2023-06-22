@@ -27,18 +27,21 @@ declare module 'excel4node' {
     date(value: Date): Cell;
     number(value: number): Cell;
     style(style: Style): Cell;
+    formula(formula: string): Cell;
+    excelRefs: string[];
   }
 
   export class Worksheet {
     cell(row: number, column: number): Cell;
     column(column: number): Column;
     row(row: number): Row;
+    workbook: Workbook;
   }
 
   export class Workbook {
     constructor(options?: WorkbookOptions);
     addWorksheet(name: string): Worksheet;
-    createStyle(options: StyleOptions): void;
+    createStyle(options: StyleOptions): Style;
     writeToBuffer(): Promise<Buffer>;
   }
 }

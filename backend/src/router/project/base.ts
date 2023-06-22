@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 import {
   addProjectRelation,
   getCostEstimates,
@@ -10,7 +8,6 @@ import {
 } from '@backend/components/project';
 import { deleteProject, getProject } from '@backend/components/project/base';
 import { projectSearch } from '@backend/components/project/search';
-import { getJob } from '@backend/components/taskQueue';
 import { startReportJob } from '@backend/components/taskQueue/reportQueue';
 import { TRPC } from '@backend/router';
 
@@ -71,18 +68,4 @@ export const createProjectRouter = (t: TRPC) =>
     startReportJob: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
       return await startReportJob(input);
     }),
-
-    getReportJobStatus: t.procedure
-      .input(z.object({ jobId: z.string() }))
-      .query(async ({ input }) => {
-        const { state, isFinished } = await getJob(input.jobId);
-        return { state, isFinished };
-      }),
-
-    getReportJobOutput: t.procedure
-      .input(z.object({ jobId: z.string() }))
-      .query(async ({ input }) => {
-        const { output } = await getJob(input.jobId);
-        return output;
-      }),
   });

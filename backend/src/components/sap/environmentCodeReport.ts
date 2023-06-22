@@ -24,9 +24,9 @@ function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQue
         wbs.wbs_id "wbsId",
         wbs.short_description "wbsName",
         wbs.reason_for_environmental_investment "reasonForEnvironmentalInvestment",
-        environment_code.text_fi "reasonForEnvironmentalInvestmentTextFi",
+        environment_code.text_fi "reasonForEnvironmentalInvestmentText",
         network.company_code "companyCode",
-        company_code.text_fi "companyCodeTextFi"
+        company_code.text_fi "companyCodeText"
       FROM
         app.sap_wbs wbs
         LEFT JOIN app.sap_project project ON project.sap_project_internal_id = wbs.sap_project_internal_id
@@ -78,11 +78,13 @@ function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQue
 }
 
 export async function getEnvironmentCodeReport(query: EnvironmentCodeReportQuery) {
-  return getPool().any(sql.type(environmentCodeReportSchema)`
+  const result = await getPool().any(sql.type(environmentCodeReportSchema)`
     ${environmentCodeReportFragment(query)}
-    LIMIT ${query.limit}
-    OFFSET ${query.offset}
+    ${query.limit != null ? sql.fragment`LIMIT ${query.limit}` : sql.fragment``}
+    ${query.offset != null ? sql.fragment`OFFSET ${query.offset}` : sql.fragment``}
   `);
+
+  return z.array(environmentCodeReportSchema).parse(result);
 }
 
 export async function getEnvironmentCodeReportSummary(
