@@ -2,12 +2,12 @@ import { z } from 'zod';
 
 export const environmentCodeReportSchema = z.object({
   projectId: z.string(),
-  plant: z.string(),
+  plant: z.string().nullish(),
   wbsId: z.string(),
   wbsName: z.string(),
-  reasonForEnvironmentalInvestment: z.string(),
-  reasonForEnvironmentalInvestmentText: z.string(),
-  companyCode: z.string(),
+  reasonForEnvironmentalInvestment: z.string().nullish(),
+  reasonForEnvironmentalInvestmentText: z.string().nullish(),
+  companyCode: z.string().nullish(),
   companyCodeText: z.string().nullish(),
   totalActuals: z.number(),
 });
@@ -37,12 +37,12 @@ export type EnvironmentCodeReportQuery = z.infer<typeof environmentCodeReportQue
 export const blanketContractReportSchema = z.object({
   projectId: z.string(),
   networkId: z.string(),
-  networkName: z.string(),
-  projectManagerName: z.string(),
-  consultCompany: z.string(),
-  decisionMaker: z.string(),
-  decisionDateText: z.string(),
-  blanketOrderId: z.string(),
+  networkName: z.string().nullish(),
+  projectManagerName: z.string().nullish(),
+  consultCompany: z.string().nullish(),
+  decisionMaker: z.string().nullish(),
+  decisionDateText: z.string().nullish(),
+  blanketOrderId: z.string().nullish(),
   contractPriceInCurrencySubunit: z.number(),
   totalActuals: z.number().nullish(),
 });
