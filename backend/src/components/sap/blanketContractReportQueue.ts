@@ -1,9 +1,10 @@
 import { Workbook } from 'excel4node';
-import { TranslationKey, translations } from 'tre-hanna-shared/src/language';
-import { BlanketContractReportQuery } from 'tre-hanna-shared/src/schema/sapReport';
-import { Suffix } from 'tre-hanna-shared/src/util-types';
 
 import { env } from '@backend/env';
+
+import { TranslationKey, translations } from '@shared/language';
+import { BlanketContractReportQuery } from '@shared/schema/sapReport';
+import { Suffix } from '@shared/util-types';
 
 import { buildSheet } from '../report';
 import { saveReportFile } from '../report/report-file';
