@@ -4,10 +4,12 @@ import {
   getBlanketContractReport,
   getBlanketContractReportSummary,
 } from '@backend/components/sap/blanketContractReport';
+import { startBlanketContractReportJob } from '@backend/components/sap/blanketContractReportQueue';
 import {
   getEnvironmentCodeReport,
   getEnvironmentCodeReportSummary,
 } from '@backend/components/sap/environmentCodeReport';
+import { startEnvironmentCodeReportJob } from '@backend/components/sap/environmentCodeReportQueue';
 import { getLastSyncedAt } from '@backend/components/sap/syncQueue';
 import { getPool, sql } from '@backend/db';
 
@@ -44,6 +46,12 @@ export const createSapReportRouter = (t: TRPC) =>
         };
       }),
 
+    startEnvironmentCodeReportJob: t.procedure
+      .input(environmentCodeReportFilterSchema)
+      .query(async ({ input }) => {
+        return await startEnvironmentCodeReportJob(input);
+      }),
+
     getBlanketContractReport: t.procedure
       .input(blanketContractReportQuerySchema)
       .query(async ({ input }) => {
@@ -62,10 +70,17 @@ export const createSapReportRouter = (t: TRPC) =>
         };
       }),
 
+    startBlanketContractReportJob: t.procedure
+      .input(blanketContractReportFilterSchema)
+      .query(async ({ input }) => {
+        return await startBlanketContractReportJob(input);
+      }),
+
     getPlants: t.procedure.query(async () => {
       const { rows } = await getPool().query(sql.type(z.object({ plant: z.string() }))`
         SELECT DISTINCT plant FROM app.sap_wbs
         WHERE plant IS NOT NULL
+        ORDER BY plant ASC
       `);
       return rows.map((row) => row.plant);
     }),

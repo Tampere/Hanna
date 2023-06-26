@@ -214,7 +214,7 @@ function SearchResults({ results, loading }: SearchResultsProps) {
               severity: 'error',
             });
           }}
-          pollingIntervalTimeout={1000}
+          pollingIntervalMs={1000}
         >
           {tr('projectSearch.generateReport')}
         </AsyncJobButton>

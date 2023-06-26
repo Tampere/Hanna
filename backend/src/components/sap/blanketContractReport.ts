@@ -71,11 +71,13 @@ function blanketContractReportFragment(params?: Partial<BlanketContractReportQue
 }
 
 export async function getBlanketContractReport(query: BlanketContractReportQuery) {
-  return await getPool().any(sql.type(blanketContractReportSchema)`
+  const result = await getPool().any(sql.type(blanketContractReportSchema)`
     ${blanketContractReportFragment(query)}
-    LIMIT ${query.limit}
-    OFFSET ${query.offset}
+    ${query.limit != null ? sql.fragment`LIMIT ${query.limit}` : sql.fragment``}
+    ${query.offset != null ? sql.fragment`OFFSET ${query.offset}` : sql.fragment``}
   `);
+
+  return z.array(blanketContractReportSchema).parse(result);
 }
 
 export async function getBlanketContractReportSummary(

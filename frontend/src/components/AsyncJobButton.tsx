@@ -9,11 +9,12 @@ interface Props extends ButtonProps {
   onStart: () => Promise<string>;
   onFinished?: (jobId: string) => void | Promise<void>;
   onError?: () => void | Promise<void>;
-  pollingIntervalTimeout?: number;
+  pollingIntervalMs?: number;
+  timeoutMs?: number;
 }
 
 export function AsyncJobButton(props: Props) {
-  const { onStart, onFinished, onError, pollingIntervalTimeout, ...buttonProps } = props;
+  const { onStart, onFinished, onError, pollingIntervalMs, timeoutMs, ...buttonProps } = props;
   const { job } = trpc.useContext();
 
   const [loading, setLoading] = useState(false);
@@ -26,7 +27,13 @@ export function AsyncJobButton(props: Props) {
 
     setLoading(true);
 
-    // TODO: timeout
+    const timeout =
+      timeoutMs != null
+        ? setTimeout(() => {
+            onError?.();
+            setLoading(false);
+          }, timeoutMs)
+        : null;
 
     const interval = setInterval(async () => {
       // Get the job status from the server
@@ -42,9 +49,12 @@ export function AsyncJobButton(props: Props) {
         return;
       }
 
+      if (timeout != null) {
+        clearTimeout(timeout);
+      }
       clearInterval(interval);
       setLoading(false);
-    }, pollingIntervalTimeout ?? 1000);
+    }, pollingIntervalMs ?? 1000);
 
     return () => {
       clearInterval(interval);

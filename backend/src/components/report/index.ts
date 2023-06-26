@@ -1,62 +1,76 @@
-import { Workbook } from 'excel4node';
+import { Workbook, Worksheet } from 'excel4node';
 
-import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
 
-import { TranslationKey, translations } from '@shared/language';
 import { ProjectSearch } from '@shared/schema/project';
-import { Suffix } from '@shared/util-types';
 
 import { buildDetailplanCatalogSheet } from './detailplanProject';
 import { buildInvestmentProjectReportSheet } from './investmentProject';
+import { saveReportFile } from './report-file';
 import { calculateTextWidth } from './text-width';
 
-type ReportColumnKey = Partial<Suffix<TranslationKey, 'report.columns.'>>;
 type ReportFieldValue = string | number | Date | null;
 
 // Eyeballed approximation how much the width differs from Excel width
 const excelWidthFactor = 1 / 7.5;
 
+function generateSumCell(sheet: Worksheet, rowIndex: number, columnIndex: number) {
+  // Create a cell object with the numeric indices & figure out its Excel reference
+  const cell = sheet.cell(rowIndex, columnIndex);
+  const [cellName] = cell.excelRefs;
+
+  // Split the Excel reference into the alphanumeric parts
+  const [, column, row] = Array.from(/([A-Z]+)(\d+)/.exec(cellName) ?? []);
+
+  // Generate a sum formula using the alphanumeric references
+  cell.formula(`SUM(${column}2:${column}${Number(row) - 1})`);
+  return cell;
+}
+
 /**
  * Generic function for building a worksheet into a workbook with given rows.
- *
- * All row keys must be defined in localizations under the prefix `"report.columns."`.
  */
-export function buildSheet<ColumnKey extends ReportColumnKey>({
+export function buildSheet<ColumnKey extends string>({
   workbook,
   sheetTitle,
   rows,
+  headers,
+  sum = [],
 }: {
   workbook: Workbook;
   sheetTitle: string;
-  rows: { [field in ColumnKey]?: ReportFieldValue }[];
+  rows: readonly { [field in ColumnKey]?: ReportFieldValue }[];
+  headers: { [field in ColumnKey]: string };
+  sum?: ColumnKey[];
 }) {
   if (!rows.length) {
     return;
   }
 
-  const headerStyle = workbook.createStyle({
+  const boldStyle = workbook.createStyle({
     font: {
       bold: true,
     },
   });
 
-  const reportFields = Object.keys(rows[0]) as ReportColumnKey[];
-  const headers = reportFields.map((field) => translations['fi'][`report.columns.${field}`]);
-  const worksheet = workbook.addWorksheet(sheetTitle);
+  const headerValues = Object.keys(rows[0]).map((key) => headers[key as ColumnKey]);
+
+  const sheet = workbook.addWorksheet(sheetTitle);
 
   // Initialize column widths from the headers
-  const columnWidths = headers.map((header) =>
+  const columnWidths = headerValues.map((header) =>
     calculateTextWidth({ text: header, fontName: 'Calibri', fontSize: '12px', fontWeight: 'bold' })
   );
 
-  headers.forEach((header, index) => {
-    worksheet
-      .cell(1, index + 1)
-      .string(header)
-      .style(headerStyle);
+  // Generate sum cells
+  sum.forEach((column) => {
+    const columnIndex = Object.keys(rows[0]).findIndex((key) => key === column);
+    const rowIndex = rows.length + 1;
+    const sumCell = generateSumCell(sheet, rowIndex + 1, columnIndex + 1);
+    sumCell.style(boldStyle);
   });
 
+  // Fill in the actual data
   rows.forEach((row, rowIndex) => {
     Object.values<ReportFieldValue | undefined>(row).forEach((value, column) => {
       // Skip empty values
@@ -65,7 +79,7 @@ export function buildSheet<ColumnKey extends ReportColumnKey>({
       }
 
       // Write the value into the cell
-      const cell = worksheet.cell(rowIndex + 2, column + 1);
+      const cell = sheet.cell(rowIndex + 2, column + 1);
       if (value instanceof Date) {
         cell.date(value);
       } else if (typeof value === 'number') {
@@ -88,13 +102,15 @@ export function buildSheet<ColumnKey extends ReportColumnKey>({
   });
 
   // Write header cells and set each column width
-  headers.forEach((header, index) => {
-    worksheet
+  headerValues.forEach((header, index) => {
+    sheet
       .cell(1, index + 1)
       .string(header)
-      .style(headerStyle);
-    worksheet.column(index + 1).setWidth(columnWidths[index] * excelWidthFactor);
+      .style(boldStyle);
+    sheet.column(index + 1).setWidth(columnWidths[index] * excelWidthFactor);
   });
+
+  return sheet;
 }
 
 /**
@@ -116,14 +132,7 @@ export async function buildReport(jobId: string, searchParams: ProjectSearch) {
     await buildInvestmentProjectReportSheet(workbook, searchParams);
     await buildDetailplanCatalogSheet(workbook, searchParams);
 
-    const buffer = await workbook.writeToBuffer();
-
-    logger.debug(`Saving report to database, ${buffer.length} bytes...`);
-    const queryResult = await getPool().query(sql.untyped`
-      INSERT INTO app.report_file (pgboss_job_id, report_filename, report_data)
-      VALUES (${jobId}, 'raportti.xlsx', ${sql.binary(buffer)})
-    `);
-    logger.debug(`Report saved to database, ${queryResult.rowCount} rows affected.`);
+    await saveReportFile(jobId, 'raportti.xlsx', workbook);
   } catch (error) {
     // Log and rethrow the error to make the job state failed
     logger.error(error);

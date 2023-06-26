@@ -1,13 +1,15 @@
 import { Download, Search } from '@mui/icons-material';
 import { FormControl, FormLabel, InputAdornment, Paper, TextField, css } from '@mui/material';
-import { useAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 
 import { trpc } from '@frontend/client';
 import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { MultiSelect } from '@frontend/components/forms/MultiSelect';
+import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import {
+  environmentalCodeReportFilterAtom,
   plantsAtom,
   reasonsForEnvironmentalInvestmentAtom,
   textAtom,
@@ -16,6 +18,7 @@ import {
 
 export function EnvironmentalCodeReportFilters() {
   const tr = useTranslations();
+  const notify = useNotifications();
 
   const [text, setText] = useAtom(textAtom);
   const [plants, setPlants] = useAtom(plantsAtom);
@@ -23,9 +26,11 @@ export function EnvironmentalCodeReportFilters() {
     reasonsForEnvironmentalInvestmentAtom
   );
   const [year, setYear] = useAtom(yearAtom);
+  const filters = useAtomValue(environmentalCodeReportFilterAtom);
 
   const { data: allPlants, isLoading: allPlantsLoading } = trpc.sapReport.getPlants.useQuery();
   const { data: allYears, isLoading: allYearsLoading } = trpc.sapReport.getYears.useQuery();
+  const { sapReport } = trpc.useContext();
 
   return (
     <Paper
@@ -104,18 +109,21 @@ export function EnvironmentalCodeReportFilters() {
         css={css`
           align-self: flex-end;
         `}
-        disabled
         variant="outlined"
         onStart={async () => {
-          /**
-           * TODO
-           * - start report job with current filters
-           * - return the job ID
-           */
-          return '';
+          return await sapReport.startEnvironmentCodeReportJob.fetch({ filters });
+        }}
+        onError={() => {
+          notify({
+            title: tr('sapReports.reportFailed'),
+            severity: 'error',
+          });
         }}
         onFinished={(jobId) => {
-          // TODO download report
+          // Create a link element to automatically download the new report
+          const link = document.createElement('a');
+          link.href = `/api/v1/report/file?id=${jobId}`;
+          link.click();
         }}
         endIcon={<Download />}
       >

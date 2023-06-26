@@ -49,7 +49,7 @@ export function EnvironmentalCodeReport() {
             title: tr('sapReports.environmentCodes.reasonForEnvironmentalInvestment'),
             align: 'right',
           },
-          reasonForEnvironmentalInvestmentTextFi: {
+          reasonForEnvironmentalInvestmentText: {
             title: tr('sapReports.environmentCodes.reasonForEnvironmentalInvestmentText'),
             align: 'right',
           },
@@ -60,7 +60,7 @@ export function EnvironmentalCodeReport() {
               return isInternalCompany(value) ? value : tr('sapReports.externalCompany');
             },
           },
-          companyCodeTextFi: {
+          companyCodeText: {
             title: tr('sapReports.environmentCodes.companyCodeText'),
             align: 'right',
             format(value, row) {

@@ -1,12 +1,14 @@
 import { Download, Search } from '@mui/icons-material';
 import { FormControl, FormLabel, InputAdornment, Paper, TextField, css } from '@mui/material';
-import { useAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 
 import { trpc } from '@frontend/client';
 import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
 import { MultiSelect } from '@frontend/components/forms/MultiSelect';
+import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import {
+  blanketContractReportFilterAtom,
   blanketOrderIdAtom,
   consultCompaniesAtom,
   textAtom,
@@ -14,13 +16,16 @@ import {
 
 export function BlanketContractReportFilters() {
   const tr = useTranslations();
+  const notify = useNotifications();
 
   const [text, setText] = useAtom(textAtom);
   const [consultCompanies, setConsultCompanies] = useAtom(consultCompaniesAtom);
   const [blanketOrderId, setBlanketOrderId] = useAtom(blanketOrderIdAtom);
+  const filters = useAtomValue(blanketContractReportFilterAtom);
 
   const { data: allConsultCompanies, isLoading: allConsultCompaniesLoading } =
     trpc.sapReport.getConsultCompanies.useQuery();
+  const { sapReport } = trpc.useContext();
 
   return (
     <Paper
@@ -90,17 +95,20 @@ export function BlanketContractReportFilters() {
           align-self: flex-end;
         `}
         variant="outlined"
-        disabled
         onStart={async () => {
-          /**
-           * TODO
-           * - start report job with current filters
-           * - return the job ID
-           */
-          return '';
+          return await sapReport.startBlanketContractReportJob.fetch({ filters });
+        }}
+        onError={() => {
+          notify({
+            title: tr('sapReports.reportFailed'),
+            severity: 'error',
+          });
         }}
         onFinished={(jobId) => {
-          // TODO download report
+          // Create a link element to automatically download the new report
+          const link = document.createElement('a');
+          link.href = `/api/v1/report/file?id=${jobId}`;
+          link.click();
         }}
         endIcon={<Download />}
       >

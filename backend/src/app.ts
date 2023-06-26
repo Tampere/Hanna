@@ -24,6 +24,8 @@ import { appRouter, createContext } from '@backend/router';
 
 import { registerApiKeyRoutes } from './apiKey';
 import { georasterProxy } from './components/proxy/georaster';
+import { setupBlanketContractReportQueue } from './components/sap/blanketContractReportQueue';
+import { setupEnvironmentCodeReportQueue } from './components/sap/environmentCodeReportQueue';
 import { initializeTaskQueue } from './components/taskQueue';
 import { setupMailQueue } from './components/taskQueue/mailQueue';
 import { setupReportQueue } from './components/taskQueue/reportQueue';
@@ -51,6 +53,8 @@ async function run() {
     setupMailQueue(),
     setupSapSyncQueue(),
     setupDailySapSyncQueue(),
+    setupEnvironmentCodeReportQueue(),
+    setupBlanketContractReportQueue(),
   ]);
 
   const server = fastify({ logger });

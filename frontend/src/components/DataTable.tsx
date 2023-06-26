@@ -37,8 +37,8 @@ type ColumnSettings<TRow extends object> = {
 };
 
 interface DataQueryParams<TRow extends object> {
-  offset: number;
-  limit: number;
+  offset?: number;
+  limit?: number;
   sort?: Sort<TRow>;
   filters?: object;
 }

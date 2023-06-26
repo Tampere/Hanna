@@ -56,7 +56,7 @@ export function BlanketContractReport() {
             align: 'right',
           },
           contractPriceInCurrencySubunit: {
-            title: tr('sapReports.blanketContracts.contractPrice'),
+            title: tr('sapReports.blanketContracts.contractPriceInCurrencySubunit'),
             format(value) {
               return formatCurrency(value);
             },
@@ -65,7 +65,7 @@ export function BlanketContractReport() {
           totalActuals: {
             title: tr('sapReports.blanketContracts.totalActuals'),
             format(value) {
-              return formatCurrency(value);
+              return formatCurrency(value ?? null);
             },
             align: 'right',
           },
