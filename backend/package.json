@@ -58,7 +58,7 @@
     "@fastify/sensible": "^5.2.0",
     "@fastify/session": "^10.3.0",
     "@fastify/static": "^6.10.2",
-    "@trpc/client": "^10.31.0",
+    "@trpc/client": "^10.33.0",
     "@trpc/server": "^10.31.0",
     "axios": "^1.4.0",
     "connect-pg-simple": "^9.0.0",
