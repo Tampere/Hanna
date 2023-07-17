@@ -76,7 +76,7 @@
     "server-text-width": "^1.0.2",
     "slonik": "^34.0.1",
     "soap": "^1.0.0",
-    "superjson": "^1.12.3",
+    "superjson": "^1.13.1",
     "tre-hanna-shared": "file:../shared",
     "zod": "^3.21.4"
   },
