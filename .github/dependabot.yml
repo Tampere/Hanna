@@ -5,27 +5,51 @@
 
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/frontend"
+  - package-ecosystem: 'npm'
+    directory: '/frontend'
     schedule:
-      interval: "weekly"
-  - package-ecosystem: "npm"
-    directory: "/backend"
+      interval: 'weekly'
+    groups:
+      npm:
+        patterns:
+          - '*'
+  - package-ecosystem: 'npm'
+    directory: '/backend'
     schedule:
-      interval: "weekly"
-  - package-ecosystem: "npm"
-    directory: "/shared"
+      interval: 'weekly'
+    groups:
+      npm:
+        patterns:
+          - '*'
+  - package-ecosystem: 'npm'
+    directory: '/shared'
     schedule:
-      interval: "weekly"
-  - package-ecosystem: "npm"
-    directory: "/e2e"
+      interval: 'weekly'
+    groups:
+      npm:
+        patterns:
+          - '*'
+  - package-ecosystem: 'npm'
+    directory: '/e2e'
     schedule:
-      interval: "weekly"
-  - package-ecosystem: "npm"
-    directory: "/docker/oidc-provider"
+      interval: 'weekly'
+    groups:
+      npm:
+        patterns:
+          - '*'
+  - package-ecosystem: 'npm'
+    directory: '/docker/oidc-provider'
     schedule:
-      interval: "weekly"
-  - package-ecosystem: "github-actions"
-    directory: "/"
+      interval: 'weekly'
+    groups:
+      npm:
+        patterns:
+          - '*'
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
+      interval: 'weekly'
+    groups:
+      github-actions:
+        patterns:
+          - '*'
