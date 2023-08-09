@@ -9,9 +9,10 @@ declare module 'excel4node' {
   }
 
   export interface StyleOptions {
-    font: {
-      bold: boolean;
+    font?: {
+      bold?: boolean;
     };
+    numberFormat?: string;
   }
 
   export class Column {

@@ -9,6 +9,8 @@ export const environmentCodeReportSchema = z.object({
   reasonForEnvironmentalInvestmentText: z.string().nullish(),
   companyCode: z.string().nullish(),
   companyCodeText: z.string().nullish(),
+  totalDebit: z.number().nullish(),
+  totalCredit: z.number().nullish(),
   totalActuals: z.number(),
 });
 
@@ -44,6 +46,8 @@ export const blanketContractReportSchema = z.object({
   decisionDateText: z.string().nullish(),
   blanketOrderId: z.string().nullish(),
   contractPriceInCurrencySubunit: z.number(),
+  totalDebit: z.number().nullish(),
+  totalCredit: z.number().nullish(),
   totalActuals: z.number().nullish(),
 });
 
