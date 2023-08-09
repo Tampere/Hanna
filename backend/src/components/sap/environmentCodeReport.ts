@@ -7,7 +7,11 @@ import { EnvironmentCodeReportQuery, environmentCodeReportSchema } from '@shared
 function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQuery>) {
   return sql.fragment`
     WITH total_actuals AS (
-      SELECT wbs_element_id, sum(value_in_currency_subunit) AS "totalActuals"
+      SELECT
+        wbs_element_id,
+        sum(value_in_currency_subunit) FILTER (WHERE entry_type = 'DEBIT') AS "totalDebit",
+        sum(value_in_currency_subunit) FILTER (WHERE entry_type = 'CREDIT') AS "totalCredit",
+        sum(value_in_currency_subunit) AS "totalActuals"
       FROM app.sap_actuals_item
       ${
         params?.filters?.year != null
@@ -37,6 +41,8 @@ function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQue
     )
     SELECT
       report.*,
+      total_actuals."totalDebit",
+      total_actuals."totalCredit",
       total_actuals."totalActuals"
     FROM
       report
@@ -87,14 +93,33 @@ export async function getEnvironmentCodeReport(query: EnvironmentCodeReportQuery
   return z.array(environmentCodeReportSchema).parse(result);
 }
 
+export async function getEnvironmentCodeReportRowCount(
+  filters: Pick<EnvironmentCodeReportQuery, 'filters'>
+) {
+  return await getPool().one(sql.type(
+    z.object({
+      rowCount: z.number(),
+    })
+  )`
+    SELECT
+      count(*) "rowCount"
+    FROM (${environmentCodeReportFragment(filters)}) query
+  `);
+}
+
 export async function getEnvironmentCodeReportSummary(
   filters: Pick<EnvironmentCodeReportQuery, 'filters'>
 ) {
   return await getPool().one(sql.type(
-    z.object({ rowCount: z.number(), totalActualsSum: z.number() })
+    z.object({
+      totalDebitSum: z.number(),
+      totalCreditSum: z.number(),
+      totalActualsSum: z.number(),
+    })
   )`
     SELECT
-      count(*) "rowCount",
+      sum("totalDebit") "totalDebitSum",
+      sum("totalCredit") "totalCreditSum",
       sum("totalActuals") "totalActualsSum"
     FROM (${environmentCodeReportFragment(filters)}) query
   `);

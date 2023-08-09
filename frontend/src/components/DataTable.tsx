@@ -22,9 +22,8 @@ interface Sort<TRow extends object> {
   direction: 'asc' | 'desc';
 }
 
-interface Summary<TRow extends object> {
+interface RowCount {
   rowCount: number;
-  sums?: { [column in keyof TRow]?: number };
 }
 
 type ColumnSettings<TRow extends object> = {
@@ -45,9 +44,9 @@ interface DataQueryParams<TRow extends object> {
 
 interface Props<TRow extends object, TQueryParams extends DataQueryParams<TRow>> {
   getRows: (params: TQueryParams) => Promise<readonly TRow[]>;
-  getSummary: (
+  getRowCount: (
     params: TQueryParams['filters'] extends object ? Pick<TQueryParams, 'filters'> : never
-  ) => Promise<Summary<TRow>>;
+  ) => Promise<RowCount>;
   columns: ColumnSettings<TRow>;
   filters?: TQueryParams['filters'] extends object ? TQueryParams['filters'] : never;
   rowsPerPageOptions?: number[];
@@ -56,7 +55,7 @@ interface Props<TRow extends object, TQueryParams extends DataQueryParams<TRow>>
 
 export function DataTable<TRow extends object, TQueryParams extends DataQueryParams<TRow>>({
   getRows,
-  getSummary,
+  getRowCount,
   columns,
   filters,
   rowsPerPageOptions = [10, 20, 30, 500],
@@ -67,7 +66,7 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(defaultRowsPerPage);
   const [visibleRows, setVisibleRows] = useState<readonly TRow[] | null>(null);
-  const [summary, setSummary] = useState<Summary<TRow> | null>(null);
+  const [rowCount, setRowCount] = useState<number | null>(null);
   const [sort, setSort] = useState<Sort<TRow> | undefined>(undefined);
 
   const tr = useTranslations();
@@ -86,9 +85,9 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
 
     async function reloadSummary() {
       // TODO Some weird TS issues regarding optionality of the filters, though the Props typings are working correctly (which matters the most)...
-      const summary = await getSummary({ filters } as any);
+      const { rowCount } = await getRowCount({ filters } as any);
       if (shouldUpdate) {
-        setSummary(summary);
+        setRowCount(rowCount);
       }
     }
 
@@ -269,27 +268,6 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
                   <CircularProgress />
                 </TableCell>
               </TableRow>
-              {summary?.sums && (
-                <TableRow>
-                  {columnKeys.map((key) => {
-                    const value = summary.sums?.[key] as TRow[keyof TRow];
-                    const formattedValue =
-                      value == null ? '' : columns[key].format?.(value) ?? value?.toString() ?? '';
-                    return (
-                      <TableCell
-                        key={key.toString()}
-                        align={columns[key].align}
-                        css={css`
-                          font-weight: 600;
-                          border-bottom: none;
-                        `}
-                      >
-                        {formattedValue}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              )}
             </TableBody>
           </Table>
         </TableContainer>
@@ -297,7 +275,7 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
       <TablePagination
         rowsPerPageOptions={rowsPerPageOptions}
         component="div"
-        count={summary?.rowCount ?? 0}
+        count={rowCount ?? 0}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={(_, page) => setPage(page)}

@@ -44,10 +44,13 @@ export async function setupEnvironmentCodeReportQueue() {
         // Convert data for Excel export
         rows: rows.map((row) => ({
           ...row,
+          totalDebit: row.totalDebit == null ? null : row.totalDebit / 100,
+          totalCredit: row.totalCredit == null ? null : row.totalCredit / 100,
           totalActuals: row.totalActuals == null ? null : row.totalActuals / 100,
         })),
         headers,
-        sum: ['totalActuals'],
+        types: { totalDebit: 'currency', totalCredit: 'currency', totalActuals: 'currency' },
+        sum: ['totalDebit', 'totalCredit', 'totalActuals'],
       });
 
       if (!sheet) {

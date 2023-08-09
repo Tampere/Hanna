@@ -1,11 +1,8 @@
-import { useAtomValue } from 'jotai';
-
 import { trpc } from '@frontend/client';
 import { DataTable } from '@frontend/components/DataTable';
 import { formatCurrency } from '@frontend/components/forms/CurrencyInput';
 import { useTranslations } from '@frontend/stores/lang';
-import { environmentalCodeReportFilterAtom } from '@frontend/stores/sapReport/environmentalCodeReportFilters';
-import { useDebounce } from '@frontend/utils/useDebounce';
+import { useDebouncedEnvironmentalCodeReportFilters } from '@frontend/stores/sapReport/environmentalCodeReportFilters';
 
 import { EnvironmentalCodeReportFilters } from './EnvironmentalCodeReportFilters';
 
@@ -16,7 +13,7 @@ function isInternalCompany(companyId: string) {
 export function EnvironmentalCodeReport() {
   const { sapReport } = trpc.useContext();
 
-  const filters = useAtomValue(environmentalCodeReportFilterAtom);
+  const filters = useDebouncedEnvironmentalCodeReportFilters();
 
   const tr = useTranslations();
   return (
@@ -24,12 +21,9 @@ export function EnvironmentalCodeReport() {
       <EnvironmentalCodeReportFilters />
       <DataTable
         getRows={sapReport.getEnvironmentCodeReport.fetch}
-        getSummary={sapReport.getEnvironmentCodeReportSummary.fetch}
+        getRowCount={sapReport.getEnvironmentCodeReportRowCount.fetch}
         rowsPerPageOptions={[100, 200, 500, 1000]}
-        filters={{
-          ...filters,
-          text: useDebounce(filters.text, 250),
-        }}
+        filters={filters}
         columns={{
           projectId: {
             title: tr('sapReports.environmentCodes.projectId'),
@@ -57,14 +51,28 @@ export function EnvironmentalCodeReport() {
             title: tr('sapReports.environmentCodes.companyCode'),
             align: 'right',
             format(value) {
-              return isInternalCompany(value) ? value : tr('sapReports.externalCompany');
+              return value && isInternalCompany(value) ? value : tr('sapReports.externalCompany');
             },
           },
           companyCodeText: {
             title: tr('sapReports.environmentCodes.companyCodeText'),
             align: 'right',
             format(value, row) {
-              return row != null && isInternalCompany(row.companyCode) ? value : '';
+              return row?.companyCode && isInternalCompany(row.companyCode) ? value : '';
+            },
+          },
+          totalDebit: {
+            title: tr('sapReports.environmentCodes.totalDebit'),
+            align: 'right',
+            format(value) {
+              return formatCurrency(value ?? null);
+            },
+          },
+          totalCredit: {
+            title: tr('sapReports.environmentCodes.totalCredit'),
+            align: 'right',
+            format(value) {
+              return formatCurrency(value ?? null);
             },
           },
           totalActuals: {

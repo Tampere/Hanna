@@ -10,6 +10,7 @@ import { saveReportFile } from './report-file';
 import { calculateTextWidth } from './text-width';
 
 type ReportFieldValue = string | number | Date | null;
+type CustomFieldType = 'currency';
 
 // Eyeballed approximation how much the width differs from Excel width
 const excelWidthFactor = 1 / 7.5;
@@ -35,12 +36,14 @@ export function buildSheet<ColumnKey extends string>({
   sheetTitle,
   rows,
   headers,
+  types,
   sum = [],
 }: {
   workbook: Workbook;
   sheetTitle: string;
   rows: readonly { [field in ColumnKey]?: ReportFieldValue }[];
   headers: { [field in ColumnKey]: string };
+  types?: { [field in ColumnKey]?: CustomFieldType };
   sum?: ColumnKey[];
 }) {
   if (!rows.length) {
@@ -51,6 +54,10 @@ export function buildSheet<ColumnKey extends string>({
     font: {
       bold: true,
     },
+  });
+
+  const currencyStyle = workbook.createStyle({
+    numberFormat: '#,##0.00 "€"',
   });
 
   const headerValues = Object.keys(rows[0]).map((key) => headers[key as ColumnKey]);
@@ -72,11 +79,12 @@ export function buildSheet<ColumnKey extends string>({
 
   // Fill in the actual data
   rows.forEach((row, rowIndex) => {
-    Object.values<ReportFieldValue | undefined>(row).forEach((value, column) => {
+    Object.entries<ReportFieldValue | undefined>(row).forEach(([columnKey, value], column) => {
       // Skip empty values
       if (value == null) {
         return;
       }
+      const isCurrencyType = types?.[columnKey as ColumnKey] === 'currency';
 
       // Write the value into the cell
       const cell = sheet.cell(rowIndex + 2, column + 1);
@@ -84,17 +92,26 @@ export function buildSheet<ColumnKey extends string>({
         cell.date(value);
       } else if (typeof value === 'number') {
         cell.number(value);
+        if (isCurrencyType) {
+          cell.style(currencyStyle);
+        }
       } else {
         cell.string(value);
       }
 
       // Calculate the width of the cell - if it's larger than the previously widest column, replace it
-      const width = calculateTextWidth({
+      let width = calculateTextWidth({
         text: value,
         fontName: 'Calibri',
         fontSize: '12px',
         fontWeight: 'normal',
       });
+
+      // For formatted currency fields multiply the width by a fixed ratio
+      if (isCurrencyType) {
+        width *= 1.5;
+      }
+
       if (width > columnWidths[column]) {
         columnWidths[column] = width;
       }

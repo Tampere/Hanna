@@ -1,7 +1,9 @@
-import { atom } from 'jotai';
+import { atom, useAtomValue } from 'jotai';
 import { focusAtom } from 'jotai-optics';
 
 import { BlanketContractReportQuery } from '@shared/schema/sapReport';
+
+import { useDebounce } from '../../utils/useDebounce';
 
 export const blanketContractReportFilterAtom = atom<BlanketContractReportQuery['filters']>({
   text: null,
@@ -9,8 +11,6 @@ export const blanketContractReportFilterAtom = atom<BlanketContractReportQuery['
   blanketOrderId: null,
 });
 
-// TODO for some reason, jotai-optics type inference broke in current version of TS - ignore the TS errors for now
-// @ts-expect-error: Type instantiation is excessively deep and possibly infinite
 export const textAtom = focusAtom(blanketContractReportFilterAtom, (o) => o.prop('text'));
 export const consultCompaniesAtom = focusAtom(blanketContractReportFilterAtom, (o) =>
   o.prop('consultCompanies')
@@ -18,3 +18,12 @@ export const consultCompaniesAtom = focusAtom(blanketContractReportFilterAtom, (
 export const blanketOrderIdAtom = focusAtom(blanketContractReportFilterAtom, (o) =>
   o.prop('blanketOrderId')
 );
+
+export function useDebouncedBlanketContractReportFilters() {
+  const filters = useAtomValue(blanketContractReportFilterAtom);
+  return {
+    ...filters,
+    text: useDebounce(filters.text, 250),
+    blanketOrderId: useDebounce(filters.blanketOrderId, 250),
+  };
+}

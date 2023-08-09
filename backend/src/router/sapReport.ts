@@ -2,11 +2,13 @@ import { z } from 'zod';
 
 import {
   getBlanketContractReport,
+  getBlanketContractReportRowCount,
   getBlanketContractReportSummary,
 } from '@backend/components/sap/blanketContractReport';
 import { startBlanketContractReportJob } from '@backend/components/sap/blanketContractReportQueue';
 import {
   getEnvironmentCodeReport,
+  getEnvironmentCodeReportRowCount,
   getEnvironmentCodeReportSummary,
 } from '@backend/components/sap/environmentCodeReport';
 import { startEnvironmentCodeReportJob } from '@backend/components/sap/environmentCodeReportQueue';
@@ -34,16 +36,15 @@ export const createSapReportRouter = (t: TRPC) =>
         return await getEnvironmentCodeReport(input);
       }),
 
+    getEnvironmentCodeReportRowCount: t.procedure
+      .input(environmentCodeReportFilterSchema)
+      .query(async ({ input }) => {
+        return await getEnvironmentCodeReportRowCount(input);
+      }),
     getEnvironmentCodeReportSummary: t.procedure
       .input(environmentCodeReportFilterSchema)
       .query(async ({ input }) => {
-        const summary = await getEnvironmentCodeReportSummary(input);
-        return {
-          rowCount: summary.rowCount,
-          sums: {
-            totalActuals: summary.totalActualsSum,
-          },
-        };
+        return await getEnvironmentCodeReportSummary(input);
       }),
 
     startEnvironmentCodeReportJob: t.procedure
@@ -58,16 +59,16 @@ export const createSapReportRouter = (t: TRPC) =>
         return await getBlanketContractReport(input);
       }),
 
+    getBlanketContractReportRowCount: t.procedure
+      .input(blanketContractReportFilterSchema)
+      .query(async ({ input }) => {
+        return await getBlanketContractReportRowCount(input);
+      }),
+
     getBlanketContractReportSummary: t.procedure
       .input(blanketContractReportFilterSchema)
       .query(async ({ input }) => {
-        const summary = await getBlanketContractReportSummary(input);
-        return {
-          rowCount: summary.rowCount,
-          sums: {
-            totalActuals: summary.totalActualsSum,
-          },
-        };
+        return await getBlanketContractReportSummary(input);
       }),
 
     startBlanketContractReportJob: t.procedure

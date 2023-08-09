@@ -1,5 +1,13 @@
 import { Download, Search } from '@mui/icons-material';
-import { FormControl, FormLabel, InputAdornment, Paper, TextField, css } from '@mui/material';
+import {
+  Divider,
+  FormControl,
+  FormLabel,
+  InputAdornment,
+  Paper,
+  TextField,
+  css,
+} from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 
 import { trpc } from '@frontend/client';
@@ -13,8 +21,11 @@ import {
   plantsAtom,
   reasonsForEnvironmentalInvestmentAtom,
   textAtom,
+  useDebouncedEnvironmentalCodeReportFilters,
   yearAtom,
 } from '@frontend/stores/sapReport/environmentalCodeReportFilters';
+
+import { ReportSummary } from './ReportSummary';
 
 export function EnvironmentalCodeReportFilters() {
   const tr = useTranslations();
@@ -31,6 +42,10 @@ export function EnvironmentalCodeReportFilters() {
   const { data: allPlants, isLoading: allPlantsLoading } = trpc.sapReport.getPlants.useQuery();
   const { data: allYears, isLoading: allYearsLoading } = trpc.sapReport.getYears.useQuery();
   const { sapReport } = trpc.useContext();
+
+  const debouncedFilters = useDebouncedEnvironmentalCodeReportFilters();
+  const { data: summary, isLoading: summaryLoading } =
+    trpc.sapReport.getEnvironmentCodeReportSummary.useQuery({ filters: debouncedFilters });
 
   return (
     <Paper
@@ -129,6 +144,13 @@ export function EnvironmentalCodeReportFilters() {
       >
         {tr('sapReports.downloadReport')}
       </AsyncJobButton>
+      <Divider
+        css={css`
+          margin-top: 24px;
+          margin-bottom: 24px;
+        `}
+      />
+      <ReportSummary loading={summaryLoading} summary={summary} />
     </Paper>
   );
 }

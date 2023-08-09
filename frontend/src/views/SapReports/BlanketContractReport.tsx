@@ -1,11 +1,8 @@
-import { useAtomValue } from 'jotai';
-
 import { trpc } from '@frontend/client';
 import { DataTable } from '@frontend/components/DataTable';
 import { formatCurrency } from '@frontend/components/forms/CurrencyInput';
 import { useTranslations } from '@frontend/stores/lang';
-import { blanketContractReportFilterAtom } from '@frontend/stores/sapReport/blanketContractReportFilters';
-import { useDebounce } from '@frontend/utils/useDebounce';
+import { useDebouncedBlanketContractReportFilters } from '@frontend/stores/sapReport/blanketContractReportFilters';
 
 import { BlanketContractReportFilters } from './BlanketContractReportFilters';
 
@@ -14,20 +11,16 @@ export function BlanketContractReport() {
 
   const tr = useTranslations();
 
-  const filters = useAtomValue(blanketContractReportFilterAtom);
+  const filters = useDebouncedBlanketContractReportFilters();
 
   return (
     <>
       <BlanketContractReportFilters />
       <DataTable
         getRows={sapReport.getBlanketContractReport.fetch}
-        getSummary={sapReport.getBlanketContractReportSummary.fetch}
+        getRowCount={sapReport.getBlanketContractReportRowCount.fetch}
         rowsPerPageOptions={[100, 200, 500, 1000]}
-        filters={{
-          ...filters,
-          text: useDebounce(filters.text, 250),
-          blanketOrderId: useDebounce(filters.blanketOrderId, 250),
-        }}
+        filters={filters}
         columns={{
           projectId: {
             title: tr('sapReports.blanketContracts.projectId'),
@@ -61,6 +54,20 @@ export function BlanketContractReport() {
               return formatCurrency(value);
             },
             align: 'right',
+          },
+          totalDebit: {
+            title: tr('sapReports.blanketContracts.totalDebit'),
+            align: 'right',
+            format(value) {
+              return formatCurrency(value ?? null);
+            },
+          },
+          totalCredit: {
+            title: tr('sapReports.blanketContracts.totalCredit'),
+            align: 'right',
+            format(value) {
+              return formatCurrency(value ?? null);
+            },
           },
           totalActuals: {
             title: tr('sapReports.blanketContracts.totalActuals'),

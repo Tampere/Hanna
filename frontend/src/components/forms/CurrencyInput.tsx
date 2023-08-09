@@ -43,15 +43,12 @@ export function numericValueToText(value: number | null): string {
   return `${whole}.${decimals.length === 1 ? '0' : ''}${decimals}`;
 }
 
-export function formatCurrency(value: number | null, currencySymbol = '€') {
-  const textValue = numericValueToText(value);
-  return textValue.length === 0 ? (
-    ''
-  ) : (
-    <>
-      {textValue}&nbsp;{currencySymbol}
-    </>
-  );
+export function formatCurrency(value: number | null) {
+  return value == null
+    ? ''
+    : new Intl.NumberFormat(navigator.language, { style: 'currency', currency: 'EUR' }).format(
+        value / 100
+      );
 }
 
 export function CurrencyInput(props: Props) {
