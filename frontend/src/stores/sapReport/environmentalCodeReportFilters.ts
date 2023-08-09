@@ -9,7 +9,7 @@ export const environmentalCodeReportFilterAtom = atom<EnvironmentCodeReportQuery
   text: null,
   plants: [],
   reasonsForEnvironmentalInvestment: [],
-  year: null,
+  years: [],
 });
 
 export const textAtom = focusAtom(environmentalCodeReportFilterAtom, (o) => o.prop('text'));
@@ -18,7 +18,7 @@ export const reasonsForEnvironmentalInvestmentAtom = focusAtom(
   environmentalCodeReportFilterAtom,
   (o) => o.prop('reasonsForEnvironmentalInvestment')
 );
-export const yearAtom = focusAtom(environmentalCodeReportFilterAtom, (o) => o.prop('year'));
+export const yearsAtom = focusAtom(environmentalCodeReportFilterAtom, (o) => o.prop('years'));
 
 export function useDebouncedEnvironmentalCodeReportFilters() {
   const filters = useAtomValue(environmentalCodeReportFilterAtom);

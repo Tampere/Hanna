@@ -5,6 +5,7 @@ import { getPool, sql, textToTsQuery } from '@backend/db';
 import { EnvironmentCodeReportQuery, environmentCodeReportSchema } from '@shared/schema/sapReport';
 
 function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQuery>) {
+  const years = params?.filters?.years ?? [];
   return sql.fragment`
     WITH total_actuals AS (
       SELECT
@@ -14,9 +15,9 @@ function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQue
         sum(value_in_currency_subunit) AS "totalActuals"
       FROM app.sap_actuals_item
       ${
-        params?.filters?.year != null
+        years.length > 0
           ? sql.fragment`
-        WHERE fiscal_year = ${params.filters.year}
+        WHERE fiscal_year = ANY(${sql.array(years, 'int4')})
       `
           : sql.fragment``
       }

@@ -22,7 +22,7 @@ import {
   reasonsForEnvironmentalInvestmentAtom,
   textAtom,
   useDebouncedEnvironmentalCodeReportFilters,
-  yearAtom,
+  yearsAtom,
 } from '@frontend/stores/sapReport/environmentalCodeReportFilters';
 
 import { ReportSummary } from './ReportSummary';
@@ -36,7 +36,7 @@ export function EnvironmentalCodeReportFilters() {
   const [reasonsForEnvironmentalInvestment, setReasonsForEnvironmentalInvestment] = useAtom(
     reasonsForEnvironmentalInvestmentAtom
   );
-  const [year, setYear] = useAtom(yearAtom);
+  const [years, setYears] = useAtom(yearsAtom);
   const filters = useAtomValue(environmentalCodeReportFilterAtom);
 
   const { data: allPlants, isLoading: allPlantsLoading } = trpc.sapReport.getPlants.useQuery();
@@ -111,12 +111,14 @@ export function EnvironmentalCodeReportFilters() {
         <FormControl>
           <FormLabel htmlFor="year">{tr('sapReports.environmentCodes.year')}</FormLabel>
           <MultiSelect
-            id="year"
-            options={allYears?.map(String) ?? []}
+            id="years"
+            options={allYears ?? []}
             loading={allYearsLoading}
-            value={String(year ?? '')}
-            onChange={(year) => setYear(year == null ? null : Number(year))}
-            multiple={false}
+            value={years}
+            onChange={(years) => {
+              setYears(years);
+            }}
+            multiple
           />
         </FormControl>
       </div>

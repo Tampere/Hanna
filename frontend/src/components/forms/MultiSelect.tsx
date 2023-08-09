@@ -49,7 +49,9 @@ export function MultiSelect<T>({
   const autocompleteRef = useRef<HTMLElement>();
 
   function getOption(id: string | null) {
-    return options.find((option) => getOptionId?.(option) === id) ?? (id as T);
+    const option = options.find((option) => getOptionId?.(option) === id);
+    // If an option wasn't found, return the ID as numeric or string
+    return option ?? ((isNaN(Number(id)) ? id : Number(id)) as T);
   }
 
   function getLabel(optionId: string | null) {
