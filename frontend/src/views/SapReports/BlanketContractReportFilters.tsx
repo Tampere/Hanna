@@ -1,5 +1,13 @@
 import { Download, Search } from '@mui/icons-material';
-import { FormControl, FormLabel, InputAdornment, Paper, TextField, css } from '@mui/material';
+import {
+  Divider,
+  FormControl,
+  FormLabel,
+  InputAdornment,
+  Paper,
+  TextField,
+  css,
+} from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 
 import { trpc } from '@frontend/client';
@@ -12,7 +20,10 @@ import {
   blanketOrderIdAtom,
   consultCompaniesAtom,
   textAtom,
+  useDebouncedBlanketContractReportFilters,
 } from '@frontend/stores/sapReport/blanketContractReportFilters';
+
+import { ReportSummary } from './ReportSummary';
 
 export function BlanketContractReportFilters() {
   const tr = useTranslations();
@@ -26,6 +37,10 @@ export function BlanketContractReportFilters() {
   const { data: allConsultCompanies, isLoading: allConsultCompaniesLoading } =
     trpc.sapReport.getConsultCompanies.useQuery();
   const { sapReport } = trpc.useContext();
+
+  const debouncedFilters = useDebouncedBlanketContractReportFilters();
+  const { data: summary, isLoading: summaryLoading } =
+    trpc.sapReport.getBlanketContractReportSummary.useQuery({ filters: debouncedFilters });
 
   return (
     <Paper
@@ -114,6 +129,13 @@ export function BlanketContractReportFilters() {
       >
         {tr('sapReports.downloadReport')}
       </AsyncJobButton>
+      <Divider
+        css={css`
+          margin-top: 24px;
+          margin-bottom: 24px;
+        `}
+      />
+      <ReportSummary loading={summaryLoading} summary={summary} />
     </Paper>
   );
 }
