@@ -19,7 +19,7 @@ export const environmentCodeReportFilterSchema = z.object({
     text: z.string().nullable(),
     plants: z.array(z.string()),
     reasonsForEnvironmentalInvestment: z.array(z.string()),
-    year: z.number().nullable(),
+    years: z.array(z.number()),
   }),
 });
 
