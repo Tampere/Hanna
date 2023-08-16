@@ -131,11 +131,22 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
   );
 
   fastify.get(opts.oidcOpts.callbackPath, (req, res) => {
-    return fastifyPassport
-      .authenticate('oidc', {
+    fastifyPassport
+      .authenticate('oidc', async (req, res, error, user) => {
+        // If there are errors in login (e.g. already used or expired code), redirect to the front page
+        if (error || !user) {
+          return res.redirect('/');
+        }
+
+        try {
+          await req.login(user);
+        } catch (error) {
+          return res.redirect('/');
+        }
+
         // Redirect to the original URL if one was found from session, otherwise to the home page
-        successRedirect: req.session.get('redirectUrl') ?? '/',
-        failureRedirect: '/',
+        const redirectPath = req.session.get('redirectUrl') ?? '/';
+        return res.redirect(redirectPath);
       })
       .call(fastify, req, res);
   });
