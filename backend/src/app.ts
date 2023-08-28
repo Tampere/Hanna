@@ -3,7 +3,7 @@ import fastifySensible from '@fastify/sensible';
 import fastifyStatic from '@fastify/static';
 import { TRPCError } from '@trpc/server';
 import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
-import fastify from 'fastify';
+import fastify, { FastifyBaseLogger } from 'fastify';
 import { join } from 'path';
 import { serialize } from 'superjson';
 
@@ -56,8 +56,8 @@ async function run() {
     setupEnvironmentCodeReportQueue(),
     setupBlanketContractReportQueue(),
   ]);
-
-  const server = fastify({ logger });
+  // https://github.com/fastify/fastify/issues/4960
+  const server = fastify({ logger: logger as FastifyBaseLogger });
   const oidcClient = await getClient();
 
   registerApiKeyRoutes(server, { prefix: '/api/v1/admin', apis: [syncQueueApi] });
