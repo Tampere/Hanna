@@ -12,9 +12,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "^1.35.1",
-    "nodemon": "^2.0.22",
-    "playwright": "^1.35.1"
+    "@playwright/test": "^1.37.1",
+    "nodemon": "^3.0.1",
+    "playwright": "^1.37.1"
   },
   "dependencies": {
     "@trpc/client": "^10.31.0",
