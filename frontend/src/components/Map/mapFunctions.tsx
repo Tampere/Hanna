@@ -1,15 +1,11 @@
-import { asArray } from 'ol/color';
 import { Extent, getTopLeft, getWidth } from 'ol/extent';
 import GeoJSON from 'ol/format/GeoJSON';
-import Layer from 'ol/layer/Layer';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 import { bbox } from 'ol/loadingstrategy';
 import { Projection, get as getProjection } from 'ol/proj';
 import { Units } from 'ol/proj/Units';
 import { register } from 'ol/proj/proj4.js';
-import WebGLVectorLayerRenderer from 'ol/renderer/webgl/VectorLayer';
-import { packColor } from 'ol/renderer/webgl/shaders';
 import VectorSource from 'ol/source/Vector';
 import WMTS from 'ol/source/WMTS';
 import Fill from 'ol/style/Fill';
@@ -62,9 +58,9 @@ export function getMapProjection(code = 'EPSG:3857', extent: number[], units: Un
   }
 
   return new Projection({
-    code: code,
-    extent: extent,
-    units: units,
+    code,
+    extent,
+    units,
   });
 }
 
@@ -164,56 +160,6 @@ export function createVectorSource(url: string) {
   });
 }
 
-/**
- * https://openlayers.org/en/latest/examples/webgl-vector-layer.html
- */
-
-export class WebGLLayer extends Layer {
-  createRenderer(): WebGLVectorLayerRenderer {
-    const layer = this;
-    return new WebGLVectorLayerRenderer(this, {
-      fill: {
-        attributes: {
-          color: function () {
-            const color = asArray(layer.get('fillColor'));
-            return packColor(color);
-          },
-          opacity: function () {
-            return layer.get('fillOpacity') || 1;
-          },
-        },
-      },
-      stroke: {
-        attributes: {
-          color: function () {
-            const color = [...asArray(layer.get('strokeColor'))];
-            return packColor(color);
-          },
-          width: function () {
-            return 1.2;
-          },
-          opacity: function () {
-            return 1;
-          },
-        },
-      },
-    });
-  }
-}
-
-export function createWebGLWFSLayer(layer: WFSLayer) {
-  return new WebGLLayer({
-    source: createVectorSource(layer.url),
-    properties: {
-      id: layer.id,
-      type: 'wfs',
-      strokeColor: layer.style.strokeColor,
-      fillColor: layer.style.fillColor,
-      fillOpacity: layer.style.fillOpacity,
-    },
-  });
-}
-
 export function createWFSLayer(layer: WFSLayer) {
   return new VectorLayer({
     source: createVectorSource(layer.url),
@@ -258,6 +204,5 @@ function createTileResolutions(
   const baseMatrix = Array.from(Array(zoomLevels).keys());
 
   /** Calculate base resolutions */
-  const resolutions = baseMatrix.map((index) => size / Math.pow(zoomFactor, index));
-  return resolutions;
+  return baseMatrix.map((index) => size / Math.pow(zoomFactor, index));
 }
