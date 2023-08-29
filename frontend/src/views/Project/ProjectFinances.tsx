@@ -8,7 +8,7 @@ import { getRange } from '@frontend/utils/array';
 
 import { DbInvestmentProject } from '@shared/schema/project/investment';
 
-import { CostEstimatesTable } from './CostEstimatesTable';
+import { BudgetTable } from './BudgetTable';
 
 interface Props {
   project?: DbInvestmentProject | null;
@@ -16,9 +16,7 @@ interface Props {
 
 export function ProjectFinances(props: Props) {
   const { project } = props;
-  const estimates = !project
-    ? null
-    : trpc.project.getCostEstimates.useQuery({ projectId: project.id });
+  const budget = !project ? null : trpc.project.getBudget.useQuery({ projectId: project.id });
   const notify = useNotifications();
   const tr = useTranslations();
 
@@ -31,18 +29,18 @@ export function ProjectFinances(props: Props) {
     return getRange(startYear, endYear);
   }, [project?.startDate, project?.endDate]);
 
-  const saveEstimatesMutation = trpc.project.updateCostEstimates.useMutation({
+  const saveBudgetMutation = trpc.project.updateBudget.useMutation({
     onSuccess() {
       notify({
         severity: 'success',
-        title: tr('costEstimatesTable.notifySave'),
+        title: tr('budgetTable.notifySave'),
         duration: 5000,
       });
     },
     onError() {
       notify({
         severity: 'error',
-        title: tr('costEstimatesTable.notifySaveFailed'),
+        title: tr('budgetTable.notifySaveFailed'),
       });
     },
   });
@@ -60,18 +58,18 @@ export function ProjectFinances(props: Props) {
     yearlyActuals.refetch();
   }, [project?.sapProjectId]);
 
-  return !estimates?.data || !project ? null : (
-    <CostEstimatesTable
+  return !budget?.data || !project ? null : (
+    <BudgetTable
       years={projectYears}
-      estimates={estimates.data}
+      budget={budget.data}
       actuals={yearlyActuals.data}
       actualsLoading={yearlyActuals.isFetching}
-      onSave={async (costEstimates) => {
-        await saveEstimatesMutation.mutateAsync({
+      onSave={async (yearBudgets) => {
+        await saveBudgetMutation.mutateAsync({
           projectId: project.id,
-          costEstimates,
+          yearBudgets,
         });
-        estimates?.refetch();
+        budget?.refetch();
       }}
     />
   );

@@ -96,21 +96,21 @@ export async function validateUpsertProject(
   const validationErrors: FormErrors<UpsertProject> = { errors: {} };
 
   if (values?.id) {
-    const estimateRange = await getPool().maybeOne(sql.untyped`
+    const budgetRange = await getPool().maybeOne(sql.untyped`
     SELECT
-      extract(year FROM ${values?.startDate}::date) <= min(cost_estimate.year) AS "validStartDate",
-      extract(year FROM ${values?.endDate}::date) >= max(cost_estimate.year) AS "validEndDate"
-    FROM app.cost_estimate
+      extract(year FROM ${values?.startDate}::date) <= min(budget.year) AS "validStartDate",
+      extract(year FROM ${values?.endDate}::date) >= max(budget.year) AS "validEndDate"
+    FROM app.budget
     WHERE project_id = ${values?.id}
     GROUP BY project_id;
   `);
 
-    if (estimateRange?.validStartDate === false) {
-      validationErrors.errors['startDate'] = fieldError('project.error.costEstimateNotIncluded');
+    if (budgetRange?.validStartDate === false) {
+      validationErrors.errors['startDate'] = fieldError('project.error.budgetNotIncluded');
     }
 
-    if (estimateRange?.validEndDate === false) {
-      validationErrors.errors['endDate'] = fieldError('project.error.costEstimateNotIncluded');
+    if (budgetRange?.validEndDate === false) {
+      validationErrors.errors['endDate'] = fieldError('project.error.budgetNotIncluded');
     }
   }
 

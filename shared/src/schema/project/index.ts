@@ -100,9 +100,9 @@ export const relationsSchema = z.object({
   relation: z.enum(['parent', 'child', 'related']),
 });
 
-export const costEstimateSchema = z.object({
+export const yearBudgetSchema = z.object({
   year: z.number(),
-  estimates: z.array(
+  budgetItems: z.array(
     z.object({
       id: z.string().optional(),
       amount: z.number().nullable(),
@@ -110,9 +110,9 @@ export const costEstimateSchema = z.object({
   ),
 });
 
-export type CostEstimate = z.infer<typeof costEstimateSchema>;
+export type YearBudget = z.infer<typeof yearBudgetSchema>;
 
-export const getCostEstimatesInputSchema = z.union([
+export const getBudgetInputSchema = z.union([
   z.object({
     projectId: z.string(),
     projectObjectId: z.undefined().optional(),
@@ -130,11 +130,11 @@ export const getCostEstimatesInputSchema = z.union([
   }),
 ]);
 
-export type CostEstimatesInput = z.infer<typeof getCostEstimatesInputSchema>;
+export type BudgetInput = z.infer<typeof getBudgetInputSchema>;
 
-export const updateCostEstimatesInputSchema = z.intersection(
-  getCostEstimatesInputSchema,
-  z.object({ costEstimates: z.array(costEstimateSchema) })
+export const updateBudgetInputSchema = z.intersection(
+  getBudgetInputSchema,
+  z.object({ yearBudgets: z.array(yearBudgetSchema) })
 );
 
-export type CostEstimatesUpdate = z.infer<typeof updateCostEstimatesInputSchema>;
+export type BudgetUpdate = z.infer<typeof updateBudgetInputSchema>;
