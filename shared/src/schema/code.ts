@@ -25,6 +25,7 @@ const codeListIdSchema = z.enum([
   'AsemakaavaSuunnittelualue',
   'Kumppani',
   'YmpäristönsuojelunSyy',
+  'KohdeKayttajaRooli',
 ]);
 
 export const codeIdSchema = z.object({

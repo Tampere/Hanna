@@ -3,6 +3,11 @@ import { z } from 'zod';
 import { codeId } from './code';
 import { isoDateString, nonEmptyString } from './common';
 
+export const projectObjectUserRoleSchema = z.object({
+  userId: nonEmptyString,
+  roleId: codeId,
+});
+
 export const upsertProjectObjectSchema = z.object({
   id: z.string().optional(),
   projectId: z.string(),
@@ -12,13 +17,15 @@ export const upsertProjectObjectSchema = z.object({
   objectType: z.array(codeId).superRefine((value) => value.length > 0),
   objectCategory: z.array(codeId).superRefine((value) => value.length > 0),
   objectUsage: z.array(codeId).superRefine((value) => value.length > 0),
-  personInCharge: nonEmptyString,
+  suunnittelluttajaUser: nonEmptyString,
+  rakennuttajaUser: nonEmptyString,
   startDate: isoDateString,
   endDate: isoDateString,
   sapWBSId: nonEmptyString.optional().nullable(),
   landownership: codeId.optional().nullable(),
   locationOnProperty: codeId.optional().nullable(),
   height: z.coerce.number().optional().nullable(),
+  objectUserRoles: z.array(projectObjectUserRoleSchema),
 });
 
 export const dbProjectObjectSchema = upsertProjectObjectSchema.extend({
@@ -44,7 +51,6 @@ export const updateGeometrySchema = z.object({
   id: z.string(),
   features: z.string(),
 });
-
 export type UpdateGeometry = z.infer<typeof updateGeometrySchema>;
 
 export const updateGeometryResultSchema = z.object({
