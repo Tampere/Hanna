@@ -1,4 +1,5 @@
 import react from '@vitejs/plugin-react';
+import 'dotenv/config';
 import MarkdownIt from 'markdown-it';
 import MarkdownItAnchor from 'markdown-it-anchor';
 import { CommonServerOptions, defineConfig } from 'vite';
@@ -54,6 +55,9 @@ export default defineConfig({
   },
   server: {
     ...serverOptions,
+    watch: {
+      usePolling: process.env.VITE_USE_POLLING === 'true',
+    },
     hmr: {
       clientPort: process.env.HMR_PORT ? Number(process.env.HMR_PORT) : 443,
     },
