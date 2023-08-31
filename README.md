@@ -38,6 +38,12 @@ $ npm run db-migrate
 
 ```
 
+### Cleaning the dev database
+
+```sh
+$ docker compose down -t 0 db && docker volume rm hanna_db-volume && docker compose up db -d
+```
+
 Web application is served at: https://localhost
 
 NOTE! Due to using https on development at localhost, Caddy Root Certificate need to be configured and trusted (only once)
