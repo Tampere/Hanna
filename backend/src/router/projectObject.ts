@@ -43,7 +43,8 @@ const projectObjectFragment = sql.fragment`
      (SELECT json_agg((object_usage).id)
       FROM app.project_object_usage
       WHERE project_object.id = project_object_usage.project_object_id) AS "objectUsage",
-     height
+     height,
+     '[]'::JSONB AS "objectUserRoles" --TODO: Implement
   FROM app.project_object
   WHERE deleted = false
 `;

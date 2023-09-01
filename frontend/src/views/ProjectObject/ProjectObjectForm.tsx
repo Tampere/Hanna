@@ -79,9 +79,11 @@ export function ProjectObjectForm(props: Props) {
       projectId: props.projectId,
       objectName: '',
       description: '',
-      personInCharge: user?.id,
       startDate: '',
       endDate: '',
+      suunnittelluttajaUser: user?.id,
+      rakennuttajaUser: user?.id,
+      objectUserRoles: [{}],
     },
   });
 
