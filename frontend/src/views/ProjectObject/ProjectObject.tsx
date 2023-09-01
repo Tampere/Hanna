@@ -22,6 +22,7 @@ import { TranslationKey } from '@shared/language';
 import { DeleteProjectObjectDialog } from './DeleteProjectObjectDialog';
 import { ProjectObjectFinances } from './ProjectObjectFinances';
 import { ProjectObjectForm } from './ProjectObjectForm';
+import { ProjectObjectOperativeForm } from './ProjectObjectOperativeForm';
 
 type TabView = 'default' | 'talous' | 'tehtavat';
 
@@ -174,12 +175,21 @@ export function ProjectObject(props: Props) {
       </Breadcrumbs>
 
       <div css={pageContentStyle}>
-        <Paper sx={{ p: 3, height: '100%' }} variant="outlined">
-          <ProjectObjectForm
-            projectId={routeParams.projectId}
-            projectType={props.projectType}
-            projectObject={projectObject.data}
-          />
+        <Box sx={{ height: '100%' }}>
+          <Paper sx={{ p: 3, marginBottom: '1em' }} variant="outlined">
+            <ProjectObjectForm
+              projectId={routeParams.projectId}
+              projectType={props.projectType}
+              projectObject={projectObject.data}
+            />
+          </Paper>
+          <Paper sx={{ p: 3 }} variant="outlined">
+            <ProjectObjectOperativeForm
+              projectId={routeParams.projectId}
+              projectType={props.projectType}
+              projectObject={projectObject.data}
+            />
+          </Paper>
           {projectObject.data && (
             <DeleteProjectObjectDialog
               projectId={routeParams.projectId}
@@ -187,7 +197,7 @@ export function ProjectObject(props: Props) {
               projectObjectId={projectObjectId}
             />
           )}
-        </Paper>
+        </Box>
 
         <Paper
           variant="outlined"

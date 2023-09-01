@@ -182,15 +182,6 @@ export function ProjectObjectForm(props: Props) {
         />
 
         <FormField
-          formField="personInCharge"
-          label={tr('projectObject.personInChargeLabel')}
-          tooltip={tr('projectObject.personInChargeTooltip')}
-          component={({ id, onChange, value }) => (
-            <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
-          )}
-        />
-
-        <FormField
           formField="lifecycleState"
           label={tr('projectObject.lifecycleStateLabel')}
           tooltip={tr('projectObject.lifecycleStateTooltip')}

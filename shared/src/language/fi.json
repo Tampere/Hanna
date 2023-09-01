@@ -215,6 +215,8 @@
   "projectObject.heightLabel": "Korkeus",
   "projectObject.heightTooltip": "Syötä kohteen korkeus",
   "projectObject.formTitle": "Kohteen tiedot",
+  "projectObject.operativeFormTitle": "Kohteen toimijat",
+  "projectObject.operativeFormAddNew": "Uusi toimija",
   "projectObject.mapTabLabel": "Kartta",
   "projectObject.notFound": "Kohdetta ei löytynyt",
   "projectObject.notifyGeometryUpdateTitle": "Kohteen sijainti päivitetty",
