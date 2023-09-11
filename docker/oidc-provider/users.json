@@ -1,1 +1,4 @@
-[{ "sub": "dev@localhost", "upn": "dev@localhost", "name": "Test User" }]
+[
+  { "sub": "dev@localhost", "upn": "dev@localhost", "name": "Dev User" },
+  { "sub": "test@localhost", "upn": "test@localhost", "name": "Test User" }
+]

@@ -26,6 +26,7 @@ import { useTranslations } from './stores/lang';
 import { Manual } from './views/Manual/Manual';
 import { SapReports } from './views/SapReports';
 import { SessionRenewed } from './views/SessionRenewed';
+import WorkTable from '@frontend/views/WorkTable/WorkTable';
 
 const UserLoader = () => {
   const user = useAtomValue(getUserAtom);
@@ -72,6 +73,7 @@ const router = createBrowserRouter(
           element={<ProjectObject projectType="asemakaavahanke" />}
         />
         <Route path="sap-raportit/:tabView" element={<SapReports />} />
+        <Route path="kohteet" element={<WorkTable/>} />
         <Route path="hallinta/:tabView" element={<Management />} />
         <Route path="saptest/:sapProjectId" element={<SapDebugView />} />
         <Route path="session-renewed" element={<SessionRenewed />} />
