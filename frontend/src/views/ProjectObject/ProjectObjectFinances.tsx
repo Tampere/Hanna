@@ -8,7 +8,7 @@ import { getRange } from '@frontend/utils/array';
 
 import { DBProjectObject } from '@shared/schema/projectObject';
 
-import { CostEstimatesTable } from '../Project/CostEstimatesTable';
+import { BudgetTable } from '../Project/BudgetTable';
 
 interface Props {
   projectObject: DBProjectObject;
@@ -16,9 +16,9 @@ interface Props {
 
 export function ProjectObjectFinances(props: Props) {
   const { projectObject } = props;
-  const estimates = !projectObject.id
+  const budget = !projectObject.id
     ? null
-    : trpc.project.getCostEstimates.useQuery({ projectObjectId: projectObject.id });
+    : trpc.project.getBudget.useQuery({ projectObjectId: projectObject.id });
 
   const notify = useNotifications();
   const tr = useTranslations();
@@ -32,18 +32,18 @@ export function ProjectObjectFinances(props: Props) {
     return getRange(startYear, endYear);
   }, [projectObject?.startDate, projectObject?.endDate]);
 
-  const saveEstimatesMutation = trpc.project.updateCostEstimates.useMutation({
+  const saveBudgetMutation = trpc.project.updateBudget.useMutation({
     onSuccess() {
       notify({
         severity: 'success',
-        title: tr('costEstimatesTable.notifySave'),
+        title: tr('budgetTable.notifySave'),
         duration: 5000,
       });
     },
     onError() {
       notify({
         severity: 'error',
-        title: tr('costEstimatesTable.notifySaveFailed'),
+        title: tr('budgetTable.notifySaveFailed'),
       });
     },
   });
@@ -61,18 +61,18 @@ export function ProjectObjectFinances(props: Props) {
     yearlyActuals.refetch();
   }, [projectObject?.sapWBSId]);
 
-  return !estimates?.data ? null : (
-    <CostEstimatesTable
+  return !budget?.data ? null : (
+    <BudgetTable
       years={years}
-      estimates={estimates.data}
+      budget={budget.data}
       actuals={yearlyActuals.data}
       actualsLoading={yearlyActuals.isFetching}
-      onSave={async (costEstimates) => {
-        await saveEstimatesMutation.mutateAsync({
+      onSave={async (yearBudgets) => {
+        await saveBudgetMutation.mutateAsync({
           projectObjectId: projectObject.id,
-          costEstimates,
+          yearBudgets,
         });
-        estimates.refetch();
+        budget.refetch();
       }}
     />
   );

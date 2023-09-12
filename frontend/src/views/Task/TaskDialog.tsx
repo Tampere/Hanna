@@ -7,7 +7,7 @@ import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { getRange } from '@frontend/utils/array';
-import { CostEstimatesTable } from '@frontend/views/Project/CostEstimatesTable';
+import { BudgetTable } from '@frontend/views/Project/BudgetTable';
 
 import { DbTask } from '@shared/schema/task';
 
@@ -37,7 +37,7 @@ export function TaskDialog(props: Props) {
   const tr = useTranslations();
   const notify = useNotifications();
 
-  const estimates = !task.id ? null : trpc.project.getCostEstimates.useQuery({ taskId: task.id });
+  const budget = !task.id ? null : trpc.project.getBudget.useQuery({ taskId: task.id });
 
   const years = useMemo(() => {
     if (!task?.startDate || !task?.endDate) {
@@ -48,18 +48,18 @@ export function TaskDialog(props: Props) {
     return getRange(startYear, endYear);
   }, [task?.startDate, task?.endDate]);
 
-  const saveEstimatesMutation = trpc.project.updateCostEstimates.useMutation({
+  const saveBudgetMutation = trpc.project.updateBudget.useMutation({
     onSuccess() {
       notify({
         severity: 'success',
-        title: tr('costEstimatesTable.notifySave'),
+        title: tr('budgetTable.notifySave'),
         duration: 5000,
       });
     },
     onError() {
       notify({
         severity: 'error',
-        title: tr('costEstimatesTable.notifySaveFailed'),
+        title: tr('budgetTable.notifySaveFailed'),
       });
     },
   });
@@ -83,18 +83,18 @@ export function TaskDialog(props: Props) {
         />
 
         <Box sx={{ mt: 4 }}>
-          {!estimates?.data ? null : (
-            <CostEstimatesTable
+          {!budget?.data ? null : (
+            <BudgetTable
               years={years}
-              estimates={estimates.data}
+              budget={budget.data}
               actuals={null} // TODO: coming soon
               actualsLoading={false}
-              onSave={async (costEstimates) => {
-                await saveEstimatesMutation.mutateAsync({
+              onSave={async (yearBudgets) => {
+                await saveBudgetMutation.mutateAsync({
                   taskId: task.id,
-                  costEstimates,
+                  yearBudgets,
                 });
-                estimates?.refetch();
+                budget?.refetch();
               }}
             />
           )}

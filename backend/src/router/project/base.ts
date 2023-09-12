@@ -1,9 +1,9 @@
 import {
   addProjectRelation,
-  getCostEstimates,
+  getBudget,
   getRelatedProjects,
   removeProjectRelation,
-  updateCostEstimates,
+  updateBudget,
   updateProjectGeometry,
 } from '@backend/components/project';
 import { deleteProject, getProject } from '@backend/components/project/base';
@@ -12,10 +12,10 @@ import { startReportJob } from '@backend/components/taskQueue/reportQueue';
 import { TRPC } from '@backend/router';
 
 import {
-  getCostEstimatesInputSchema,
+  getBudgetInputSchema,
   projectSearchSchema,
   relationsSchema,
-  updateCostEstimatesInputSchema,
+  updateBudgetInputSchema,
   updateGeometrySchema,
 } from '@shared/schema/project';
 import { projectIdSchema } from '@shared/schema/project/base';
@@ -45,15 +45,13 @@ export const createProjectRouter = (t: TRPC) =>
       return updateProjectGeometry(input, ctx.user);
     }),
 
-    getCostEstimates: t.procedure.input(getCostEstimatesInputSchema).query(async ({ input }) => {
-      return getCostEstimates(input);
+    getBudget: t.procedure.input(getBudgetInputSchema).query(async ({ input }) => {
+      return getBudget(input);
     }),
 
-    updateCostEstimates: t.procedure
-      .input(updateCostEstimatesInputSchema)
-      .mutation(async ({ input, ctx }) => {
-        return updateCostEstimates(input, ctx.user);
-      }),
+    updateBudget: t.procedure.input(updateBudgetInputSchema).mutation(async ({ input, ctx }) => {
+      return updateBudget(input, ctx.user);
+    }),
 
     updateRelations: t.procedure.input(relationsSchema).mutation(async ({ input, ctx }) => {
       const { subjectProjectId, objectProjectId, relation } = input;

@@ -20,33 +20,33 @@ import { CurrencyInput } from '@frontend/components/forms/CurrencyInput';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useTranslations } from '@frontend/stores/lang';
 
-import { CostEstimate } from '@shared/schema/project';
+import { YearBudget } from '@shared/schema/project';
 import { YearlyActuals } from '@shared/schema/sapActuals';
 
 interface Props {
   years: number[];
-  estimates: readonly CostEstimate[];
-  onSave: (estimates: CostEstimate[]) => Promise<void>;
+  budget: readonly YearBudget[];
+  onSave: (budget: YearBudget[]) => Promise<void>;
   actuals?: YearlyActuals | null;
   actualsLoading?: boolean;
 }
 
-type EstimateFormValues = Record<string, number | null>;
+type BudgetFormValues = Record<string, number | null>;
 
-function estimatesToFormValues(estimates: CostEstimate[], projectYears: number[]) {
+function budgetToFromValues(budget: YearBudget[], projectYears: number[]) {
   return projectYears.reduce(
     (values, year) => ({
       ...values,
-      [year]: estimates.find((item) => item.year === year)?.estimates[0]?.amount ?? null,
+      [year]: budget.find((item) => item.year === year)?.budgetItems[0]?.amount ?? null,
     }),
-    {} as EstimateFormValues
+    {} as BudgetFormValues
   );
 }
 
-function formValuesToEstimates(values: EstimateFormValues, projectYears: number[]): CostEstimate[] {
+function formValuesToBudget(values: BudgetFormValues, projectYears: number[]): YearBudget[] {
   return projectYears.map((year) => ({
     year,
-    estimates: [{ amount: values[year] ?? null }],
+    budgetItems: [{ amount: values[year] ?? null }],
   }));
 }
 
@@ -54,36 +54,36 @@ const cellMinWidthStyle = css`
   min-width: 256px;
 `;
 
-export function CostEstimatesTable(props: Props) {
-  const { years, estimates, onSave } = props;
+export function BudgetTable(props: Props) {
+  const { years, budget, onSave } = props;
 
   const [editing, setEditing] = useState(false);
 
   const tr = useTranslations();
-  const form = useForm<EstimateFormValues>({ mode: 'all', defaultValues: {} });
+  const form = useForm<BudgetFormValues>({ mode: 'all', defaultValues: {} });
   const watch = form.watch();
 
   /**
-   * Convert estimates from object into a simple array for the form
+   * Convert budget from object into a simple array for the form
    */
   useEffect(() => {
-    if (!estimates) {
+    if (!budget) {
       return;
     }
     // Fill in all the years within the project's range
-    form.reset(estimatesToFormValues([...estimates], years));
-  }, [estimates, years]);
+    form.reset(budgetToFromValues([...budget], years));
+  }, [budget, years]);
 
-  async function onSubmit(data: EstimateFormValues) {
-    await onSave(formValuesToEstimates(data, years));
+  async function onSubmit(data: BudgetFormValues) {
+    await onSave(formValuesToBudget(data, years));
     setEditing(false);
     form.reset();
   }
 
-  return !estimates ? null : (
+  return !budget ? null : (
     <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <SectionTitle title={tr('costEstimatesTable.title')} />
+        <SectionTitle title={tr('budgetTable.title')} />
         {!editing ? (
           <Button
             variant="contained"
@@ -115,10 +115,10 @@ export function CostEstimatesTable(props: Props) {
               <TableHead>
                 <TableRow>
                   <TableCell>
-                    <Typography variant="overline">{tr('costEstimatesTable.year')}</Typography>
+                    <Typography variant="overline">{tr('budgetTable.year')}</Typography>
                   </TableCell>
                   <TableCell css={cellMinWidthStyle}>
-                    <Typography variant="overline"> {tr('costEstimatesTable.estimate')}</Typography>
+                    <Typography variant="overline"> {tr('budgetTable.amount')}</Typography>
                   </TableCell>
                   <TableCell css={cellMinWidthStyle}>
                     <span
@@ -127,7 +127,7 @@ export function CostEstimatesTable(props: Props) {
                         align-items: center;
                       `}
                     >
-                      <Typography variant="overline">{tr('costEstimatesTable.actual')}</Typography>
+                      <Typography variant="overline">{tr('budgetTable.actual')}</Typography>
                       {props.actualsLoading && <CircularProgress sx={{ ml: 1 }} size={16} />}
                     </span>
                   </TableCell>
@@ -166,7 +166,7 @@ export function CostEstimatesTable(props: Props) {
                 ))}
                 <TableRow>
                   <TableCell>
-                    <Typography variant="overline">{tr('costEstimatesTable.total')}</Typography>
+                    <Typography variant="overline">{tr('budgetTable.total')}</Typography>
                   </TableCell>
                   <TableCell>
                     <CurrencyInput

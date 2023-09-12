@@ -2,14 +2,14 @@ import { addAuditEvent } from '@backend/components/audit';
 import { getPool, sql } from '@backend/db';
 
 import {
-  CostEstimatesInput,
-  CostEstimatesUpdate,
+  BudgetInput,
+  BudgetUpdate,
   Relation,
   UpdateGeometry,
-  costEstimateSchema,
   projectRelationsSchema,
   relationsSchema,
   updateGeometryResultSchema,
+  yearBudgetSchema,
 } from '@shared/schema/project';
 import { User } from '@shared/schema/user';
 
@@ -151,8 +151,8 @@ export async function updateProjectGeometry(geometryUpdate: UpdateGeometry, user
   });
 }
 
-function costEstimateWhereFragment(costEstimateInput: CostEstimatesInput) {
-  const { projectId, projectObjectId, taskId } = costEstimateInput;
+function budgetWhereFragment(budgetInput: BudgetInput) {
+  const { projectId, projectObjectId, taskId } = budgetInput;
   const sqlFalse = sql.fragment`FALSE`;
   return sql.fragment`
     ${projectId ? sql.fragment`project_id = ${projectId}` : sqlFalse} OR
@@ -161,8 +161,8 @@ function costEstimateWhereFragment(costEstimateInput: CostEstimatesInput) {
   `;
 }
 
-export async function getCostEstimates(costEstimates: CostEstimatesInput) {
-  return getPool().any(sql.type(costEstimateSchema)`
+export async function getBudget(budgetInput: BudgetInput) {
+  return getPool().any(sql.type(yearBudgetSchema)`
     SELECT
       year,
       jsonb_agg(
@@ -170,41 +170,41 @@ export async function getCostEstimates(costEstimates: CostEstimatesInput) {
           'id', id,
           'amount', amount
         )
-      ) AS estimates
-    FROM app.cost_estimate
-    WHERE ${costEstimateWhereFragment(costEstimates)}
+      ) AS "budgetItems"
+    FROM app.budget
+    WHERE ${budgetWhereFragment(budgetInput)}
     GROUP BY year
     ORDER BY year ASC
   `);
 }
 
-export async function updateCostEstimates(updates: CostEstimatesUpdate, user: User) {
-  const { projectId, projectObjectId, taskId, costEstimates } = updates;
+export async function updateBudget(updates: BudgetUpdate, user: User) {
+  const { projectId, projectObjectId, taskId, yearBudgets } = updates;
 
-  const newRows = costEstimates.reduce(
+  const newRows = yearBudgets.reduce(
     (rows, item) => [
       ...rows,
-      ...item.estimates
-        .filter((estimate) => estimate.amount != null)
-        .map((estimate) => ({ year: item.year, amount: estimate.amount! })),
+      ...item.budgetItems
+        .filter((yearBudget) => yearBudget.amount != null)
+        .map((yearBudget) => ({ year: item.year, amount: yearBudget.amount! })),
     ],
     [] as { year: number; amount: number }[]
   );
 
   await getPool().transaction(async (tx) => {
     await addAuditEvent(tx, {
-      eventType: 'project.updateCostEstimates',
+      eventType: 'project.updateBudget',
       eventData: updates,
       eventUser: user.id,
     });
     await tx.any(sql.untyped`
-        DELETE FROM app.cost_estimate
-        WHERE ${costEstimateWhereFragment(updates)}
+        DELETE FROM app.budget
+        WHERE ${budgetWhereFragment(updates)}
     `);
     await Promise.all(
       newRows.map((row) =>
         tx.any(sql.untyped`
-            INSERT INTO app.cost_estimate (project_id, project_object_id, task_id, year, amount)
+            INSERT INTO app.budget (project_id, project_object_id, task_id, year, amount)
             VALUES (
               ${projectId ?? null},
               ${projectObjectId ?? null},
