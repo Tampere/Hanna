@@ -183,13 +183,13 @@ export function ProjectObject(props: Props) {
               projectObject={projectObject.data}
             />
           </Paper>
-          <Paper sx={{ p: 3 }} variant="outlined">
+          {/* <Paper sx={{ p: 3 }} variant="outlined">
             <ProjectObjectOperativeForm
               projectId={routeParams.projectId}
               projectType={props.projectType}
               projectObject={projectObject.data}
             />
-          </Paper>
+          </Paper> */}
           {projectObject.data && (
             <DeleteProjectObjectDialog
               projectId={routeParams.projectId}

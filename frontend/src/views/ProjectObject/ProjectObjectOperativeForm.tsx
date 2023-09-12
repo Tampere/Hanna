@@ -90,7 +90,6 @@ export function ProjectObjectOperativeForm(props: Props) {
       projectId: props.projectId,
       objectName: '',
       description: '',
-      personInCharge: user?.id,
       startDate: '',
       endDate: '',
     },

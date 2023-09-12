@@ -155,7 +155,7 @@ async function updateObjectUsages(
 
 async function updateObjectRoles(
   tx: DatabaseTransactionConnection,
-  projectObject: UpsertProjectObject & { id: string; userId: string }
+  projectObject: UpsertProjectObject & { id: string }
 ) {
   tx.query(sql.untyped`
     DELETE FROM app.project_object_user_role
