@@ -1,12 +1,10 @@
 [sqlfluff]
-exclude_rules = L031
 dialect = postgres
-
-[sqlfluff:rules]
-tab_space_size = 2
+verbose = 2
+exclude_rules = L031
 max_line_length = 100
-intend_unit = space
-
-[sqlfluff:rules:L010]
 capitalisation_policy = upper
 
+[sqlfluff:indentation]
+tab_space_size = 2
+intend_unit = space

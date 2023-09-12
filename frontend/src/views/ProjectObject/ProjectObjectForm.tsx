@@ -79,9 +79,11 @@ export function ProjectObjectForm(props: Props) {
       projectId: props.projectId,
       objectName: '',
       description: '',
-      personInCharge: user?.id,
       startDate: '',
       endDate: '',
+      suunnittelluttajaUser: user?.id,
+      rakennuttajaUser: user?.id,
+      objectUserRoles: [],
     },
   });
 
@@ -182,9 +184,18 @@ export function ProjectObjectForm(props: Props) {
         />
 
         <FormField
-          formField="personInCharge"
-          label={tr('projectObject.personInChargeLabel')}
-          tooltip={tr('projectObject.personInChargeTooltip')}
+          formField="suunnittelluttajaUser"
+          label={tr('projectObject.suunnittelluttajaUserLabel')}
+          tooltip={tr('projectObject.suunnittelluttajaUserTooltip')}
+          component={({ id, onChange, value }) => (
+            <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
+          )}
+        />
+
+        <FormField
+          formField="rakennuttajaUser"
+          label={tr('projectObject.rakennuttajaUserLabel')}
+          tooltip={tr('projectObject.rakennuttajaUserTooltip')}
           component={({ id, onChange, value }) => (
             <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
           )}

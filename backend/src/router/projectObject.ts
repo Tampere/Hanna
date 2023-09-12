@@ -26,7 +26,8 @@ const projectObjectFragment = sql.fragment`
      object_name AS "objectName",
      description AS "description",
      (lifecycle_state).id AS "lifecycleState",
-     person_in_charge AS "personInCharge",
+     suunnittelluttaja_user AS "suunnittelluttajaUser",
+     rakennuttaja_user AS "rakennuttajaUser",
      start_date AS "startDate",
      end_date AS "endDate",
      sap_wbs_id AS "sapWBSId",
@@ -42,7 +43,8 @@ const projectObjectFragment = sql.fragment`
      (SELECT json_agg((object_usage).id)
       FROM app.project_object_usage
       WHERE project_object.id = project_object_usage.project_object_id) AS "objectUsage",
-     height
+     height,
+     '[]'::JSONB AS "objectUserRoles" --TODO: Implement
   FROM app.project_object
   WHERE deleted = false
 `;
@@ -151,13 +153,37 @@ async function updateObjectUsages(
   );
 }
 
+async function updateObjectRoles(
+  tx: DatabaseTransactionConnection,
+  projectObject: UpsertProjectObject & { id: string }
+) {
+  tx.query(sql.untyped`
+    DELETE FROM app.project_object_user_role
+    WHERE project_object_id = ${projectObject.id}
+  `);
+
+  await Promise.all(
+    projectObject.objectUserRoles.map(({ userId, roleId }) =>
+      tx.any(sql.untyped`
+        INSERT INTO app.project_object_user_role (user_id, project_object_id, object_role)
+        VALUES (
+          ${userId},
+          ${projectObject.id},
+          ${codeIdFragment('KohdeKayttajaRooli', roleId)}
+        );
+      `)
+    )
+  );
+}
+
 async function upsertProjectObject(projectObject: UpsertProjectObject, userId: string) {
   const data = {
     project_id: projectObject.projectId,
     object_name: projectObject.objectName,
     description: projectObject.description,
     lifecycle_state: codeIdFragment('KohteenElinkaarentila', projectObject.lifecycleState),
-    person_in_charge: projectObject.personInCharge,
+    suunnittelluttaja_user: projectObject.suunnittelluttajaUser,
+    rakennuttaja_user: projectObject.rakennuttajaUser,
     start_date: projectObject.startDate,
     end_date: projectObject.endDate,
     sap_wbs_id: projectObject.sapWBSId ?? null,
@@ -196,6 +222,7 @@ async function upsertProjectObject(projectObject: UpsertProjectObject, userId: s
       updateObjectTypes(tx, { ...projectObject, id: upsertResult.id }),
       updateObjectCategories(tx, { ...projectObject, id: upsertResult.id }),
       updateObjectUsages(tx, { ...projectObject, id: upsertResult.id }),
+      updateObjectRoles(tx, { ...projectObject, id: upsertResult.id }),
     ]);
 
     return upsertResult;

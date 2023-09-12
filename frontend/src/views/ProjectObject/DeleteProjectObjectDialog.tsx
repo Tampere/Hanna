@@ -1,5 +1,5 @@
 import { Delete } from '@mui/icons-material';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, useTheme } from '@mui/material';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -49,7 +49,12 @@ export function DeleteProjectObjectDialog({ projectId, projectType, projectObjec
       <Button
         size="small"
         variant="contained"
-        sx={{ mt: 2 }}
+        sx={{
+          mt: 2,
+          '&:hover': {
+            backgroundColor: 'error.main',
+          },
+        }}
         endIcon={<Delete />}
         onClick={() => setIsDialogOpen(true)}
       >
