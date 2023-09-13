@@ -217,7 +217,7 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef[] {
     },
     {
       field: 'projectObjectPersonInfo',
-      headerName: 'Rakennuttaja / Suunnittelija',
+      headerName: 'Rakennuttaja / Suunnitteluttaja',
       width: 144,
       renderCell: ({ value }: GridRenderCellParams) => (
         <div
@@ -228,7 +228,7 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef[] {
           `}
         >
           <div>{value.rakennuttajaUser}</div>
-          <div>{value.suunnittelluttajaUser}</div>
+          <div>{value.suunnitteluttajaUser}</div>
         </div>
       ),
       renderEditCell: ({ id, field, value }: GridRenderEditCellParams) => {

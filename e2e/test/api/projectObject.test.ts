@@ -36,7 +36,7 @@ const testProjectObject = (projectId: string, user: User) => ({
   objectType: ['01'],
   objectCategory: ['01'],
   objectUsage: ['01'],
-  suunnittelluttajaUser: user.id,
+  suunnitteluttajaUser: user.id,
   rakennuttajaUser: user.id,
   startDate: '2021-01-01',
   endDate: '2022-01-01',

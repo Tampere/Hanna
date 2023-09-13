@@ -81,7 +81,7 @@ export function ProjectObjectForm(props: Props) {
       description: '',
       startDate: '',
       endDate: '',
-      suunnittelluttajaUser: user?.id,
+      suunnitteluttajaUser: user?.id,
       rakennuttajaUser: user?.id,
       objectUserRoles: [],
     },
@@ -184,9 +184,9 @@ export function ProjectObjectForm(props: Props) {
         />
 
         <FormField
-          formField="suunnittelluttajaUser"
-          label={tr('projectObject.suunnittelluttajaUserLabel')}
-          tooltip={tr('projectObject.suunnittelluttajaUserTooltip')}
+          formField="suunnitteluttajaUser"
+          label={tr('projectObject.suunnitteluttajaUserLabel')}
+          tooltip={tr('projectObject.suunnitteluttajaUserTooltip')}
           component={({ id, onChange, value }) => (
             <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
           )}

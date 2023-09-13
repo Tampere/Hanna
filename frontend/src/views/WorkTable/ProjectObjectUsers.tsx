@@ -37,7 +37,7 @@ export function ProjectObjectUserEdit({ value, onChange }: Props) {
         `}
       >
         <i>{value.rakennuttajaUser}</i>
-        <i>{value.suunnittelluttajaUser}</i>
+        <i>{value.suunnitteluttajaUser}</i>
       </Box>
       <Popper open={open} anchorEl={anchorElRef.current?.parentElement} placement={'bottom-end'}>
         {open && (
@@ -81,16 +81,20 @@ export function ProjectObjectUserEdit({ value, onChange }: Props) {
                   `}
                 >
                   <FormLabel sx={{ fontSize: 12 }}>
-                    {tr('projectObject.suunnittelluttaja')}
+                    {tr('projectObject.suunnitteluttajaUserLabel')}
                   </FormLabel>
-                  <UserSelect
-                    value={value.suunnittelluttajaUser}
-                    onChange={(newValue) => {
-                      onChange({
-                        ...value,
-                        suunnittelluttajaUser: newValue,
-                      });
-                    }}
+                  <Autocomplete
+                    disableClearable
+                    options={users.data ?? []}
+                    renderInput={(params) => (
+                      <TextField {...params} InputProps={{ ...params.InputProps, size: 'small' }} />
+                    )}
+                    multiple={false}
+                    getOptionLabel={(user) => user.name}
+                    value={users.data?.find((user) => user.id === value.suunnitteluttajaUser)}
+                    onChange={(_event, newValue) =>
+                      onChange({ ...value, suunnitteluttajaUser: newValue.id })
+                    }
                   />
                 </div>
               </div>

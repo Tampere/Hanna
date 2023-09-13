@@ -17,7 +17,7 @@ export const upsertProjectObjectSchema = z.object({
   objectType: z.array(codeId).superRefine((value) => value.length > 0),
   objectCategory: z.array(codeId).superRefine((value) => value.length > 0),
   objectUsage: z.array(codeId).superRefine((value) => value.length > 0),
-  suunnittelluttajaUser: nonEmptyString,
+  suunnitteluttajaUser: nonEmptyString,
   rakennuttajaUser: nonEmptyString,
   startDate: isoDateString,
   endDate: isoDateString,
