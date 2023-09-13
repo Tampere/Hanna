@@ -1,25 +1,35 @@
 import { css } from '@emotion/react';
-import { FormLabel, Paper, Popper } from '@mui/material';
+import {
+  Autocomplete,
+  FormLabel,
+  LinearProgress,
+  Paper,
+  Popper,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { Box } from '@mui/system';
 import { useEffect, useRef, useState } from 'react';
+import type { UpsertProjectObject } from 'tre-hanna-shared/src/schema/projectObject';
 
-import { UserSelect } from '@frontend/components/forms/UserSelect';
+import { trpc } from '@frontend/client';
 import { useTranslations } from '@frontend/stores/lang';
 
-// FIXME: from upsertprojectobject after rebasing
-interface Props {
-  value: {
-    rakennuttajaUser: string;
-    suunnittelluttajaUser: string;
-  };
-  onChange: (value: { rakennuttajaUser: string; suunnittelluttajaUser: string }) => void;
+interface Value {
+  rakennuttajaUser: UpsertProjectObject['rakennuttajaUser'];
+  suunnitteluttajaUser: UpsertProjectObject['suunnitteluttajaUser'];
 }
+
+interface Props {
+  value: Value;
+  onChange: (value: Value) => void;
+}
+
 export function ProjectObjectUserEdit({ value, onChange }: Props) {
-  const anchorElRef = useRef<HTMLDivElement>(null);
-
-  const [open, setOpen] = useState(false);
-
   const tr = useTranslations();
+  const anchorElRef = useRef<HTMLDivElement>(null);
+  const users = trpc.user.getAll.useQuery();
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (anchorElRef.current) {
@@ -40,7 +50,15 @@ export function ProjectObjectUserEdit({ value, onChange }: Props) {
         <i>{value.suunnitteluttajaUser}</i>
       </Box>
       <Popper open={open} anchorEl={anchorElRef.current?.parentElement} placement={'bottom-end'}>
-        {open && (
+        {open && users.isLoading && (
+          <Paper sx={{ p: 1 }}>
+            <Typography>
+              {tr('loading')}
+              <LinearProgress />
+            </Typography>
+          </Paper>
+        )}
+        {open && !users.isLoading && (
           <>
             <Paper
               css={(theme) => css`
@@ -54,7 +72,6 @@ export function ProjectObjectUserEdit({ value, onChange }: Props) {
               <div
                 css={css`
                   display: flex;
-                  flex: 1;
                   flex-direction: row;
                   gap: 16px;
                 `}
@@ -64,17 +81,25 @@ export function ProjectObjectUserEdit({ value, onChange }: Props) {
                     flex: 1;
                   `}
                 >
-                  <FormLabel sx={{ fontSize: 12 }}>{tr('projectObject.rakennuttaja')}</FormLabel>
-                  <UserSelect
-                    value={value.rakennuttajaUser}
-                    onChange={(newValue) => {
-                      onChange({
-                        ...value,
-                        rakennuttajaUser: newValue,
-                      });
-                    }}
+                  <FormLabel sx={{ fontSize: 12 }}>
+                    {tr('projectObject.rakennuttajaUserLabel')}
+                  </FormLabel>
+                  <Autocomplete
+                    autoFocus
+                    disableClearable
+                    options={users.data ?? []}
+                    renderInput={(params) => (
+                      <TextField {...params} InputProps={{ ...params.InputProps, size: 'small' }} />
+                    )}
+                    multiple={false}
+                    getOptionLabel={(user) => user.name}
+                    value={users.data?.find((user) => user.id === value.rakennuttajaUser)}
+                    onChange={(_event, newValue) =>
+                      onChange({ ...value, rakennuttajaUser: newValue.id })
+                    }
                   />
                 </div>
+
                 <div
                   css={css`
                     flex: 1;

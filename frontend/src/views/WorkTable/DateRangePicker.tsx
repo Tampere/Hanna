@@ -83,7 +83,7 @@ export function DateRangeEdit(params: GridEditSingleSelectCellProps) {
                     } as any,
                   }}
                   maxDate={endDate?.subtract(1, 'day')}
-                  onChange={(date) => setStartDate(startDate?.isSame(date) ? null : date)}
+                  onChange={(date) => setStartDate(date ?? startDate)}
                   value={startDate}
                 />
                 <DateCalendar
@@ -100,7 +100,7 @@ export function DateRangeEdit(params: GridEditSingleSelectCellProps) {
                     } as any,
                   }}
                   minDate={startDate?.add(1, 'day')}
-                  onChange={(date) => setEndDate(endDate?.isSame(date) ? null : date)}
+                  onChange={(date) => setEndDate(date ?? endDate)}
                   value={endDate}
                 />
               </Box>

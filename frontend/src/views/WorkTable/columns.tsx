@@ -4,10 +4,12 @@ import {
   GridColDef,
   GridRenderCellParams,
   GridRenderEditCellParams,
+  GridValidRowModel,
   useGridApiContext,
 } from '@mui/x-data-grid';
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { WorkTableRow } from 'tre-hanna-shared/src/schema/workTable';
 
 import { formatCurrency } from '@frontend/components/forms/CurrencyInput';
 import { TableCodeCheckbox } from '@frontend/views/WorkTable/CodeCheckbox';
@@ -22,17 +24,21 @@ import { ProjectObjectNameEdit } from './ProjectObjectNameEdit';
 import { ModifiedFields } from './diff';
 
 interface getColumnsParams {
-  modifiedFields: ModifiedFields;
+  modifiedFields: ModifiedFields<WorkTableRow>;
 }
 
-interface MaybeModifiedCellProps {
-  params: GridRenderCellParams;
+interface MaybeModifiedCellProps<T extends GridValidRowModel> {
+  params: GridRenderCellParams<T>;
   children: React.ReactNode;
-  modifiedFields?: ModifiedFields;
+  modifiedFields?: ModifiedFields<T>;
 }
 
-function MaybeModifiedCell({ params, children, modifiedFields }: MaybeModifiedCellProps) {
-  const isModified = modifiedFields?.[params.id]?.[params.field];
+function MaybeModifiedCell({
+  params,
+  children,
+  modifiedFields,
+}: MaybeModifiedCellProps<WorkTableRow>) {
+  const isModified = modifiedFields?.[params.id]?.[params.field as keyof WorkTableRow];
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,13 +52,13 @@ function MaybeModifiedCell({ params, children, modifiedFields }: MaybeModifiedCe
   return <div ref={ref}>{children}</div>;
 }
 
-export function getColumns({ modifiedFields }: getColumnsParams): GridColDef[] {
-  const columns: GridColDef[] = [
+export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<WorkTableRow>[] {
+  const columns: GridColDef<WorkTableRow>[] = [
     {
       field: 'projectObjectName',
       headerName: 'Kohde',
       width: 220,
-      renderCell: (params: GridRenderCellParams) => (
+      renderCell: (params: GridRenderCellParams<WorkTableRow>) => (
         <MaybeModifiedCell params={params} modifiedFields={modifiedFields}>
           <b>{params.value}</b>
         </MaybeModifiedCell>
@@ -119,20 +125,20 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef[] {
       width: 188,
       editable: false,
       renderCell: (params: GridRenderCellParams) => (
-        <span
-          css={css`
+        <div
+          css={(theme) => css`
             display: flex;
-            justify-content: center;
             align-items: center;
+            gap: ${theme.spacing(1)};
+            justify-content: space-between;
           `}
         >
+          <Launch fontSize={'small'} htmlColor="#999" />
           <Link
-            to=""
+            to={`/investointihanke/${params.value.projectId}`}
             target="_blank"
             rel="noopener noreferrer"
             css={css`
-              display: flex;
-              align-items: center;
               cursor: pointer;
               color: inherit;
               text-decoration-line: underline;
@@ -143,10 +149,9 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef[] {
               margin-right: 2px;
             `}
           >
-            {params.value}
-            <Launch fontSize={'small'} htmlColor="#777" />
+            {params.value.projectName}
           </Link>
-        </span>
+        </div>
       ),
     },
     {

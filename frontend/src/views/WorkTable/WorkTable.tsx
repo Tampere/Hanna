@@ -1,18 +1,18 @@
 import { css } from '@emotion/react';
 import { Cancel, Redo, Save, Undo } from '@mui/icons-material';
 import { Box, Button, IconButton, Theme, Tooltip } from '@mui/material';
-import { DataGrid, GridRowId, useGridApiRef } from '@mui/x-data-grid';
+import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
 import { atom, useAtom } from 'jotai';
 import diff from 'microdiff';
 import { useEffect, useMemo, useState } from 'react';
 
+import { trpc } from '@frontend/client';
 import { useTranslations } from '@frontend/stores/lang';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { WorkTableFilters } from '@frontend/views/WorkTable/WorkTableFilters';
 import { getColumns } from '@frontend/views/WorkTable/columns';
-import { PLACEHOLDER_ROWS } from '@frontend/views/WorkTable/placeholder';
 
-import { WorkTableSearch } from '@shared/schema/workTable';
+import { WorkTableRow, WorkTableSearch } from '@shared/schema/workTable';
 
 import { ModifiedFields } from './diff';
 
@@ -39,36 +39,14 @@ const dataGridStyle = (theme: Theme) => css`
   }
 `;
 
-interface GridRow {
-  id: number;
-  projectObjectName: string;
-  projectObjectState: string;
-  projectDateRange: {
-    startDate: string;
-    endDate: string;
-  };
-  projectLink: string;
-  projectObjectType: string[];
-  projectObjectCategory: string[];
-  projectObjectUsage: string[];
-  projectObjectPersonInfo: {
-    rakennuttajaUser: string;
-    suunnittelluttajaUser: string;
-  };
-  projectObjectFinances: {
-    budget: number;
-    actual: number;
-  };
-}
-
 interface CellEditEvent {
-  rowId: GridRowId;
-  field: keyof GridRow;
-  oldValue: GridRow[keyof GridRow];
-  newValue: GridRow[keyof GridRow];
+  rowId: string;
+  field: keyof WorkTableRow;
+  oldValue: WorkTableRow[keyof WorkTableRow];
+  newValue: WorkTableRow[keyof WorkTableRow];
 }
 
-function getCellEditEvent(oldRow: GridRow, newRow: GridRow): CellEditEvent | null {
+function getCellEditEvent(oldRow: WorkTableRow, newRow: WorkTableRow): CellEditEvent | null {
   const rowDiff = diff(oldRow, newRow);
   if (!rowDiff || rowDiff.length === 0) {
     return null;
@@ -76,7 +54,7 @@ function getCellEditEvent(oldRow: GridRow, newRow: GridRow): CellEditEvent | nul
 
   // only consider the top level field which is sufficient for our purpose. No need
   // to produce more granular diffs.
-  const changedField = rowDiff[0].path[0] as keyof GridRow;
+  const changedField = rowDiff[0].path[0] as keyof WorkTableRow;
 
   return {
     rowId: newRow.id,
@@ -92,12 +70,15 @@ export default function WorkTable() {
   const [searchParams, setSearchParams] = useAtom(searchAtom);
   const query = useDebounce(searchParams, 500);
   const tr = useTranslations();
+  const gridApiRef = useGridApiRef();
+
+  const workTableData = trpc.workTable.search.useQuery(query);
 
   const [editEvents, setEditEvents] = useState<CellEditEvent[]>([]);
   const [redoEvents, setRedoEvents] = useState<CellEditEvent[]>([]);
 
   const modifiedFields = useMemo(() => {
-    const modifiedFields: ModifiedFields<GridRow> = {};
+    const modifiedFields: ModifiedFields<WorkTableRow> = {};
 
     editEvents.forEach((editEvent) => {
       const { rowId, field } = editEvent;
@@ -112,10 +93,9 @@ export default function WorkTable() {
     return getColumns({ modifiedFields });
   }, [modifiedFields]);
 
-  const gridApiRef = useGridApiRef();
-
   useEffect(() => {
-    // TODO: do the search
+    setEditEvents([]);
+    setRedoEvents([]);
   }, [query]);
 
   useEffect(() => {
@@ -149,12 +129,15 @@ export default function WorkTable() {
     }
   }
 
-  function undoAll() {
-    setEditEvents([]);
-    setRedoEvents([]);
-    PLACEHOLDER_ROWS.forEach((row) => {
+  async function undoAll() {
+    // refetch data from the backend
+    await workTableData.refetch();
+    gridApiRef.current.setRows([]);
+    workTableData.data?.forEach((row) => {
       gridApiRef.current.updateRows([row]);
     });
+    setEditEvents([]);
+    setRedoEvents([]);
   }
 
   function redo() {
@@ -171,7 +154,11 @@ export default function WorkTable() {
 
   return (
     <div>
-      <WorkTableFilters searchParams={searchParams} setSearchParams={setSearchParams} />
+      <WorkTableFilters
+        readOnly={editEvents.length > 0}
+        searchParams={searchParams}
+        setSearchParams={setSearchParams}
+      />
       <DataGrid
         apiRef={gridApiRef}
         processRowUpdate={(newRow, oldRow) => {
@@ -187,7 +174,7 @@ export default function WorkTable() {
         css={dataGridStyle}
         density={'standard'}
         columns={columns}
-        rows={PLACEHOLDER_ROWS}
+        rows={workTableData.data ?? []}
         rowSelection={false}
         autoHeight
         hideFooter
