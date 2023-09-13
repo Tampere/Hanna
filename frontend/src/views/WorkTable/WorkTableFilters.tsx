@@ -74,7 +74,7 @@ export function WorkTableFilters(props: Props) {
         <TextField
           {...textFieldProps}
           id="projectObjectNameField"
-          placeholder={tr('search.searchTerm')}
+          placeholder={tr('search.searchTerm', 3)}
           value={searchParams.projectObjectName}
           onChange={(e) => setSearchParams({ ...searchParams, projectObjectName: e.target.value })}
           InputProps={{ ...searchInputProps }}
@@ -86,7 +86,7 @@ export function WorkTableFilters(props: Props) {
         <TextField
           {...textFieldProps}
           id="projectNameField"
-          placeholder={tr('search.searchTerm')}
+          placeholder={tr('search.searchTerm', 3)}
           value={searchParams.projectName}
           onChange={(e) => setSearchParams({ ...searchParams, projectName: e.target.value })}
           InputProps={{ ...searchInputProps }}
@@ -99,9 +99,11 @@ export function WorkTableFilters(props: Props) {
           <DatePicker
             readOnly={props.readOnly}
             value={searchParams.startDate ?? null}
-            onChange={(startDate) =>
-              setSearchParams({ ...searchParams, startDate: startDate ?? null })
-            }
+            onChange={(startDate) => {
+              if (startDate !== 'Invalid Date') {
+                setSearchParams({ ...searchParams, startDate: startDate ?? null });
+              }
+            }}
           />
         </GridSpan>
         <GridSpan row={1} span={2}>
@@ -109,7 +111,11 @@ export function WorkTableFilters(props: Props) {
           <DatePicker
             readOnly={props.readOnly}
             value={searchParams.endDate ?? null}
-            onChange={(endDate) => setSearchParams({ ...searchParams, endDate: endDate ?? null })}
+            onChange={(endDate) => {
+              if (endDate !== 'Invalid Date') {
+                setSearchParams({ ...searchParams, endDate: endDate });
+              }
+            }}
           />
         </GridSpan>
       </LocalizationProvider>
@@ -122,7 +128,7 @@ export function WorkTableFilters(props: Props) {
           maxTags={1}
           codeListId="KohdeTyyppi"
           value={searchParams.projectObjectType}
-          onChange={(type) => setSearchParams({ ...searchParams, projectObjectType: type ?? [] })}
+          onChange={(type) => setSearchParams({ ...searchParams, projectObjectType: type })}
         />
       </GridSpan>
 
@@ -138,7 +144,7 @@ export function WorkTableFilters(props: Props) {
           codeListId="KohteenOmaisuusLuokka"
           value={searchParams.projectObjectCategory}
           onChange={(category) =>
-            setSearchParams({ ...searchParams, projectObjectCategory: category ?? [] })
+            setSearchParams({ ...searchParams, projectObjectCategory: category })
           }
         />
       </GridSpan>
@@ -154,9 +160,7 @@ export function WorkTableFilters(props: Props) {
           maxTags={1}
           codeListId="KohteenToiminnallinenKayttoTarkoitus"
           value={searchParams.projectObjectUsage}
-          onChange={(usage) =>
-            setSearchParams({ ...searchParams, projectObjectUsage: usage ?? [] })
-          }
+          onChange={(usage) => setSearchParams({ ...searchParams, projectObjectUsage: usage })}
         />
       </GridSpan>
 
@@ -172,17 +176,9 @@ export function WorkTableFilters(props: Props) {
           codeListId="KohteenElinkaarentila"
           value={searchParams.projectObjectLifecycleState}
           onChange={(state) =>
-            setSearchParams({ ...searchParams, projectObjectLifecycleState: state ?? [] })
+            setSearchParams({ ...searchParams, projectObjectLifecycleState: state })
           }
         />
-      </GridSpan>
-
-      <GridSpan row={2} span={2}>
-        <CustomFormLabel label={tr('workTable.search.budgetTitle')} htmlFor="objectBudgetField" />
-      </GridSpan>
-
-      <GridSpan row={2} span={2}>
-        <CustomFormLabel label={tr('workTable.search.actualTitle')} htmlFor="objectActualField" />
       </GridSpan>
     </div>
   );

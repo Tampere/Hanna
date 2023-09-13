@@ -152,7 +152,7 @@
   "profile.logout": "Kirjaudu ulos",
   "select.noOptions": "Ei tuloksia",
   "select.selections": "valintaa",
-  "search.searchTerm": "Hakusana",
+  "search.searchTerm": "Hakusana (vähintään {0} merkkiä)",
   "add": "Lisää",
   "delete": "Poista",
   "cancel": "Peruuta",

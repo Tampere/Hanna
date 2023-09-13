@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { Cancel, Redo, Save, Undo } from '@mui/icons-material';
 import { Box, Button, IconButton, Theme, Tooltip } from '@mui/material';
-import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
+import { DataGrid, fiFI, useGridApiRef } from '@mui/x-data-grid';
 import { atom, useAtom } from 'jotai';
 import diff from 'microdiff';
 import { useEffect, useMemo, useState } from 'react';
@@ -132,10 +132,7 @@ export default function WorkTable() {
   async function undoAll() {
     // refetch data from the backend
     await workTableData.refetch();
-    gridApiRef.current.setRows([]);
-    workTableData.data?.forEach((row) => {
-      gridApiRef.current.updateRows([row]);
-    });
+    gridApiRef.current.setRows([...(workTableData.data as WorkTableRow[])]);
     setEditEvents([]);
     setRedoEvents([]);
   }
@@ -160,6 +157,8 @@ export default function WorkTable() {
         setSearchParams={setSearchParams}
       />
       <DataGrid
+        loading={workTableData.isLoading}
+        localeText={fiFI.components.MuiDataGrid.defaultProps.localeText}
         apiRef={gridApiRef}
         processRowUpdate={(newRow, oldRow) => {
           const cellEditEvent = getCellEditEvent(oldRow, newRow);

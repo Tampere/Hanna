@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { textToSearchTerms } from '@backend/components/project/search';
 import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 
@@ -10,13 +11,52 @@ import {
   workTableSearchSchema,
 } from '@shared/schema/workTable';
 
-async function workTableSearch(_input: WorkTableSearch) {
+async function workTableSearch(input: WorkTableSearch) {
+  const objectNameSearch = textToSearchTerms(input.projectObjectName, { minTermLength: 3 });
+  const projectNameSearch = textToSearchTerms(input.projectName, { minTermLength: 3 });
+
+  const {
+    startDate = null,
+    endDate = null,
+    projectObjectType = [],
+    projectObjectCategory = [],
+    projectObjectUsage = [],
+    projectObjectLifecycleState = [],
+  } = input;
+
   const query = sql.type(workTableRowSchema)`
   WITH search_results AS (
-    SELECT project_object.*, project.project_name
+    SELECT
+      project_object.*,
+      project.project_name
     FROM app.project_object
     INNER JOIN app.project ON project.id = project_object.project_id
     INNER JOIN app.project_investment ON project_investment.id = project.id
+    WHERE project_object.deleted = false
+      -- search date range intersection
+      AND daterange(${startDate}, ${endDate}, '[]') && daterange(project_object.start_date, project_object.end_date, '[]')
+      AND (${objectNameSearch}::text IS NULL OR to_tsquery('simple', ${objectNameSearch}) @@ to_tsvector('simple', project_object.object_name))
+      AND (${projectNameSearch}::text IS NULL OR to_tsquery('simple', ${projectNameSearch}) @@ to_tsvector('simple', project.project_name))
+      -- empty array means match all, otherwise check for intersection
+      AND (
+        ${sql.array(projectObjectType, 'text')} = '{}'::TEXT[] OR
+        (SELECT array_agg((object_type).id) FROM app.project_object_type WHERE project_object.id = project_object_type.project_object_id) &&
+        ${sql.array(projectObjectType, 'text')}
+      )
+      AND (
+        ${sql.array(projectObjectCategory, 'text')} = '{}'::TEXT[] OR
+        (SELECT array_agg((object_category).id) FROM app.project_object_category WHERE project_object.id = project_object_category.project_object_id) &&
+        ${sql.array(projectObjectCategory ?? [], 'text')}
+      )
+      AND (
+        ${sql.array(projectObjectUsage, 'text')} = '{}'::TEXT[] OR
+        (SELECT array_agg((object_usage).id) FROM app.project_object_usage WHERE project_object.id = project_object_usage.project_object_id) &&
+        ${sql.array(projectObjectUsage, 'text')}
+      )
+      AND (
+        ${sql.array(projectObjectLifecycleState, 'text')} = '{}'::TEXT[] OR
+        (project_object.lifecycle_state).id = ANY(${sql.array(projectObjectLifecycleState, 'text')})
+      )
   )
   SELECT
     search_results.id AS "id",

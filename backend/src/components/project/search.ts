@@ -4,7 +4,12 @@ import { getPool, sql } from '@backend/db';
 
 import { ProjectSearch, projectSearchResultSchema } from '@shared/schema/project';
 
-export function textToSearchTerms(text: string | undefined) {
+type TextToSearchTermsOpts = {
+  minTermLength?: number;
+};
+export function textToSearchTerms(text: string | undefined, options?: TextToSearchTermsOpts) {
+  const minTermLength = options?.minTermLength ?? 0;
+  if (text?.length && text.length < minTermLength) return null;
   return (
     text
       ?.split(/\s+/)
