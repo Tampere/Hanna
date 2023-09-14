@@ -12,7 +12,12 @@ import { useDebounce } from '@frontend/utils/useDebounce';
 import { WorkTableFilters } from '@frontend/views/WorkTable/WorkTableFilters';
 import { getColumns } from '@frontend/views/WorkTable/columns';
 
-import { WorkTableRow, WorkTableSearch } from '@shared/schema/workTable';
+import {
+  ProjectsUpdate,
+  WorkTableRow,
+  WorkTableRowUpdate,
+  WorkTableSearch,
+} from '@shared/schema/workTable';
 
 import { ModifiedFields } from './diff';
 
@@ -39,9 +44,11 @@ const dataGridStyle = (theme: Theme) => css`
   }
 `;
 
+type UpdateableFields = keyof Omit<WorkTableRow, 'id' | 'projectLink'>;
+
 interface CellEditEvent {
   rowId: string;
-  field: keyof WorkTableRow;
+  field: UpdateableFields;
   oldValue: WorkTableRow[keyof WorkTableRow];
   newValue: WorkTableRow[keyof WorkTableRow];
 }
@@ -54,7 +61,7 @@ function getCellEditEvent(oldRow: WorkTableRow, newRow: WorkTableRow): CellEditE
 
   // only consider the top level field which is sufficient for our purpose. No need
   // to produce more granular diffs.
-  const changedField = rowDiff[0].path[0] as keyof WorkTableRow;
+  const changedField = rowDiff[0].path[0] as UpdateableFields;
 
   return {
     rowId: newRow.id,
@@ -73,6 +80,7 @@ export default function WorkTable() {
   const gridApiRef = useGridApiRef();
 
   const workTableData = trpc.workTable.search.useQuery(query);
+  const updateObjects = trpc.workTable.update.useMutation();
 
   const [editEvents, setEditEvents] = useState<CellEditEvent[]>([]);
   const [redoEvents, setRedoEvents] = useState<CellEditEvent[]>([]);
@@ -146,6 +154,23 @@ export default function WorkTable() {
         [lastEvent.field]: lastEvent.newValue,
       };
       gridApiRef.current.updateRows([gridEvent]);
+    }
+  }
+
+  async function update() {
+    // NOTE: some problems with type inference, backend has schema validation however
+    const updateData = {} as Record<string, Record<keyof WorkTableRowUpdate, any>>;
+
+    editEvents.forEach((editEvent) => {
+      const { rowId, field, newValue } = editEvent;
+      updateData[rowId] = updateData[rowId] ?? {};
+      updateData[rowId][field] = newValue;
+    });
+
+    try {
+      updateObjects.mutateAsync(updateData);
+    } catch (e) {
+      console.error(e);
     }
   }
 
@@ -226,7 +251,12 @@ export default function WorkTable() {
               {tr('genericForm.cancelAll')}
               <Cancel />
             </Button>
-            <Button variant="contained" size="small" disabled={editEvents.length === 0}>
+            <Button
+              variant="contained"
+              size="small"
+              disabled={editEvents.length === 0}
+              onClick={update}
+            >
               {tr('genericForm.save')}
               <Save />
             </Button>

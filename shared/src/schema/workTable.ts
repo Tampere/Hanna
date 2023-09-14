@@ -20,7 +20,7 @@ export type WorkTableSearch = z.infer<typeof workTableSearchSchema>;
 export const workTableRowSchema = z.object({
   id: nonEmptyString,
   projectObjectName: upsertProjectObjectSchema.shape.objectName,
-  projectObjectState: upsertProjectObjectSchema.shape.lifecycleState,
+  projectObjectLifecycleState: upsertProjectObjectSchema.shape.lifecycleState,
   projectDateRange: z.object({
     startDate: upsertProjectObjectSchema.shape.startDate,
     endDate: upsertProjectObjectSchema.shape.endDate,
@@ -42,4 +42,17 @@ export const workTableRowSchema = z.object({
   }),
 });
 
+export const workTableRowUpdateSchema = workTableRowSchema
+  .omit({
+    id: true,
+    projectLink: true,
+  })
+  .partial();
+
 export type WorkTableRow = z.infer<typeof workTableRowSchema>;
+
+export type WorkTableRowUpdate = z.infer<typeof workTableRowUpdateSchema>;
+
+export const projectsUpdateSchema = z.record(workTableRowUpdateSchema);
+
+export type ProjectsUpdate = z.infer<typeof projectsUpdateSchema>;

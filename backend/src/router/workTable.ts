@@ -5,8 +5,9 @@ import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 
 import {
-  WorkTableRow,
+  ProjectsUpdate,
   WorkTableSearch,
+  projectsUpdateSchema,
   workTableRowSchema,
   workTableSearchSchema,
 } from '@shared/schema/workTable';
@@ -85,14 +86,16 @@ async function workTableSearch(input: WorkTableSearch) {
   return getPool().any(query);
 }
 
-async function workTableUpdate(_input: WorkTableRow[]) {}
+async function workTableUpdate(input: ProjectsUpdate) {
+  // for each updated row, fetch project object and upsert with new data
+}
 
 export const createWorkTableRouter = (t: TRPC) =>
   t.router({
     search: t.procedure.input(workTableSearchSchema).query(async ({ input }) => {
       return workTableSearch(input);
     }),
-    update: t.procedure.input(z.array(workTableRowSchema)).mutation(async ({ input }) => {
+    update: t.procedure.input(projectsUpdateSchema).mutation(async ({ input }) => {
       return workTableUpdate(input);
     }),
   });
