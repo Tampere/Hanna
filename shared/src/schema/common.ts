@@ -11,4 +11,4 @@ export const isoDateString = z.string().regex(isoDateStringRegex);
 
 export const dateStringSchema = z.string().transform((value) => new Date(value));
 
-export const datetimeSchema = z.number().transform((value) => new Date(value));
+export const datetimeSchema = z.date();
