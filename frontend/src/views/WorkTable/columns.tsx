@@ -5,7 +5,6 @@ import {
   GridRenderCellParams,
   GridRenderEditCellParams,
   GridValidRowModel,
-  useGridApiContext,
 } from '@mui/x-data-grid';
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
@@ -60,22 +59,35 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<Wor
       width: 220,
       renderCell: (params: GridRenderCellParams<WorkTableRow>) => (
         <MaybeModifiedCell params={params} modifiedFields={modifiedFields}>
-          <b>{params.value}</b>
+          <div
+            css={css`
+              display: flex;
+              align-items: center;
+              gap: 4px;
+            `}
+          >
+            <Link
+              to={`/investointihanke/${params.row.projectLink.projectId}/kohde/${params.row.id}`}
+              target="_blank"
+            >
+              <Launch fontSize={'small'} htmlColor="#aaa" />
+            </Link>
+            <b>{params.value}</b>
+          </div>
         </MaybeModifiedCell>
       ),
       renderEditCell: (params: GridRenderEditCellParams) => {
-        const apiRef = useGridApiContext();
         return (
           <ProjectObjectNameEdit
             value={params.value}
             onChange={(newValue) => {
-              apiRef.current.setEditCellValue({
+              params.api.setEditCellValue({
                 id: params.id,
                 field: params.field,
                 value: newValue,
               });
 
-              apiRef.current.stopCellEditMode({
+              params.api.stopCellEditMode({
                 id: params.id,
                 field: params.field,
               });
@@ -93,17 +105,17 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<Wor
           <CodeSpan codeListId={'KohteenElinkaarentila'} value={params.value} />
         </MaybeModifiedCell>
       ),
-      renderEditCell: ({ id, field, value }: GridRenderEditCellParams) => {
-        const apiRef = useGridApiContext();
+      renderEditCell: (params: GridRenderEditCellParams) => {
+        const { id, field, value } = params;
         return (
           <TableCodeSelect
             codeListId="KohteenElinkaarentila"
             value={value}
             onChange={(newValue) => {
-              apiRef.current.setEditCellValue({ id, field, value: newValue });
-              apiRef.current.stopCellEditMode({ id, field, cellToFocusAfter: 'right' });
+              params.api.setEditCellValue({ id, field, value: newValue });
+              params.api.stopCellEditMode({ id, field, cellToFocusAfter: 'right' });
             }}
-            onCancel={() => apiRef.current.stopCellEditMode({ id, field })}
+            onCancel={() => params.api.stopCellEditMode({ id, field })}
           />
         );
       },
@@ -133,7 +145,7 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<Wor
             justify-content: space-between;
           `}
         >
-          <Launch fontSize={'small'} htmlColor="#999" />
+          <Launch fontSize={'small'} htmlColor="#aaa" />
           <Link
             to={`/investointihanke/${params.value.projectId}`}
             target="_blank"
@@ -161,17 +173,17 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<Wor
       renderCell: (params: GridRenderCellParams) => (
         <CodeSpanMulti codeListId={'KohdeTyyppi'} value={params.value} />
       ),
-      renderEditCell({ id, field, value }: GridRenderEditCellParams) {
-        const apiRef = useGridApiContext();
+      renderEditCell(params: GridRenderEditCellParams) {
+        const { id, field, value } = params;
         return (
           <TableCodeCheckbox
             codeListId={'KohdeTyyppi'}
             value={value}
             onChange={(newValue) => {
-              apiRef.current.setEditCellValue({ id, field, value: newValue });
-              apiRef.current.stopCellEditMode({ id, field });
+              params.api.setEditCellValue({ id, field, value: newValue });
+              params.api.stopCellEditMode({ id, field });
             }}
-            onCancel={() => apiRef.current.stopCellEditMode({ id, field })}
+            onCancel={() => params.api.stopCellEditMode({ id, field })}
           />
         );
       },
@@ -183,17 +195,17 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<Wor
       renderCell: (params: GridRenderCellParams) => (
         <CodeSpanMulti codeListId={'KohteenOmaisuusLuokka'} value={params.value} />
       ),
-      renderEditCell({ id, field, value }: GridRenderEditCellParams) {
-        const apiRef = useGridApiContext();
+      renderEditCell(params: GridRenderEditCellParams) {
+        const { id, field, value } = params;
         return (
           <TableCodeCheckbox
             codeListId={'KohteenOmaisuusLuokka'}
             value={value}
             onChange={(newValue) => {
-              apiRef.current.setEditCellValue({ id, field, value: newValue });
-              apiRef.current.stopCellEditMode({ id, field });
+              params.api.setEditCellValue({ id, field, value: newValue });
+              params.api.stopCellEditMode({ id, field });
             }}
-            onCancel={() => apiRef.current.stopCellEditMode({ id, field })}
+            onCancel={() => params.api.stopCellEditMode({ id, field })}
           />
         );
       },
@@ -205,17 +217,17 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<Wor
       renderCell: (params: GridRenderCellParams) => (
         <CodeSpanMulti codeListId={'KohteenToiminnallinenKayttoTarkoitus'} value={params.value} />
       ),
-      renderEditCell({ id, field, value }: GridRenderEditCellParams) {
-        const apiRef = useGridApiContext();
+      renderEditCell(params: GridRenderEditCellParams) {
+        const { id, field, value } = params;
         return (
           <TableCodeCheckbox
             codeListId={'KohteenToiminnallinenKayttoTarkoitus'}
             value={value}
             onChange={(newValue) => {
-              apiRef.current.setEditCellValue({ id, field, value: newValue });
-              apiRef.current.stopCellEditMode({ id, field });
+              params.api.setEditCellValue({ id, field, value: newValue });
+              params.api.stopCellEditMode({ id, field });
             }}
-            onCancel={() => apiRef.current.stopCellEditMode({ id, field })}
+            onCancel={() => params.api.stopCellEditMode({ id, field })}
           />
         );
       },
@@ -236,12 +248,12 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<Wor
           <div>{value.suunnitteluttajaUser}</div>
         </div>
       ),
-      renderEditCell: ({ id, field, value }: GridRenderEditCellParams) => {
-        const apiRef = useGridApiContext();
+      renderEditCell: (params: GridRenderEditCellParams) => {
+        const { id, field, value } = params;
         return (
           <ProjectObjectUserEdit
             value={value}
-            onChange={(newValue) => apiRef.current.setEditCellValue({ id, field, value: newValue })}
+            onChange={(newValue) => params.api.setEditCellValue({ id, field, value: newValue })}
           />
         );
       },
@@ -262,14 +274,14 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<Wor
           <div>{formatCurrency(params.value.actual)}</div>
         </div>
       ),
-      renderEditCell: ({ id, field, value }: GridRenderEditCellParams) => {
-        const apiRef = useGridApiContext();
+      renderEditCell: (params: GridRenderEditCellParams) => {
+        const { id, field, value } = params;
         return (
           <CurrencyEdit
             value={value.budget}
             commitValue={(newValue) => {
-              apiRef.current.setEditCellValue({ id, field, value: { ...value, budget: newValue } });
-              apiRef.current.stopCellEditMode({ id, field });
+              params.api.setEditCellValue({ id, field, value: { ...value, budget: newValue } });
+              params.api.stopCellEditMode({ id, field });
             }}
           />
         );
