@@ -6,6 +6,7 @@
   "unknownError": "Tunnistamaton virhe",
   "date.format": "D.M.YYYY",
   "date.format.placeholder": "pp.kk.vvvv",
+  "date.format.yearmonth.placeholder": "kk/vvvv",
   "date.dayPlaceholder": "pp",
   "date.monthPlaceholder": "kk",
   "date.yearPlaceholder": "vvvv",

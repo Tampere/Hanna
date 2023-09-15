@@ -16,9 +16,9 @@ interface DateRangeViewProps {
 export function DateRangeView({ value }: DateRangeViewProps) {
   return (
     <span>
-      <span>{dayjs(value.startDate).format('DD.MM.YYYY')}</span>
+      <span>{dayjs(value.startDate).format('MM/YYYY')}</span>
       <span> {'\u2014'} </span>
-      <span>{dayjs(value.endDate).format('DD.MM.YYYY')}</span>
+      <span>{dayjs(value.endDate).format('MM/YYYY')}</span>
     </span>
   );
 }
@@ -71,6 +71,7 @@ export function DateRangeEdit(params: GridEditSingleSelectCellProps) {
               >
                 <DateCalendar
                   view={startPickerView}
+                  views={['year', 'month', 'day']}
                   onYearChange={() => setStartPickerView('month')}
                   onMonthChange={() => setStartPickerView('day')}
                   onViewChange={(newView) => setStartPickerView(newView)}
