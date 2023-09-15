@@ -38,7 +38,7 @@ export function TableCodeCheckbox({ id, codeListId, value, onChange, onCancel }:
       open={open}
       multiple
       onClose={onCancel}
-      value={selected}
+      value={selected || []}
       sx={{ fontSize: FONT_SIZE }}
       onChange={(e) => setSelected(e.target.value as string[])}
       // todo: labels
