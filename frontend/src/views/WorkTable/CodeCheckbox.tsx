@@ -41,7 +41,6 @@ export function TableCodeCheckbox({ id, codeListId, value, onChange, onCancel }:
       value={selected || []}
       sx={{ fontSize: FONT_SIZE }}
       onChange={(e) => setSelected(e.target.value as string[])}
-      // todo: labels
       renderValue={(selected) => selected.length + ' ' + tr('genericForm.selectionCount')}
       MenuProps={{
         onClick: (e) => e.preventDefault(),

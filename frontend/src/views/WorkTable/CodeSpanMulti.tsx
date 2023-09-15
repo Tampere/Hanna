@@ -20,6 +20,9 @@ export function CodeSpanMulti({ codeListId, value, maxItemsToShow = 2 }: Props) 
   const tr = useTranslations();
 
   function getLabel(codeValues: string[]) {
+    if (!codeValues) {
+      return [];
+    }
     return codeValues.map((codeValue) => {
       const code = codes.data?.find((code) => code.id.id === codeValue);
       return code?.text[lang] ?? codeValue;
