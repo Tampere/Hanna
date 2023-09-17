@@ -22,7 +22,7 @@ import { CodeSpan } from './CodeSpan';
 import { ProjectObjectNameEdit } from './ProjectObjectNameEdit';
 import { ModifiedFields } from './diff';
 
-interface getColumnsParams {
+interface GetColumnsParams {
   modifiedFields: ModifiedFields<WorkTableRow>;
 }
 
@@ -51,10 +51,10 @@ function MaybeModifiedCell({
   return <div ref={ref}>{children}</div>;
 }
 
-export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<WorkTableRow>[] {
+export function getColumns({ modifiedFields }: GetColumnsParams): GridColDef<WorkTableRow>[] {
   const columns: GridColDef<WorkTableRow>[] = [
     {
-      field: 'projectObjectName',
+      field: 'objectName',
       headerName: 'Kohde',
       width: 220,
       renderCell: (params: GridRenderCellParams<WorkTableRow>) => (
@@ -98,7 +98,7 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<Wor
     },
 
     {
-      field: 'projectObjectState',
+      field: 'lifecycleState',
       headerName: 'Tila',
       renderCell: (params: GridRenderCellParams) => (
         <MaybeModifiedCell params={params} modifiedFields={modifiedFields}>
@@ -121,7 +121,7 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<Wor
       },
     },
     {
-      field: 'projectDateRange',
+      field: 'dateRange',
       headerName: 'Toteutusväli',
       width: 112,
       renderCell: (params: GridRenderCellParams) => (
@@ -167,7 +167,7 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<Wor
       ),
     },
     {
-      field: 'projectObjectType',
+      field: 'objectType',
       headerName: 'Tyyppi',
       width: 160,
       renderCell: (params: GridRenderCellParams) => (
@@ -189,7 +189,7 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<Wor
       },
     },
     {
-      field: 'projectObjectCategory',
+      field: 'objectCategory',
       headerName: 'Omaisuusluokka',
       width: 160,
       renderCell: (params: GridRenderCellParams) => (
@@ -211,7 +211,7 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<Wor
       },
     },
     {
-      field: 'projectObjectUsage',
+      field: 'objectUsage',
       headerName: 'Käyttötarkoitus',
       width: 172,
       renderCell: (params: GridRenderCellParams) => (
@@ -233,7 +233,7 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<Wor
       },
     },
     {
-      field: 'projectObjectPersonInfo',
+      field: 'operatives',
       headerName: 'Rakennuttaja / Suunnitteluttaja',
       width: 144,
       renderCell: ({ value }: GridRenderCellParams) => (
@@ -259,7 +259,7 @@ export function getColumns({ modifiedFields }: getColumnsParams): GridColDef<Wor
       },
     },
     {
-      field: 'projectObjectFinances',
+      field: 'finances',
       headerName: 'Talousarvio / Toteuma',
       flex: 1,
       renderCell: (params: GridRenderCellParams) => (

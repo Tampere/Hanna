@@ -202,8 +202,8 @@ export function WorkTableFilters(props: Props) {
           readOnly={props.readOnly}
           maxTags={1}
           codeListId="KohdeTyyppi"
-          value={searchParams.projectObjectType}
-          onChange={(type) => setSearchParams({ ...searchParams, projectObjectType: type })}
+          value={searchParams.objectType}
+          onChange={(type) => setSearchParams({ ...searchParams, objectType: type })}
         />
       </GridSpan>
 
@@ -217,10 +217,8 @@ export function WorkTableFilters(props: Props) {
           readOnly={props.readOnly}
           maxTags={1}
           codeListId="KohteenOmaisuusLuokka"
-          value={searchParams.projectObjectCategory}
-          onChange={(category) =>
-            setSearchParams({ ...searchParams, projectObjectCategory: category })
-          }
+          value={searchParams.objectCategory}
+          onChange={(category) => setSearchParams({ ...searchParams, objectCategory: category })}
         />
       </GridSpan>
 
@@ -234,8 +232,8 @@ export function WorkTableFilters(props: Props) {
           readOnly={props.readOnly}
           maxTags={1}
           codeListId="KohteenToiminnallinenKayttoTarkoitus"
-          value={searchParams.projectObjectUsage}
-          onChange={(usage) => setSearchParams({ ...searchParams, projectObjectUsage: usage })}
+          value={searchParams.objectUsage}
+          onChange={(usage) => setSearchParams({ ...searchParams, objectUsage: usage })}
         />
       </GridSpan>
 
@@ -249,10 +247,8 @@ export function WorkTableFilters(props: Props) {
           readOnly={props.readOnly}
           maxTags={1}
           codeListId="KohteenElinkaarentila"
-          value={searchParams.projectObjectLifecycleState}
-          onChange={(state) =>
-            setSearchParams({ ...searchParams, projectObjectLifecycleState: state })
-          }
+          value={searchParams.lifecycleState}
+          onChange={(state) => setSearchParams({ ...searchParams, lifecycleState: state })}
         />
       </GridSpan>
     </div>

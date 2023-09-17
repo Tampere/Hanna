@@ -19,10 +19,10 @@ async function workTableSearch(input: WorkTableSearch) {
   const {
     startDate = null,
     endDate = null,
-    projectObjectType = [],
-    projectObjectCategory = [],
-    projectObjectUsage = [],
-    projectObjectLifecycleState = [],
+    objectType = [],
+    objectCategory = [],
+    objectUsage = [],
+    lifecycleState = [],
   } = input;
 
   const query = sql.type(workTableRowSchema)`
@@ -40,46 +40,46 @@ async function workTableSearch(input: WorkTableSearch) {
       AND (${projectNameSearch}::text IS NULL OR to_tsquery('simple', ${projectNameSearch}) @@ to_tsvector('simple', project.project_name))
       -- empty array means match all, otherwise check for intersection
       AND (
-        ${sql.array(projectObjectType, 'text')} = '{}'::TEXT[] OR
+        ${sql.array(objectType, 'text')} = '{}'::TEXT[] OR
         (SELECT array_agg((object_type).id) FROM app.project_object_type WHERE project_object.id = project_object_type.project_object_id) &&
-        ${sql.array(projectObjectType, 'text')}
+        ${sql.array(objectType, 'text')}
       )
       AND (
-        ${sql.array(projectObjectCategory, 'text')} = '{}'::TEXT[] OR
+        ${sql.array(objectCategory, 'text')} = '{}'::TEXT[] OR
         (SELECT array_agg((object_category).id) FROM app.project_object_category WHERE project_object.id = project_object_category.project_object_id) &&
-        ${sql.array(projectObjectCategory ?? [], 'text')}
+        ${sql.array(objectCategory ?? [], 'text')}
       )
       AND (
-        ${sql.array(projectObjectUsage, 'text')} = '{}'::TEXT[] OR
+        ${sql.array(objectUsage, 'text')} = '{}'::TEXT[] OR
         (SELECT array_agg((object_usage).id) FROM app.project_object_usage WHERE project_object.id = project_object_usage.project_object_id) &&
-        ${sql.array(projectObjectUsage, 'text')}
+        ${sql.array(objectUsage, 'text')}
       )
       AND (
-        ${sql.array(projectObjectLifecycleState, 'text')} = '{}'::TEXT[] OR
-        (project_object.lifecycle_state).id = ANY(${sql.array(projectObjectLifecycleState, 'text')})
+        ${sql.array(lifecycleState, 'text')} = '{}'::TEXT[] OR
+        (project_object.lifecycle_state).id = ANY(${sql.array(lifecycleState, 'text')})
       )
   )
   SELECT
     search_results.id AS "id",
-    object_name AS "projectObjectName",
-    (search_results.lifecycle_state).id AS "projectObjectState",
+    object_name AS "objectName",
+    (search_results.lifecycle_state).id AS "lifecycleState",
     jsonb_build_object(
         'startDate', start_date,
         'endDate', end_date
-    ) AS "projectDateRange",
+    ) AS "dateRange",
     jsonb_build_object(
         'projectId', project_id,
         'projectName', project_name
     ) AS "projectLink",
-    (SELECT array_agg((object_type).id) FROM app.project_object_type WHERE search_results.id = project_object_type.project_object_id) AS "projectObjectType",
-    (SELECT array_agg((object_category).id) FROM app.project_object_category WHERE search_results.id = project_object_category.project_object_id) AS "projectObjectCategory",
-    (SELECT array_agg((object_usage).id) FROM app.project_object_usage WHERE search_results.id = project_object_usage.project_object_id) AS "projectObjectUsage",
+    (SELECT array_agg((object_type).id) FROM app.project_object_type WHERE search_results.id = project_object_type.project_object_id) AS "objectType",
+    (SELECT array_agg((object_category).id) FROM app.project_object_category WHERE search_results.id = project_object_category.project_object_id) AS "objectCategory",
+    (SELECT array_agg((object_usage).id) FROM app.project_object_usage WHERE search_results.id = project_object_usage.project_object_id) AS "objectUsage",
     jsonb_build_object(
         'rakennuttajaUser', rakennuttaja_user,
         'suunnitteluttajaUser', suunnitteluttaja_user
-    ) AS "projectObjectPersonInfo",
+    ) AS "operatives",
     -- FIXME: yearly values, that are summed in the UI
-    '{"budget": 12500000, "actual": 147500000}'::JSONB AS "projectObjectFinances"
+    '{"budget": 12500000, "actual": 147500000}'::JSONB AS "finances"
   FROM search_results
   `;
 

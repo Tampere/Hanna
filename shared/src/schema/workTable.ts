@@ -9,19 +9,19 @@ export const workTableSearchSchema = z.object({
   projectObjectName: z.string().optional(),
   startDate: upsertProjectObjectSchema.shape.startDate.optional().nullable(),
   endDate: upsertProjectObjectSchema.shape.endDate.optional().nullable(),
-  projectObjectType: upsertProjectObjectSchema.shape.objectType.optional(),
-  projectObjectCategory: upsertProjectObjectSchema.shape.objectCategory.optional(),
-  projectObjectUsage: upsertProjectObjectSchema.shape.objectUsage.optional(),
-  projectObjectLifecycleState: z.array(upsertProjectObjectSchema.shape.lifecycleState).optional(),
+  objectType: upsertProjectObjectSchema.shape.objectType.optional(),
+  objectCategory: upsertProjectObjectSchema.shape.objectCategory.optional(),
+  objectUsage: upsertProjectObjectSchema.shape.objectUsage.optional(),
+  lifecycleState: z.array(upsertProjectObjectSchema.shape.lifecycleState).optional(),
 });
 
 export type WorkTableSearch = z.infer<typeof workTableSearchSchema>;
 
 export const workTableRowSchema = z.object({
   id: nonEmptyString,
-  projectObjectName: upsertProjectObjectSchema.shape.objectName,
-  projectObjectLifecycleState: upsertProjectObjectSchema.shape.lifecycleState,
-  projectDateRange: z.object({
+  objectName: upsertProjectObjectSchema.shape.objectName,
+  lifecycleState: upsertProjectObjectSchema.shape.lifecycleState,
+  dateRange: z.object({
     startDate: upsertProjectObjectSchema.shape.startDate,
     endDate: upsertProjectObjectSchema.shape.endDate,
   }),
@@ -29,14 +29,14 @@ export const workTableRowSchema = z.object({
     projectId: upsertProjectObjectSchema.shape.projectId,
     projectName: upsertProjectSchema.shape.projectName,
   }),
-  projectObjectType: upsertProjectObjectSchema.shape.objectType,
-  projectObjectCategory: upsertProjectObjectSchema.shape.objectCategory,
-  projectObjectUsage: upsertProjectObjectSchema.shape.objectUsage,
-  projectObjectPersonInfo: z.object({
+  objectType: upsertProjectObjectSchema.shape.objectType,
+  objectCategory: upsertProjectObjectSchema.shape.objectCategory,
+  objectUsage: upsertProjectObjectSchema.shape.objectUsage,
+  objectOperatives: z.object({
     rakennuttajaUser: upsertProjectObjectSchema.shape.rakennuttajaUser,
     suunnitteluttajaUser: upsertProjectObjectSchema.shape.suunnitteluttajaUser,
   }),
-  projectObjectFinances: z.object({
+  objectFinances: z.object({
     budget: z.number(),
     actual: z.number(),
   }),

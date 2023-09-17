@@ -245,7 +245,7 @@ export default function WorkTable() {
             <Button
               variant="outlined"
               size="small"
-              disabled={editEvents.length === 0}
+              disabled={editEvents.length === 0 || updateObjects.isLoading}
               onClick={undoAll}
             >
               {tr('genericForm.cancelAll')}
@@ -254,7 +254,7 @@ export default function WorkTable() {
             <Button
               variant="contained"
               size="small"
-              disabled={editEvents.length === 0}
+              disabled={editEvents.length === 0 || updateObjects.isLoading}
               onClick={update}
             >
               {tr('genericForm.save')}
