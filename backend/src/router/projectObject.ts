@@ -103,22 +103,19 @@ async function updateObjectTypes(
     return;
   }
 
-  tx.query(sql.untyped`
-    DELETE FROM app.project_object_type
-    WHERE project_object_id = ${projectObject.id}
+  await tx.query(sql.untyped`
+    DELETE FROM app.project_object_type WHERE project_object_id = ${projectObject.id}
   `);
 
-  await Promise.all(
-    projectObject.objectType.map((type) =>
-      tx.any(sql.untyped`
-        INSERT INTO app.project_object_type (project_object_id, object_type)
-        VALUES (
-          ${projectObject.id},
-          ${codeIdFragment('KohdeTyyppi', type)}
-        );
-      `)
-    )
-  );
+  const tuples = projectObject.objectType.map((type) => [projectObject.id, type]);
+
+  await tx.any(sql.untyped`
+    INSERT INTO app.project_object_type (project_object_id, object_type)
+    SELECT
+      t.project_object_id,
+      ('KohdeTyyppi', t.object_type)::app.code_id
+    FROM ${sql.unnest(tuples, ['uuid', 'text'])} AS t (project_object_id, object_type);
+  `);
 }
 
 async function updateObjectCategories(
@@ -129,22 +126,19 @@ async function updateObjectCategories(
     return;
   }
 
-  tx.query(sql.untyped`
-    DELETE FROM app.project_object_category
-    WHERE project_object_id = ${projectObject.id}
+  await tx.query(sql.untyped`
+    DELETE FROM app.project_object_category WHERE project_object_id = ${projectObject.id}
   `);
 
-  await Promise.all(
-    projectObject.objectCategory.map((category) =>
-      tx.any(sql.untyped`
-        INSERT INTO app.project_object_category (project_object_id, object_category)
-        VALUES (
-          ${projectObject.id},
-          ${codeIdFragment('KohteenOmaisuusLuokka', category)}
-        );
-      `)
-    )
-  );
+  const tuples = projectObject.objectCategory.map((category) => [projectObject.id, category]);
+
+  await tx.any(sql.untyped`
+    INSERT INTO app.project_object_category (project_object_id, object_category)
+    SELECT
+      t.project_object_id,
+      ('KohteenOmaisuusLuokka', t.object_category)::app.code_id
+    FROM ${sql.unnest(tuples, ['uuid', 'text'])} AS t (project_object_id, object_category);
+  `);
 }
 
 async function updateObjectUsages(
@@ -154,22 +148,20 @@ async function updateObjectUsages(
   if (!Array.isArray(projectObject.objectUsage)) {
     return;
   }
-  tx.query(sql.untyped`
-    DELETE FROM app.project_object_usage
-    WHERE project_object_id = ${projectObject.id}
+
+  await tx.query(sql.untyped`
+    DELETE FROM app.project_object_usage WHERE project_object_id = ${projectObject.id}
   `);
 
-  await Promise.all(
-    projectObject.objectUsage.map((usage) =>
-      tx.any(sql.untyped`
-        INSERT INTO app.project_object_usage (project_object_id, object_usage)
-        VALUES (
-          ${projectObject.id},
-          ${codeIdFragment('KohteenToiminnallinenKayttoTarkoitus', usage)}
-        );
-      `)
-    )
-  );
+  const tuples = projectObject.objectUsage.map((usage) => [projectObject.id, usage]);
+
+  await tx.any(sql.untyped`
+    INSERT INTO app.project_object_usage (project_object_id, object_usage)
+    SELECT
+      t.project_object_id,
+      ('KohteenToiminnallinenKayttoTarkoitus', t.object_usage)::app.code_id
+    FROM ${sql.unnest(tuples, ['uuid', 'text'])} AS t (project_object_id, object_usage);
+  `);
 }
 
 async function updateObjectRoles(
@@ -253,6 +245,7 @@ export async function upsertProjectObject(projectObject: UpsertProjectObject, us
   const data = getUpdateData(projectObject, userId);
   const idents = Object.keys(data).map((key) => sql.identifier([key]));
   const values = Object.values(data);
+  const upsertResultSchema = z.object({ id: nonEmptyString });
 
   return getPool().transaction(async (tx) => {
     await addAuditEvent(tx, {
@@ -261,28 +254,23 @@ export async function upsertProjectObject(projectObject: UpsertProjectObject, us
       eventUser: userId,
     });
 
-    let upsertResult;
-    if (isUpdate(projectObject)) {
-      upsertResult = await tx.one(sql.type(z.object({ id: nonEmptyString }))`
-        UPDATE app.project_object
-        SET (${sql.join(idents, sql.fragment`,`)}) = ROW(${sql.join(values, sql.fragment`,`)})
-        WHERE id = ${projectObject.id}
-        RETURNING id
+    const upsertResult = isUpdate(projectObject)
+      ? await tx.one(sql.type(upsertResultSchema)`
+          UPDATE app.project_object
+          SET (${sql.join(idents, sql.fragment`,`)}) = ROW(${sql.join(values, sql.fragment`,`)})
+          WHERE id = ${projectObject.id}
+          RETURNING id
+      `)
+      : await tx.one(sql.type(upsertResultSchema)`
+          INSERT INTO app.project_object (${sql.join(idents, sql.fragment`,`)})
+          VALUES (${sql.join(values, sql.fragment`,`)})
+          RETURNING id
       `);
-    } else {
-      upsertResult = await tx.one(sql.type(z.object({ id: nonEmptyString }))`
-        INSERT INTO app.project_object (${sql.join(idents, sql.fragment`,`)})
-        VALUES (${sql.join(values, sql.fragment`,`)})
-        RETURNING id
-      `);
-    }
 
-    await Promise.all([
-      updateObjectTypes(tx, { ...projectObject, id: upsertResult.id }),
-      updateObjectCategories(tx, { ...projectObject, id: upsertResult.id }),
-      updateObjectUsages(tx, { ...projectObject, id: upsertResult.id }),
-      updateObjectRoles(tx, { ...projectObject, id: upsertResult.id }),
-    ]);
+    await updateObjectTypes(tx, { ...projectObject, id: upsertResult.id });
+    await updateObjectCategories(tx, { ...projectObject, id: upsertResult.id });
+    await updateObjectUsages(tx, { ...projectObject, id: upsertResult.id });
+    await updateObjectRoles(tx, { ...projectObject, id: upsertResult.id });
 
     return upsertResult;
   });
