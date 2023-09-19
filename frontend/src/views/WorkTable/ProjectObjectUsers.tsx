@@ -25,6 +25,23 @@ interface Props {
   onChange: (value: Value) => void;
 }
 
+export function ProjectObjectUsers({ value }: { value: Value }) {
+  const users = trpc.user.getAll.useQuery();
+
+  return (
+    <Box
+      css={(theme) => css`
+        display: flex;
+        flex-direction: column;
+        padding: ${theme.spacing(1)};
+      `}
+    >
+      <span>{users.data?.find(({ id }) => id === value.rakennuttajaUser)?.name}</span>
+      <span>{users.data?.find(({ id }) => id === value.suunnitteluttajaUser)?.name}</span>
+    </Box>
+  );
+}
+
 export function ProjectObjectUserEdit({ value, onChange }: Props) {
   const tr = useTranslations();
   const anchorElRef = useRef<HTMLDivElement>(null);
@@ -39,16 +56,7 @@ export function ProjectObjectUserEdit({ value, onChange }: Props) {
 
   return (
     <Box ref={anchorElRef} position={'absolute'}>
-      <Box
-        css={(theme) => css`
-          display: flex;
-          flex-direction: column;
-          padding: ${theme.spacing(1)};
-        `}
-      >
-        <i>{value.rakennuttajaUser}</i>
-        <i>{value.suunnitteluttajaUser}</i>
-      </Box>
+      <ProjectObjectUsers value={value} />
       <Popper open={open} anchorEl={anchorElRef.current?.parentElement} placement={'bottom-end'}>
         {open && users.isLoading && (
           <Paper sx={{ p: 1 }}>
