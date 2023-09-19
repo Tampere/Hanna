@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { BackupTable, HelpOutline, Logout, Settings } from '@mui/icons-material';
+import { BackupTable, HelpOutline, Logout, Reorder, Settings } from '@mui/icons-material';
 import AccountCircleOutlined from '@mui/icons-material/AccountCircleOutlined';
 import AccountTreeOutlined from '@mui/icons-material/AccountTreeOutlined';
 import {
@@ -112,6 +112,11 @@ function Navbar() {
             <Button component={Link} to="/sap-raportit/ymparistokoodit" sx={{ color: 'white' }}>
               <BackupTable sx={{ mr: 1 }} />
               {tr('pages.sapReportsTitle')}
+            </Button>
+
+            <Button component={Link} to="/investointiohjelma" sx={{ color: 'white' }}>
+              <Reorder sx={{ mr: 1 }} />
+              {tr('pages.workTableTitle')}
             </Button>
           </Box>
 

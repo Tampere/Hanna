@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { DatabaseTransactionConnection } from 'slonik';
+import { DatabaseTransactionConnection, ValueExpression } from 'slonik';
 import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
@@ -9,6 +9,7 @@ import { TRPC } from '@backend/router';
 
 import { nonEmptyString } from '@shared/schema/common';
 import {
+  UpdateProjectObject,
   UpsertProjectObject,
   dbProjectObjectSchema,
   deleteProjectObjectSchema,
@@ -26,7 +27,7 @@ const projectObjectFragment = sql.fragment`
      object_name AS "objectName",
      description AS "description",
      (lifecycle_state).id AS "lifecycleState",
-     suunnittelluttaja_user AS "suunnittelluttajaUser",
+     suunnitteluttaja_user AS "suunnitteluttajaUser",
      rakennuttaja_user AS "rakennuttajaUser",
      start_date AS "startDate",
      end_date AS "endDate",
@@ -53,6 +54,13 @@ async function getProjectObject(projectObjectId: string) {
   return getPool().one(sql.type(dbProjectObjectSchema)`
     ${projectObjectFragment}
     AND id = ${projectObjectId}
+  `);
+}
+
+export async function getProjectObjects(projectObjectId: string[]) {
+  return getPool().many(sql.type(dbProjectObjectSchema)`
+    ${projectObjectFragment}
+    AND id = ANY(${sql.array(projectObjectId, 'uuid')})
   `);
 }
 
@@ -89,8 +97,12 @@ async function deleteProjectObject(id: string, user: User) {
 
 async function updateObjectTypes(
   tx: DatabaseTransactionConnection,
-  projectObject: UpsertProjectObject & { id: string }
+  projectObject: UpdateProjectObject
 ) {
+  if (!Array.isArray(projectObject.objectType)) {
+    return;
+  }
+
   tx.query(sql.untyped`
     DELETE FROM app.project_object_type
     WHERE project_object_id = ${projectObject.id}
@@ -111,8 +123,12 @@ async function updateObjectTypes(
 
 async function updateObjectCategories(
   tx: DatabaseTransactionConnection,
-  projectObject: UpsertProjectObject & { id: string }
+  projectObject: UpdateProjectObject
 ) {
+  if (!Array.isArray(projectObject.objectCategory)) {
+    return;
+  }
+
   tx.query(sql.untyped`
     DELETE FROM app.project_object_category
     WHERE project_object_id = ${projectObject.id}
@@ -133,8 +149,11 @@ async function updateObjectCategories(
 
 async function updateObjectUsages(
   tx: DatabaseTransactionConnection,
-  projectObject: UpsertProjectObject & { id: string }
+  projectObject: UpdateProjectObject
 ) {
+  if (!Array.isArray(projectObject.objectUsage)) {
+    return;
+  }
   tx.query(sql.untyped`
     DELETE FROM app.project_object_usage
     WHERE project_object_id = ${projectObject.id}
@@ -155,8 +174,12 @@ async function updateObjectUsages(
 
 async function updateObjectRoles(
   tx: DatabaseTransactionConnection,
-  projectObject: UpsertProjectObject & { id: string }
+  projectObject: UpdateProjectObject
 ) {
+  if (!Array.isArray(projectObject.objectUserRoles)) {
+    return;
+  }
+
   tx.query(sql.untyped`
     DELETE FROM app.project_object_user_role
     WHERE project_object_id = ${projectObject.id}
@@ -176,27 +199,59 @@ async function updateObjectRoles(
   );
 }
 
-async function upsertProjectObject(projectObject: UpsertProjectObject, userId: string) {
+function isUpdate(input: UpsertProjectObject): input is UpdateProjectObject {
+  return 'id' in input;
+}
+
+/**
+ * Returns the data to be inserted or updated in the database. Mostly renames
+ * the fields to match the database column names and filters out the undefined fields
+ * @param projectObject - the project object to be inserted (full data) or updated (partial)
+ * @param userId - the id of the user performing the update
+ * @returns the data to be inserted or updated in the database
+ */
+
+function getUpdateData(
+  projectObject: UpsertProjectObject,
+  userId: string
+): Record<string, ValueExpression> {
   const data = {
     project_id: projectObject.projectId,
     object_name: projectObject.objectName,
     description: projectObject.description,
-    lifecycle_state: codeIdFragment('KohteenElinkaarentila', projectObject.lifecycleState),
-    suunnittelluttaja_user: projectObject.suunnittelluttajaUser,
+    lifecycle_state:
+      projectObject.lifecycleState &&
+      codeIdFragment('KohteenElinkaarentila', projectObject.lifecycleState),
+    suunnitteluttaja_user: projectObject.suunnitteluttajaUser,
     rakennuttaja_user: projectObject.rakennuttajaUser,
     start_date: projectObject.startDate,
     end_date: projectObject.endDate,
-    sap_wbs_id: projectObject.sapWBSId ?? null,
-    landownership: codeIdFragment('KohteenMaanomistusLaji', projectObject.landownership),
-    location_on_property: codeIdFragment(
-      'KohteenSuhdePeruskiinteistoon',
-      projectObject.locationOnProperty
-    ),
-    height: projectObject.height ?? null,
+    sap_wbs_id: projectObject.sapWBSId,
+    landownership:
+      projectObject.landownership &&
+      codeIdFragment('KohteenMaanomistusLaji', projectObject.landownership),
+    location_on_property:
+      projectObject.locationOnProperty &&
+      codeIdFragment('KohteenSuhdePeruskiinteistoon', projectObject.locationOnProperty),
+    height: projectObject.height,
     updated_by: userId,
   };
+  // filter undefined values
+  return Object.fromEntries(
+    Object.entries(data).filter(([, value]) => value !== undefined)
+  ) as Record<string, ValueExpression>;
+}
 
-  const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
+/**
+ * Upserts a project object. If the project object has an id, it is updated, otherwise a new project object is created.
+ * @param projectObject - the project object to be inserted (full data) or updated (partial)
+ * @param userId - the id of the user performing the update
+ * @returns the id of the inserted or updated project object
+ */
+
+export async function upsertProjectObject(projectObject: UpsertProjectObject, userId: string) {
+  const data = getUpdateData(projectObject, userId);
+  const idents = Object.keys(data).map((key) => sql.identifier([key]));
   const values = Object.values(data);
 
   return getPool().transaction(async (tx) => {
@@ -206,17 +261,21 @@ async function upsertProjectObject(projectObject: UpsertProjectObject, userId: s
       eventUser: userId,
     });
 
-    const upsertResult = projectObject.id
-      ? await tx.one(sql.type(z.object({ id: z.string() }))`
+    let upsertResult;
+    if (isUpdate(projectObject)) {
+      upsertResult = await tx.one(sql.type(z.object({ id: nonEmptyString }))`
         UPDATE app.project_object
-        SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
-        WHERE project_id = ${projectObject.projectId}
-          AND id = ${projectObject.id}
-        RETURNING id`)
-      : await tx.one(sql.type(z.object({ id: z.string() }))`
-        INSERT INTO app.project_object (${sql.join(identifiers, sql.fragment`,`)})
+        SET (${sql.join(idents, sql.fragment`,`)}) = ROW(${sql.join(values, sql.fragment`,`)})
+        WHERE id = ${projectObject.id}
+        RETURNING id
+      `);
+    } else {
+      upsertResult = await tx.one(sql.type(z.object({ id: nonEmptyString }))`
+        INSERT INTO app.project_object (${sql.join(idents, sql.fragment`,`)})
         VALUES (${sql.join(values, sql.fragment`,`)})
-        RETURNING id`);
+        RETURNING id
+      `);
+    }
 
     await Promise.all([
       updateObjectTypes(tx, { ...projectObject, id: upsertResult.id }),

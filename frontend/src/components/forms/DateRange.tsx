@@ -58,7 +58,7 @@ type CustomDayProps = PickersDayProps<Dayjs> & {
   dateFormat: string;
 };
 
-function CustomDay(props: CustomDayProps) {
+export function CustomDay(props: CustomDayProps) {
   const { selectedDay, inRange, dateFormat, ...pickersDayProps } = props;
   return (
     <PickersDay

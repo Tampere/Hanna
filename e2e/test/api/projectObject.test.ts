@@ -36,7 +36,7 @@ const testProjectObject = (projectId: string, user: User) => ({
   objectType: ['01'],
   objectCategory: ['01'],
   objectUsage: ['01'],
-  suunnittelluttajaUser: user.id,
+  suunnitteluttajaUser: user.id,
   rakennuttajaUser: user.id,
   startDate: '2021-01-01',
   endDate: '2022-01-01',
@@ -74,5 +74,18 @@ test.describe('Project Object endpoints', () => {
     const updatedResp = await client.projectObject.upsert.mutate(updatedProjectObject);
     expect(updatedResp.id).toBe(resp.id);
     expect(updatedResp.description).toBe('Updated description');
+
+    // partial update
+    const partialUpdate = {
+      id: resp.id,
+      description: 'Partial update',
+    };
+
+    const partialUpdateResp = await client.projectObject.upsert.mutate(partialUpdate);
+    expect(partialUpdateResp.id).toBe(resp.id);
+    expect(partialUpdateResp).toStrictEqual({
+      ...updatedResp,
+      description: 'Partial update',
+    });
   });
 });

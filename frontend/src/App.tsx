@@ -19,6 +19,7 @@ import { InvestmentProject } from '@frontend/views/Project/InvestmentProject';
 import { ProjectsPage } from '@frontend/views/Project/Projects';
 import { ProjectObject } from '@frontend/views/ProjectObject/ProjectObject';
 import { SapDebugView } from '@frontend/views/SapDebug';
+import WorkTable from '@frontend/views/WorkTable/WorkTable';
 
 import { trpc } from './client';
 import { authAtom, getUserAtom, sessionExpiredAtom } from './stores/auth';
@@ -72,6 +73,7 @@ const router = createBrowserRouter(
           element={<ProjectObject projectType="asemakaavahanke" />}
         />
         <Route path="sap-raportit/:tabView" element={<SapReports />} />
+        <Route path="investointiohjelma" element={<WorkTable />} />
         <Route path="hallinta/:tabView" element={<Management />} />
         <Route path="saptest/:sapProjectId" element={<SapDebugView />} />
         <Route path="session-renewed" element={<SessionRenewed />} />

@@ -1,0 +1,1 @@
+ALTER TABLE app.project_object RENAME COLUMN suunnittelluttaja_user TO suunnitteluttaja_user;
