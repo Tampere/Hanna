@@ -16,7 +16,10 @@ import { TableCodeSelect } from '@frontend/views/WorkTable/CodeSelect';
 import { CodeSpanMulti } from '@frontend/views/WorkTable/CodeSpanMulti';
 import { CurrencyEdit } from '@frontend/views/WorkTable/CurrencyEdit';
 import { DateRangeEdit, DateRangeView } from '@frontend/views/WorkTable/DateRangePicker';
-import { ProjectObjectUserEdit } from '@frontend/views/WorkTable/ProjectObjectUsers';
+import {
+  ProjectObjectUserEdit,
+  ProjectObjectUsers,
+} from '@frontend/views/WorkTable/ProjectObjectUsers';
 
 import { CodeSpan } from './CodeSpan';
 import { ProjectObjectNameEdit } from './ProjectObjectNameEdit';
@@ -236,18 +239,7 @@ export function getColumns({ modifiedFields }: GetColumnsParams): GridColDef<Wor
       field: 'operatives',
       headerName: 'Rakennuttaja / Suunnitteluttaja',
       width: 144,
-      renderCell: ({ value }: GridRenderCellParams) => (
-        <div
-          css={css`
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-          `}
-        >
-          <div>{value.rakennuttajaUser}</div>
-          <div>{value.suunnitteluttajaUser}</div>
-        </div>
-      ),
+      renderCell: ({ value }: GridRenderCellParams) => <ProjectObjectUsers value={value} />,
       renderEditCell: (params: GridRenderEditCellParams) => {
         const { id, field, value } = params;
         return (
