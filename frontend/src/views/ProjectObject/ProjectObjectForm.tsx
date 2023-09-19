@@ -22,7 +22,12 @@ import { ProjectTypePath } from '@frontend/types';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
-import { UpsertProjectObject, upsertProjectObjectSchema } from '@shared/schema/projectObject';
+import {
+  UpsertProjectObject,
+  newProjectObjectSchema,
+  updateProjectObjectSchema,
+  upsertProjectObjectSchema,
+} from '@shared/schema/projectObject';
 
 const newProjectFormStyle = css`
   display: grid;
@@ -73,7 +78,7 @@ export function ProjectObjectForm(props: Props) {
       })
     ),
     context: {
-      requiredFields: getRequiredFields(upsertProjectObjectSchema),
+      requiredFields: getRequiredFields(newProjectObjectSchema),
     },
     defaultValues: props.projectObject ?? {
       projectId: props.projectId,
@@ -94,7 +99,7 @@ export function ProjectObjectForm(props: Props) {
   }, [props.projectObject]);
 
   useEffect(() => {
-    const sub = form.watch((value, { name, type }) => {
+    const sub = form.watch((_value, { name, type }) => {
       if (type === 'change' && (name === 'startDate' || name === 'endDate')) {
         form.trigger(['startDate', 'endDate']);
       }

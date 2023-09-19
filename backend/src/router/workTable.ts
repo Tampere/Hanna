@@ -1,8 +1,7 @@
-import { z } from 'zod';
-
 import { textToSearchTerms } from '@backend/components/project/search';
 import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
+import { getProjectObjects, upsertProjectObject } from '@backend/router/projectObject';
 
 import {
   ProjectsUpdate,
@@ -79,15 +78,29 @@ async function workTableSearch(input: WorkTableSearch) {
         'suunnitteluttajaUser', suunnitteluttaja_user
     ) AS "operatives",
     -- FIXME: yearly values, that are summed in the UI
-    '{"budget": 12500000, "actual": 147500000}'::JSONB AS "finances"
+    '{"budget": 0, "actual": 0}'::JSONB AS "finances"
   FROM search_results
+  ORDER BY object_name ASC
   `;
 
   return getPool().any(query);
 }
 
-async function workTableUpdate(input: ProjectsUpdate) {
-  // for each updated row, fetch project object and upsert with new data
+async function workTableUpdate(input: ProjectsUpdate, userId: string) {
+  // upsert project objects
+  await getPool().transaction(async (tx) => {
+    Object.entries(input).forEach(([projectObjectId, projectObject]) => {
+      const update = {
+        ...projectObject,
+        rakennuttajaUser: projectObject.operatives?.rakennuttajaUser,
+        suunnitteluttajaUser: projectObject.operatives?.suunnitteluttajaUser,
+        id: projectObjectId,
+      };
+      upsertProjectObject(update, userId);
+    });
+  });
+
+  return getProjectObjects(Object.keys(input));
 }
 
 export const createWorkTableRouter = (t: TRPC) =>
@@ -95,7 +108,8 @@ export const createWorkTableRouter = (t: TRPC) =>
     search: t.procedure.input(workTableSearchSchema).query(async ({ input }) => {
       return workTableSearch(input);
     }),
-    update: t.procedure.input(projectsUpdateSchema).mutation(async ({ input }) => {
-      return workTableUpdate(input);
+    update: t.procedure.input(projectsUpdateSchema).mutation(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+      return workTableUpdate(input, userId);
     }),
   });

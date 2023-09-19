@@ -74,5 +74,18 @@ test.describe('Project Object endpoints', () => {
     const updatedResp = await client.projectObject.upsert.mutate(updatedProjectObject);
     expect(updatedResp.id).toBe(resp.id);
     expect(updatedResp.description).toBe('Updated description');
+
+    // partial update
+    const partialUpdate = {
+      id: resp.id,
+      description: 'Partial update',
+    };
+
+    const partialUpdateResp = await client.projectObject.upsert.mutate(partialUpdate);
+    expect(partialUpdateResp.id).toBe(resp.id);
+    expect(partialUpdateResp).toStrictEqual({
+      ...updatedResp,
+      description: 'Partial update',
+    });
   });
 });

@@ -7,6 +7,7 @@ import diff from 'microdiff';
 import { useEffect, useMemo, useState } from 'react';
 
 import { trpc } from '@frontend/client';
+import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { WorkTableFilters } from '@frontend/views/WorkTable/WorkTableFilters';
@@ -78,23 +79,41 @@ export default function WorkTable() {
   const query = useDebounce(searchParams, 500);
   const tr = useTranslations();
   const gridApiRef = useGridApiRef();
+  const notify = useNotifications();
 
   const workTableData = trpc.workTable.search.useQuery(query);
-  const updateObjects = trpc.workTable.update.useMutation();
+  const updateObjects = trpc.workTable.update.useMutation({
+    onSuccess: async () => {
+      await workTableData.refetch();
+      setEditEvents([]);
+      setRedoEvents([]);
+      notify({
+        title: tr('genericForm.notifySubmitSuccess'),
+        severity: 'success',
+        duration: 5000,
+      });
+    },
+    onError: () => {
+      notify({
+        title: tr('genericForm.notifySubmitFailure'),
+        severity: 'error',
+      });
+    },
+  });
 
   const [editEvents, setEditEvents] = useState<CellEditEvent[]>([]);
   const [redoEvents, setRedoEvents] = useState<CellEditEvent[]>([]);
 
   const modifiedFields = useMemo(() => {
-    const modifiedFields: ModifiedFields<WorkTableRow> = {};
+    const fields: ModifiedFields<WorkTableRow> = {};
 
     editEvents.forEach((editEvent) => {
       const { rowId, field } = editEvent;
-      modifiedFields[rowId] = modifiedFields[rowId] ?? {};
-      modifiedFields[rowId][field] = true;
+      fields[rowId] = fields[rowId] ?? {};
+      fields[rowId][field] = true;
     });
 
-    return modifiedFields;
+    return fields;
   }, [editEvents]);
 
   const columns = useMemo(() => {
@@ -105,6 +124,13 @@ export default function WorkTable() {
     setEditEvents([]);
     setRedoEvents([]);
   }, [query]);
+
+  useEffect(() => {
+    if (!workTableData.data) {
+      return;
+    }
+    gridApiRef.current.setRows([...(workTableData.data as WorkTableRow[])]);
+  }, [workTableData.data]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -167,11 +193,7 @@ export default function WorkTable() {
       updateData[rowId][field] = newValue;
     });
 
-    try {
-      updateObjects.mutateAsync(updateData);
-    } catch (e) {
-      console.error(e);
-    }
+    updateObjects.mutateAsync(updateData);
   }
 
   return (

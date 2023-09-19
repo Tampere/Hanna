@@ -8,8 +8,9 @@ export const projectObjectUserRoleSchema = z.object({
   roleId: codeId,
 });
 
-export const upsertProjectObjectSchema = z.object({
-  id: z.string().optional(),
+export const newProjectObjectSchema = z.object({
+  // id here as well since zodResolver in the form hook does not send the id if not in this schema
+  id: z.string().optional().nullable(),
   projectId: z.string(),
   objectName: nonEmptyString,
   description: nonEmptyString,
@@ -28,13 +29,25 @@ export const upsertProjectObjectSchema = z.object({
   objectUserRoles: z.array(projectObjectUserRoleSchema),
 });
 
-export const dbProjectObjectSchema = upsertProjectObjectSchema.extend({
+export const updateProjectObjectSchema = newProjectObjectSchema.partial().extend({
+  id: z.string(),
+});
+
+export type NewProjectObject = z.infer<typeof newProjectObjectSchema>;
+export type UpdateProjectObject = z.infer<typeof updateProjectObjectSchema>;
+
+export const dbProjectObjectSchema = newProjectObjectSchema.extend({
   id: z.string(),
   geom: z.string().nullable(),
   createdAt: isoDateString,
   deleted: z.boolean(),
   updatedBy: z.string(),
 });
+
+export const upsertProjectObjectSchema = z.union([
+  newProjectObjectSchema,
+  updateProjectObjectSchema,
+]);
 
 export type UpsertProjectObject = z.infer<typeof upsertProjectObjectSchema>;
 

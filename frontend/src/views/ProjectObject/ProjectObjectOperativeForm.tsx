@@ -33,7 +33,11 @@ import { ProjectTypePath } from '@frontend/types';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
-import { UpsertProjectObject, upsertProjectObjectSchema } from '@shared/schema/projectObject';
+import {
+  UpsertProjectObject,
+  newProjectObjectSchema,
+  upsertProjectObjectSchema,
+} from '@shared/schema/projectObject';
 
 const newProjectFormStyle = css`
   display: grid;
@@ -84,7 +88,7 @@ export function ProjectObjectOperativeForm(props: Props) {
       })
     ),
     context: {
-      requiredFields: getRequiredFields(upsertProjectObjectSchema),
+      requiredFields: getRequiredFields(newProjectObjectSchema),
     },
     defaultValues: props.projectObject ?? {
       projectId: props.projectId,

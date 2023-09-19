@@ -114,7 +114,7 @@ function Navbar() {
               {tr('pages.sapReportsTitle')}
             </Button>
 
-            <Button component={Link} to="/kohteet" sx={{ color: 'white' }}>
+            <Button component={Link} to="/investointiohjelma" sx={{ color: 'white' }}>
               <Reorder sx={{ mr: 1 }} />
               {tr('pages.workTableTitle')}
             </Button>
