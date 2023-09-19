@@ -23,6 +23,7 @@ import {
 import { ModifiedFields } from './diff';
 
 const dataGridStyle = (theme: Theme) => css`
+  height: 100%;
   font-size: 12px;
   .odd {
     background-color: #f3f3f3;
@@ -197,7 +198,13 @@ export default function WorkTable() {
   }
 
   return (
-    <div>
+    <div
+      css={css`
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      `}
+    >
       <WorkTableFilters
         readOnly={editEvents.length > 0}
         searchParams={searchParams}
@@ -222,69 +229,67 @@ export default function WorkTable() {
         columns={columns}
         rows={workTableData.data ?? []}
         rowSelection={false}
-        autoHeight
         hideFooter
         getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd')}
         disableColumnMenu
       />
-      {(editEvents.length > 0 || redoEvents.length > 0) && (
-        <Box
-          css={(theme) => css`
-            padding: ${theme.spacing(1)};
-            display: flex;
-            justify-content: space-between;
-          `}
+      <Box
+        css={(theme) => css`
+          padding: ${theme.spacing(1)};
+          display: flex;
+          justify-content: space-between;
+          visibility: ${editEvents.length > 0 || redoEvents.length > 0 ? 'visible' : 'hidden'};
+        `}
+      >
+        <div
+          css={(theme) => {
+            return css`
+              display: flex;
+              gap: ${theme.spacing(1)};
+            `;
+          }}
         >
-          <div
-            css={(theme) => {
-              return css`
-                display: flex;
-                gap: ${theme.spacing(1)};
-              `;
-            }}
-          >
-            <IconButton onClick={undo} disabled={editEvents.length === 0}>
-              <Tooltip title={tr('genericForm.undo')}>
-                <Undo />
-              </Tooltip>
-            </IconButton>
+          <IconButton onClick={undo} disabled={editEvents.length === 0}>
+            <Tooltip title={tr('genericForm.undo')}>
+              <Undo />
+            </Tooltip>
+          </IconButton>
 
-            <IconButton onClick={redo} disabled={redoEvents.length === 0}>
-              <Tooltip title={tr('genericForm.redo')}>
-                <Redo />
-              </Tooltip>
-            </IconButton>
-          </div>
+          <IconButton onClick={redo} disabled={redoEvents.length === 0}>
+            <Tooltip title={tr('genericForm.redo')}>
+              <Redo />
+            </Tooltip>
+          </IconButton>
+        </div>
 
-          <div
-            css={(theme) => {
-              return css`
-                display: flex;
-                gap: ${theme.spacing(1)};
-              `;
-            }}
+        <div
+          css={(theme) => {
+            return css`
+              display: flex;
+              gap: ${theme.spacing(1)};
+            `;
+          }}
+        >
+          <Button
+            variant="outlined"
+            size="small"
+            disabled={editEvents.length === 0 || updateObjects.isLoading}
+            onClick={undoAll}
           >
-            <Button
-              variant="outlined"
-              size="small"
-              disabled={editEvents.length === 0 || updateObjects.isLoading}
-              onClick={undoAll}
-            >
-              {tr('genericForm.cancelAll')}
-              <Cancel />
-            </Button>
-            <Button
-              variant="contained"
-              size="small"
-              disabled={editEvents.length === 0 || updateObjects.isLoading}
-              onClick={update}
-            >
-              {tr('genericForm.save')}
-              <Save />
-            </Button>
-          </div>
-        </Box>
-      )}
+            {tr('genericForm.cancelAll')}
+            <Cancel />
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            disabled={editEvents.length === 0 || updateObjects.isLoading}
+            onClick={update}
+          >
+            {tr('genericForm.save')}
+            <Save />
+          </Button>
+        </div>
+      </Box>
     </div>
   );
 }
