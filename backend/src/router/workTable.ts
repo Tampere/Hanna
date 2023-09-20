@@ -87,20 +87,19 @@ async function workTableSearch(input: WorkTableSearch) {
 }
 
 async function workTableUpdate(input: ProjectsUpdate, userId: string) {
-  // upsert project objects
-  await getPool().transaction(async (tx) => {
-    Object.entries(input).forEach(([projectObjectId, projectObject]) => {
-      const update = {
-        ...projectObject,
-        rakennuttajaUser: projectObject.operatives?.rakennuttajaUser,
-        suunnitteluttajaUser: projectObject.operatives?.suunnitteluttajaUser,
-        id: projectObjectId,
-      };
-      upsertProjectObject(update, userId);
-    });
+  const updates = Object.entries(input).map(([projectObjectId, projectObject]) => {
+    return {
+      ...projectObject,
+      rakennuttajaUser: projectObject.operatives?.rakennuttajaUser,
+      suunnitteluttajaUser: projectObject.operatives?.suunnitteluttajaUser,
+      id: projectObjectId,
+    };
   });
 
-  return getProjectObjects(Object.keys(input));
+  return await getPool().transaction(async (tx) => {
+    await Promise.all(updates.map((update) => upsertProjectObject(tx, update, userId)));
+    return getProjectObjects(tx, Object.keys(input));
+  });
 }
 
 export const createWorkTableRouter = (t: TRPC) =>

@@ -50,20 +50,6 @@ const projectObjectFragment = sql.fragment`
   WHERE deleted = false
 `;
 
-async function getProjectObject(projectObjectId: string) {
-  return getPool().one(sql.type(dbProjectObjectSchema)`
-    ${projectObjectFragment}
-    AND id = ${projectObjectId}
-  `);
-}
-
-export async function getProjectObjects(projectObjectId: string[]) {
-  return getPool().many(sql.type(dbProjectObjectSchema)`
-    ${projectObjectFragment}
-    AND id = ANY(${sql.array(projectObjectId, 'uuid')})
-  `);
-}
-
 async function getProjectObjectsByProjectId(projectId: string) {
   return getPool().any(sql.type(dbProjectObjectSchema)`
     ${projectObjectFragment}
@@ -191,6 +177,36 @@ async function updateObjectRoles(
   );
 }
 
+/**
+ * Fetches a single project object from the database.
+ * @param {DatabaseTransactionConnection} [tx] - Databse transaction connection.
+ * @param {string} projectObjectId - The ID of the project object to fetch.
+ * @returns {Promise<ProjectObject>} - Returns a promise that resolves to the fetched project object.
+ */
+
+export async function getProjectObject(tx: DatabaseTransactionConnection, projectObjectId: string) {
+  return tx.one(sql.type(dbProjectObjectSchema)`
+    ${projectObjectFragment}
+    AND id = ${projectObjectId}
+  `);
+}
+
+/**
+ * Fetches multiple project objects from the database.
+ * @param {DatabaseTransactionConnection} tx - Database transaction connection.
+ * @param {string[]} projectObjectIds - The IDs of the project objects to fetch.
+ * @returns {Promise<ProjectObject[]>} - Returns a promise that resolves to the fetched project objects.
+ */
+
+export async function getProjectObjects(
+  tx: DatabaseTransactionConnection,
+  projectObjectIds: string[]
+) {
+  return tx.many(sql.type(dbProjectObjectSchema)`
+    ${projectObjectFragment}
+    AND id = ANY(${sql.array(projectObjectIds, 'uuid')})
+  `);
+}
 function isUpdate(input: UpsertProjectObject): input is UpdateProjectObject {
   return 'id' in input;
 }
@@ -235,52 +251,63 @@ function getUpdateData(
 }
 
 /**
- * Upserts a project object. If the project object has an id, it is updated, otherwise a new project object is created.
- * @param projectObject - the project object to be inserted (full data) or updated (partial)
- * @param userId - the id of the user performing the update
- * @returns the id of the inserted or updated project object
+ * This function is used to insert or update a project object in the database.
+ * It first prepares the data to be inserted or updated, then performs the operation.
+ * If the project object already exists (isUpdate is true), it updates the existing record.
+ * If the project object does not exist (isUpdate is false), it inserts a new record.
+ * After the operation, it updates the object types, categories, usages, and roles.
+ * Finally, it returns the result of the operation.
+ *
+ * @param tx - The database transaction connection
+ * @param projectObject - The project object to be inserted or updated
+ * @param userId - The id of the user performing the operation
+ * @returns The result of the operation
  */
 
-export async function upsertProjectObject(projectObject: UpsertProjectObject, userId: string) {
+export async function upsertProjectObject(
+  tx: DatabaseTransactionConnection,
+  projectObject: UpsertProjectObject,
+  userId: string
+) {
   const data = getUpdateData(projectObject, userId);
   const idents = Object.keys(data).map((key) => sql.identifier([key]));
   const values = Object.values(data);
   const upsertResultSchema = z.object({ id: nonEmptyString });
 
-  return getPool().transaction(async (tx) => {
-    await addAuditEvent(tx, {
-      eventType: 'projectObject.upsert',
-      eventData: projectObject,
-      eventUser: userId,
-    });
+  await addAuditEvent(tx, {
+    eventType: 'projectObject.upsert',
+    eventData: projectObject,
+    eventUser: userId,
+  });
 
-    const upsertResult = isUpdate(projectObject)
-      ? await tx.one(sql.type(upsertResultSchema)`
+  const upsertResult = isUpdate(projectObject)
+    ? await tx.one(sql.type(upsertResultSchema)`
           UPDATE app.project_object
           SET (${sql.join(idents, sql.fragment`,`)}) = ROW(${sql.join(values, sql.fragment`,`)})
           WHERE id = ${projectObject.id}
           RETURNING id
       `)
-      : await tx.one(sql.type(upsertResultSchema)`
+    : await tx.one(sql.type(upsertResultSchema)`
           INSERT INTO app.project_object (${sql.join(idents, sql.fragment`,`)})
           VALUES (${sql.join(values, sql.fragment`,`)})
           RETURNING id
       `);
 
-    await updateObjectTypes(tx, { ...projectObject, id: upsertResult.id });
-    await updateObjectCategories(tx, { ...projectObject, id: upsertResult.id });
-    await updateObjectUsages(tx, { ...projectObject, id: upsertResult.id });
-    await updateObjectRoles(tx, { ...projectObject, id: upsertResult.id });
+  await updateObjectTypes(tx, { ...projectObject, id: upsertResult.id });
+  await updateObjectCategories(tx, { ...projectObject, id: upsertResult.id });
+  await updateObjectUsages(tx, { ...projectObject, id: upsertResult.id });
+  await updateObjectRoles(tx, { ...projectObject, id: upsertResult.id });
 
-    return upsertResult;
-  });
+  return upsertResult;
 }
 
 export const createProjectObjectRouter = (t: TRPC) =>
   t.router({
     upsert: t.procedure.input(upsertProjectObjectSchema).mutation(async ({ input, ctx }) => {
-      const result = await upsertProjectObject(input, ctx.user.id);
-      return getProjectObject(result.id);
+      return await getPool().transaction(async (tx) => {
+        const result = await upsertProjectObject(tx, input, ctx.user.id);
+        return getProjectObject(tx, result.id);
+      });
     }),
 
     updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input, ctx }) => {
@@ -309,7 +336,11 @@ export const createProjectObjectRouter = (t: TRPC) =>
     }),
 
     get: t.procedure.input(getProjectObjectParams).query(async ({ input }) => {
-      return getProjectObject(input.id);
+      return await getPool().connect(async (conn) => {
+        const projectObject = await getProjectObject(conn, input.id);
+        console.log(projectObject);
+        return projectObject;
+      });
     }),
 
     getByProjectId: t.procedure
