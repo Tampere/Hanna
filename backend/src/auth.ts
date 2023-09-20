@@ -92,7 +92,7 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
   });
 
   fastify.addHook('preValidation', async (req) => {
-    if (opts.publicRouterPaths.has(req.routerPath)) {
+    if (opts.publicRouterPaths.has(req.routeOptions.url)) {
       return;
     }
     if (!req.user) {
