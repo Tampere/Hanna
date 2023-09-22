@@ -10,10 +10,11 @@ import {
 } from '@mui/material';
 import { Box } from '@mui/system';
 import { useEffect, useRef, useState } from 'react';
-import type { UpsertProjectObject } from 'tre-hanna-shared/src/schema/projectObject';
 
 import { trpc } from '@frontend/client';
 import { useTranslations } from '@frontend/stores/lang';
+
+import type { UpsertProjectObject } from '@shared/schema/projectObject';
 
 interface Value {
   rakennuttajaUser: UpsertProjectObject['rakennuttajaUser'];

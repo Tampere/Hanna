@@ -8,7 +8,6 @@ import {
 } from '@mui/x-data-grid';
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { WorkTableRow } from 'tre-hanna-shared/src/schema/workTable';
 
 import { formatCurrency } from '@frontend/components/forms/CurrencyInput';
 import { TableCodeCheckbox } from '@frontend/views/WorkTable/CodeCheckbox';
@@ -20,6 +19,8 @@ import {
   ProjectObjectUserEdit,
   ProjectObjectUsers,
 } from '@frontend/views/WorkTable/ProjectObjectUsers';
+
+import { WorkTableRow } from '@shared/schema/workTable';
 
 import { CodeSpan } from './CodeSpan';
 import { ProjectObjectNameEdit } from './ProjectObjectNameEdit';

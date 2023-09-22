@@ -13,12 +13,7 @@ import { useDebounce } from '@frontend/utils/useDebounce';
 import { WorkTableFilters } from '@frontend/views/WorkTable/WorkTableFilters';
 import { getColumns } from '@frontend/views/WorkTable/columns';
 
-import {
-  ProjectsUpdate,
-  WorkTableRow,
-  WorkTableRowUpdate,
-  WorkTableSearch,
-} from '@shared/schema/workTable';
+import { WorkTableRow, WorkTableRowUpdate, WorkTableSearch } from '@shared/schema/workTable';
 
 import { ModifiedFields } from './diff';
 
@@ -73,7 +68,7 @@ function getCellEditEvent(oldRow: WorkTableRow, newRow: WorkTableRow): CellEditE
   };
 }
 
-const searchAtom = atom<WorkTableSearch>({});
+const searchAtom = atom<WorkTableSearch>({ financeYears: { type: 'all' } });
 
 export default function WorkTable() {
   const [searchParams, setSearchParams] = useAtom(searchAtom);

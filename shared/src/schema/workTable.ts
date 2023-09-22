@@ -4,6 +4,21 @@ import { nonEmptyString } from './common';
 import { upsertProjectSchema } from './project/base';
 import { dbProjectObjectSchema } from './projectObject';
 
+const financeYearsSchema = z.union([
+  z.object({
+    type: z.literal('all'),
+  }),
+  z.object({
+    type: z.literal('yearRange'),
+    startYear: z.number(),
+    endYear: z.number(),
+  }),
+  z.object({
+    type: z.literal('years'),
+    years: z.array(z.number()),
+  }),
+]);
+
 export const workTableSearchSchema = z.object({
   projectName: z.string().optional(),
   projectObjectName: z.string().optional(),
@@ -13,8 +28,10 @@ export const workTableSearchSchema = z.object({
   objectCategory: dbProjectObjectSchema.shape.objectCategory.optional(),
   objectUsage: dbProjectObjectSchema.shape.objectUsage.optional(),
   lifecycleState: z.array(dbProjectObjectSchema.shape.lifecycleState).optional(),
+  financeYears: financeYearsSchema,
 });
 
+export type FinanceYears = z.infer<typeof financeYearsSchema>;
 export type WorkTableSearch = z.infer<typeof workTableSearchSchema>;
 
 export const workTableRowSchema = z.object({
