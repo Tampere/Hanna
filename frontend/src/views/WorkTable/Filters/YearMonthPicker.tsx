@@ -15,6 +15,16 @@ interface YearMonthPickerProps {
   readOnly?: boolean;
 }
 
+/**
+ * YearMonthPicker component props
+ * @property {'startOfMonth' | 'endOfMonth'} dateMode - The mode of the date
+ * @property {string | null} value - The current selected value
+ * @property {(value: string | null) => void} onChange - Handler for change events
+ * @property {DesktopDatePickerProps<Dayjs>} DatePickerProps - The DatePicker properties
+ * @property {string} format - The format of the date
+ * @property {boolean} readOnly - If true, the DatePicker is read-only
+ */
+
 export function YearMonthPicker({
   dateMode,
   value,
@@ -36,7 +46,7 @@ export function YearMonthPicker({
       format={'MM/YYYY'}
       disabled={readOnly}
       // hide the huge default toolbar
-      slots={{ toolbar: (_props) => <span /> }}
+      slots={{ toolbar: () => <span /> }}
       slotProps={{
         textField: {
           fullWidth: true,

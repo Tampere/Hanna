@@ -29,8 +29,8 @@ export function UserSelect(props: Props) {
   const { id, readOnly, onBlur, multiple, value, onChange, maxTags } = props;
   const users = trpc.user.getAll.useQuery();
 
-  function getUser(id: string) {
-    return users.data?.find((user) => user.id === id);
+  function getUser(userId: string) {
+    return users.data?.find((user) => user.id === userId);
   }
 
   const selection = useMemo(() => {
@@ -50,7 +50,7 @@ export function UserSelect(props: Props) {
       options={users.data ?? []}
       getOptionId={(user) => user.id}
       getOptionLabel={(user) => user.name}
-      onChange={(users) => onChange(users.map((user) => user.id))}
+      onChange={(selectedUsers) => onChange(selectedUsers.map((user) => user.id))}
       maxTags={maxTags}
       multiple
     />

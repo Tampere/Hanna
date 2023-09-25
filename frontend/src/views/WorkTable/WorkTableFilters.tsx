@@ -9,7 +9,7 @@ import React from 'react';
 import { CustomFormLabel } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
-import { FinanceYearsSelect } from '@frontend/views/WorkTable/Filters/FinanceYearsSelect';
+import { FinancesRangeSelect } from '@frontend/views/WorkTable/Filters/FinancesRangeSelect';
 import { YearMonthPicker } from '@frontend/views/WorkTable/Filters/YearMonthPicker';
 
 import { WorkTableSearch } from '@shared/schema/workTable';
@@ -19,6 +19,7 @@ interface GridSpanProps {
   row: number;
   children: React.ReactNode;
 }
+
 function GridSpan({ span, row, children }: GridSpanProps): React.ReactElement<GridSpanProps> {
   return (
     <div
@@ -35,6 +36,7 @@ function GridSpan({ span, row, children }: GridSpanProps): React.ReactElement<Gr
 interface Props {
   searchParams: WorkTableSearch;
   setSearchParams: (value: SetStateAction<WorkTableSearch>) => void;
+  yearRange: { startYear: number; endYear: number };
   readOnly?: boolean;
 }
 
@@ -65,7 +67,7 @@ export function WorkTableFilters(props: Props) {
       css={(theme: Theme) => css`
         padding: ${theme.spacing(2)} 0;
         display: grid;
-        grid-template-columns: repeat(12, 1fr);
+        grid-template-columns: repeat(14, 1fr);
         grid-template-rows: 1fr 1fr;
         gap: ${theme.spacing(2)};
       `}
@@ -149,7 +151,7 @@ export function WorkTableFilters(props: Props) {
 
       <GridSpan row={2} span={2}>
         <CustomFormLabel
-          label={tr('projectObject.objectCategoryLabel')}
+          label={tr('projectObject.objectCategoryLabelShort')}
           htmlFor="objectCategoryField"
         />
         <CodeSelect
@@ -192,15 +194,27 @@ export function WorkTableFilters(props: Props) {
         />
       </GridSpan>
 
-      <GridSpan row={2} span={2}>
+      <GridSpan row={2} span={4}>
         <span />
       </GridSpan>
 
-      <GridSpan row={2} span={2}>
-        <CustomFormLabel label={tr('workTable.financesYearsLabel')} htmlFor="financeYearsField" />
-        <FinanceYearsSelect
-          value={searchParams.financeYears}
-          onChange={(value) => setSearchParams({ ...searchParams, financeYears: value })}
+      <div
+        css={(theme) => css`
+          border-left: 1px solid #ccc;
+          padding-left: ${theme.spacing(2)};
+          grid-column: span 2;
+          grid-row: 1 / span 2;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+        `}
+      >
+        <CustomFormLabel label={tr('workTable.financesRangeLabel')} htmlFor="financesRangeField" />
+        <FinancesRangeSelect
+          readOnly={props.readOnly}
+          value={searchParams.financesRange}
+          yearRange={props.yearRange}
+          onChange={(value) => setSearchParams({ ...searchParams, financesRange: value })}
           {...(searchParams.startDate &&
             searchParams.endDate && {
               yearRange: {
@@ -209,7 +223,7 @@ export function WorkTableFilters(props: Props) {
               },
             })}
         />
-      </GridSpan>
+      </div>
     </div>
   );
 }
