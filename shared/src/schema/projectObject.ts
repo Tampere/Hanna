@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { codeId } from './code';
 import { isoDateString, nonEmptyString } from './common';
+import { partialBudgetUpdateSchema } from './project';
 
 export const projectObjectUserRoleSchema = z.object({
   userId: nonEmptyString,
@@ -27,6 +28,7 @@ export const newProjectObjectSchema = z.object({
   locationOnProperty: codeId.optional().nullable(),
   height: z.coerce.number().optional().nullable(),
   objectUserRoles: z.array(projectObjectUserRoleSchema),
+  budgetUpdate: partialBudgetUpdateSchema.optional().nullable(),
 });
 
 export const updateProjectObjectSchema = newProjectObjectSchema.partial().extend({

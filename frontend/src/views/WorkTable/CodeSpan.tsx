@@ -1,8 +1,9 @@
 import { useAtomValue } from 'jotai';
-import { CodeId } from 'tre-hanna-shared/src/schema/code';
 
 import { trpc } from '@frontend/client';
 import { langAtom } from '@frontend/stores/lang';
+
+import { CodeId } from '@shared/schema/code';
 
 interface Props {
   codeListId: CodeId['codeListId'];

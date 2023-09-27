@@ -13,12 +13,7 @@ import { useDebounce } from '@frontend/utils/useDebounce';
 import { WorkTableFilters } from '@frontend/views/WorkTable/WorkTableFilters';
 import { getColumns } from '@frontend/views/WorkTable/columns';
 
-import {
-  ProjectsUpdate,
-  WorkTableRow,
-  WorkTableRowUpdate,
-  WorkTableSearch,
-} from '@shared/schema/workTable';
+import { WorkTableRow, WorkTableRowUpdate, WorkTableSearch } from '@shared/schema/workTable';
 
 import { ModifiedFields } from './diff';
 
@@ -31,6 +26,7 @@ const dataGridStyle = (theme: Theme) => css`
   & .MuiDataGrid-columnHeader {
     background: ${theme.palette.primary.main};
     color: white;
+    text-align: left;
   }
   & .MuiDataGrid-columnHeaderTitle {
     line-height: normal;
@@ -73,7 +69,9 @@ function getCellEditEvent(oldRow: WorkTableRow, newRow: WorkTableRow): CellEditE
   };
 }
 
-const searchAtom = atom<WorkTableSearch>({});
+const searchAtom = atom<WorkTableSearch>({
+  financesRange: new Date().getFullYear(),
+});
 
 export default function WorkTable() {
   const [searchParams, setSearchParams] = useAtom(searchAtom);
@@ -81,6 +79,11 @@ export default function WorkTable() {
   const tr = useTranslations();
   const gridApiRef = useGridApiRef();
   const notify = useNotifications();
+
+  const [yearRange, setYearRange] = useState<{ startYear: number; endYear: number }>({
+    startYear: new Date().getFullYear(),
+    endYear: new Date().getFullYear(),
+  });
 
   const workTableData = trpc.workTable.search.useQuery(query);
   const updateObjects = trpc.workTable.update.useMutation({
@@ -118,7 +121,7 @@ export default function WorkTable() {
   }, [editEvents]);
 
   const columns = useMemo(() => {
-    return getColumns({ modifiedFields });
+    return getColumns({ modifiedFields, financesRange: searchParams.financesRange });
   }, [modifiedFields]);
 
   useEffect(() => {
@@ -131,6 +134,14 @@ export default function WorkTable() {
       return;
     }
     gridApiRef.current.setRows([...(workTableData.data as WorkTableRow[])]);
+
+    const minYear = Math.min(
+      ...workTableData.data.map((row) => new Date(row.dateRange.startDate).getFullYear())
+    );
+    const maxYear = Math.max(
+      ...workTableData.data.map((row) => new Date(row.dateRange.endDate).getFullYear())
+    );
+    setYearRange({ startYear: minYear, endYear: maxYear });
   }, [workTableData.data]);
 
   useEffect(() => {
@@ -208,6 +219,7 @@ export default function WorkTable() {
       <WorkTableFilters
         readOnly={editEvents.length > 0}
         searchParams={searchParams}
+        yearRange={yearRange}
         setSearchParams={setSearchParams}
       />
       <DataGrid

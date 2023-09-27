@@ -1,26 +1,25 @@
 import { Search } from '@mui/icons-material';
-import { InputAdornment, TextField, TextFieldProps, Theme, css } from '@mui/material';
-import {
-  DesktopDatePicker,
-  DesktopDatePickerProps,
-  LocalizationProvider,
-  fiFI,
-} from '@mui/x-date-pickers';
+import { InputAdornment, TextField, Theme, css } from '@mui/material';
+import { LocalizationProvider, fiFI } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import { SetStateAction, useAtomValue } from 'jotai';
-import { useState } from 'react';
-import { WorkTableSearch } from 'tre-hanna-shared/src/schema/workTable';
+import React from 'react';
 
 import { CustomFormLabel } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
+import { FinancesRangeSelect } from '@frontend/views/WorkTable/Filters/FinancesRangeSelect';
+import { YearMonthPicker } from '@frontend/views/WorkTable/Filters/YearMonthPicker';
+
+import { WorkTableSearch } from '@shared/schema/workTable';
 
 interface GridSpanProps {
   span: number;
   row: number;
   children: React.ReactNode;
 }
+
 function GridSpan({ span, row, children }: GridSpanProps): React.ReactElement<GridSpanProps> {
   return (
     <div
@@ -37,55 +36,8 @@ function GridSpan({ span, row, children }: GridSpanProps): React.ReactElement<Gr
 interface Props {
   searchParams: WorkTableSearch;
   setSearchParams: (value: SetStateAction<WorkTableSearch>) => void;
+  yearRange: { startYear: number; endYear: number };
   readOnly?: boolean;
-}
-
-function YearMonthTextfield(props: TextFieldProps) {
-  return <TextField {...props} size={'small'} InputProps={{ ...props.InputProps }} />;
-}
-
-interface YearMonthPickerProps {
-  readOnly?: boolean;
-  onChange: (value: Dayjs) => void;
-  DatePickerProps?: DesktopDatePickerProps<Dayjs>;
-}
-
-function YearMonthPicker(props: YearMonthPickerProps) {
-  const tr = useTranslations();
-
-  const [view, setView] = useState<'year' | 'month'>('year');
-
-  return (
-    <DesktopDatePicker
-      view={view}
-      onYearChange={() => setView('month')}
-      views={['year', 'month']}
-      format={'MM/YYYY'}
-      disabled={props.readOnly}
-      slots={{
-        textField: YearMonthTextfield,
-      }}
-      slotProps={{
-        textField: {
-          fullWidth: true,
-          size: 'small',
-          type: 'text',
-          disabled: props.readOnly,
-          variant: props.readOnly ? 'filled' : 'outlined',
-          hiddenLabel: props.readOnly,
-          inputProps: {
-            placeholder: tr('date.format.yearmonth.placeholder'),
-          },
-        },
-      }}
-      onChange={(value: Dayjs | null) => {
-        if (value?.isValid()) {
-          props.onChange(value);
-        }
-      }}
-      {...props.DatePickerProps}
-    />
-  );
 }
 
 export function WorkTableFilters(props: Props) {
@@ -115,7 +67,7 @@ export function WorkTableFilters(props: Props) {
       css={(theme: Theme) => css`
         padding: ${theme.spacing(2)} 0;
         display: grid;
-        grid-template-columns: repeat(12, 1fr);
+        grid-template-columns: repeat(14, 1fr);
         grid-template-rows: 1fr 1fr;
         gap: ${theme.spacing(2)};
       `}
@@ -160,37 +112,27 @@ export function WorkTableFilters(props: Props) {
         <GridSpan row={1} span={2}>
           <CustomFormLabel label={tr('workTable.startDate')} htmlFor="startDateField" />
           <YearMonthPicker
+            value={searchParams?.startDate ?? null}
+            dateMode="startOfMonth"
+            format="YYYY-MM-DD"
             DatePickerProps={{
-              maxDate: dayjs(searchParams.endDate),
+              maxDate: searchParams.endDate ? dayjs(searchParams.endDate) : undefined,
             }}
             readOnly={props.readOnly}
-            onChange={(value) => {
-              const startDate = value.startOf('month') ?? null;
-              if (startDate.isBefore(searchParams.endDate)) {
-                setSearchParams({
-                  ...searchParams,
-                  startDate: startDate.format('YYYY-MM-DD') ?? null,
-                });
-              }
-            }}
+            onChange={(value) => setSearchParams({ ...searchParams, startDate: value })}
           />
         </GridSpan>
         <GridSpan row={1} span={2}>
           <CustomFormLabel label={tr('workTable.endDate')} htmlFor="endDateField" />
           <YearMonthPicker
+            value={searchParams?.endDate ?? null}
+            dateMode="endOfMonth"
+            format="YYYY-MM-DD"
             DatePickerProps={{
-              minDate: dayjs(searchParams.startDate),
+              minDate: searchParams.startDate ? dayjs(searchParams.startDate) : undefined,
             }}
             readOnly={props.readOnly}
-            onChange={(value) => {
-              const endDate = value.endOf('month') ?? null;
-              if (endDate.isAfter(searchParams.startDate)) {
-                setSearchParams({
-                  ...searchParams,
-                  endDate: endDate.format('YYYY-MM-DD') ?? null,
-                });
-              }
-            }}
+            onChange={(value) => setSearchParams({ ...searchParams, endDate: value })}
           />
         </GridSpan>
       </LocalizationProvider>
@@ -209,7 +151,7 @@ export function WorkTableFilters(props: Props) {
 
       <GridSpan row={2} span={2}>
         <CustomFormLabel
-          label={tr('projectObject.objectCategoryLabel')}
+          label={tr('projectObject.objectCategoryLabelShort')}
           htmlFor="objectCategoryField"
         />
         <CodeSelect
@@ -251,6 +193,37 @@ export function WorkTableFilters(props: Props) {
           onChange={(state) => setSearchParams({ ...searchParams, lifecycleState: state })}
         />
       </GridSpan>
+
+      <GridSpan row={2} span={4}>
+        <span />
+      </GridSpan>
+
+      <div
+        css={(theme) => css`
+          border-left: 1px solid #ccc;
+          padding-left: ${theme.spacing(2)};
+          grid-column: span 2;
+          grid-row: 1 / span 2;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+        `}
+      >
+        <CustomFormLabel label={tr('workTable.financesRangeLabel')} htmlFor="financesRangeField" />
+        <FinancesRangeSelect
+          readOnly={props.readOnly}
+          value={searchParams.financesRange}
+          yearRange={props.yearRange}
+          onChange={(value) => setSearchParams({ ...searchParams, financesRange: value })}
+          {...(searchParams.startDate &&
+            searchParams.endDate && {
+              yearRange: {
+                startYear: dayjs(searchParams.startDate).year(),
+                endYear: dayjs(searchParams.endDate).year(),
+              },
+            })}
+        />
+      </div>
     </div>
   );
 }

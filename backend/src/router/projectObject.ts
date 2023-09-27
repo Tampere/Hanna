@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
 import { codeIdFragment } from '@backend/components/code';
+import { partialUpdateBudget } from '@backend/components/project';
 import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 
@@ -207,6 +208,7 @@ export async function getProjectObjects(
     AND id = ANY(${sql.array(projectObjectIds, 'uuid')})
   `);
 }
+
 function isUpdate(input: UpsertProjectObject): input is UpdateProjectObject {
   return 'id' in input;
 }
@@ -293,6 +295,9 @@ export async function upsertProjectObject(
           RETURNING id
       `);
 
+  if (projectObject.budgetUpdate) {
+    await partialUpdateBudget(tx, projectObject.budgetUpdate, userId);
+  }
   await updateObjectTypes(tx, { ...projectObject, id: upsertResult.id });
   await updateObjectCategories(tx, { ...projectObject, id: upsertResult.id });
   await updateObjectUsages(tx, { ...projectObject, id: upsertResult.id });

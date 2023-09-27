@@ -138,3 +138,17 @@ export const updateBudgetInputSchema = z.intersection(
 );
 
 export type BudgetUpdate = z.infer<typeof updateBudgetInputSchema>;
+
+export const partialBudgetUpdateSchema = z.intersection(
+  getBudgetInputSchema,
+  z.object({
+    budgetItems: z.array(
+      z.object({
+        year: z.number(),
+        amount: z.number(),
+      })
+    ),
+  })
+);
+
+export type PartialBudgetUpdate = z.infer<typeof partialBudgetUpdateSchema>;

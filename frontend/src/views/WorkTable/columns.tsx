@@ -6,20 +6,22 @@ import {
   GridRenderEditCellParams,
   GridValidRowModel,
 } from '@mui/x-data-grid';
+import dayjs from 'dayjs';
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { WorkTableRow } from 'tre-hanna-shared/src/schema/workTable';
 
-import { formatCurrency } from '@frontend/components/forms/CurrencyInput';
 import { TableCodeCheckbox } from '@frontend/views/WorkTable/CodeCheckbox';
 import { TableCodeSelect } from '@frontend/views/WorkTable/CodeSelect';
 import { CodeSpanMulti } from '@frontend/views/WorkTable/CodeSpanMulti';
 import { CurrencyEdit } from '@frontend/views/WorkTable/CurrencyEdit';
 import { DateRangeEdit, DateRangeView } from '@frontend/views/WorkTable/DateRangePicker';
+import { Finances } from '@frontend/views/WorkTable/Finances';
 import {
   ProjectObjectUserEdit,
   ProjectObjectUsers,
 } from '@frontend/views/WorkTable/ProjectObjectUsers';
+
+import { FinancesRange, WorkTableRow } from '@shared/schema/workTable';
 
 import { CodeSpan } from './CodeSpan';
 import { ProjectObjectNameEdit } from './ProjectObjectNameEdit';
@@ -27,12 +29,24 @@ import { ModifiedFields } from './diff';
 
 interface GetColumnsParams {
   modifiedFields: ModifiedFields<WorkTableRow>;
+  financesRange: FinancesRange;
 }
 
 interface MaybeModifiedCellProps<T extends GridValidRowModel> {
   params: GridRenderCellParams<T>;
   children: React.ReactNode;
   modifiedFields?: ModifiedFields<T>;
+}
+
+function isFinanceEditingDisabled(row: WorkTableRow, financesRange: FinancesRange) {
+  if (financesRange === 'allYears') {
+    return true;
+  }
+
+  const startYear = dayjs(row.dateRange.startDate).year();
+  const endYear = dayjs(row.dateRange.endDate).year();
+
+  return financesRange < startYear || financesRange > endYear;
 }
 
 function MaybeModifiedCell({
@@ -54,7 +68,10 @@ function MaybeModifiedCell({
   return <div ref={ref}>{children}</div>;
 }
 
-export function getColumns({ modifiedFields }: GetColumnsParams): GridColDef<WorkTableRow>[] {
+export function getColumns({
+  modifiedFields,
+  financesRange,
+}: GetColumnsParams): GridColDef<WorkTableRow>[] {
   const columns: GridColDef<WorkTableRow>[] = [
     {
       field: 'objectName',
@@ -126,7 +143,7 @@ export function getColumns({ modifiedFields }: GetColumnsParams): GridColDef<Wor
     {
       field: 'dateRange',
       headerName: 'Toteutusväli',
-      width: 112,
+      width: 90,
       renderCell: (params: GridRenderCellParams) => (
         <MaybeModifiedCell params={params} modifiedFields={modifiedFields}>
           <DateRangeView value={params.value} />{' '}
@@ -253,21 +270,33 @@ export function getColumns({ modifiedFields }: GetColumnsParams): GridColDef<Wor
     {
       field: 'finances',
       headerName: 'Talousarvio / Toteuma',
+      editable: financesRange !== 'allYears',
       flex: 1,
-      renderCell: (params: GridRenderCellParams) => (
-        <div
-          css={css`
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-          `}
-        >
-          <div>{formatCurrency(params.value.budget)}</div>
-          <div>{formatCurrency(params.value.actual)}</div>
-        </div>
-      ),
+      renderCell: ({ row, value }: GridRenderCellParams) => {
+        const startYear = dayjs(row.dateRange.startDate).year();
+        const endYear = dayjs(row.dateRange.endDate).year();
+        const notInRange =
+          financesRange !== 'allYears' && (financesRange < startYear || financesRange > endYear);
+
+        return (
+          <Finances
+            value={value}
+            notInRange={notInRange}
+            readOnly={isFinanceEditingDisabled(row, financesRange)}
+          />
+        );
+      },
       renderEditCell: (params: GridRenderEditCellParams) => {
-        const { id, field, value } = params;
+        const { id, field, value, api } = params;
+
+        // NOTE: this is a workaround for not being able to disable editing for a single cell
+        // based on the business logic.
+        const isDisabled = isFinanceEditingDisabled(params.row, financesRange);
+        if (isDisabled) {
+          api.stopCellEditMode({ id: params.id, field: params.field });
+          return <span></span>;
+        }
+
         return (
           <CurrencyEdit
             value={value.budget}
@@ -284,7 +313,7 @@ export function getColumns({ modifiedFields }: GetColumnsParams): GridColDef<Wor
   // Set common fields and wrap cell render to MaybeModifiedCell to avoid repetition
   columns.forEach((column) => {
     const oldRenderCell = column.renderCell;
-    column.editable = column.editable === false ? false : true;
+    column.editable = column.editable !== false;
     column.filterable = false;
     column.sortable = false;
     column.cellClassName = 'cell-wrap-text';

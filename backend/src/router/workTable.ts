@@ -3,6 +3,7 @@ import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 import { getProjectObjects, upsertProjectObject } from '@backend/router/projectObject';
 
+import { UpsertProjectObject } from '@shared/schema/projectObject';
 import {
   ProjectsUpdate,
   WorkTableSearch,
@@ -22,6 +23,7 @@ async function workTableSearch(input: WorkTableSearch) {
     objectCategory = [],
     objectUsage = [],
     lifecycleState = [],
+    financesRange,
   } = input;
 
   const query = sql.type(workTableRowSchema)`
@@ -57,6 +59,28 @@ async function workTableSearch(input: WorkTableSearch) {
         ${sql.array(lifecycleState, 'text')} = '{}'::TEXT[] OR
         (project_object.lifecycle_state).id = ANY(${sql.array(lifecycleState, 'text')})
       )
+  ), po_budget AS (
+    SELECT
+      project_object_id,
+      COALESCE(SUM(budget.amount), null) AS budget
+    FROM app.budget
+    WHERE ${
+      financesRange === 'allYears' ? sql.fragment`true` : sql.fragment`year = ${financesRange}`
+    }
+    GROUP BY project_object_id
+  ), po_actual AS (
+    SELECT
+      project_object.id AS po_id,
+      SUM(value_in_currency_subunit) AS total
+    FROM
+      app.sap_actuals_item
+    INNER JOIN app.project_object ON project_object.sap_wbs_id = sap_actuals_item.wbs_element_id
+    WHERE ${
+      financesRange === 'allYears'
+        ? sql.fragment`true`
+        : sql.fragment`EXTRACT(YEAR FROM posting_date) = ${financesRange}`
+    }
+    GROUP BY project_object.id
   )
   SELECT
     search_results.id AS "id",
@@ -77,8 +101,18 @@ async function workTableSearch(input: WorkTableSearch) {
         'rakennuttajaUser', rakennuttaja_user,
         'suunnitteluttajaUser', suunnitteluttaja_user
     ) AS "operatives",
-    -- FIXME: yearly values, that are summed in the UI
-    '{"budget": 0, "actual": 0}'::JSONB AS "finances"
+    (
+      SELECT
+        jsonb_build_object(
+          'budget', (SELECT budget FROM po_budget WHERE po_budget.project_object_id = search_results.id),
+          'actual', (SELECT total FROM po_actual WHERE po_actual.po_id = search_results.id)
+        ) ||
+          ${
+            financesRange === 'allYears'
+              ? sql.fragment`'{}'::jsonb`
+              : sql.fragment`jsonb_build_object('year', ${financesRange}::integer)`
+          }
+    ) AS "finances"
   FROM search_results
   ORDER BY object_name ASC
   `;
@@ -90,10 +124,21 @@ async function workTableUpdate(input: ProjectsUpdate, userId: string) {
   const updates = Object.entries(input).map(([projectObjectId, projectObject]) => {
     return {
       ...projectObject,
+      startDate: projectObject.dateRange?.startDate,
+      endDate: projectObject.dateRange?.endDate,
       rakennuttajaUser: projectObject.operatives?.rakennuttajaUser,
       suunnitteluttajaUser: projectObject.operatives?.suunnitteluttajaUser,
       id: projectObjectId,
-    };
+      budgetUpdate: {
+        projectObjectId,
+        budgetItems: [
+          {
+            year: projectObject.finances?.year,
+            amount: projectObject.finances?.budget,
+          },
+        ],
+      },
+    } as UpsertProjectObject;
   });
 
   return await getPool().transaction(async (tx) => {

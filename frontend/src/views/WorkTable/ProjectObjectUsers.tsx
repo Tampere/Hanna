@@ -1,6 +1,7 @@
 import { css } from '@emotion/react';
 import {
   Autocomplete,
+  Box,
   FormLabel,
   LinearProgress,
   Paper,
@@ -8,12 +9,12 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { Box } from '@mui/system';
 import { useEffect, useRef, useState } from 'react';
-import type { UpsertProjectObject } from 'tre-hanna-shared/src/schema/projectObject';
 
 import { trpc } from '@frontend/client';
 import { useTranslations } from '@frontend/stores/lang';
+
+import type { UpsertProjectObject } from '@shared/schema/projectObject';
 
 interface Value {
   rakennuttajaUser: UpsertProjectObject['rakennuttajaUser'];
@@ -25,15 +26,22 @@ interface Props {
   onChange: (value: Value) => void;
 }
 
+/**
+ * ProjectObjectUsers component for the DataGrid
+ * @param {Object} props - Properties passed to component
+ * @param {Value} props.value - The value of the project object users
+ */
+
 export function ProjectObjectUsers({ value }: { value: Value }) {
-  const users = trpc.user.getAll.useQuery();
+  // When DataGrid is scrolled, users are not constantly refetched over and over again
+  const users = trpc.user.getAll.useQuery(undefined, { staleTime: 5 * 60 * 60 });
 
   return (
     <Box
       css={(theme) => css`
         display: flex;
         flex-direction: column;
-        padding: ${theme.spacing(1)};
+        padding: ${theme.spacing(1)} 0;
       `}
     >
       <span>{users.data?.find(({ id }) => id === value.rakennuttajaUser)?.name}</span>
@@ -55,7 +63,7 @@ export function ProjectObjectUserEdit({ value, onChange }: Props) {
   }, [anchorElRef.current]);
 
   return (
-    <Box ref={anchorElRef} position={'absolute'}>
+    <Box ref={anchorElRef} position={'absolute'} sx={{ p: 1 }}>
       <ProjectObjectUsers value={value} />
       <Popper open={open} anchorEl={anchorElRef.current?.parentElement} placement={'bottom-end'}>
         {open && users.isLoading && (
