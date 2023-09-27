@@ -295,7 +295,7 @@ export async function upsertProjectObject(
           RETURNING id
       `);
 
-  if (projectObject.budgetUpdate) {
+  if (projectObject.budgetUpdate?.budgetItems?.length) {
     await partialUpdateBudget(tx, projectObject.budgetUpdate, userId);
   }
   await updateObjectTypes(tx, { ...projectObject, id: upsertResult.id });

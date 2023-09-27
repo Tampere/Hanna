@@ -129,15 +129,17 @@ async function workTableUpdate(input: ProjectsUpdate, userId: string) {
       rakennuttajaUser: projectObject.operatives?.rakennuttajaUser,
       suunnitteluttajaUser: projectObject.operatives?.suunnitteluttajaUser,
       id: projectObjectId,
-      budgetUpdate: {
-        projectObjectId,
-        budgetItems: [
-          {
-            year: projectObject.finances?.year,
-            amount: projectObject.finances?.budget,
-          },
-        ],
-      },
+      ...(projectObject.finances && {
+        budgetUpdate: {
+          projectObjectId,
+          budgetItems: [
+            {
+              year: projectObject.finances.year,
+              amount: projectObject.finances.budget,
+            },
+          ],
+        },
+      }),
     } as UpsertProjectObject;
   });
 
