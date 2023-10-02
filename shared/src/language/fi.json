@@ -364,6 +364,7 @@
   "sapReports.blanketContracts.totalDebit": "Tulot",
   "sapReports.blanketContracts.totalCredit": "Menot",
   "sapReports.blanketContracts.totalActuals": "Toteuma",
+  "sapReports.blanketContracts.year": "Vuosi",
   "sapReports.totalDebitSum": "Tulot yhteensä",
   "sapReports.totalCreditSum": "Menot yhteensä",
   "sapReports.totalActualsSum": "Toteuma yhteensä",

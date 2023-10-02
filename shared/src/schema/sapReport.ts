@@ -56,6 +56,7 @@ export const blanketContractReportFilterSchema = z.object({
     text: z.string().nullable(),
     consultCompanies: z.array(z.string()),
     blanketOrderId: z.string().nullable(),
+    years: z.array(z.number()),
   }),
 });
 

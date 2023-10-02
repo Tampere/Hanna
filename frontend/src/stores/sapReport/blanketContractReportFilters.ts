@@ -9,6 +9,7 @@ export const blanketContractReportFilterAtom = atom<BlanketContractReportQuery['
   text: null,
   consultCompanies: [],
   blanketOrderId: null,
+  years: [],
 });
 
 export const textAtom = focusAtom(blanketContractReportFilterAtom, (o) => o.prop('text'));
@@ -27,3 +28,5 @@ export function useDebouncedBlanketContractReportFilters() {
     blanketOrderId: useDebounce(filters.blanketOrderId, 250),
   };
 }
+
+export const yearsAtom = focusAtom(blanketContractReportFilterAtom, (o) => o.prop('years'));
