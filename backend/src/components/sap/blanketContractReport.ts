@@ -5,6 +5,7 @@ import { getPool, sql, textToTsQuery } from '@backend/db';
 import { BlanketContractReportQuery, blanketContractReportSchema } from '@shared/schema/sapReport';
 
 function blanketContractReportFragment(params?: Partial<BlanketContractReportQuery>) {
+  const years = params?.filters?.years ?? [];
   return sql.fragment`
     WITH total_actuals AS (
       SELECT
@@ -13,6 +14,13 @@ function blanketContractReportFragment(params?: Partial<BlanketContractReportQue
         sum(value_in_currency_subunit) FILTER (WHERE entry_type = 'CREDIT') AS "totalCredit",
         sum(value_in_currency_subunit) AS "totalActuals"
       FROM app.sap_actuals_item
+      ${
+        years.length > 0
+          ? sql.fragment`
+        WHERE fiscal_year = ANY(${sql.array(years, 'int4')})
+      `
+          : sql.fragment``
+      }
       GROUP BY wbs_element_id
     ), report_items AS (
       SELECT
