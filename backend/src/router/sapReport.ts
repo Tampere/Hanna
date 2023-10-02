@@ -1,4 +1,3 @@
-import { EXPLICIT_EMPTY } from 'tre-hanna-shared/src/schema/code';
 import { z } from 'zod';
 
 import {
@@ -16,6 +15,7 @@ import { startEnvironmentCodeReportJob } from '@backend/components/sap/environme
 import { getLastSyncedAt } from '@backend/components/sap/syncQueue';
 import { getPool, sql } from '@backend/db';
 
+import { EXPLICIT_EMPTY } from '@shared/schema/code';
 import {
   blanketContractReportFilterSchema,
   blanketContractReportQuerySchema,
