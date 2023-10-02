@@ -371,6 +371,7 @@
   "sapReports.downloadReport": "Lataa raportti",
   "sapReports.externalCompany": "Kohdistamaton",
   "sapReports.reportFailed": "Raportin luonti epäonnistui.",
+  "sapReports.explicitEmpty": "Tyhjä arvo",
   "workTable.search.budgetTitle": "Talousarvio",
   "workTable.search.actualTitle": "Toteuma",
   "workTable.startDate": "Hakuaikavälin alku",

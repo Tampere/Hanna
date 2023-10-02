@@ -2,6 +2,10 @@ import { z } from 'zod';
 
 import { Language, languages } from '../language';
 
+export const EXPLICIT_EMPTY = '0';
+
+const emptyValueSchema = z.literal(EXPLICIT_EMPTY);
+
 const codeIdRegex = /^\d{0,4}$/;
 
 export const codeId = z.string().regex(codeIdRegex);
@@ -48,4 +52,5 @@ export type CodeId = z.infer<typeof codeIdSchema>;
 
 export const codeSearchSchema = z.object({
   codeListId: codeListIdSchema,
+  allowEmptySelection: z.boolean().optional(),
 });
