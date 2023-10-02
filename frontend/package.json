@@ -51,7 +51,7 @@
     "vite-plugin-markdown": "^2.2.0-2",
     "vite-plugin-svgr": "^3.3.0",
     "vite-tsconfig-paths": "^4.2.1",
-    "vitest": "^0.34.5"
+    "vitest": "^0.34.6"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
