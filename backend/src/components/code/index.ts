@@ -4,6 +4,17 @@ import { getPool } from '@backend/db';
 
 import { Code, CodeId, EXPLICIT_EMPTY, codeSchema } from '@shared/schema/code';
 
+const emptyCode = (codeListId: Code['id']['codeListId']) =>
+  ({
+    id: {
+      id: EXPLICIT_EMPTY,
+      codeListId,
+    },
+    text: {
+      fi: 'Tyhjä arvo',
+    },
+  } as const);
+
 const codeSelectFragment = sql.fragment`
   SELECT
     json_build_object(
@@ -26,21 +37,7 @@ export async function getCodesForCodeList(
     WHERE (code.id).code_list_id = ${codeListId}
   `);
 
-  return emptySelection
-    ? [
-        {
-          id: {
-            id: EXPLICIT_EMPTY,
-            codeListId,
-          },
-          text: {
-            fi: 'Tyhjä arvo',
-            en: 'Empty value',
-          },
-        },
-        ...results,
-      ]
-    : results;
+  return emptySelection ? [emptyCode(codeListId), ...results] : results;
 }
 
 export function codeIdFragment(
