@@ -2,7 +2,32 @@ import { z } from 'zod';
 
 import { getPool, sql, textToTsQuery } from '@backend/db';
 
+import { EXPLICIT_EMPTY } from '@shared/schema/code';
 import { EnvironmentCodeReportQuery, environmentCodeReportSchema } from '@shared/schema/sapReport';
+
+function filterPlantFragment(plants?: EnvironmentCodeReportQuery['filters']['plants']) {
+  if (!plants || plants.length === 0) return sql.fragment`true`;
+
+  const includeEmpty = plants.includes(EXPLICIT_EMPTY);
+  const inArrayFragment = sql.fragment`plant = ANY(${sql.array(plants, 'text')})`;
+  return includeEmpty ? sql.fragment`(${inArrayFragment} OR plant IS NULL)` : inArrayFragment;
+}
+
+function filterReasonForEnvironmentalInvestmentFragment(
+  reasonsForEnvironmentalInvestment?: EnvironmentCodeReportQuery['filters']['reasonsForEnvironmentalInvestment']
+) {
+  if (!reasonsForEnvironmentalInvestment || reasonsForEnvironmentalInvestment.length === 0)
+    return sql.fragment`true`;
+
+  const includeEmpty = reasonsForEnvironmentalInvestment.includes(EXPLICIT_EMPTY);
+  const inArrayFragment = sql.fragment`"reasonForEnvironmentalInvestment" = ANY(${sql.array(
+    reasonsForEnvironmentalInvestment,
+    'text'
+  )})`;
+  return includeEmpty
+    ? sql.fragment`(${inArrayFragment} OR "reasonForEnvironmentalInvestment" IS NULL)`
+    : inArrayFragment;
+}
 
 function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQuery>) {
   const years = params?.filters?.years ?? [];
@@ -60,20 +85,10 @@ function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQue
               )`
         : sql.fragment`true`
     }
-    AND ${
-      params?.filters?.plants && params.filters.plants.length > 0
-        ? sql.fragment`plant = ANY(${sql.array(params.filters.plants, 'text')})`
-        : sql.fragment`true`
-    }
-    AND ${
-      params?.filters?.reasonsForEnvironmentalInvestment &&
-      params.filters.reasonsForEnvironmentalInvestment.length > 0
-        ? sql.fragment`"reasonForEnvironmentalInvestment" = ANY(${sql.array(
-            params.filters.reasonsForEnvironmentalInvestment,
-            'text'
-          )})`
-        : sql.fragment`true`
-    }
+    AND (${filterPlantFragment(params?.filters?.plants)})
+    AND (${filterReasonForEnvironmentalInvestmentFragment(
+      params?.filters?.reasonsForEnvironmentalInvestment
+    )})
     ${
       params?.sort
         ? sql.fragment`ORDER BY ${sql.identifier([params.sort.key])} ${

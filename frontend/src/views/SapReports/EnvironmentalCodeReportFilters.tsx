@@ -25,6 +25,8 @@ import {
   yearsAtom,
 } from '@frontend/stores/sapReport/environmentalCodeReportFilters';
 
+import { EXPLICIT_EMPTY } from '@shared/schema/code';
+
 import { ReportSummary } from './ReportSummary';
 
 export function EnvironmentalCodeReportFilters() {
@@ -32,7 +34,7 @@ export function EnvironmentalCodeReportFilters() {
   const notify = useNotifications();
 
   const [text, setText] = useAtom(textAtom);
-  const [plants, setPlants] = useAtom(plantsAtom);
+  const [plants, setPlants] = useAtom<string[]>(plantsAtom);
   const [reasonsForEnvironmentalInvestment, setReasonsForEnvironmentalInvestment] = useAtom(
     reasonsForEnvironmentalInvestmentAtom
   );
@@ -94,16 +96,22 @@ export function EnvironmentalCodeReportFilters() {
             onChange={setReasonsForEnvironmentalInvestment}
             maxTags={1}
             showIdInLabel
+            allowEmptySelection
           />
         </FormControl>
         <FormControl>
           <FormLabel htmlFor="plants">{tr('sapReports.environmentCodes.plant')}</FormLabel>
-          <MultiSelect
+          <MultiSelect<string>
             id="plants"
             options={allPlants ?? []}
+            // use the plant itself as id
+            getOptionId={(opt) => opt}
             loading={allPlantsLoading}
             value={plants ?? []}
             onChange={setPlants}
+            getOptionLabel={(opt) =>
+              opt === EXPLICIT_EMPTY ? tr('sapReports.explicitEmpty') : opt
+            }
             multiple
             maxTags={3}
           />

@@ -1,3 +1,4 @@
+import { EXPLICIT_EMPTY } from 'tre-hanna-shared/src/schema/code';
 import { z } from 'zod';
 
 import {
@@ -83,7 +84,8 @@ export const createSapReportRouter = (t: TRPC) =>
         WHERE plant IS NOT NULL
         ORDER BY plant ASC
       `);
-      return rows.map((row) => row.plant);
+      const plants = rows.map((row) => row.plant);
+      return [EXPLICIT_EMPTY, ...plants];
     }),
 
     getYears: t.procedure.query(async () => {

@@ -2,7 +2,7 @@ import { sql } from 'slonik';
 
 import { getPool } from '@backend/db';
 
-import { Code, CodeId, codeSchema } from '@shared/schema/code';
+import { Code, CodeId, EXPLICIT_EMPTY, codeSchema } from '@shared/schema/code';
 
 const codeSelectFragment = sql.fragment`
   SELECT
@@ -17,11 +17,30 @@ const codeSelectFragment = sql.fragment`
   FROM app.code
 `;
 
-export async function getCodesForCodeList(codeListId: Code['id']['codeListId']) {
-  return getPool().any(sql.type(codeSchema)`
+export async function getCodesForCodeList(
+  codeListId: Code['id']['codeListId'],
+  emptySelection: boolean = false
+) {
+  const results = await getPool().any(sql.type(codeSchema)`
     ${codeSelectFragment}
     WHERE (code.id).code_list_id = ${codeListId}
   `);
+
+  return emptySelection
+    ? [
+        {
+          id: {
+            id: EXPLICIT_EMPTY,
+            codeListId,
+          },
+          text: {
+            fi: 'Tyhjä arvo',
+            en: 'Empty value',
+          },
+        },
+        ...results,
+      ]
+    : results;
 }
 
 export function codeIdFragment(

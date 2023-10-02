@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { trpc } from '@frontend/client';
 import { langAtom } from '@frontend/stores/lang';
 
-import type { Code, CodeId } from '@shared/schema/code';
+import { type Code, type CodeId, EXPLICIT_EMPTY } from '@shared/schema/code';
 
 import { MultiSelect } from './MultiSelect';
 
@@ -15,6 +15,7 @@ type Props = {
   onBlur?: () => void;
   getLabel?: (code: Code) => string;
   showIdInLabel?: boolean;
+  allowEmptySelection?: boolean;
 } & (
   | {
       multiple: true;
@@ -40,8 +41,12 @@ export function CodeSelect({
   onBlur,
   showIdInLabel,
   maxTags,
+  allowEmptySelection,
 }: Props) {
-  const codes = trpc.code.get.useQuery({ codeListId }, { staleTime: 60 * 60 * 1000 });
+  const codes = trpc.code.get.useQuery(
+    { codeListId, allowEmptySelection },
+    { staleTime: 60 * 60 * 1000 }
+  );
   const lang = useAtomValue(langAtom);
 
   function getCode(id: string) {
@@ -49,7 +54,13 @@ export function CodeSelect({
   }
 
   function getLabel(code: Code) {
-    return [showIdInLabel && code.id.id, code.text[lang]].filter(Boolean).join(' ');
+    // empty selection (00) label is not shown
+    let labelId = showIdInLabel ? code.id.id : null;
+    if (code.id.id === EXPLICIT_EMPTY) {
+      labelId = null;
+    }
+
+    return [labelId, code.text[lang]].filter(Boolean).join(' ');
   }
 
   const selection = useMemo(() => {

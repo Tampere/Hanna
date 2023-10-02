@@ -51,7 +51,11 @@ export function EnvironmentalCodeReport() {
             title: tr('sapReports.environmentCodes.companyCode'),
             align: 'right',
             format(value) {
-              return value && isInternalCompany(value) ? value : tr('sapReports.externalCompany');
+              if (!value) {
+                return '';
+              } else {
+                return value && isInternalCompany(value) ? value : tr('sapReports.externalCompany');
+              }
             },
           },
           companyCodeText: {
@@ -65,21 +69,21 @@ export function EnvironmentalCodeReport() {
             title: tr('sapReports.environmentCodes.totalDebit'),
             align: 'right',
             format(value) {
-              return formatCurrency(value ?? null);
+              return formatCurrency(value ?? 0);
             },
           },
           totalCredit: {
             title: tr('sapReports.environmentCodes.totalCredit'),
             align: 'right',
             format(value) {
-              return formatCurrency(value ?? null);
+              return formatCurrency(value ?? 0);
             },
           },
           totalActuals: {
             title: tr('sapReports.environmentCodes.totalActuals'),
             align: 'right',
             format(value) {
-              return formatCurrency(value);
+              return formatCurrency(value ?? 0);
             },
           },
         }}
