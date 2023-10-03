@@ -8,7 +8,7 @@ import { useDebounce } from '../../utils/useDebounce';
 export const blanketContractReportFilterAtom = atom<BlanketContractReportQuery['filters']>({
   text: null,
   consultCompanies: [],
-  blanketOrderId: null,
+  blanketOrderIds: [],
   years: [],
 });
 
@@ -16,8 +16,8 @@ export const textAtom = focusAtom(blanketContractReportFilterAtom, (o) => o.prop
 export const consultCompaniesAtom = focusAtom(blanketContractReportFilterAtom, (o) =>
   o.prop('consultCompanies')
 );
-export const blanketOrderIdAtom = focusAtom(blanketContractReportFilterAtom, (o) =>
-  o.prop('blanketOrderId')
+export const blanketOrderIdsAtom = focusAtom(blanketContractReportFilterAtom, (o) =>
+  o.prop('blanketOrderIds')
 );
 
 export function useDebouncedBlanketContractReportFilters() {
@@ -25,7 +25,6 @@ export function useDebouncedBlanketContractReportFilters() {
   return {
     ...filters,
     text: useDebounce(filters.text, 250),
-    blanketOrderId: useDebounce(filters.blanketOrderId, 250),
   };
 }
 

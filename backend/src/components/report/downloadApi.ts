@@ -24,7 +24,7 @@ export default function (server: FastifyInstance, _opts: FastifyPluginOptions, d
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     );
     reply.header('Content-Disposition', `attachment; filename=${dbResult.filename}`);
-    reply.send(dbResult.data);
+    return reply.send(dbResult.data);
   });
 
   done();

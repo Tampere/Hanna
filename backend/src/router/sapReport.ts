@@ -88,6 +88,20 @@ export const createSapReportRouter = (t: TRPC) =>
       return [EXPLICIT_EMPTY, ...plants];
     }),
 
+    getBlanketOrderIds: t.procedure.input(z.object({})).query(async () => {
+      const { rows } = await getPool().query(sql.type(z.object({ blanketOrderId: z.string() }))`
+        SELECT DISTINCT blanket_order_id AS "blanketOrderId"
+        FROM app.sap_wbs
+        LEFT JOIN app.sap_network network ON sap_wbs.wbs_internal_id = network.wbs_internal_id
+        LEFT JOIN app.sap_project project ON project.sap_project_internal_id = network.sap_project_internal_id
+        WHERE blanket_order_id IS NOT NULL AND
+              network.network_id IS NOT NULL AND
+              project.system_status = 'VAPA'
+        ORDER BY blanket_order_id ASC
+      `);
+      return rows.map((row) => row.blanketOrderId);
+    }),
+
     getYears: t.procedure.query(async () => {
       const { rows } = await getPool().query(
         sql.type(z.object({ year: z.number() }))`

@@ -4,6 +4,12 @@ import { getPool, sql, textToTsQuery } from '@backend/db';
 
 import { BlanketContractReportQuery, blanketContractReportSchema } from '@shared/schema/sapReport';
 
+function filterBlanketOrderIdsFragment(blanketOrderIds: string[]) {
+  return blanketOrderIds.length > 0
+    ? sql.fragment`"blanketOrderId" = ANY(${sql.array(blanketOrderIds, 'text')})`
+    : sql.fragment`true`;
+}
+
 function blanketContractReportFragment(params?: Partial<BlanketContractReportQuery>) {
   const years = params?.filters?.years ?? [];
   return sql.fragment`
@@ -31,7 +37,7 @@ function blanketContractReportFragment(params?: Partial<BlanketContractReportQue
         wbs.consult_company "consultCompany",
         wbs.decision_maker "decisionMaker",
         wbs.decision_date_text "decisionDateText",
-        wbs.blanket_order_id "blanketOrderId",
+        wbs.blanket_order_id AS "blanketOrderId",
         wbs.contract_price_in_currency_subunit "contractPriceInCurrencySubunit",
         wbs.wbs_id "wbsId"
       FROM
@@ -69,11 +75,7 @@ function blanketContractReportFragment(params?: Partial<BlanketContractReportQue
           )})`
         : sql.fragment`true`
     }
-    AND ${
-      params?.filters?.blanketOrderId
-        ? sql.fragment`"blanketOrderId" ~ ${params.filters.blanketOrderId}`
-        : sql.fragment`true`
-    }
+    AND ${filterBlanketOrderIdsFragment(params?.filters?.blanketOrderIds ?? [])}
     ${
       params?.sort
         ? sql.fragment`ORDER BY ${sql.identifier([params.sort.key])} ${
@@ -91,6 +93,12 @@ export async function getBlanketContractReport(query: BlanketContractReportQuery
     ${query.offset != null ? sql.fragment`OFFSET ${query.offset}` : sql.fragment``}
   `);
 
+  // Harmonize blanket contract id to include "TRE:" prefix if it's missing
+  result.forEach((row) => {
+    if (row.blanketOrderId && !row.blanketOrderId.startsWith('TRE:')) {
+      row.blanketOrderId = `TRE:${row.blanketOrderId}`;
+    }
+  });
   return z.array(blanketContractReportSchema).parse(result);
 }
 

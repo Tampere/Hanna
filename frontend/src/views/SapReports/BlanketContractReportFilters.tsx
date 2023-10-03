@@ -17,7 +17,7 @@ import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import {
   blanketContractReportFilterAtom,
-  blanketOrderIdAtom,
+  blanketOrderIdsAtom,
   consultCompaniesAtom,
   textAtom,
   useDebouncedBlanketContractReportFilters,
@@ -32,7 +32,7 @@ export function BlanketContractReportFilters() {
 
   const [text, setText] = useAtom(textAtom);
   const [consultCompanies, setConsultCompanies] = useAtom(consultCompaniesAtom);
-  const [blanketOrderId, setBlanketOrderId] = useAtom(blanketOrderIdAtom);
+  const [blanketOrderIds, setBlanketOrderIds] = useAtom(blanketOrderIdsAtom);
 
   const [years, setYears] = useAtom(yearsAtom);
   const filters = useAtomValue(blanketContractReportFilterAtom);
@@ -46,6 +46,9 @@ export function BlanketContractReportFilters() {
     trpc.sapReport.getBlanketContractReportSummary.useQuery({ filters: debouncedFilters });
 
   const { data: allYears, isLoading: allYearsLoading } = trpc.sapReport.getYears.useQuery();
+
+  const { data: blanketContractIdOptions, isLoading: blanketContractIdOptionsLoading } =
+    trpc.sapReport.getBlanketOrderIds.useQuery({}, { staleTime: 60 * 60 * 1000 });
 
   return (
     <Paper
@@ -100,12 +103,18 @@ export function BlanketContractReportFilters() {
           <FormLabel htmlFor="blanketOrderId">
             {tr('sapReports.blanketContracts.blanketOrderId')}
           </FormLabel>
-          <TextField
+          <MultiSelect
+            multiple
             id="blanketOrderId"
-            size="small"
-            value={blanketOrderId ?? ''}
-            onChange={(event) => {
-              setBlanketOrderId(event.currentTarget.value);
+            loading={blanketContractIdOptionsLoading}
+            options={blanketContractIdOptions ?? []}
+            getOptionId={(option) => option}
+            getOptionLabel={(option) => {
+              return option.startsWith('TRE:') ? option : `TRE:${option}`;
+            }}
+            value={blanketOrderIds ?? []}
+            onChange={(newValue) => {
+              setBlanketOrderIds(newValue);
             }}
           />
         </FormControl>
