@@ -21,6 +21,7 @@ import {
   consultCompaniesAtom,
   textAtom,
   useDebouncedBlanketContractReportFilters,
+  yearsAtom,
 } from '@frontend/stores/sapReport/blanketContractReportFilters';
 
 import { ReportSummary } from './ReportSummary';
@@ -32,6 +33,8 @@ export function BlanketContractReportFilters() {
   const [text, setText] = useAtom(textAtom);
   const [consultCompanies, setConsultCompanies] = useAtom(consultCompaniesAtom);
   const [blanketOrderId, setBlanketOrderId] = useAtom(blanketOrderIdAtom);
+
+  const [years, setYears] = useAtom(yearsAtom);
   const filters = useAtomValue(blanketContractReportFilterAtom);
 
   const { data: allConsultCompanies, isLoading: allConsultCompaniesLoading } =
@@ -41,6 +44,8 @@ export function BlanketContractReportFilters() {
   const debouncedFilters = useDebouncedBlanketContractReportFilters();
   const { data: summary, isLoading: summaryLoading } =
     trpc.sapReport.getBlanketContractReportSummary.useQuery({ filters: debouncedFilters });
+
+  const { data: allYears, isLoading: allYearsLoading } = trpc.sapReport.getYears.useQuery();
 
   return (
     <Paper
@@ -102,6 +107,17 @@ export function BlanketContractReportFilters() {
             onChange={(event) => {
               setBlanketOrderId(event.currentTarget.value);
             }}
+          />
+        </FormControl>
+        <FormControl>
+          <FormLabel htmlFor="year">{tr('sapReports.blanketContracts.year')}</FormLabel>
+          <MultiSelect
+            id="years"
+            options={allYears ?? []}
+            loading={allYearsLoading}
+            value={years ?? []}
+            onChange={setYears}
+            multiple
           />
         </FormControl>
       </div>
