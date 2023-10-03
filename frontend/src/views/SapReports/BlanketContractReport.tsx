@@ -46,7 +46,7 @@ export function BlanketContractReport() {
           },
           blanketOrderId: {
             title: tr('sapReports.blanketContracts.blanketOrderId'),
-            align: 'right',
+            align: 'left',
           },
           contractPriceInCurrencySubunit: {
             title: tr('sapReports.blanketContracts.contractPriceInCurrencySubunit'),
