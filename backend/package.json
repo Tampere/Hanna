@@ -42,7 +42,7 @@
     "concurrently": "^8.2.1",
     "eslint": "^8.50.0",
     "node-dev": "^8.0.0",
-    "pino-pretty": "^10.2.0",
+    "pino-pretty": "^10.2.3",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^3.13.0",
     "typescript": "^5.2.2",
