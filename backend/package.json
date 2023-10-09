@@ -68,7 +68,7 @@
     "fast-json-stable-stringify": "^2.1.0",
     "fastify": "^4.23.2",
     "nodemailer": "^6.9.5",
-    "openid-client": "^5.5.0",
+    "openid-client": "^5.6.0",
     "pg-boss": "^9.0.3",
     "pino": "^8.15.1",
     "postgres-migrations": "^5.3.0",
