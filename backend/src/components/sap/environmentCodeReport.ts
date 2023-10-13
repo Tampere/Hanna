@@ -63,7 +63,6 @@ function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQue
         LEFT JOIN app.sap_network network ON network.wbs_internal_id = wbs.wbs_internal_id
         LEFT JOIN app.code company_code ON company_code.id = ('Kumppani', network.company_code)::app.code_id
         LEFT JOIN app.code environment_code ON environment_code.id = ('YmpäristönsuojelunSyy', wbs.reason_for_environmental_investment)::app.code_id
-      WHERE project.system_status = 'VAPA'
     )
     SELECT
       report.*,
