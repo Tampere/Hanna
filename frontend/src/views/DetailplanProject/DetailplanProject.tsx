@@ -7,7 +7,6 @@ import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { PROJECT_AREA_STYLE } from '@frontend/components/Map/styles';
-import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { DeleteProjectDialog } from '@frontend/views/Project/DeleteProjectDialog';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
@@ -75,24 +74,6 @@ export function DetailplanProject() {
     { enabled: Boolean(projectId), queryKey: ['detailplanProject.get', { id: projectId }] }
   );
   const tr = useTranslations();
-  const notify = useNotifications();
-
-  const geometryUpdate = trpc.project.updateGeometry.useMutation({
-    onSuccess: () => {
-      project.refetch();
-      notify({
-        severity: 'success',
-        title: tr('project.notifyGeometryUpdateTitle'),
-        duration: 5000,
-      });
-    },
-    onError: () => {
-      notify({
-        severity: 'error',
-        title: tr('project.notifyGeometryUpdateFailedTitle'),
-      });
-    },
-  });
 
   if (projectId && project.isLoading) {
     return <Typography>{tr('loading')}</Typography>;
@@ -170,10 +151,7 @@ export function DetailplanProject() {
                 geoJson={project.data?.geom}
                 drawStyle={PROJECT_AREA_STYLE}
                 fitExtent="geoJson"
-                editable={Boolean(projectId)}
-                onFeaturesSaved={(features) => {
-                  geometryUpdate.mutate({ id: projectId, features: features });
-                }}
+                editable={false}
               />
             </Box>
           )}
