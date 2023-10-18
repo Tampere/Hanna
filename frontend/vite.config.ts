@@ -48,6 +48,7 @@ export default defineConfig({
       }),
   ],
   build: {
+    sourcemap: process.env.NODE_ENV !== 'production',
     outDir: 'dist',
     commonjsOptions: {
       include: [/shared/, /node_modules/],

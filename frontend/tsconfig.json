@@ -11,6 +11,7 @@
     "esModuleInterop": true,
     "baseUrl": ".",
     "outDir": "build",
+    "sourceMap": true,
     "paths": {
       "@frontend/*": ["src/*"],
       "@shared/*": ["node_modules/tre-hanna-shared/src/*"]

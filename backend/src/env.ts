@@ -87,6 +87,10 @@ const schema = z.object({
       password: z.string(),
     }),
   }),
+  geodata: z.object({
+    username: z.string(),
+    password: z.string(),
+  }),
   adminApiKey: z.string().optional(),
 });
 
@@ -169,6 +173,10 @@ function getEnv() {
         username: process.env.PROXY_GEORASTER_USERNAME,
         password: process.env.PROXY_GEORASTER_PASSWORD,
       },
+    },
+    geodata: {
+      username: process.env.GEODATA_USERNAME,
+      password: process.env.GEODATA_PASSWORD,
     },
     adminApiKey: process.env.ADMIN_API_KEY,
   } as z.infer<typeof schema>);

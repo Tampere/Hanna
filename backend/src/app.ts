@@ -16,6 +16,7 @@ import {
 } from '@backend/components/sap/syncQueue';
 import syncQueueApi from '@backend/components/sap/syncQueueApi';
 import { ActualsService, ProjectInfoService } from '@backend/components/sap/webservice';
+import { setupDetailPlanGeomSyncQueue } from '@backend/components/taskQueue/detailPlanGeomSyncQueue';
 import { SharedPool, createDatabasePool } from '@backend/db';
 import { env } from '@backend/env';
 import { logger } from '@backend/logging';
@@ -55,6 +56,7 @@ async function run() {
     setupDailySapSyncQueue(),
     setupEnvironmentCodeReportQueue(),
     setupBlanketContractReportQueue(),
+    setupDetailPlanGeomSyncQueue(),
   ]);
   // https://github.com/fastify/fastify/issues/4960
   const server = fastify({ logger: logger as FastifyBaseLogger });
