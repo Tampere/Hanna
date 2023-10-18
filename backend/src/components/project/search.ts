@@ -7,6 +7,7 @@ import { ProjectSearch, projectSearchResultSchema } from '@shared/schema/project
 type TextToSearchTermsOpts = {
   minTermLength?: number;
 };
+
 export function textToSearchTerms(text: string | undefined, options?: TextToSearchTermsOpts) {
   const minTermLength = options?.minTermLength ?? 0;
   if (text?.length && text.length < minTermLength) return null;
