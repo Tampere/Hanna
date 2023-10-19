@@ -29,7 +29,7 @@ async function getDetailPlanGeometries() {
     const resp = await axios.get(BASE_URL, { params: wfsParams, timeout: API_TIMEOUT_MS, headers });
     return resp.data;
   } catch (error) {
-    logger.error('Failed to fetch detail plan geometries', { error });
+    logger.error(error, 'Failed to fetch detail plan geometries');
     throw error;
   }
 }
