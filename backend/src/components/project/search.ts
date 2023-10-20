@@ -4,6 +4,8 @@ import { getPool, sql } from '@backend/db';
 
 import { ProjectSearch, projectSearchResultSchema } from '@shared/schema/project';
 
+const CLUSTER_ZOOM_BELOW = 10;
+
 type TextToSearchTermsOpts = {
   minTermLength?: number;
 };
@@ -84,7 +86,7 @@ function zoomToGeohashLength(zoom: number) {
 }
 
 function clusterResultsFragment(zoom: number | undefined) {
-  if (!zoom || zoom > 10) return sql.fragment`'[]'::jsonb`;
+  if (!zoom || zoom > CLUSTER_ZOOM_BELOW) return sql.fragment`'[]'::jsonb`;
 
   return sql.fragment`
     (
@@ -173,7 +175,7 @@ export async function projectSearch(input: ProjectSearch) {
   const dbResult = await getPool().one(sql.type(resultSchema)`
     WITH ranked_projects AS (
       SELECT
-        project.*,
+        project.id,
         ts_rank(
           COALESCE(project.tsv, '') || COALESCE(project_detailplan.tsv, ''),
           to_tsquery('simple', ${textToSearchTerms(input.text)})
@@ -184,15 +186,7 @@ export async function projectSearch(input: ProjectSearch) {
         deleted = false AND ${getFilterFragment(input) ?? ''}
     ), all_projects AS (
       SELECT
-        id,
-        project_name AS "projectName",
-        description,
-        owner,
-        start_date AS "startDate",
-        end_date AS "endDate",
-        geohash,
-        ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
-        (lifecycle_state).id AS "lifecycleState",
+        ranked_projects.id,
         tsrank
       FROM ranked_projects
       WHERE tsrank IS NULL OR tsrank > 0
@@ -201,15 +195,33 @@ export async function projectSearch(input: ProjectSearch) {
     ), detailplan_projects AS (
       ${detailplanProjectFragment(input)}
     ), projects AS (
-      SELECT *
+      SELECT
+        filtered_projects.id,
+        "projectType",
+        app.project.start_date AS "startDate",
+        app.project.end_date AS "endDate",
+        app.project.project_name AS "projectName",
+        "tsrank",
+        "detailplanId",
+        geom,
+        geohash
       FROM (
         SELECT id, "projectType", NULL AS "detailplanId" from investment_projects
           UNION ALL
         SELECT id, "projectType", "detailplanId" from detailplan_projects
       ) AS filtered_projects
       INNER JOIN all_projects ON all_projects.id = filtered_projects.id
+      INNER JOIN app.project ON app.project.id = filtered_projects.id
     ), limited AS (
-      SELECT *
+      SELECT
+        id,
+        "startDate",
+        "endDate",
+        "projectName",
+        "projectType",
+        ${
+          map?.zoom < CLUSTER_ZOOM_BELOW ? sql.fragment`NULL` : sql.fragment`st_asgeojson(geom)`
+        } AS geom
       FROM projects
       ORDER BY tsrank DESC, "startDate" DESC
       LIMIT ${limit}
