@@ -66,6 +66,7 @@
   "newProject.ownerTooltip": "Valitse omistaja",
   "newProject.committeeTooltip": "Valitse lautakunta",
   "newProject.basicInfoSectionLabel": "Perustiedot",
+  "newProject.infoNoGeom": "Olet luomassa hankkeen ilman aluetta",
   "newProject.createBtnLabel": "Lisää hanke",
   "project.relatedProjectsTabLabel": "Sidoshankkeet",
   "newProject.documentsSectionTitle": "Asiakirjat",

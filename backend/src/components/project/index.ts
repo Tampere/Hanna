@@ -9,7 +9,6 @@ import {
   PartialBudgetUpdate,
   Relation,
   UpdateGeometry,
-  YearBudget,
   projectRelationsSchema,
   relationsSchema,
   updateGeometryResultSchema,
@@ -131,28 +130,30 @@ export async function getRelatedProjects(id: string) {
   FROM related_projects`);
 }
 
-export async function updateProjectGeometry(geometryUpdate: UpdateGeometry, user: User) {
+export async function updateProjectGeometry(
+  tx: DatabaseTransactionConnection,
+  geometryUpdate: UpdateGeometry,
+  user: User
+) {
   const { id, features } = geometryUpdate;
-  return getPool().transaction(async (tx) => {
-    await addAuditEvent(tx, {
-      eventType: 'project.updateGeometry',
-      eventData: geometryUpdate,
-      eventUser: user.id,
-    });
-    return tx.one(sql.type(updateGeometryResultSchema)`
-      WITH featureCollection AS (
-        SELECT ST_Collect(
-          ST_GeomFromGeoJSON(value->'geometry')
-        ) AS resultGeom
-        FROM jsonb_array_elements(${features}::jsonb)
-      )
-      UPDATE app.project
-      SET geom = featureCollection.resultGeom
-      FROM featureCollection
-      WHERE id = ${id} AND ${id} IN (SELECT id FROM app.project_investment)
-      RETURNING id, ST_AsGeoJSON(geom) AS geom
-    `);
+  await addAuditEvent(tx, {
+    eventType: 'project.updateGeometry',
+    eventData: geometryUpdate,
+    eventUser: user.id,
   });
+  return tx.one(sql.type(updateGeometryResultSchema)`
+    WITH featureCollection AS (
+      SELECT ST_Collect(
+        ST_GeomFromGeoJSON(value->'geometry')
+      ) AS resultGeom
+      FROM jsonb_array_elements(${features}::jsonb)
+    )
+    UPDATE app.project
+    SET geom = featureCollection.resultGeom
+    FROM featureCollection
+    WHERE id = ${id} AND ${id} IN (SELECT id FROM app.project_investment)
+    RETURNING id, ST_AsGeoJSON(geom) AS geom
+  `);
 }
 
 function budgetWhereFragment(budgetInput: BudgetInput) {

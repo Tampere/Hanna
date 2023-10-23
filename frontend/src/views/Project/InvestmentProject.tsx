@@ -3,7 +3,7 @@ import { AccountTree, Euro, ListAlt, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 
@@ -74,6 +74,8 @@ export function InvestmentProject() {
     { id: projectId },
     { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { id: projectId }] }
   );
+
+  const [geom, setGeom] = useState<string | null>(null);
 
   const tr = useTranslations();
   const notify = useNotifications();
@@ -154,7 +156,7 @@ export function InvestmentProject() {
 
       <div css={pageContentStyle}>
         <Paper sx={{ p: 3, height: '100%' }} variant="outlined">
-          <InvestmentProjectForm project={project.data} />
+          <InvestmentProjectForm edit={!projectId} project={project.data} geom={geom} />
           {project.data && (
             <DeleteProjectDialog
               projectId={project.data.id}
@@ -196,9 +198,13 @@ export function InvestmentProject() {
                 geoJson={project?.data?.geom}
                 drawStyle={PROJECT_AREA_STYLE}
                 fitExtent="geoJson"
-                editable={Boolean(projectId)}
+                editable={true}
                 onFeaturesSaved={(features) => {
-                  geometryUpdate.mutate({ id: projectId, features: features });
+                  if (!project.data) {
+                    setGeom(features);
+                  } else {
+                    geometryUpdate.mutate({ id: projectId, features });
+                  }
                 }}
                 vectorLayers={[projectObjectsLayer]}
               />

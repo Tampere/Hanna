@@ -9,6 +9,7 @@ import {
 import { deleteProject, getProject } from '@backend/components/project/base';
 import { projectSearch } from '@backend/components/project/search';
 import { startReportJob } from '@backend/components/taskQueue/reportQueue';
+import { getPool } from '@backend/db';
 import { TRPC } from '@backend/router';
 
 import {
@@ -42,7 +43,9 @@ export const createProjectRouter = (t: TRPC) =>
     }),
 
     updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input, ctx }) => {
-      return updateProjectGeometry(input, ctx.user);
+      return await getPool().transaction(async (tx) => {
+        return updateProjectGeometry(tx, input, ctx.user);
+      });
     }),
 
     getBudget: t.procedure.input(getBudgetInputSchema).query(async ({ input }) => {

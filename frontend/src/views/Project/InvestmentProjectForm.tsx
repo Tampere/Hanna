@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AddCircle, Edit, HourglassFullTwoTone, Save, Undo } from '@mui/icons-material';
-import { Box, Button, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, TextField, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
@@ -32,7 +32,9 @@ const newProjectFormStyle = css`
 `;
 
 interface InvestmentProjectFormProps {
+  edit: boolean;
   project?: DbInvestmentProject | null;
+  geom: string | null;
 }
 
 export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
@@ -40,7 +42,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
   const notify = useNotifications();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [editing, setEditing] = useState(!props.project);
+  const [editing, setEditing] = useState(props.edit);
   const currentUser = useAtomValue(authAtom);
 
   const readonlyProps = useMemo(() => {
@@ -130,7 +132,9 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
     },
   });
 
-  const onSubmit = (data: InvestmentProject | DbInvestmentProject) => projectUpsert.mutate(data);
+  const onSubmit = (data: InvestmentProject | DbInvestmentProject) => {
+    projectUpsert.mutate({ ...data, geom: props.geom });
+  };
 
   return (
     <FormProvider {...form}>
@@ -268,17 +272,24 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
         />
 
         {!props.project && (
-          <Button
-            disabled={!form.formState.isValid}
-            type="submit"
-            sx={{ mt: 2 }}
-            variant="contained"
-            color="primary"
-            size="small"
-            endIcon={<AddCircle />}
-          >
-            {tr('newProject.createBtnLabel')}
-          </Button>
+          <>
+            {(!props.geom || props.geom === '[]') && (
+              <Alert sx={{ mt: 1 }} severity="info">
+                {tr('newProject.infoNoGeom')}
+              </Alert>
+            )}
+            <Button
+              disabled={!form.formState.isValid}
+              type="submit"
+              sx={{ mt: 2 }}
+              variant="contained"
+              color="primary"
+              size="small"
+              endIcon={<AddCircle />}
+            >
+              {tr('newProject.createBtnLabel')}
+            </Button>
+          </>
         )}
 
         {props.project && editing && (
