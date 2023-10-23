@@ -34,7 +34,7 @@
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.2.0",
     "@types/connect-pg-simple": "^7.0.1",
-    "@types/email-templates": "^10.0.2",
+    "@types/email-templates": "^10.0.3",
     "@types/node": "^20.8.6",
     "@types/nodemailer": "^6.4.11",
     "@typescript-eslint/eslint-plugin": "^6.7.5",
