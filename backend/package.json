@@ -70,7 +70,7 @@
     "nodemailer": "^6.9.6",
     "openid-client": "^5.6.1",
     "pg-boss": "^9.0.3",
-    "pino": "^8.16.0",
+    "pino": "^8.16.1",
     "postgres-migrations": "^5.3.0",
     "pug": "^3.0.2",
     "server-text-width": "^1.0.2",
