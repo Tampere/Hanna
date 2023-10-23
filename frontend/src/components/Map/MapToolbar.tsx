@@ -1,11 +1,11 @@
 import { css } from '@emotion/react';
 import {
+  Check,
   DeleteForeverTwoTone,
   EditTwoTone,
   PanToolAltTwoTone,
   PentagonTwoTone,
   RoundedCornerTwoTone,
-  SaveTwoTone,
   UndoTwoTone,
 } from '@mui/icons-material';
 import { Box, Divider, IconButton, Tooltip } from '@mui/material';
@@ -144,7 +144,7 @@ export function MapToolbar(props: Props) {
             color="primary"
             onClick={props.onSaveClick}
           >
-            <SaveTwoTone />
+            <Check />
           </IconButton>
         </Box>
       </Tooltip>

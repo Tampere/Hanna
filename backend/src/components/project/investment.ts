@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
 import { codeIdFragment } from '@backend/components/code';
+import { updateProjectGeometry } from '@backend/components/project';
 import {
   baseProjectUpsert,
   validateUpsertProject as baseProjectValidate,
@@ -105,6 +106,17 @@ export async function projectUpsert(project: InvestmentProject, user: User) {
         `)
       )
     );
+
+    if (project.geom) {
+      updateProjectGeometry(
+        tx,
+        {
+          id: upsertResult.id,
+          features: project.geom,
+        },
+        user
+      );
+    }
 
     return getProject(upsertResult.id, tx);
   });

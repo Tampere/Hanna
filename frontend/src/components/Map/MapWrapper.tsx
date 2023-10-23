@@ -234,10 +234,11 @@ export function MapWrapper(props: Props) {
           onToolChange={(tool) => setSelectedTool(tool)}
           onSaveClick={() => {
             selectionSource.clear();
+            setDirty(false);
             onFeaturesSaved?.(
               getGeoJSONFeaturesString(
                 drawSource.getFeatures(),
-                projection?.getCode() || mapOptions.projection.code
+                projection?.getCode() ?? mapOptions.projection.code
               )
             );
           }}
