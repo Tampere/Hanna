@@ -41,7 +41,7 @@
     "@typescript-eslint/parser": "^6.7.5",
     "@vitejs/plugin-react": "^4.1.0",
     "dotenv": "^16.3.1",
-    "eslint": "^8.51.0",
+    "eslint": "^8.52.0",
     "markdown-it": "^13.0.2",
     "markdown-it-anchor": "^8.6.7",
     "typescript": "5.2.2",
