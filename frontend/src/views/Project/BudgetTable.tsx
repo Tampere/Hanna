@@ -83,7 +83,6 @@ export function BudgetTable(props: Props) {
   return !budget ? null : (
     <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <SectionTitle title={tr('budgetTable.title')} />
         {!editing ? (
           <Button
             variant="contained"
@@ -118,7 +117,7 @@ export function BudgetTable(props: Props) {
                     <Typography variant="overline">{tr('budgetTable.year')}</Typography>
                   </TableCell>
                   <TableCell css={cellMinWidthStyle}>
-                    <Typography variant="overline"> {tr('budgetTable.amount')}</Typography>
+                    <Typography variant="overline"> {tr('budgetTable.budget')}</Typography>
                   </TableCell>
                   <TableCell css={cellMinWidthStyle}>
                     <span
