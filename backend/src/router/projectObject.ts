@@ -10,6 +10,7 @@ import { TRPC } from '@backend/router';
 
 import { nonEmptyString } from '@shared/schema/common';
 import {
+  UpdateGeometry,
   UpdateProjectObject,
   UpsertProjectObject,
   dbProjectObjectSchema,
@@ -303,7 +304,46 @@ export async function upsertProjectObject(
   await updateObjectUsages(tx, { ...projectObject, id: upsertResult.id });
   await updateObjectRoles(tx, { ...projectObject, id: upsertResult.id });
 
+  if (projectObject.geom) {
+    updateProjectObjectGeometry(
+      tx,
+      {
+        id: upsertResult.id,
+        features: projectObject.geom,
+      },
+      userId
+    );
+  }
+
   return upsertResult;
+}
+
+async function updateProjectObjectGeometry(
+  tx: DatabaseTransactionConnection,
+  input: UpdateGeometry,
+  userId: string
+) {
+  const { id, features } = input;
+
+  await addAuditEvent(tx, {
+    eventType: 'projectObject.updateGeometry',
+    eventData: input,
+    eventUser: userId,
+  });
+
+  return tx.one(sql.type(updateGeometryResultSchema)`
+    WITH featureCollection AS (
+      SELECT ST_Collect(
+        ST_GeomFromGeoJSON(value->'geometry')
+      ) AS resultGeom
+      FROM jsonb_array_elements(${features}::jsonb)
+    )
+    UPDATE app.project_object
+    SET geom = featureCollection.resultGeom
+    FROM featureCollection
+    WHERE id = ${id}
+    RETURNING id, ST_AsGeoJSON(geom) AS geom
+  `);
 }
 
 export const createProjectObjectRouter = (t: TRPC) =>
@@ -316,27 +356,8 @@ export const createProjectObjectRouter = (t: TRPC) =>
     }),
 
     updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input, ctx }) => {
-      const { id, features } = input;
-
-      return getPool().transaction(async (tx) => {
-        await addAuditEvent(tx, {
-          eventType: 'projectObject.updateGeometry',
-          eventData: input,
-          eventUser: ctx.user.id,
-        });
-        return tx.one(sql.type(updateGeometryResultSchema)`
-          WITH featureCollection AS (
-            SELECT ST_Collect(
-              ST_GeomFromGeoJSON(value->'geometry')
-            ) AS resultGeom
-            FROM jsonb_array_elements(${features}::jsonb)
-          )
-          UPDATE app.project_object
-          SET geom = featureCollection.resultGeom
-          FROM featureCollection
-          WHERE id = ${id}
-          RETURNING id, ST_AsGeoJSON(geom) AS geom
-        `);
+      return await getPool().transaction(async (tx) => {
+        return await updateProjectObjectGeometry(tx, input, ctx.user.id);
       });
     }),
 

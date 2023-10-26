@@ -232,6 +232,7 @@
   "projectObject.notifyGeometryUpdateTitle": "Kohteen sijainti päivitetty",
   "projectObject.notifyGeometryUpdateFailedTitle": "Virhe tallentaessa kohteen sijaintia",
   "projectObject.noTasks": "Kohteella ei ole tehtäviä",
+  "projectObjectForm.infoNoGeom": "Olet luomassa kohdetta ilman aluetta",
   "projectObjectForm.createBtnLabel": "Luo kohde",
   "projectObjectForm.saveBtnLabel": "Tallenna",
   "sessionExpiredWarning.infoText": "Istuntosi on vanhentunut. Jatkaaksesi keskeneräisiä töitäsi, uusi istunto.",

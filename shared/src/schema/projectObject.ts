@@ -29,6 +29,7 @@ export const newProjectObjectSchema = z.object({
   height: z.coerce.number().optional().nullable(),
   objectUserRoles: z.array(projectObjectUserRoleSchema),
   budgetUpdate: partialBudgetUpdateSchema.optional().nullable(),
+  geom: z.string().optional().nullable(),
 });
 
 export const updateProjectObjectSchema = newProjectObjectSchema.partial().extend({
