@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AddCircle, Edit, Save, Undo } from '@mui/icons-material';
-import { Box, Button, InputAdornment, TextField } from '@mui/material';
+import { Alert, Box, Button, InputAdornment, TextField } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
@@ -25,7 +25,6 @@ import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 import {
   UpsertProjectObject,
   newProjectObjectSchema,
-  updateProjectObjectSchema,
   upsertProjectObjectSchema,
 } from '@shared/schema/projectObject';
 
@@ -38,6 +37,7 @@ interface Props {
   projectId: string;
   projectType: ProjectTypePath;
   projectObject?: UpsertProjectObject | null;
+  geom?: string | null;
 }
 
 export function ProjectObjectForm(props: Props) {
@@ -138,7 +138,9 @@ export function ProjectObjectForm(props: Props) {
     },
   });
 
-  const onSubmit = (data: UpsertProjectObject) => projectObjectUpsert.mutate(data);
+  const onSubmit = (data: UpsertProjectObject) => {
+    projectObjectUpsert.mutate({ ...data, geom: props.geom });
+  };
 
   return (
     <FormProvider {...form}>
@@ -330,17 +332,24 @@ export function ProjectObjectForm(props: Props) {
         />
 
         {!props.projectObject && (
-          <Button
-            disabled={!form.formState.isValid}
-            type="submit"
-            sx={{ mt: 2 }}
-            variant="contained"
-            color="primary"
-            size="small"
-            endIcon={<AddCircle />}
-          >
-            {tr('projectObjectForm.createBtnLabel')}
-          </Button>
+          <>
+            {(!props.geom || props.geom === '[]') && (
+              <Alert sx={{ mt: 1 }} severity="info">
+                {tr('projectObjectForm.infoNoGeom')}
+              </Alert>
+            )}
+            <Button
+              disabled={!form.formState.isValid}
+              type="submit"
+              sx={{ mt: 2 }}
+              variant="contained"
+              color="primary"
+              size="small"
+              endIcon={<AddCircle />}
+            >
+              {tr('projectObjectForm.createBtnLabel')}
+            </Button>
+          </>
         )}
 
         {props.projectObject && editing && (

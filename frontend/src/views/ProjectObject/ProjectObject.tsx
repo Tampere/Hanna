@@ -3,7 +3,7 @@ import { Assignment, Euro, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import { ReactElement, useMemo } from 'react';
+import { ReactElement, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 
@@ -82,6 +82,7 @@ export function ProjectObject(props: Props) {
     projectObjectId: string;
     tabView?: TabView;
   };
+
   const projectObjectId = routeParams?.projectObjectId;
   const tabView = routeParams.tabView || 'default';
   const tabs = projectObjectTabs(routeParams.projectId, props.projectType, projectObjectId);
@@ -94,6 +95,8 @@ export function ProjectObject(props: Props) {
     },
     { enabled: Boolean(projectObjectId) }
   );
+
+  const [geom, setGeom] = useState<string | null>(null);
 
   const tr = useTranslations();
   const notify = useNotifications();
@@ -181,6 +184,7 @@ export function ProjectObject(props: Props) {
               projectId={routeParams.projectId}
               projectType={props.projectType}
               projectObject={projectObject.data}
+              geom={geom}
             />
           </Paper>
           {/* <Paper sx={{ p: 3 }} variant="outlined">
@@ -215,6 +219,7 @@ export function ProjectObject(props: Props) {
           >
             {tabs.map((tab) => (
               <Tab
+                disabled={!projectObject.data}
                 key={tab.tabView}
                 component={Link}
                 to={tab.url}
@@ -230,11 +235,15 @@ export function ProjectObject(props: Props) {
               <MapWrapper
                 geoJson={projectObject?.data?.geom}
                 drawStyle={PROJ_OBJ_STYLE}
-                editable={Boolean(projectObjectId)}
+                editable={true}
                 vectorLayers={[projectLayer]}
                 fitExtent="vectorLayers"
                 onFeaturesSaved={(features) => {
-                  geometryUpdate.mutate({ id: projectObjectId, features: features });
+                  if (!projectObject.data) {
+                    setGeom(features);
+                  } else {
+                    geometryUpdate.mutate({ id: projectObjectId, features });
+                  }
                 }}
               />
             </Box>
