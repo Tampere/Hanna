@@ -90,10 +90,7 @@ export function RelationsContainer({
   const [showProjectSearch, setShowProjectSearch] = useState(false);
   const [selectedObjectProjectId, setSelectedObjectProjectId] = useState<string | null>(null);
 
-  const projects = trpc.project.search.useQuery({
-    text: useDebounce('', 250),
-    filters: {},
-  });
+  const projects = trpc.project.list.useQuery();
 
   function ProjectRelationSearch() {
     return (
@@ -102,9 +99,7 @@ export function RelationsContainer({
           <Autocomplete
             id="project-relation-search"
             options={
-              projects?.data?.projects.filter(
-                (project) => !unrelatableProjectIds.includes(project.id)
-              ) ?? []
+              projects?.data?.filter((project) => !unrelatableProjectIds.includes(project.id)) ?? []
             }
             noOptionsText={tr('projectRelations.noFoundProjects')}
             sx={{ width: 300 }}
@@ -117,9 +112,7 @@ export function RelationsContainer({
             onChange={(_event: React.SyntheticEvent, newValue) => {
               setSelectedObjectProjectId(newValue?.id ?? null);
             }}
-            value={projects?.data?.projects?.find(
-              (project) => project.id === selectedObjectProjectId
-            )}
+            value={projects?.data?.find((project) => project.id === selectedObjectProjectId)}
           />
         </Box>
       </Box>

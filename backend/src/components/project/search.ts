@@ -232,3 +232,13 @@ export async function projectSearch(input: ProjectSearch) {
     `);
   return dbResult.result;
 }
+
+export async function listProjects() {
+  const resultSchema = z.object({ projectName: z.string(), id: z.string() });
+  return await getPool().many(sql.type(resultSchema)`
+    SELECT project_name AS "projectName", id
+    FROM app.project
+    WHERE deleted = false
+    ORDER BY project_name ASC
+  `);
+}
