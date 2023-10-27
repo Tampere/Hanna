@@ -4,7 +4,7 @@ import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/mater
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { ReactElement, useMemo, useState } from 'react';
-import { useParams } from 'react-router';
+import { useLocation, useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
@@ -82,9 +82,11 @@ export function ProjectObject(props: Props) {
     projectObjectId: string;
     tabView?: TabView;
   };
+  const location = useLocation();
+  const navigateTo = new URLSearchParams(location.search).get('from');
 
   const projectObjectId = routeParams?.projectObjectId;
-  const tabView = routeParams.tabView || 'default';
+  const tabView = routeParams.tabView ?? 'default';
   const tabs = projectObjectTabs(routeParams.projectId, props.projectType, projectObjectId);
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
 
@@ -164,12 +166,14 @@ export function ProjectObject(props: Props) {
   return (
     <Box>
       <Breadcrumbs sx={{ mb: 1 }}>
-        <Chip
-          clickable={true}
-          component={Link}
-          to={`/${props.projectType}/${routeParams.projectId}/kohteet`}
-          label={<u>{project.data?.projectName}</u>}
-        />
+        {routeParams.projectId && (
+          <Chip
+            clickable={true}
+            component={Link}
+            to={`/${props.projectType}/${routeParams.projectId}/kohteet`}
+            label={<u>{project.data?.projectName}</u>}
+          />
+        )}
         {projectObject.data ? (
           <Chip label={projectObject.data?.objectName} />
         ) : (
@@ -185,6 +189,7 @@ export function ProjectObject(props: Props) {
               projectType={props.projectType}
               projectObject={projectObject.data}
               geom={geom}
+              navigateTo={navigateTo}
             />
           </Paper>
           {/* <Paper sx={{ p: 3 }} variant="outlined">

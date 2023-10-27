@@ -14,5 +14,8 @@
   "editor.codeActionsOnSave": {
     "source.organizeImports": false // managed by prettier plugin
   },
-  "sonarlint.disableTelemetry": true
+  "sonarlint.disableTelemetry": true,
+  "todo-tree.tree.disableCompactFolders": false,
+  "todo-tree.tree.showBadges": false,
+  "todo-tree.tree.showCountsInTree": false
 }

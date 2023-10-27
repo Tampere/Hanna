@@ -90,7 +90,7 @@ export function RelationsContainer({
   const [showProjectSearch, setShowProjectSearch] = useState(false);
   const [selectedObjectProjectId, setSelectedObjectProjectId] = useState<string | null>(null);
 
-  const projects = trpc.project.list.useQuery();
+  const projects = trpc.project.list.useQuery({});
 
   function ProjectRelationSearch() {
     return (

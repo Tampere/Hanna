@@ -2,7 +2,11 @@ import { z } from 'zod';
 
 import { getPool, sql } from '@backend/db';
 
-import { ProjectSearch, projectSearchResultSchema } from '@shared/schema/project';
+import {
+  ProjectListParams,
+  ProjectSearch,
+  projectSearchResultSchema,
+} from '@shared/schema/project';
 
 const CLUSTER_ZOOM_BELOW = 10;
 
@@ -233,11 +237,21 @@ export async function projectSearch(input: ProjectSearch) {
   return dbResult.result;
 }
 
-export async function listProjects() {
+export async function listProjects(input: ProjectListParams) {
   const resultSchema = z.object({ projectName: z.string(), id: z.string() });
   return await getPool().many(sql.type(resultSchema)`
-    SELECT project_name AS "projectName", id
+    SELECT project_name AS "projectName", app.project.id
     FROM app.project
+    ${
+      input.projectType === 'investmentProject'
+        ? sql.fragment`INNER JOIN app.project_investment ON project_investment.id = app.project.id`
+        : sql.fragment``
+    }
+    ${
+      input.projectType === 'detailplanProject'
+        ? sql.fragment`INNER JOIN app.project_detailplan ON project_detailplan.id = app.project.id`
+        : sql.fragment``
+    }
     WHERE deleted = false
     ORDER BY project_name ASC
   `);

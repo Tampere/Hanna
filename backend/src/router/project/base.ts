@@ -14,6 +14,7 @@ import { TRPC } from '@backend/router';
 
 import {
   getBudgetInputSchema,
+  projectListParamsSchema,
   projectSearchSchema,
   relationsSchema,
   updateBudgetInputSchema,
@@ -23,8 +24,8 @@ import { projectIdSchema } from '@shared/schema/project/base';
 
 export const createProjectRouter = (t: TRPC) =>
   t.router({
-    list: t.procedure.query(async () => {
-      return listProjects();
+    list: t.procedure.input(projectListParamsSchema).query(async ({ input }) => {
+      return listProjects(input);
     }),
 
     search: t.procedure.input(projectSearchSchema).query(async ({ input }) => {

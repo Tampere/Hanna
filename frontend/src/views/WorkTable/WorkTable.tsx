@@ -1,10 +1,11 @@
 import { css } from '@emotion/react';
-import { Cancel, Redo, Save, Undo } from '@mui/icons-material';
-import { Box, Button, IconButton, Theme, Tooltip } from '@mui/material';
+import { AddCircleOutline, Cancel, Redo, Save, Undo } from '@mui/icons-material';
+import { Box, Button, IconButton, Theme, Tooltip, Typography } from '@mui/material';
 import { DataGrid, fiFI, useGridApiRef } from '@mui/x-data-grid';
 import { atom, useAtom } from 'jotai';
 import diff from 'microdiff';
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
@@ -73,6 +74,7 @@ const searchAtom = atom<WorkTableSearch>({
   financesRange: new Date().getFullYear(),
 });
 
+// XXX: url param for newly created project object (highlight somehow)
 export default function WorkTable() {
   const [searchParams, setSearchParams] = useAtom(searchAtom);
   const query = useDebounce(searchParams, 500);
@@ -216,6 +218,24 @@ export default function WorkTable() {
         height: 100%;
       `}
     >
+      <div
+        css={css`
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+        `}
+      >
+        <Typography variant="h4">{tr('workTable.title')}</Typography>
+        <Button
+          variant="contained"
+          component={Link}
+          to="/kohde/uusi?from=/investointiohjelma"
+          endIcon={<AddCircleOutline />}
+        >
+          {tr('workTable.newProjectObjectBtnLabel')}
+        </Button>
+      </div>
       <WorkTableFilters
         readOnly={editEvents.length > 0}
         searchParams={searchParams}
