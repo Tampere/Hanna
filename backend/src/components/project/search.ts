@@ -170,6 +170,7 @@ export function detailplanProjectFragment(input: ProjectSearch) {
 
 export async function projectSearch(input: ProjectSearch) {
   const { map, limit = 250 } = input;
+  const isClusterSearch = map?.zoom && map.zoom < CLUSTER_ZOOM_BELOW;
 
   const resultSchema = z.object({ result: projectSearchResultSchema });
   const dbResult = await getPool().one(sql.type(resultSchema)`
@@ -219,9 +220,7 @@ export async function projectSearch(input: ProjectSearch) {
         "endDate",
         "projectName",
         "projectType",
-        ${
-          map?.zoom < CLUSTER_ZOOM_BELOW ? sql.fragment`NULL` : sql.fragment`st_asgeojson(geom)`
-        } AS geom
+        ${isClusterSearch ? sql.fragment`NULL` : sql.fragment`st_asgeojson(geom)`} AS geom
       FROM projects
       ORDER BY tsrank DESC, "startDate" DESC
       LIMIT ${limit}
