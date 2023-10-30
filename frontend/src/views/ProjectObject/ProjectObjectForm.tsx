@@ -7,6 +7,7 @@ import {
   Box,
   Button,
   ButtonGroup,
+  ButtonGroupTypeMap,
   InputAdornment,
   MenuItem,
   Popover,
@@ -19,7 +20,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
-import { ProjectListItem } from 'tre-hanna-shared/src/schema/project';
 import { z } from 'zod';
 
 import { trpc } from '@frontend/client';
@@ -34,6 +34,7 @@ import { ProjectTypePath } from '@frontend/types';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
+import { ProjectListItem } from '@shared/schema/project';
 import {
   UpsertProjectObject,
   newProjectObjectSchema,
@@ -50,6 +51,7 @@ interface Props {
   projectType: ProjectTypePath;
   projectObject?: UpsertProjectObject | null;
   geom?: string | null;
+  setProjectId?: (projectId: string) => void;
   navigateTo?: string | null;
 }
 
@@ -85,7 +87,11 @@ function SaveOptionsButton(props: {
   const tr = useTranslations();
   const { form, onSubmit } = props;
 
-  const popperRef = useRef(null);
+  const popperRef = useRef<
+    React.ElementRef<ButtonGroupTypeMap['defaultComponent']> & {
+      clientWidth: number;
+    }
+  >(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -97,7 +103,14 @@ function SaveOptionsButton(props: {
       aria-label="outlined button group"
       ref={popperRef}
     >
-      <Button type="submit">{tr('projectObjectForm.createAndReturnBtnLabel')}</Button>
+      <Button
+        onClick={async () => {
+          const valid = await form.trigger();
+          if (valid) onSubmit(form.getValues());
+        }}
+      >
+        {tr('projectObjectForm.createAndReturnBtnLabel')}
+      </Button>
       <Button onClick={() => setMenuOpen(!menuOpen)}>
         {menuOpen ? <ArrowDropUp /> : <ArrowDropDown />}
         <Popover
@@ -107,13 +120,17 @@ function SaveOptionsButton(props: {
           transformOrigin={{ horizontal: 'right', vertical: 'top' }}
           onClose={() => setMenuOpen(false)}
         >
-          <MenuItem
-            onClick={() => {
-              onSubmit(form.getValues());
-            }}
+          <Button
+            /* NOTE: Popover component creates a new React root, which means that the submit button
+            is not part of the form in the React component tree, even though it might look like it
+            in the DOM.*/
+            form="projectObjectForm"
+            type="submit"
+            variant="text"
+            style={{ width: popperRef.current?.clientWidth }}
           >
             {tr('projectObjectForm.saveBtnLabel')}
-          </MenuItem>
+          </Button>
         </Popover>
       </Button>
     </ButtonGroup>
@@ -186,6 +203,12 @@ export function ProjectObjectForm(props: Props) {
     });
     return () => sub.unsubscribe();
   }, [form.watch]);
+
+  const formProjectId = form.watch('projectId');
+
+  useEffect(() => {
+    form.setValue('sapWBSId', null);
+  }, [formProjectId]);
 
   const projectObjectUpsert = trpc.projectObject.upsert.useMutation({
     onSuccess: (data) => {
@@ -262,7 +285,12 @@ export function ProjectObjectForm(props: Props) {
           )}
         </Box>
       )}
-      <form css={newProjectFormStyle} onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
+      <form
+        id="projectObjectForm"
+        css={newProjectFormStyle}
+        onSubmit={form.handleSubmit(onSubmit)}
+        autoComplete="off"
+      >
         <FormField
           formField="objectName"
           label={tr('projectObject.nameLabel')}
@@ -285,7 +313,16 @@ export function ProjectObjectForm(props: Props) {
             label={tr('projectObject.projectLabel')}
             tooltip={tr('projectObject.projectTooltip')}
             component={({ ref, ...field }) => {
-              return <ProjectAutoComplete {...readonlyProps} {...field} />;
+              return (
+                <ProjectAutoComplete
+                  {...readonlyProps}
+                  {...field}
+                  onChange={(value) => {
+                    props.setProjectId?.(value ?? '');
+                    field.onChange(value);
+                  }}
+                />
+              );
             }}
           />
         )}
@@ -390,9 +427,8 @@ export function ProjectObjectForm(props: Props) {
           formField="sapWBSId"
           label={tr('projectObject.sapWBSIdLabel')}
           tooltip={tr('projectObject.sapWBSIdTooltip')}
-          /* XXX: this needs to adapt to projectId selected on the form */
           component={(field) => (
-            <SapWBSSelect projectId={props.projectId} readonlyProps={readonlyProps} field={field} />
+            <SapWBSSelect projectId={formProjectId} readonlyProps={readonlyProps} field={field} />
           )}
         />
 

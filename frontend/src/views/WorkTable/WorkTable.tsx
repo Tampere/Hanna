@@ -5,7 +5,7 @@ import { DataGrid, fiFI, useGridApiRef } from '@mui/x-data-grid';
 import { atom, useAtom } from 'jotai';
 import diff from 'microdiff';
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
@@ -23,6 +23,21 @@ const dataGridStyle = (theme: Theme) => css`
   font-size: 12px;
   .odd {
     background-color: #f3f3f3;
+  }
+  @keyframes fadeInOut {
+    0% {
+      background-color: inherit;
+    }
+    50% {
+      background-color: lightgreen;
+    }
+    100% {
+      background-color: inherit;
+    }
+  }
+  .highlight {
+    animation-name: fadeInOut;
+    animation-duration: 5000ms;
   }
   & .MuiDataGrid-columnHeader {
     background: ${theme.palette.primary.main};
@@ -86,6 +101,11 @@ export default function WorkTable() {
     startYear: new Date().getFullYear(),
     endYear: new Date().getFullYear(),
   });
+
+  // highlight for the newly created project object
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const highlightId = queryParams.get('highlight');
 
   const workTableData = trpc.workTable.search.useQuery(query);
   const updateObjects = trpc.workTable.update.useMutation({
@@ -160,6 +180,39 @@ export default function WorkTable() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   });
+
+  /*   useEffect(() => {
+    console.log('highlightId', highlightId);
+    if (workTableData.data && highlightId) {
+      setTimeout(() => {
+        const rowElement = document.querySelector(`[data-id='${highlightId}']`);
+        console.log(rowElement);
+        if (rowElement) {
+          rowElement.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 1000);
+    }
+  }, [workTableData.data, highlightId]); */
+
+  useEffect(() => {
+    if (workTableData.data && highlightId) {
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'childList') {
+            const rowElement = document.querySelector(`[data-id='${highlightId}']`);
+            if (rowElement) {
+              rowElement.scrollIntoView({ behavior: 'smooth' });
+              observer.disconnect();
+            }
+          }
+        });
+      });
+
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      return () => observer.disconnect();
+    }
+  }, [workTableData.data, highlightId]);
 
   function undo() {
     const lastEvent = editEvents.pop();
@@ -243,6 +296,7 @@ export default function WorkTable() {
         setSearchParams={setSearchParams}
       />
       <DataGrid
+        disableVirtualization
         loading={workTableData.isLoading}
         localeText={fiFI.components.MuiDataGrid.defaultProps.localeText}
         apiRef={gridApiRef}
@@ -262,7 +316,13 @@ export default function WorkTable() {
         rows={workTableData.data ?? []}
         rowSelection={false}
         hideFooter
-        getRowClassName={(params) => (params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd')}
+        getRowId={(row) => row.id}
+        getRowClassName={(params) => {
+          if (params.id === highlightId) {
+            return 'highlight';
+          }
+          return params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd';
+        }}
         disableColumnMenu
       />
       <Box

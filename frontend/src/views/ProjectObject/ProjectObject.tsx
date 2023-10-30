@@ -99,6 +99,7 @@ export function ProjectObject(props: Props) {
   );
 
   const [geom, setGeom] = useState<string | null>(null);
+  const [projectId, setProjectId] = useState(routeParams.projectId);
 
   const tr = useTranslations();
   const notify = useNotifications();
@@ -119,10 +120,7 @@ export function ProjectObject(props: Props) {
     },
   });
 
-  const project = trpc.project.get.useQuery(
-    { id: routeParams.projectId },
-    { enabled: Boolean(routeParams.projectId) }
-  );
+  const project = trpc.project.get.useQuery({ id: projectId }, { enabled: Boolean(projectId) });
 
   // Create vectorlayer of the project geometry
   const projectSource = useMemo(() => {
@@ -189,6 +187,7 @@ export function ProjectObject(props: Props) {
               projectType={props.projectType}
               projectObject={projectObject.data}
               geom={geom}
+              setProjectId={setProjectId}
               navigateTo={navigateTo}
             />
           </Paper>
