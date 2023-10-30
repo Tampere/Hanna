@@ -50,7 +50,7 @@
     "vitest": "^0.34.6"
   },
   "dependencies": {
-    "@fastify/compress": "^6.4.0",
+    "@fastify/compress": "^6.5.0",
     "@fastify/cookie": "^9.1.0",
     "@fastify/formbody": "^7.4.0",
     "@fastify/http-proxy": "^9.2.1",
