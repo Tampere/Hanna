@@ -89,7 +89,6 @@ const searchAtom = atom<WorkTableSearch>({
   financesRange: new Date().getFullYear(),
 });
 
-// XXX: url param for newly created project object (highlight somehow)
 export default function WorkTable() {
   const [searchParams, setSearchParams] = useAtom(searchAtom);
   const query = useDebounce(searchParams, 500);
@@ -180,19 +179,6 @@ export default function WorkTable() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   });
-
-  /*   useEffect(() => {
-    console.log('highlightId', highlightId);
-    if (workTableData.data && highlightId) {
-      setTimeout(() => {
-        const rowElement = document.querySelector(`[data-id='${highlightId}']`);
-        console.log(rowElement);
-        if (rowElement) {
-          rowElement.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 1000);
-    }
-  }, [workTableData.data, highlightId]); */
 
   useEffect(() => {
     if (workTableData.data && highlightId) {
