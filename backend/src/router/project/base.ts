@@ -7,13 +7,14 @@ import {
   updateProjectGeometry,
 } from '@backend/components/project';
 import { deleteProject, getProject } from '@backend/components/project/base';
-import { projectSearch } from '@backend/components/project/search';
+import { listProjects, projectSearch } from '@backend/components/project/search';
 import { startReportJob } from '@backend/components/taskQueue/reportQueue';
 import { getPool } from '@backend/db';
 import { TRPC } from '@backend/router';
 
 import {
   getBudgetInputSchema,
+  projectListParamsSchema,
   projectSearchSchema,
   relationsSchema,
   updateBudgetInputSchema,
@@ -23,6 +24,10 @@ import { projectIdSchema } from '@shared/schema/project/base';
 
 export const createProjectRouter = (t: TRPC) =>
   t.router({
+    list: t.procedure.input(projectListParamsSchema).query(async ({ input }) => {
+      return listProjects(input);
+    }),
+
     search: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
       return projectSearch(input);
     }),

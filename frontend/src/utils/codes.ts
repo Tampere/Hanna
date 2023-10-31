@@ -8,8 +8,9 @@ type CodeMap = Map<string, { [language in Language]: string }>;
 export function useCodes(codeListId: CodeId['codeListId']) {
   const { data } = trpc.code.get.useQuery({ codeListId }, { staleTime: 60 * 60 * 1000 });
 
-  return data?.reduce<CodeMap>((codes, code) => {
-    codes.set(code.id.id, code.text);
-    return codes;
-  }, new Map());
+  const result: CodeMap = new Map();
+  data?.forEach((codes) => {
+    result.set(codes.id.id, codes.text);
+  });
+  return result;
 }

@@ -1,13 +1,25 @@
 import { css } from '@emotion/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AddCircle, Edit, Save, Undo } from '@mui/icons-material';
-import { Alert, Box, Button, InputAdornment, TextField } from '@mui/material';
+import { AddCircle, ArrowDropDown, ArrowDropUp, Edit, Save, Undo } from '@mui/icons-material';
+import {
+  Alert,
+  Autocomplete,
+  Box,
+  Button,
+  ButtonGroup,
+  ButtonGroupTypeMap,
+  InputAdornment,
+  MenuItem,
+  Popover,
+  TextField,
+} from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
+import { Link } from 'react-router-dom';
 import { z } from 'zod';
 
 import { trpc } from '@frontend/client';
@@ -22,6 +34,7 @@ import { ProjectTypePath } from '@frontend/types';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
+import { ProjectListItem } from '@shared/schema/project';
 import {
   UpsertProjectObject,
   newProjectObjectSchema,
@@ -34,10 +47,94 @@ const newProjectFormStyle = css`
 `;
 
 interface Props {
-  projectId: string;
+  projectId?: string;
   projectType: ProjectTypePath;
   projectObject?: UpsertProjectObject | null;
   geom?: string | null;
+  setProjectId?: (projectId: string) => void;
+  navigateTo?: string | null;
+}
+
+interface ProjectAutoCompleteProps {
+  value: ProjectListItem;
+  onChange: (value?: string) => void;
+}
+
+function ProjectAutoComplete(props: ProjectAutoCompleteProps) {
+  const tr = useTranslations();
+  const projects = trpc.project.list.useQuery({ projectType: 'investmentProject' });
+
+  return (
+    <Autocomplete<ProjectListItem>
+      {...props}
+      options={projects?.data ?? []}
+      noOptionsText={tr('projectSearch.noResults')}
+      size="small"
+      onChange={(_e, value) => {
+        props.onChange(value?.id);
+      }}
+      getOptionLabel={(option) => option.projectName}
+      renderInput={(params) => <TextField {...params} />}
+      loading={projects.isLoading}
+    />
+  );
+}
+
+function SaveOptionsButton(props: {
+  form: ReturnType<typeof useForm<UpsertProjectObject>>;
+  onSubmit: (data: UpsertProjectObject) => void;
+}) {
+  const tr = useTranslations();
+  const { form, onSubmit } = props;
+
+  const popperRef = useRef<
+    React.ElementRef<ButtonGroupTypeMap['defaultComponent']> & {
+      clientWidth: number;
+    }
+  >(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  return (
+    <ButtonGroup
+      disabled={!form.formState.isValid}
+      size="small"
+      color="primary"
+      variant="contained"
+      aria-label="outlined button group"
+      ref={popperRef}
+    >
+      <Button
+        onClick={async () => {
+          const valid = await form.trigger();
+          if (valid) onSubmit(form.getValues());
+        }}
+      >
+        {tr('projectObjectForm.createAndReturnBtnLabel')}
+      </Button>
+      <Button onClick={() => setMenuOpen(!menuOpen)}>
+        {menuOpen ? <ArrowDropUp /> : <ArrowDropDown />}
+        <Popover
+          open={menuOpen}
+          anchorEl={popperRef.current}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          onClose={() => setMenuOpen(false)}
+        >
+          <Button
+            /* NOTE: Popover component creates a new React root, which means that the submit button
+            is not part of the form in the React component tree, even though it might look like it
+            in the DOM.*/
+            form="projectObjectForm"
+            type="submit"
+            variant="text"
+            style={{ width: popperRef.current?.clientWidth }}
+          >
+            {tr('projectObjectForm.saveBtnLabel')}
+          </Button>
+        </Popover>
+      </Button>
+    </ButtonGroup>
+  );
 }
 
 export function ProjectObjectForm(props: Props) {
@@ -107,9 +204,14 @@ export function ProjectObjectForm(props: Props) {
     return () => sub.unsubscribe();
   }, [form.watch]);
 
+  const formProjectId = form.watch('projectId');
+
+  useEffect(() => {
+    form.setValue('sapWBSId', null);
+  }, [formProjectId]);
+
   const projectObjectUpsert = trpc.projectObject.upsert.useMutation({
     onSuccess: (data) => {
-      // Navigate to new url if we are creating a new project
       if (!props.projectObject && data.id) {
         navigate(`/${props.projectType}/${data.projectId}/kohde/${data.id}`);
       } else {
@@ -138,8 +240,18 @@ export function ProjectObjectForm(props: Props) {
     },
   });
 
-  const onSubmit = (data: UpsertProjectObject) => {
+  const onSubmit = (data: UpsertProjectObject) =>
     projectObjectUpsert.mutate({ ...data, geom: props.geom });
+
+  const saveAndReturn = (data: UpsertProjectObject) => {
+    projectObjectUpsert.mutate(
+      { ...data, geom: props.geom },
+      {
+        onSuccess: (data) => {
+          navigate(`${props.navigateTo}?highlight=${data.id}`);
+        },
+      }
+    );
   };
 
   return (
@@ -173,7 +285,12 @@ export function ProjectObjectForm(props: Props) {
           )}
         </Box>
       )}
-      <form css={newProjectFormStyle} onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
+      <form
+        id="projectObjectForm"
+        css={newProjectFormStyle}
+        onSubmit={form.handleSubmit(onSubmit)}
+        autoComplete="off"
+      >
         <FormField
           formField="objectName"
           label={tr('projectObject.nameLabel')}
@@ -189,6 +306,26 @@ export function ProjectObjectForm(props: Props) {
           tooltip={tr('projectObject.descriptionTooltip')}
           component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
         />
+
+        {!props.projectId && (
+          <FormField
+            formField="projectId"
+            label={tr('projectObject.projectLabel')}
+            tooltip={tr('projectObject.projectTooltip')}
+            component={({ ref, ...field }) => {
+              return (
+                <ProjectAutoComplete
+                  {...readonlyProps}
+                  {...field}
+                  onChange={(value) => {
+                    props.setProjectId?.(value ?? '');
+                    field.onChange(value);
+                  }}
+                />
+              );
+            }}
+          />
+        )}
 
         <FormField
           formField="suunnitteluttajaUser"
@@ -291,7 +428,7 @@ export function ProjectObjectForm(props: Props) {
           label={tr('projectObject.sapWBSIdLabel')}
           tooltip={tr('projectObject.sapWBSIdTooltip')}
           component={(field) => (
-            <SapWBSSelect projectId={props.projectId} readonlyProps={readonlyProps} field={field} />
+            <SapWBSSelect projectId={formProjectId} readonlyProps={readonlyProps} field={field} />
           )}
         />
 
@@ -331,25 +468,40 @@ export function ProjectObjectForm(props: Props) {
           )}
         />
 
-        {!props.projectObject && (
-          <>
-            {(!props.geom || props.geom === '[]') && (
-              <Alert sx={{ mt: 1 }} severity="info">
-                {tr('projectObjectForm.infoNoGeom')}
-              </Alert>
-            )}
-            <Button
-              disabled={!form.formState.isValid}
-              type="submit"
-              sx={{ mt: 2 }}
-              variant="contained"
-              color="primary"
-              size="small"
-              endIcon={<AddCircle />}
-            >
-              {tr('projectObjectForm.createBtnLabel')}
+        {!props.projectObject && (!props.geom || props.geom === '[]') && (
+          <Alert sx={{ mt: 1 }} severity="info">
+            {tr('projectObjectForm.infoNoGeom')}
+          </Alert>
+        )}
+
+        {!props.projectObject && props.navigateTo && (
+          <div
+            css={css`
+              margin-top: 16px;
+              display: flex;
+              justify-content: space-between;
+            `}
+          >
+            <Button component={Link} to={props.navigateTo} variant="outlined">
+              {tr('cancel')}
             </Button>
-          </>
+
+            <SaveOptionsButton form={form} onSubmit={saveAndReturn} />
+          </div>
+        )}
+
+        {!props.projectObject && !props.navigateTo && (
+          <Button
+            disabled={!form.formState.isValid}
+            type="submit"
+            sx={{ mt: 2 }}
+            variant="contained"
+            color="primary"
+            size="small"
+            endIcon={<AddCircle />}
+          >
+            {tr('projectObjectForm.createBtnLabel')}
+          </Button>
         )}
 
         {props.projectObject && editing && (

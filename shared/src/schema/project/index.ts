@@ -11,6 +11,19 @@ export const periodSchema = z.object({
 
 export type Period = z.infer<typeof periodSchema>;
 
+export const projectListParamsSchema = z.object({
+  projectType: z.enum(['investmentProject', 'detailplanProject']).optional(),
+});
+
+export type ProjectListParams = z.infer<typeof projectListParamsSchema>;
+
+export const projectListItemSchema = z.object({
+  projectName: z.string(),
+  id: z.string(),
+});
+
+export type ProjectListItem = z.infer<typeof projectListItemSchema>;
+
 export const mapSearchSchema = z.object({
   zoom: z.number(),
   extent: z.array(z.number()),
@@ -24,7 +37,7 @@ export const projectSearchSchema = z.object({
   dateRange: periodSchema.optional(),
   lifecycleStates: z.array(z.string()).optional(),
   projectTypes: z.array(z.string()).optional(),
-  map: mapSearchSchema,
+  map: mapSearchSchema.optional(),
   owners: z.array(z.string()).optional(),
   includeWithoutGeom: z.boolean().optional(),
   filters: z.object({

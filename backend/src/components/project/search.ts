@@ -2,7 +2,11 @@ import { z } from 'zod';
 
 import { getPool, sql } from '@backend/db';
 
-import { ProjectSearch, projectSearchResultSchema } from '@shared/schema/project';
+import {
+  ProjectListParams,
+  ProjectSearch,
+  projectSearchResultSchema,
+} from '@shared/schema/project';
 
 const CLUSTER_ZOOM_BELOW = 10;
 
@@ -170,6 +174,7 @@ export function detailplanProjectFragment(input: ProjectSearch) {
 
 export async function projectSearch(input: ProjectSearch) {
   const { map, limit = 250 } = input;
+  const isClusterSearch = map?.zoom && map.zoom < CLUSTER_ZOOM_BELOW;
 
   const resultSchema = z.object({ result: projectSearchResultSchema });
   const dbResult = await getPool().one(sql.type(resultSchema)`
@@ -219,9 +224,7 @@ export async function projectSearch(input: ProjectSearch) {
         "endDate",
         "projectName",
         "projectType",
-        ${
-          map?.zoom < CLUSTER_ZOOM_BELOW ? sql.fragment`NULL` : sql.fragment`st_asgeojson(geom)`
-        } AS geom
+        ${isClusterSearch ? sql.fragment`NULL` : sql.fragment`st_asgeojson(geom)`} AS geom
       FROM projects
       ORDER BY tsrank DESC, "startDate" DESC
       LIMIT ${limit}
@@ -232,4 +235,24 @@ export async function projectSearch(input: ProjectSearch) {
     ) AS result
     `);
   return dbResult.result;
+}
+
+export async function listProjects(input: ProjectListParams) {
+  const resultSchema = z.object({ projectName: z.string(), id: z.string() });
+  return await getPool().many(sql.type(resultSchema)`
+    SELECT project_name AS "projectName", app.project.id
+    FROM app.project
+    ${
+      input.projectType === 'investmentProject'
+        ? sql.fragment`INNER JOIN app.project_investment ON project_investment.id = app.project.id`
+        : sql.fragment``
+    }
+    ${
+      input.projectType === 'detailplanProject'
+        ? sql.fragment`INNER JOIN app.project_detailplan ON project_detailplan.id = app.project.id`
+        : sql.fragment``
+    }
+    WHERE deleted = false
+    ORDER BY project_name ASC
+  `);
 }
