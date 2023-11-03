@@ -1,34 +1,34 @@
-import { InputAdornment, InputBase, TextField, TextFieldProps } from '@mui/material';
-import { Ref, useEffect, useMemo, useRef, useState } from 'react';
+import { css } from '@emotion/react';
+import { useEffect, useState } from 'react';
 import CurrencyInputField from 'react-currency-input-field';
 
 interface Props {
   value: number | null;
+  onChange?: (value: number | null) => void;
   id?: string;
   name?: string;
-  innerRef?: Ref<HTMLInputElement>;
-  onChange?: (value: number | null) => void;
   placeholder?: string;
-  editing?: boolean;
-  disabled?: boolean;
-  TextFieldProps?: TextFieldProps;
-  readOnly?: boolean;
+  allowNegative?: boolean;
 }
 
 export function textValueToNumeric(value: string | undefined) {
   if (value == null || !value.length) {
     return null;
   }
-  const separator = value.split('').find((character) => !/\d/.test(character));
+
+  const isNegative = value.startsWith('-');
+  const absoluteValue = isNegative ? value.slice(1) : value;
+
+  const separator = absoluteValue.split('').find((character) => !/\d/.test(character));
 
   // Without separator, the number is a whole number
   if (!separator) {
-    return Number(value) * 100;
+    return Number(absoluteValue) * 100 * (isNegative ? -1 : 1);
   }
 
-  const [whole, decimals] = value.split(separator);
+  const [whole, decimals] = absoluteValue.split(separator);
   const cents = decimals.length === 1 ? Number(decimals) * 10 : Number(decimals);
-  return Number(whole) * 100 + cents;
+  return (Number(whole) * 100 + cents) * (isNegative ? -1 : 1);
 }
 
 export function numericValueToText(value: number | null): string {
@@ -46,87 +46,80 @@ export function numericValueToText(value: number | null): string {
 export function formatCurrency(value: number | null) {
   return value == null
     ? ''
-    : new Intl.NumberFormat(navigator.language, { style: 'currency', currency: 'EUR' }).format(
-        value / 100
-      );
+    : new Intl.NumberFormat('fi-FI', { style: 'currency', currency: 'EUR' }).format(value / 100);
 }
 
+const cssInputReadonly = css`
+  background-color: #e3e3e3;
+  text-align: right;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  padding: 8px;
+`;
+
+const cssInputEditable = css`
+  text-align: right;
+  padding: 6px;
+`;
+
 export function CurrencyInput(props: Props) {
-  const { editing, TextFieldProps } = props;
-  const [textValue, setTextValue] = useState<string>('');
+  const [value, setValue] = useState<string>(numericValueToText(props.value));
+  const [editing, setEditing] = useState(false);
 
-  const inputRef = useRef<HTMLInputElement>();
-
-  /**
-   * Update value when updated from the outside
-   */
   useEffect(() => {
-    if (inputRef.current !== document.activeElement) {
-      setTextValue(numericValueToText(props.value));
-    }
+    setValue(numericValueToText(props.value));
   }, [props.value]);
 
-  const editingProps = useMemo<TextFieldProps>(() => {
-    if (!editing) {
-      return {};
-    }
-    return {
-      hiddenLabel: true,
-      variant: 'filled',
-      InputProps: { readOnly: true },
-    };
-  }, [editing]);
+  if (!props.onChange) {
+    return (
+      <input readOnly tabIndex={-1} css={cssInputReadonly} value={formatCurrency(props.value)} />
+    );
+  }
 
-  const FormattedCurrencyField = useMemo(() => {
-    return function FormattedCurrencyField(props: TextFieldProps) {
-      return (
-        <InputBase
-          value={props.value}
-          sx={{ pl: '12px', pt: '8px', pb: '8px' }}
-          inputProps={{ style: { textAlign: 'right' }, tabIndex: -1 }}
-          endAdornment={<InputAdornment position="end">€</InputAdornment>}
-        />
-      );
-    };
-  }, []);
-
-  const CurrencyTextField = useMemo(() => {
-    return function CurrencyTextField(props: TextFieldProps) {
-      return (
-        <TextField
-          {...props}
-          variant="outlined"
-          size="small"
-          {...editingProps}
-          inputProps={{ style: { textAlign: 'right' }, ref: inputRef }}
-          InputProps={{
-            ...editingProps.InputProps,
-            endAdornment: <InputAdornment position="end">€</InputAdornment>,
-            ...TextFieldProps?.InputProps,
-          }}
-          {...TextFieldProps}
-        />
-      );
-    };
-  }, [props.TextFieldProps, editingProps]);
-
-  return (
-    <CurrencyInputField
-      id={props.id}
-      name={props.name}
-      placeholder={props.placeholder}
-      readOnly={props.editing}
-      disabled={props.disabled}
-      value={textValue}
-      decimalsLimit={2}
-      ref={props.innerRef}
-      onValueChange={(value) => {
-        setTextValue(value ?? '');
-        props.onChange?.(textValueToNumeric(value));
-      }}
-      onBlur={() => setTextValue(numericValueToText(props.value))}
-      intlConfig={{ locale: 'fi-FI' }}
-      customInput={props?.readOnly ? FormattedCurrencyField : CurrencyTextField}
-    />
-  );
+  if (!editing) {
+    return (
+      <input
+        readOnly
+        css={cssInputEditable}
+        value={formatCurrency(props.value)}
+        onFocus={() => setEditing(true)}
+      />
+    );
+  } else {
+    return (
+      <CurrencyInputField
+        autoFocus
+        css={css`
+          text-align: right;
+          padding: 6px;
+        `}
+        id={props.id}
+        name={props.name}
+        placeholder={props.placeholder}
+        value={value}
+        decimalsLimit={2}
+        groupSeparator=" "
+        decimalSeparator=","
+        allowNegativeValue={props.allowNegative ?? false}
+        onValueChange={(value) => {
+          setValue(value ?? '');
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            setEditing(false);
+            props.onChange?.(textValueToNumeric(value));
+          } else if (event.key === 'Escape') {
+            event.preventDefault();
+            setEditing(false);
+          }
+        }}
+        onBlur={() => {
+          setEditing(false);
+          props.onChange?.(textValueToNumeric(value));
+        }}
+      />
+    );
+  }
 }
