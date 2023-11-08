@@ -4,9 +4,7 @@ import { addAuditEvent } from '@backend/components/audit';
 import { getPool, sql } from '@backend/db';
 
 import {
-  BudgetInput,
   BudgetUpdate,
-  PartialBudgetUpdate,
   Relation,
   UpdateGeometry,
   projectRelationsSchema,
@@ -156,127 +154,62 @@ export async function updateProjectGeometry(
   `);
 }
 
-function budgetWhereFragment(budgetInput: BudgetInput) {
-  const { projectId, projectObjectId, taskId } = budgetInput;
-  const sqlFalse = sql.fragment`FALSE`;
-  return sql.fragment`
-    ${projectId ? sql.fragment`project_id = ${projectId}` : sqlFalse} OR
-    ${projectObjectId ? sql.fragment`project_object_id = ${projectObjectId}` : sqlFalse} OR
-    ${taskId ? sql.fragment`task_id = ${taskId}` : sqlFalse}
-  `;
-}
-
-/**
- * Function to get the budget of a project / project object / task.
- * @param {BudgetInput} budgetInput - The input parameters to get the budget.
- * @returns {Promise} A promise that resolves with the budget information.
- */
-
-export async function getBudget(budgetInput: BudgetInput) {
+export async function getProjectBudget(projectId: string) {
   return getPool().any(sql.type(yearBudgetSchema)`
+    WITH project_budget AS (
+      SELECT
+        "year",
+        amount
+      FROM app.budget
+      WHERE project_id = ${projectId}
+    ), project_object_budget AS (
+      SELECT
+        year,
+        sum(forecast) AS forecast,
+        sum(kayttosuunnitelman_muutos) AS kayttosuunnitelman_muutos
+      FROM app.budget
+      WHERE project_object_id IN (SELECT id FROM app.project_object WHERE project_id = ${projectId})
+      GROUP BY "year"
+    )
     SELECT
-      year,
-      jsonb_agg(
-        jsonb_build_object(
-          'id', id,
-          'amount', amount
-        )
+      coalesce(project_budget.year, project_object_budget.year) AS "year",
+      jsonb_build_object(
+        'amount', project_budget.amount,
+        'forecast', project_object_budget.forecast,
+        'kayttosuunnitelmanMuutos', project_object_budget.kayttosuunnitelman_muutos
       ) AS "budgetItems"
-    FROM app.budget
-    WHERE ${budgetWhereFragment(budgetInput)}
-    GROUP BY year
-    ORDER BY year ASC
+    FROM project_budget
+    FULL OUTER JOIN project_object_budget ON project_budget.year = project_object_budget.year
+    ORDER BY "year" ASC
   `);
 }
 
-/**
- * Function to update the budget of a project / project object / task.
- * @param {BudgetUpdate} updates - The updates to be made to the budget.
- * @param {User} user - The user making the update.
- * @returns {Promise} A promise that resolves when the update is complete.
- */
-
-export async function updateBudget(updates: BudgetUpdate, user: User) {
-  const { projectId, projectObjectId, taskId, yearBudgets } = updates;
-
-  const newRows = yearBudgets.reduce(
-    (rows, item) => [
-      ...rows,
-      ...item.budgetItems
-        .filter((yearBudget) => yearBudget.amount != null)
-        .map((yearBudget) => ({ year: item.year, amount: yearBudget.amount! })),
-    ],
-    [] as { year: number; amount: number }[]
-  );
-
-  await getPool().transaction(async (tx) => {
-    await addAuditEvent(tx, {
-      eventType: 'project.updateBudget',
-      eventData: updates,
-      eventUser: user.id,
-    });
-    await tx.any(sql.untyped`
-        DELETE FROM app.budget
-        WHERE ${budgetWhereFragment(updates)}
-    `);
-    await Promise.all(
-      newRows.map((row) =>
-        tx.any(sql.untyped`
-            INSERT INTO app.budget (project_id, project_object_id, task_id, year, amount)
-            VALUES (
-              ${projectId ?? null},
-              ${projectObjectId ?? null},
-              ${taskId ?? null},
-              ${row.year},
-              ${row.amount}
-            )
-          `)
-      )
-    );
-  });
-}
-
-/**
- * Function to partial update some of the budget of a project / project object / task.
- * @param {DatabaseTransactionConnection} tx - The database transaction connection.
- * @param {BudgetUpdate} update - The updates to be made to the budget.
- * @param {User} userId - The user making the update.
- * @returns {Promise} A promise that resolves when the update is complete.
- */
-
-export async function partialUpdateBudget(
+export async function updateProjectBudget(
   tx: DatabaseTransactionConnection,
-  update: PartialBudgetUpdate,
+  projectId: string,
+  budgetItems: BudgetUpdate['budgetItems'],
   userId: User['id']
 ) {
-  const { projectId, projectObjectId, taskId } = update;
-
   await addAuditEvent(tx, {
-    eventType: 'project.partialUpdateBudget',
-    eventData: update,
+    eventType: 'project.updateBudget',
+    eventData: { projectId, budgetItems },
     eventUser: userId,
   });
 
   await tx.any(sql.untyped`
     DELETE FROM app.budget
-    WHERE (${budgetWhereFragment(update)})
+    WHERE project_id = ${projectId}
       AND year = ANY (${sql.array(
-        update.budgetItems.map((yearBudget) => yearBudget.year),
+        budgetItems.map((yearBudget) => yearBudget.year),
         'int4'
       )})
   `);
 
   await tx.any(sql.untyped`
-    INSERT INTO app.budget (project_id, project_object_id, task_id, year, amount)
+    INSERT INTO app.budget (project_id, "year", amount)
     SELECT * FROM ${sql.unnest(
-      update.budgetItems.map((row) => [
-        projectId ?? null,
-        projectObjectId ?? null,
-        taskId ?? null,
-        row.year,
-        row.amount,
-      ]),
-      ['uuid', 'uuid', 'uuid', 'int4', 'int8']
+      budgetItems.map((row) => [projectId, row.year, row.amount]),
+      ['uuid', 'int4', 'int8']
     )}
   `);
 }

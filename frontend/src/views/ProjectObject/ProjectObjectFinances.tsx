@@ -18,7 +18,7 @@ export function ProjectObjectFinances(props: Props) {
   const { projectObject } = props;
   const budget = !projectObject.id
     ? null
-    : trpc.project.getBudget.useQuery({ projectObjectId: projectObject.id });
+    : trpc.projectObject.getBudget.useQuery({ projectObjectId: projectObject.id });
 
   const notify = useNotifications();
   const tr = useTranslations();
@@ -32,7 +32,7 @@ export function ProjectObjectFinances(props: Props) {
     return getRange(startYear, endYear);
   }, [projectObject?.startDate, projectObject?.endDate]);
 
-  const saveBudgetMutation = trpc.project.updateBudget.useMutation({
+  const saveBudgetMutation = trpc.projectObject.updateBudget.useMutation({
     onSuccess() {
       notify({
         severity: 'success',
@@ -67,10 +67,17 @@ export function ProjectObjectFinances(props: Props) {
       budget={budget.data}
       actuals={yearlyActuals.data}
       actualsLoading={yearlyActuals.isFetching}
+      writableFields={['amount', 'forecast', 'kayttosuunnitelmanMuutos']}
       onSave={async (yearBudgets) => {
+        const payload = yearBudgets.map((yearBudget) => ({
+          year: yearBudget.year,
+          amount: yearBudget.budgetItems.amount,
+          forecast: yearBudget.budgetItems.forecast,
+          kayttosuunnitelmanMuutos: yearBudget.budgetItems.kayttosuunnitelmanMuutos,
+        }));
         await saveBudgetMutation.mutateAsync({
           projectObjectId: projectObject.id,
-          yearBudgets,
+          budgetItems: payload,
         });
         budget.refetch();
       }}

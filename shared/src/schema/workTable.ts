@@ -21,12 +21,6 @@ export const workTableSearchSchema = z.object({
 export type FinancesRange = z.infer<typeof financesRangeSchema>;
 export type WorkTableSearch = z.infer<typeof workTableSearchSchema>;
 
-const workTableFinancesItem = z.object({
-  year: z.number().nullable(),
-  budget: z.number().nullable(),
-  actual: z.number().nullable(),
-});
-
 export const workTableRowSchema = z.object({
   id: nonEmptyString,
   objectName: dbProjectObjectSchema.shape.objectName,
@@ -46,10 +40,12 @@ export const workTableRowSchema = z.object({
     rakennuttajaUser: dbProjectObjectSchema.shape.rakennuttajaUser,
     suunnitteluttajaUser: dbProjectObjectSchema.shape.suunnitteluttajaUser,
   }),
-  finances: workTableFinancesItem,
+  budgetYear: z.number(),
+  budget: z.number().nullable(),
+  actual: z.number().nullable(),
+  forecast: z.number().nullable(),
+  kayttosuunnitelmanMuutos: z.number().nullable(),
 });
-
-export type FinancesItem = z.infer<typeof workTableFinancesItem>;
 
 export const workTableRowUpdateSchema = workTableRowSchema
   .omit({
@@ -62,6 +58,6 @@ export type WorkTableRow = z.infer<typeof workTableRowSchema>;
 
 export type WorkTableRowUpdate = z.infer<typeof workTableRowUpdateSchema>;
 
-export const projectsUpdateSchema = z.record(workTableRowUpdateSchema);
+export const workTableUpdateSchema = z.record(workTableRowUpdateSchema);
 
-export type ProjectsUpdate = z.infer<typeof projectsUpdateSchema>;
+export type WorkTableUpdate = z.infer<typeof workTableUpdateSchema>;

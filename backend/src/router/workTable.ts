@@ -5,11 +5,11 @@ import { getProjectObjects, upsertProjectObject } from '@backend/router/projectO
 
 import { UpsertProjectObject } from '@shared/schema/projectObject';
 import {
-  ProjectsUpdate,
   WorkTableSearch,
-  projectsUpdateSchema,
+  WorkTableUpdate,
   workTableRowSchema,
   workTableSearchSchema,
+  workTableUpdateSchema,
 } from '@shared/schema/workTable';
 
 async function workTableSearch(input: WorkTableSearch) {
@@ -62,7 +62,9 @@ async function workTableSearch(input: WorkTableSearch) {
   ), po_budget AS (
     SELECT
       project_object_id,
-      COALESCE(SUM(budget.amount), null) AS budget
+      COALESCE(SUM(budget.amount), null) AS budget,
+      COALESCE(SUM(budget.forecast), null) AS forecast,
+      COALESCE(SUM(budget.kayttosuunnitelman_muutos), null) AS kayttosuunnitelman_muutos
     FROM app.budget
     WHERE ${
       financesRange === 'allYears' ? sql.fragment`true` : sql.fragment`year = ${financesRange}`
@@ -72,8 +74,7 @@ async function workTableSearch(input: WorkTableSearch) {
     SELECT
       project_object.id AS po_id,
       SUM(value_in_currency_subunit) AS total
-    FROM
-      app.sap_actuals_item
+    FROM app.sap_actuals_item
     INNER JOIN app.project_object ON project_object.sap_wbs_id = sap_actuals_item.wbs_element_id
     WHERE ${
       financesRange === 'allYears'
@@ -101,45 +102,39 @@ async function workTableSearch(input: WorkTableSearch) {
         'rakennuttajaUser', rakennuttaja_user,
         'suunnitteluttajaUser', suunnitteluttaja_user
     ) AS "operatives",
-    (
-      SELECT
-        jsonb_build_object(
-          'budget', (SELECT budget FROM po_budget WHERE po_budget.project_object_id = search_results.id),
-          'actual', (SELECT total FROM po_actual WHERE po_actual.po_id = search_results.id)
-        ) ||
-          ${
-            financesRange === 'allYears'
-              ? sql.fragment`'{}'::jsonb`
-              : sql.fragment`jsonb_build_object('year', ${financesRange}::integer)`
-          }
-    ) AS "finances"
+    po_budget.budget AS "budget",
+    po_actual.total AS "actual",
+    po_budget.forecast AS "forecast",
+    po_budget.kayttosuunnitelman_muutos AS "kayttosuunnitelmanMuutos"
   FROM search_results
+  LEFT JOIN po_budget ON po_budget.project_object_id = search_results.id
+  LEFT JOIN po_actual ON po_actual.po_id = search_results.id
   ORDER BY object_name ASC
   `;
 
   return getPool().any(query);
 }
 
-async function workTableUpdate(input: ProjectsUpdate, userId: string) {
+async function workTableUpdate(input: WorkTableUpdate, userId: string) {
   const updates = Object.entries(input).map(([projectObjectId, projectObject]) => {
+    const { budgetYear, budget, forecast, kayttosuunnitelmanMuutos, ...poUpdate } = projectObject;
     return {
-      ...projectObject,
+      ...poUpdate,
       startDate: projectObject.dateRange?.startDate,
       endDate: projectObject.dateRange?.endDate,
       rakennuttajaUser: projectObject.operatives?.rakennuttajaUser,
       suunnitteluttajaUser: projectObject.operatives?.suunnitteluttajaUser,
       id: projectObjectId,
-      ...(projectObject.finances && {
-        budgetUpdate: {
-          projectObjectId,
-          budgetItems: [
-            {
-              year: projectObject.finances.year,
-              amount: projectObject.finances.budget,
-            },
-          ],
-        },
-      }),
+      budgetUpdate: {
+        budgetItems: [
+          {
+            year: budgetYear,
+            amount: budget,
+            forecast,
+            kayttosuunnitelmanMuutos,
+          },
+        ],
+      },
     } as UpsertProjectObject;
   });
 
@@ -154,7 +149,7 @@ export const createWorkTableRouter = (t: TRPC) =>
     search: t.procedure.input(workTableSearchSchema).query(async ({ input }) => {
       return workTableSearch(input);
     }),
-    update: t.procedure.input(projectsUpdateSchema).mutation(async ({ ctx, input }) => {
+    update: t.procedure.input(workTableUpdateSchema).mutation(async ({ ctx, input }) => {
       const userId = ctx.user.id;
       return workTableUpdate(input, userId);
     }),

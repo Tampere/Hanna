@@ -115,53 +115,23 @@ export const relationsSchema = z.object({
 
 export const yearBudgetSchema = z.object({
   year: z.number(),
-  budgetItems: z.array(
-    z.object({
-      id: z.string().optional(),
-      amount: z.number().nullable(),
-    })
-  ),
+  budgetItems: z.object({
+    amount: z.number().nullable(),
+    forecast: z.number().nullable(),
+    kayttosuunnitelmanMuutos: z.number().nullable(),
+  }),
 });
 
 export type YearBudget = z.infer<typeof yearBudgetSchema>;
 
-export const getBudgetInputSchema = z.union([
-  z.object({
-    projectId: z.string(),
-    projectObjectId: z.undefined().optional(),
-    taskId: z.undefined().optional(),
-  }),
-  z.object({
-    projectId: z.undefined().optional(),
-    projectObjectId: z.string(),
-    taskId: z.undefined().optional(),
-  }),
-  z.object({
-    projectId: z.undefined().optional(),
-    projectObjectId: z.undefined().optional(),
-    taskId: z.string(),
-  }),
-]);
+export const budgetUpdateSchema = z.object({
+  projectId: z.string(),
+  budgetItems: z.array(
+    z.object({
+      year: z.number(),
+      amount: z.number(),
+    })
+  ),
+});
 
-export type BudgetInput = z.infer<typeof getBudgetInputSchema>;
-
-export const updateBudgetInputSchema = z.intersection(
-  getBudgetInputSchema,
-  z.object({ yearBudgets: z.array(yearBudgetSchema) })
-);
-
-export type BudgetUpdate = z.infer<typeof updateBudgetInputSchema>;
-
-export const partialBudgetUpdateSchema = z.intersection(
-  getBudgetInputSchema,
-  z.object({
-    budgetItems: z.array(
-      z.object({
-        year: z.number(),
-        amount: z.number(),
-      })
-    ),
-  })
-);
-
-export type PartialBudgetUpdate = z.infer<typeof partialBudgetUpdateSchema>;
+export type BudgetUpdate = z.infer<typeof budgetUpdateSchema>;

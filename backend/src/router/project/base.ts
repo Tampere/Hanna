@@ -1,9 +1,11 @@
+import { z } from 'zod';
+
 import {
   addProjectRelation,
-  getBudget,
+  getProjectBudget,
   getRelatedProjects,
   removeProjectRelation,
-  updateBudget,
+  updateProjectBudget,
   updateProjectGeometry,
 } from '@backend/components/project';
 import { deleteProject, getProject } from '@backend/components/project/base';
@@ -13,11 +15,10 @@ import { getPool } from '@backend/db';
 import { TRPC } from '@backend/router';
 
 import {
-  getBudgetInputSchema,
+  budgetUpdateSchema,
   projectListParamsSchema,
   projectSearchSchema,
   relationsSchema,
-  updateBudgetInputSchema,
   updateGeometrySchema,
 } from '@shared/schema/project';
 import { projectIdSchema } from '@shared/schema/project/base';
@@ -53,12 +54,14 @@ export const createProjectRouter = (t: TRPC) =>
       });
     }),
 
-    getBudget: t.procedure.input(getBudgetInputSchema).query(async ({ input }) => {
-      return getBudget(input);
+    getBudget: t.procedure.input(z.object({ projectId: z.string() })).query(async ({ input }) => {
+      return getProjectBudget(input.projectId);
     }),
 
-    updateBudget: t.procedure.input(updateBudgetInputSchema).mutation(async ({ input, ctx }) => {
-      return updateBudget(input, ctx.user);
+    updateBudget: t.procedure.input(budgetUpdateSchema).mutation(async ({ input, ctx }) => {
+      return await getPool().transaction(async (tx) => {
+        return await updateProjectBudget(tx, input.projectId, input.budgetItems, ctx.user.id);
+      });
     }),
 
     updateRelations: t.procedure.input(relationsSchema).mutation(async ({ input, ctx }) => {

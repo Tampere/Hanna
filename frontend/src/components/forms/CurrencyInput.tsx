@@ -5,10 +5,13 @@ import CurrencyInputField from 'react-currency-input-field';
 interface Props {
   value: number | null;
   onChange?: (value: number | null) => void;
+  editing?: boolean;
   id?: string;
   name?: string;
   placeholder?: string;
   allowNegative?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 export function textValueToNumeric(value: string | undefined) {
@@ -49,23 +52,9 @@ export function formatCurrency(value: number | null) {
     : new Intl.NumberFormat('fi-FI', { style: 'currency', currency: 'EUR' }).format(value / 100);
 }
 
-const cssInputReadonly = css`
-  background-color: #e3e3e3;
-  text-align: right;
-  border: none;
-  outline: none;
-  box-shadow: none;
-  padding: 8px;
-`;
-
-const cssInputEditable = css`
-  text-align: right;
-  padding: 6px;
-`;
-
-export function CurrencyInput(props: Props) {
+export function CurrencyInput(props: Readonly<Props>) {
   const [value, setValue] = useState<string>(numericValueToText(props.value));
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(props.editing ?? false);
 
   useEffect(() => {
     setValue(numericValueToText(props.value));
@@ -73,7 +62,19 @@ export function CurrencyInput(props: Props) {
 
   if (!props.onChange) {
     return (
-      <input readOnly tabIndex={-1} css={cssInputReadonly} value={formatCurrency(props.value)} />
+      <input
+        readOnly
+        tabIndex={-1}
+        style={{
+          backgroundColor: '#e3e3e3',
+          textAlign: 'right',
+          border: 'none',
+          outline: 'none',
+          boxShadow: 'none',
+          padding: '8px',
+        }}
+        value={formatCurrency(props.value)}
+      />
     );
   }
 
@@ -81,7 +82,10 @@ export function CurrencyInput(props: Props) {
     return (
       <input
         readOnly
-        css={cssInputEditable}
+        style={{
+          textAlign: 'right',
+          padding: '6px',
+        }}
         value={formatCurrency(props.value)}
         onFocus={() => setEditing(true)}
       />
@@ -90,6 +94,8 @@ export function CurrencyInput(props: Props) {
     return (
       <CurrencyInputField
         autoFocus
+        className={props.className ?? ''}
+        style={props.style ?? {}}
         css={css`
           text-align: right;
           padding: 6px;
@@ -102,8 +108,8 @@ export function CurrencyInput(props: Props) {
         groupSeparator=" "
         decimalSeparator=","
         allowNegativeValue={props.allowNegative ?? false}
-        onValueChange={(value) => {
-          setValue(value ?? '');
+        onValueChange={(val) => {
+          setValue(val ?? '');
         }}
         onKeyDown={(event) => {
           if (event.key === 'Enter') {

@@ -2,11 +2,22 @@ import { z } from 'zod';
 
 import { codeId } from './code';
 import { isoDateString, nonEmptyString } from './common';
-import { partialBudgetUpdateSchema } from './project';
 
 export const projectObjectUserRoleSchema = z.object({
   userId: nonEmptyString,
   roleId: codeId,
+});
+
+export const updateBudgetSchema = z.object({
+  projectObjectId: z.string(),
+  budgetItems: z.array(
+    z.object({
+      year: z.number(),
+      amount: z.number().nullable(),
+      forecast: z.number().nullable(),
+      kayttosuunnitelmanMuutos: z.number().nullable(),
+    })
+  ),
 });
 
 export const newProjectObjectSchema = z.object({
@@ -28,7 +39,7 @@ export const newProjectObjectSchema = z.object({
   locationOnProperty: codeId.optional().nullable(),
   height: z.coerce.number().optional().nullable(),
   objectUserRoles: z.array(projectObjectUserRoleSchema),
-  budgetUpdate: partialBudgetUpdateSchema.optional().nullable(),
+  budgetUpdate: updateBudgetSchema.optional().nullable(),
   geom: z.string().optional().nullable(),
 });
 
@@ -79,3 +90,16 @@ export const deleteProjectObjectSchema = z.object({
 });
 
 export type UpdateGeometryResult = z.infer<typeof updateGeometryResultSchema>;
+
+export const yearBudgetSchema = z.object({
+  year: z.number(),
+  budgetItems: z.object({
+    amount: z.number().nullable(),
+    forecast: z.number().nullable(),
+    kayttosuunnitelmanMuutos: z.number().nullable(),
+  }),
+});
+
+export type YearBudget = z.infer<typeof yearBudgetSchema>;
+
+export type BudgetUpdate = z.infer<typeof updateBudgetSchema>;

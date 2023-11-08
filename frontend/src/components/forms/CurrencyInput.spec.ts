@@ -17,6 +17,6 @@ describe('CurrencyInput', () => {
     expect(textValueToNumeric('0.00')).toBe(0);
     expect(textValueToNumeric('-1.00')).toBe(-100);
     expect(textValueToNumeric('-1.99')).toBe(-199);
-    expect(textValueToNumeric('-0')).toBe(0);
+    expect(textValueToNumeric('-0')).toBe(-0);
   });
 });
