@@ -187,7 +187,7 @@
   "budgetTable.budget": "Talousarvio",
   "budgetTable.actual": "Toteuma",
   "budgetTable.forecast": "Ennuste",
-  "budgetTable.kayttosuunnitelmanMuutos": "KSM",
+  "budgetTable.kayttosuunnitelmanMuutos": "Käyttösuunnitelman muutos",
   "budgetTable.total": "Yhteensä",
   "budgetTable.notifySave": "Talousarviot tallennettu",
   "budgetTable.notifySaveFailed": "Talousarvioiden tallentaminen epäonnistui",

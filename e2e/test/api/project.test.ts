@@ -15,28 +15,62 @@ function makePoint(lon: number, lat: number, srid: string) {
   ];
 }
 
+const invalidDateProject = {
+  projectName: 'Test project',
+  description: 'Test description',
+  owner: '1',
+  personInCharge: '1',
+  startDate: '2023-01-01',
+  endDate: '2022-01-01',
+  lifecycleState: '01',
+  committees: ['01'],
+  sapProjectId: null,
+};
+
+const validProject = (userId: string) => ({
+  projectName: 'Test project',
+  description: 'Test description',
+  owner: userId,
+  personInCharge: userId,
+  startDate: '2021-01-01',
+  endDate: '2022-01-01',
+  lifecycleState: '01',
+  committees: ['01'],
+  sapProjectId: null,
+});
+
 test.describe('Project endpoints', () => {
   // Login to retrieve the cookies for authorizing tRPC queries
   test.beforeEach(async ({ page }) => {
     await login(page);
   });
+  test('project validation', async () => {
+    const validationResult = await client.investmentProject.upsertValidate.query(
+      invalidDateProject
+    );
+
+    expect(validationResult).toStrictEqual({
+      errors: {
+        startDate: {
+          message: 'project.error.endDateBeforeStartDate',
+          type: 'custom',
+        },
+        endDate: {
+          message: 'project.error.endDateBeforeStartDate',
+          type: 'custom',
+        },
+      },
+    });
+  });
 
   test('project geometry edit', async () => {
-    // There should be at least one user because this is executed after login
     const [user] = await client.user.getAll.query();
+    const validProjectInput = validProject(user.id);
 
-    const project = await client.investmentProject.upsert.mutate({
-      projectName: 'Test project',
-      description: 'Test description',
-      owner: user.id,
-      personInCharge: user.id,
-      startDate: '2021-01-01',
-      endDate: '2022-01-01',
-      lifecycleState: '01',
-      committees: ['01'],
-      sapProjectId: null,
-    });
+    const validationResult = await client.investmentProject.upsertValidate.query(validProjectInput);
+    expect(validationResult).toStrictEqual({ errors: {} });
 
+    const project = await client.investmentProject.upsert.mutate(validProjectInput);
     const point = makePoint(24487416.69375355, 6821004.272996133, 'EPSG:3878');
 
     const edit = await client.project.updateGeometry.mutate({
@@ -50,5 +84,82 @@ test.describe('Project endpoints', () => {
       crs: { type: 'name', properties: { name: 'EPSG:3878' } },
       coordinates: [[24487416.69375355, 6821004.272996133]],
     });
+  });
+
+  test('project budget update', async () => {
+    const [user] = await client.user.getAll.query();
+    const validProjectInput = validProject(user.id);
+
+    const project = await client.investmentProject.upsert.mutate(validProjectInput);
+    const budgetUpdateInput = {
+      projectId: project.id,
+      budgetItems: [
+        {
+          year: 2021,
+          amount: 50000,
+        },
+        {
+          year: 2022,
+          amount: 60000,
+        },
+      ],
+    };
+    const getBudgetResult = await client.project.getBudget.query({ projectId: project.id });
+
+    expect(getBudgetResult).toStrictEqual([]);
+
+    await client.project.updateBudget.mutate(budgetUpdateInput);
+
+    const updatedBudgetResult = await client.project.getBudget.query({ projectId: project.id });
+    expect(updatedBudgetResult).toStrictEqual([
+      {
+        year: 2021,
+        budgetItems: {
+          amount: 50000,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
+        },
+      },
+      {
+        year: 2022,
+        budgetItems: {
+          amount: 60000,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
+        },
+      },
+    ]);
+
+    const budgetUpdate2021 = {
+      projectId: project.id,
+      budgetItems: [
+        {
+          year: 2021,
+          amount: 70000,
+        },
+      ],
+    };
+
+    await client.project.updateBudget.mutate(budgetUpdate2021);
+
+    const updatedBudgetResult2021 = await client.project.getBudget.query({ projectId: project.id });
+    expect(updatedBudgetResult2021).toStrictEqual([
+      {
+        year: 2021,
+        budgetItems: {
+          amount: 70000,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
+        },
+      },
+      {
+        year: 2022,
+        budgetItems: {
+          amount: 60000,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
+        },
+      },
+    ]);
   });
 });

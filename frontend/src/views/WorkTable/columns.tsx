@@ -323,7 +323,7 @@ export function getColumns({
     financesField(financesRange, 'actual', { headerName: 'Toteuma', editable: false }),
     financesField(financesRange, 'forecast', { headerName: 'Ennuste' }, { allowNegative: true }),
     financesField(financesRange, 'kayttosuunnitelmanMuutos', {
-      headerName: 'KSM',
+      headerName: 'Käyttösuunnitelman muutos',
       flex: 1,
       minWidth: 100,
     }),

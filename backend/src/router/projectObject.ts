@@ -471,16 +471,18 @@ export const createProjectObjectRouter = (t: TRPC) =>
         return await getProjectObjectBudget(input.projectObjectId);
       }),
 
-    updateBudget: t.procedure.input(updateBudgetSchema).mutation(async ({ input, ctx }) => {
-      return await getPool().transaction(async (tx) => {
-        return await updateProjectObjectBudget(
-          tx,
-          input.projectObjectId,
-          input.budgetItems,
-          ctx.user.id
-        );
-      });
-    }),
+    updateBudget: t.procedure
+      .input(updateBudgetSchema.required())
+      .mutation(async ({ input, ctx }) => {
+        return await getPool().transaction(async (tx) => {
+          return await updateProjectObjectBudget(
+            tx,
+            input.projectObjectId,
+            input.budgetItems,
+            ctx.user.id
+          );
+        });
+      }),
 
     getByProjectId: t.procedure
       .input(z.object({ projectId: nonEmptyString }))

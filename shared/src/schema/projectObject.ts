@@ -9,7 +9,7 @@ export const projectObjectUserRoleSchema = z.object({
 });
 
 export const updateBudgetSchema = z.object({
-  projectObjectId: z.string(),
+  projectObjectId: z.string().optional(),
   budgetItems: z.array(
     z.object({
       year: z.number(),
