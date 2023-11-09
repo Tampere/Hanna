@@ -49,12 +49,18 @@ const dataGridStyle = (theme: Theme) => css`
     white-space: normal !important;
     word-wrap: break-word;
   }
-  & .cell-bold {
-    font-weight: bold;
-  }
   & .cell-wrap-text {
     white-space: normal !important;
     word-wrap: break-word;
+  }
+  .MuiDataGrid-cell:has(.modified-cell) {
+    background-color: lightyellow;
+  }
+  .MuiDataGrid-cell:not(:has(.modified-cell)) {
+    background-color: inherit;
+  }
+  .MuiDataGrid-cell:has(.absolute-cell) {
+    position: relative;
   }
 `;
 
@@ -239,10 +245,9 @@ export default function WorkTable() {
   async function update() {
     // NOTE: some problems with type inference, backend has schema validation however
     const updateData = {} as Record<string, Record<keyof WorkTableRowUpdate, any>>;
-
     editEvents.forEach((editEvent) => {
       const { rowId, field, newValue } = editEvent;
-      updateData[rowId] = updateData[rowId] ?? {};
+      updateData[rowId] = updateData[rowId] ?? { budgetYear: searchParams.financesRange };
       updateData[rowId][field] = newValue;
     });
 
@@ -250,14 +255,14 @@ export default function WorkTable() {
   }
 
   return (
-    <div
+    <Box
       css={css`
         display: flex;
         flex-direction: column;
         height: 100%;
       `}
     >
-      <div
+      <Box
         css={css`
           display: flex;
           justify-content: space-between;
@@ -274,7 +279,7 @@ export default function WorkTable() {
         >
           {tr('workTable.newProjectObjectBtnLabel')}
         </Button>
-      </div>
+      </Box>
       <WorkTableFilters
         readOnly={editEvents.length > 0}
         searchParams={searchParams}
@@ -288,7 +293,6 @@ export default function WorkTable() {
         apiRef={gridApiRef}
         processRowUpdate={(newRow, oldRow) => {
           const cellEditEvent = getCellEditEvent(oldRow, newRow);
-
           if (cellEditEvent) {
             setEditEvents((prev) => [...prev, cellEditEvent]);
             setRedoEvents([]);
@@ -319,7 +323,7 @@ export default function WorkTable() {
           visibility: ${editEvents.length > 0 || redoEvents.length > 0 ? 'visible' : 'hidden'};
         `}
       >
-        <div
+        <Box
           css={(theme) => {
             return css`
               display: flex;
@@ -338,9 +342,9 @@ export default function WorkTable() {
               <Redo />
             </Tooltip>
           </IconButton>
-        </div>
+        </Box>
 
-        <div
+        <Box
           css={(theme) => {
             return css`
               display: flex;
@@ -366,8 +370,8 @@ export default function WorkTable() {
             {tr('genericForm.save')}
             <Save />
           </Button>
-        </div>
+        </Box>
       </Box>
-    </div>
+    </Box>
   );
 }

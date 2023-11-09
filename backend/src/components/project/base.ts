@@ -11,7 +11,6 @@ import { UpsertProject, projectIdSchema } from '@shared/schema/project/base';
 import { User } from '@shared/schema/user';
 
 import { codeIdFragment } from '../code';
-import { sapProjectExists } from '../sap/dataImport';
 
 async function upsertBaseProject(
   tx: DatabaseTransactionConnection,

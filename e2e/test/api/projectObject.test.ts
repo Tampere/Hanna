@@ -3,19 +3,6 @@ import { User } from '@shared/schema/user';
 import { login } from '@utils/page';
 import { client } from '@utils/trpc';
 
-function makePoint(lon: number, lat: number, srid: string) {
-  return [
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'Point',
-        crs: { type: 'name', properties: { name: srid } },
-        coordinates: [lon, lat],
-      },
-    },
-  ];
-}
-
 const testProject = (user: User) => ({
   projectName: 'Test project',
   description: 'Test description',
@@ -87,5 +74,132 @@ test.describe('Project Object endpoints', () => {
       ...updatedResp,
       description: 'Partial update',
     });
+  });
+
+  test('Project object budget updates', async () => {
+    const [user] = await client.user.getAll.query();
+
+    const project = await client.investmentProject.upsert.mutate(testProject(user));
+
+    const projectObject = testProjectObject(project.id, user);
+
+    const resp = await client.projectObject.upsert.mutate(projectObject);
+    expect(resp.id).toBeTruthy();
+
+    const budget = await client.projectObject.getBudget.query({ projectObjectId: resp.id });
+    expect(budget).toStrictEqual([]);
+
+    // Update budget
+    const budgetUpdate = {
+      projectObjectId: resp.id,
+      budgetItems: [
+        {
+          year: 2021,
+          amount: 10000,
+          forecast: 2500,
+          kayttosuunnitelmanMuutos: 5000,
+        },
+      ],
+    };
+    await client.projectObject.updateBudget.mutate(budgetUpdate);
+
+    // Get updated budget
+    const updatedBudget = await client.projectObject.getBudget.query({ projectObjectId: resp.id });
+    expect(updatedBudget).toStrictEqual([
+      {
+        year: 2021,
+        budgetItems: {
+          amount: 10000,
+          forecast: 2500,
+          kayttosuunnitelmanMuutos: 5000,
+        },
+      },
+    ]);
+
+    // add budget for another year and update existing
+    const partialBudgetUpdate = {
+      projectObjectId: resp.id,
+      budgetItems: [
+        {
+          year: 2021,
+          amount: 12500,
+          forecast: -1000,
+          kayttosuunnitelmanMuutos: 5000,
+        },
+        {
+          year: 2022,
+          amount: 7500,
+          forecast: -2500,
+          kayttosuunnitelmanMuutos: 0,
+        },
+      ],
+    };
+    await client.projectObject.updateBudget.mutate(partialBudgetUpdate);
+
+    // Get updated budget
+    const partialUpdatedBudget = await client.projectObject.getBudget.query({
+      projectObjectId: resp.id,
+    });
+
+    expect(partialUpdatedBudget).toStrictEqual([
+      {
+        year: 2021,
+        budgetItems: {
+          amount: 12500,
+          forecast: -1000,
+          kayttosuunnitelmanMuutos: 5000,
+        },
+      },
+      {
+        year: 2022,
+        budgetItems: {
+          amount: 7500,
+          forecast: -2500,
+          kayttosuunnitelmanMuutos: 0,
+        },
+      },
+    ]);
+
+    const projectObject2 = testProjectObject(project.id, user);
+    const resp2 = await client.projectObject.upsert.mutate({
+      ...projectObject2,
+      budgetUpdate: {
+        budgetItems: [
+          {
+            year: 2021,
+            amount: 7500,
+            forecast: 2000,
+            kayttosuunnitelmanMuutos: 1000,
+          },
+          {
+            year: 2022,
+            amount: 5000,
+            forecast: -1000,
+            kayttosuunnitelmanMuutos: 1000,
+          },
+        ],
+      },
+    });
+    expect(resp2.id).toBeTruthy();
+
+    const projectBudget = await client.project.getBudget.query({ projectId: project.id });
+    expect(projectBudget).toStrictEqual([
+      {
+        year: 2021,
+        budgetItems: {
+          amount: null,
+          forecast: 1000,
+          kayttosuunnitelmanMuutos: 6000,
+        },
+      },
+      {
+        year: 2022,
+        budgetItems: {
+          amount: null,
+          forecast: -3500,
+          kayttosuunnitelmanMuutos: 1000,
+        },
+      },
+    ]);
   });
 });

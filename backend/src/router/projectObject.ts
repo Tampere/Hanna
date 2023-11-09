@@ -4,21 +4,25 @@ import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
 import { codeIdFragment } from '@backend/components/code';
-import { partialUpdateBudget } from '@backend/components/project';
 import { getPool, sql } from '@backend/db';
+import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
 
+import { FormErrors, fieldError, hasErrors } from '@shared/formerror';
 import { nonEmptyString } from '@shared/schema/common';
 import {
+  BudgetUpdate,
   UpdateGeometry,
   UpdateProjectObject,
   UpsertProjectObject,
   dbProjectObjectSchema,
   deleteProjectObjectSchema,
   getProjectObjectParams,
+  updateBudgetSchema,
   updateGeometryResultSchema,
   updateGeometrySchema,
   upsertProjectObjectSchema,
+  yearBudgetSchema,
 } from '@shared/schema/projectObject';
 import { User } from '@shared/schema/user';
 
@@ -179,6 +183,61 @@ async function updateObjectRoles(
   );
 }
 
+async function getProjectObjectBudget(projectObjectId: string) {
+  return getPool().any(sql.type(yearBudgetSchema)`
+    SELECT
+      "year",
+      jsonb_build_object(
+        'amount', amount,
+        'forecast', forecast,
+        'kayttosuunnitelmanMuutos', kayttosuunnitelman_muutos
+      ) AS "budgetItems"
+    FROM app.budget
+    WHERE project_object_id = ${projectObjectId}
+    ORDER BY year ASC
+  `);
+}
+
+export async function updateProjectObjectBudget(
+  tx: DatabaseTransactionConnection,
+  projectObjectId: string,
+  budgetItems: BudgetUpdate['budgetItems'],
+  userId: User['id']
+) {
+  await addAuditEvent(tx, {
+    eventType: 'projectObject.updateBudget',
+    eventData: { projectObjectId, budgetItems },
+    eventUser: userId,
+  });
+
+  await Promise.all(
+    budgetItems.map(async (item) => {
+      // filter falsy kvs in case of partial update
+      const data = Object.fromEntries(
+        Object.entries({
+          year: item.year,
+          amount: item.amount,
+          forecast: item.forecast,
+          kayttosuunnitelman_muutos: item.kayttosuunnitelmanMuutos,
+        }).filter(([, value]) => value !== undefined)
+      );
+
+      const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
+      const values = Object.values(data);
+
+      await tx.any(sql.untyped`
+        INSERT INTO app.budget (project_object_id, ${sql.join(identifiers, sql.fragment`,`)})
+        VALUES (${projectObjectId}, ${sql.join(values, sql.fragment`,`)})
+        ON CONFLICT (project_object_id, "year")
+        DO UPDATE SET
+          amount = COALESCE(EXCLUDED.amount, app.budget.amount),
+          forecast = COALESCE(EXCLUDED.forecast, app.budget.forecast),
+          kayttosuunnitelman_muutos = COALESCE(EXCLUDED.kayttosuunnitelman_muutos, app.budget.kayttosuunnitelman_muutos)
+      `);
+    })
+  );
+}
+
 /**
  * Fetches a single project object from the database.
  * @param {DatabaseTransactionConnection} [tx] - Databse transaction connection.
@@ -253,6 +312,33 @@ function getUpdateData(
   ) as Record<string, ValueExpression>;
 }
 
+export async function validateUpsertProjectObject(
+  tx: DatabaseTransactionConnection,
+  values: UpsertProjectObject
+) {
+  const validationErrors: FormErrors<UpsertProjectObject> = { errors: {} };
+
+  if (values?.id && values?.startDate && values?.endDate) {
+    const budgetRange = await tx.maybeOne(sql.untyped`
+    SELECT
+      extract(year FROM ${values?.startDate}::date) <= min(budget.year) AS "validStartDate",
+      extract(year FROM ${values?.endDate}::date) >= max(budget.year) AS "validEndDate"
+    FROM app.budget
+    WHERE project_object_id = ${values?.id}
+    GROUP BY project_object_id;
+  `);
+
+    if (budgetRange?.validStartDate === false) {
+      validationErrors.errors['startDate'] = fieldError('projectObject.error.budgetNotIncluded');
+    }
+
+    if (budgetRange?.validEndDate === false) {
+      validationErrors.errors['endDate'] = fieldError('projectObject.error.budgetNotIncluded');
+    }
+  }
+  return validationErrors;
+}
+
 /**
  * This function is used to insert or update a project object in the database.
  * It first prepares the data to be inserted or updated, then performs the operation.
@@ -272,6 +358,11 @@ export async function upsertProjectObject(
   projectObject: UpsertProjectObject,
   userId: string
 ) {
+  if (hasErrors(await validateUpsertProjectObject(tx, projectObject))) {
+    logger.error('Invalid project data', { input: projectObject });
+    throw new Error('Invalid project data');
+  }
+
   const data = getUpdateData(projectObject, userId);
   const idents = Object.keys(data).map((key) => sql.identifier([key]));
   const values = Object.values(data);
@@ -297,7 +388,12 @@ export async function upsertProjectObject(
       `);
 
   if (projectObject.budgetUpdate?.budgetItems?.length) {
-    await partialUpdateBudget(tx, projectObject.budgetUpdate, userId);
+    await updateProjectObjectBudget(
+      tx,
+      upsertResult.id,
+      projectObject.budgetUpdate.budgetItems,
+      userId
+    );
   }
   await updateObjectTypes(tx, { ...projectObject, id: upsertResult.id });
   await updateObjectCategories(tx, { ...projectObject, id: upsertResult.id });
@@ -368,6 +464,25 @@ export const createProjectObjectRouter = (t: TRPC) =>
         return projectObject;
       });
     }),
+
+    getBudget: t.procedure
+      .input(z.object({ projectObjectId: z.string() }))
+      .query(async ({ input }) => {
+        return await getProjectObjectBudget(input.projectObjectId);
+      }),
+
+    updateBudget: t.procedure
+      .input(updateBudgetSchema.required())
+      .mutation(async ({ input, ctx }) => {
+        return await getPool().transaction(async (tx) => {
+          return await updateProjectObjectBudget(
+            tx,
+            input.projectObjectId,
+            input.budgetItems,
+            ctx.user.id
+          );
+        });
+      }),
 
     getByProjectId: t.procedure
       .input(z.object({ projectId: nonEmptyString }))
