@@ -55,6 +55,7 @@ export function formatCurrency(value: number | null) {
 export function CurrencyInput(props: Readonly<Props>) {
   const [value, setValue] = useState<string>(numericValueToText(props.value));
   const [editing, setEditing] = useState(props.editing ?? false);
+  const { style = { width: 144 } } = props;
 
   useEffect(() => {
     setValue(numericValueToText(props.value));
@@ -72,6 +73,7 @@ export function CurrencyInput(props: Readonly<Props>) {
           outline: 'none',
           boxShadow: 'none',
           padding: '8px',
+          ...style,
         }}
         value={formatCurrency(props.value)}
       />
@@ -85,6 +87,7 @@ export function CurrencyInput(props: Readonly<Props>) {
         style={{
           textAlign: 'right',
           padding: '6px',
+          ...style,
         }}
         value={formatCurrency(props.value)}
         onFocus={() => setEditing(true)}
@@ -95,7 +98,7 @@ export function CurrencyInput(props: Readonly<Props>) {
       <CurrencyInputField
         autoFocus
         className={props.className ?? ''}
-        style={props.style ?? {}}
+        style={style}
         css={css`
           text-align: right;
           padding: 6px;

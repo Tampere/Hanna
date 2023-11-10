@@ -117,8 +117,8 @@ export const yearBudgetSchema = z.object({
   year: z.number(),
   budgetItems: z.object({
     amount: z.number().nullable(),
-    forecast: z.number().nullable(),
-    kayttosuunnitelmanMuutos: z.number().nullable(),
+    forecast: z.number().nullable().optional(),
+    kayttosuunnitelmanMuutos: z.number().nullable().optional(),
   }),
 });
 
