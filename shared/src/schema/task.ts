@@ -27,6 +27,25 @@ export const taskIdSchema = z.object({
   id: z.string(),
 });
 
+export const yearBudgetSchema = z.object({
+  year: z.number(),
+  budgetItems: z.object({
+    amount: z.number().nullable(),
+  }),
+});
+
+export const updateBudgetSchema = z.object({
+  taskId: z.string().optional(),
+  budgetItems: z.array(
+    z.object({
+      year: z.number(),
+      amount: z.number().nullable(),
+    })
+  ),
+});
+
 export type UpsertTask = z.infer<typeof upsertTaskSchema>;
 
 export type DbTask = z.infer<typeof dbTaskSchema>;
+
+export type BudgetUpdate = z.infer<typeof updateBudgetSchema>;

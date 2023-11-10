@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import { useMemo } from 'react';
 
 import { trpc } from '@frontend/client';
+import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { getRange } from '@frontend/utils/array';
@@ -37,7 +38,7 @@ export function TaskDialog(props: Props) {
   const tr = useTranslations();
   const notify = useNotifications();
 
-  const budget = !task.id ? null : trpc.project.getBudget.useQuery({ taskId: task.id });
+  const budget = !task.id ? null : trpc.task.getBudget.useQuery({ id: task.id });
 
   const years = useMemo(() => {
     if (!task?.startDate || !task?.endDate) {
@@ -48,7 +49,7 @@ export function TaskDialog(props: Props) {
     return getRange(startYear, endYear);
   }, [task?.startDate, task?.endDate]);
 
-  const saveBudgetMutation = trpc.project.updateBudget.useMutation({
+  const saveBudgetMutation = trpc.task.updateBudget.useMutation({
     onSuccess() {
       notify({
         severity: 'success',
@@ -83,16 +84,23 @@ export function TaskDialog(props: Props) {
         />
 
         <Box sx={{ mt: 4 }}>
+          <SectionTitle title={tr('task.budget')} />
           {!budget?.data ? null : (
             <BudgetTable
               years={years}
+              fields={['amount']}
+              writableFields={['amount']}
               budget={budget.data}
               actuals={null} // TODO: coming soon
               actualsLoading={false}
               onSave={async (yearBudgets) => {
+                const payload = yearBudgets.map((yearBudget) => ({
+                  year: yearBudget.year,
+                  amount: yearBudget.budgetItems.amount,
+                }));
                 await saveBudgetMutation.mutateAsync({
                   taskId: task.id,
-                  yearBudgets,
+                  budgetItems: payload,
                 });
                 budget?.refetch();
               }}
