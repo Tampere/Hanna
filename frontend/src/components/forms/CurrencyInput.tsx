@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import CurrencyInputField from 'react-currency-input-field';
 
 interface Props {
@@ -61,74 +61,60 @@ export function CurrencyInput(props: Readonly<Props>) {
     setValue(numericValueToText(props.value));
   }, [props.value]);
 
-  if (!props.onChange) {
-    return (
-      <input
-        readOnly
-        tabIndex={-1}
-        style={{
-          backgroundColor: '#e3e3e3',
-          textAlign: 'right',
-          border: 'none',
-          outline: 'none',
-          boxShadow: 'none',
-          padding: '8px',
-          ...style,
-        }}
-        value={formatCurrency(props.value)}
-      />
-    );
-  }
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  if (!editing) {
-    return (
-      <input
-        readOnly
-        style={{
-          textAlign: 'right',
-          padding: '6px',
-          ...style,
-        }}
-        value={formatCurrency(props.value)}
-        onFocus={() => setEditing(true)}
-      />
-    );
-  } else {
-    return (
-      <CurrencyInputField
-        autoFocus
-        className={props.className ?? ''}
-        style={style}
-        css={css`
-          text-align: right;
-          padding: 6px;
-        `}
-        id={props.id}
-        name={props.name}
-        placeholder={props.placeholder}
-        value={value}
-        decimalsLimit={2}
-        groupSeparator=" "
-        decimalSeparator=","
-        allowNegativeValue={props.allowNegative ?? false}
-        onValueChange={(val) => {
-          setValue(val ?? '');
-        }}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            setEditing(false);
-            props.onChange?.(textValueToNumeric(value));
-          } else if (event.key === 'Escape') {
-            event.preventDefault();
-            setEditing(false);
-          }
-        }}
-        onBlur={() => {
+  return (
+    <CurrencyInputField
+      readOnly={!editing || !props.onChange}
+      className={props.className ?? ''}
+      ref={inputRef}
+      style={
+        !props.onChange
+          ? {
+              ...style,
+              backgroundColor: 'rgba(0, 0, 0, 0.08)',
+              border: 'none',
+              outline: 'none',
+              color: 'inherit',
+              textAlign: 'right',
+              padding: 6,
+            }
+          : style
+      }
+      suffix="€"
+      css={css`
+        text-align: right;
+        padding: 6px;
+      `}
+      id={props.id}
+      name={props.name}
+      placeholder={props.placeholder}
+      value={value}
+      decimalsLimit={0}
+      groupSeparator=" "
+      decimalSeparator=","
+      allowNegativeValue={props.allowNegative ?? false}
+      onValueChange={(val) => {
+        setValue(val ?? '');
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
           setEditing(false);
+          inputRef.current?.blur();
           props.onChange?.(textValueToNumeric(value));
-        }}
-      />
-    );
-  }
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          setEditing(false);
+        }
+      }}
+      onFocus={() => {
+        setEditing(true);
+      }}
+      onBlur={() => {
+        setEditing(false);
+        props.onChange?.(textValueToNumeric(value));
+      }}
+    />
+  );
 }
