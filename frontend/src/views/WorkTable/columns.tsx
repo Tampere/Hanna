@@ -8,6 +8,7 @@ import {
   GridValidRowModel,
 } from '@mui/x-data-grid';
 import dayjs from 'dayjs';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
 import { CurrencyInput, formatCurrency } from '@frontend/components/forms/CurrencyInput';
@@ -54,7 +55,16 @@ function MaybeModifiedCell({
 }: Readonly<MaybeModifiedCellProps<WorkTableRow>>) {
   const isModified = modifiedFields?.[params.id]?.[params.field as keyof WorkTableRow];
   // WorkTable.tsx defines style with has selector for .modified-cell
-  return <div className={isModified ? 'modified-cell' : 'unmodified-cell'}>{children}</div>;
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isModified) {
+      containerRef.current?.parentElement?.classList.add('modified-cell');
+    } else {
+      containerRef.current?.parentElement?.classList.remove('modified-cell');
+    }
+  }, [isModified, containerRef]);
+  return <div ref={containerRef}>{children}</div>;
 }
 
 const fieldObjectName = {
@@ -132,7 +142,7 @@ const fieldDateRange = {
 const fieldProjectLink = {
   field: 'projectLink',
   headerName: 'Hanke',
-  width: 188,
+  width: 256,
   editable: false,
   renderCell: (params: GridRenderCellParams) => (
     <Box
@@ -259,6 +269,7 @@ const financesField = (
   return {
     field: targetField,
     headerName: targetField,
+    width: 128,
     editable: financesRange !== 'allYears',
     cellClassName: 'cell-align-right',
     renderCell: ({ row, value }: GridRenderCellParams) => {
@@ -283,17 +294,14 @@ const financesField = (
 
       return (
         <CurrencyInput
+          autoFocus
           editing
           value={value}
           allowNegative={CurrencyInputProps?.allowNegative ?? false}
           onChange={(val) => {
             api.setEditCellValue({ id, field, value: val });
           }}
-          className="absolute-cell"
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
             width: '100%',
             height: '100%',
             border: 'none',
@@ -325,7 +333,7 @@ export function getColumns({
     financesField(financesRange, 'kayttosuunnitelmanMuutos', {
       headerName: 'Käyttösuunnitelman muutos',
       flex: 1,
-      minWidth: 100,
+      minWidth: 144,
     }),
   ];
 

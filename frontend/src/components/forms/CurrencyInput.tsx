@@ -5,6 +5,7 @@ import CurrencyInputField from 'react-currency-input-field';
 interface Props {
   value: number | null;
   onChange?: (value: number | null) => void;
+  autoFocus?: boolean;
   editing?: boolean;
   id?: string;
   name?: string;
@@ -65,6 +66,7 @@ export function CurrencyInput(props: Readonly<Props>) {
 
   return (
     <CurrencyInputField
+      autoFocus={props.autoFocus}
       readOnly={!editing || !props.onChange}
       className={props.className ?? ''}
       ref={inputRef}
