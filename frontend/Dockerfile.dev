@@ -1,4 +1,4 @@
-FROM node:18.13-alpine
+FROM node:18-alpine
 
 # Build argument for running in CI a bit more efficiently (without HMR)
 ARG CI
