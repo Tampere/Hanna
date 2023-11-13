@@ -445,6 +445,12 @@ async function updateProjectObjectGeometry(
 
 export const createProjectObjectRouter = (t: TRPC) =>
   t.router({
+    upsertValidate: t.procedure.input(upsertProjectObjectSchema).query(async ({ input, ctx }) => {
+      return await getPool().connect(async (conn) => {
+        return await validateUpsertProjectObject(conn, input);
+      });
+    }),
+
     upsert: t.procedure.input(upsertProjectObjectSchema).mutation(async ({ input, ctx }) => {
       return await getPool().transaction(async (tx) => {
         const result = await upsertProjectObject(tx, input, ctx.user.id);
