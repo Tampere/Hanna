@@ -17,7 +17,7 @@ import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { FormField } from '@frontend/components/forms';
-import { CurrencyInput } from '@frontend/components/forms/CurrencyInput';
+import { CurrencyInput, valueTextColor } from '@frontend/components/forms/CurrencyInput';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { YearBudget } from '@shared/schema/project';
@@ -171,6 +171,7 @@ export function BudgetTable(props: Props) {
                           <CurrencyInput
                             {...field}
                             allowNegative
+                            getColor={valueTextColor}
                             onChange={writableFields?.includes('forecast') ? onChange : undefined}
                           />
                         )}
@@ -184,6 +185,7 @@ export function BudgetTable(props: Props) {
                         component={({ ref, onChange, ...field }) => (
                           <CurrencyInput
                             style={{ width: '100%', minWidth: 220 }}
+                            getColor={valueTextColor}
                             {...field}
                             onChange={
                               writableFields?.includes('kayttosuunnitelmanMuutos')
@@ -232,6 +234,7 @@ export function BudgetTable(props: Props) {
                 {fields?.includes('forecast') && (
                   <TableCell>
                     <CurrencyInput
+                      getColor={valueTextColor}
                       value={
                         watch &&
                         Object.values(watch).reduce((total, budgetItem) => {
@@ -245,6 +248,7 @@ export function BudgetTable(props: Props) {
                   <TableCell style={{ textAlign: 'right' }}>
                     <CurrencyInput
                       style={{ minWidth: 220 }}
+                      getColor={valueTextColor}
                       value={
                         watch &&
                         Object.values(watch).reduce((total, budgetItem) => {

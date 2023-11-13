@@ -5,6 +5,7 @@ import CurrencyInputField from 'react-currency-input-field';
 interface Props {
   value: number | null;
   onChange?: (value: number | null) => void;
+  getColor?: (value: number | null) => string;
   autoFocus?: boolean;
   editing?: boolean;
   id?: string;
@@ -13,6 +14,10 @@ interface Props {
   allowNegative?: boolean;
   className?: string;
   style?: React.CSSProperties;
+}
+
+export function valueTextColor(value: number | null) {
+  return value && value < 0 ? 'red' : 'blue';
 }
 
 export function textValueToNumeric(value: string | undefined) {
@@ -77,7 +82,7 @@ export function CurrencyInput(props: Readonly<Props>) {
               backgroundColor: 'rgba(0, 0, 0, 0.08)',
               border: 'none',
               outline: 'none',
-              color: 'inherit',
+              color: props?.getColor?.(props.value ?? null) ?? 'inherit',
               textAlign: 'right',
               padding: 6,
             }
@@ -87,6 +92,9 @@ export function CurrencyInput(props: Readonly<Props>) {
       css={css`
         text-align: right;
         padding: 6px;
+        &:not(:focus) {
+          color: ${props?.getColor?.(props.value ?? null) ?? 'inherit'};
+        }
       `}
       id={props.id}
       name={props.name}
