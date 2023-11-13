@@ -230,9 +230,10 @@ export async function updateProjectObjectBudget(
         VALUES (${projectObjectId}, ${sql.join(values, sql.fragment`,`)})
         ON CONFLICT (project_object_id, "year")
         DO UPDATE SET
-          amount = EXCLUDED.amount,
-          forecast = EXCLUDED.forecast,
-          kayttosuunnitelman_muutos = EXCLUDED.kayttosuunnitelman_muutos
+        ${sql.join(
+          identifiers.map((identifier) => sql.fragment`${identifier} = EXCLUDED.${identifier}`),
+          sql.fragment`,`
+        )}
       `);
     })
   );
