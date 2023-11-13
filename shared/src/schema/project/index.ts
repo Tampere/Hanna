@@ -129,7 +129,7 @@ export const budgetUpdateSchema = z.object({
   budgetItems: z.array(
     z.object({
       year: z.number(),
-      amount: z.number(),
+      amount: z.number().nullable(),
     })
   ),
 });

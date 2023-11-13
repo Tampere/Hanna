@@ -230,9 +230,9 @@ export async function updateProjectObjectBudget(
         VALUES (${projectObjectId}, ${sql.join(values, sql.fragment`,`)})
         ON CONFLICT (project_object_id, "year")
         DO UPDATE SET
-          amount = COALESCE(EXCLUDED.amount, app.budget.amount),
-          forecast = COALESCE(EXCLUDED.forecast, app.budget.forecast),
-          kayttosuunnitelman_muutos = COALESCE(EXCLUDED.kayttosuunnitelman_muutos, app.budget.kayttosuunnitelman_muutos)
+          amount = EXCLUDED.amount,
+          forecast = EXCLUDED.forecast,
+          kayttosuunnitelman_muutos = EXCLUDED.kayttosuunnitelman_muutos
       `);
     })
   );
@@ -460,7 +460,6 @@ export const createProjectObjectRouter = (t: TRPC) =>
     get: t.procedure.input(getProjectObjectParams).query(async ({ input }) => {
       return await getPool().connect(async (conn) => {
         const projectObject = await getProjectObject(conn, input.id);
-        console.log(projectObject);
         return projectObject;
       });
     }),

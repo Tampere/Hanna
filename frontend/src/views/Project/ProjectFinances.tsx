@@ -66,12 +66,10 @@ export function ProjectFinances(props: Props) {
       actualsLoading={yearlyActuals.isFetching}
       writableFields={['amount']}
       onSave={async (yearBudgets) => {
-        const payload = yearBudgets
-          .map((yearBudget) => ({
-            year: yearBudget.year,
-            amount: yearBudget.budgetItems.amount,
-          }))
-          .filter((yearBudget) => yearBudget.amount !== null);
+        const payload = yearBudgets.map((yearBudget) => ({
+          year: yearBudget.year,
+          amount: yearBudget.budgetItems.amount,
+        }));
 
         await saveBudgetMutation.mutateAsync({
           projectId: project.id,
