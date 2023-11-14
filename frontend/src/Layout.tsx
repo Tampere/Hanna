@@ -109,10 +109,12 @@ function Navbar() {
               {tr('pages.projectsTitle')}
             </Button>
 
-            <Button component={Link} to="/sap-raportit/ymparistokoodit" sx={{ color: 'white' }}>
-              <BackupTable sx={{ mr: 1 }} />
-              {tr('pages.sapReportsTitle')}
-            </Button>
+            {import.meta.env.VITE_FEATURE_SAP_REPORTS === 'true' && (
+              <Button component={Link} to="/sap-raportit/ymparistokoodit" sx={{ color: 'white' }}>
+                <BackupTable sx={{ mr: 1 }} />
+                {tr('pages.sapReportsTitle')}
+              </Button>
+            )}
 
             <Button component={Link} to="/investointiohjelma" sx={{ color: 'white' }}>
               <Reorder sx={{ mr: 1 }} />

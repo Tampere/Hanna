@@ -1,3 +1,4 @@
+import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
 import {
@@ -14,6 +15,7 @@ import {
 import { startEnvironmentCodeReportJob } from '@backend/components/sap/environmentCodeReportQueue';
 import { getLastSyncedAt } from '@backend/components/sap/syncQueue';
 import { getPool, sql } from '@backend/db';
+import { env } from '@backend/env';
 
 import { EXPLICIT_EMPTY } from '@shared/schema/code';
 import {
@@ -25,60 +27,71 @@ import {
 
 import { TRPC } from '.';
 
-export const createSapReportRouter = (t: TRPC) =>
-  t.router({
-    getLastSyncedAt: t.procedure.query(async () => {
+export const createSapReportRouter = (t: TRPC) => {
+  const baseProcedure = t.procedure.use(async (opts) => {
+    if (env.enabledFeatures.sapSync) {
+      return opts.next();
+    } else {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'SAP report feature is disabled',
+      });
+    }
+  });
+
+  return t.router({
+    getLastSyncedAt: baseProcedure.query(async () => {
       return await getLastSyncedAt();
     }),
 
-    getEnvironmentCodeReport: t.procedure
+    getEnvironmentCodeReport: baseProcedure
       .input(environmentCodeReportQuerySchema)
       .query(async ({ input }) => {
         return await getEnvironmentCodeReport(input);
       }),
 
-    getEnvironmentCodeReportRowCount: t.procedure
+    getEnvironmentCodeReportRowCount: baseProcedure
       .input(environmentCodeReportFilterSchema)
       .query(async ({ input }) => {
         return await getEnvironmentCodeReportRowCount(input);
       }),
-    getEnvironmentCodeReportSummary: t.procedure
+    getEnvironmentCodeReportSummary: baseProcedure
       .input(environmentCodeReportFilterSchema)
       .query(async ({ input }) => {
         return await getEnvironmentCodeReportSummary(input);
       }),
 
-    startEnvironmentCodeReportJob: t.procedure
+    startEnvironmentCodeReportJob: baseProcedure
       .input(environmentCodeReportFilterSchema)
       .query(async ({ input }) => {
         return await startEnvironmentCodeReportJob(input);
       }),
 
-    getBlanketContractReport: t.procedure
+    getBlanketContractReport: baseProcedure
       .input(blanketContractReportQuerySchema)
       .query(async ({ input }) => {
         return await getBlanketContractReport(input);
       }),
 
-    getBlanketContractReportRowCount: t.procedure
+    getBlanketContractReportRowCount: baseProcedure
       .input(blanketContractReportFilterSchema)
       .query(async ({ input }) => {
         return await getBlanketContractReportRowCount(input);
       }),
 
-    getBlanketContractReportSummary: t.procedure
+    getBlanketContractReportSummary: baseProcedure
       .input(blanketContractReportFilterSchema)
       .query(async ({ input }) => {
         return await getBlanketContractReportSummary(input);
       }),
 
-    startBlanketContractReportJob: t.procedure
+    startBlanketContractReportJob: baseProcedure
       .input(blanketContractReportFilterSchema)
       .query(async ({ input }) => {
         return await startBlanketContractReportJob(input);
       }),
 
-    getPlants: t.procedure.query(async () => {
+    getPlants: baseProcedure.query(async () => {
       const { rows } = await getPool().query(sql.type(z.object({ plant: z.string() }))`
         SELECT DISTINCT plant FROM app.sap_wbs
         WHERE plant IS NOT NULL
@@ -88,7 +101,7 @@ export const createSapReportRouter = (t: TRPC) =>
       return [EXPLICIT_EMPTY, ...plants];
     }),
 
-    getBlanketOrderIds: t.procedure.input(z.object({})).query(async () => {
+    getBlanketOrderIds: baseProcedure.input(z.object({})).query(async () => {
       const { rows } = await getPool().query(sql.type(z.object({ blanketOrderId: z.string() }))`
         SELECT DISTINCT blanket_order_id AS "blanketOrderId"
         FROM app.sap_wbs
@@ -102,7 +115,7 @@ export const createSapReportRouter = (t: TRPC) =>
       return rows.map((row) => row.blanketOrderId);
     }),
 
-    getYears: t.procedure.query(async () => {
+    getYears: baseProcedure.query(async () => {
       const { rows } = await getPool().query(
         sql.type(z.object({ year: z.number() }))`
           SELECT DISTINCT fiscal_year "year" FROM app.sap_actuals_item
@@ -113,7 +126,7 @@ export const createSapReportRouter = (t: TRPC) =>
       return rows.map((row) => row.year);
     }),
 
-    getConsultCompanies: t.procedure.query(async () => {
+    getConsultCompanies: baseProcedure.query(async () => {
       const { rows } = await getPool().query(sql.type(z.object({ name: z.string() }))`
         SELECT DISTINCT consult_company AS "name" FROM app.sap_wbs
         WHERE consult_company IS NOT NULL
@@ -122,3 +135,4 @@ export const createSapReportRouter = (t: TRPC) =>
       return rows.map((row) => row.name);
     }),
   });
+};

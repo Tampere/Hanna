@@ -2,6 +2,7 @@ import { inferAsyncReturnType, initTRPC } from '@trpc/server';
 import { CreateFastifyContextOptions } from '@trpc/server/adapters/fastify';
 import superjson from 'superjson';
 
+import { env } from '@backend/env';
 import { logger } from '@backend/logging';
 import { createCodeRouter } from '@backend/router/code';
 import { createCompanyRouter } from '@backend/router/company';

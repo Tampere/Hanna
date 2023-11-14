@@ -52,10 +52,10 @@ async function run() {
   await Promise.all([
     setupReportQueue(),
     setupMailQueue(),
-    setupSapSyncQueue(),
-    setupDailySapSyncQueue(),
-    setupEnvironmentCodeReportQueue(),
-    setupBlanketContractReportQueue(),
+    env.enabledFeatures.sapSync ? setupSapSyncQueue() : null,
+    env.enabledFeatures.sapSync ? setupDailySapSyncQueue() : null,
+    env.enabledFeatures.sapSync ? setupEnvironmentCodeReportQueue() : null,
+    env.enabledFeatures.sapSync ? setupBlanketContractReportQueue() : null,
     setupDetailPlanGeomSyncQueue(),
   ]);
   // https://github.com/fastify/fastify/issues/4960
