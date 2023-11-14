@@ -1,4 +1,5 @@
 import { TRPCError } from '@trpc/server';
+import { DatabaseTransactionConnection } from 'slonik';
 import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
@@ -8,11 +9,14 @@ import { TRPC } from '@backend/router';
 
 import { nonEmptyString } from '@shared/schema/common';
 import {
+  BudgetUpdate,
   UpsertTask,
   dbTaskSchema,
   getTaskParams,
   taskIdSchema,
+  updateBudgetSchema,
   upsertTaskSchema,
+  yearBudgetSchema,
 } from '@shared/schema/task';
 import { User } from '@shared/schema/user';
 
@@ -100,6 +104,48 @@ async function deleteTask(id: string, userId: User['id']) {
   });
 }
 
+async function getTaskBudget(taskId: string) {
+  return getPool().any(sql.type(yearBudgetSchema)`
+    SELECT
+      "year",
+      jsonb_build_object(
+        'amount', amount
+      ) AS "budgetItems"
+    FROM app.budget
+    WHERE task_id = ${taskId}
+    ORDER BY year ASC
+  `);
+}
+
+export async function updateTaskBudget(
+  tx: DatabaseTransactionConnection,
+  taskId: string,
+  budgetItems: BudgetUpdate['budgetItems'],
+  userId: User['id']
+) {
+  await addAuditEvent(tx, {
+    eventType: 'task.updateBudget',
+    eventData: { taskId, budgetItems },
+    eventUser: userId,
+  });
+
+  // Delete old entries
+  await tx.any(sql.untyped`
+    DELETE FROM app.budget
+    WHERE task_id = ${taskId}
+  `);
+
+  // Insert new entries
+  await Promise.all(
+    budgetItems.map(async (item) => {
+      await tx.any(sql.untyped`
+        INSERT INTO app.budget (task_id, "year", amount)
+        VALUES (${taskId}, ${item.year}, ${item.amount})
+      `);
+    })
+  );
+}
+
 export const createTaskRouter = (t: TRPC) =>
   t.router({
     upsert: t.procedure.input(upsertTaskSchema).mutation(async ({ input, ctx }) => {
@@ -123,4 +169,16 @@ export const createTaskRouter = (t: TRPC) =>
     delete: t.procedure.input(taskIdSchema).mutation(async ({ input, ctx }) => {
       return deleteTask(input.id, ctx.user.id);
     }),
+
+    getBudget: t.procedure.input(taskIdSchema).query(async ({ input }) => {
+      return await getTaskBudget(input.id);
+    }),
+
+    updateBudget: t.procedure
+      .input(updateBudgetSchema.required())
+      .mutation(async ({ input, ctx }) => {
+        return await getPool().transaction(async (tx) => {
+          return await updateTaskBudget(tx, input.taskId, input.budgetItems, ctx.user.id);
+        });
+      }),
   });

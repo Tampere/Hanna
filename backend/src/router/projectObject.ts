@@ -230,9 +230,10 @@ export async function updateProjectObjectBudget(
         VALUES (${projectObjectId}, ${sql.join(values, sql.fragment`,`)})
         ON CONFLICT (project_object_id, "year")
         DO UPDATE SET
-          amount = COALESCE(EXCLUDED.amount, app.budget.amount),
-          forecast = COALESCE(EXCLUDED.forecast, app.budget.forecast),
-          kayttosuunnitelman_muutos = COALESCE(EXCLUDED.kayttosuunnitelman_muutos, app.budget.kayttosuunnitelman_muutos)
+        ${sql.join(
+          identifiers.map((identifier) => sql.fragment`${identifier} = EXCLUDED.${identifier}`),
+          sql.fragment`,`
+        )}
       `);
     })
   );
@@ -444,6 +445,12 @@ async function updateProjectObjectGeometry(
 
 export const createProjectObjectRouter = (t: TRPC) =>
   t.router({
+    upsertValidate: t.procedure.input(upsertProjectObjectSchema).query(async ({ input, ctx }) => {
+      return await getPool().connect(async (conn) => {
+        return await validateUpsertProjectObject(conn, input);
+      });
+    }),
+
     upsert: t.procedure.input(upsertProjectObjectSchema).mutation(async ({ input, ctx }) => {
       return await getPool().transaction(async (tx) => {
         const result = await upsertProjectObject(tx, input, ctx.user.id);
@@ -460,7 +467,6 @@ export const createProjectObjectRouter = (t: TRPC) =>
     get: t.procedure.input(getProjectObjectParams).query(async ({ input }) => {
       return await getPool().connect(async (conn) => {
         const projectObject = await getProjectObject(conn, input.id);
-        console.log(projectObject);
         return projectObject;
       });
     }),

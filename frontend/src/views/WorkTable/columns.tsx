@@ -8,9 +8,14 @@ import {
   GridValidRowModel,
 } from '@mui/x-data-grid';
 import dayjs from 'dayjs';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
-import { CurrencyInput, formatCurrency } from '@frontend/components/forms/CurrencyInput';
+import {
+  CurrencyInput,
+  formatCurrency,
+  valueTextColor,
+} from '@frontend/components/forms/CurrencyInput';
 import { TableCodeCheckbox } from '@frontend/views/WorkTable/CodeCheckbox';
 import { TableCodeSelect } from '@frontend/views/WorkTable/CodeSelect';
 import { CodeSpanMulti } from '@frontend/views/WorkTable/CodeSpanMulti';
@@ -54,7 +59,25 @@ function MaybeModifiedCell({
 }: Readonly<MaybeModifiedCellProps<WorkTableRow>>) {
   const isModified = modifiedFields?.[params.id]?.[params.field as keyof WorkTableRow];
   // WorkTable.tsx defines style with has selector for .modified-cell
-  return <div className={isModified ? 'modified-cell' : 'unmodified-cell'}>{children}</div>;
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isModified) {
+      containerRef.current?.parentElement?.classList.add('modified-cell');
+    } else {
+      containerRef.current?.parentElement?.classList.remove('modified-cell');
+    }
+  }, [isModified, containerRef]);
+  return (
+    <div
+      css={css`
+        flex: 1;
+      `}
+      ref={containerRef}
+    >
+      {children}
+    </div>
+  );
 }
 
 const fieldObjectName = {
@@ -132,7 +155,7 @@ const fieldDateRange = {
 const fieldProjectLink = {
   field: 'projectLink',
   headerName: 'Hanke',
-  width: 188,
+  width: 256,
   editable: false,
   renderCell: (params: GridRenderCellParams) => (
     <Box
@@ -140,7 +163,6 @@ const fieldProjectLink = {
         display: flex;
         align-items: center;
         gap: ${theme.spacing(1)};
-        justify-content: space-between;
       `}
     >
       <Launch fontSize={'small'} htmlColor="#aaa" />
@@ -254,13 +276,17 @@ const financesField = (
   financesRange: FinancesRange,
   targetField: 'budget' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos',
   opts?: Partial<GridColDef<WorkTableRow>>,
-  CurrencyInputProps?: { allowNegative: boolean }
+  CurrencyInputProps?: {
+    allowNegative?: boolean;
+    valueTextColor?: (value: number | null) => string;
+  }
 ) => {
   return {
     field: targetField,
     headerName: targetField,
+    headerAlign: 'right',
+    width: 128,
     editable: financesRange !== 'allYears',
-    cellClassName: 'cell-align-right',
     renderCell: ({ row, value }: GridRenderCellParams) => {
       const startYear = dayjs(row.dateRange.startDate).year();
       const endYear = dayjs(row.dateRange.endDate).year();
@@ -269,7 +295,17 @@ const financesField = (
       if (notInRange) {
         return <span>—</span>;
       }
-      return <span>{formatCurrency(value)}</span>;
+      return (
+        <div
+          css={css`
+            flex: 1;
+            color: ${CurrencyInputProps?.valueTextColor?.(value)};
+            text-align: right;
+          `}
+        >
+          {formatCurrency(value)}
+        </div>
+      );
     },
     renderEditCell: (params: GridRenderEditCellParams) => {
       const { id, field, value, api } = params;
@@ -283,17 +319,15 @@ const financesField = (
 
       return (
         <CurrencyInput
+          autoFocus
           editing
+          getColor={CurrencyInputProps?.valueTextColor}
           value={value}
           allowNegative={CurrencyInputProps?.allowNegative ?? false}
           onChange={(val) => {
             api.setEditCellValue({ id, field, value: val });
           }}
-          className="absolute-cell"
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
             width: '100%',
             height: '100%',
             border: 'none',
@@ -321,12 +355,24 @@ export function getColumns({
     fieldOperatives,
     financesField(financesRange, 'budget', { headerName: 'Talousarvio' }),
     financesField(financesRange, 'actual', { headerName: 'Toteuma', editable: false }),
-    financesField(financesRange, 'forecast', { headerName: 'Ennuste' }, { allowNegative: true }),
-    financesField(financesRange, 'kayttosuunnitelmanMuutos', {
-      headerName: 'Käyttösuunnitelman muutos',
-      flex: 1,
-      minWidth: 100,
-    }),
+    financesField(
+      financesRange,
+      'forecast',
+      { headerName: 'Ennuste' },
+      { allowNegative: true, valueTextColor }
+    ),
+    financesField(
+      financesRange,
+      'kayttosuunnitelmanMuutos',
+      {
+        headerName: 'Käyttösuunnitelman muutos',
+        flex: 1,
+        minWidth: 144,
+      },
+      {
+        valueTextColor,
+      }
+    ),
   ];
 
   // Set common fields and wrap cell render to MaybeModifiedCell to avoid repetition

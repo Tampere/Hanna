@@ -53,14 +53,8 @@ const dataGridStyle = (theme: Theme) => css`
     white-space: normal !important;
     word-wrap: break-word;
   }
-  .MuiDataGrid-cell:has(.modified-cell) {
+  & .modified-cell {
     background-color: lightyellow;
-  }
-  .MuiDataGrid-cell:not(:has(.modified-cell)) {
-    background-color: inherit;
-  }
-  .MuiDataGrid-cell:has(.absolute-cell) {
-    position: relative;
   }
 `;
 

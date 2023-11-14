@@ -9,7 +9,6 @@ import {
   ButtonGroup,
   ButtonGroupTypeMap,
   InputAdornment,
-  MenuItem,
   Popover,
   TextField,
 } from '@mui/material';
@@ -17,10 +16,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
-import { z } from 'zod';
 
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
@@ -34,6 +32,7 @@ import { ProjectTypePath } from '@frontend/types';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
+import { mergeErrors } from '@shared/formerror';
 import { ProjectListItem } from '@shared/schema/project';
 import {
   UpsertProjectObject,
@@ -156,24 +155,32 @@ export function ProjectObjectForm(props: Props) {
     } as const;
   }, [editing]);
 
+  const { projectObject } = trpc.useContext();
+  const formValidator = useMemo(() => {
+    const schemaValidation = zodResolver(upsertProjectObjectSchema);
+
+    return async function formValidation(
+      values: UpsertProjectObject,
+      context: any,
+      options: ResolverOptions<UpsertProjectObject>
+    ) {
+      const fields = options.names ?? [];
+      const isFormValidation = fields && fields.length > 1;
+      const serverErrors = isFormValidation
+        ? projectObject.upsertValidate.fetch(values).catch(() => null)
+        : null;
+      const shapeErrors = schemaValidation(values, context, options);
+      const errors = await Promise.all([serverErrors, shapeErrors]);
+      return {
+        values,
+        errors: mergeErrors(errors).errors,
+      };
+    };
+  }, []);
+
   const form = useForm<UpsertProjectObject>({
     mode: 'all',
-    resolver: zodResolver(
-      upsertProjectObjectSchema.superRefine((val, ctx) => {
-        if (val.startDate && val.endDate && dayjs(val.endDate) <= dayjs(val.startDate)) {
-          ctx.addIssue({
-            path: ['startDate'],
-            code: z.ZodIssueCode.custom,
-            message: tr('projectObject.error.endDateBeforeStartDate'),
-          });
-          ctx.addIssue({
-            path: ['endDate'],
-            code: z.ZodIssueCode.custom,
-            message: tr('projectObject.error.endDateBeforeStartDate'),
-          });
-        }
-      })
-    ),
+    resolver: formValidator,
     context: {
       requiredFields: getRequiredFields(newProjectObjectSchema),
     },
@@ -194,15 +201,6 @@ export function ProjectObjectForm(props: Props) {
       form.reset(props.projectObject);
     }
   }, [props.projectObject]);
-
-  useEffect(() => {
-    const sub = form.watch((_value, { name, type }) => {
-      if (type === 'change' && (name === 'startDate' || name === 'endDate')) {
-        form.trigger(['startDate', 'endDate']);
-      }
-    });
-    return () => sub.unsubscribe();
-  }, [form.watch]);
 
   const formProjectId = form.watch('projectId');
 
