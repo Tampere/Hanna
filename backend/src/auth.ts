@@ -58,20 +58,22 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
       {
         client: opts.oidcOpts.client,
         params: {
-          scope: 'email openid profile',
+          scope: 'email openid profile roles',
         },
       },
       async function verify(
         _tokenset: TokenSet,
-        userinfo: UserinfoResponse,
+        userinfo: UserinfoResponse & { roles?: string[] },
         authDone: (err: Error | null, user?: PassportUser) => void
       ) {
+        console.log(userinfo);
         const id = userinfo.sub;
         if (id) {
           const user: PassportUser = {
             id,
             name: String(userinfo.name),
             email: String(userinfo.upn),
+            roles: userinfo.roles,
           };
           // Update user to the database
           await upsertUser(user);
