@@ -5,6 +5,7 @@ const accounts: Record<string, MockAccount> = {};
 interface UserProfile {
   name: string;
   upn: string;
+  roles: string[];
 }
 
 type Claims = AccountClaims & UserProfile;
@@ -21,11 +22,12 @@ class MockAccount implements Account {
   }
 
   claims(): Claims {
-    console.log(`Returning claims for ${this.accountId}`);
+    console.log(`Returning claims for ${this.accountId}, roles: ${this.profile.roles}`);
     return {
       sub: this.accountId,
       upn: this.profile.upn,
       name: this.profile.name,
+      roles: this.profile.roles,
     };
   }
 }
