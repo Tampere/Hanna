@@ -73,7 +73,9 @@ const router = createBrowserRouter(
           path="asemakaavahanke/:projectId/kohde/:projectObjectId/:tabView"
           element={<ProjectObject projectType="asemakaavahanke" />}
         />
-        <Route path="sap-raportit/:tabView" element={<SapReports />} />
+        {import.meta.env.VITE_FEATURE_SAP_REPORTS === 'true' && (
+          <Route path="sap-raportit/:tabView" element={<SapReports />} />
+        )}
         <Route path="investointiohjelma" element={<WorkTable />} />
         <Route path="hallinta/:tabView" element={<Management />} />
         <Route path="saptest/:sapProjectId" element={<SapDebugView />} />

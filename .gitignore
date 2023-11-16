@@ -1,9 +1,10 @@
-.DS_store
+.DS_Store
 .tool-versions
 .history
 .clj-kondo
 .lsp
 node_modules
 .temp
+.vscode
 
 
