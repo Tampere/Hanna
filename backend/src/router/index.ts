@@ -12,6 +12,7 @@ import { createInvestmentProjectRouter } from '@backend/router/project/investmen
 import { createProjectObjectRouter } from '@backend/router/projectObject';
 import { createSapRouter } from '@backend/router/sap';
 import { createTaskRouter } from '@backend/router/task';
+import { createUserPermissionsRouter } from '@backend/router/userPermissions';
 import { createWorkTableRouter } from '@backend/router/workTable';
 
 import { User } from '@shared/schema/user';
@@ -50,6 +51,7 @@ export const appRouter = t.router({
   session: createSessionRouter(t),
   task: createTaskRouter(t),
   user: createUserRouter(t),
+  userPermissions: createUserPermissionsRouter(t),
   company: createCompanyRouter(t),
   job: createJobRouter(t),
   workTable: createWorkTableRouter(t),
