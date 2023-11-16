@@ -293,7 +293,16 @@ const financesField = (
       const notInRange =
         financesRange !== 'allYears' && (financesRange < startYear || financesRange > endYear);
       if (notInRange) {
-        return <span>—</span>;
+        return (
+          <div
+            css={css`
+              flex: 1;
+              text-align: right;
+            `}
+          >
+            —
+          </div>
+        );
       }
       return (
         <div
@@ -366,8 +375,7 @@ export function getColumns({
       'kayttosuunnitelmanMuutos',
       {
         headerName: 'Käyttösuunnitelman muutos',
-        flex: 1,
-        minWidth: 144,
+        minWidth: 188,
       },
       {
         valueTextColor,

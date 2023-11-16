@@ -39,10 +39,9 @@ const dataGridStyle = (theme: Theme) => css`
     animation-name: fadeInOut;
     animation-duration: 5000ms;
   }
-  & .MuiDataGrid-columnHeader {
+  & .MuiDataGrid-columnHeaders {
     background: ${theme.palette.primary.main};
     color: white;
-    text-align: left;
   }
   & .MuiDataGrid-columnHeaderTitle {
     line-height: normal;
@@ -300,6 +299,12 @@ export default function WorkTable() {
         rows={workTableData.data ?? []}
         rowSelection={false}
         hideFooter
+        onCellKeyDown={(_params, event) => {
+          // restrict the keyboard behavior to only the keys we want to handle
+          if (!['Enter', 'NumpadEnter', 'Backspace', 'Delete'].includes(event.key)) {
+            event.stopPropagation();
+          }
+        }}
         getRowId={(row) => row.id}
         getRowClassName={(params) => {
           if (params.id === highlightId) {

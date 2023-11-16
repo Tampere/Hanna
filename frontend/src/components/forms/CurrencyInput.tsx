@@ -108,14 +108,16 @@ export function CurrencyInput(props: Readonly<Props>) {
         setValue(val ?? '');
       }}
       onKeyDown={(event) => {
+        if (!editing) {
+          return;
+        }
         if (event.key === 'Enter') {
           event.preventDefault();
           setEditing(false);
           inputRef.current?.blur();
           props.onChange?.(textValueToNumeric(value));
-        } else if (event.key === 'Escape') {
+        } else if (event.key === '-' && !props.allowNegative) {
           event.preventDefault();
-          setEditing(false);
         }
       }}
       onFocus={() => {
