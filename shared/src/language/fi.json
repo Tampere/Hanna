@@ -251,6 +251,7 @@
   "task.cancel": "Peruuta",
   "management.tabs.companyContacts": "Yritysten yhteyshenkilöt",
   "management.tabs.companies": "Yritykset",
+  "management.tabs.userPermissions": "Käyttäjien luvitus",
   "managementPage.title": "Hallinta",
   "managementPage.addCompany": "Lisää yritys",
   "companyContact.addContact": "Lisää yhteyshenkilö",

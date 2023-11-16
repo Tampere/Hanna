@@ -43,11 +43,13 @@ export const createProjectRouter = (t: TRPC) =>
       return getRelatedProjects(id);
     }),
 
+    // XXX: only owner can delete
     delete: t.procedure.input(projectIdSchema).mutation(async ({ input, ctx }) => {
       const { id } = input;
       return deleteProject(id, ctx.user.id);
     }),
 
+    // XXX: only owner and those with given write permissions can update
     updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input, ctx }) => {
       return await getPool().transaction(async (tx) => {
         return updateProjectGeometry(tx, input, ctx.user);
@@ -64,11 +66,13 @@ export const createProjectRouter = (t: TRPC) =>
       });
     }),
 
+    // XXX: only owner and those with given write permissions can update
     updateRelations: t.procedure.input(relationsSchema).mutation(async ({ input, ctx }) => {
       const { subjectProjectId, objectProjectId, relation } = input;
       return await addProjectRelation(subjectProjectId, objectProjectId, relation, ctx.user);
     }),
 
+    // XXX: only owner and those with given write permissions can update
     removeRelation: t.procedure.input(relationsSchema).mutation(async ({ input, ctx }) => {
       const { subjectProjectId: projectId, objectProjectId: targetProjectId, relation } = input;
       return await removeProjectRelation(projectId, targetProjectId, relation, ctx.user);
@@ -76,5 +80,20 @@ export const createProjectRouter = (t: TRPC) =>
 
     startReportJob: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
       return await startReportJob(input);
+    }),
+
+    // XXX: implement
+    getPermissions: t.procedure.query(async () => {
+      return [];
+    }),
+
+    // XXX: implement
+    updatePermissions: t.procedure.mutation(async () => {
+      return [];
+    }),
+
+    // XXX: only owner can change owner
+    changeOwner: t.procedure.mutation(async () => {
+      return [];
     }),
   });
