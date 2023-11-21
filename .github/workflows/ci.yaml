@@ -15,6 +15,7 @@ env:
   NODE_VERSION: 18
   IMAGE_NAME: ${{ secrets.REGISTRY_ADDRESS }}/hanna
   APP_VERSION: ${{ github.event_name == 'release' && github.event.release.name || format('build {0}', github.sha) }}
+  VITE_FEATURE_SAP_REPORTS: ${{ github.event_name != 'release' && 'true' || 'false' }}
 
 jobs:
   test-frontend:
@@ -26,7 +27,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: ./frontend/package-lock.json
       - name: Install shared dependencies
         working-directory: shared
@@ -48,7 +49,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: ./backend/package-lock.json
       - name: Install shared dependencies
         working-directory: shared
@@ -66,7 +67,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: ./shared/package-lock.json
       - name: Build & test
         working-directory: shared
@@ -83,7 +84,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: ./e2e/package-lock.json
       - run: npm i
       - name: Get installed Playwright version
@@ -158,6 +159,7 @@ jobs:
           build-args: |
             "EXTRA_HOSTS=${{ secrets.IMAGE_EXTRA_HOSTS }}"
             "APP_VERSION=${{ env.APP_VERSION }}"
+            "VITE_FEATURE_SAP_REPORTS=${{ env.VITE_FEATURE_SAP_REPORTS }}"
           tags: ${{ env.IMAGE_NAME }}:${{ env.ENV_NAME }}
           cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:latest
           cache-to: type=inline
