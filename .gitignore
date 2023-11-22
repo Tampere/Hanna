@@ -6,5 +6,5 @@
 node_modules
 .temp
 .vscode
-
+.env.test-db
 
