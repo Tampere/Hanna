@@ -73,6 +73,9 @@ export async function buildDetailplanCatalogSheet(workbook: Workbook, searchPara
   const reportResult = await getPool().any(reportQuery);
   logger.debug(`Fetched ${reportResult.length} rows for the detailplan catalog`);
   const rows = z.array(reportRowSchema).parse(reportResult);
+
+  if (!rows || rows.length === 0) return;
+
   const headers = Object.keys(rows[0]).reduce(
     (headers, key) => ({
       ...headers,

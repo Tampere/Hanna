@@ -144,6 +144,9 @@ export async function buildInvestmentProjectReportSheet(
   const reportResult = await getPool().any(reportQuery);
   logger.debug(`Fetched ${reportResult.length} rows for the investment project report`);
   const rows = z.array(reportRowSchema).parse(reportResult);
+
+  if (!rows || rows.length === 0) return;
+
   const headers = Object.keys(rows[0]).reduce(
     (headers, key) => ({
       ...headers,
