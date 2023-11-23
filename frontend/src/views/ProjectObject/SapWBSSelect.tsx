@@ -32,7 +32,7 @@ export function SapWBSSelect(props: Props) {
       autoHighlight
       size="small"
       ref={props.field.ref}
-      value={props.field.value}
+      value={props.field.value ?? null}
       onChange={(_, value) => props.field.onChange(value)}
       options={options ?? []}
       noOptionsText={tr('sapWBSSelect.noOptions')}

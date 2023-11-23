@@ -15,7 +15,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
@@ -136,7 +136,7 @@ function SaveOptionsButton(props: {
   );
 }
 
-export const ProjectObjectForm = forwardRef(function ProjectObjectForm(props: Props, ref) {
+export function ProjectObjectForm(props: Props) {
   const tr = useTranslations();
   const notify = useNotifications();
   const queryClient = useQueryClient();
@@ -196,18 +196,6 @@ export const ProjectObjectForm = forwardRef(function ProjectObjectForm(props: Pr
     },
   });
 
-  useImperativeHandle(
-    ref,
-    () => {
-      return {
-        resetWBSId() {
-          form.setValue('sapWBSId', null);
-        },
-      };
-    },
-    []
-  );
-
   useEffect(() => {
     if (props.projectObject) {
       form.reset(props.projectObject);
@@ -264,6 +252,7 @@ export const ProjectObjectForm = forwardRef(function ProjectObjectForm(props: Pr
     );
   };
   console.log('editing, ', editing);
+  console.log(form.watch('projectId'));
   return (
     <FormProvider {...form}>
       {!props.projectObject && <SectionTitle title={tr('newProjectObject.title')} />}
@@ -330,6 +319,7 @@ export const ProjectObjectForm = forwardRef(function ProjectObjectForm(props: Pr
                   onChange={(value) => {
                     props.setProjectId?.(value ?? '');
                     field.onChange(value);
+                    form.setValue('sapWBSId', null);
                   }}
                 />
               );
@@ -529,4 +519,4 @@ export const ProjectObjectForm = forwardRef(function ProjectObjectForm(props: Pr
       </form>
     </FormProvider>
   );
-});
+}

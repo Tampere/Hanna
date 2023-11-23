@@ -3,7 +3,7 @@ import { Assignment, Euro, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
-import { ReactElement, useEffect, useMemo, useRef, useState } from 'react';
+import { ReactElement, useMemo, useState } from 'react';
 import { useLocation, useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 
@@ -22,7 +22,6 @@ import { TranslationKey } from '@shared/language';
 import { DeleteProjectObjectDialog } from './DeleteProjectObjectDialog';
 import { ProjectObjectFinances } from './ProjectObjectFinances';
 import { ProjectObjectForm } from './ProjectObjectForm';
-import { ProjectObjectOperativeForm } from './ProjectObjectOperativeForm';
 
 type TabView = 'default' | 'talous' | 'tehtavat';
 
@@ -100,7 +99,7 @@ export function ProjectObject(props: Props) {
 
   const [geom, setGeom] = useState<string | null>(null);
   const [projectId, setProjectId] = useState(routeParams.projectId);
-  const projectObjectFormRef = useRef(null);
+
   const tr = useTranslations();
   const notify = useNotifications();
   const geometryUpdate = trpc.projectObject.updateGeometry.useMutation({
@@ -144,10 +143,6 @@ export function ProjectObject(props: Props) {
     });
   }, [project.data]);
 
-  useEffect(() => {
-    if (projectObjectFormRef?.current) projectObjectFormRef.current.resetWBSId();
-  }, [projectId]);
-
   if (projectObjectId && projectObject?.isLoading) {
     return <Typography>{tr('loading')}</Typography>;
   }
@@ -187,7 +182,6 @@ export function ProjectObject(props: Props) {
         <Box sx={{ height: '100%' }}>
           <Paper sx={{ p: 3, marginBottom: '1em' }} variant="outlined">
             <ProjectObjectForm
-              ref={projectObjectFormRef}
               projectId={routeParams.projectId}
               projectType={props.projectType}
               projectObject={projectObject.data}
