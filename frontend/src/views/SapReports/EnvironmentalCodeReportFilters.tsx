@@ -123,9 +123,7 @@ export function EnvironmentalCodeReportFilters() {
             options={allYears ?? []}
             loading={allYearsLoading}
             value={years}
-            onChange={(years) => {
-              setYears(years);
-            }}
+            onChange={(years) => setYears(years.sort((a, b) => b - a))}
             multiple
           />
         </FormControl>
