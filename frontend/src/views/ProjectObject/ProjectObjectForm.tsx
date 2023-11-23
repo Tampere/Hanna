@@ -203,10 +203,6 @@ export function ProjectObjectForm(props: Props) {
   }, [props.projectObject]);
 
   const formProjectId = form.watch('projectId');
-  /*
-  useEffect(() => {
-    form.setValue('sapWBSId', null);
-  }, [formProjectId]); */
 
   const projectObjectUpsert = trpc.projectObject.upsert.useMutation({
     onSuccess: (data) => {
@@ -251,8 +247,7 @@ export function ProjectObjectForm(props: Props) {
       }
     );
   };
-  console.log('editing, ', editing);
-  console.log(form.watch('projectId'));
+
   return (
     <FormProvider {...form}>
       {!props.projectObject && <SectionTitle title={tr('newProjectObject.title')} />}
