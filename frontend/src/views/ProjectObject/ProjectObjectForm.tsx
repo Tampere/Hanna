@@ -15,7 +15,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
@@ -136,7 +136,7 @@ function SaveOptionsButton(props: {
   );
 }
 
-export function ProjectObjectForm(props: Props) {
+export const ProjectObjectForm = forwardRef(function ProjectObjectForm(props: Props, ref) {
   const tr = useTranslations();
   const notify = useNotifications();
   const queryClient = useQueryClient();
@@ -196,6 +196,18 @@ export function ProjectObjectForm(props: Props) {
     },
   });
 
+  useImperativeHandle(
+    ref,
+    () => {
+      return {
+        resetWBSId() {
+          form.setValue('sapWBSId', null);
+        },
+      };
+    },
+    []
+  );
+
   useEffect(() => {
     if (props.projectObject) {
       form.reset(props.projectObject);
@@ -203,10 +215,10 @@ export function ProjectObjectForm(props: Props) {
   }, [props.projectObject]);
 
   const formProjectId = form.watch('projectId');
-
+  /*
   useEffect(() => {
     form.setValue('sapWBSId', null);
-  }, [formProjectId]);
+  }, [formProjectId]); */
 
   const projectObjectUpsert = trpc.projectObject.upsert.useMutation({
     onSuccess: (data) => {
@@ -251,7 +263,7 @@ export function ProjectObjectForm(props: Props) {
       }
     );
   };
-
+  console.log('editing, ', editing);
   return (
     <FormProvider {...form}>
       {!props.projectObject && <SectionTitle title={tr('newProjectObject.title')} />}
@@ -517,4 +529,4 @@ export function ProjectObjectForm(props: Props) {
       </form>
     </FormProvider>
   );
-}
+});
