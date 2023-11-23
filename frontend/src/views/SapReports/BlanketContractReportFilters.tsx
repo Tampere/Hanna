@@ -125,7 +125,7 @@ export function BlanketContractReportFilters() {
             options={allYears ?? []}
             loading={allYearsLoading}
             value={years ?? []}
-            onChange={setYears}
+            onChange={(years) => setYears(years.sort((a, b) => b - a))}
             multiple
           />
         </FormControl>
