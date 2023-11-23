@@ -8,6 +8,8 @@ import { FastifyInstance, FastifyPluginOptions, FastifyRequest, PassportUser } f
 import { BaseClient, Strategy, TokenSet, UserinfoResponse } from 'openid-client';
 import { Pool } from 'pg';
 
+import { UserRole } from '@shared/schema/userPermissions';
+
 import { logger } from './logging';
 import { upsertUser } from './user';
 
@@ -58,22 +60,21 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
       {
         client: opts.oidcOpts.client,
         params: {
-          scope: 'email openid profile roles',
+          scope: 'email openid profile role',
         },
       },
       async function verify(
         _tokenset: TokenSet,
-        userinfo: UserinfoResponse & { roles?: string[] },
+        userinfo: UserinfoResponse & { role?: UserRole },
         authDone: (err: Error | null, user?: PassportUser) => void
       ) {
-        console.log(userinfo);
         const id = userinfo.sub;
         if (id) {
           const user: PassportUser = {
             id,
             name: String(userinfo.name),
             email: String(userinfo.upn),
-            roles: userinfo.roles,
+            role: userinfo.role as UserRole,
           };
           // Update user to the database
           await upsertUser(user);

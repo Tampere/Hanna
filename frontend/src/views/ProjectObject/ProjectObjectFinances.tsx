@@ -72,8 +72,8 @@ export function ProjectObjectFinances(props: Props) {
         const payload = yearBudgets.map((yearBudget) => ({
           year: yearBudget.year,
           amount: yearBudget.budgetItems.amount,
-          forecast: yearBudget.budgetItems.forecast,
-          kayttosuunnitelmanMuutos: yearBudget.budgetItems.kayttosuunnitelmanMuutos,
+          forecast: yearBudget.budgetItems?.forecast ?? null,
+          kayttosuunnitelmanMuutos: yearBudget.budgetItems.kayttosuunnitelmanMuutos ?? null,
         }));
         await saveBudgetMutation.mutateAsync({
           projectObjectId: projectObject.id,

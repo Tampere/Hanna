@@ -1,62 +1,59 @@
 import { TRPCError } from '@trpc/server';
 
-import { logger } from '@backend/logging';
+import { addAuditEvent } from '@backend/components/audit';
+import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
-import { investmentProjectFragment } from '@backend/components/project/search';
+
+import { isAdmin, setPermissionSchema, userSchema } from '@shared/schema/userPermissions';
+
+async function getAllUsers() {
+  return getPool().many(sql.type(userSchema)`
+  SELECT
+    id AS "userId",
+    email AS "userEmail",
+    "name" AS "userName",
+    "role" AS "userRole",
+    ("role" = 'Hanna.Admin') AS "isAdmin",
+    permissions
+  FROM app.user`);
+}
 
 export const createUserPermissionsRouter = (t: TRPC) => {
   const baseProcedure = t.procedure.use(async (opts) => {
-    if (opts.ctx.user.roles?.includes('Hanna.Admin')) {
+    if (isAdmin(opts.ctx.user.role)) {
       return opts.next();
     } else {
       throw new TRPCError({
         code: 'FORBIDDEN',
-        message: 'Forbidden',
+        message: 'error.insufficientPermissions',
       });
     }
   });
 
   return t.router({
     getAll: baseProcedure.query(async () => {
-      logger.warn('Not implemented yet! userPermissions.getAll');
-      return [
-        {
-          userId: '12345',
-          userName: 'Test User',
-          isAdmin: false,
-          permissions: ['investmentProject.write', 'detailplanProject.write', 'financials.write'],
-        },
-        {
-          userId: '12346',
-          userName: 'Test User 2',
-          isAdmin: true,
-          permissions: ['investmentProject.write', 'detailplanProject.write', 'financials.write'],
-        },
-        {
-          userId: '12347',
-          userName: 'Test User 3',
-          isAdmin: true,
-          permissions: ['detailplanProject.write', 'financials.write'],
-        },
-        {
-          userId: '12348',
-          userName: 'Test User 4',
-          isAdmin: false,
-          permissions: ['investmentProject.write', 'detailplanProject.write'],
-        },
-        {
-          userId: '12349',
-          userName: 'Test User 6',
-          isAdmin: false,
-          permissions: ['investmentProject.write', 'detailplanProject.write', 'financials.write'],
-        },
-        {
-          userId: '12350',
-          userName: 'Test User 5',
-          isAdmin: false,
-          permissions: ['investmentProject.write', 'financials.write'],
-        },
-      ];
+      console.log(getAllUsers());
+      return getAllUsers();
+    }),
+
+    setPermissions: baseProcedure.input(setPermissionSchema).mutation(async ({ input, ctx }) => {
+      return await getPool().transaction(async (tx) => {
+        await addAuditEvent(tx, {
+          eventType: 'userPermissions.setPermissions',
+          eventUser: ctx.user.id,
+          eventData: input,
+        });
+        await Promise.all(
+          input.map(({ userId, permissions }) => {
+            return tx.query(sql.untyped`
+              UPDATE app.user
+              SET permissions = ${sql.array(permissions, 'text')}
+              WHERE id = ${userId}
+              RETURNING id AS "userId", permissions
+            `);
+          })
+        );
+      });
     }),
   });
 };

@@ -15,21 +15,21 @@ const tabs = [
     label: 'management.tabs.companies',
     icon: <BusinessCenterTwoTone />,
     to: '/hallinta/yritykset',
-    requiredRoles: null,
+    requiredRole: null,
   },
   {
     tabView: 'yritysten-yhteyshenkilot',
     label: 'management.tabs.companyContacts',
     icon: <PersonTwoTone />,
     to: '/hallinta/yritysten-yhteyshenkilot',
-    requiredRoles: null,
+    requiredRole: null,
   },
   {
     tabView: 'kayttajien-luvitus',
     label: 'management.tabs.userPermissions',
     icon: <KeyTwoTone />,
     to: '/hallinta/kayttajien-luvitus',
-    requiredRoles: ['Hanna.Admin'],
+    requiredRole: 'Hanna.Admin',
   },
 ] as const;
 
@@ -54,9 +54,7 @@ export function Management() {
       >
         {tabs
           .filter((tab) => {
-            return (
-              !tab.requiredRoles || tab.requiredRoles.every((role) => auth?.roles?.includes(role))
-            );
+            return !tab.requiredRole || auth?.role === tab.requiredRole;
           })
           .map((tab) => (
             <Tab

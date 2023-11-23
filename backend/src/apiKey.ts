@@ -24,7 +24,12 @@ export function registerApiKeyRoutes(server: FastifyInstance, opts: Options) {
         }
 
         // Create a user for the session
-        req.user = { email: 'apikeyuser', id: 'apikeyuser', name: 'API key user' };
+        req.user = {
+          email: 'apikeyuser',
+          id: 'apikeyuser',
+          name: 'API key user',
+          role: 'Hanna.Admin',
+        };
       });
 
       // Register the given routes
