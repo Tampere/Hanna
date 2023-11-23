@@ -1,6 +1,6 @@
 import { Check, Error, Warning } from '@mui/icons-material';
 import { CircularProgress, TextField, TextFieldProps, Tooltip } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { forwardRef, useEffect, useMemo, useState } from 'react';
 
 import { useDebounce } from '@frontend/utils/useDebounce';
 
@@ -14,7 +14,10 @@ type Props = TextFieldProps & {
   debounceDelayMs?: number;
 };
 
-export function TextFieldWithStatus(props: Props) {
+export const TextFieldWithStatus = forwardRef(function TextFieldWithStatus(
+  props: Props,
+  ref: React.ForwardedRef<HTMLDivElement | null>
+) {
   const {
     validate,
     onStatusChange,
@@ -88,6 +91,7 @@ export function TextFieldWithStatus(props: Props) {
 
   return (
     <TextField
+      ref={ref}
       {...TextFieldProps}
       InputProps={{
         ...TextFieldProps.InputProps,
@@ -95,4 +99,4 @@ export function TextFieldWithStatus(props: Props) {
       }}
     />
   );
-}
+});

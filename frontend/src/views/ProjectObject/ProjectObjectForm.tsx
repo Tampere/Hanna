@@ -204,10 +204,6 @@ export function ProjectObjectForm(props: Props) {
 
   const formProjectId = form.watch('projectId');
 
-  useEffect(() => {
-    form.setValue('sapWBSId', null);
-  }, [formProjectId]);
-
   const projectObjectUpsert = trpc.projectObject.upsert.useMutation({
     onSuccess: (data) => {
       if (!props.projectObject && data.id) {
@@ -318,6 +314,7 @@ export function ProjectObjectForm(props: Props) {
                   onChange={(value) => {
                     props.setProjectId?.(value ?? '');
                     field.onChange(value);
+                    form.setValue('sapWBSId', null);
                   }}
                 />
               );

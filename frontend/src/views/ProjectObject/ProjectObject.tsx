@@ -22,7 +22,6 @@ import { TranslationKey } from '@shared/language';
 import { DeleteProjectObjectDialog } from './DeleteProjectObjectDialog';
 import { ProjectObjectFinances } from './ProjectObjectFinances';
 import { ProjectObjectForm } from './ProjectObjectForm';
-import { ProjectObjectOperativeForm } from './ProjectObjectOperativeForm';
 
 type TabView = 'default' | 'talous' | 'tehtavat';
 
