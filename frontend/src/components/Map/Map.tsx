@@ -158,6 +158,7 @@ export function Map({
       }
     });
     vectorLayers?.forEach((layer) => {
+      layer.setZIndex(2);
       olMap.addLayer(layer);
     });
   }, [vectorLayers]);
