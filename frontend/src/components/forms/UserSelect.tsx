@@ -27,7 +27,7 @@ type Props = {
 
 export function UserSelect(props: Props) {
   const { id, readOnly, onBlur, multiple, value, onChange, maxTags } = props;
-  const users = trpc.user.getAll.useQuery();
+  const users = trpc.user.getAllNonExt.useQuery();
 
   function getUser(userId: string) {
     return users.data?.find((user) => user.id === userId);
