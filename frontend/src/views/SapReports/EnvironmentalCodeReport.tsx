@@ -71,6 +71,7 @@ export function EnvironmentalCodeReport() {
             format(value) {
               return formatCurrency(value ?? 0);
             },
+            type: 'currency',
           },
           totalCredit: {
             title: tr('sapReports.environmentCodes.totalCredit'),
@@ -78,6 +79,7 @@ export function EnvironmentalCodeReport() {
             format(value) {
               return formatCurrency(value ?? 0);
             },
+            type: 'currency',
           },
           totalActuals: {
             title: tr('sapReports.environmentCodes.totalActuals'),
@@ -85,6 +87,7 @@ export function EnvironmentalCodeReport() {
             format(value) {
               return formatCurrency(value ?? 0);
             },
+            type: 'currency',
           },
         }}
       />
