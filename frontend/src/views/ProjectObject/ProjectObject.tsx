@@ -37,6 +37,8 @@ const pageContentStyle = css`
   grid-template-columns: minmax(384px, 1fr) minmax(512px, 2fr);
   gap: 16px;
   height: 100%;
+  flex: 1;
+  overflow: hidden;
 `;
 
 function projectObjectTabs(
@@ -161,7 +163,13 @@ export function ProjectObject(props: Props) {
   }
 
   return (
-    <Box>
+    <Box
+      css={css`
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      `}
+    >
       <Breadcrumbs sx={{ mb: 1 }}>
         {routeParams.projectId && (
           <Chip
@@ -179,24 +187,15 @@ export function ProjectObject(props: Props) {
       </Breadcrumbs>
 
       <div css={pageContentStyle}>
-        <Box sx={{ height: '100%' }}>
-          <Paper sx={{ p: 3, marginBottom: '1em' }} variant="outlined">
-            <ProjectObjectForm
-              projectId={routeParams.projectId}
-              projectType={props.projectType}
-              projectObject={projectObject.data}
-              geom={geom}
-              setProjectId={setProjectId}
-              navigateTo={navigateTo}
-            />
-          </Paper>
-          {/* <Paper sx={{ p: 3 }} variant="outlined">
-            <ProjectObjectOperativeForm
-              projectId={routeParams.projectId}
-              projectType={props.projectType}
-              projectObject={projectObject.data}
-            />
-          </Paper> */}
+        <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
+          <ProjectObjectForm
+            projectId={routeParams.projectId}
+            projectType={props.projectType}
+            projectObject={projectObject.data}
+            geom={geom}
+            setProjectId={setProjectId}
+            navigateTo={navigateTo}
+          />
           {projectObject.data && (
             <DeleteProjectObjectDialog
               projectId={routeParams.projectId}
@@ -204,7 +203,7 @@ export function ProjectObject(props: Props) {
               projectObjectId={projectObjectId}
             />
           )}
-        </Box>
+        </Paper>
 
         <Paper
           variant="outlined"
