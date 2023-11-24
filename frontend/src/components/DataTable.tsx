@@ -32,6 +32,7 @@ type ColumnSettings<TRow extends object> = {
     format?: (value: TRow[key], row?: TRow) => ReactNode;
     width?: number;
     align?: TableCellProps['align'];
+    type?: 'currency';
   };
 };
 
@@ -79,6 +80,8 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
   const columnKeys = useMemo(() => {
     return Object.keys(columns) as (keyof typeof columns)[];
   }, [columns]);
+
+  const currencyColumnKeys = columnKeys.filter((key) => columns[key]?.type === 'currency');
 
   useEffect(() => {
     let shouldUpdate = true;
@@ -243,7 +246,11 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
                       const formattedValue =
                         columns[key].format?.(row[key], row) ?? row[key]?.toString() ?? '';
                       return (
-                        <TableCell key={key.toString()} align={columns[key].align}>
+                        <TableCell
+                          sx={{ textWrap: currencyColumnKeys.includes(key) ? 'nowrap' : 'wrap' }}
+                          key={key.toString()}
+                          align={columns[key].align}
+                        >
                           {formattedValue}
                         </TableCell>
                       );
