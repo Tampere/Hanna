@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
@@ -18,53 +18,64 @@ interface Props {
 let userPermissions = [
   {
     userId: '12345',
-    userName: 'Test User',
+    userName: 'Pekkari Jouko',
     canEdit: false,
   },
   {
     userId: '12346',
-    userName: 'Test User 2',
+    userName: 'Paavola Pirjo',
     canEdit: true,
   },
   {
     userId: '12347',
-    userName: 'Test User 3',
+    userName: 'Nokkonen Juhani',
     canEdit: true,
   },
   {
     userId: '12348',
-    userName: 'Test User 4',
+    userName: 'Tiainen Tiina',
     canEdit: false,
   },
   {
     userId: '12349',
-    userName: 'Test User 6',
+    userName: 'Aakkula Aatu',
     canEdit: false,
   },
   {
     userId: '12350',
-    userName: 'Test User 5',
+    userName: 'Perttilä Johannes',
     canEdit: false,
   },
-];
+].sort((a, b) => {
+  if (a.canEdit !== b.canEdit) {
+    return a.canEdit ? -1 : 1; // List those with edit rights first
+  } else {
+    return a.userName.localeCompare(b.userName);
+  }
+});
 
 export function ProjectPermissions(props: Props) {
   const { projectId } = props;
   const notify = useNotifications();
   const tr = useTranslations();
 
+  const [searchterm, setSearchterm] = useState("");
+  const [users, setUsers] = useState(userPermissions);
+
   return !projectId ? null : (
     <Box>
       <Box
         css={css`display: flex; justify-content: space-between; align-items: center;`}>
         <TextField
-        variant="outlined"
-        size="small"
-        placeholder={tr('userPermissions.filterPlaceholder')}
-        InputProps={{startAdornment: (
+          variant="outlined"
+          size="small"
+          placeholder={tr('userPermissions.filterPlaceholder')}
+          value={searchterm}
+          InputProps={{startAdornment: (
           <InputAdornment position="start">
             <SearchTwoTone />
           </InputAdornment>)}}
+          onChange={(event => setSearchterm(event.target.value))}
         />
         <Button
           css={css`height: max-content;`}
@@ -91,7 +102,8 @@ export function ProjectPermissions(props: Props) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {userPermissions.map((user) => (
+            {users.filter(user => user.userName.toLowerCase().includes(searchterm.toLowerCase()))
+            .map((user) => (
               <TableRow key={user.userId} hover={true}>
                 <TableCell component="th" variant="head" scope="row">
                   {user.userName}
