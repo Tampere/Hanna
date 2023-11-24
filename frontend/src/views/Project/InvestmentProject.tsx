@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { AccountTree, Euro, ListAlt, Map } from '@mui/icons-material';
+import { AccountTree, Euro, KeyTwoTone, ListAlt, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
@@ -20,6 +20,7 @@ import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectLi
 import { DeleteProjectDialog } from './DeleteProjectDialog';
 import { InvestmentProjectForm } from './InvestmentProjectForm';
 import { ProjectFinances } from './ProjectFinances';
+import { ProjectPermissions } from './ProjectPermissions';
 
 const pageContentStyle = css`
   display: grid;
@@ -35,7 +36,7 @@ const mapContainerStyle = css`
   min-height: 600px;
 `;
 
-type TabView = 'default' | 'talous' | 'kohteet' | 'sidoshankkeet';
+type TabView = 'default' | 'talous' | 'kohteet' | 'sidoshankkeet' | 'luvitus';
 
 function projectTabs(projectId: string) {
   return [
@@ -62,6 +63,12 @@ function projectTabs(projectId: string) {
       url: `/investointihanke/${projectId}/sidoshankkeet`,
       label: 'project.relatedProjectsTabLabel',
       icon: <AccountTree fontSize="small" />,
+    },
+    {
+      tabView: 'luvitus',
+      url: `/investointihanke/${projectId}/luvitus`,
+      label: 'project.permissionsTabLabel',
+      icon: <KeyTwoTone fontSize="small" />,
     },
   ] as const;
 }
@@ -227,6 +234,9 @@ export function InvestmentProject() {
               )}
               {routeParams.tabView === 'sidoshankkeet' && (
                 <ProjectRelations projectId={routeParams.projectId} />
+              )}
+              {routeParams.tabView === 'luvitus' && (
+                <ProjectPermissions projectId={routeParams.projectId} />
               )}
             </Box>
           )}
