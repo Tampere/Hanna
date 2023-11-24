@@ -53,7 +53,7 @@ export function ProjectObjectUsers({ value }: { value: Value }) {
 export function ProjectObjectUserEdit({ value, onChange }: Props) {
   const tr = useTranslations();
   const anchorElRef = useRef<HTMLDivElement>(null);
-  const users = trpc.user.getAll.useQuery();
+  const users = trpc.user.getAllNonExt.useQuery();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {

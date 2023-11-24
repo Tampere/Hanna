@@ -42,7 +42,9 @@ function Toolbar() {
   const newProjectMenuAnchor = useRef<HTMLButtonElement>(null);
   return (
     <Box css={toolbarContainerStyle}>
-      <Typography variant="h4">{tr('pages.projectsTitle')}</Typography>
+      <Typography variant="h4" component="h1">
+        {tr('pages.projectsTitle')}
+      </Typography>
       <div>
         <Button
           ref={newProjectMenuAnchor}
