@@ -56,7 +56,7 @@
     "@fastify/http-proxy": "^9.3.0",
     "@fastify/passport": "^2.4.0",
     "@fastify/sensible": "^5.5.0",
-    "@fastify/session": "^10.5.0",
+    "@fastify/session": "^10.6.0",
     "@fastify/static": "^6.12.0",
     "@trpc/client": "^10.43.3",
     "@trpc/server": "^10.43.3",
