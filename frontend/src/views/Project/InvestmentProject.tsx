@@ -26,6 +26,8 @@ const pageContentStyle = css`
   grid-template-columns: minmax(384px, 1fr) minmax(512px, 2fr);
   gap: 16px;
   height: 100%;
+  flex: 1;
+  overflow: hidden;
 `;
 
 const mapContainerStyle = css`
@@ -145,7 +147,13 @@ export function InvestmentProject() {
   }
 
   return (
-    <Box>
+    <Box
+      css={css`
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      `}
+    >
       <Breadcrumbs sx={{ mb: 1 }}>
         {project.data ? (
           <Chip label={project.data?.projectName} />
@@ -155,7 +163,7 @@ export function InvestmentProject() {
       </Breadcrumbs>
 
       <div css={pageContentStyle}>
-        <Paper sx={{ p: 3, height: '100%' }} variant="outlined">
+        <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
           <InvestmentProjectForm edit={!projectId} project={project.data} geom={geom} />
           {project.data && (
             <DeleteProjectDialog
