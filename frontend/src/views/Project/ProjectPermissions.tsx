@@ -1,21 +1,29 @@
-import dayjs from 'dayjs';
-import { useEffect, useMemo, useState } from 'react';
+import { css } from '@emotion/react';
+import { SaveSharp, SearchTwoTone, Undo } from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  Checkbox,
+  InputAdornment,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+} from '@mui/material';
+import diff from 'microdiff';
+import { useState } from 'react';
 
-import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
-import { getRange } from '@frontend/utils/array';
-
-import { DbInvestmentProject } from '@shared/schema/project/investment';
-import { css } from '@emotion/react';
-import { Box, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, Checkbox, InputAdornment, TextField, Button } from '@mui/material';
-import { SaveSharp, SearchTwoTone } from '@mui/icons-material';
 
 interface Props {
   projectId: string;
 }
 
-let userPermissions = [
+const userPermissions = [
   {
     userId: '12345',
     userName: 'Pekkari Jouko',
@@ -56,63 +64,116 @@ let userPermissions = [
 
 export function ProjectPermissions(props: Props) {
   const { projectId } = props;
-  const notify = useNotifications();
+  //const notify = useNotifications();
   const tr = useTranslations();
 
-  const [searchterm, setSearchterm] = useState("");
+  const [searchterm, setSearchterm] = useState('');
   const [users, setUsers] = useState(userPermissions);
+
+  function handleUpdatePermissions() {
+    const usersToUpdate = users.filter((user) => user.canEdit).map((user) => user.userId);
+
+    console.log(usersToUpdate);
+  }
 
   return !projectId ? null : (
     <Box>
       <Box
-        css={css`display: flex; justify-content: space-between; align-items: center;`}>
+        css={css`
+          display: flex;
+          @media screen and (max-width: 1150px) {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+          }
+          justify-content: space-between;
+          align-items: center;
+        `}
+      >
         <TextField
           variant="outlined"
           size="small"
           placeholder={tr('userPermissions.filterPlaceholder')}
           value={searchterm}
-          InputProps={{startAdornment: (
-          <InputAdornment position="start">
-            <SearchTwoTone />
-          </InputAdornment>)}}
-          onChange={(event => setSearchterm(event.target.value))}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchTwoTone />
+              </InputAdornment>
+            ),
+          }}
+          onChange={(event) => setSearchterm(event.target.value)}
         />
-        <Button
-          css={css`height: max-content;`}
-          size="small"
-          variant="contained"
-          endIcon={<SaveSharp />}
-          disabled
+        <Box
+          css={css`
+            display: flex;
+            gap: 0.5rem;
+            @media screen and (width > 1150px) {
+              margin-left: auto;
+            }
+          `}
         >
-          {tr('genericForm.saveChanges')}
-        </Button>
+          <Button
+            type="reset"
+            color="secondary"
+            variant="outlined"
+            endIcon={<Undo />}
+            disabled={users.length === 0 || diff(userPermissions, users).length === 0}
+            onClick={() => setUsers(userPermissions)}
+          >
+            {tr('genericForm.cancelAll')}
+          </Button>
+          <Button
+            css={css`
+              height: max-content;
+            `}
+            size="small"
+            variant="contained"
+            endIcon={<SaveSharp />}
+            disabled={users.length === 0 || diff(userPermissions, users).length === 0}
+            onClick={() => handleUpdatePermissions()}
+          >
+            {tr('genericForm.saveChanges')}
+          </Button>
+        </Box>
       </Box>
 
       <TableContainer
-        css={css`margin-top: 32px;`}>
+        css={css`
+          margin-top: 32px;
+        `}
+      >
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>
-                {tr('userPermissions.userName')}
-              </TableCell>
-              <TableCell align="center">
-                {tr('projectPermissions.editPermission')}
-              </TableCell>
+              <TableCell>{tr('userPermissions.userName')}</TableCell>
+              <TableCell align="center">{tr('projectPermissions.editPermission')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {users.filter(user => user.userName.toLowerCase().includes(searchterm.toLowerCase()))
-            .map((user) => (
-              <TableRow key={user.userId} hover={true}>
-                <TableCell component="th" variant="head" scope="row">
-                  {user.userName}
-                </TableCell>
-                <TableCell align="center">
-                  <Checkbox checked={user.canEdit} />
-                </TableCell>
-              </TableRow>)
-            )}
+            {users
+              .filter((user) => user.userName.toLowerCase().includes(searchterm.toLowerCase()))
+              .map((user) => (
+                <TableRow key={user.userId} hover={true}>
+                  <TableCell component="th" variant="head" scope="row">
+                    {user.userName}
+                  </TableCell>
+                  <TableCell align="center">
+                    <Checkbox
+                      onChange={() =>
+                        setUsers((prevUsers) =>
+                          prevUsers.map((prevUser) =>
+                            prevUser.userId === user.userId
+                              ? { ...prevUser, canEdit: !prevUser.canEdit }
+                              : prevUser
+                          )
+                        )
+                      }
+                      checked={user.canEdit}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </TableContainer>

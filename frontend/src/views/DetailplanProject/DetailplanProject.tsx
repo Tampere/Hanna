@@ -1,4 +1,4 @@
-import { AccountTree, Mail, Map } from '@mui/icons-material';
+import { AccountTree, KeyTwoTone, Mail, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography, css } from '@mui/material';
 import { ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -13,10 +13,11 @@ import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 
 import { TranslationKey } from '@shared/language';
 
+import { ProjectPermissions } from '../Project/ProjectPermissions';
 import { DetailplanProjectForm } from './DetailplanProjectForm';
 import { DetailplanProjectNotification } from './DetailplanProjectNotification';
 
-type TabView = 'default' | 'sidoshankkeet' | 'tiedotus';
+type TabView = 'default' | 'sidoshankkeet' | 'tiedotus' | 'luvitus';
 
 interface Tab {
   tabView: TabView;
@@ -58,6 +59,12 @@ function getTabs(projectId: string): Tab[] {
       url: `/asemakaavahanke/${projectId}/tiedotus`,
       label: 'detailplanProject.notification',
       icon: <Mail fontSize="small" />,
+    },
+    {
+      tabView: 'luvitus',
+      url: `/asemakaavahanke/${projectId}/luvitus`,
+      label: 'project.permissionsTabLabel',
+      icon: <KeyTwoTone fontSize="small" />,
     },
   ];
 }
@@ -163,6 +170,9 @@ export function DetailplanProject() {
               )}
               {routeParams.tabView === 'tiedotus' && (
                 <DetailplanProjectNotification projectId={routeParams.projectId} />
+              )}
+              {routeParams.tabView === 'luvitus' && (
+                <ProjectPermissions projectId={routeParams.projectId} />
               )}
             </Box>
           )}
