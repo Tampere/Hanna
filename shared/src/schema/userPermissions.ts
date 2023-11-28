@@ -22,7 +22,7 @@ export const userSchema = z.object({
   userName: z.string(),
   userRole: userRoleSchema,
   isAdmin: z.boolean(),
-  permissions: z.array(permissionSchema).nullable(),
+  permissions: z.array(permissionSchema),
 });
 
 export type User = z.infer<typeof userSchema>;
