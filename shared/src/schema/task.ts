@@ -4,7 +4,7 @@ import { codeId } from './code';
 import { isoDateString, nonEmptyString } from './common';
 
 export const upsertTaskSchema = z.object({
-  id: z.string().optional(),
+  taskId: z.string().optional(),
   projectObjectId: z.string(),
   taskName: nonEmptyString,
   description: nonEmptyString,
@@ -16,15 +16,15 @@ export const upsertTaskSchema = z.object({
 });
 
 export const dbTaskSchema = upsertTaskSchema.extend({
-  id: z.string(),
+  taskId: z.string(),
 });
 
 export const getTaskParams = z.object({
-  id: z.string(),
+  taskId: z.string(),
 });
 
 export const taskIdSchema = z.object({
-  id: z.string(),
+  taskId: z.string(),
 });
 
 export const yearBudgetSchema = z.object({

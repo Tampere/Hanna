@@ -98,7 +98,7 @@ export function TaskForm(props: Props) {
 
       notify({
         severity: 'success',
-        title: props.task?.id
+        title: props.task?.taskId
           ? tr('taskForm.notifyUpdateSuccess')
           : tr('taskForm.notifyCreateSuccess'),
         duration: 5000,
@@ -107,7 +107,7 @@ export function TaskForm(props: Props) {
     onError: () => {
       notify({
         severity: 'error',
-        title: props.task?.id
+        title: props.task?.taskId
           ? tr('taskForm.notifyUpdateFailure')
           : tr('taskForm.notifyCreateFailure'),
       });

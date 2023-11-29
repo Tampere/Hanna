@@ -38,7 +38,7 @@ export function TaskDialog(props: Props) {
   const tr = useTranslations();
   const notify = useNotifications();
 
-  const budget = !task.id ? null : trpc.task.getBudget.useQuery({ id: task.id });
+  const budget = !task.taskId ? null : trpc.task.getBudget.useQuery({ taskId: task.taskId });
 
   const years = useMemo(() => {
     if (!task?.startDate || !task?.endDate) {
@@ -99,7 +99,7 @@ export function TaskDialog(props: Props) {
                   amount: yearBudget.budgetItems.amount,
                 }));
                 await saveBudgetMutation.mutateAsync({
-                  taskId: task.id,
+                  taskId: task.taskId,
                   budgetItems: payload,
                 });
                 budget?.refetch();
@@ -110,7 +110,7 @@ export function TaskDialog(props: Props) {
       </DialogContent>
       <DialogActions css={dialogActionsStyle}>
         <DeleteTaskDialog
-          taskId={task.id}
+          taskId={task.taskId}
           onDeleted={() => {
             invalidateTasks();
             onClose();

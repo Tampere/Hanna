@@ -53,6 +53,14 @@ export const isProjectIdInput = (input: any): input is { projectId: string } => 
   return input && typeof input.projectId === 'string';
 };
 
+export const isProjectObjectIdInput = (input: any): input is { projectObjectId: string } => {
+  return input && typeof input.projectObjectId === 'string';
+};
+
+export const isTaskIdInput = (input: any): input is { taskId: string } => {
+  return input && typeof input.taskId === 'string';
+};
+
 export function ownsProject(user: CtxUser, permissionCtx: ProjectPermissionContext): boolean {
   return user.id === permissionCtx.owner;
 }

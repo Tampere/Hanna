@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
 import { codeIdFragment } from '@backend/components/code';
+import { getPermissionContext as getProjectPermissionCtx } from '@backend/components/project/base';
 import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
@@ -25,33 +26,41 @@ import {
   yearBudgetSchema,
 } from '@shared/schema/projectObject';
 import { User } from '@shared/schema/user';
+import {
+  ProjectAccessChecker,
+  ProjectPermissionContext,
+  hasWritePermission,
+  isProjectObjectIdInput,
+  ownsProject,
+  permissionContextSchema,
+} from '@shared/schema/userPermissions';
 
 const projectObjectFragment = sql.fragment`
   SELECT
-     project_id AS "projectId",
-     id AS "projectObjectId",
-     object_name AS "objectName",
-     description AS "description",
-     (lifecycle_state).id AS "lifecycleState",
-     suunnitteluttaja_user AS "suunnitteluttajaUser",
-     rakennuttaja_user AS "rakennuttajaUser",
-     start_date AS "startDate",
-     end_date AS "endDate",
-     sap_wbs_id AS "sapWBSId",
-     ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
-     (landownership).id AS "landownership",
-     (location_on_property).id AS "locationOnProperty",
-     (SELECT json_agg((object_type).id)
-      FROM app.project_object_type
-      WHERE project_object.id = project_object_type.project_object_id) AS "objectType",
-     (SELECT json_agg((object_category).id)
-      FROM app.project_object_category
-      WHERE project_object.id = project_object_category.project_object_id) AS "objectCategory",
-     (SELECT json_agg((object_usage).id)
-      FROM app.project_object_usage
-      WHERE project_object.id = project_object_usage.project_object_id) AS "objectUsage",
-     height,
-     '[]'::JSONB AS "objectUserRoles" --TODO: Implement
+    project_id AS "projectId",
+    id AS "projectObjectId",
+    object_name AS "objectName",
+    description AS "description",
+    (lifecycle_state).id AS "lifecycleState",
+    suunnitteluttaja_user AS "suunnitteluttajaUser",
+    rakennuttaja_user AS "rakennuttajaUser",
+    start_date AS "startDate",
+    end_date AS "endDate",
+    sap_wbs_id AS "sapWBSId",
+    ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
+    (landownership).id AS "landownership",
+    (location_on_property).id AS "locationOnProperty",
+    (SELECT json_agg((object_type).id)
+     FROM app.project_object_type
+     WHERE project_object.id = project_object_type.project_object_id) AS "objectType",
+    (SELECT json_agg((object_category).id)
+     FROM app.project_object_category
+     WHERE project_object.id = project_object_category.project_object_id) AS "objectCategory",
+    (SELECT json_agg((object_usage).id)
+     FROM app.project_object_usage
+     WHERE project_object.id = project_object_usage.project_object_id) AS "objectUsage",
+    height,
+    '[]'::JSONB AS "objectUserRoles" --TODO: Implement
   FROM app.project_object
   WHERE deleted = false
 `;
@@ -449,12 +458,69 @@ async function updateProjectObjectGeometry(
   `);
 }
 
-export const createProjectObjectRouter = (t: TRPC) =>
-  t.router({
+// Permissions
+
+/**
+ * Permissions inherit from the project to the project object.
+ */
+export async function getPermissionContext(
+  projectObjectId: string
+): Promise<ProjectPermissionContext> {
+  const permissionCtx = await getPool().maybeOne(sql.type(permissionContextSchema)`
+    SELECT
+      project.id AS id,
+      "owner",
+      coalesce(array_agg(project_permission.user_id) FILTER (WHERE can_write = true), '{}') AS "writeUsers"
+    FROM app.project
+    INNER JOIN app.project_object ON project.id = project_object.project_id
+    LEFT JOIN app.project_permission ON project.id = project_permission.project_id
+    WHERE project_object.id = ${projectObjectId}
+    GROUP BY project.id, "owner"
+  `);
+  if (!permissionCtx) {
+    throw new Error('Could not get permission context');
+  }
+  return permissionCtx;
+}
+/**
+ * This function creates a middleware to check if a user has access to a project.
+ * It takes two parameters: a TRPC instance and a function to check if a user has access to a project.
+ * The function 'canAccess' should take a user and a permission context as parameters and return a boolean.
+ * The middleware function returned by this function will throw a TRPCError with a 'BAD_REQUEST' code
+ * if the input is not a project ID or if the user does not have access to the project.
+ * If the user has access to the project, the middleware function will call the next middleware in the stack.
+ *
+ * @param {TRPC} t - The TRPC instance used to create the middleware.
+ * @param {ProjectAccessChecker} canAccess - A function that checks if a user has access to a project.
+ * @returns {Function} A middleware function that checks if a user has access to a project.
+ */
+
+export const createAccessMiddleware = (t: TRPC) => (canAccess: ProjectAccessChecker) =>
+  t.middleware(async (opts) => {
+    const { ctx, input, next } = opts;
+    if (!isProjectObjectIdInput(input)) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'error.invalidInput',
+      });
+    }
+    const permissionCtx = await getPermissionContext(input.projectObjectId);
+    if (!canAccess(ctx.user, permissionCtx)) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'error.insufficientPermissions',
+      });
+    }
+    return next();
+  });
+
+export const createProjectObjectRouter = (t: TRPC) => {
+  const withAccess = createAccessMiddleware(t);
+
+  return t.router({
     get: t.procedure.input(getProjectObjectParams).query(async ({ input }) => {
       return await getPool().connect(async (conn) => {
-        const projectObject = await getProjectObject(conn, input.projectObjectId);
-        return projectObject;
+        return await getProjectObject(conn, input.projectObjectId);
       });
     }),
 
@@ -476,24 +542,39 @@ export const createProjectObjectRouter = (t: TRPC) =>
       });
     }),
 
-    // XXX: only project owner and those with given write permissions can update
+    // Mutations requiring write permissions / project ownership
+
     upsert: t.procedure.input(upsertProjectObjectSchema).mutation(async ({ input, ctx }) => {
       return await getPool().transaction(async (tx) => {
-        const result = await upsertProjectObject(tx, input, ctx.user.id);
-        return getProjectObject(tx, result.projectObjectId);
+        let permissionCtx;
+        if (!input.projectObjectId && input.projectId) {
+          permissionCtx = await getProjectPermissionCtx(input.projectId);
+        } else if (input.projectObjectId) {
+          permissionCtx = await getPermissionContext(input.projectObjectId);
+        } else {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.invalidInput' });
+        }
+
+        if (!hasWritePermission(ctx.user, permissionCtx) && !ownsProject(ctx.user, permissionCtx)) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
+        } else {
+          return await upsertProjectObject(tx, input, ctx.user.id);
+        }
       });
     }),
 
-    // XXX: only project owner and those with given write permissions can update
-    updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input, ctx }) => {
-      return await getPool().transaction(async (tx) => {
-        return await updateProjectObjectGeometry(tx, input, ctx.user.id);
-      });
-    }),
+    updateGeometry: t.procedure
+      .input(updateGeometrySchema)
+      .use(withAccess((usr, ctx) => ownsProject(usr, ctx) || hasWritePermission(usr, ctx)))
+      .mutation(async ({ input, ctx }) => {
+        return await getPool().transaction(async (tx) => {
+          return await updateProjectObjectGeometry(tx, input, ctx.user.id);
+        });
+      }),
 
-    // XXX: only project owner and those with given write permissions can update
     updateBudget: t.procedure
       .input(updateBudgetSchema.required())
+      .use(withAccess((usr, ctx) => ownsProject(usr, ctx) || hasWritePermission(usr, ctx)))
       .mutation(async ({ input, ctx }) => {
         return await getPool().transaction(async (tx) => {
           return await updateProjectObjectBudget(
@@ -505,9 +586,12 @@ export const createProjectObjectRouter = (t: TRPC) =>
         });
       }),
 
-    // XXX: only owner can delete
-    delete: t.procedure.input(deleteProjectObjectSchema).mutation(async ({ input, ctx }) => {
-      const { projectObjectId } = input;
-      return await deleteProjectObject(projectObjectId, ctx.user);
-    }),
+    delete: t.procedure
+      .input(deleteProjectObjectSchema)
+      .use(withAccess(ownsProject))
+      .mutation(async ({ input, ctx }) => {
+        const { projectObjectId } = input;
+        return await deleteProjectObject(projectObjectId, ctx.user);
+      }),
   });
+};

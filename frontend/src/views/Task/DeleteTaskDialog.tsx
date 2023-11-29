@@ -11,7 +11,7 @@ interface Props {
   onDeleted: () => void;
 }
 
-export function DeleteTaskDialog({ taskId, onDeleted }: Props) {
+export function DeleteTaskDialog({ taskId, onDeleted }: Readonly<Props>) {
   const notify = useNotifications();
   const tr = useTranslations();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -33,7 +33,7 @@ export function DeleteTaskDialog({ taskId, onDeleted }: Props) {
     },
   });
 
-  const onDelete = async (id: string) => taskDeleteMutation.mutate({ id });
+  const onDelete = async (id: string) => taskDeleteMutation.mutate({ taskId: id });
 
   function handleSubmit() {
     setIsDialogOpen(false);
