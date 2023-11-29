@@ -32,7 +32,6 @@ export const createUserPermissionsRouter = (t: TRPC) => {
 
   return t.router({
     getAll: baseProcedure.query(async () => {
-      console.log(getAllUsers());
       return getAllUsers();
     }),
 
@@ -43,9 +42,9 @@ export const createUserPermissionsRouter = (t: TRPC) => {
           eventUser: ctx.user.id,
           eventData: input,
         });
-        await Promise.all(
+        return await Promise.all(
           input.map(({ userId, permissions }) => {
-            return tx.query(sql.untyped`
+            return tx.query(sql.type(setPermissionSchema)`
               UPDATE app.user
               SET permissions = ${sql.array(permissions, 'text')}
               WHERE id = ${userId}

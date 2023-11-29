@@ -18,12 +18,15 @@ import diff from 'microdiff';
 import { useEffect, useState } from 'react';
 
 import { trpc } from '@frontend/client';
+import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
 export function UserPermissionsPage() {
   const tr = useTranslations();
-  const { data, isLoading, isError } = trpc.userPermissions.getAll.useQuery();
+  const { data, isLoading, isError, refetch } = trpc.userPermissions.getAll.useQuery();
   const [localUserPermissions, setLocalUserPermissions] = useState<typeof userPermissions>([]);
+  const updateData = trpc.userPermissions.setPermissions.useMutation();
+  const notify = useNotifications();
 
   const userPermissions = data
     ? [...data]
@@ -63,7 +66,7 @@ export function UserPermissionsPage() {
     );
   }
 
-  function getLocalPermissionChanges() {
+  function updatePermissions() {
     const changedUserIds = diff(userPermissions, localUserPermissions).reduce((ids, diff) => {
       const userId = localUserPermissions[diff.path[0] as number].userId;
       if (userId in ids) return ids;
@@ -74,7 +77,22 @@ export function UserPermissionsPage() {
       .filter((user) => changedUserIds.includes(user.userId))
       .map((user) => ({ userId: user.userId, permissions: user.permissions }));
 
-    console.log(usersToUpdate);
+    updateData.mutate(usersToUpdate, {
+      onError: () =>
+        notify({
+          severity: 'error',
+          title: tr('genericForm.notifySubmitFailure'),
+          duration: 3000,
+        }),
+      onSuccess: () => {
+        notify({
+          severity: 'success',
+          title: tr('genericForm.notifySubmitSuccess'),
+          duration: 3000,
+        });
+        refetch();
+      },
+    });
   }
 
   useEffect(() => {
@@ -129,7 +147,7 @@ export function UserPermissionsPage() {
               localUserPermissions.length === 0 ||
               diff(userPermissions, localUserPermissions).length === 0
             }
-            onClick={() => getLocalPermissionChanges()}
+            onClick={updatePermissions}
           >
             {tr('genericForm.saveChanges')}
           </Button>
