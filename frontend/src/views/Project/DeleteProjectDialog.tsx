@@ -1,18 +1,21 @@
 import { Delete } from '@mui/icons-material';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
-import React, { useState } from 'react';
+import { useAtomValue } from 'jotai';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
+import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 
 interface Props {
   projectId: string;
   message: string;
+  disabled: boolean;
 }
 
-export function DeleteProjectDialog({ projectId, message }: Props) {
+export function DeleteProjectDialog({ projectId, message, disabled }: Readonly<Props>) {
   const navigate = useNavigate();
   const notify = useNotifications();
   const tr = useTranslations();
@@ -48,6 +51,7 @@ export function DeleteProjectDialog({ projectId, message }: Props) {
         size="small"
         variant="contained"
         sx={{ mt: 2 }}
+        disabled={disabled}
         endIcon={<Delete />}
         onClick={() => setIsDialogOpen(true)}
       >

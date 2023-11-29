@@ -1,11 +1,13 @@
 import { css } from '@emotion/react';
 import { AccountTree, Euro, ListAlt, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
+import { useAtomValue } from 'jotai';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
@@ -13,6 +15,7 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { DRAW_LAYER_Z_INDEX, featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
+import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
@@ -76,6 +79,9 @@ export function InvestmentProject() {
     { projectId },
     { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { projectId }] }
   );
+  const user = useAtomValue(authAtom);
+  const userCanModify =
+    Boolean(user) && (ownsProject(user, project.data) || hasWritePermission(user, project.data));
 
   const [geom, setGeom] = useState<string | null>(null);
 
@@ -167,6 +173,7 @@ export function InvestmentProject() {
           <InvestmentProjectForm edit={!projectId} project={project.data} geom={geom} />
           {project.data && (
             <DeleteProjectDialog
+              disabled={!ownsProject(user, project.data)}
               projectId={project.data.projectId}
               message={tr('project.deleteDialogMessage')}
             />
@@ -206,7 +213,7 @@ export function InvestmentProject() {
                 geoJson={project?.data?.geom}
                 drawStyle={PROJECT_AREA_STYLE}
                 fitExtent="geoJson"
-                editable={true}
+                editable={userCanModify}
                 onFeaturesSaved={(features) => {
                   if (!project.data) {
                     setGeom(features);
@@ -221,9 +228,15 @@ export function InvestmentProject() {
 
           {routeParams.tabView && (
             <Box sx={{ m: 2 }}>
-              {routeParams.tabView === 'talous' && <ProjectFinances project={project.data} />}
+              {routeParams.tabView === 'talous' && (
+                <ProjectFinances editable={userCanModify} project={project.data} />
+              )}
               {routeParams.tabView === 'kohteet' && (
-                <ProjectObjectList projectId={projectId} projectType="investointihanke" />
+                <ProjectObjectList
+                  editable={userCanModify}
+                  projectId={projectId}
+                  projectType="investointihanke"
+                />
               )}
               {routeParams.tabView === 'sidoshankkeet' && (
                 <ProjectRelations projectId={routeParams.projectId} />

@@ -1,12 +1,15 @@
 import { AccountTree, Mail, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography, css } from '@mui/material';
+import { useAtomValue } from 'jotai';
 import { ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { ownsProject } from '@shared/schema/userPermissions';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { PROJECT_AREA_STYLE } from '@frontend/components/Map/styles';
+import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { DeleteProjectDialog } from '@frontend/views/Project/DeleteProjectDialog';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
@@ -68,6 +71,7 @@ export function DetailplanProject() {
   const tabs = getTabs(routeParams.projectId);
   const projectId = routeParams?.projectId;
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
+  const user = useAtomValue(authAtom);
 
   const project = trpc.detailplanProject.get.useQuery(
     { projectId },
@@ -111,6 +115,7 @@ export function DetailplanProject() {
           <DetailplanProjectForm project={project.data} />
           {project.data && (
             <DeleteProjectDialog
+              disabled={!ownsProject(user, project.data)}
               projectId={project.data.projectId ?? ''}
               message={tr('detailplanProject.deleteDialogMessage')}
             />

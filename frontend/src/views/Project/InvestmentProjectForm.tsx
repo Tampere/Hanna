@@ -8,6 +8,7 @@ import { useAtomValue } from 'jotai';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
@@ -146,6 +147,13 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
             <Button
               variant="contained"
               size="small"
+              disabled={
+                !(
+                  !currentUser ||
+                  ownsProject(currentUser, props.project) ||
+                  hasWritePermission(currentUser, props.project)
+                )
+              }
               onClick={() => setEditing(!editing)}
               endIcon={<Edit />}
             >

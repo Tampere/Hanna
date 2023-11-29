@@ -8,9 +8,10 @@ import { RelationsContainer } from './RelationsContainer';
 
 interface Props {
   projectId: string;
+  editable?: boolean;
 }
 
-export function ProjectRelations({ projectId }: Props) {
+export function ProjectRelations({ projectId, editable }: Readonly<Props>) {
   const tr = useTranslations();
   const notify = useNotifications();
 
@@ -91,6 +92,7 @@ export function ProjectRelations({ projectId }: Props) {
       {/* Parent relations*/}
       <RelationsContainer
         title={tr('projectRelations.parentRelations').toLocaleUpperCase()}
+        editable={editable}
         addRelationText={tr('projectRelations.addParentRelation')}
         noRelationsText={tr('projectRelations.noParentRelations')}
         onRemoveProjectRelation={(relationType, objectProjectId) =>
@@ -106,6 +108,7 @@ export function ProjectRelations({ projectId }: Props) {
       {/* Child relations */}
       <RelationsContainer
         title={tr('projectRelations.childRelations').toLocaleUpperCase()}
+        editable={editable}
         addRelationText={tr('projectRelations.addChildRelation')}
         noRelationsText={tr('projectRelations.noChildRelations')}
         onRemoveProjectRelation={(relationType, objectProjectId) =>
@@ -121,6 +124,7 @@ export function ProjectRelations({ projectId }: Props) {
       {/* Related relations */}
       <RelationsContainer
         title={tr('projectRelations.relatedRelations').toLocaleUpperCase()}
+        editable={editable}
         addRelationText={tr('projectRelations.addRelatedRelation')}
         noRelationsText={tr('projectRelations.noRelatedRelations')}
         onRemoveProjectRelation={(relationType, objectProjectId) =>

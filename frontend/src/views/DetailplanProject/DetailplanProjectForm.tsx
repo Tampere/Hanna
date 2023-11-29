@@ -25,6 +25,7 @@ import {
   DetailplanProject,
   detailplanProjectSchema,
 } from '@shared/schema/project/detailplan';
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 const newProjectFormStyle = css`
   display: grid;
@@ -33,6 +34,7 @@ const newProjectFormStyle = css`
 
 interface Props {
   project?: DbDetailplanProject | null;
+  disabled?: boolean;
 }
 
 const readonlyFieldProps = {
@@ -41,7 +43,7 @@ const readonlyFieldProps = {
   InputProps: { readOnly: true },
 } as const;
 
-export function DetailplanProjectForm(props: Props) {
+export function DetailplanProjectForm(props: Readonly<Props>) {
   const tr = useTranslations();
   const notify = useNotifications();
   const queryClient = useQueryClient();
@@ -172,6 +174,13 @@ export function DetailplanProjectForm(props: Props) {
             <Button
               variant="contained"
               size="small"
+              disabled={
+                !(
+                  !currentUser ||
+                  ownsProject(currentUser, props.project) ||
+                  hasWritePermission(currentUser, props.project)
+                )
+              }
               onClick={() => setEditing(!editing)}
               endIcon={<Edit />}
             >

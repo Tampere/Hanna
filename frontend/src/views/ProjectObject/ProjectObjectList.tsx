@@ -10,6 +10,7 @@ import { ProjectTypePath } from '@frontend/types';
 interface Props {
   projectId: string;
   projectType: ProjectTypePath;
+  editable?: boolean;
 }
 
 const cardStyle = css`
@@ -38,6 +39,7 @@ export function ProjectObjectList(props: Props) {
       >
         <Button
           component={Link}
+          disabled={!props.editable}
           to={`/${props.projectType}/${props.projectId}/uusi-kohde`}
           variant="contained"
           color="primary"

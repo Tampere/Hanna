@@ -73,6 +73,7 @@ interface Props {
   unrelatableProjectIds: string[];
   onRemoveProjectRelation: (relationType: Relation, relationObjectId: string) => void;
   onAddProjectRelation: (relationType: Relation, relationObjectId: string) => void;
+  editable?: boolean;
 }
 
 export function RelationsContainer({
@@ -84,6 +85,7 @@ export function RelationsContainer({
   unrelatableProjectIds,
   onRemoveProjectRelation,
   onAddProjectRelation,
+  editable = false,
 }: Props) {
   const tr = useTranslations();
   const [showProjectSearch, setShowProjectSearch] = useState(false);
@@ -126,6 +128,7 @@ export function RelationsContainer({
         <Typography style={{ fontSize: '0.9rem' }}>{title}</Typography>
         <Tooltip title={addRelationText}>
           <IconButton
+            disabled={!editable}
             size="small"
             css={addIconButtonStyle}
             onClick={() => setShowProjectSearch(true)}
@@ -152,6 +155,7 @@ export function RelationsContainer({
             <Tooltip title={tr('projectRelations.removeRelation')}>
               <IconButton
                 size="small"
+                disabled={!editable}
                 onClick={() => {
                   onRemoveProjectRelation(relationType, objectOfRelation.projectId);
                 }}

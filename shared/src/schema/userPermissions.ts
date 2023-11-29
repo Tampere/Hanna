@@ -62,13 +62,12 @@ export const isTaskIdInput = (input: any): input is { taskId: string } => {
 };
 
 export function ownsProject(user: CtxUser, permissionCtx: ProjectPermissionContext): boolean {
-  return user.id === permissionCtx.owner;
+  return Boolean(permissionCtx?.owner) && user.id === permissionCtx.owner;
 }
 
 export function hasWritePermission(
   user: CtxUser,
   permissionCtx: ProjectPermissionContext
 ): boolean {
-  console.log({ user, permissionCtx });
-  return permissionCtx.writeUsers.includes(user.id);
+  return permissionCtx?.writeUsers?.includes(user.id);
 }

@@ -12,10 +12,11 @@ import { BudgetTable } from './BudgetTable';
 
 interface Props {
   project?: DbInvestmentProject | null;
+  editable?: boolean;
 }
 
 export function ProjectFinances(props: Props) {
-  const { project } = props;
+  const { project, editable = false } = props;
   const budget = !project
     ? null
     : trpc.project.getBudget.useQuery({ projectId: project.projectId });
@@ -66,7 +67,7 @@ export function ProjectFinances(props: Props) {
       budget={budget.data}
       actuals={yearlyActuals.data}
       actualsLoading={yearlyActuals.isFetching}
-      writableFields={['amount']}
+      writableFields={editable ? ['amount'] : []}
       onSave={async (yearBudgets) => {
         const payload = yearBudgets.map((yearBudget) => ({
           year: yearBudget.year,
