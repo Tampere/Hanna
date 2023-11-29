@@ -133,7 +133,7 @@ export async function updateProjectGeometry(
   geometryUpdate: UpdateGeometry,
   user: User
 ) {
-  const { id, features } = geometryUpdate;
+  const { projectId: id, features } = geometryUpdate;
   await addAuditEvent(tx, {
     eventType: 'project.updateGeometry',
     eventData: geometryUpdate,

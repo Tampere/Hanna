@@ -35,7 +35,7 @@ export function DeleteProjectDialog({ projectId, message }: Props) {
     },
   });
 
-  const onDelete = async (id: string) => projectDeleteMutation.mutate({ id });
+  const onDelete = async (projectId: string) => projectDeleteMutation.mutate({ projectId });
 
   function handleSubmit() {
     setIsDialogOpen(false);

@@ -74,11 +74,11 @@ test.describe('Project endpoints', () => {
     const point = makePoint(24487416.69375355, 6821004.272996133, 'EPSG:3878');
 
     const edit = await client.project.updateGeometry.mutate({
-      id: project.id,
+      projectId: project.projectId,
       features: JSON.stringify(point),
     });
 
-    expect(edit.id).toBe(project.id);
+    expect(edit.projectId).toBe(project.projectId);
     expect(JSON.parse(edit.geom)).toStrictEqual({
       type: 'MultiPoint',
       crs: { type: 'name', properties: { name: 'EPSG:3878' } },
@@ -92,7 +92,7 @@ test.describe('Project endpoints', () => {
 
     const project = await client.investmentProject.upsert.mutate(validProjectInput);
     const budgetUpdateInput = {
-      projectId: project.id,
+      projectId: project.projectId,
       budgetItems: [
         {
           year: 2021,
@@ -104,13 +104,15 @@ test.describe('Project endpoints', () => {
         },
       ],
     };
-    const getBudgetResult = await client.project.getBudget.query({ projectId: project.id });
+    const getBudgetResult = await client.project.getBudget.query({ projectId: project.projectId });
 
     expect(getBudgetResult).toStrictEqual([]);
 
     await client.project.updateBudget.mutate(budgetUpdateInput);
 
-    const updatedBudgetResult = await client.project.getBudget.query({ projectId: project.id });
+    const updatedBudgetResult = await client.project.getBudget.query({
+      projectId: project.projectId,
+    });
     expect(updatedBudgetResult).toStrictEqual([
       {
         year: 2021,
@@ -131,7 +133,7 @@ test.describe('Project endpoints', () => {
     ]);
 
     const budgetUpdate2021 = {
-      projectId: project.id,
+      projectId: project.projectId,
       budgetItems: [
         {
           year: 2021,
@@ -142,7 +144,9 @@ test.describe('Project endpoints', () => {
 
     await client.project.updateBudget.mutate(budgetUpdate2021);
 
-    const updatedBudgetResult2021 = await client.project.getBudget.query({ projectId: project.id });
+    const updatedBudgetResult2021 = await client.project.getBudget.query({
+      projectId: project.projectId,
+    });
     expect(updatedBudgetResult2021).toStrictEqual([
       {
         year: 2021,

@@ -22,7 +22,7 @@ export const updateBudgetSchema = z.object({
 
 export const newProjectObjectSchema = z.object({
   // id here as well since zodResolver in the form hook does not send the id if not in this schema
-  id: z.string().optional().nullable(),
+  projectObjectId: z.string().optional().nullable(),
   projectId: z.string(),
   objectName: nonEmptyString,
   description: nonEmptyString,

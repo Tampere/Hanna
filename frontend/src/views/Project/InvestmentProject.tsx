@@ -73,8 +73,8 @@ export function InvestmentProject() {
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
   const projectId = routeParams?.projectId;
   const project = trpc.investmentProject.get.useQuery(
-    { id: projectId },
-    { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { id: projectId }] }
+    { projectId },
+    { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { projectId }] }
   );
 
   const [geom, setGeom] = useState<string | null>(null);
@@ -167,7 +167,7 @@ export function InvestmentProject() {
           <InvestmentProjectForm edit={!projectId} project={project.data} geom={geom} />
           {project.data && (
             <DeleteProjectDialog
-              projectId={project.data.id}
+              projectId={project.data.projectId}
               message={tr('project.deleteDialogMessage')}
             />
           )}
@@ -211,7 +211,7 @@ export function InvestmentProject() {
                   if (!project.data) {
                     setGeom(features);
                   } else {
-                    geometryUpdate.mutate({ id: projectId, features });
+                    geometryUpdate.mutate({ projectId, features });
                   }
                 }}
                 vectorLayers={[projectObjectsLayer]}

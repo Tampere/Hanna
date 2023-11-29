@@ -19,7 +19,7 @@ import { User } from '@shared/schema/user';
 
 const selectProjectFragment = sql.fragment`
   SELECT
-    project_investment.id,
+    project_investment.id AS "projectId",
     project.id AS "parentId",
     project_name AS "projectName",
     description,
@@ -77,22 +77,22 @@ export async function projectUpsert(project: InvestmentProject, user: User) {
     const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
     const values = Object.values(data);
 
-    const upsertResult = project.id
+    const upsertResult = project.projectId
       ? await tx.one(sql.type(projectIdSchema)`
         UPDATE app.project_investment
         SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
-        WHERE id = ${project.id}
-        RETURNING id
+        WHERE id = ${project.projectId}
+        RETURNING id AS "projectId"
       `)
       : await tx.one(sql.type(projectIdSchema)`
         INSERT INTO app.project_investment (${sql.join(identifiers, sql.fragment`,`)})
         VALUES (${sql.join(values, sql.fragment`,`)})
-        RETURNING id
+        RETURNING id AS "projectId"
       `);
 
     tx.query(sql.untyped`
       DELETE FROM app.project_committee
-      WHERE project_id = ${upsertResult.id}
+      WHERE project_id = ${upsertResult.projectId}
     `);
 
     await Promise.all(
@@ -100,7 +100,7 @@ export async function projectUpsert(project: InvestmentProject, user: User) {
         tx.any(sql.untyped`
           INSERT INTO app.project_committee (project_id, committee_type)
           VALUES (
-            ${upsertResult.id},
+            ${upsertResult.projectId},
             ${codeIdFragment('Lautakunta', committee)}
           );
         `)
@@ -111,14 +111,14 @@ export async function projectUpsert(project: InvestmentProject, user: User) {
       updateProjectGeometry(
         tx,
         {
-          id: upsertResult.id,
+          projectId: upsertResult.projectId,
           features: project.geom,
         },
         user
       );
     }
 
-    return getProject(upsertResult.id, tx);
+    return getProject(upsertResult.projectId, tx);
   });
 }
 

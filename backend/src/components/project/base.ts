@@ -9,6 +9,7 @@ import { logger } from '@backend/logging';
 import { FormErrors, fieldError, hasErrors } from '@shared/formerror';
 import { UpsertProject, projectIdSchema } from '@shared/schema/project/base';
 import { User } from '@shared/schema/user';
+import { ProjectPermissionContext, permissionContextSchema } from '@shared/schema/userPermissions';
 
 import { codeIdFragment } from '../code';
 
@@ -31,33 +32,50 @@ async function upsertBaseProject(
   const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
   const values = Object.values(data);
 
-  const upsertResult = project.id
+  const upsertResult = project.projectId
     ? await tx.one(sql.type(projectIdSchema)`
       UPDATE app.project
       SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
-      WHERE id = ${project.id}
-      RETURNING id
+      WHERE id = ${project.projectId}
+      RETURNING id AS "projectId"
     `)
     : await tx.one(sql.type(projectIdSchema)`
       INSERT INTO app.project (${sql.join(identifiers, sql.fragment`,`)})
       VALUES (${sql.join(values, sql.fragment`,`)})
-      RETURNING id
+      RETURNING id AS "projectId"
     `);
 
   return upsertResult;
 }
 
+export async function getPermissionContext(id: string): Promise<ProjectPermissionContext> {
+  const permissionCtx = await getPool().maybeOne(sql.type(permissionContextSchema)`
+    SELECT
+      id,
+      "owner",
+      coalesce(array_agg(project_permission.user_id) FILTER (WHERE can_write = true), '{}') AS "writeUsers"
+    FROM app.project
+    LEFT JOIN app.project_permission ON project.id = project_permission.project_id
+    WHERE project.id = ${id}
+    GROUP BY id, "owner"
+  `);
+  if (!permissionCtx) {
+    throw new Error('Could not get permission context');
+  }
+  return permissionCtx;
+}
+
 export async function getProject(id: string) {
   const project = await getPool().maybeOne(sql.type(
     z.object({
-      id: z.string(),
+      projectId: z.string(),
       description: z.string(),
       projectName: z.string(),
       geom: z.string(),
     })
   )`
     SELECT
-      id,
+      id AS "projectId",
       description,
       project_name AS "projectName",
       ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom
@@ -94,13 +112,13 @@ export async function validateUpsertProject(
 ) {
   const validationErrors: FormErrors<UpsertProject> = { errors: {} };
 
-  if (values?.id) {
+  if (values?.projectId) {
     const budgetRange = await getPool().maybeOne(sql.untyped`
     SELECT
       extract(year FROM ${values?.startDate}::date) <= min(budget.year) AS "validStartDate",
       extract(year FROM ${values?.endDate}::date) >= max(budget.year) AS "validEndDate"
     FROM app.budget
-    WHERE project_id = ${values?.id}
+    WHERE project_id = ${values?.projectId}
     GROUP BY project_id;
   `);
 
@@ -121,7 +139,7 @@ export async function validateUpsertProject(
 
   // Check that SAP project ID is not changed if project has project objects
   // with selected SAP WBS elements
-  if (values?.id) {
+  if (values?.projectId) {
     const result = await tx.maybeOne(sql.untyped`
       SELECT
         project.id AS "projectId",
@@ -130,7 +148,7 @@ export async function validateUpsertProject(
       FROM app.project
       LEFT JOIN app.sap_project ON project.sap_project_id = sap_project.sap_project_id
       LEFT JOIN app.project_object ON project.id = project_object.project_id
-      WHERE project.id = ${values?.id}
+      WHERE project.id = ${values?.projectId}
       GROUP BY project.id, sap_project.sap_project_id;
     `);
 
@@ -158,5 +176,5 @@ export async function baseProjectUpsert(
     throw new Error('Invalid project data');
   }
   const result = await upsertBaseProject(tx, project, user.id);
-  return result.id;
+  return result.projectId;
 }

@@ -109,11 +109,11 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
   const projectUpsert = trpc.investmentProject.upsert.useMutation({
     onSuccess: (data) => {
       // Navigate to new url if we are creating a new project
-      if (!props.project && data.id) {
-        navigate(`/investointihanke/${data.id}`);
+      if (!props.project && data.projectId) {
+        navigate(`/investointihanke/${data.projectId}`);
       } else {
         queryClient.invalidateQueries({
-          queryKey: [['project', 'get'], { input: { id: data.id } }],
+          queryKey: [['project', 'get'], { input: { id: data.projectId } }],
         });
         setEditing(false);
         form.reset(data);

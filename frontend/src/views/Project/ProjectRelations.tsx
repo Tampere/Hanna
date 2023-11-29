@@ -15,8 +15,8 @@ export function ProjectRelations({ projectId }: Props) {
   const notify = useNotifications();
 
   const relations = trpc.project.getRelations.useQuery(
-    { id: projectId },
-    { enabled: Boolean(projectId), queryKey: ['project.getRelations', { id: projectId }] }
+    { projectId },
+    { enabled: Boolean(projectId), queryKey: ['project.getRelations', { projectId }] }
   );
 
   /** It should probably be forbidden to add a second relation between this project and projects it is already related to */
@@ -37,7 +37,7 @@ export function ProjectRelations({ projectId }: Props) {
     },
     onError: () => {
       notify({
-        severity: 'success',
+        severity: 'error',
         title: tr('projectRelations.notifyAddedRelationFailure'),
         duration: 5000,
       });
@@ -55,7 +55,7 @@ export function ProjectRelations({ projectId }: Props) {
     },
     onError: () => {
       notify({
-        severity: 'success',
+        severity: 'error',
         title: tr('projectRelations.relationRemovalFailed'),
         duration: 5000,
       });

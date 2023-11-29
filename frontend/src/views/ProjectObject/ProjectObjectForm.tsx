@@ -210,9 +210,8 @@ export function ProjectObjectForm(props: Props) {
         navigate(`/${props.projectType}/${data.projectId}/kohde/${data.id}`);
       } else {
         queryClient.invalidateQueries({
-          queryKey: [['project', 'get'], { input: { id: data.id } }],
+          queryKey: [['project', 'get'], { input: { projectId: data.projectId } }],
         });
-        // invalidate projectobject query
         queryClient.invalidateQueries({
           queryKey: [['projectObject', 'get'], { input: { id: data.id } }],
         });

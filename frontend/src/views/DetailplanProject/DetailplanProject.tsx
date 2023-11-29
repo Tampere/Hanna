@@ -70,8 +70,8 @@ export function DetailplanProject() {
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
 
   const project = trpc.detailplanProject.get.useQuery(
-    { id: projectId },
-    { enabled: Boolean(projectId), queryKey: ['detailplanProject.get', { id: projectId }] }
+    { projectId },
+    { enabled: Boolean(projectId), queryKey: ['detailplanProject.get', { projectId }] }
   );
   const tr = useTranslations();
 
@@ -111,7 +111,7 @@ export function DetailplanProject() {
           <DetailplanProjectForm project={project.data} />
           {project.data && (
             <DeleteProjectDialog
-              projectId={project.data.id ?? ''}
+              projectId={project.data.projectId ?? ''}
               message={tr('detailplanProject.deleteDialogMessage')}
             />
           )}

@@ -129,14 +129,17 @@ export function DetailplanProjectForm(props: Props) {
   const projectUpsert = trpc.detailplanProject.upsert.useMutation({
     onSuccess: (data) => {
       // Navigate to new url if we are creating a new project
-      if (!props.project && data.id) {
-        navigate(`/asemakaavahanke/${data.id}`);
+      if (!props.project && data.projectId) {
+        navigate(`/asemakaavahanke/${data.projectId}`);
       } else {
         queryClient.invalidateQueries({
-          queryKey: [['detailplanProject', 'get'], { input: { id: data.id } }],
+          queryKey: [['detailplanProject', 'get'], { input: { projectId: data.projectId } }],
         });
         queryClient.invalidateQueries({
-          queryKey: [['detailplanProject', 'previewNotificationMail'], { input: { id: data.id } }],
+          queryKey: [
+            ['detailplanProject', 'previewNotificationMail'],
+            { input: { projectId: data.projectId } },
+          ],
         });
         setEditing(false);
         form.reset(data);

@@ -18,7 +18,7 @@ import { User } from '@shared/schema/user';
 
 const selectProjectFragment = sql.fragment`
   SELECT
-    project.id,
+    project.id AS "projectId",
     project_name AS "projectName",
     description,
     project.start_date AS "startDate",
@@ -103,20 +103,20 @@ export async function projectUpsert(project: DetailplanProject, user: User) {
     const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
     const values = Object.values(data);
 
-    const upsertResult = project.id
+    const upsertResult = project.projectId
       ? await tx.one(sql.type(projectIdSchema)`
         UPDATE app.project_detailplan
         SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
-        WHERE id = ${project.id}
-        RETURNING id
+        WHERE id = ${project.projectId}
+        RETURNING id AS "projectId"
       `)
       : await tx.one(sql.type(projectIdSchema)`
         INSERT INTO app.project_detailplan (${sql.join(identifiers, sql.fragment`,`)})
         VALUES (${sql.join(values, sql.fragment`,`)})
-        RETURNING id
+        RETURNING id AS "projectId"
       `);
 
-    return getProject(upsertResult.id, tx);
+    return getProject(upsertResult.projectId, tx);
   });
 }
 

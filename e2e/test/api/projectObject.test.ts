@@ -46,7 +46,7 @@ test.describe('Project Object endpoints', () => {
 
     const project = await client.investmentProject.upsert.mutate(testProject(user));
 
-    const projectObject = testProjectObject(project.id, user);
+    const projectObject = testProjectObject(project.projectId, user);
     const resp = await client.projectObject.upsert.mutate(projectObject);
 
     expect(resp.id).toBeTruthy();
