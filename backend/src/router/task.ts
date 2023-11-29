@@ -148,11 +148,6 @@ export async function updateTaskBudget(
 
 export const createTaskRouter = (t: TRPC) =>
   t.router({
-    upsert: t.procedure.input(upsertTaskSchema).mutation(async ({ input, ctx }) => {
-      const result = await upsertTask(input, ctx.user.id);
-      return getTask(result.id);
-    }),
-
     get: t.procedure.input(getTaskParams).query(async ({ input }) => {
       return getTask(input.id);
     }),
@@ -166,12 +161,19 @@ export const createTaskRouter = (t: TRPC) =>
         `);
       }),
 
+    getBudget: t.procedure.input(taskIdSchema).query(async ({ input }) => {
+      return await getTaskBudget(input.id);
+    }),
+
+    // XXX: who can delete?
     delete: t.procedure.input(taskIdSchema).mutation(async ({ input, ctx }) => {
       return deleteTask(input.id, ctx.user.id);
     }),
 
-    getBudget: t.procedure.input(taskIdSchema).query(async ({ input }) => {
-      return await getTaskBudget(input.id);
+    // XXX: only owner of the project and those with given write permissions can update
+    upsert: t.procedure.input(upsertTaskSchema).mutation(async ({ input, ctx }) => {
+      const result = await upsertTask(input, ctx.user.id);
+      return getTask(result.id);
     }),
 
     updateBudget: t.procedure

@@ -29,7 +29,7 @@ import { User } from '@shared/schema/user';
 const projectObjectFragment = sql.fragment`
   SELECT
      project_id AS "projectId",
-     id,
+     id AS "projectObjectId",
      object_name AS "objectName",
      description AS "description",
      (lifecycle_state).id AS "lifecycleState",
@@ -63,18 +63,18 @@ async function getProjectObjectsByProjectId(projectId: string) {
   `);
 }
 
-async function deleteProjectObject(id: string, user: User) {
+async function deleteProjectObject(projectObjectId: string, user: User) {
   await getPool().transaction(async (tx) => {
     await addAuditEvent(tx, {
       eventType: 'projectObject.delete',
-      eventData: { id },
+      eventData: { projectObjectId },
       eventUser: user.id,
     });
     const projectObject = await tx.maybeOne(sql.type(dbProjectObjectSchema)`
       UPDATE app.project_object
       SET
         deleted = true
-      WHERE id = ${id}
+      WHERE id = ${projectObjectId}
       RETURNING id
     `);
 
@@ -96,10 +96,10 @@ async function updateObjectTypes(
   }
 
   await tx.query(sql.untyped`
-    DELETE FROM app.project_object_type WHERE project_object_id = ${projectObject.id}
+    DELETE FROM app.project_object_type WHERE project_object_id = ${projectObject.projectObjectId}
   `);
 
-  const tuples = projectObject.objectType.map((type) => [projectObject.id, type]);
+  const tuples = projectObject.objectType.map((type) => [projectObject.projectObjectId, type]);
 
   await tx.any(sql.untyped`
     INSERT INTO app.project_object_type (project_object_id, object_type)
@@ -119,10 +119,13 @@ async function updateObjectCategories(
   }
 
   await tx.query(sql.untyped`
-    DELETE FROM app.project_object_category WHERE project_object_id = ${projectObject.id}
+    DELETE FROM app.project_object_category WHERE project_object_id = ${projectObject.projectObjectId}
   `);
 
-  const tuples = projectObject.objectCategory.map((category) => [projectObject.id, category]);
+  const tuples = projectObject.objectCategory.map((category) => [
+    projectObject.projectObjectId,
+    category,
+  ]);
 
   await tx.any(sql.untyped`
     INSERT INTO app.project_object_category (project_object_id, object_category)
@@ -142,10 +145,10 @@ async function updateObjectUsages(
   }
 
   await tx.query(sql.untyped`
-    DELETE FROM app.project_object_usage WHERE project_object_id = ${projectObject.id}
+    DELETE FROM app.project_object_usage WHERE project_object_id = ${projectObject.projectObjectId}
   `);
 
-  const tuples = projectObject.objectUsage.map((usage) => [projectObject.id, usage]);
+  const tuples = projectObject.objectUsage.map((usage) => [projectObject.projectObjectId, usage]);
 
   await tx.any(sql.untyped`
     INSERT INTO app.project_object_usage (project_object_id, object_usage)
@@ -166,7 +169,7 @@ async function updateObjectRoles(
 
   tx.query(sql.untyped`
     DELETE FROM app.project_object_user_role
-    WHERE project_object_id = ${projectObject.id}
+    WHERE project_object_id = ${projectObject.projectObjectId}
   `);
 
   await Promise.all(
@@ -175,7 +178,7 @@ async function updateObjectRoles(
         INSERT INTO app.project_object_user_role (user_id, project_object_id, object_role)
         VALUES (
           ${userId},
-          ${projectObject.id},
+          ${projectObject.projectObjectId},
           ${codeIdFragment('KohdeKayttajaRooli', roleId)}
         );
       `)
@@ -271,7 +274,7 @@ export async function getProjectObjects(
 }
 
 function isUpdate(input: UpsertProjectObject): input is UpdateProjectObject {
-  return 'id' in input;
+  return 'projectObjectId' in input;
 }
 
 /**
@@ -319,13 +322,13 @@ export async function validateUpsertProjectObject(
 ) {
   const validationErrors: FormErrors<UpsertProjectObject> = { errors: {} };
 
-  if (values?.id && values?.startDate && values?.endDate) {
+  if (values?.projectObjectId && values?.startDate && values?.endDate) {
     const budgetRange = await tx.maybeOne(sql.untyped`
     SELECT
       extract(year FROM ${values?.startDate}::date) <= min(budget.year) AS "validStartDate",
       extract(year FROM ${values?.endDate}::date) >= max(budget.year) AS "validEndDate"
     FROM app.budget
-    WHERE project_object_id = ${values?.id}
+    WHERE project_object_id = ${values?.projectObjectId}
     GROUP BY project_object_id;
   `);
 
@@ -367,7 +370,7 @@ export async function upsertProjectObject(
   const data = getUpdateData(projectObject, userId);
   const idents = Object.keys(data).map((key) => sql.identifier([key]));
   const values = Object.values(data);
-  const upsertResultSchema = z.object({ id: nonEmptyString });
+  const upsertResultSchema = z.object({ projectObjectId: nonEmptyString });
 
   await addAuditEvent(tx, {
     eventType: 'projectObject.upsert',
@@ -379,33 +382,36 @@ export async function upsertProjectObject(
     ? await tx.one(sql.type(upsertResultSchema)`
           UPDATE app.project_object
           SET (${sql.join(idents, sql.fragment`,`)}) = ROW(${sql.join(values, sql.fragment`,`)})
-          WHERE id = ${projectObject.id}
-          RETURNING id
+          WHERE id = ${projectObject.projectObjectId}
+          RETURNING id AS "projectObjectId"
       `)
     : await tx.one(sql.type(upsertResultSchema)`
           INSERT INTO app.project_object (${sql.join(idents, sql.fragment`,`)})
           VALUES (${sql.join(values, sql.fragment`,`)})
-          RETURNING id
+          RETURNING id AS "projectObjectId"
       `);
 
   if (projectObject.budgetUpdate?.budgetItems?.length) {
     await updateProjectObjectBudget(
       tx,
-      upsertResult.id,
+      upsertResult.projectObjectId,
       projectObject.budgetUpdate.budgetItems,
       userId
     );
   }
-  await updateObjectTypes(tx, { ...projectObject, id: upsertResult.id });
-  await updateObjectCategories(tx, { ...projectObject, id: upsertResult.id });
-  await updateObjectUsages(tx, { ...projectObject, id: upsertResult.id });
-  await updateObjectRoles(tx, { ...projectObject, id: upsertResult.id });
+  await updateObjectTypes(tx, { ...projectObject, projectObjectId: upsertResult.projectObjectId });
+  await updateObjectCategories(tx, {
+    ...projectObject,
+    projectObjectId: upsertResult.projectObjectId,
+  });
+  await updateObjectUsages(tx, { ...projectObject, projectObjectId: upsertResult.projectObjectId });
+  await updateObjectRoles(tx, { ...projectObject, projectObjectId: upsertResult.projectObjectId });
 
   if (projectObject.geom) {
     updateProjectObjectGeometry(
       tx,
       {
-        id: upsertResult.id,
+        projectObjectId: upsertResult.projectObjectId,
         features: projectObject.geom,
       },
       userId
@@ -420,7 +426,7 @@ async function updateProjectObjectGeometry(
   input: UpdateGeometry,
   userId: string
 ) {
-  const { id, features } = input;
+  const { projectObjectId, features } = input;
 
   await addAuditEvent(tx, {
     eventType: 'projectObject.updateGeometry',
@@ -438,35 +444,16 @@ async function updateProjectObjectGeometry(
     UPDATE app.project_object
     SET geom = featureCollection.resultGeom
     FROM featureCollection
-    WHERE id = ${id}
+    WHERE id = ${projectObjectId}
     RETURNING id, ST_AsGeoJSON(geom) AS geom
   `);
 }
 
 export const createProjectObjectRouter = (t: TRPC) =>
   t.router({
-    upsertValidate: t.procedure.input(upsertProjectObjectSchema).query(async ({ input, ctx }) => {
-      return await getPool().connect(async (conn) => {
-        return await validateUpsertProjectObject(conn, input);
-      });
-    }),
-
-    upsert: t.procedure.input(upsertProjectObjectSchema).mutation(async ({ input, ctx }) => {
-      return await getPool().transaction(async (tx) => {
-        const result = await upsertProjectObject(tx, input, ctx.user.id);
-        return getProjectObject(tx, result.id);
-      });
-    }),
-
-    updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input, ctx }) => {
-      return await getPool().transaction(async (tx) => {
-        return await updateProjectObjectGeometry(tx, input, ctx.user.id);
-      });
-    }),
-
     get: t.procedure.input(getProjectObjectParams).query(async ({ input }) => {
       return await getPool().connect(async (conn) => {
-        const projectObject = await getProjectObject(conn, input.id);
+        const projectObject = await getProjectObject(conn, input.projectObjectId);
         return projectObject;
       });
     }),
@@ -477,6 +464,34 @@ export const createProjectObjectRouter = (t: TRPC) =>
         return await getProjectObjectBudget(input.projectObjectId);
       }),
 
+    getByProjectId: t.procedure
+      .input(z.object({ projectId: nonEmptyString }))
+      .query(async ({ input }) => {
+        return getProjectObjectsByProjectId(input.projectId);
+      }),
+
+    upsertValidate: t.procedure.input(upsertProjectObjectSchema).query(async ({ input }) => {
+      return await getPool().connect(async (conn) => {
+        return await validateUpsertProjectObject(conn, input);
+      });
+    }),
+
+    // XXX: only project owner and those with given write permissions can update
+    upsert: t.procedure.input(upsertProjectObjectSchema).mutation(async ({ input, ctx }) => {
+      return await getPool().transaction(async (tx) => {
+        const result = await upsertProjectObject(tx, input, ctx.user.id);
+        return getProjectObject(tx, result.projectObjectId);
+      });
+    }),
+
+    // XXX: only project owner and those with given write permissions can update
+    updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input, ctx }) => {
+      return await getPool().transaction(async (tx) => {
+        return await updateProjectObjectGeometry(tx, input, ctx.user.id);
+      });
+    }),
+
+    // XXX: only project owner and those with given write permissions can update
     updateBudget: t.procedure
       .input(updateBudgetSchema.required())
       .mutation(async ({ input, ctx }) => {
@@ -490,14 +505,9 @@ export const createProjectObjectRouter = (t: TRPC) =>
         });
       }),
 
-    getByProjectId: t.procedure
-      .input(z.object({ projectId: nonEmptyString }))
-      .query(async ({ input }) => {
-        return getProjectObjectsByProjectId(input.projectId);
-      }),
-
+    // XXX: only owner can delete
     delete: t.procedure.input(deleteProjectObjectSchema).mutation(async ({ input, ctx }) => {
-      const { id } = input;
-      return await deleteProjectObject(id, ctx.user);
+      const { projectObjectId } = input;
+      return await deleteProjectObject(projectObjectId, ctx.user);
     }),
   });

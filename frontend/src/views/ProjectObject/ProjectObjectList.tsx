@@ -53,9 +53,9 @@ export function ProjectObjectList(props: Props) {
         <List>
           {projObjects.data?.map((projObj) => (
             <CardActionArea
-              key={projObj.id}
+              key={projObj.projectObjectId}
               component={Link}
-              to={`/${props.projectType}/${props.projectId}/kohde/${projObj.id}`}
+              to={`/${props.projectType}/${props.projectId}/kohde/${projObj.projectObjectId}`}
             >
               <Card variant="outlined" css={cardStyle}>
                 <NavigateNext sx={{ color: '#aaa', mr: 1 }} />

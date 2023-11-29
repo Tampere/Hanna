@@ -1,7 +1,7 @@
 import { PassportUser } from 'fastify';
 import { sql } from 'slonik';
-import { userSchema } from 'tre-hanna-shared/src/schema/user';
-import { z } from 'zod';
+
+import { userSchema } from '@shared/schema/user';
 
 import { getPool } from './db';
 

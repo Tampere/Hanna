@@ -1,5 +1,4 @@
 import { TRPCError } from '@trpc/server';
-import { hasWritePermission, ownsProject } from 'tre-hanna-shared/src/schema/userPermissions';
 import { z } from 'zod';
 
 import { getPermissionContext } from '@backend/components/project/base';
@@ -12,6 +11,7 @@ import { TRPC } from '@backend/router';
 
 import { projectIdSchema } from '@shared/schema/project/base';
 import { investmentProjectSchema } from '@shared/schema/project/investment';
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 export const createInvestmentProjectRouter = (t: TRPC) => {
   return t.router({

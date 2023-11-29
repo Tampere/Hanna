@@ -1,5 +1,4 @@
 import { TRPCError } from '@trpc/server';
-import { hasWritePermission, ownsProject } from 'tre-hanna-shared/src/schema/userPermissions';
 import { z } from 'zod';
 
 import { getCodeText } from '@backend/components/code';
@@ -25,6 +24,7 @@ import {
   detailplanNotificationSchema,
   detailplanProjectSchema,
 } from '@shared/schema/project/detailplan';
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 async function getNotificationMailTemplate(
   project: DbDetailplanProject,

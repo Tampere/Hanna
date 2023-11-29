@@ -94,7 +94,7 @@ export function ProjectObject(props: Props) {
   const projectObject = trpc.projectObject.get.useQuery(
     {
       projectId: routeParams.projectId,
-      id: projectObjectId,
+      projectObjectId,
     },
     { enabled: Boolean(projectObjectId) }
   );
@@ -121,7 +121,7 @@ export function ProjectObject(props: Props) {
     },
   });
 
-  const project = trpc.project.get.useQuery({ id: projectId }, { enabled: Boolean(projectId) });
+  const project = trpc.project.get.useQuery({ projectId }, { enabled: Boolean(projectId) });
 
   // Create vectorlayer of the project geometry
   const projectSource = useMemo(() => {
@@ -244,7 +244,7 @@ export function ProjectObject(props: Props) {
                   if (!projectObject.data) {
                     setGeom(features);
                   } else {
-                    geometryUpdate.mutate({ id: projectObjectId, features });
+                    geometryUpdate.mutate({ projectObjectId, features });
                   }
                 }}
               />

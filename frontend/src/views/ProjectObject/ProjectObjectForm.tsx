@@ -59,7 +59,7 @@ interface ProjectAutoCompleteProps {
   onChange: (value?: string) => void;
 }
 
-function ProjectAutoComplete(props: ProjectAutoCompleteProps) {
+function ProjectAutoComplete(props: Readonly<ProjectAutoCompleteProps>) {
   const tr = useTranslations();
   const projects = trpc.project.list.useQuery({ projectType: 'investmentProject' });
 
@@ -70,7 +70,7 @@ function ProjectAutoComplete(props: ProjectAutoCompleteProps) {
       noOptionsText={tr('projectSearch.noResults')}
       size="small"
       onChange={(_e, value) => {
-        props.onChange(value?.id);
+        props.onChange(value?.projectId);
       }}
       getOptionLabel={(option) => option.projectName}
       renderInput={(params) => <TextField {...params} />}
@@ -79,10 +79,12 @@ function ProjectAutoComplete(props: ProjectAutoCompleteProps) {
   );
 }
 
-function SaveOptionsButton(props: {
-  form: ReturnType<typeof useForm<UpsertProjectObject>>;
-  onSubmit: (data: UpsertProjectObject) => void;
-}) {
+function SaveOptionsButton(
+  props: Readonly<{
+    form: ReturnType<typeof useForm<UpsertProjectObject>>;
+    onSubmit: (data: UpsertProjectObject) => void;
+  }>
+) {
   const tr = useTranslations();
   const { form, onSubmit } = props;
 
@@ -136,7 +138,7 @@ function SaveOptionsButton(props: {
   );
 }
 
-export function ProjectObjectForm(props: Props) {
+export function ProjectObjectForm(props: Readonly<Props>) {
   const tr = useTranslations();
   const notify = useNotifications();
   const queryClient = useQueryClient();
@@ -206,14 +208,17 @@ export function ProjectObjectForm(props: Props) {
 
   const projectObjectUpsert = trpc.projectObject.upsert.useMutation({
     onSuccess: (data) => {
-      if (!props.projectObject && data.id) {
-        navigate(`/${props.projectType}/${data.projectId}/kohde/${data.id}`);
+      if (!props.projectObject && data.projectObjectId) {
+        navigate(`/${props.projectType}/${data.projectId}/kohde/${data.projectObjectId}`);
       } else {
         queryClient.invalidateQueries({
           queryKey: [['project', 'get'], { input: { projectId: data.projectId } }],
         });
         queryClient.invalidateQueries({
-          queryKey: [['projectObject', 'get'], { input: { id: data.id } }],
+          queryKey: [
+            ['projectObject', 'get'],
+            { input: { projectObjectId: data.projectObjectId } },
+          ],
         });
 
         setEditing(false);
@@ -241,7 +246,7 @@ export function ProjectObjectForm(props: Props) {
       { ...data, geom: props.geom },
       {
         onSuccess: (data) => {
-          navigate(`${props.navigateTo}?highlight=${data.id}`);
+          navigate(`${props.navigateTo}?highlight=${data.projectObjectId}`);
         },
       }
     );

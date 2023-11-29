@@ -16,9 +16,9 @@ interface Props {
 
 export function ProjectObjectFinances(props: Props) {
   const { projectObject } = props;
-  const budget = !projectObject.id
+  const budget = !projectObject.projectObjectId
     ? null
-    : trpc.projectObject.getBudget.useQuery({ projectObjectId: projectObject.id });
+    : trpc.projectObject.getBudget.useQuery({ projectObjectId: projectObject.projectObjectId });
 
   const notify = useNotifications();
   const tr = useTranslations();
@@ -50,11 +50,11 @@ export function ProjectObjectFinances(props: Props) {
 
   const yearlyActuals = trpc.sap.getYearlyActualsByProjectObjectId.useQuery(
     {
-      projectObjectId: projectObject.id,
+      projectObjectId: projectObject.projectObjectId,
       startYear: dayjs(projectObject?.startDate).year(),
       endYear: dayjs(projectObject?.endDate).year(),
     },
-    { enabled: Boolean(projectObject?.id) }
+    { enabled: Boolean(projectObject?.projectObjectId) }
   );
 
   useEffect(() => {
@@ -76,7 +76,7 @@ export function ProjectObjectFinances(props: Props) {
           kayttosuunnitelmanMuutos: yearBudget.budgetItems.kayttosuunnitelmanMuutos ?? null,
         }));
         await saveBudgetMutation.mutateAsync({
-          projectObjectId: projectObject.id,
+          projectObjectId: projectObject.projectObjectId,
           budgetItems: payload,
         });
         budget.refetch();
