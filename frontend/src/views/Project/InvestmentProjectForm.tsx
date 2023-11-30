@@ -27,6 +27,8 @@ import {
   investmentProjectSchema,
 } from '@shared/schema/project/investment';
 
+import { ProjectOwnerChangeDialog } from './ProjectOwnerChangeDialog';
+
 const newProjectFormStyle = css`
   display: grid;
   margin-top: 16px;
@@ -222,7 +224,10 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
           label={tr('project.ownerLabel')}
           tooltip={tr('newProject.ownerTooltip')}
           component={({ id, onChange, value }) => (
-            <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
+            <>
+              <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
+              <ProjectOwnerChangeDialog />
+            </>
           )}
         />
 

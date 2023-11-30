@@ -26,6 +26,13 @@ export const dbProjectSchema = upsertProjectSchema.extend({
   detailplanId: z.number().nullable(),
 });
 
+export const projectPermissionSchema = z.object({
+  projectId: z.string(),
+  userId: z.string(),
+  canWrite: z.boolean(),
+});
+
 export type UpsertProject = z.infer<typeof upsertProjectSchema>;
+export type ProjectPermission = z.infer<typeof projectPermissionSchema>;
 
 export type DbProject = z.infer<typeof dbProjectSchema>;

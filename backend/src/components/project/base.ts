@@ -7,7 +7,7 @@ import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
 
 import { FormErrors, fieldError, hasErrors } from '@shared/formerror';
-import { UpsertProject, projectIdSchema } from '@shared/schema/project/base';
+import { ProjectPermission, UpsertProject, projectIdSchema } from '@shared/schema/project/base';
 import { User } from '@shared/schema/user';
 import { ProjectPermissionContext, permissionContextSchema } from '@shared/schema/userPermissions';
 
@@ -166,6 +166,47 @@ export async function validateUpsertProject(
   return validationErrors;
 }
 
+async function upsertProjectPermissions(
+  tx: DatabaseTransactionConnection,
+  permissionValues: (string | boolean)[][]
+) {
+  return await tx.many(sql.type(z.string())`
+    INSERT INTO app.project_permission (project_id, user_id, can_write)
+    VALUES (${sql.join(
+      permissionValues.map((val) => sql.join(val, sql.fragment`, `)),
+      sql.fragment`), (`
+    )})
+    ON CONFLICT (project_id, user_id) DO
+    UPDATE SET (project_id, user_id, can_write) = (EXCLUDED.project_id, EXCLUDED.user_id, EXCLUDED.can_write)
+    RETURNING project_id;
+  `);
+}
+
+async function deleteProjectPermissions(
+  tx: DatabaseTransactionConnection,
+  permissionValues: string[][]
+) {
+  const valueUnnest = sql.unnest(permissionValues, ['uuid', 'text']);
+
+  return await tx.any(sql.type(z.object({ projectId: z.string() }))`
+  DELETE FROM app.project_permission WHERE (project_id, user_id) IN
+  (SELECT project_id, user_id from ${valueUnnest} as values(project_id, user_id))
+  RETURNING project_id as projectId;`);
+}
+
+export async function removeProjectPermissions(
+  tx: DatabaseTransactionConnection,
+  projectPermissions: Omit<ProjectPermission, 'canWrite'>[]
+) {
+  const permissionValues = projectPermissions.map((permission) => [
+    permission.projectId,
+    permission.userId,
+  ]);
+
+  const result = await deleteProjectPermissions(tx, permissionValues);
+  return result;
+}
+
 export async function baseProjectUpsert(
   tx: DatabaseTransactionConnection,
   project: UpsertProject,
@@ -177,4 +218,24 @@ export async function baseProjectUpsert(
   }
   const result = await upsertBaseProject(tx, project, user.id);
   return result.projectId;
+}
+
+export async function projectPermissionUpsert(
+  projectPermissions: ProjectPermission[],
+  tx?: DatabaseTransactionConnection
+) {
+  const conn = tx ?? getPool();
+  const permissionValues = projectPermissions.map((permission) => Object.values(permission));
+  const result = await upsertProjectPermissions(conn, permissionValues);
+
+  return result;
+}
+
+export async function getProjectUserPermissions(projectId: string) {
+  return await getPool().many(sql.type(
+    z.object({ userId: z.string(), userName: z.string(), canWrite: z.boolean() })
+  )`
+  SELECT u.id as "userId", u.name as "userName", COALESCE(pp.can_write, false) as "canWrite"
+  FROM app.user u
+  LEFT JOIN app.project_permission pp ON u.id = pp.user_id AND pp.project_id = ${projectId};`);
 }

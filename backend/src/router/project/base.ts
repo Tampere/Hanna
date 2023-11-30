@@ -1,4 +1,5 @@
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 
 import {
   addProjectRelation,
@@ -8,7 +9,13 @@ import {
   updateProjectBudget,
   updateProjectGeometry,
 } from '@backend/components/project';
-import { deleteProject, getPermissionContext, getProject } from '@backend/components/project/base';
+import {
+  deleteProject,
+  getPermissionContext,
+  getProject,
+  getProjectUserPermissions,
+  projectPermissionUpsert,
+} from '@backend/components/project/base';
 import { listProjects, projectSearch } from '@backend/components/project/search';
 import { startReportJob } from '@backend/components/taskQueue/reportQueue';
 import { getPool } from '@backend/db';
@@ -21,7 +28,7 @@ import {
   relationsSchema,
   updateGeometrySchema,
 } from '@shared/schema/project';
-import { projectIdSchema } from '@shared/schema/project/base';
+import { projectIdSchema, projectPermissionSchema } from '@shared/schema/project/base';
 import {
   ProjectAccessChecker,
   hasWritePermission,
@@ -157,14 +164,16 @@ export const createProjectRouter = (t: TRPC) => {
       }
     }),
 
-    // XXX: only owner can update permissions
-    updatePermissions: t.procedure.mutation(async () => {
-      return [];
-    }),
+    getPermissions: t.procedure
+      .input(z.object({ projectId: z.string() }))
+      .query(async ({ input }) => {
+        return await getProjectUserPermissions(input.projectId);
+      }),
 
-    // XXX: only owner can change owner
-    changeOwner: t.procedure.mutation(async () => {
-      return [];
-    }),
+    updatePermissions: t.procedure
+      .input(z.array(projectPermissionSchema))
+      .mutation(async ({ input }) => {
+        return await projectPermissionUpsert(input);
+      }),
   });
 };

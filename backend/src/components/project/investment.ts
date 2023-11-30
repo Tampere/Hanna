@@ -8,6 +8,7 @@ import { updateProjectGeometry } from '@backend/components/project';
 import {
   baseProjectUpsert,
   validateUpsertProject as baseProjectValidate,
+  projectPermissionUpsert,
 } from '@backend/components/project/base';
 import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
@@ -62,6 +63,13 @@ export async function projectUpsert(project: InvestmentProject, user: User) {
       throw new Error('Invalid project');
     }
 
+    const oldOwnerRow = project.id
+      ? await tx.maybeOne(
+          sql.type(
+            z.object({ owner: z.string() })
+          )`SELECT owner from app.project WHERE id = ${project.id}`
+        )
+      : null;
     const id = await baseProjectUpsert(tx, project, user);
     await addAuditEvent(tx, {
       eventType: 'investmentProject.upsertProject',
@@ -89,6 +97,21 @@ export async function projectUpsert(project: InvestmentProject, user: User) {
         VALUES (${sql.join(values, sql.fragment`,`)})
         RETURNING id AS "projectId"
       `);
+
+    if (oldOwnerRow) {
+      await projectPermissionUpsert(
+        [
+          { projectId: data.id, userId: project.owner, canWrite: true },
+          { projectId: data.id, userId: oldOwnerRow?.owner, canWrite: false },
+        ],
+        tx
+      );
+    } else {
+      await projectPermissionUpsert(
+        [{ projectId: data.id, userId: project.owner, canWrite: true }],
+        tx
+      );
+    }
 
     tx.query(sql.untyped`
       DELETE FROM app.project_committee

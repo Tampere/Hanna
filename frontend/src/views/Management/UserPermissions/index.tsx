@@ -1,4 +1,4 @@
-import { SaveSharp, SearchTwoTone } from '@mui/icons-material';
+import { SaveSharp, SearchTwoTone, Undo } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -14,34 +14,94 @@ import {
   Typography,
   css,
 } from '@mui/material';
+import diff from 'microdiff';
+import { useEffect, useState } from 'react';
 
 import { trpc } from '@frontend/client';
+import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
 export function UserPermissionsPage() {
   const tr = useTranslations();
-  const query = trpc.userPermissions.getAll.useQuery();
+  const { data, isLoading, isError, refetch } = trpc.userPermissions.getAll.useQuery();
+  const [localUserPermissions, setLocalUserPermissions] = useState<typeof userPermissions>([]);
+  const updateData = trpc.userPermissions.setPermissions.useMutation();
+  const notify = useNotifications();
 
-  if (query === undefined || query.data === undefined) {
-    return;
+  const userPermissions = data
+    ? [...data]
+        .sort((a, b) => {
+          if (a.isAdmin !== b.isAdmin) {
+            return a.isAdmin ? -1 : 1; // List the admins first
+          } else {
+            return a.userName.localeCompare(b.userName);
+          }
+        })
+        .map((user) => {
+          return {
+            userId: user.userId,
+            userName: user.userName,
+            isAdmin: user.isAdmin,
+            permissions: user.permissions,
+          };
+        })
+    : [];
+
+  function handlePermissionChange(
+    user: typeof userPermissions[number],
+    permission: typeof user.permissions[number]
+  ) {
+    if (!permission) return;
+    setLocalUserPermissions((prevPermissions) =>
+      prevPermissions.map((prevUser) =>
+        prevUser.userId === user.userId
+          ? {
+              ...prevUser,
+              permissions: prevUser.permissions?.includes(permission)
+                ? prevUser.permissions.filter((perm) => perm !== permission)
+                : [...(prevUser.permissions ?? []), permission],
+            }
+          : prevUser
+      )
+    );
   }
 
-  let userPermissions = query.data
-    .sort((a, b) => {
-      if (a.isAdmin !== b.isAdmin) {
-        return a.isAdmin ? -1 : 1; // List the admins first
-      } else {
-        return a.userName.localeCompare(b.userName);
-      }
-    })
-    .map((user) => {
-      return {
-        userId: user.userId,
-        userName: user.userName,
-        isAdmin: user.isAdmin,
-        permissions: user.permissions,
-      };
+  function updatePermissions() {
+    const changedUserIds = diff(userPermissions, localUserPermissions).reduce((ids, diff) => {
+      const userId = localUserPermissions[diff.path[0] as number].userId;
+      if (userId in ids) return ids;
+      return [...ids, userId];
+    }, [] as string[]);
+
+    const usersToUpdate = localUserPermissions
+      .filter((user) => changedUserIds.includes(user.userId))
+      .map((user) => ({ userId: user.userId, permissions: user.permissions }));
+
+    updateData.mutate(usersToUpdate, {
+      onError: () =>
+        notify({
+          severity: 'error',
+          title: tr('genericForm.notifySubmitFailure'),
+          duration: 3000,
+        }),
+      onSuccess: () => {
+        notify({
+          severity: 'success',
+          title: tr('genericForm.notifySubmitSuccess'),
+          duration: 3000,
+        });
+        refetch();
+      },
     });
+  }
+
+  useEffect(() => {
+    setLocalUserPermissions(userPermissions);
+  }, [data]);
+
+  if (isLoading || isError) {
+    return null;
+  }
 
   return (
     <Box
@@ -67,7 +127,28 @@ export function UserPermissionsPage() {
             height: max-content;
           `}
         >
-          <Button variant="contained" endIcon={<SaveSharp />} disabled>
+          <Button
+            type="reset"
+            color="secondary"
+            variant="outlined"
+            endIcon={<Undo />}
+            disabled={
+              localUserPermissions.length === 0 ||
+              diff(userPermissions, localUserPermissions).length === 0
+            }
+            onClick={() => setLocalUserPermissions(userPermissions)}
+          >
+            {tr('genericForm.cancelAll')}
+          </Button>
+          <Button
+            variant="contained"
+            endIcon={<SaveSharp />}
+            disabled={
+              localUserPermissions.length === 0 ||
+              diff(userPermissions, localUserPermissions).length === 0
+            }
+            onClick={updatePermissions}
+          >
             {tr('genericForm.saveChanges')}
           </Button>
         </Box>
@@ -99,7 +180,7 @@ export function UserPermissionsPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {userPermissions.map((user) => (
+            {localUserPermissions.map((user) => (
               <TableRow key={user.userId} hover={true}>
                 <TableCell component="th" variant="head" scope="row">
                   {user.userName}
@@ -117,14 +198,22 @@ export function UserPermissionsPage() {
                 </TableCell>
                 <TableCell align="center">
                   <Checkbox
-                    checked={user.isAdmin || user.permissions.includes('investmentProject.write')}
+                    checked={
+                      user.isAdmin ||
+                      (user.permissions?.includes('investmentProject.write') ?? false)
+                    }
                     disabled={user.isAdmin}
+                    onClick={() => handlePermissionChange(user, 'investmentProject.write')}
                   />
                 </TableCell>
                 <TableCell align="center">
                   <Checkbox
-                    checked={user.isAdmin || user.permissions.includes('detailplanProject.write')}
+                    checked={
+                      user.isAdmin ||
+                      (user.permissions?.includes('detailplanProject.write') ?? false)
+                    }
                     disabled={user.isAdmin}
+                    onClick={() => handlePermissionChange(user, 'detailplanProject.write')}
                   />
                 </TableCell>
               </TableRow>
