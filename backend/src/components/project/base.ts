@@ -170,7 +170,7 @@ async function upsertProjectPermissions(
   tx: DatabaseTransactionConnection,
   permissionValues: (string | boolean)[][]
 ) {
-  return await tx.many(sql.type(z.string())`
+  return await tx.many(sql.type(projectIdSchema)`
     INSERT INTO app.project_permission (project_id, user_id, can_write)
     VALUES (${sql.join(
       permissionValues.map((val) => sql.join(val, sql.fragment`, `)),
@@ -178,33 +178,8 @@ async function upsertProjectPermissions(
     )})
     ON CONFLICT (project_id, user_id) DO
     UPDATE SET (project_id, user_id, can_write) = (EXCLUDED.project_id, EXCLUDED.user_id, EXCLUDED.can_write)
-    RETURNING project_id;
+    RETURNING project_id as "projectId";
   `);
-}
-
-async function deleteProjectPermissions(
-  tx: DatabaseTransactionConnection,
-  permissionValues: string[][]
-) {
-  const valueUnnest = sql.unnest(permissionValues, ['uuid', 'text']);
-
-  return await tx.any(sql.type(z.object({ projectId: z.string() }))`
-  DELETE FROM app.project_permission WHERE (project_id, user_id) IN
-  (SELECT project_id, user_id from ${valueUnnest} as values(project_id, user_id))
-  RETURNING project_id as projectId;`);
-}
-
-export async function removeProjectPermissions(
-  tx: DatabaseTransactionConnection,
-  projectPermissions: Omit<ProjectPermission, 'canWrite'>[]
-) {
-  const permissionValues = projectPermissions.map((permission) => [
-    permission.projectId,
-    permission.userId,
-  ]);
-
-  const result = await deleteProjectPermissions(tx, permissionValues);
-  return result;
 }
 
 export async function baseProjectUpsert(

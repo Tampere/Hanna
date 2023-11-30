@@ -56,26 +56,37 @@ export async function getProject(id: string, tx?: DatabaseTransactionConnection)
   return { ...project, committees: committees.map(({ id }) => id) };
 }
 
-export async function projectUpsert(project: InvestmentProject, user: User) {
+export async function projectUpsert(
+  project: InvestmentProject,
+  user: User,
+  keepOwnerRights: boolean = false
+) {
   return getPool().transaction(async (tx) => {
     if (hasErrors(await validateUpsertProject(project, tx))) {
       logger.error('Invalid project', { project });
       throw new Error('Invalid project');
     }
 
-    const oldOwnerRow = project.id
-      ? await tx.maybeOne(
-          sql.type(
-            z.object({ owner: z.string() })
-          )`SELECT owner from app.project WHERE id = ${project.id}`
-        )
-      : null;
-    const id = await baseProjectUpsert(tx, project, user);
     await addAuditEvent(tx, {
       eventType: 'investmentProject.upsertProject',
       eventData: project,
       eventUser: user.id,
     });
+
+    if (keepOwnerRights && project.projectId) {
+      const oldOwnerRow = await tx.one(
+        sql.type(
+          z.object({ owner: z.string() })
+        )`SELECT owner FROM app.project WHERE id = ${project.projectId}`
+      );
+
+      await projectPermissionUpsert(
+        [{ projectId: project.projectId, userId: oldOwnerRow.owner, canWrite: true }],
+        tx
+      );
+    }
+
+    const id = await baseProjectUpsert(tx, project, user);
 
     const data = {
       id,
@@ -97,21 +108,6 @@ export async function projectUpsert(project: InvestmentProject, user: User) {
         VALUES (${sql.join(values, sql.fragment`,`)})
         RETURNING id AS "projectId"
       `);
-
-    if (oldOwnerRow) {
-      await projectPermissionUpsert(
-        [
-          { projectId: data.id, userId: project.owner, canWrite: true },
-          { projectId: data.id, userId: oldOwnerRow?.owner, canWrite: false },
-        ],
-        tx
-      );
-    } else {
-      await projectPermissionUpsert(
-        [{ projectId: data.id, userId: project.owner, canWrite: true }],
-        tx
-      );
-    }
 
     tx.query(sql.untyped`
       DELETE FROM app.project_committee

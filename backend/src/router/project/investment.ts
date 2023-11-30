@@ -24,18 +24,23 @@ export const createInvestmentProjectRouter = (t: TRPC) => {
       return validateUpsertProject(input, null);
     }),
 
-    upsert: t.procedure.input(investmentProjectSchema).mutation(async ({ input, ctx }) => {
-      if (!ctx.user.permissions.includes('investmentProject.write') && !input.projectId) {
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
-      } else if (input.projectId) {
-        const permissionCtx = await getPermissionContext(input.projectId);
-        if (hasWritePermission(ctx.user, permissionCtx) || ownsProject(ctx.user, permissionCtx)) {
-          return await projectUpsert(input, ctx.user);
+    upsert: t.procedure
+      .input(
+        z.object({ project: investmentProjectSchema, keepOwnerRights: z.boolean().optional() })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const { project, keepOwnerRights } = input;
+        if (!ctx.user.permissions.includes('investmentProject.write') && !project.projectId) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
+        } else if (project.projectId) {
+          const permissionCtx = await getPermissionContext(project.projectId);
+          if (hasWritePermission(ctx.user, permissionCtx) || ownsProject(ctx.user, permissionCtx)) {
+            return await projectUpsert(project, ctx.user, keepOwnerRights);
+          }
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
+        } else {
+          return await projectUpsert(project, ctx.user, keepOwnerRights);
         }
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
-      } else {
-        return await projectUpsert(input, ctx.user);
-      }
-    }),
+      }),
   });
 };
