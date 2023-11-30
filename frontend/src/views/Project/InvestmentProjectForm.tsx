@@ -8,7 +8,6 @@ import { useAtomValue } from 'jotai';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
-import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
@@ -26,8 +25,7 @@ import {
   InvestmentProject,
   investmentProjectSchema,
 } from '@shared/schema/project/investment';
-
-import { ProjectOwnerChangeDialog } from './ProjectOwnerChangeDialog';
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 const newProjectFormStyle = css`
   display: grid;
@@ -226,7 +224,6 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
           component={({ id, onChange, value }) => (
             <>
               <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
-              <ProjectOwnerChangeDialog />
             </>
           )}
         />
