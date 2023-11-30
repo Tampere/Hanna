@@ -68,14 +68,18 @@ export async function getProject(id: string, tx?: DatabaseTransactionConnection)
   return { ...project, committees: committees.map(({ id }) => id) };
 }
 
-export async function projectUpsert(project: DetailplanProject, user: User) {
+export async function projectUpsert(
+  project: DetailplanProject,
+  user: User,
+  keepOwnerRights: boolean = false
+) {
   return await getPool().transaction(async (tx) => {
     if (hasErrors(await baseProjectValidate(tx, project))) {
       logger.error('projectUpsert: validation failed', { project });
       throw new Error('Invalid project data');
     }
 
-    const id = await baseProjectUpsert(tx, project, user);
+    const id = await baseProjectUpsert(tx, project, user, keepOwnerRights);
     await addAuditEvent(tx, {
       eventType: 'detailplanProject.upsertProject',
       eventData: project,

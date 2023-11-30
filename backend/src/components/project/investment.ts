@@ -73,20 +73,7 @@ export async function projectUpsert(
       eventUser: user.id,
     });
 
-    if (keepOwnerRights && project.projectId) {
-      const oldOwnerRow = await tx.one(
-        sql.type(
-          z.object({ owner: z.string() })
-        )`SELECT owner FROM app.project WHERE id = ${project.projectId}`
-      );
-
-      await projectPermissionUpsert(
-        [{ projectId: project.projectId, userId: oldOwnerRow.owner, canWrite: true }],
-        tx
-      );
-    }
-
-    const id = await baseProjectUpsert(tx, project, user);
+    const id = await baseProjectUpsert(tx, project, user, keepOwnerRights);
 
     const data = {
       id,

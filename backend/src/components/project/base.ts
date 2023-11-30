@@ -185,12 +185,27 @@ async function upsertProjectPermissions(
 export async function baseProjectUpsert(
   tx: DatabaseTransactionConnection,
   project: UpsertProject,
-  user: User
+  user: User,
+  keepOwnerRights: boolean = false
 ) {
   if (hasErrors(await validateUpsertProject(tx, project))) {
     logger.error('Invalid project data', { input: project });
     throw new Error('Invalid project data');
   }
+
+  if (keepOwnerRights && project.projectId) {
+    const oldOwnerRow = await tx.one(
+      sql.type(
+        z.object({ owner: z.string() })
+      )`SELECT owner FROM app.project WHERE id = ${project.projectId}`
+    );
+
+    await projectPermissionUpsert(
+      [{ projectId: project.projectId, userId: oldOwnerRow.owner, canWrite: true }],
+      tx
+    );
+  }
+
   const result = await upsertBaseProject(tx, project, user.id);
   return result.projectId;
 }

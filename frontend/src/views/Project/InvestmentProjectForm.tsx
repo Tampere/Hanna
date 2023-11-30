@@ -121,6 +121,9 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
         queryClient.invalidateQueries({
           queryKey: [['project', 'get'], { input: { id: data.projectId } }],
         });
+        queryClient.invalidateQueries({
+          queryKey: [['project', 'getPermissions'], { input: { projectId: data.projectId } }],
+        });
         setEditing(false);
         form.reset(data);
       }

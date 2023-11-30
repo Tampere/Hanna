@@ -83,19 +83,24 @@ export const createDetailplanProjectRouter = (t: TRPC) => {
 
     // APIs that require write permissions
 
-    upsert: t.procedure.input(detailplanProjectSchema).mutation(async ({ input, ctx }) => {
-      if (!ctx.user.permissions.includes('detailplanProject.write') && !input.projectId) {
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
-      }
-
-      if (input.projectId) {
-        const permissionCtx = await getPermissionContext(input.projectId);
-        if (hasWritePermission(ctx.user, permissionCtx) || ownsProject(ctx.user, permissionCtx)) {
-          return projectUpsert(input, ctx.user);
+    upsert: t.procedure
+      .input(
+        z.object({ project: detailplanProjectSchema, keepOwnerRights: z.boolean().optional() })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const { project, keepOwnerRights } = input;
+        if (!ctx.user.permissions.includes('detailplanProject.write') && !project.projectId) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
+        } else if (project.projectId) {
+          const permissionCtx = await getPermissionContext(project.projectId);
+          if (hasWritePermission(ctx.user, permissionCtx) || ownsProject(ctx.user, permissionCtx)) {
+            return await projectUpsert(project, ctx.user, keepOwnerRights);
+          }
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
+        } else {
+          return await projectUpsert(project, ctx.user, keepOwnerRights);
         }
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
-      }
-    }),
+      }),
 
     sendNotificationMail: t.procedure
       .input(detailplanNotificationSchema.extend({ recipients: z.array(z.string()) }))

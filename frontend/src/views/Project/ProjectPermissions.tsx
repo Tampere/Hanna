@@ -57,11 +57,23 @@ export function ProjectPermissions(props: Props) {
   }, [userPermissions]);
 
   function handleUpdatePermissions() {
-    const permissionsToUpdate = localSortedUserPermissions.map((user) => ({
-      userId: user.userId,
-      projectId: projectId,
-      canWrite: user.canWrite,
-    }));
+    const changedUserIds = diff(sortedUserPermissions, localSortedUserPermissions).reduce(
+      (ids, diff) => {
+        const userId = localSortedUserPermissions[diff.path[0] as number].userId;
+        if (userId in ids) return ids;
+        return [...ids, userId];
+      },
+      [] as string[]
+    );
+
+    const permissionsToUpdate = localSortedUserPermissions
+      .map((user) => ({
+        userId: user.userId,
+        projectId: projectId,
+        canWrite: user.canWrite,
+      }))
+      .filter((userPermission) => changedUserIds.includes(userPermission.userId));
+
     permissionsUpdate.mutate(permissionsToUpdate, {
       onError: () => {
         notify({ severity: 'error', title: tr('genericForm.notifySubmitFailure') });
