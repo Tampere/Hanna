@@ -1,9 +1,11 @@
 import { css } from '@emotion/react';
 import { SaveSharp, SearchTwoTone, Undo } from '@mui/icons-material';
 import {
+  Alert,
   Box,
   Button,
   Checkbox,
+  CircularProgress,
   InputAdornment,
   Table,
   TableBody,
@@ -62,10 +64,14 @@ export function ProjectPermissions(props: Props) {
     }));
     permissionsUpdate.mutate(permissionsToUpdate, {
       onError: () => {
-        notify({ severity: 'error', title: 'test', duration: 3000 });
+        notify({ severity: 'error', title: tr('genericForm.notifySubmitFailure') });
       },
       onSuccess: () => {
-        notify({ severity: 'success', title: 'test', duration: 3000 });
+        notify({
+          severity: 'success',
+          title: tr('genericForm.notifySubmitSuccess'),
+          duration: 3000,
+        });
         refetch();
       },
     });
@@ -109,6 +115,7 @@ export function ProjectPermissions(props: Props) {
           `}
         >
           <Button
+            size="small"
             type="reset"
             color="secondary"
             variant="outlined"
@@ -117,7 +124,7 @@ export function ProjectPermissions(props: Props) {
               isLoading ||
               isError ||
               localSortedUserPermissions.length === 0 ||
-              diff(userPermissions, localSortedUserPermissions).length === 0
+              diff(sortedUserPermissions, localSortedUserPermissions).length === 0
             }
             onClick={() => setLocalSortedUserPermissions(sortedUserPermissions)}
           >
@@ -159,11 +166,15 @@ export function ProjectPermissions(props: Props) {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={2}>loading...</TableCell>
+                <TableCell colSpan={2}>
+                  {tr('loading')} <CircularProgress size={'1rem'} />
+                </TableCell>
               </TableRow>
             ) : isError ? (
               <TableRow>
-                <TableCell colSpan={2}>error...</TableCell>
+                <TableCell colSpan={2}>
+                  <Alert severity="error">{tr('unknownError')}</Alert>
+                </TableCell>
               </TableRow>
             ) : (
               localSortedUserPermissions
