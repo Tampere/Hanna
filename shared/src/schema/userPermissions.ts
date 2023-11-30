@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+import { DbProject } from './project/base';
+import { User as CtxUser } from './user';
+
 export const userRoleSchema = z.enum(['Hanna.Admin', 'Hanna.User']);
 
 export type UserRole = z.infer<typeof userRoleSchema>;
@@ -22,7 +25,7 @@ export const userSchema = z.object({
   userName: z.string(),
   userRole: userRoleSchema,
   isAdmin: z.boolean(),
-  permissions: z.array(permissionSchema).nullable(),
+  permissions: z.array(permissionSchema),
 });
 
 export type User = z.infer<typeof userSchema>;
@@ -33,3 +36,38 @@ export const setPermissionSchema = z.array(
     permissions: z.array(permissionSchema),
   })
 );
+
+export const permissionContextSchema = z.object({
+  owner: z.string(),
+  writeUsers: z.array(z.string()),
+});
+
+export type ProjectPermissionContext = z.infer<typeof permissionContextSchema>;
+
+export type ProjectAccessChecker = (
+  user: CtxUser,
+  permissionCtx: ProjectPermissionContext
+) => boolean;
+
+export const isProjectIdInput = (input: any): input is { projectId: string } => {
+  return input && typeof input.projectId === 'string';
+};
+
+export const isProjectObjectIdInput = (input: any): input is { projectObjectId: string } => {
+  return input && typeof input.projectObjectId === 'string';
+};
+
+export const isTaskIdInput = (input: any): input is { taskId: string } => {
+  return input && typeof input.taskId === 'string';
+};
+
+export function ownsProject(user: CtxUser, permissionCtx: ProjectPermissionContext): boolean {
+  return Boolean(permissionCtx?.owner) && user.id === permissionCtx.owner;
+}
+
+export function hasWritePermission(
+  user: CtxUser,
+  permissionCtx: ProjectPermissionContext
+): boolean {
+  return permissionCtx?.writeUsers?.includes(user.id);
+}

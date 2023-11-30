@@ -117,15 +117,15 @@ export function ProjectObjectOperativeForm(props: Props) {
   const projectObjectUpsert = trpc.projectObject.upsert.useMutation({
     onSuccess: (data) => {
       // Navigate to new url if we are creating a new project
-      if (!props.projectObject && data.id) {
-        navigate(`/${props.projectType}/${data.projectId}/kohde/${data.id}`);
+      if (!props.projectObject && data.projectObjectId) {
+        navigate(`/${props.projectType}/${data.projectId}/kohde/${data.projectObjectId}`);
       } else {
         queryClient.invalidateQueries({
-          queryKey: [['project', 'get'], { input: { id: data.id } }],
+          queryKey: [['project', 'get'], { input: { id: data.projectObjectId } }],
         });
         // invalidate projectobject query
         queryClient.invalidateQueries({
-          queryKey: [['projectObject', 'get'], { input: { id: data.id } }],
+          queryKey: [['projectObject', 'get'], { input: { id: data.projectObjectId } }],
         });
 
         setEditing(false);

@@ -70,15 +70,17 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
       ) {
         const id = userinfo.sub;
         if (id) {
-          const user: PassportUser = {
+          const user = {
             id,
             name: String(userinfo.name),
             email: String(userinfo.upn),
             role: userinfo.role as UserRole,
           };
           // Update user to the database
-          await upsertUser(user);
-          authDone(null, user);
+          const dbUser = await upsertUser(user);
+          if (dbUser) {
+            authDone(null, dbUser);
+          }
         } else {
           authDone(new Error('No identifier found in userinfo'));
         }

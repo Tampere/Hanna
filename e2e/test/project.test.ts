@@ -25,7 +25,7 @@ const keskustoriGeom = {
 
 function geometryPayload(projectId: string, geometry: object) {
   return {
-    id: projectId,
+    projectId,
     features: JSON.stringify([
       {
         type: 'Feature',
@@ -79,7 +79,7 @@ async function createProject(page: Page, project: InvestmentProject) {
   // Return the created project with ID
   return {
     ...project,
-    id: projectId,
+    projectId: projectId,
   } as InvestmentProject;
 }
 
@@ -115,7 +115,7 @@ test.describe('Projects', () => {
 
     // Click on the new project button to go back to the project page
     await page.locator(`text=${project.projectName}`).click();
-    await expect(page).toHaveURL(`https://localhost:1443/investointihanke/${project.id}`);
+    await expect(page).toHaveURL(`https://localhost:1443/investointihanke/${project.projectId}`);
 
     // Check that all fields still have the same values
     await expect(page.locator('input[name="projectName"]')).toHaveValue(project.projectName);
@@ -126,7 +126,7 @@ test.describe('Projects', () => {
     );
     expect(await getDatePickerValue(page.locator('input[name="endDate"]'))).toBe(project.endDate);
 
-    await deleteProject(page, project.id);
+    await deleteProject(page, project.projectId);
   });
 
   test('Delete project', async ({ page }) => {
@@ -138,7 +138,7 @@ test.describe('Projects', () => {
       endDate: '30.12.2022',
     });
 
-    await deleteProject(page, project.id);
+    await deleteProject(page, project.projectId);
   });
 
   test('Project search', async ({ page }) => {
@@ -228,8 +228,8 @@ test.describe('Projects', () => {
     ).toBe(true);
 
     // Clean up the test case
-    await deleteProject(page, projectA.id);
-    await deleteProject(page, projectB.id);
-    await deleteProject(page, projectC.id);
+    await deleteProject(page, projectA.projectId);
+    await deleteProject(page, projectB.projectId);
+    await deleteProject(page, projectC.projectId);
   });
 });

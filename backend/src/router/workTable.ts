@@ -124,7 +124,7 @@ async function workTableUpdate(input: WorkTableUpdate, userId: string) {
       endDate: projectObject.dateRange?.endDate,
       rakennuttajaUser: projectObject.operatives?.rakennuttajaUser,
       suunnitteluttajaUser: projectObject.operatives?.suunnitteluttajaUser,
-      id: projectObjectId,
+      projectObjectId: projectObjectId,
       budgetUpdate: {
         budgetItems: [
           {
@@ -149,6 +149,7 @@ export const createWorkTableRouter = (t: TRPC) =>
     search: t.procedure.input(workTableSearchSchema).query(async ({ input }) => {
       return workTableSearch(input);
     }),
+    // XXX: permissions, only owner and those with write permissions can update
     update: t.procedure.input(workTableUpdateSchema).mutation(async ({ ctx, input }) => {
       const userId = ctx.user.id;
       return workTableUpdate(input, userId);

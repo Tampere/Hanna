@@ -46,30 +46,30 @@ test.describe('Project Object endpoints', () => {
 
     const project = await client.investmentProject.upsert.mutate(testProject(user));
 
-    const projectObject = testProjectObject(project.id, user);
+    const projectObject = testProjectObject(project.projectId, user);
     const resp = await client.projectObject.upsert.mutate(projectObject);
 
-    expect(resp.id).toBeTruthy();
+    expect(resp.projectObjectId).toBeTruthy();
     expect(resp.lifecycleState).toBe('01');
 
     const updatedProjectObject = {
       ...projectObject,
-      id: resp.id,
+      id: resp.projectObjectId,
       description: 'Updated description',
     };
 
     const updatedResp = await client.projectObject.upsert.mutate(updatedProjectObject);
-    expect(updatedResp.id).toBe(resp.id);
+    expect(updatedResp.projectObjectId).toBe(resp.projectObjectId);
     expect(updatedResp.description).toBe('Updated description');
 
     // partial update
     const partialUpdate = {
-      id: resp.id,
+      id: resp.projectObjectId,
       description: 'Partial update',
     };
 
     const partialUpdateResp = await client.projectObject.upsert.mutate(partialUpdate);
-    expect(partialUpdateResp.id).toBe(resp.id);
+    expect(partialUpdateResp.projectObjectId).toBe(resp.projectObjectId);
     expect(partialUpdateResp).toStrictEqual({
       ...updatedResp,
       description: 'Partial update',
@@ -81,17 +81,19 @@ test.describe('Project Object endpoints', () => {
 
     const project = await client.investmentProject.upsert.mutate(testProject(user));
 
-    const projectObject = testProjectObject(project.id, user);
+    const projectObject = testProjectObject(project.projectId, user);
 
     const resp = await client.projectObject.upsert.mutate(projectObject);
-    expect(resp.id).toBeTruthy();
+    expect(resp.projectObjectId).toBeTruthy();
 
-    const budget = await client.projectObject.getBudget.query({ projectObjectId: resp.id });
+    const budget = await client.projectObject.getBudget.query({
+      projectObjectId: resp.projectObjectId,
+    });
     expect(budget).toStrictEqual([]);
 
     // Update budget
     const budgetUpdate = {
-      projectObjectId: resp.id,
+      projectObjectId: resp.projectObjectId,
       budgetItems: [
         {
           year: 2021,
@@ -104,7 +106,9 @@ test.describe('Project Object endpoints', () => {
     await client.projectObject.updateBudget.mutate(budgetUpdate);
 
     // Get updated budget
-    const updatedBudget = await client.projectObject.getBudget.query({ projectObjectId: resp.id });
+    const updatedBudget = await client.projectObject.getBudget.query({
+      projectObjectId: resp.projectObjectId,
+    });
     expect(updatedBudget).toStrictEqual([
       {
         year: 2021,
@@ -118,7 +122,7 @@ test.describe('Project Object endpoints', () => {
 
     // add budget for another year and update existing
     const partialBudgetUpdate = {
-      projectObjectId: resp.id,
+      projectObjectId: resp.projectObjectId,
       budgetItems: [
         {
           year: 2021,
@@ -138,7 +142,7 @@ test.describe('Project Object endpoints', () => {
 
     // Get updated budget
     const partialUpdatedBudget = await client.projectObject.getBudget.query({
-      projectObjectId: resp.id,
+      projectObjectId: resp.projectObjectId,
     });
 
     expect(partialUpdatedBudget).toStrictEqual([
@@ -160,7 +164,7 @@ test.describe('Project Object endpoints', () => {
       },
     ]);
 
-    const projectObject2 = testProjectObject(project.id, user);
+    const projectObject2 = testProjectObject(project.projectId, user);
     const resp2 = await client.projectObject.upsert.mutate({
       ...projectObject2,
       budgetUpdate: {
@@ -180,9 +184,9 @@ test.describe('Project Object endpoints', () => {
         ],
       },
     });
-    expect(resp2.id).toBeTruthy();
+    expect(resp2.projectObjectId).toBeTruthy();
 
-    const projectBudget = await client.project.getBudget.query({ projectId: project.id });
+    const projectBudget = await client.project.getBudget.query({ projectId: project.projectId });
     expect(projectBudget).toStrictEqual([
       {
         year: 2021,

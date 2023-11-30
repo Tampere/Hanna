@@ -12,11 +12,14 @@ import { BudgetTable } from './BudgetTable';
 
 interface Props {
   project?: DbInvestmentProject | null;
+  editable?: boolean;
 }
 
 export function ProjectFinances(props: Props) {
-  const { project } = props;
-  const budget = !project ? null : trpc.project.getBudget.useQuery({ projectId: project.id });
+  const { project, editable = false } = props;
+  const budget = !project
+    ? null
+    : trpc.project.getBudget.useQuery({ projectId: project.projectId });
   const notify = useNotifications();
   const tr = useTranslations();
 
@@ -47,11 +50,11 @@ export function ProjectFinances(props: Props) {
 
   const yearlyActuals = trpc.sap.getYearlyActualsByProjectId.useQuery(
     {
-      projectId: project?.id as string,
+      projectId: project?.projectId as string,
       startYear: dayjs(project?.startDate).year(),
       endYear: dayjs(project?.endDate).year(),
     },
-    { enabled: Boolean(project?.id) }
+    { enabled: Boolean(project?.projectId) }
   );
 
   useEffect(() => {
@@ -64,7 +67,7 @@ export function ProjectFinances(props: Props) {
       budget={budget.data}
       actuals={yearlyActuals.data}
       actualsLoading={yearlyActuals.isFetching}
-      writableFields={['amount']}
+      writableFields={editable ? ['amount'] : []}
       onSave={async (yearBudgets) => {
         const payload = yearBudgets.map((yearBudget) => ({
           year: yearBudget.year,
@@ -72,7 +75,7 @@ export function ProjectFinances(props: Props) {
         }));
 
         await saveBudgetMutation.mutateAsync({
-          projectId: project.id,
+          projectId: project.projectId,
           budgetItems: payload,
         });
         budget?.refetch();

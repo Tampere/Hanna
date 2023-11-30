@@ -14,8 +14,9 @@ import {
   TextField,
 } from '@mui/material';
 import diff from 'microdiff';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
@@ -23,57 +24,51 @@ interface Props {
   projectId: string;
 }
 
-const userPermissions = [
-  {
-    userId: '12345',
-    userName: 'Pekkari Jouko',
-    canEdit: false,
-  },
-  {
-    userId: '12346',
-    userName: 'Paavola Pirjo',
-    canEdit: true,
-  },
-  {
-    userId: '12347',
-    userName: 'Nokkonen Juhani',
-    canEdit: true,
-  },
-  {
-    userId: '12348',
-    userName: 'Tiainen Tiina',
-    canEdit: false,
-  },
-  {
-    userId: '12349',
-    userName: 'Aakkula Aatu',
-    canEdit: false,
-  },
-  {
-    userId: '12350',
-    userName: 'Perttilä Johannes',
-    canEdit: false,
-  },
-].sort((a, b) => {
-  if (a.canEdit !== b.canEdit) {
-    return a.canEdit ? -1 : 1; // List those with edit rights first
-  } else {
-    return a.userName.localeCompare(b.userName);
-  }
-});
-
 export function ProjectPermissions(props: Props) {
   const { projectId } = props;
-  //const notify = useNotifications();
+  const notify = useNotifications();
   const tr = useTranslations();
-
+  const {
+    data: userPermissions,
+    isLoading,
+    isError,
+    refetch,
+  } = trpc.project.getPermissions.useQuery({ projectId: projectId });
+  const permissionsUpdate = trpc.project.updatePermissions.useMutation();
   const [searchterm, setSearchterm] = useState('');
-  const [users, setUsers] = useState(userPermissions);
+  const [localSortedUserPermissions, setLocalSortedUserPermissions] = useState<
+    typeof sortedUserPermissions
+  >([]);
+
+  const sortedUserPermissions = userPermissions
+    ? [...userPermissions]?.sort((a, b) => {
+        if (a.canWrite !== b.canWrite) {
+          return a.canWrite ? -1 : 1; // List those with edit rights first
+        } else {
+          return a.userName.localeCompare(b.userName);
+        }
+      })
+    : [];
+
+  useEffect(() => {
+    setLocalSortedUserPermissions(sortedUserPermissions);
+  }, [userPermissions]);
 
   function handleUpdatePermissions() {
-    const usersToUpdate = users.filter((user) => user.canEdit).map((user) => user.userId);
-
-    console.log(usersToUpdate);
+    const permissionsToUpdate = localSortedUserPermissions.map((user) => ({
+      userId: user.userId,
+      projectId: projectId,
+      canWrite: user.canWrite,
+    }));
+    permissionsUpdate.mutate(permissionsToUpdate, {
+      onError: () => {
+        notify({ severity: 'error', title: 'test', duration: 3000 });
+      },
+      onSuccess: () => {
+        notify({ severity: 'success', title: 'test', duration: 3000 });
+        refetch();
+      },
+    });
   }
 
   return !projectId ? null : (
@@ -118,8 +113,13 @@ export function ProjectPermissions(props: Props) {
             color="secondary"
             variant="outlined"
             endIcon={<Undo />}
-            disabled={users.length === 0 || diff(userPermissions, users).length === 0}
-            onClick={() => setUsers(userPermissions)}
+            disabled={
+              isLoading ||
+              isError ||
+              localSortedUserPermissions.length === 0 ||
+              diff(userPermissions, localSortedUserPermissions).length === 0
+            }
+            onClick={() => setLocalSortedUserPermissions(sortedUserPermissions)}
           >
             {tr('genericForm.cancelAll')}
           </Button>
@@ -130,7 +130,12 @@ export function ProjectPermissions(props: Props) {
             size="small"
             variant="contained"
             endIcon={<SaveSharp />}
-            disabled={users.length === 0 || diff(userPermissions, users).length === 0}
+            disabled={
+              isLoading ||
+              isError ||
+              localSortedUserPermissions.length === 0 ||
+              diff(sortedUserPermissions, localSortedUserPermissions).length === 0
+            }
             onClick={() => handleUpdatePermissions()}
           >
             {tr('genericForm.saveChanges')}
@@ -150,30 +155,41 @@ export function ProjectPermissions(props: Props) {
               <TableCell align="center">{tr('projectPermissions.editPermission')}</TableCell>
             </TableRow>
           </TableHead>
+
           <TableBody>
-            {users
-              .filter((user) => user.userName.toLowerCase().includes(searchterm.toLowerCase()))
-              .map((user) => (
-                <TableRow key={user.userId} hover={true}>
-                  <TableCell component="th" variant="head" scope="row">
-                    {user.userName}
-                  </TableCell>
-                  <TableCell align="center">
-                    <Checkbox
-                      onChange={() =>
-                        setUsers((prevUsers) =>
-                          prevUsers.map((prevUser) =>
-                            prevUser.userId === user.userId
-                              ? { ...prevUser, canEdit: !prevUser.canEdit }
-                              : prevUser
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={2}>loading...</TableCell>
+              </TableRow>
+            ) : isError ? (
+              <TableRow>
+                <TableCell colSpan={2}>error...</TableCell>
+              </TableRow>
+            ) : (
+              localSortedUserPermissions
+                .filter((user) => user.userName.toLowerCase().includes(searchterm.toLowerCase()))
+                .map((user) => (
+                  <TableRow key={user.userId} hover={true}>
+                    <TableCell component="th" variant="head" scope="row">
+                      {user.userName}
+                    </TableCell>
+                    <TableCell align="center">
+                      <Checkbox
+                        onChange={() =>
+                          setLocalSortedUserPermissions((prevUsers) =>
+                            prevUsers.map((prevUser) =>
+                              prevUser.userId === user.userId
+                                ? { ...prevUser, canWrite: !prevUser.canWrite }
+                                : prevUser
+                            )
                           )
-                        )
-                      }
-                      checked={user.canEdit}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
+                        }
+                        checked={user.canWrite}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>

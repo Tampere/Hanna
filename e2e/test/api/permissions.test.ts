@@ -74,9 +74,9 @@ test.describe('permission testing', () => {
     await changeUser(page, DEV_USER);
     const newProject = validProject(user.id);
 
-    const project = await client.investmentProject.upsert.mutate(newProject);
-    expect(project.id, 'project was created').toBeTruthy();
-    const testProjectId = project.id;
+    let project = await client.investmentProject.upsert.mutate(newProject);
+    expect(project.projectId, 'project was created').toBeTruthy();
+    const testProjectId = project.projectId;
 
     const updatedProj = await client.investmentProject.upsert.mutate({
       ...project,
@@ -114,7 +114,10 @@ test.describe('permission testing', () => {
       endDate: '2022-01-01',
     });
 
-    expect(newProjectObject.id, 'owner can create project objects to project').toBeTruthy();
+    expect(
+      newProjectObject.projectObjectId,
+      'owner can create project objects to project'
+    ).toBeTruthy();
 
     await client.project.setPermissions.mutate({
       projectId: testProjectId,
@@ -127,26 +130,48 @@ test.describe('permission testing', () => {
     });
 
     await changeUser(page, TEST_USER);
-    const project = await client.investmentProject.get.query({ id: testProjectId });
-    const updatedProject = await client.investmentProject.upsert.mutate({
-      ...project,
-      description: 'Updated description by other user',
-    });
-    expect(updatedProj.description, 'project was updated by granted user').toBe(
-      'Updated description by other user'
+    project = await client.investmentProject.get.query({ projectId: testProjectId });
+    const updates = { description: 'Updated description by other user' };
+    const updatedProject = await client.investmentProject.upsert.mutate({ ...project, ...updates });
+    expect(updatedProject.description, 'project was updated by granted user').toBe(
+      updates.description
     );
 
-    // XXX: granted users can edit the project
-    // XXX: granted users can create project object etc for the project
+    const newProjectObject2 = await client.projectObject.upsert.mutate({
+      projectId: testProjectId,
+      objectName: 'Test project object 2',
+      description: 'Test project object description 2',
+      suunnitteluttajaUser: user.id,
+      rakennuttajaUser: user.id,
+      lifecycleState: '01',
+      objectType: ['01'],
+      objectCategory: ['01'],
+      objectUsage: ['01'],
+      startDate: '2021-01-01',
+      endDate: '2022-01-01',
+    });
 
-    // XXX: owner can be changed to another user with option to maintain write permission
-
-    // XXX: non-owner cannot delete the project
-    // XXX: owner can delete the project
+    expect(
+      newProjectObject2.projectObjectId,
+      'granted user can create project objects to project'
+    ).toBeTruthy();
   });
 
-  // XXX: only users that have financial permissions can modify the financials
-  test('only user that has financial permissions can modify the financials', async ({ page }) => {
-    await login(page, 'admin@localhost');
+  test('owner changing', async ({ page }) => {
+    await changeUser(page, TEST_USER);
+    const user = await client.user.self.query();
+    expect(user.email).toBe(TEST_USER);
+
+    const newProject = validProject(user.id);
+
+    expect(newProject.owner).toBe(user.id);
+    // XXX: owner can be changed to another user with option to maintain write permission
+    const updates = { owner: DEV_USER, personInCharge: user.id };
+    const project = await client.investmentProject.upsert.mutate({ ...newProject, ...updates });
+    expect(project.owner).toBe(DEV_USER);
+
+    // XXX: owner can be changed to another user without option to maintain write permission
+    // XXX: non-owner cannot delete the project
+    // XXX: owner can delete the project
   });
 });

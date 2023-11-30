@@ -1,6 +1,6 @@
 import { Delete } from '@mui/icons-material';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, useTheme } from '@mui/material';
-import React, { useState } from 'react';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { trpc } from '@frontend/client';
@@ -12,9 +12,15 @@ interface Props {
   projectId: string;
   projectType: ProjectTypePath;
   projectObjectId: string;
+  userIsOwner?: boolean;
 }
 
-export function DeleteProjectObjectDialog({ projectId, projectType, projectObjectId }: Props) {
+export function DeleteProjectObjectDialog({
+  projectId,
+  projectType,
+  projectObjectId,
+  userIsOwner,
+}: Readonly<Props>) {
   const navigate = useNavigate();
   const notify = useNotifications();
   const tr = useTranslations();
@@ -37,7 +43,8 @@ export function DeleteProjectObjectDialog({ projectId, projectType, projectObjec
     },
   });
 
-  const onDelete = async (id: string) => projectObjectDeleteMutation.mutate({ id });
+  const onDelete = async (projObjId: string) =>
+    projectObjectDeleteMutation.mutate({ projectObjectId: projObjId });
 
   function handleSubmit() {
     setIsDialogOpen(false);
@@ -49,6 +56,7 @@ export function DeleteProjectObjectDialog({ projectId, projectType, projectObjec
       <Button
         size="small"
         variant="contained"
+        disabled={!userIsOwner}
         sx={{
           mt: 2,
           '&:hover': {

@@ -8,6 +8,7 @@ import { useAtomValue } from 'jotai';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
@@ -25,6 +26,8 @@ import {
   InvestmentProject,
   investmentProjectSchema,
 } from '@shared/schema/project/investment';
+
+import { ProjectOwnerChangeDialog } from './ProjectOwnerChangeDialog';
 
 const newProjectFormStyle = css`
   display: grid;
@@ -109,11 +112,11 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
   const projectUpsert = trpc.investmentProject.upsert.useMutation({
     onSuccess: (data) => {
       // Navigate to new url if we are creating a new project
-      if (!props.project && data.id) {
-        navigate(`/investointihanke/${data.id}`);
+      if (!props.project && data.projectId) {
+        navigate(`/investointihanke/${data.projectId}`);
       } else {
         queryClient.invalidateQueries({
-          queryKey: [['project', 'get'], { input: { id: data.id } }],
+          queryKey: [['project', 'get'], { input: { id: data.projectId } }],
         });
         setEditing(false);
         form.reset(data);
@@ -146,6 +149,13 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
             <Button
               variant="contained"
               size="small"
+              disabled={
+                !(
+                  !currentUser ||
+                  ownsProject(currentUser, props.project) ||
+                  hasWritePermission(currentUser, props.project)
+                )
+              }
               onClick={() => setEditing(!editing)}
               endIcon={<Edit />}
             >
@@ -214,7 +224,10 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
           label={tr('project.ownerLabel')}
           tooltip={tr('newProject.ownerTooltip')}
           component={({ id, onChange, value }) => (
-            <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
+            <>
+              <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
+              <ProjectOwnerChangeDialog />
+            </>
           )}
         />
 

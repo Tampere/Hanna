@@ -25,6 +25,7 @@ import {
   DetailplanProject,
   detailplanProjectSchema,
 } from '@shared/schema/project/detailplan';
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 const newProjectFormStyle = css`
   display: grid;
@@ -33,6 +34,7 @@ const newProjectFormStyle = css`
 
 interface Props {
   project?: DbDetailplanProject | null;
+  disabled?: boolean;
 }
 
 const readonlyFieldProps = {
@@ -41,7 +43,7 @@ const readonlyFieldProps = {
   InputProps: { readOnly: true },
 } as const;
 
-export function DetailplanProjectForm(props: Props) {
+export function DetailplanProjectForm(props: Readonly<Props>) {
   const tr = useTranslations();
   const notify = useNotifications();
   const queryClient = useQueryClient();
@@ -129,14 +131,17 @@ export function DetailplanProjectForm(props: Props) {
   const projectUpsert = trpc.detailplanProject.upsert.useMutation({
     onSuccess: (data) => {
       // Navigate to new url if we are creating a new project
-      if (!props.project && data.id) {
-        navigate(`/asemakaavahanke/${data.id}`);
+      if (!props.project && data.projectId) {
+        navigate(`/asemakaavahanke/${data.projectId}`);
       } else {
         queryClient.invalidateQueries({
-          queryKey: [['detailplanProject', 'get'], { input: { id: data.id } }],
+          queryKey: [['detailplanProject', 'get'], { input: { projectId: data.projectId } }],
         });
         queryClient.invalidateQueries({
-          queryKey: [['detailplanProject', 'previewNotificationMail'], { input: { id: data.id } }],
+          queryKey: [
+            ['detailplanProject', 'previewNotificationMail'],
+            { input: { projectId: data.projectId } },
+          ],
         });
         setEditing(false);
         form.reset(data);
@@ -169,6 +174,13 @@ export function DetailplanProjectForm(props: Props) {
             <Button
               variant="contained"
               size="small"
+              disabled={
+                !(
+                  !currentUser ||
+                  ownsProject(currentUser, props.project) ||
+                  hasWritePermission(currentUser, props.project)
+                )
+              }
               onClick={() => setEditing(!editing)}
               endIcon={<Edit />}
             >

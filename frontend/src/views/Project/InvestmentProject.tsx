@@ -1,6 +1,7 @@
 import { css } from '@emotion/react';
 import { AccountTree, Euro, KeyTwoTone, ListAlt, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
+import { useAtomValue } from 'jotai';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { useMemo, useState } from 'react';
@@ -13,9 +14,12 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { DRAW_LAYER_Z_INDEX, featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
+import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
+
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 import { DeleteProjectDialog } from './DeleteProjectDialog';
 import { InvestmentProjectForm } from './InvestmentProjectForm';
@@ -80,9 +84,12 @@ export function InvestmentProject() {
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
   const projectId = routeParams?.projectId;
   const project = trpc.investmentProject.get.useQuery(
-    { id: projectId },
-    { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { id: projectId }] }
+    { projectId },
+    { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { projectId }] }
   );
+  const user = useAtomValue(authAtom);
+  const userCanModify =
+    Boolean(user) && (ownsProject(user, project.data) || hasWritePermission(user, project.data));
 
   const [geom, setGeom] = useState<string | null>(null);
 
@@ -174,7 +181,8 @@ export function InvestmentProject() {
           <InvestmentProjectForm edit={!projectId} project={project.data} geom={geom} />
           {project.data && (
             <DeleteProjectDialog
-              projectId={project.data.id}
+              disabled={!ownsProject(user, project.data)}
+              projectId={project.data.projectId}
               message={tr('project.deleteDialogMessage')}
             />
           )}
@@ -213,12 +221,12 @@ export function InvestmentProject() {
                 geoJson={project?.data?.geom}
                 drawStyle={PROJECT_AREA_STYLE}
                 fitExtent="geoJson"
-                editable={true}
+                editable={!projectId || userCanModify}
                 onFeaturesSaved={(features) => {
                   if (!project.data) {
                     setGeom(features);
                   } else {
-                    geometryUpdate.mutate({ id: projectId, features });
+                    geometryUpdate.mutate({ projectId, features });
                   }
                 }}
                 vectorLayers={[projectObjectsLayer]}
@@ -228,9 +236,15 @@ export function InvestmentProject() {
 
           {routeParams.tabView && (
             <Box sx={{ m: 2 }}>
-              {routeParams.tabView === 'talous' && <ProjectFinances project={project.data} />}
+              {routeParams.tabView === 'talous' && (
+                <ProjectFinances editable={userCanModify} project={project.data} />
+              )}
               {routeParams.tabView === 'kohteet' && (
-                <ProjectObjectList projectId={projectId} projectType="investointihanke" />
+                <ProjectObjectList
+                  editable={userCanModify}
+                  projectId={projectId}
+                  projectType="investointihanke"
+                />
               )}
               {routeParams.tabView === 'sidoshankkeet' && (
                 <ProjectRelations projectId={routeParams.projectId} />

@@ -14,7 +14,6 @@ import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { useTranslations } from '@frontend/stores/lang';
-import { useDebounce } from '@frontend/utils/useDebounce';
 
 import { ProjectRelation, Relation } from '@shared/schema/project';
 
@@ -74,6 +73,7 @@ interface Props {
   unrelatableProjectIds: string[];
   onRemoveProjectRelation: (relationType: Relation, relationObjectId: string) => void;
   onAddProjectRelation: (relationType: Relation, relationObjectId: string) => void;
+  editable?: boolean;
 }
 
 export function RelationsContainer({
@@ -85,6 +85,7 @@ export function RelationsContainer({
   unrelatableProjectIds,
   onRemoveProjectRelation,
   onAddProjectRelation,
+  editable = false,
 }: Props) {
   const tr = useTranslations();
   const [showProjectSearch, setShowProjectSearch] = useState(false);
@@ -99,7 +100,9 @@ export function RelationsContainer({
           <Autocomplete
             id="project-relation-search"
             options={
-              projects?.data?.filter((project) => !unrelatableProjectIds.includes(project.id)) ?? []
+              projects?.data?.filter(
+                (project) => !unrelatableProjectIds.includes(project.projectId)
+              ) ?? []
             }
             noOptionsText={tr('projectRelations.noFoundProjects')}
             sx={{ width: 300 }}
@@ -110,9 +113,9 @@ export function RelationsContainer({
             getOptionLabel={(option) => option.projectName}
             loading={projects.isLoading}
             onChange={(_event: React.SyntheticEvent, newValue) => {
-              setSelectedObjectProjectId(newValue?.id ?? null);
+              setSelectedObjectProjectId(newValue?.projectId ?? null);
             }}
-            value={projects?.data?.find((project) => project.id === selectedObjectProjectId)}
+            value={projects?.data?.find((project) => project.projectId === selectedObjectProjectId)}
           />
         </Box>
       </Box>
@@ -125,6 +128,7 @@ export function RelationsContainer({
         <Typography style={{ fontSize: '0.9rem' }}>{title}</Typography>
         <Tooltip title={addRelationText}>
           <IconButton
+            disabled={!editable}
             size="small"
             css={addIconButtonStyle}
             onClick={() => setShowProjectSearch(true)}
@@ -151,6 +155,7 @@ export function RelationsContainer({
             <Tooltip title={tr('projectRelations.removeRelation')}>
               <IconButton
                 size="small"
+                disabled={!editable}
                 onClick={() => {
                   onRemoveProjectRelation(relationType, objectOfRelation.projectId);
                 }}
