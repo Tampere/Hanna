@@ -12,12 +12,14 @@ interface Props {
   projectId: string;
   projectType: ProjectTypePath;
   projectObjectId: string;
+  userIsOwner?: boolean;
 }
 
 export function DeleteProjectObjectDialog({
   projectId,
   projectType,
   projectObjectId,
+  userIsOwner,
 }: Readonly<Props>) {
   const navigate = useNavigate();
   const notify = useNotifications();
@@ -54,6 +56,7 @@ export function DeleteProjectObjectDialog({
       <Button
         size="small"
         variant="contained"
+        disabled={!userIsOwner}
         sx={{
           mt: 2,
           '&:hover': {

@@ -12,6 +12,8 @@ import { BudgetTable } from '../Project/BudgetTable';
 
 interface Props {
   projectObject: DBProjectObject;
+  userIsOwner?: boolean;
+  userCanWrite?: boolean;
 }
 
 export function ProjectObjectFinances(props: Props) {
@@ -67,7 +69,7 @@ export function ProjectObjectFinances(props: Props) {
       budget={budget.data}
       actuals={yearlyActuals.data}
       actualsLoading={yearlyActuals.isFetching}
-      writableFields={['amount', 'forecast', 'kayttosuunnitelmanMuutos']}
+      writableFields={props.userIsOwner ? ['amount', 'forecast', 'kayttosuunnitelmanMuutos'] : []}
       onSave={async (yearBudgets) => {
         const payload = yearBudgets.map((yearBudget) => ({
           year: yearBudget.year,

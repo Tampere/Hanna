@@ -52,6 +52,8 @@ interface Props {
   geom?: string | null;
   setProjectId?: (projectId: string) => void;
   navigateTo?: string | null;
+  userIsOwner?: boolean;
+  userCanWrite?: boolean;
 }
 
 interface ProjectAutoCompleteProps {
@@ -260,6 +262,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <SectionTitle title={tr('projectObject.formTitle')} />
           {!form.formState.isDirty && !editing ? (
             <Button
+              disabled={!(props.userIsOwner || props.userCanWrite)}
               variant="contained"
               size="small"
               onClick={() => setEditing(!editing)}

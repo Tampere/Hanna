@@ -7,7 +7,6 @@ import VectorSource from 'ol/source/Vector';
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
-import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
@@ -19,6 +18,8 @@ import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
+
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 import { DeleteProjectDialog } from './DeleteProjectDialog';
 import { InvestmentProjectForm } from './InvestmentProjectForm';
@@ -213,7 +214,7 @@ export function InvestmentProject() {
                 geoJson={project?.data?.geom}
                 drawStyle={PROJECT_AREA_STYLE}
                 fitExtent="geoJson"
-                editable={userCanModify}
+                editable={!projectId || userCanModify}
                 onFeaturesSaved={(features) => {
                   if (!project.data) {
                     setGeom(features);

@@ -464,9 +464,11 @@ async function updateProjectObjectGeometry(
  * Permissions inherit from the project to the project object.
  */
 export async function getPermissionContext(
-  projectObjectId: string
+  projectObjectId: string,
+  tx?: DatabaseTransactionConnection
 ): Promise<ProjectPermissionContext> {
-  const permissionCtx = await getPool().maybeOne(sql.type(permissionContextSchema)`
+  const conn = tx ?? getPool();
+  const permissionCtx = await conn.maybeOne(sql.type(permissionContextSchema)`
     SELECT
       project.id AS id,
       "owner",
@@ -519,8 +521,10 @@ export const createProjectObjectRouter = (t: TRPC) => {
 
   return t.router({
     get: t.procedure.input(getProjectObjectParams).query(async ({ input }) => {
-      return await getPool().connect(async (conn) => {
-        return await getProjectObject(conn, input.projectObjectId);
+      return await getPool().transaction(async (tx) => {
+        const projectObject = await getProjectObject(tx, input.projectObjectId);
+        const permissionCtx = await getPermissionContext(input.projectObjectId, tx);
+        return { ...projectObject, acl: permissionCtx };
       });
     }),
 

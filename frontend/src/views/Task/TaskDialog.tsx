@@ -20,6 +20,8 @@ interface Props {
   task: DbTask;
   open: boolean;
   onClose: () => void;
+  isOwner?: boolean;
+  canWrite?: boolean;
 }
 
 const dialogContentStyle = css`
@@ -32,8 +34,8 @@ const dialogActionsStyle = css`
   justify-content: space-between;
 `;
 
-export function TaskDialog(props: Props) {
-  const { projectObjectId, task, open, onClose } = props;
+export function TaskDialog(props: Readonly<Props>) {
+  const { projectObjectId, task, open, onClose, isOwner = false, canWrite = false } = props;
   const queryClient = useQueryClient();
   const tr = useTranslations();
   const notify = useNotifications();
@@ -78,6 +80,7 @@ export function TaskDialog(props: Props) {
         <TaskForm
           projectObjectId={projectObjectId}
           task={task}
+          userCanModify={isOwner || canWrite}
           onSubmit={() => {
             invalidateTasks();
           }}
@@ -89,7 +92,7 @@ export function TaskDialog(props: Props) {
             <BudgetTable
               years={years}
               fields={['amount']}
-              writableFields={['amount']}
+              writableFields={isOwner ? ['amount'] : []}
               budget={budget.data}
               actuals={null} // TODO: coming soon
               actualsLoading={false}
@@ -109,14 +112,24 @@ export function TaskDialog(props: Props) {
         </Box>
       </DialogContent>
       <DialogActions css={dialogActionsStyle}>
-        <DeleteTaskDialog
-          taskId={task.taskId}
-          onDeleted={() => {
-            invalidateTasks();
-            onClose();
-          }}
-        />
-        <Button onClick={onClose}>{tr('close')}</Button>
+        {isOwner && (
+          <DeleteTaskDialog
+            taskId={task.taskId}
+            onDeleted={() => {
+              invalidateTasks();
+              onClose();
+            }}
+          />
+        )}
+        <Button
+          css={css`
+            align-self: flex-end;
+            justify-self: flex-end;
+          `}
+          onClick={onClose}
+        >
+          {tr('close')}
+        </Button>
       </DialogActions>
     </Dialog>
   );

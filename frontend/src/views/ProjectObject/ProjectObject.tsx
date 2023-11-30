@@ -1,11 +1,13 @@
 import { css } from '@emotion/react';
 import { Assignment, Euro, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
+import { useAtomValue } from 'jotai';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { ReactElement, useMemo, useState } from 'react';
 import { useLocation, useParams } from 'react-router';
 import { Link } from 'react-router-dom';
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
@@ -13,6 +15,7 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
+import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { ProjectTypePath } from '@frontend/types';
 import Tasks from '@frontend/views/Task/Tasks';
@@ -98,6 +101,10 @@ export function ProjectObject(props: Props) {
     },
     { enabled: Boolean(projectObjectId) }
   );
+  const user = useAtomValue(authAtom);
+
+  const isOwner = ownsProject(user, projectObject.data?.acl);
+  const canWrite = hasWritePermission(user, projectObject.data?.acl);
 
   const [geom, setGeom] = useState<string | null>(null);
   const [projectId, setProjectId] = useState(routeParams.projectId);
@@ -189,6 +196,8 @@ export function ProjectObject(props: Props) {
       <div css={pageContentStyle}>
         <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
           <ProjectObjectForm
+            userIsOwner={isOwner}
+            userCanWrite={canWrite}
             projectId={routeParams.projectId}
             projectType={props.projectType}
             projectObject={projectObject.data}
@@ -201,6 +210,7 @@ export function ProjectObject(props: Props) {
               projectId={routeParams.projectId}
               projectType={props.projectType}
               projectObjectId={projectObjectId}
+              userIsOwner={isOwner}
             />
           )}
         </Paper>
@@ -237,7 +247,7 @@ export function ProjectObject(props: Props) {
               <MapWrapper
                 geoJson={projectObject?.data?.geom}
                 drawStyle={PROJ_OBJ_STYLE}
-                editable={true}
+                editable={!projectObjectId || isOwner || canWrite}
                 vectorLayers={[projectLayer]}
                 fitExtent="vectorLayers"
                 onFeaturesSaved={(features) => {
@@ -254,9 +264,11 @@ export function ProjectObject(props: Props) {
           {routeParams.tabView && (
             <Box sx={{ m: 2 }}>
               {routeParams.tabView === 'talous' && projectObject.data && (
-                <ProjectObjectFinances projectObject={projectObject.data} />
+                <ProjectObjectFinances userIsOwner={isOwner} projectObject={projectObject.data} />
               )}
-              {routeParams.tabView === 'tehtavat' && <Tasks projectObjectId={projectObjectId} />}
+              {routeParams.tabView === 'tehtavat' && (
+                <Tasks isOwner={isOwner} canWrite={canWrite} projectObjectId={projectObjectId} />
+              )}
             </Box>
           )}
         </Paper>
