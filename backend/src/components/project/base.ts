@@ -7,7 +7,7 @@ import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
 
 import { FormErrors, fieldError, hasErrors } from '@shared/formerror';
-import { ProjectPermission, UpsertProject, projectIdSchema } from '@shared/schema/project/base';
+import { ProjectPermissions, UpsertProject, projectIdSchema } from '@shared/schema/project/base';
 import { User } from '@shared/schema/user';
 import { ProjectPermissionContext, permissionContextSchema } from '@shared/schema/userPermissions';
 
@@ -168,14 +168,16 @@ export async function validateUpsertProject(
 
 async function upsertProjectPermissions(
   tx: DatabaseTransactionConnection,
-  permissionValues: (string | boolean)[][]
+  projectPermissions: ProjectPermissions
 ) {
+  const { projectId, permissions } = projectPermissions;
+
   return await tx.many(sql.type(projectIdSchema)`
     INSERT INTO app.project_permission (project_id, user_id, can_write)
-    VALUES (${sql.join(
-      permissionValues.map((val) => sql.join(val, sql.fragment`, `)),
-      sql.fragment`), (`
-    )})
+    SELECT * FROM ${sql.unnest(
+      permissions.map((permission) => [projectId, permission.userId, permission.canWrite]),
+      ['uuid', 'text', 'bool']
+    )}
     ON CONFLICT (project_id, user_id) DO
     UPDATE SET (project_id, user_id, can_write) = (EXCLUDED.project_id, EXCLUDED.user_id, EXCLUDED.can_write)
     RETURNING project_id as "projectId";
@@ -201,7 +203,10 @@ export async function baseProjectUpsert(
     );
 
     await projectPermissionUpsert(
-      [{ projectId: project.projectId, userId: oldOwnerRow.owner, canWrite: true }],
+      {
+        projectId: project.projectId,
+        permissions: [{ userId: oldOwnerRow.owner, canWrite: true }],
+      },
       tx
     );
   }
@@ -211,12 +216,11 @@ export async function baseProjectUpsert(
 }
 
 export async function projectPermissionUpsert(
-  projectPermissions: ProjectPermission[],
+  projectPermissions: ProjectPermissions,
   tx?: DatabaseTransactionConnection
 ) {
   const conn = tx ?? getPool();
-  const permissionValues = projectPermissions.map((permission) => Object.values(permission));
-  const result = await upsertProjectPermissions(conn, permissionValues);
+  const result = await upsertProjectPermissions(conn, projectPermissions);
 
   return result;
 }

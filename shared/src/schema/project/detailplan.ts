@@ -28,6 +28,7 @@ export const dbDetailplanSchema = detailplanProjectSchema.extend({
   projectId: z.string(),
   geom: z.string().nullable(),
   detailplanId: nonEmptyString,
+  writeUsers: z.array(z.string()),
 });
 
 export type DbDetailplanProject = z.infer<typeof dbDetailplanSchema>;

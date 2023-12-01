@@ -7,6 +7,7 @@ import VectorSource from 'ol/source/Vector';
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
+import { User } from '@shared/schema/user';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
@@ -19,7 +20,11 @@ import { useTranslations } from '@frontend/stores/lang';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
 
-import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
+import {
+  ProjectPermissionContext,
+  hasWritePermission,
+  ownsProject,
+} from '@shared/schema/userPermissions';
 
 import { DeleteProjectDialog } from './DeleteProjectDialog';
 import { InvestmentProjectForm } from './InvestmentProjectForm';
@@ -42,37 +47,42 @@ const mapContainerStyle = css`
 
 type TabView = 'default' | 'talous' | 'kohteet' | 'sidoshankkeet' | 'luvitus';
 
-function projectTabs(projectId: string) {
+function getTabs(projectId: string) {
   return [
     {
       tabView: 'default',
       url: `/investointihanke/${projectId}`,
       label: 'project.mapTabLabel',
       icon: <Map fontSize="small" />,
+      hasAccess: () => true,
     },
     {
       tabView: 'talous',
       url: `/investointihanke/${projectId}/talous`,
       label: 'project.financeTabLabel',
       icon: <Euro fontSize="small" />,
+      hasAccess: () => true,
     },
     {
       tabView: 'kohteet',
       url: `/investointihanke/${projectId}/kohteet`,
       label: 'project.projectObjectsTabLabel',
       icon: <ListAlt fontSize="small" />,
+      hasAccess: () => true,
     },
     {
       tabView: 'sidoshankkeet',
       url: `/investointihanke/${projectId}/sidoshankkeet`,
       label: 'project.relatedProjectsTabLabel',
       icon: <AccountTree fontSize="small" />,
+      hasAccess: () => true,
     },
     {
       tabView: 'luvitus',
       url: `/investointihanke/${projectId}/luvitus`,
       label: 'project.permissionsTabLabel',
       icon: <KeyTwoTone fontSize="small" />,
+      hasAccess: (user: User, project: ProjectPermissionContext) => ownsProject(user, project),
     },
   ] as const;
 }
@@ -80,16 +90,21 @@ function projectTabs(projectId: string) {
 export function InvestmentProject() {
   const routeParams = useParams() as { projectId: string; tabView?: TabView };
   const tabView = routeParams.tabView || 'default';
-  const tabs = projectTabs(routeParams.projectId);
-  const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
   const projectId = routeParams?.projectId;
   const project = trpc.investmentProject.get.useQuery(
     { projectId },
     { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { projectId }] }
   );
   const user = useAtomValue(authAtom);
-  const userCanModify =
-    Boolean(user) && (ownsProject(user, project.data) || hasWritePermission(user, project.data));
+  const tabs = getTabs(routeParams.projectId).filter(
+    (tab) => project?.data && user && tab.hasAccess(user, project.data)
+  );
+  const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
+  const userCanModify = Boolean(
+    project.data &&
+      user &&
+      (ownsProject(user, project.data) || hasWritePermission(user, project.data))
+  );
 
   const [geom, setGeom] = useState<string | null>(null);
 
@@ -181,7 +196,7 @@ export function InvestmentProject() {
           <InvestmentProjectForm edit={!projectId} project={project.data} geom={geom} />
           {project.data && (
             <DeleteProjectDialog
-              disabled={!ownsProject(user, project.data)}
+              disabled={Boolean(user && !ownsProject(user, project.data))}
               projectId={project.data.projectId}
               message={tr('project.deleteDialogMessage')}
             />
@@ -247,7 +262,7 @@ export function InvestmentProject() {
                 />
               )}
               {routeParams.tabView === 'sidoshankkeet' && (
-                <ProjectRelations projectId={routeParams.projectId} />
+                <ProjectRelations editable={userCanModify} projectId={routeParams.projectId} />
               )}
               {routeParams.tabView === 'luvitus' && (
                 <ProjectPermissions projectId={routeParams.projectId} />

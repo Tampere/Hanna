@@ -8,7 +8,6 @@ import { updateProjectGeometry } from '@backend/components/project';
 import {
   baseProjectUpsert,
   validateUpsertProject as baseProjectValidate,
-  projectPermissionUpsert,
 } from '@backend/components/project/base';
 import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
@@ -31,7 +30,12 @@ const selectProjectFragment = sql.fragment`
     geohash,
     ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
     (project.lifecycle_state).id AS "lifecycleState",
-    sap_project_id AS "sapProjectId"
+    sap_project_id AS "sapProjectId",
+    (
+      SELECT array_agg(user_id)
+      FROM app.project_permission
+      WHERE project_id = project.id AND can_write = true
+    ) AS "writeUsers"
   FROM app.project
   LEFT JOIN app.project_investment ON project_investment.id = project.id
   WHERE deleted = false

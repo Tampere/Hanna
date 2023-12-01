@@ -19,6 +19,7 @@ export const dbInvestmentProjectSchema = investmentProjectSchema.extend({
   projectId: z.string(),
   parentId: z.string(),
   geom: z.string().nullable(),
+  writeUsers: z.array(z.string()),
 });
 
 export type DbInvestmentProject = z.infer<typeof dbInvestmentProjectSchema>;

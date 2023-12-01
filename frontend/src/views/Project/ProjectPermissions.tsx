@@ -69,12 +69,15 @@ export function ProjectPermissions(props: Props) {
     const permissionsToUpdate = localSortedUserPermissions
       .map((user) => ({
         userId: user.userId,
-        projectId: projectId,
         canWrite: user.canWrite,
       }))
       .filter((userPermission) => changedUserIds.includes(userPermission.userId));
+    const updatePayload = {
+      projectId: projectId,
+      permissions: permissionsToUpdate,
+    };
 
-    permissionsUpdate.mutate(permissionsToUpdate, {
+    permissionsUpdate.mutate(updatePayload, {
       onError: () => {
         notify({ severity: 'error', title: tr('genericForm.notifySubmitFailure') });
       },

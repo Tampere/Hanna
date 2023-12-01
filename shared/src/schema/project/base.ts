@@ -24,15 +24,20 @@ export const dbProjectSchema = upsertProjectSchema.extend({
   geom: z.string().nullable(),
   projectType: z.enum(projectTypes),
   detailplanId: z.number().nullable(),
+  writeUsers: z.array(z.string()),
 });
 
 export const projectPermissionSchema = z.object({
   projectId: z.string(),
-  userId: z.string(),
-  canWrite: z.boolean(),
+  permissions: z.array(
+    z.object({
+      userId: z.string(),
+      canWrite: z.boolean(),
+    })
+  ),
 });
 
 export type UpsertProject = z.infer<typeof upsertProjectSchema>;
-export type ProjectPermission = z.infer<typeof projectPermissionSchema>;
+export type ProjectPermissions = z.infer<typeof projectPermissionSchema>;
 
 export type DbProject = z.infer<typeof dbProjectSchema>;

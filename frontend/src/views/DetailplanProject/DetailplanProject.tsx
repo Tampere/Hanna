@@ -3,7 +3,7 @@ import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography, css } from '@mui/
 import { useAtomValue } from 'jotai';
 import { ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ownsProject } from '@shared/schema/userPermissions';
+import { User } from '@shared/schema/user';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
@@ -15,6 +15,11 @@ import { DeleteProjectDialog } from '@frontend/views/Project/DeleteProjectDialog
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 
 import { TranslationKey } from '@shared/language';
+import {
+  ProjectPermissionContext,
+  hasWritePermission,
+  ownsProject,
+} from '@shared/schema/userPermissions';
 
 import { ProjectPermissions } from '../Project/ProjectPermissions';
 import { DetailplanProjectForm } from './DetailplanProjectForm';
@@ -43,48 +48,62 @@ const mapContainerStyle = css`
   min-height: 600px;
 `;
 
-function getTabs(projectId: string): Tab[] {
+function getTabs(projectId: string) {
   return [
     {
       tabView: 'default',
       url: `/asemakaavahanke/${projectId}`,
       label: 'project.mapTabLabel',
       icon: <Map fontSize="small" />,
+      hasAccess: () => true,
     },
     {
       tabView: 'sidoshankkeet',
       url: `/asemakaavahanke/${projectId}/sidoshankkeet`,
       label: 'project.relatedProjectsTabLabel',
       icon: <AccountTree fontSize="small" />,
+      hasAccess: () => true,
     },
     {
       tabView: 'tiedotus',
       url: `/asemakaavahanke/${projectId}/tiedotus`,
       label: 'detailplanProject.notification',
       icon: <Mail fontSize="small" />,
+      hasAccess: () => true,
     },
     {
       tabView: 'luvitus',
       url: `/asemakaavahanke/${projectId}/luvitus`,
       label: 'project.permissionsTabLabel',
       icon: <KeyTwoTone fontSize="small" />,
+      hasAccess: (user: User, project: ProjectPermissionContext) => ownsProject(user, project),
     },
-  ];
+  ] as const;
 }
 
+// XXX: double check that no regression to mail stuff due to permissions
 export function DetailplanProject() {
   const routeParams = useParams() as { projectId: string; tabView: TabView };
   const tabView = routeParams.tabView ?? 'default';
-  const tabs = getTabs(routeParams.projectId);
   const projectId = routeParams?.projectId;
-  const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
-  const user = useAtomValue(authAtom);
 
   const project = trpc.detailplanProject.get.useQuery(
     { projectId },
     { enabled: Boolean(projectId), queryKey: ['detailplanProject.get', { projectId }] }
   );
+
   const tr = useTranslations();
+  const user = useAtomValue(authAtom);
+  const userCanModify = Boolean(
+    user &&
+      project.data &&
+      (ownsProject(user, project.data) || hasWritePermission(user, project.data))
+  );
+
+  const tabs = getTabs(routeParams.projectId).filter(
+    (tab) => project?.data && user && tab.hasAccess(user, project.data)
+  );
+  const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
 
   if (projectId && project.isLoading) {
     return <Typography>{tr('loading')}</Typography>;
@@ -122,7 +141,7 @@ export function DetailplanProject() {
           <DetailplanProjectForm project={project.data} />
           {project.data && (
             <DeleteProjectDialog
-              disabled={!ownsProject(user, project.data)}
+              disabled={Boolean(user && !ownsProject(user, project.data))}
               projectId={project.data.projectId ?? ''}
               message={tr('detailplanProject.deleteDialogMessage')}
             />
@@ -171,10 +190,13 @@ export function DetailplanProject() {
           {routeParams.tabView && (
             <Box sx={{ p: 2, overflowY: 'auto' }}>
               {routeParams.tabView === 'sidoshankkeet' && (
-                <ProjectRelations projectId={routeParams.projectId} />
+                <ProjectRelations editable={userCanModify} projectId={routeParams.projectId} />
               )}
               {routeParams.tabView === 'tiedotus' && (
-                <DetailplanProjectNotification projectId={routeParams.projectId} />
+                <DetailplanProjectNotification
+                  enabled={Boolean(user && project.data && ownsProject(user, project.data))}
+                  projectId={routeParams.projectId}
+                />
               )}
               {routeParams.tabView === 'luvitus' && (
                 <ProjectPermissions projectId={routeParams.projectId} />

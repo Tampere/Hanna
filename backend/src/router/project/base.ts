@@ -166,12 +166,14 @@ export const createProjectRouter = (t: TRPC) => {
 
     getPermissions: t.procedure
       .input(z.object({ projectId: z.string() }))
+      .use(withAccess(ownsProject))
       .query(async ({ input }) => {
         return await getProjectUserPermissions(input.projectId);
       }),
 
     updatePermissions: t.procedure
-      .input(z.array(projectPermissionSchema))
+      .input(projectPermissionSchema)
+      .use(withAccess(ownsProject))
       .mutation(async ({ input }) => {
         return await projectPermissionUpsert(input);
       }),

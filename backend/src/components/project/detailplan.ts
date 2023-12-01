@@ -42,7 +42,12 @@ const selectProjectFragment = sql.fragment`
     applicant_name AS "applicantName",
     applicant_address AS "applicantAddress",
     applicant_objective AS "applicantObjective",
-    additional_info AS "additionalInfo"
+    additional_info AS "additionalInfo",
+    (
+      SELECT array_agg(user_id)
+      FROM app.project_permission
+      WHERE project_id = project.id AND can_write = true
+    ) AS "writeUsers"
   FROM app.project
   LEFT JOIN app.project_detailplan ON project_detailplan.id = project.id
   WHERE deleted = false

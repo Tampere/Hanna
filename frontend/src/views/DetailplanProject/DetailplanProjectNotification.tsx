@@ -25,9 +25,10 @@ import { NotificationHistory } from './NotificationHistory';
 
 interface Props {
   projectId: string;
+  enabled: boolean;
 }
 
-export function DetailplanProjectNotification({ projectId }: Props) {
+export function DetailplanProjectNotification({ projectId, enabled }: Readonly<Props>) {
   const tr = useTranslations();
   const notify = useNotifications();
 
@@ -35,15 +36,15 @@ export function DetailplanProjectNotification({ projectId }: Props) {
     useState<DetailplanNotificationTemplate>('new-detailplan-project');
 
   const { data: history, refetch: refetchHistory } =
-    trpc.detailplanProject.getNotificationHistory.useQuery({ id: projectId });
+    trpc.detailplanProject.getNotificationHistory.useQuery({ projectId });
 
   const { data: preview, isLoading } = trpc.detailplanProject.previewNotificationMail.useQuery(
     {
-      id: projectId,
+      projectId,
       template,
     },
     {
-      queryKey: ['detailplanProject.previewNotificationMail', { id: projectId, template }],
+      queryKey: ['detailplanProject.previewNotificationMail', { projectId, template }],
     }
   );
   const { data: defaultRecipients, isLoading: defaultRecipientsLoading } =
@@ -93,7 +94,7 @@ export function DetailplanProjectNotification({ projectId }: Props) {
         <Autocomplete
           sx={{ mt: 4 }}
           loading={defaultRecipientsLoading}
-          disabled={defaultRecipientsLoading}
+          disabled={!enabled || defaultRecipientsLoading}
           multiple
           freeSolo
           value={recipients}
@@ -119,10 +120,10 @@ export function DetailplanProjectNotification({ projectId }: Props) {
         <AsyncJobButton
           variant="contained"
           sx={{ mt: 4 }}
-          disabled={!recipients.length}
+          disabled={!enabled || !recipients.length}
           endIcon={<Send />}
           onStart={async () => {
-            return sendNotificationMail.mutateAsync({ id: projectId, template, recipients });
+            return sendNotificationMail.mutateAsync({ projectId, template, recipients });
           }}
           onError={() => {
             notify({
