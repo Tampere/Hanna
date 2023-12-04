@@ -1,11 +1,11 @@
 {
   "type": "module",
   "dependencies": {
-    "@types/oidc-provider": "^8.4.2",
-    "oidc-provider": "^8.4.1",
+    "@types/oidc-provider": "^8.4.3",
+    "oidc-provider": "^8.4.2",
     "ts-node": "^10.9.1"
   },
   "devDependencies": {
-    "@types/node": "^20.9.0"
+    "@types/node": "^20.10.3"
   }
 }
