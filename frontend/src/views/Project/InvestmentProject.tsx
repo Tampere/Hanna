@@ -7,7 +7,6 @@ import VectorSource from 'ol/source/Vector';
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
-import { User } from '@shared/schema/user';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
@@ -20,6 +19,7 @@ import { useTranslations } from '@frontend/stores/lang';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
 
+import { User } from '@shared/schema/user';
 import {
   ProjectPermissionContext,
   hasWritePermission,
@@ -252,7 +252,10 @@ export function InvestmentProject() {
           {routeParams.tabView && (
             <Box sx={{ m: 2 }}>
               {routeParams.tabView === 'talous' && (
-                <ProjectFinances editable={userCanModify} project={project.data} />
+                <ProjectFinances
+                  editable={userCanModify || user?.permissions.includes('financials.write')}
+                  project={project.data}
+                />
               )}
               {routeParams.tabView === 'kohteet' && (
                 <ProjectObjectList

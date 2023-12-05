@@ -29,6 +29,7 @@ import { User } from '@shared/schema/user';
 import {
   ProjectAccessChecker,
   ProjectPermissionContext,
+  canEditProjectFinances,
   hasWritePermission,
   isProjectObjectIdInput,
   ownsProject,
@@ -472,7 +473,8 @@ export async function getPermissionContext(
     SELECT
       project.id AS id,
       "owner",
-      coalesce(array_agg(project_permission.user_id) FILTER (WHERE can_write = true), '{}') AS "writeUsers"
+      coalesce(array_agg(project_permission.user_id) FILTER (WHERE can_write = true), '{}') AS "writeUsers",
+      coalesce(array_agg(project_permission.user_id) FILTER (WHERE can_edit_finances = true), '{}') AS "financeEditors"
     FROM app.project
     INNER JOIN app.project_object ON project.id = project_object.project_id
     LEFT JOIN app.project_permission ON project.id = project_permission.project_id
@@ -578,7 +580,14 @@ export const createProjectObjectRouter = (t: TRPC) => {
 
     updateBudget: t.procedure
       .input(updateBudgetSchema.required())
-      .use(withAccess((usr, ctx) => ownsProject(usr, ctx) || hasWritePermission(usr, ctx)))
+      .use(
+        withAccess(
+          (usr, ctx) =>
+            ownsProject(usr, ctx) ||
+            hasWritePermission(usr, ctx) ||
+            usr.permissions.includes('financials.write')
+        )
+      )
       .mutation(async ({ input, ctx }) => {
         return await getPool().transaction(async (tx) => {
           return await updateProjectObjectBudget(
