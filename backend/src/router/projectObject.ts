@@ -29,7 +29,6 @@ import { User } from '@shared/schema/user';
 import {
   ProjectAccessChecker,
   ProjectPermissionContext,
-  canEditProjectFinances,
   hasWritePermission,
   isProjectObjectIdInput,
   ownsProject,
