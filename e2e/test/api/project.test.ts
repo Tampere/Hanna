@@ -1,6 +1,7 @@
 import test, { expect } from '@playwright/test';
-import { login } from '@utils/page';
+import { changeUser, login } from '@utils/page';
 import { client } from '@utils/trpc';
+import { ADMIN_USER, DEV_USER } from '@utils/users';
 
 function makePoint(lon: number, lat: number, srid: string) {
   return [
@@ -42,7 +43,14 @@ const validProject = (userId: string) => ({
 test.describe('Project endpoints', () => {
   // Login to retrieve the cookies for authorizing tRPC queries
   test.beforeEach(async ({ page }) => {
-    await login(page);
+    await login(page, ADMIN_USER);
+    await client.userPermissions.setPermissions.mutate([
+      {
+        userId: DEV_USER,
+        permissions: ['investmentProject.write'],
+      },
+    ]);
+    await changeUser(page, DEV_USER);
   });
   test('project validation', async () => {
     const validationResult = await client.investmentProject.upsertValidate.query(
@@ -64,13 +72,13 @@ test.describe('Project endpoints', () => {
   });
 
   test('project geometry edit', async () => {
-    const [user] = await client.user.getAll.query();
+    const user = await client.user.self.query();
     const validProjectInput = validProject(user.id);
 
     const validationResult = await client.investmentProject.upsertValidate.query(validProjectInput);
     expect(validationResult).toStrictEqual({ errors: {} });
 
-    const project = await client.investmentProject.upsert.mutate(validProjectInput);
+    const project = await client.investmentProject.upsert.mutate({ project: validProjectInput });
     const point = makePoint(24487416.69375355, 6821004.272996133, 'EPSG:3878');
 
     const edit = await client.project.updateGeometry.mutate({
@@ -78,7 +86,7 @@ test.describe('Project endpoints', () => {
       features: JSON.stringify(point),
     });
 
-    expect(edit.projectId).toBe(project.projectId);
+    expect(edit.projectId).toEqual(project.projectId);
     expect(JSON.parse(edit.geom)).toStrictEqual({
       type: 'MultiPoint',
       crs: { type: 'name', properties: { name: 'EPSG:3878' } },
@@ -87,10 +95,10 @@ test.describe('Project endpoints', () => {
   });
 
   test('project budget update', async () => {
-    const [user] = await client.user.getAll.query();
+    const user = await client.user.self.query();
     const validProjectInput = validProject(user.id);
 
-    const project = await client.investmentProject.upsert.mutate(validProjectInput);
+    const project = await client.investmentProject.upsert.mutate({ project: validProjectInput });
     const budgetUpdateInput = {
       projectId: project.projectId,
       budgetItems: [

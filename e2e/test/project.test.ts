@@ -2,8 +2,9 @@ import { expect, Page, test } from '@playwright/test';
 import type { InvestmentProject } from '@shared/schema/project/investment';
 import { sleep } from '@shared/utils';
 import { fillDatePickerValue, getDatePickerValue } from '@utils/date-picker';
-import { login } from '@utils/page';
+import { changeUser, login } from '@utils/page';
 import { client } from '@utils/trpc';
+import { ADMIN_USER, DEV_USER } from '@utils/users';
 
 const keskustoriGeom = {
   type: 'Polygon',
@@ -100,7 +101,14 @@ async function deleteProject(page: Page, projectId: string) {
 
 test.describe('Projects', () => {
   test.beforeEach(async ({ page }) => {
-    await login(page);
+    await login(page, ADMIN_USER);
+    await client.userPermissions.setPermissions.mutate([
+      {
+        userId: DEV_USER,
+        permissions: ['investmentProject.write'],
+      },
+    ]);
+    await changeUser(page, DEV_USER);
   });
 
   test('Create a project', async ({ page }) => {

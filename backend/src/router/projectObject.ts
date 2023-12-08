@@ -472,8 +472,7 @@ export async function getPermissionContext(
     SELECT
       project.id AS id,
       "owner",
-      coalesce(array_agg(project_permission.user_id) FILTER (WHERE can_write = true), '{}') AS "writeUsers",
-      coalesce(array_agg(project_permission.user_id) FILTER (WHERE can_edit_finances = true), '{}') AS "financeEditors"
+      coalesce(array_agg(project_permission.user_id) FILTER (WHERE can_write = true), '{}') AS "writeUsers"
     FROM app.project
     INNER JOIN app.project_object ON project.id = project_object.project_id
     LEFT JOIN app.project_permission ON project.id = project_permission.project_id

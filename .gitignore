@@ -8,3 +8,7 @@ node_modules
 .vscode
 .env.test-db
 temp
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

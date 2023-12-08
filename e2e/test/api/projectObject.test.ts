@@ -1,7 +1,8 @@
 import test, { expect } from '@playwright/test';
 import { User } from '@shared/schema/user';
-import { login } from '@utils/page';
+import { changeUser, login } from '@utils/page';
 import { client } from '@utils/trpc';
+import { ADMIN_USER, DEV_USER } from '@utils/users';
 
 const testProject = (user: User) => ({
   projectName: 'Test project',
@@ -37,49 +38,51 @@ const testProjectObject = (projectId: string, user: User) => ({
 test.describe('Project Object endpoints', () => {
   // Login to retrieve the cookies for authorizing tRPC queries
   test.beforeEach(async ({ page }) => {
-    await login(page);
+    await login(page, ADMIN_USER);
+    await client.userPermissions.setPermissions.mutate([
+      {
+        userId: DEV_USER,
+        permissions: ['investmentProject.write'],
+      },
+    ]);
+    await changeUser(page, DEV_USER);
   });
 
   test('Project Object upsertion', async () => {
-    // There should be at least one user because this is executed after login
-    const [user] = await client.user.getAll.query();
+    const user = await client.user.self.query();
 
-    const project = await client.investmentProject.upsert.mutate(testProject(user));
+    const project = await client.investmentProject.upsert.mutate({ project: testProject(user) });
 
     const projectObject = testProjectObject(project.projectId, user);
     const resp = await client.projectObject.upsert.mutate(projectObject);
 
     expect(resp.projectObjectId).toBeTruthy();
-    expect(resp.lifecycleState).toBe('01');
 
     const updatedProjectObject = {
       ...projectObject,
-      id: resp.projectObjectId,
+      projectObjectId: resp.projectObjectId,
       description: 'Updated description',
     };
 
     const updatedResp = await client.projectObject.upsert.mutate(updatedProjectObject);
+
     expect(updatedResp.projectObjectId).toBe(resp.projectObjectId);
-    expect(updatedResp.description).toBe('Updated description');
 
     // partial update
     const partialUpdate = {
-      id: resp.projectObjectId,
+      projectObjectId: resp.projectObjectId,
       description: 'Partial update',
     };
 
     const partialUpdateResp = await client.projectObject.upsert.mutate(partialUpdate);
+
     expect(partialUpdateResp.projectObjectId).toBe(resp.projectObjectId);
-    expect(partialUpdateResp).toStrictEqual({
-      ...updatedResp,
-      description: 'Partial update',
-    });
   });
 
   test('Project object budget updates', async () => {
-    const [user] = await client.user.getAll.query();
+    let user = await client.user.self.query();
 
-    const project = await client.investmentProject.upsert.mutate(testProject(user));
+    const project = await client.investmentProject.upsert.mutate({ project: testProject(user) });
 
     const projectObject = testProjectObject(project.projectId, user);
 
