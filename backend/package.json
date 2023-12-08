@@ -44,7 +44,7 @@
     "node-dev": "^8.0.0",
     "pino-pretty": "^10.2.3",
     "tsconfig-paths": "^4.2.0",
-    "tsx": "^3.14.0",
+    "tsx": "^4.6.2",
     "typescript": "^5.3.3",
     "vite-tsconfig-paths": "^4.2.2",
     "vitest": "^0.34.6"
@@ -74,9 +74,9 @@
     "postgres-migrations": "^5.3.0",
     "pug": "^3.0.2",
     "server-text-width": "^1.0.2",
-    "slonik": "^34.3.0",
+    "slonik": "^37.2.0",
     "soap": "^1.0.0",
-    "superjson": "^1.13.3",
+    "superjson": "^2.2.1",
     "tre-hanna-shared": "file:../shared",
     "zod": "^3.22.4"
   },
