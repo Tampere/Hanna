@@ -45,6 +45,10 @@ export const workTableRowSchema = z.object({
   actual: z.number().nullable(),
   forecast: z.number().nullable(),
   kayttosuunnitelmanMuutos: z.number().nullable(),
+  permissionCtx: z.object({
+    writeUsers: z.array(nonEmptyString),
+    owner: nonEmptyString,
+  }),
 });
 
 export const workTableRowUpdateSchema = workTableRowSchema

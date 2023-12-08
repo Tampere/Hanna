@@ -3,7 +3,6 @@ import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography, css } from '@mui/
 import { useAtomValue } from 'jotai';
 import { ReactElement } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { User } from '@shared/schema/user';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
@@ -15,6 +14,7 @@ import { DeleteProjectDialog } from '@frontend/views/Project/DeleteProjectDialog
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 
 import { TranslationKey } from '@shared/language';
+import { User } from '@shared/schema/user';
 import {
   ProjectPermissionContext,
   hasWritePermission,
@@ -81,7 +81,6 @@ function getTabs(projectId: string) {
   ] as const;
 }
 
-// XXX: double check that no regression to mail stuff due to permissions
 export function DetailplanProject() {
   const routeParams = useParams() as { projectId: string; tabView: TabView };
   const tabView = routeParams.tabView ?? 'default';

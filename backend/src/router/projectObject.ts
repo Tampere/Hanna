@@ -60,7 +60,13 @@ const projectObjectFragment = sql.fragment`
      FROM app.project_object_usage
      WHERE project_object.id = project_object_usage.project_object_id) AS "objectUsage",
     height,
-    '[]'::JSONB AS "objectUserRoles" --TODO: Implement
+    '[]'::JSONB AS "objectUserRoles", --TODO: implement
+    (
+      SELECT json_build_object(
+        'writeUsers', (SELECT array_agg(user_id) FROM app.project_permission WHERE project_id = project_object.project_id AND can_write = true),
+        'owner', (SELECT owner FROM app.project WHERE id = project_object.project_id)
+      )
+    ) AS "permissionCtx"
   FROM app.project_object
   WHERE deleted = false
 `;
