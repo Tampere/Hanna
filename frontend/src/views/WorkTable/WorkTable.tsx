@@ -2,18 +2,20 @@ import { css } from '@emotion/react';
 import { AddCircleOutline, Cancel, Redo, Save, Undo } from '@mui/icons-material';
 import { Box, Button, IconButton, Theme, Tooltip, Typography } from '@mui/material';
 import { DataGrid, fiFI, useGridApiRef } from '@mui/x-data-grid';
-import { atom, useAtom } from 'jotai';
+import { atom, useAtom, useAtomValue } from 'jotai';
 import diff from 'microdiff';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
+import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { WorkTableFilters } from '@frontend/views/WorkTable/WorkTableFilters';
 import { getColumns } from '@frontend/views/WorkTable/columns';
 
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 import { WorkTableRow, WorkTableRowUpdate, WorkTableSearch } from '@shared/schema/workTable';
 
 import { ModifiedFields } from './diff';
@@ -55,6 +57,13 @@ const dataGridStyle = (theme: Theme) => css`
   & .modified-cell {
     background-color: lightyellow;
   }
+  & .cell-readonly {
+    color: #7b7b7b;
+    cursor: default;
+  }
+  & .cell-writable {
+    cursor: pointer;
+  }
 `;
 
 type UpdateableFields = keyof Omit<WorkTableRow, 'id' | 'projectLink'>;
@@ -94,6 +103,7 @@ export default function WorkTable() {
   const tr = useTranslations();
   const gridApiRef = useGridApiRef();
   const notify = useNotifications();
+  const auth = useAtomValue(authAtom);
 
   const [yearRange, setYearRange] = useState<{ startYear: number; endYear: number }>({
     startYear: new Date().getFullYear(),
@@ -140,9 +150,7 @@ export default function WorkTable() {
     return fields;
   }, [editEvents]);
 
-  const columns = useMemo(() => {
-    return getColumns({ modifiedFields, financesRange: searchParams.financesRange });
-  }, [modifiedFields]);
+  const columns = getColumns({ financesRange: searchParams.financesRange });
 
   useEffect(() => {
     setEditEvents([]);
@@ -280,6 +288,24 @@ export default function WorkTable() {
         setSearchParams={setSearchParams}
       />
       <DataGrid
+        isCellEditable={({ row }) => {
+          return Boolean(
+            auth &&
+              (ownsProject(auth, row.permissionCtx) || hasWritePermission(auth, row.permissionCtx))
+          );
+        }}
+        getCellClassName={({ id, field, row }) => {
+          if (id in modifiedFields && field in modifiedFields[id]) {
+            return 'modified-cell';
+          } else if (
+            auth &&
+            (ownsProject(auth, row.permissionCtx) || hasWritePermission(auth, row.permissionCtx))
+          ) {
+            return 'cell-writable';
+          } else {
+            return 'cell-readonly';
+          }
+        }}
         disableVirtualization
         loading={workTableData.isLoading}
         localeText={fiFI.components.MuiDataGrid.defaultProps.localeText}
@@ -303,6 +329,19 @@ export default function WorkTable() {
           // restrict the keyboard behavior to only the keys we want to handle
           if (!['Enter', 'NumpadEnter', 'Backspace', 'Delete'].includes(event.key)) {
             event.stopPropagation();
+          }
+        }}
+        onCellDoubleClick={async (params, event) => {
+          if (!gridApiRef.current.isCellEditable(params)) {
+            const element = document.elementFromPoint(
+              event.clientX,
+              event.clientY
+            ) as HTMLElement | null;
+            if (!element) return;
+            element.style.cursor = 'not-allowed';
+            element.addEventListener('mouseleave', () => {
+              element.style.cursor = '';
+            });
           }
         }}
         getRowId={(row) => row.id}

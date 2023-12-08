@@ -1,14 +1,8 @@
 import { css } from '@emotion/react';
 import { Launch } from '@mui/icons-material';
 import { Box } from '@mui/material';
-import {
-  GridColDef,
-  GridRenderCellParams,
-  GridRenderEditCellParams,
-  GridValidRowModel,
-} from '@mui/x-data-grid';
+import { GridColDef, GridRenderCellParams, GridRenderEditCellParams } from '@mui/x-data-grid';
 import dayjs from 'dayjs';
-import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
@@ -29,10 +23,8 @@ import { FinancesRange, WorkTableRow } from '@shared/schema/workTable';
 
 import { CodeSpan } from './CodeSpan';
 import { ProjectObjectNameEdit } from './ProjectObjectNameEdit';
-import { ModifiedFields } from './diff';
 
 interface GetColumnsParams {
-  modifiedFields: ModifiedFields<WorkTableRow>;
   financesRange: FinancesRange;
 }
 
@@ -45,39 +37,6 @@ function isFinanceEditingDisabled(row: WorkTableRow, financesRange: FinancesRang
   const endYear = dayjs(row.dateRange.endDate).year();
 
   return financesRange < startYear || financesRange > endYear;
-}
-interface MaybeModifiedCellProps<T extends GridValidRowModel> {
-  params: GridRenderCellParams<T>;
-  children: React.ReactNode;
-  modifiedFields?: ModifiedFields<T>;
-}
-
-function MaybeModifiedCell({
-  params,
-  children,
-  modifiedFields,
-}: Readonly<MaybeModifiedCellProps<WorkTableRow>>) {
-  const isModified = modifiedFields?.[params.id]?.[params.field as keyof WorkTableRow];
-  // WorkTable.tsx defines style with has selector for .modified-cell
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (isModified) {
-      containerRef.current?.parentElement?.classList.add('modified-cell');
-    } else {
-      containerRef.current?.parentElement?.classList.remove('modified-cell');
-    }
-  }, [isModified, containerRef]);
-  return (
-    <div
-      css={css`
-        flex: 1;
-      `}
-      ref={containerRef}
-    >
-      {children}
-    </div>
-  );
 }
 
 const fieldObjectName = {
@@ -346,11 +305,10 @@ const financesField = (
       );
     },
     ...opts,
-  };
+  } as const;
 };
 
 export function getColumns({
-  modifiedFields,
   financesRange,
 }: GetColumnsParams): (GridColDef<WorkTableRow> & { __isWrapped?: boolean })[] {
   const columns: (GridColDef<WorkTableRow> & { __isWrapped?: boolean })[] = [
@@ -383,17 +341,12 @@ export function getColumns({
     ),
   ];
 
-  // Set common fields and wrap cell render to MaybeModifiedCell to avoid repetition
+  // Set common fields to avoid repetition
   return columns.map((column) => ({
     ...column,
     editable: column.editable !== false,
     filterable: false,
     sortable: false,
     cellClassName: 'cell-wrap-text',
-    renderCell: (params: GridRenderCellParams) => (
-      <MaybeModifiedCell params={params} modifiedFields={modifiedFields}>
-        {column.renderCell?.(params)}
-      </MaybeModifiedCell>
-    ),
   }));
 }

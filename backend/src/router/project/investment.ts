@@ -11,7 +11,7 @@ import { TRPC } from '@backend/router';
 
 import { projectIdSchema } from '@shared/schema/project/base';
 import { investmentProjectSchema } from '@shared/schema/project/investment';
-import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
+import { hasPermission, hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 export const createInvestmentProjectRouter = (t: TRPC) => {
   return t.router({
@@ -31,7 +31,7 @@ export const createInvestmentProjectRouter = (t: TRPC) => {
       .mutation(async ({ input, ctx }) => {
         const { project, keepOwnerRights } = input;
 
-        if (!ctx.user.permissions.includes('investmentProject.write') && !project.projectId) {
+        if (!hasPermission(ctx.user, 'investmentProject.write') && !project.projectId) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
         } else if (project.projectId) {
           const permissionCtx = await getPermissionContext(project.projectId);

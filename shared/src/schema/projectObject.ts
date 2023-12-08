@@ -56,6 +56,10 @@ export const dbProjectObjectSchema = newProjectObjectSchema.extend({
   createdAt: isoDateString,
   deleted: z.boolean(),
   updatedBy: z.string(),
+  permissionCtx: z.object({
+    writeUsers: z.array(nonEmptyString),
+    owner: nonEmptyString,
+  }),
 });
 
 export const upsertProjectObjectSchema = z.union([

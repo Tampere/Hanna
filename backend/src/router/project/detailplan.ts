@@ -24,7 +24,7 @@ import {
   detailplanNotificationSchema,
   detailplanProjectSchema,
 } from '@shared/schema/project/detailplan';
-import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
+import { hasPermission, hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 async function getNotificationMailTemplate(
   project: DbDetailplanProject,
@@ -89,7 +89,7 @@ export const createDetailplanProjectRouter = (t: TRPC) => {
       )
       .mutation(async ({ input, ctx }) => {
         const { project, keepOwnerRights } = input;
-        if (!ctx.user.permissions.includes('detailplanProject.write') && !project.projectId) {
+        if (!hasPermission(ctx.user, 'detailplanProject.write') && !project.projectId) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
         } else if (project.projectId) {
           const permissionCtx = await getPermissionContext(project.projectId);

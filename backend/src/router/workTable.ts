@@ -1,9 +1,13 @@
+import { TRPCError } from '@trpc/server';
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
+
 import { textToSearchTerms } from '@backend/components/project/search';
 import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 import { getProjectObjects, upsertProjectObject } from '@backend/router/projectObject';
 
 import { UpsertProjectObject } from '@shared/schema/projectObject';
+import { User } from '@shared/schema/user';
 import {
   WorkTableSearch,
   WorkTableUpdate,
@@ -105,7 +109,13 @@ async function workTableSearch(input: WorkTableSearch) {
     po_budget.budget AS "budget",
     po_actual.total AS "actual",
     po_budget.forecast AS "forecast",
-    po_budget.kayttosuunnitelman_muutos AS "kayttosuunnitelmanMuutos"
+    po_budget.kayttosuunnitelman_muutos AS "kayttosuunnitelmanMuutos",
+    (
+      SELECT jsonb_build_object(
+        'writeUsers', (SELECT array_agg(user_id) FROM app.project_permission WHERE project_id = search_results.project_id AND can_write = true),
+        'owner', (SELECT owner FROM app.project WHERE id = search_results.project_id)
+      )
+    )AS "permissionCtx"
   FROM search_results
   LEFT JOIN po_budget ON po_budget.project_object_id = search_results.id
   LEFT JOIN po_actual ON po_actual.po_id = search_results.id
@@ -115,7 +125,7 @@ async function workTableSearch(input: WorkTableSearch) {
   return getPool().any(query);
 }
 
-async function workTableUpdate(input: WorkTableUpdate, userId: string) {
+async function workTableUpdate(input: WorkTableUpdate, user: User) {
   const updates = Object.entries(input).map(([projectObjectId, projectObject]) => {
     const { budgetYear, budget, forecast, kayttosuunnitelmanMuutos, ...poUpdate } = projectObject;
     return {
@@ -124,7 +134,7 @@ async function workTableUpdate(input: WorkTableUpdate, userId: string) {
       endDate: projectObject.dateRange?.endDate,
       rakennuttajaUser: projectObject.operatives?.rakennuttajaUser,
       suunnitteluttajaUser: projectObject.operatives?.suunnitteluttajaUser,
-      projectObjectId: projectObjectId,
+      projectObjectId,
       budgetUpdate: {
         budgetItems: [
           {
@@ -139,7 +149,7 @@ async function workTableUpdate(input: WorkTableUpdate, userId: string) {
   });
 
   return await getPool().transaction(async (tx) => {
-    await Promise.all(updates.map((update) => upsertProjectObject(tx, update, userId)));
+    await Promise.all(updates.map((update) => upsertProjectObject(tx, update, user.id)));
     return getProjectObjects(tx, Object.keys(input));
   });
 }
@@ -149,9 +159,23 @@ export const createWorkTableRouter = (t: TRPC) =>
     search: t.procedure.input(workTableSearchSchema).query(async ({ input }) => {
       return workTableSearch(input);
     }),
-    // XXX: permissions, only owner and those with write permissions can update
     update: t.procedure.input(workTableUpdateSchema).mutation(async ({ ctx, input }) => {
-      const userId = ctx.user.id;
-      return workTableUpdate(input, userId);
+      const conn = await getPool();
+      const user = ctx.user;
+      const ids = Object.keys(input);
+      const projectObjects = await getProjectObjects(conn, ids);
+      if (user.role !== 'Hanna.Admin') {
+        projectObjects
+          .map((po) => po.permissionCtx)
+          .forEach((ctx) => {
+            if (!ownsProject(user, ctx) && !hasWritePermission(user, ctx)) {
+              throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: 'error.insufficientPermissions',
+              });
+            }
+          });
+      }
+      return workTableUpdate(input, user);
     }),
   });
