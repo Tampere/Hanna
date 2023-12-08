@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:18.18.0-alpine
 
 COPY . /app/
 
@@ -8,4 +8,4 @@ EXPOSE 9090
 
 WORKDIR /app
 
-CMD npx ts-node index.ts
+CMD node --loader ts-node/esm index.ts
