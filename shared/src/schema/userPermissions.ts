@@ -1,21 +1,25 @@
 import { z } from 'zod';
 
-import { DbProject } from './project/base';
 import { User as CtxUser } from './user';
 
-export const userRoleSchema = z.enum(['Hanna.Admin', 'Hanna.User']);
+const ADMIN_ROLE = 'Hanna.Admin' as const;
+const USER_ROLE = 'Hanna.User' as const;
+
+export const userRoleSchema = z.enum([ADMIN_ROLE, USER_ROLE]);
 
 export type UserRole = z.infer<typeof userRoleSchema>;
 
 export function isAdmin(userRole: UserRole): boolean {
-  return userRole === 'Hanna.Admin';
+  return userRole === ADMIN_ROLE;
 }
 
-const permissionSchema = z.enum([
+export const ALL_PERMISSIONS = [
   'investmentProject.write',
   'detailplanProject.write',
   'financials.write',
-]);
+] as const;
+
+const permissionSchema = z.enum(ALL_PERMISSIONS);
 
 type Permission = z.infer<typeof permissionSchema>;
 
@@ -62,12 +66,18 @@ export const isTaskIdInput = (input: any): input is { taskId: string } => {
 };
 
 export function ownsProject(user: CtxUser, permissionCtx: ProjectPermissionContext): boolean {
-  return Boolean(permissionCtx?.owner) && user.id === permissionCtx.owner;
+  return (
+    user.role === ADMIN_ROLE || (Boolean(permissionCtx?.owner) && user.id === permissionCtx.owner)
+  );
 }
 
 export function hasWritePermission(
   user: CtxUser,
   permissionCtx: ProjectPermissionContext
 ): boolean {
-  return permissionCtx?.writeUsers?.includes(user.id);
+  return user.role === ADMIN_ROLE || permissionCtx?.writeUsers?.includes(user.id);
+}
+
+export function hasPermission(user: CtxUser, permission: Permission): boolean {
+  return user.role === ADMIN_ROLE || user.permissions.includes(permission);
 }

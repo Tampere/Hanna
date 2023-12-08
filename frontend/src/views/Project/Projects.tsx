@@ -27,6 +27,7 @@ import { useDebounce } from '@frontend/utils/useDebounce';
 import { ResultsMap } from '@frontend/views/Project/ResultsMap';
 
 import { DbProject } from '@shared/schema/project/base';
+import { hasPermission } from '@shared/schema/userPermissions';
 
 import { SearchControls } from './SearchControls';
 
@@ -44,8 +45,9 @@ function Toolbar() {
   const newProjectMenuAnchor = useRef<HTMLButtonElement>(null);
 
   const canCreateProject =
-    auth?.permissions?.includes('investmentProject.write') ||
-    auth?.permissions?.includes('detailplanProject.write');
+    auth &&
+    (hasPermission(auth, 'investmentProject.write') ||
+      hasPermission(auth, 'detailplanProject.write'));
 
   return (
     <Box css={toolbarContainerStyle}>
@@ -78,7 +80,7 @@ function Toolbar() {
               horizontal: 'right',
             }}
           >
-            {auth?.permissions.includes('investmentProject.write') && (
+            {auth && hasPermission(auth, 'investmentProject.write') && (
               <MenuItem component={Link} to="/investointihanke/luo">
                 <ListItemIcon>
                   <Add />
@@ -86,7 +88,7 @@ function Toolbar() {
                 <ListItemText>{tr('newProject.newInvestmentProject')}</ListItemText>
               </MenuItem>
             )}
-            {auth?.permissions.includes('detailplanProject.write') && (
+            {auth && hasPermission(auth, 'detailplanProject.write') && (
               <MenuItem component={Link} to="/asemakaavahanke/luo">
                 <ListItemIcon>
                   <Add />
