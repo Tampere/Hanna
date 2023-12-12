@@ -254,7 +254,7 @@ export function InvestmentProject() {
             <Box sx={{ m: 2 }}>
               {routeParams.tabView === 'talous' && (
                 <ProjectFinances
-                  editable={userCanModify || hasPermission(user, 'financials.write')}
+                  editable={!!user && hasPermission(user, 'financials.write')}
                   project={project.data}
                 />
               )}

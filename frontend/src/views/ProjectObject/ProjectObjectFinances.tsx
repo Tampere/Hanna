@@ -8,13 +8,14 @@ import { getRange } from '@frontend/utils/array';
 
 import { DBProjectObject } from '@shared/schema/projectObject';
 
-import { BudgetTable } from '../Project/BudgetTable';
+import { BudgetFields, BudgetTable } from '../Project/BudgetTable';
 
 interface Props {
   projectObject: DBProjectObject;
   userCanEditFinances?: boolean;
-  userIsOwner?: boolean;
+  userIsEditor?: boolean;
   userCanWrite?: boolean;
+  userIsAdmin?: boolean;
 }
 
 export function ProjectObjectFinances(props: Props) {
@@ -51,6 +52,18 @@ export function ProjectObjectFinances(props: Props) {
     },
   });
 
+  function getWritableFields(): BudgetFields[] {
+    if (props.userIsAdmin) {
+      return ['amount', 'forecast', 'kayttosuunnitelmanMuutos'];
+    } else if (props.userCanEditFinances) {
+      return ['amount', 'kayttosuunnitelmanMuutos'];
+    } else if (props.userIsEditor) {
+      return ['forecast'];
+    } else {
+      return [];
+    }
+  }
+
   const yearlyActuals = trpc.sap.getYearlyActualsByProjectObjectId.useQuery(
     {
       projectObjectId: projectObject.projectObjectId,
@@ -70,13 +83,7 @@ export function ProjectObjectFinances(props: Props) {
       budget={budget.data}
       actuals={yearlyActuals.data}
       actualsLoading={yearlyActuals.isFetching}
-      writableFields={
-        props.userIsOwner
-          ? ['amount', 'forecast', 'kayttosuunnitelmanMuutos']
-          : props.userCanEditFinances
-          ? ['amount', 'kayttosuunnitelmanMuutos']
-          : []
-      }
+      writableFields={getWritableFields()}
       onSave={async (yearBudgets) => {
         const payload = yearBudgets.map((yearBudget) => ({
           year: yearBudget.year,

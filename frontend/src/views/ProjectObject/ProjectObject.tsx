@@ -20,7 +20,7 @@ import { ProjectTypePath } from '@frontend/types';
 import Tasks from '@frontend/views/Task/Tasks';
 
 import { TranslationKey } from '@shared/language';
-import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
+import { hasPermission, hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 import { DeleteProjectObjectDialog } from './DeleteProjectObjectDialog';
 import { ProjectObjectFinances } from './ProjectObjectFinances';
@@ -267,8 +267,8 @@ export function ProjectObject(props: Props) {
             <Box sx={{ m: 2 }}>
               {routeParams.tabView === 'talous' && projectObject.data && (
                 <ProjectObjectFinances
-                  userIsOwner={isOwner}
-                  userCanEditFinances={user?.permissions.includes('financials.write')}
+                  userIsEditor={isOwner || canWrite}
+                  userCanEditFinances={hasPermission(user, 'financials.write')}
                   projectObject={projectObject.data}
                 />
               )}
