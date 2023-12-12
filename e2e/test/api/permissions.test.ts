@@ -1,9 +1,14 @@
 // TRPC api tests for permissions
 import test, { expect } from '@playwright/test';
 import { User } from '@shared/schema/userPermissions';
-import { changeUser, login } from '@utils/page';
-import { client } from '@utils/trpc';
-import { ADMIN_USER, DEV_USER, TEST_USER, clearUserPermissions } from '@utils/users';
+import { login, refreshSession } from '@utils/page';
+import {
+  ADMIN_USER,
+  DEV_USER,
+  TEST_USER,
+  UserSessionObject,
+  clearUserPermissions,
+} from '@utils/users';
 
 const validProject = (userId: string) => ({
   projectName: 'Test project',
@@ -22,27 +27,41 @@ function findUserByEmail(users: readonly User[], email: string) {
 }
 
 test.describe('permission testing', () => {
-  test('without write permission, projects cannot be created', async ({ page }) => {
-    await login(page, ADMIN_USER);
-    await clearUserPermissions(DEV_USER, TEST_USER);
-    await changeUser(page, TEST_USER);
-    const user = await client.user.self.query();
-    expect(user.email).toBe(TEST_USER);
+  let adminSession: UserSessionObject;
+  let devSession: UserSessionObject;
+  let testSession: UserSessionObject;
 
+  test.beforeAll(async ({ browser }) => {
+    adminSession = await login(browser, ADMIN_USER);
+    devSession = await login(browser, DEV_USER);
+    testSession = await login(browser, TEST_USER);
+
+    expect((await adminSession.client.user.self.query()).email).toBe(ADMIN_USER);
+    expect((await devSession.client.user.self.query()).email).toBe(DEV_USER);
+    expect((await testSession.client.user.self.query()).email).toBe(TEST_USER);
+  });
+
+  test.afterEach(async ({ browser }) => {
+    await clearUserPermissions(adminSession.client, [DEV_USER, TEST_USER]);
+
+    devSession = await refreshSession(browser, DEV_USER, devSession.page);
+    testSession = await refreshSession(browser, TEST_USER, testSession.page);
+  });
+
+  test('without write permission, projects cannot be created', async () => {
+    const user = await testSession.client.user.self.query();
     const newProject = validProject(user.id);
 
     await expect(
-      client.investmentProject.upsert.mutate({ project: newProject })
+      testSession.client.investmentProject.upsert.mutate({ project: newProject })
     ).rejects.toThrowError('error.insufficientPermissions');
   });
 
-  test('non-admin users cannot grant permissions for any users', async ({ page }) => {
-    await login(page, ADMIN_USER);
-    const users = await client.userPermissions.getAll.query();
+  test('non-admin users cannot grant permissions for any users', async () => {
+    const users = await adminSession.client.userPermissions.getAll.query();
 
-    await changeUser(page, DEV_USER);
     await expect(
-      client.userPermissions.setPermissions.mutate([
+      testSession.client.userPermissions.setPermissions.mutate([
         {
           userId: findUserByEmail(users, ADMIN_USER).userId,
           permissions: ['investmentProject.write'],
@@ -51,13 +70,9 @@ test.describe('permission testing', () => {
     ).rejects.toThrowError('error.insufficientPermissions');
   });
 
-  test('admin can grant permissions for users to create new projects', async ({ page }) => {
-    await login(page, ADMIN_USER);
-    let user = await client.user.self.query();
-    expect(user.email).toBe(ADMIN_USER);
-
+  test('admin can grant permissions for users to create new projects', async ({ browser }) => {
     await expect(
-      client.userPermissions.setPermissions.mutate([
+      adminSession.client.userPermissions.setPermissions.mutate([
         {
           userId: DEV_USER,
           permissions: ['investmentProject.write'],
@@ -70,17 +85,16 @@ test.describe('permission testing', () => {
       'admin can grant permissions for users to create new projects'
     ).resolves.not.toThrow();
 
-    await changeUser(page, DEV_USER);
-    user = await client.user.self.query();
+    devSession = await refreshSession(browser, DEV_USER, devSession.page);
+    const user = await devSession.client.user.self.query();
+    const newProject = validProject(DEV_USER);
 
-    const newProject = validProject(user.id);
-
-    let project = await client.investmentProject.upsert.mutate({ project: newProject });
+    let project = await devSession.client.investmentProject.upsert.mutate({ project: newProject });
 
     expect(project.projectId, 'project was created').toBeTruthy();
     const testProjectId = project.projectId;
 
-    const updatedProj = await client.investmentProject.upsert.mutate({
+    const updatedProj = await devSession.client.investmentProject.upsert.mutate({
       project: {
         ...project,
         description: 'Updated description',
@@ -94,9 +108,8 @@ test.describe('permission testing', () => {
       })
     );
 
-    await changeUser(page, TEST_USER);
     await expect(
-      client.investmentProject.upsert.mutate({
+      testSession.client.investmentProject.upsert.mutate({
         project: {
           ...project,
           description: 'Updated description',
@@ -105,8 +118,7 @@ test.describe('permission testing', () => {
       'non-owner cannot update the project'
     ).rejects.toThrowError('error.insufficientPermissions');
 
-    await changeUser(page, DEV_USER);
-    const newProjectObject = await client.projectObject.upsert.mutate({
+    const newProjectObject = await devSession.client.projectObject.upsert.mutate({
       projectId: testProjectId,
       objectName: 'Test project object',
       description: 'Test project object description',
@@ -126,19 +138,15 @@ test.describe('permission testing', () => {
       'owner can create project objects to project'
     ).toBeTruthy();
 
-    await changeUser(page, DEV_USER);
-
-    await client.project.updatePermissions.mutate({
+    await devSession.client.project.updatePermissions.mutate({
       projectId: testProjectId,
       permissions: [{ userId: TEST_USER, canWrite: true }],
     });
 
-    await changeUser(page, TEST_USER);
-
-    project = await client.investmentProject.get.query({ projectId: testProjectId });
+    project = await testSession.client.investmentProject.get.query({ projectId: testProjectId });
 
     const updates = { description: 'Updated description by other user' };
-    const updatedProject = await client.investmentProject.upsert.mutate({
+    const updatedProject = await testSession.client.investmentProject.upsert.mutate({
       project: { ...project, ...updates },
     });
 
@@ -146,7 +154,7 @@ test.describe('permission testing', () => {
       updates.description
     );
 
-    const newProjectObject2 = await client.projectObject.upsert.mutate({
+    const newProjectObject2 = await testSession.client.projectObject.upsert.mutate({
       projectId: testProjectId,
       objectName: 'Test project object 2',
       description: 'Test project object description 2',
@@ -167,17 +175,24 @@ test.describe('permission testing', () => {
     ).toBeTruthy();
   });
 
-  test('owner changing', async ({ page }) => {
-    await changeUser(page, TEST_USER);
-    const user = await client.user.self.query();
-    expect(user.email).toBe(TEST_USER);
+  test('owner changing', async ({ browser }) => {
+    await expect(
+      adminSession.client.userPermissions.setPermissions.mutate([
+        {
+          userId: TEST_USER,
+          permissions: ['investmentProject.write'],
+        },
+      ])
+    ).resolves.not.toThrow();
+    testSession = await refreshSession(browser, TEST_USER, testSession.page);
 
+    const user = await testSession.client.user.self.query();
     const newProject = validProject(user.id);
 
     expect(newProject.owner).toBe(user.id);
     // XXX: owner can be changed to another user with option to maintain write permission
     const updates = { owner: DEV_USER, personInCharge: user.id };
-    const project = await client.investmentProject.upsert.mutate({
+    const project = await testSession.client.investmentProject.upsert.mutate({
       project: { ...newProject, ...updates },
     });
     expect(project.owner).toBe(DEV_USER);

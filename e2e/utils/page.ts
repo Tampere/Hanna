@@ -1,9 +1,10 @@
-import { Page } from 'playwright';
-import { setCookies } from './trpc';
+import { Browser, Page } from 'playwright';
+import { createTRPCClient } from './trpc';
 
-export async function login(page: Page, username: string = 'dev@localhost') {
-  // Set up a listener to fail any test that has HTTP 500 errors.
-  // This should happen e.g. in watch mode when server code changes, and tests are run before the server has restarted.
+export async function login(browser: Browser, username: string) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
   page.on('response', (response) => {
     if (response.status() >= 500) {
       console.error(
@@ -19,16 +20,20 @@ export async function login(page: Page, username: string = 'dev@localhost') {
   await page.getByRole('button', { name: 'Sign-in' }).click();
   await page.getByRole('button', { name: 'Continue' }).click();
 
-  setCookies(await page.context().cookies());
+  const client = await createTRPCClient(page);
+  return { client, page };
 }
 
 export async function logout(page: Page) {
-  await page.goto('https://localhost:1443/logout');
-  await page.context().clearCookies();
-  setCookies([]);
+  await page.goto('https://localhost:1443/');
+  await page
+    .getByRole('button')
+    .filter({ has: page.getByTestId('AccountCircleOutlinedIcon') })
+    .click();
+  await page.getByTestId('logoutButton').click();
 }
 
-export async function changeUser(page: Page, username: string) {
+export async function refreshSession(browser: Browser, username: string, page: Page) {
   await logout(page);
-  await login(page, username);
+  return login(browser, username);
 }

@@ -2,9 +2,8 @@ import { expect, Page, test } from '@playwright/test';
 import type { InvestmentProject } from '@shared/schema/project/investment';
 import { sleep } from '@shared/utils';
 import { fillDatePickerValue, getDatePickerValue } from '@utils/date-picker';
-import { changeUser, login } from '@utils/page';
-import { client } from '@utils/trpc';
-import { ADMIN_USER, DEV_USER } from '@utils/users';
+import { login } from '@utils/page';
+import { ADMIN_USER, DEV_USER, UserSessionObject } from '@utils/users';
 
 const keskustoriGeom = {
   type: 'Polygon',
@@ -43,7 +42,11 @@ const lifecycleStateToText = {
   '04': 'Odottaa',
 } as const;
 
-async function createProject(page: Page, project: InvestmentProject) {
+async function createProject(
+  page: Page,
+  project: InvestmentProject,
+  client: UserSessionObject['client']
+) {
   // Go to the new project page
   await page.getByRole('button', { name: 'Luo uusi hanke' }).click();
   await page.getByRole('menuitem', { name: 'Uusi investointihanke' }).click();
@@ -100,18 +103,21 @@ async function deleteProject(page: Page, projectId: string) {
 }
 
 test.describe('Projects', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page, ADMIN_USER);
-    await client.userPermissions.setPermissions.mutate([
+  let adminSession: UserSessionObject;
+  let devSession: UserSessionObject;
+
+  test.beforeAll(async ({ browser }) => {
+    adminSession = await login(browser, ADMIN_USER);
+    adminSession.client.userPermissions.setPermissions.mutate([
       {
         userId: DEV_USER,
         permissions: ['investmentProject.write'],
       },
     ]);
-    await changeUser(page, DEV_USER);
+    devSession = await login(browser, DEV_USER);
   });
 
-  test('Create a project', async ({ page }) => {
+  test('Create a project', async () => {
     let project: InvestmentProject = {
       projectName: `Testihanke ${Date.now()}`,
       description: 'Testikuvaus',
@@ -119,116 +125,158 @@ test.describe('Projects', () => {
       endDate: '28.2.2023',
     };
 
-    project = { ...project, ...(await createProject(page, project)) };
+    project = { ...project, ...(await createProject(devSession.page, project, devSession.client)) };
 
     // Click on the new project button to go back to the project page
-    await page.locator(`text=${project.projectName}`).click();
-    await expect(page).toHaveURL(`https://localhost:1443/investointihanke/${project.projectId}`);
+    await devSession.page.locator(`text=${project.projectName}`).click();
+    await expect(devSession.page).toHaveURL(
+      `https://localhost:1443/investointihanke/${project.projectId}`
+    );
 
     // Check that all fields still have the same values
-    await expect(page.locator('input[name="projectName"]')).toHaveValue(project.projectName);
-    await expect(page.locator('textarea[name="description"]')).toHaveValue(project.description);
+    await expect(devSession.page.locator('input[name="projectName"]')).toHaveValue(
+      project.projectName
+    );
+    await expect(devSession.page.locator('textarea[name="description"]')).toHaveValue(
+      project.description
+    );
 
-    expect(await getDatePickerValue(page.locator('input[name="startDate"]'))).toBe(
+    expect(await getDatePickerValue(devSession.page.locator('input[name="startDate"]'))).toBe(
       project.startDate
     );
-    expect(await getDatePickerValue(page.locator('input[name="endDate"]'))).toBe(project.endDate);
+    expect(await getDatePickerValue(devSession.page.locator('input[name="endDate"]'))).toBe(
+      project.endDate
+    );
 
-    await deleteProject(page, project.projectId);
+    await deleteProject(devSession.page, project.projectId);
   });
 
-  test('Delete project', async ({ page }) => {
-    const project = await createProject(page, {
-      projectName: 'Tuhottava hanke',
-      description: 'Testikuvaus',
-      startDate: '1.12.2022',
-      // TODO 31st days don't work via keyboard input: https://github.com/mui/mui-x/issues/8485
-      endDate: '30.12.2022',
-    });
+  test('Delete project', async () => {
+    const project = await createProject(
+      devSession.page,
+      {
+        projectName: 'Tuhottava hanke',
+        description: 'Testikuvaus',
+        startDate: '1.12.2022',
+        // TODO 31st days don't work via keyboard input: https://github.com/mui/mui-x/issues/8485
+        endDate: '30.12.2022',
+      },
+      devSession.client
+    );
 
-    await deleteProject(page, project.projectId);
+    await deleteProject(devSession.page, project.projectId);
   });
 
-  test('Project search', async ({ page }) => {
-    const projectA = await createProject(page, {
-      projectName: `Hakutesti ${Date.now()}`,
-      description: 'Myös kuvauksen teksti otetaan haussa huomioon',
-      startDate: '1.12.2022',
-      endDate: '28.2.2023',
-      lifecycleState: '01',
-    });
+  test('Project search', async () => {
+    const projectA = await createProject(
+      devSession.page,
+      {
+        projectName: `Hakutesti ${Date.now()}`,
+        description: 'Myös kuvauksen teksti otetaan haussa huomioon',
+        startDate: '1.12.2022',
+        endDate: '28.2.2023',
+        lifecycleState: '01',
+      },
+      devSession.client
+    );
 
-    const projectB = await createProject(page, {
-      projectName: `Toinen hakutesti ${Date.now()}`,
-      description: 'Tässä on toisen testihankkeen kuvaus',
-      startDate: '1.1.2001',
-      endDate: '31.12.2099',
-      lifecycleState: '01',
-    });
+    const projectB = await createProject(
+      devSession.page,
+      {
+        projectName: `Toinen hakutesti ${Date.now()}`,
+        description: 'Tässä on toisen testihankkeen kuvaus',
+        startDate: '1.1.2001',
+        endDate: '31.12.2099',
+        lifecycleState: '01',
+      },
+      devSession.client
+    );
 
-    const projectC = await createProject(page, {
-      projectName: `Kolmas hakutesti ${Date.now()}`,
-      description: 'Tässä on kolmannen testihankkeen kuvaus',
-      startDate: '1.1.2001',
-      endDate: '31.12.2099',
-      lifecycleState: '02',
-    });
+    const projectC = await createProject(
+      devSession.page,
+      {
+        projectName: `Kolmas hakutesti ${Date.now()}`,
+        description: 'Tässä on kolmannen testihankkeen kuvaus',
+        startDate: '1.1.2001',
+        endDate: '31.12.2099',
+        lifecycleState: '02',
+      },
+      devSession.client
+    );
 
     // Search for projectA - projectB should not be in results
-    await page.fill('label:has-text("Haku")', 'huomio');
+    await devSession.page.fill('label:has-text("Haku")', 'huomio');
     // Delay required because of debouncing
     await sleep(1000);
 
-    let searchResults = await page.locator("div[aria-label='Hakutulokset'] > a").allTextContents();
+    let searchResults = await devSession.page
+      .locator("div[aria-label='Hakutulokset'] > a")
+      .allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectA.projectName)) &&
         searchResults.every((result) => !result.includes(projectB.projectName))
     ).toBe(true);
 
     // Search for projectB - projectA should not be in results
-    await page.fill('label:has-text("Haku")', 'kuvaus');
+    await devSession.page.fill('label:has-text("Haku")', 'kuvaus');
     await sleep(1000);
-    searchResults = await page.locator("div[aria-label='Hakutulokset'] > a").allTextContents();
+    searchResults = await devSession.page
+      .locator("div[aria-label='Hakutulokset'] > a")
+      .allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectB.projectName)) &&
         searchResults.every((result) => !result.includes(projectA.projectName))
     ).toBe(true);
 
     // Search for both projects
-    await page.fill('label:has-text("Haku")', 'hakutesti');
+    await devSession.page.fill('label:has-text("Haku")', 'hakutesti');
     await sleep(1000);
-    searchResults = await page.locator("div[aria-label='Hakutulokset'] > a").allTextContents();
+    searchResults = await devSession.page
+      .locator("div[aria-label='Hakutulokset'] > a")
+      .allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectB.projectName)) &&
         searchResults.some((result) => result.includes(projectA.projectName))
     ).toBe(true);
 
     // Search for other projects (only prefixes should be matched - no other substrings!)
-    await page.fill('label:has-text("Haku")', 'akutesti');
+    await devSession.page.fill('label:has-text("Haku")', 'akutesti');
     await sleep(1000);
-    searchResults = await page.locator("div[aria-label='Hakutulokset'] > a").allTextContents();
+    searchResults = await devSession.page
+      .locator("div[aria-label='Hakutulokset'] > a")
+      .allTextContents();
     expect(
       searchResults.every((result) => !result.includes(projectB.projectName)) &&
         searchResults.every((result) => !result.includes(projectA.projectName))
     ).toBe(true);
 
     // search with elinkaaren tila filter
-    await page.fill('label:has-text("Haku")', '');
-    await page.getByLabel('Elinkaaren tila').press('ArrowDown');
-    await page.getByRole('option', { name: 'Aloittamatta' }).getByRole('checkbox').check();
+    await devSession.page.fill('label:has-text("Haku")', '');
+    await devSession.page.getByLabel('Elinkaaren tila').press('ArrowDown');
+    await devSession.page
+      .getByRole('option', { name: 'Aloittamatta' })
+      .getByRole('checkbox')
+      .check();
     await sleep(500);
-    searchResults = await page.locator("div[aria-label='Hakutulokset'] > a").allTextContents();
+    searchResults = await devSession.page
+      .locator("div[aria-label='Hakutulokset'] > a")
+      .allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectA.projectName)) &&
         searchResults.some((result) => result.includes(projectB.projectName)) &&
         searchResults.every((result) => !result.includes(projectC.projectName))
     ).toBe(true);
 
-    await page.getByRole('option', { name: 'Aloittamatta' }).getByRole('checkbox').uncheck();
-    await page.getByRole('option', { name: 'Käynnissä' }).getByRole('checkbox').check();
+    await devSession.page
+      .getByRole('option', { name: 'Aloittamatta' })
+      .getByRole('checkbox')
+      .uncheck();
+    await devSession.page.getByRole('option', { name: 'Käynnissä' }).getByRole('checkbox').check();
     await sleep(500);
 
-    searchResults = await page.locator("div[aria-label='Hakutulokset'] > a").allTextContents();
+    searchResults = await devSession.page
+      .locator("div[aria-label='Hakutulokset'] > a")
+      .allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectC.projectName)) &&
         searchResults.every((result) => !result.includes(projectA.projectName)) &&
@@ -236,8 +284,8 @@ test.describe('Projects', () => {
     ).toBe(true);
 
     // Clean up the test case
-    await deleteProject(page, projectA.projectId);
-    await deleteProject(page, projectB.projectId);
-    await deleteProject(page, projectC.projectId);
+    await deleteProject(devSession.page, projectA.projectId);
+    await deleteProject(devSession.page, projectB.projectId);
+    await deleteProject(devSession.page, projectC.projectId);
   });
 });

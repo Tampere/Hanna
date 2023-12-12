@@ -1,15 +1,16 @@
 import test, { expect } from '@playwright/test';
 import { login } from '@utils/page';
-import { client } from '@utils/trpc';
+import { DEV_USER, UserSessionObject } from '@utils/users';
 
 test.describe('Project endpoints', () => {
-  // Login to retrieve the cookies for authorizing tRPC queries
-  test.beforeEach(async ({ page }) => {
-    await login(page);
+  let devSession: UserSessionObject;
+
+  test.beforeAll(async ({ browser }) => {
+    devSession = await login(browser, DEV_USER);
   });
 
   test('SAP project import without WBS', async () => {
-    const res = await client.sap.getSapProject.mutate({
+    const res = await devSession.client.sap.getSapProject.mutate({
       projectId: 'A1111_00000',
     });
     // NOTE: Full set of fields checked in 2 WBS / 2 Activities test. This checks the empty
@@ -21,7 +22,7 @@ test.describe('Project endpoints', () => {
   });
 
   test('SAP project import with one WBS and one activity per WBS', async () => {
-    const res = await client.sap.getSapProject.mutate({
+    const res = await devSession.client.sap.getSapProject.mutate({
       projectId: 'A1111_11000',
     });
 
@@ -44,7 +45,7 @@ test.describe('Project endpoints', () => {
   });
 
   test('SAP project import with two WBS and two activities per WBS', async () => {
-    const res = await client.sap.getSapProject.mutate({
+    const res = await devSession.client.sap.getSapProject.mutate({
       projectId: 'A1111_22000',
     });
 
