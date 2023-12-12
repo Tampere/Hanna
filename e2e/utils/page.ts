@@ -1,5 +1,6 @@
 import { Browser, Page } from 'playwright';
 import { createTRPCClient } from './trpc';
+import { expect } from 'playwright/test';
 
 export async function login(browser: Browser, username: string) {
   const context = await browser.newContext();
@@ -31,6 +32,7 @@ export async function logout(page: Page) {
     .filter({ has: page.getByTestId('AccountCircleOutlinedIcon') })
     .click();
   await page.getByTestId('logoutButton').click();
+  await expect(page.locator('h1')).toContainText('Sign-out Success');
 }
 
 export async function refreshSession(browser: Browser, username: string, page: Page) {

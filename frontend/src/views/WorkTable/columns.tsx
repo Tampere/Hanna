@@ -39,6 +39,8 @@ function isFinanceEditingDisabled(row: WorkTableRow, financesRange: FinancesRang
   return financesRange < startYear || financesRange > endYear;
 }
 
+export type WorkTableFinanceField = 'budget' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos';
+
 const fieldObjectName = {
   field: 'objectName',
   headerName: 'Kohde',
@@ -233,7 +235,7 @@ const fieldOperatives = {
 
 const financesField = (
   financesRange: FinancesRange,
-  targetField: 'budget' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos',
+  targetField: WorkTableFinanceField,
   opts?: Partial<GridColDef<WorkTableRow>>,
   CurrencyInputProps?: {
     allowNegative?: boolean;

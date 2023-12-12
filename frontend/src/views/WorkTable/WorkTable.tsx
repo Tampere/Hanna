@@ -13,9 +13,14 @@ import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { WorkTableFilters } from '@frontend/views/WorkTable/WorkTableFilters';
-import { getColumns } from '@frontend/views/WorkTable/columns';
+import { WorkTableFinanceField, getColumns } from '@frontend/views/WorkTable/columns';
 
-import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
+import {
+  hasPermission,
+  hasWritePermission,
+  isAdmin,
+  ownsProject,
+} from '@shared/schema/userPermissions';
 import { WorkTableRow, WorkTableRowUpdate, WorkTableSearch } from '@shared/schema/workTable';
 
 import { ModifiedFields } from './diff';
@@ -255,6 +260,22 @@ export default function WorkTable() {
     updateObjects.mutateAsync(updateData);
   }
 
+  function getWritableBudgetFields(
+    permissionCtx: WorkTableRow['permissionCtx']
+  ): WorkTableFinanceField[] {
+    if (!auth) return [];
+
+    if (isAdmin(auth.role)) {
+      return ['budget', 'forecast', 'kayttosuunnitelmanMuutos'];
+    } else if (hasPermission(auth, 'financials.write')) {
+      return ['budget', 'kayttosuunnitelmanMuutos'];
+    } else if (hasPermission(auth, 'investmentProject.write' || ownsProject(auth, permissionCtx))) {
+      return ['forecast'];
+    } else {
+      return [];
+    }
+  }
+
   return (
     <Box
       css={css`
@@ -288,7 +309,12 @@ export default function WorkTable() {
         setSearchParams={setSearchParams}
       />
       <DataGrid
-        isCellEditable={({ row }) => {
+        isCellEditable={({ row, field }: { row: WorkTableRow; field: string }) => {
+          if (['budget', 'forecast', 'kayttosuunnitelmanMuutos'].includes(field)) {
+            return getWritableBudgetFields(row.permissionCtx).includes(
+              field as WorkTableFinanceField
+            );
+          }
           return Boolean(
             auth &&
               (ownsProject(auth, row.permissionCtx) || hasWritePermission(auth, row.permissionCtx))
