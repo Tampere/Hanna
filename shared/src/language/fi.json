@@ -275,6 +275,7 @@
   "userPermissions.userName": "Käyttäjä",
   "userPermissions.investmentProject.write": "Investointihankkeiden luonti",
   "userPermissions.detailplanProject.write": "Asemakaavahankkeiden luonti",
+  "userPermissions.financials.write": "Talousarvio ja KSM",
   "userPermissions.admin": "Pääkäyttäjä",
   "genericForm.selectionCount": "valittuna",
   "genericForm.accept": "Hyväksy",

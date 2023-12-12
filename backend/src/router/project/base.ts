@@ -113,7 +113,7 @@ export const createProjectRouter = (t: TRPC) => {
       .use(withAccess((usr, ctx) => ownsProject(usr, ctx) || hasWritePermission(usr, ctx)))
       .mutation(async ({ input, ctx }) => {
         return await getPool().transaction(async (tx) => {
-          return updateProjectGeometry(tx, input, ctx.user);
+          return await updateProjectGeometry(tx, input, ctx.user);
         });
       }),
 

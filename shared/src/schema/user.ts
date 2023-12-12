@@ -11,3 +11,6 @@ export const userSchema = z.object({
 });
 
 export type User = z.infer<typeof userSchema>;
+
+// permissions are stored/managed in app db and not coming from OIDC
+export type UpsertUserInput = Omit<User, 'permissions'>;

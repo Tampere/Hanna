@@ -29,6 +29,7 @@ import { User } from '@shared/schema/user';
 import {
   ProjectAccessChecker,
   ProjectPermissionContext,
+  hasPermission,
   hasWritePermission,
   isProjectObjectIdInput,
   ownsProject,
@@ -584,7 +585,14 @@ export const createProjectObjectRouter = (t: TRPC) => {
 
     updateBudget: t.procedure
       .input(updateBudgetSchema.required())
-      .use(withAccess((usr, ctx) => ownsProject(usr, ctx) || hasWritePermission(usr, ctx)))
+      .use(
+        withAccess(
+          (usr, ctx) =>
+            ownsProject(usr, ctx) ||
+            hasWritePermission(usr, ctx) ||
+            hasPermission(usr, 'financials.write')
+        )
+      )
       .mutation(async ({ input, ctx }) => {
         return await getPool().transaction(async (tx) => {
           return await updateProjectObjectBudget(

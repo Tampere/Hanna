@@ -1,11 +1,10 @@
-import { PassportUser } from 'fastify';
 import { sql } from 'slonik';
 
-import { userSchema } from '@shared/schema/user';
+import { UpsertUserInput, userSchema } from '@shared/schema/user';
 
 import { getPool } from './db';
 
-export async function upsertUser(user: PassportUser) {
+export async function upsertUser(user: UpsertUserInput) {
   return getPool().maybeOne(sql.type(userSchema)`
     INSERT INTO app.user (id, email, name, role)
     VALUES (${user.id}, ${user.email}, ${user.name}, ${user.role})

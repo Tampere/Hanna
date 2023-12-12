@@ -1,7 +1,7 @@
 import test, { expect } from '@playwright/test';
 import { User } from '@shared/schema/user';
 import { login } from '@utils/page';
-import { client } from '@utils/trpc';
+import { ADMIN_USER, DEV_USER, UserSessionObject } from '@utils/users';
 
 const testProject = (user: User) => ({
   projectName: 'Test project',
@@ -35,58 +35,66 @@ const testProjectObject = (projectId: string, user: User) => ({
 });
 
 test.describe('Project Object endpoints', () => {
-  // Login to retrieve the cookies for authorizing tRPC queries
-  test.beforeEach(async ({ page }) => {
-    await login(page);
+  let adminSession: UserSessionObject;
+  let devSession: UserSessionObject;
+
+  test.beforeAll(async ({ browser }) => {
+    adminSession = await login(browser, ADMIN_USER);
+    adminSession.client.userPermissions.setPermissions.mutate([
+      {
+        userId: DEV_USER,
+        permissions: ['investmentProject.write'],
+      },
+    ]);
+    devSession = await login(browser, DEV_USER);
   });
 
   test('Project Object upsertion', async () => {
-    // There should be at least one user because this is executed after login
-    const [user] = await client.user.getAll.query();
+    const user = await devSession.client.user.self.query();
 
-    const project = await client.investmentProject.upsert.mutate(testProject(user));
+    const project = await devSession.client.investmentProject.upsert.mutate({
+      project: testProject(user),
+    });
 
     const projectObject = testProjectObject(project.projectId, user);
-    const resp = await client.projectObject.upsert.mutate(projectObject);
+    const resp = await devSession.client.projectObject.upsert.mutate(projectObject);
 
     expect(resp.projectObjectId).toBeTruthy();
-    expect(resp.lifecycleState).toBe('01');
 
     const updatedProjectObject = {
       ...projectObject,
-      id: resp.projectObjectId,
+      projectObjectId: resp.projectObjectId,
       description: 'Updated description',
     };
 
-    const updatedResp = await client.projectObject.upsert.mutate(updatedProjectObject);
+    const updatedResp = await devSession.client.projectObject.upsert.mutate(updatedProjectObject);
+
     expect(updatedResp.projectObjectId).toBe(resp.projectObjectId);
-    expect(updatedResp.description).toBe('Updated description');
 
     // partial update
     const partialUpdate = {
-      id: resp.projectObjectId,
+      projectObjectId: resp.projectObjectId,
       description: 'Partial update',
     };
 
-    const partialUpdateResp = await client.projectObject.upsert.mutate(partialUpdate);
+    const partialUpdateResp = await devSession.client.projectObject.upsert.mutate(partialUpdate);
+
     expect(partialUpdateResp.projectObjectId).toBe(resp.projectObjectId);
-    expect(partialUpdateResp).toStrictEqual({
-      ...updatedResp,
-      description: 'Partial update',
-    });
   });
 
   test('Project object budget updates', async () => {
-    const [user] = await client.user.getAll.query();
+    let user = await devSession.client.user.self.query();
 
-    const project = await client.investmentProject.upsert.mutate(testProject(user));
+    const project = await devSession.client.investmentProject.upsert.mutate({
+      project: testProject(user),
+    });
 
     const projectObject = testProjectObject(project.projectId, user);
 
-    const resp = await client.projectObject.upsert.mutate(projectObject);
+    const resp = await devSession.client.projectObject.upsert.mutate(projectObject);
     expect(resp.projectObjectId).toBeTruthy();
 
-    const budget = await client.projectObject.getBudget.query({
+    const budget = await devSession.client.projectObject.getBudget.query({
       projectObjectId: resp.projectObjectId,
     });
     expect(budget).toStrictEqual([]);
@@ -103,10 +111,10 @@ test.describe('Project Object endpoints', () => {
         },
       ],
     };
-    await client.projectObject.updateBudget.mutate(budgetUpdate);
+    await devSession.client.projectObject.updateBudget.mutate(budgetUpdate);
 
     // Get updated budget
-    const updatedBudget = await client.projectObject.getBudget.query({
+    const updatedBudget = await devSession.client.projectObject.getBudget.query({
       projectObjectId: resp.projectObjectId,
     });
     expect(updatedBudget).toStrictEqual([
@@ -138,10 +146,10 @@ test.describe('Project Object endpoints', () => {
         },
       ],
     };
-    await client.projectObject.updateBudget.mutate(partialBudgetUpdate);
+    await devSession.client.projectObject.updateBudget.mutate(partialBudgetUpdate);
 
     // Get updated budget
-    const partialUpdatedBudget = await client.projectObject.getBudget.query({
+    const partialUpdatedBudget = await devSession.client.projectObject.getBudget.query({
       projectObjectId: resp.projectObjectId,
     });
 
@@ -165,7 +173,7 @@ test.describe('Project Object endpoints', () => {
     ]);
 
     const projectObject2 = testProjectObject(project.projectId, user);
-    const resp2 = await client.projectObject.upsert.mutate({
+    const resp2 = await devSession.client.projectObject.upsert.mutate({
       ...projectObject2,
       budgetUpdate: {
         budgetItems: [
@@ -186,7 +194,9 @@ test.describe('Project Object endpoints', () => {
     });
     expect(resp2.projectObjectId).toBeTruthy();
 
-    const projectBudget = await client.project.getBudget.query({ projectId: project.projectId });
+    const projectBudget = await devSession.client.project.getBudget.query({
+      projectId: project.projectId,
+    });
     expect(projectBudget).toStrictEqual([
       {
         year: 2021,

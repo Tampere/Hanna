@@ -1,6 +1,6 @@
 import test, { expect } from '@playwright/test';
 import { login } from '@utils/page';
-import { client } from '@utils/trpc';
+import { ADMIN_USER, DEV_USER, UserSessionObject } from '@utils/users';
 
 function makePoint(lon: number, lat: number, srid: string) {
   return [
@@ -40,12 +40,22 @@ const validProject = (userId: string) => ({
 });
 
 test.describe('Project endpoints', () => {
-  // Login to retrieve the cookies for authorizing tRPC queries
-  test.beforeEach(async ({ page }) => {
-    await login(page);
+  let adminSession: UserSessionObject;
+  let devSession: UserSessionObject;
+
+  test.beforeAll(async ({ browser }) => {
+    adminSession = await login(browser, ADMIN_USER);
+    adminSession.client.userPermissions.setPermissions.mutate([
+      {
+        userId: DEV_USER,
+        permissions: ['investmentProject.write'],
+      },
+    ]);
+    devSession = await login(browser, DEV_USER);
   });
+
   test('project validation', async () => {
-    const validationResult = await client.investmentProject.upsertValidate.query(
+    const validationResult = await devSession.client.investmentProject.upsertValidate.query(
       invalidDateProject
     );
 
@@ -64,21 +74,25 @@ test.describe('Project endpoints', () => {
   });
 
   test('project geometry edit', async () => {
-    const [user] = await client.user.getAll.query();
+    const user = await devSession.client.user.self.query();
     const validProjectInput = validProject(user.id);
 
-    const validationResult = await client.investmentProject.upsertValidate.query(validProjectInput);
+    const validationResult = await devSession.client.investmentProject.upsertValidate.query(
+      validProjectInput
+    );
     expect(validationResult).toStrictEqual({ errors: {} });
 
-    const project = await client.investmentProject.upsert.mutate(validProjectInput);
+    const project = await devSession.client.investmentProject.upsert.mutate({
+      project: validProjectInput,
+    });
     const point = makePoint(24487416.69375355, 6821004.272996133, 'EPSG:3878');
 
-    const edit = await client.project.updateGeometry.mutate({
+    const edit = await devSession.client.project.updateGeometry.mutate({
       projectId: project.projectId,
       features: JSON.stringify(point),
     });
 
-    expect(edit.projectId).toBe(project.projectId);
+    expect(edit.projectId).toEqual(project.projectId);
     expect(JSON.parse(edit.geom)).toStrictEqual({
       type: 'MultiPoint',
       crs: { type: 'name', properties: { name: 'EPSG:3878' } },
@@ -87,10 +101,12 @@ test.describe('Project endpoints', () => {
   });
 
   test('project budget update', async () => {
-    const [user] = await client.user.getAll.query();
+    const user = await devSession.client.user.self.query();
     const validProjectInput = validProject(user.id);
 
-    const project = await client.investmentProject.upsert.mutate(validProjectInput);
+    const project = await devSession.client.investmentProject.upsert.mutate({
+      project: validProjectInput,
+    });
     const budgetUpdateInput = {
       projectId: project.projectId,
       budgetItems: [
@@ -104,13 +120,15 @@ test.describe('Project endpoints', () => {
         },
       ],
     };
-    const getBudgetResult = await client.project.getBudget.query({ projectId: project.projectId });
+    const getBudgetResult = await devSession.client.project.getBudget.query({
+      projectId: project.projectId,
+    });
 
     expect(getBudgetResult).toStrictEqual([]);
 
-    await client.project.updateBudget.mutate(budgetUpdateInput);
+    await devSession.client.project.updateBudget.mutate(budgetUpdateInput);
 
-    const updatedBudgetResult = await client.project.getBudget.query({
+    const updatedBudgetResult = await devSession.client.project.getBudget.query({
       projectId: project.projectId,
     });
     expect(updatedBudgetResult).toStrictEqual([
@@ -142,9 +160,9 @@ test.describe('Project endpoints', () => {
       ],
     };
 
-    await client.project.updateBudget.mutate(budgetUpdate2021);
+    await devSession.client.project.updateBudget.mutate(budgetUpdate2021);
 
-    const updatedBudgetResult2021 = await client.project.getBudget.query({
+    const updatedBudgetResult2021 = await devSession.client.project.getBudget.query({
       projectId: project.projectId,
     });
     expect(updatedBudgetResult2021).toStrictEqual([

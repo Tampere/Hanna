@@ -29,6 +29,7 @@ export function registerApiKeyRoutes(server: FastifyInstance, opts: Options) {
           id: 'apikeyuser',
           name: 'API key user',
           role: 'Hanna.Admin',
+          permissions: [],
         };
       });
 

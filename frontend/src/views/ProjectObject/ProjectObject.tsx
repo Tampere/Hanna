@@ -7,7 +7,6 @@ import VectorSource from 'ol/source/Vector';
 import { ReactElement, useMemo, useState } from 'react';
 import { useLocation, useParams } from 'react-router';
 import { Link } from 'react-router-dom';
-import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
@@ -21,6 +20,7 @@ import { ProjectTypePath } from '@frontend/types';
 import Tasks from '@frontend/views/Task/Tasks';
 
 import { TranslationKey } from '@shared/language';
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 import { DeleteProjectObjectDialog } from './DeleteProjectObjectDialog';
 import { ProjectObjectFinances } from './ProjectObjectFinances';
@@ -103,9 +103,6 @@ export function ProjectObject(props: Props) {
   );
   const user = useAtomValue(authAtom);
 
-  const isOwner = ownsProject(user, projectObject.data?.acl);
-  const canWrite = hasWritePermission(user, projectObject.data?.acl);
-
   const [geom, setGeom] = useState<string | null>(null);
   const [projectId, setProjectId] = useState(routeParams.projectId);
 
@@ -168,6 +165,11 @@ export function ProjectObject(props: Props) {
       />
     );
   }
+
+  if (!user || projectObject.isLoading || projectObject.isError) return null;
+
+  const isOwner = ownsProject(user, projectObject.data?.acl);
+  const canWrite = hasWritePermission(user, projectObject.data?.acl);
 
   return (
     <Box
@@ -264,7 +266,11 @@ export function ProjectObject(props: Props) {
           {routeParams.tabView && (
             <Box sx={{ m: 2 }}>
               {routeParams.tabView === 'talous' && projectObject.data && (
-                <ProjectObjectFinances userIsOwner={isOwner} projectObject={projectObject.data} />
+                <ProjectObjectFinances
+                  userIsOwner={isOwner}
+                  userCanEditFinances={user?.permissions.includes('financials.write')}
+                  projectObject={projectObject.data}
+                />
               )}
               {routeParams.tabView === 'tehtavat' && (
                 <Tasks isOwner={isOwner} canWrite={canWrite} projectObjectId={projectObjectId} />
