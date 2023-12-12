@@ -78,6 +78,9 @@ export function hasWritePermission(
   return user.role === ADMIN_ROLE || permissionCtx?.writeUsers?.includes(user.id);
 }
 
-export function hasPermission(user: CtxUser, permission: Permission): boolean {
-  return user.role === ADMIN_ROLE || user.permissions.includes(permission);
+export function hasPermission(user: CtxUser | User, permission: Permission): boolean {
+  if ('role' in user) {
+    return user.role === ADMIN_ROLE || user.permissions.includes(permission);
+  }
+  return user.isAdmin || user.permissions.includes(permission);
 }

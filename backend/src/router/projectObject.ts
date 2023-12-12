@@ -29,6 +29,7 @@ import { User } from '@shared/schema/user';
 import {
   ProjectAccessChecker,
   ProjectPermissionContext,
+  hasPermission,
   hasWritePermission,
   isProjectObjectIdInput,
   ownsProject,
@@ -589,7 +590,7 @@ export const createProjectObjectRouter = (t: TRPC) => {
           (usr, ctx) =>
             ownsProject(usr, ctx) ||
             hasWritePermission(usr, ctx) ||
-            usr.permissions.includes('financials.write')
+            hasPermission(usr, 'financials.write')
         )
       )
       .mutation(async ({ input, ctx }) => {

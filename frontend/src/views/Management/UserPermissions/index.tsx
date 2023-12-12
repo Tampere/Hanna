@@ -21,6 +21,8 @@ import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
+import { hasPermission } from '@shared/schema/userPermissions';
+
 export function UserPermissionsPage() {
   const tr = useTranslations();
   const { data, isLoading, isError, refetch } = trpc.userPermissions.getAll.useQuery();
@@ -43,6 +45,8 @@ export function UserPermissionsPage() {
             userName: user.userName,
             isAdmin: user.isAdmin,
             permissions: user.permissions,
+            userEmail: user.userEmail,
+            userRole: user.userRole,
           };
         })
     : [];
@@ -199,29 +203,21 @@ export function UserPermissionsPage() {
                 </TableCell>
                 <TableCell align="center">
                   <Checkbox
-                    checked={
-                      user.isAdmin ||
-                      (user.permissions?.includes('investmentProject.write') ?? false)
-                    }
+                    checked={hasPermission(user, 'investmentProject.write')}
                     disabled={user.isAdmin}
                     onClick={() => handlePermissionChange(user, 'investmentProject.write')}
                   />
                 </TableCell>
                 <TableCell align="center">
                   <Checkbox
-                    checked={
-                      user.isAdmin ||
-                      (user.permissions?.includes('detailplanProject.write') ?? false)
-                    }
+                    checked={hasPermission(user, 'detailplanProject.write')}
                     disabled={user.isAdmin}
                     onClick={() => handlePermissionChange(user, 'detailplanProject.write')}
                   />
                 </TableCell>
                 <TableCell align="center">
                   <Checkbox
-                    checked={
-                      user.isAdmin || (user.permissions?.includes('financials.write') ?? false)
-                    }
+                    checked={hasPermission(user, 'financials.write')}
                     disabled={user.isAdmin}
                     onClick={() => handlePermissionChange(user, 'financials.write')}
                   />
