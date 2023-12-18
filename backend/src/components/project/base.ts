@@ -92,10 +92,10 @@ export async function getProject(id: string) {
 }
 
 export async function deleteProject(id: string, userId: User['id']) {
-  await getPool().transaction(async (tx) => {
+  return await getPool().transaction(async (tx) => {
     await addAuditEvent(tx, { eventType: 'deleteProject', eventData: { id }, eventUser: userId });
-    const project = await tx.any(sql.type(projectIdSchema)`
-      UPDATE app.project SET deleted = true WHERE id = ${id}
+    const project = await tx.maybeOne(sql.type(projectIdSchema)`
+      UPDATE app.project SET deleted = true WHERE id = ${id} RETURNING id as "projectId"
     `);
     if (!project) {
       throw new TRPCError({
