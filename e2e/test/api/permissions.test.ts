@@ -196,9 +196,47 @@ test.describe('permission testing', () => {
       project: { ...newProject, ...updates },
     });
     expect(project.owner).toBe(DEV_USER);
+  });
+  // XXX: owner can be changed to another user without option to maintain write permission
 
-    // XXX: owner can be changed to another user without option to maintain write permission
-    // XXX: non-owner cannot delete the project
-    // XXX: owner can delete the project
+  test('non-owner cannot delete the project', async () => {
+    const user = await adminSession.client.user.self.query();
+    const newProject = validProject(user.id);
+
+    expect(newProject.owner).toBe(user.id);
+    const project = await adminSession.client.investmentProject.upsert.mutate({
+      project: newProject,
+    });
+    await expect(
+      testSession.client.project.delete.mutate({
+        projectId: project.projectId,
+      })
+    ).rejects.toThrowError('error.insufficientPermissions');
+  });
+
+  test('owner can delete the project', async ({ browser }) => {
+    await expect(
+      adminSession.client.userPermissions.setPermissions.mutate([
+        {
+          userId: TEST_USER,
+          permissions: ['investmentProject.write'],
+        },
+      ])
+    ).resolves.not.toThrow();
+    testSession = await refreshSession(browser, TEST_USER, testSession.page);
+
+    const user = await testSession.client.user.self.query();
+    const newProject = validProject(user.id);
+    expect(newProject.owner).toBe(user.id);
+
+    const { projectId } = await testSession.client.investmentProject.upsert.mutate({
+      project: newProject,
+    });
+
+    const deletedProject = await testSession.client.project.delete.mutate({
+      projectId: projectId,
+    });
+
+    expect(deletedProject.projectId).toEqual(projectId);
   });
 });
