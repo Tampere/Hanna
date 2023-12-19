@@ -38,7 +38,7 @@ export function SapWBSSelect(props: Props) {
       noOptionsText={tr('sapWBSSelect.noOptions')}
       getOptionLabel={(id) => {
         const wbs = wbsProjects.data?.find((wbs) => wbs.wbsId === id);
-        if (!wbs) return '';
+        if (!wbs) return id;
         return `${wbs?.shortDescription} (${wbs?.wbsId})`;
       }}
       renderInput={(params) => {
@@ -55,7 +55,6 @@ export function SapWBSSelect(props: Props) {
               ),
             }}
             {...props.readonlyProps}
-            {...props.field}
           />
         );
       }}
