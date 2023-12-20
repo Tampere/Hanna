@@ -179,6 +179,7 @@ export function InvestmentProject() {
             display: flex;
             flex-direction: column;
             height: 100%;
+            overflow-y: auto;
           `}
         >
           <Tabs
@@ -220,7 +221,7 @@ export function InvestmentProject() {
           )}
 
           {routeParams.tabView && (
-            <Box sx={{ m: 2 }}>
+            <Box sx={{ m: 2, overflowY: 'auto' }}>
               {routeParams.tabView === 'talous' && <ProjectFinances project={project.data} />}
               {routeParams.tabView === 'kohteet' && (
                 <ProjectObjectList projectId={projectId} projectType="investointihanke" />
