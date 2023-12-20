@@ -239,7 +239,7 @@ export function ProjectObject(props: Props) {
                 drawStyle={PROJ_OBJ_STYLE}
                 editable={true}
                 vectorLayers={[projectLayer]}
-                fitExtent="vectorLayers"
+                fitExtent="geoJson"
                 onFeaturesSaved={(features) => {
                   if (!projectObject.data) {
                     setGeom(features);
