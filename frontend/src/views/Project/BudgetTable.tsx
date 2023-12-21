@@ -19,6 +19,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { FormField } from '@frontend/components/forms';
 import { CurrencyInput, valueTextColor } from '@frontend/components/forms/CurrencyInput';
 import { useTranslations } from '@frontend/stores/lang';
+import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 
 import { YearBudget } from '@shared/schema/project';
 import { YearlyActuals } from '@shared/schema/sapActuals';
@@ -77,7 +78,7 @@ export function BudgetTable(props: Props) {
   const tr = useTranslations();
   const form = useForm<BudgetFormValues>({ mode: 'all', defaultValues: {} });
   const watch = form.watch();
-
+  useNavigationBlocker(form.formState.isDirty);
   /**
    * Convert budget from object into a simple array for the form
    */
