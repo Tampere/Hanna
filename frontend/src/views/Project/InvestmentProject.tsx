@@ -1,7 +1,6 @@
 import { css } from '@emotion/react';
 import { AccountTree, Euro, ListAlt, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
-import { useAtom } from 'jotai';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { useMemo, useState } from 'react';
@@ -13,10 +12,8 @@ import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { DRAW_LAYER_Z_INDEX, featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
-import { ConfirmDialog } from '@frontend/components/dialogs/ConfirmDialog';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
-import { blockerAtom } from '@frontend/stores/navigationBlocker';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
 
@@ -81,7 +78,6 @@ export function InvestmentProject() {
   );
 
   const [geom, setGeom] = useState<string | null>(null);
-  const [globalBlocker] = useAtom(blockerAtom);
 
   const tr = useTranslations();
   const notify = useNotifications();
@@ -236,17 +232,6 @@ export function InvestmentProject() {
           )}
         </Paper>
       </div>
-      <ConfirmDialog
-        isOpen={globalBlocker?.state === 'blocked'}
-        title={tr('genericTabNavigationDialog.title')}
-        content={tr('genericTabNavigationDialog.content')}
-        cancelButtonLabel={tr('cancel')}
-        confirmButtonLabel={tr('continue')}
-        onCancel={() => globalBlocker?.reset?.()}
-        onConfirm={() => {
-          globalBlocker?.proceed?.();
-        }}
-      />
     </Box>
   );
 }
