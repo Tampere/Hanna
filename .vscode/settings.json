@@ -12,7 +12,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "editor.codeActionsOnSave": {
-    "source.organizeImports": false // managed by prettier plugin
+    "source.organizeImports": "never"
   },
   "sonarlint.disableTelemetry": true,
   "todo-tree.tree.disableCompactFolders": false,

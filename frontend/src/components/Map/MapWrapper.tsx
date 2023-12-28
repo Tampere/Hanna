@@ -24,6 +24,7 @@ import { baseLayerIdAtom, selectedWFSLayersAtom } from '@frontend/stores/map';
 import { LayerDrawer } from './LayerDrawer';
 import { Map, MapInteraction } from './Map';
 import { MapControls } from './MapControls';
+import { NavigationBlocker } from './NavigationBlocker';
 import { createWFSLayer, createWMTSLayer, getMapProjection } from './mapFunctions';
 import { mapOptions } from './mapOptions';
 
@@ -173,84 +174,87 @@ export function MapWrapper(props: Props) {
   }, [selectedTool]);
 
   return (
-    <Map
-      zoom={zoom}
-      onMoveEnd={(zoom, extent) => {
-        setZoom(zoom);
-        setViewExtent(extent);
-      }}
-      extent={extent}
-      baseMapLayers={baseMapLayers}
-      wfsLayers={WFSLayers}
-      vectorLayers={props.vectorLayers}
-      interactions={interactions}
-      interactionLayers={[selectionLayer, drawLayer]}
-    >
-      {/* Styles for the OpenLayers ScaleLine -component */}
-      <GlobalStyles
-        styles={{
-          '.ol-viewport': {
-            cursor: 'crosshair',
-          },
-          '.ol-scale-line-inner': {
-            marginBottom: '1rem',
-            textAlign: 'center',
-            backgroundColor: 'white',
-            opacity: '0.8',
-            borderLeft: '2px solid #22437b',
-            borderRight: '2px solid #22437b',
-            borderBottom: '2px solid #22437b',
-            borderBottomLeftRadius: '7px',
-            borderBottomRightRadius: '7px',
-          },
-          '.ol-scale-line': {
-            border: '5px 5px 0px 5px',
-            borderStyle: '5px solid green',
-            position: 'absolute',
-            width: '100%',
-            bottom: 0,
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'center',
-          },
-        }}
-      />
-      <MapControls
+    <>
+      <Map
         zoom={zoom}
-        zoomStep={1}
-        defaultZoom={mapOptions.tre.defaultZoom}
-        onZoomChanged={(changedZoom) => setZoom(changedZoom)}
-        onFitScreen={() => setExtent(drawSource?.getExtent())}
-      />
-
-      <LayerDrawer />
-      {editable && (
-        <MapToolbar
-          toolsDisabled={{
-            tracedFeature: !featuresSelected,
-            editFeature: !featuresSelected,
-            deleteFeature: !featuresSelected,
+        onMoveEnd={(zoom, extent) => {
+          setZoom(zoom);
+          setViewExtent(extent);
+        }}
+        extent={extent}
+        baseMapLayers={baseMapLayers}
+        wfsLayers={WFSLayers}
+        vectorLayers={props.vectorLayers}
+        interactions={interactions}
+        interactionLayers={[selectionLayer, drawLayer]}
+      >
+        {/* Styles for the OpenLayers ScaleLine -component */}
+        <GlobalStyles
+          styles={{
+            '.ol-viewport': {
+              cursor: 'crosshair',
+            },
+            '.ol-scale-line-inner': {
+              marginBottom: '1rem',
+              textAlign: 'center',
+              backgroundColor: 'white',
+              opacity: '0.8',
+              borderLeft: '2px solid #22437b',
+              borderRight: '2px solid #22437b',
+              borderBottom: '2px solid #22437b',
+              borderBottomLeftRadius: '7px',
+              borderBottomRightRadius: '7px',
+            },
+            '.ol-scale-line': {
+              border: '5px 5px 0px 5px',
+              borderStyle: '5px solid green',
+              position: 'absolute',
+              width: '100%',
+              bottom: 0,
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'center',
+            },
           }}
-          onToolChange={(tool) => setSelectedTool(tool)}
-          onSaveClick={() => {
-            selectionSource.clear();
-            setDirty(false);
-            onFeaturesSaved?.(
-              getGeoJSONFeaturesString(
-                drawSource.getFeatures(),
-                projection?.getCode() ?? mapOptions.projection.code
-              )
-            );
-          }}
-          saveDisabled={!dirty}
-          onUndoClick={() => {
-            selectionSource.clear();
-            setDirty(false);
-            addFeaturesFromGeoJson(drawSource, geoJson);
-          }}
-          undoDisabled={!dirty}
         />
-      )}
-    </Map>
+        <MapControls
+          zoom={zoom}
+          zoomStep={1}
+          defaultZoom={mapOptions.tre.defaultZoom}
+          onZoomChanged={(changedZoom) => setZoom(changedZoom)}
+          onFitScreen={() => setExtent(drawSource?.getExtent())}
+        />
+
+        <LayerDrawer />
+        {editable && (
+          <MapToolbar
+            toolsDisabled={{
+              tracedFeature: !featuresSelected,
+              editFeature: !featuresSelected,
+              deleteFeature: !featuresSelected,
+            }}
+            onToolChange={(tool) => setSelectedTool(tool)}
+            onSaveClick={() => {
+              selectionSource.clear();
+              setDirty(false);
+              onFeaturesSaved?.(
+                getGeoJSONFeaturesString(
+                  drawSource.getFeatures(),
+                  projection?.getCode() ?? mapOptions.projection.code
+                )
+              );
+            }}
+            saveDisabled={!dirty}
+            onUndoClick={() => {
+              selectionSource.clear();
+              setDirty(false);
+              addFeaturesFromGeoJson(drawSource, geoJson);
+            }}
+            undoDisabled={!dirty}
+          />
+        )}
+      </Map>
+      <NavigationBlocker condition={dirty} />
+    </>
   );
 }
