@@ -395,6 +395,7 @@
   "workTable.financesAllYears": "Koko aikaväli",
   "workTable.noBudget": "Ei arviota",
   "workTable.noActual": "Ei toteumaa",
+  "workTable.total": "Yhteensä",
   "dataTable.error": "Tietojen haussa tapahtui virhe. Yritä myöhemmin uudestaan.",
   "dataTable.noData": "Ei hakutuloksia.",
   "email.subject": "Aihe",
