@@ -57,9 +57,11 @@ const dataGridStyle = (theme: Theme) => css`
   & .modified-cell {
     background-color: lightyellow;
   }
-  & .MuiDataGrid-row--lastVisible {
+  & .MuiDataGrid-row--lastVisible.MuiDataGrid-row--lastVisible {
     border-top: double ${theme.palette.primary.main};
-
+    position: sticky;
+    bottom: 0;
+    background-color: white;
     color: ${theme.palette.primary.main};
   }
   & .MuiDataGrid-virtualScrollerRenderZone {
