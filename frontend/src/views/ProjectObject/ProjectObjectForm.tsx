@@ -155,13 +155,13 @@ export function ProjectObjectForm(props: Props) {
     } as const;
   }, [editing]);
 
-  const { projectObject } = trpc.useContext();
+  const { projectObject } = trpc.useUtils();
   const formValidator = useMemo(() => {
     const schemaValidation = zodResolver(upsertProjectObjectSchema);
 
     return async function formValidation(
       values: UpsertProjectObject,
-      context: any,
+      context: object,
       options: ResolverOptions<UpsertProjectObject>
     ) {
       const fields = options.names ?? [];
