@@ -195,13 +195,19 @@ test.describe('Projects', () => {
         searchResults.some((result) => result.includes(projectA.projectName))
     ).toBe(true);
 
-    // Search for other projects (only prefixes should be matched - no other substrings!)
+    // Search for all projects with substring
     await page.fill('label:has-text("Haku")', 'akutesti');
     await sleep(1000);
+
     searchResults = await page.locator("div[aria-label='Hakutulokset'] > a").allTextContents();
+
     expect(
-      searchResults.every((result) => !result.includes(projectB.projectName)) &&
-        searchResults.every((result) => !result.includes(projectA.projectName))
+      searchResults.some((result) => result.includes(projectB.projectName)) &&
+        searchResults.some(
+          (result) =>
+            result.includes(projectA.projectName) &&
+            searchResults.some((result) => result.includes(projectC.projectName))
+        )
     ).toBe(true);
 
     // search with elinkaaren tila filter
