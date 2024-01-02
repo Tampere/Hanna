@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { getPool, sql } from '@backend/db';
+import { logger } from '@backend/logging';
 
 import {
   ProjectListParams,
@@ -175,12 +176,12 @@ export function detailplanProjectFragment(input: ProjectSearch) {
 export async function projectSearch(input: ProjectSearch) {
   const { map, limit = 250 } = input;
   const isClusterSearch = map?.zoom && map.zoom < CLUSTER_ZOOM_BELOW;
-
   const resultSchema = z.object({ result: projectSearchResultSchema });
   const dbResult = await getPool().one(sql.type(resultSchema)`
     WITH ranked_projects AS (
       SELECT
         project.id,
+        project.project_name,
         ts_rank(
           COALESCE(project.tsv, '') || COALESCE(project_detailplan.tsv, ''),
           to_tsquery('simple', ${textToSearchTerms(input.text)})
@@ -192,9 +193,10 @@ export async function projectSearch(input: ProjectSearch) {
     ), all_projects AS (
       SELECT
         ranked_projects.id,
-        tsrank
-      FROM ranked_projects
-      WHERE tsrank IS NULL OR tsrank > 0
+        tsrank,
+        similarity AS name_similarity
+      FROM ranked_projects, similarity(${input?.text ?? ''}, ranked_projects.project_name)
+      WHERE tsrank IS NULL OR tsrank > 0 OR similarity > 0.1
     ), investment_projects AS (
       ${investmentProjectFragment(input)}
     ), detailplan_projects AS (
@@ -207,6 +209,7 @@ export async function projectSearch(input: ProjectSearch) {
         app.project.end_date AS "endDate",
         app.project.project_name AS "projectName",
         "tsrank",
+        "name_similarity",
         "detailplanId",
         geom,
         geohash
@@ -226,7 +229,7 @@ export async function projectSearch(input: ProjectSearch) {
         "projectType",
         ${isClusterSearch ? sql.fragment`NULL` : sql.fragment`st_asgeojson(geom)`} AS geom
       FROM projects
-      ORDER BY tsrank DESC, "startDate" DESC
+      ORDER BY GREATEST(name_similarity, tsrank)  DESC, "startDate" DESC
       LIMIT ${limit}
     )
    SELECT jsonb_build_object(
@@ -234,6 +237,7 @@ export async function projectSearch(input: ProjectSearch) {
       'clusters', ${clusterResultsFragment(map?.zoom)}
     ) AS result
     `);
+
   return dbResult.result;
 }
 
