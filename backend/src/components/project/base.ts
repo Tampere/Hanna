@@ -84,7 +84,10 @@ export async function deleteProject(id: string, userId: User['id']) {
         code: 'NOT_FOUND',
       });
     }
-    return project;
+    const projectObjects = await tx.any(sql.type(projectIdSchema)`
+    UPDATE app.project_object SET deleted = true WHERE project_id = ${id} `);
+
+    return { project, projectObjects };
   });
 }
 

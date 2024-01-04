@@ -14,7 +14,6 @@ import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { useTranslations } from '@frontend/stores/lang';
-import { useDebounce } from '@frontend/utils/useDebounce';
 
 import { ProjectRelation, Relation } from '@shared/schema/project';
 
@@ -75,6 +74,11 @@ interface Props {
   onRemoveProjectRelation: (relationType: Relation, relationObjectId: string) => void;
   onAddProjectRelation: (relationType: Relation, relationObjectId: string) => void;
 }
+
+const projectUrlIdentifier = {
+  detailplanProject: 'asemakaavahanke',
+  investmentProject: 'investointihanke',
+};
 
 export function RelationsContainer({
   title,
@@ -143,7 +147,12 @@ export function RelationsContainer({
                   objectOfRelation.projectName
                 )}
               >
-                <Link css={linkStyle} to={`/investointihanke/${objectOfRelation.projectId}`}>
+                <Link
+                  css={linkStyle}
+                  to={`/${projectUrlIdentifier[objectOfRelation.projectType]}/${
+                    objectOfRelation.projectId
+                  }`}
+                >
                   {objectOfRelation.projectName}
                 </Link>
               </Tooltip>

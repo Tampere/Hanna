@@ -27,8 +27,8 @@ const invalidDateProject = {
   sapProjectId: null,
 };
 
-const validProject = (userId: string) => ({
-  projectName: 'Test project',
+const validProject = (userId: string, projectName = 'Test project') => ({
+  projectName,
   description: 'Test description',
   owner: userId,
   personInCharge: userId,
@@ -161,5 +161,68 @@ test.describe('Project endpoints', () => {
         },
       },
     ]);
+  });
+
+  test('add project relation', async () => {
+    const [user] = await client.user.getAll.query();
+    const investmentProjectInput = validProject(user.id);
+    const detailplanProjectInput = {
+      ...validProject(user.id, 'Detailplan project'),
+      diaryId: 'diary',
+      preparer: user.id,
+      district: 'district',
+      blockName: 'blockName',
+      addressText: 'addressText',
+    };
+
+    const investmentProject = await client.investmentProject.upsert.mutate(investmentProjectInput);
+    const detailplanProject = await client.detailplanProject.upsert.mutate(detailplanProjectInput);
+
+    await client.project.updateRelations.mutate({
+      subjectProjectId: investmentProject.id,
+      objectProjectId: detailplanProject.id,
+      relation: 'related',
+    });
+
+    const { relations } = await client.project.getRelations.query({ id: investmentProject.id });
+    const relatedProject = relations.related[0];
+
+    expect(relatedProject.projectId).toBe(detailplanProject.id);
+    expect(relatedProject.projectName).toBe(detailplanProject.projectName);
+    expect(relatedProject.projectType).toBe('detailplanProject');
+  });
+
+  test('remove project relation', async () => {
+    const [user] = await client.user.getAll.query();
+    const investmentProjectInput = validProject(user.id);
+    const detailplanProjectInput = {
+      ...validProject(user.id, 'Detailplan project'),
+      diaryId: 'diary',
+      preparer: user.id,
+      district: 'district',
+      blockName: 'blockName',
+      addressText: 'addressText',
+    };
+
+    const investmentProject = await client.investmentProject.upsert.mutate(investmentProjectInput);
+    const detailplanProject = await client.detailplanProject.upsert.mutate(detailplanProjectInput);
+
+    await client.project.updateRelations.mutate({
+      subjectProjectId: investmentProject.id,
+      objectProjectId: detailplanProject.id,
+      relation: 'related',
+    });
+
+    await client.project.removeRelation.mutate({
+      subjectProjectId: investmentProject.id,
+      objectProjectId: detailplanProject.id,
+      relation: 'related',
+    });
+
+    const { relations } = await client.project.getRelations.query({ id: investmentProject.id });
+
+    expect(relations.parents).toBeNull();
+    expect(relations.related).toBeNull();
+    expect(relations.children).toBeNull();
   });
 });

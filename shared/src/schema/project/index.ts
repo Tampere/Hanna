@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { codeId } from '../code';
 import { isoDateString } from '../common';
 import { dbProjectSchema } from './base';
+import { ProjectType } from './type';
 
 export const periodSchema = z.object({
   startDate: isoDateString.nullable(),
@@ -77,6 +78,7 @@ export interface ProjectRelation {
   projectId: string;
   projectName: string;
   relation: Relation;
+  projectType: ProjectType;
 }
 
 export const updateGeometrySchema = z.object({
@@ -97,6 +99,7 @@ const projectRelationSchema = z.object({
   relation: z.enum(['parent', 'child', 'related']),
   projectId: z.string(),
   projectName: z.string(),
+  projectType: z.enum(['investmentProject', 'detailplanProject']),
 });
 
 export const projectRelationsSchema = z.object({
