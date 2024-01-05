@@ -226,6 +226,7 @@ export async function projectSearch(input: ProjectSearch) {
         "endDate",
         "projectName",
         "projectType",
+        "detailplanId",
         ${isClusterSearch ? sql.fragment`NULL` : sql.fragment`st_asgeojson(geom)`} AS geom
       FROM projects
       ORDER BY GREATEST(name_similarity, tsrank)  DESC, "startDate" DESC
