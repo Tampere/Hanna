@@ -144,7 +144,7 @@ export function Map({
       }
     });
     wfsLayers.forEach((layer) => {
-      layer.setZIndex(1);
+      layer.setZIndex(2);
       olMap.addLayer(layer);
     });
   }, [wfsLayers]);
@@ -158,7 +158,7 @@ export function Map({
       }
     });
     vectorLayers?.forEach((layer) => {
-      layer.setZIndex(2);
+      layer.setZIndex(1);
       olMap.addLayer(layer);
     });
   }, [vectorLayers]);
