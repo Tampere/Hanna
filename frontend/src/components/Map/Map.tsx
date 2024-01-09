@@ -193,10 +193,8 @@ export function Map({
   }, [interactionLayers]);
 
   return (
-    <div style={{ width: '100%', height: '100%' }}>
-      <div style={{ width: '100%', height: '100%', position: 'relative' }} ref={mapRef}>
-        {children}
-      </div>
+    <div style={{ flex: 1 }} ref={mapRef}>
+      {children}
     </div>
   );
 }

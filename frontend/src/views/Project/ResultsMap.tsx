@@ -14,7 +14,9 @@ import { projectSearchParamAtom } from '@frontend/stores/search/project';
 import { ProjectSearchResult } from '@shared/schema/project';
 
 const resultMapContainerStyle = css`
-  min-height: 600px;
+  min-height: 320px;
+  flex: 1;
+  position: relative;
 `;
 
 interface Props {

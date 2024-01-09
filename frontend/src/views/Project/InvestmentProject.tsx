@@ -31,8 +31,9 @@ const pageContentStyle = css`
 `;
 
 const mapContainerStyle = css`
-  height: 100%;
-  min-height: 600px;
+  min-height: 320px;
+  flex: 1;
+  position: relative;
 `;
 
 type TabView = 'default' | 'talous' | 'kohteet' | 'sidoshankkeet';
