@@ -14,10 +14,13 @@ import {
 
 import { mapOptions } from './mapOptions';
 
-const drawerButtonStyle = css`
+const drawerButtonContainerStyle = css`
   position: absolute;
   bottom: 1rem;
   left: 1rem;
+`;
+
+const drawerButtonStyle = css`
   z-index: 202;
   background-color: rgba(256, 256, 256, 0.8);
   color: #22437b;
@@ -30,25 +33,28 @@ const drawerButtonStyle = css`
 `;
 
 const containerStyles = css`
+  width: 280px;
   position: absolute;
-  height: 100%;
+  left: 0;
+  top: 0;
+  bottom: 0;
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  flex-direction: column;
+  overflow-y: auto;
+  transition: opacity 0.15s ease-in-out;
+  box-shadow: 2px 1px 4px #9c9c9c;
+  border-top-right-radius: 2px 2px;
+  border-bottom-right-radius: 2px 2px;
 `;
 
 const drawerStyles = css`
-  height: 100%;
+  min-height: 600px;
+  position: relative;
   background-color: white;
-  transition: opacity 0.15s ease-in-out;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  box-shadow: 2px 1px 4px #9c9c9c;
-  border-top: 1px solid #e8e8e8;
-  border-bottom: 1px solid #e8e8e8;
-  border-top-right-radius: 2px 2px;
-  border-bottom-right-radius: 2px 2px;
 `;
 
 const dragIndicatorStyle = css`
@@ -87,61 +93,67 @@ export function LayerDrawer() {
   const [vectorLayers, setVectorLayers] = useAtom(vectorLayersAtom);
 
   return (
-    <Box css={containerStyles}>
-      <Tooltip title={drawerOpen ? tr('map.layerdrawer.close') : tr('map.layerdrawer.open')}>
-        <IconButton
-          css={drawerButtonStyle}
-          color="primary"
-          onClick={() => setDrawerOpen((drawerOpen) => !drawerOpen)}
-        >
-          <Layers />
-        </IconButton>
-      </Tooltip>
+    <>
       <Box
-        css={drawerStyles}
-        style={{ zIndex: drawerOpen ? 201 : 0, opacity: drawerOpen ? 0.95 : 0 }}
+        css={containerStyles}
+        style={{ zIndex: drawerOpen ? 202 : 0, opacity: drawerOpen ? 0.95 : 0 }}
       >
-        <Typography variant="overline" sx={{ padding: '8px' }}>
-          {tr('map.layerdrawer.baseLayersTitle')}
-        </Typography>
-        {/* The drawer content will change at some point when other map layers are taken into use */}
-        {mapOptions.baseMaps.map((baseMap, index) => (
-          <MenuItem
-            key={`basemap-${index}`}
-            onClick={() => setBaseLayerId(baseMap.id)}
-            style={{
-              backgroundColor: baseMap.id === baseLayerId ? '#22437b' : '',
-              color: baseMap.id === baseLayerId ? 'white' : '',
-            }}
-          >
-            <Typography>{baseMap.name}</Typography>
-          </MenuItem>
-        ))}
-        <Divider />
-        <Typography variant="overline" sx={{ padding: '8px' }}>
-          {tr('map.layerdrawer.vectorLayersTitle')}
-        </Typography>
-        {vectorLayers.map((layerState) => (
-          <MenuItem
-            sx={{ display: 'flex', justifyContent: 'space-between' }}
-            key={`vectorlayer-${layerState.id}`}
-            onClick={() =>
-              setVectorLayers((prev) => setLayerSelected(prev, layerState.id, !layerState.selected))
-            }
-            disableTouchRipple
-          >
-            <Box sx={{ display: 'flex' }}>
-              <DragIndicator css={dragIndicatorStyle} />
-              <Typography>{tr(`vectorLayer.title.${layerState.id}`)}</Typography>
-            </Box>
-            {layerState.selected ? (
-              <ToggleOn css={toggleOnStyle} fontSize="large" />
-            ) : (
-              <ToggleOff css={toggleOffStyle} fontSize="large" />
-            )}
-          </MenuItem>
-        ))}
+        <Box css={drawerStyles}>
+          <Typography variant="overline" sx={{ padding: '8px' }}>
+            {tr('map.layerdrawer.baseLayersTitle')}
+          </Typography>
+          {/* The drawer content will change at some point when other map layers are taken into use */}
+          {mapOptions.baseMaps.map((baseMap, index) => (
+            <MenuItem
+              key={`basemap-${index}`}
+              onClick={() => setBaseLayerId(baseMap.id)}
+              style={{
+                backgroundColor: baseMap.id === baseLayerId ? '#22437b' : '',
+                color: baseMap.id === baseLayerId ? 'white' : '',
+              }}
+            >
+              <Typography>{baseMap.name}</Typography>
+            </MenuItem>
+          ))}
+          <Divider />
+          <Typography variant="overline" sx={{ padding: '8px' }}>
+            {tr('map.layerdrawer.vectorLayersTitle')}
+          </Typography>
+          {vectorLayers.map((layerState) => (
+            <MenuItem
+              sx={{ display: 'flex', justifyContent: 'space-between' }}
+              key={`vectorlayer-${layerState.id}`}
+              onClick={() =>
+                setVectorLayers((prev) =>
+                  setLayerSelected(prev, layerState.id, !layerState.selected)
+                )
+              }
+              disableTouchRipple
+            >
+              <Box sx={{ display: 'flex' }}>
+                <DragIndicator css={dragIndicatorStyle} />
+                <Typography>{tr(`vectorLayer.title.${layerState.id}`)}</Typography>
+              </Box>
+              {layerState.selected ? (
+                <ToggleOn css={toggleOnStyle} fontSize="large" />
+              ) : (
+                <ToggleOff css={toggleOffStyle} fontSize="large" />
+              )}
+            </MenuItem>
+          ))}
+        </Box>
       </Box>
-    </Box>
+      <Box css={drawerButtonContainerStyle}>
+        <Tooltip title={drawerOpen ? tr('map.layerdrawer.close') : tr('map.layerdrawer.open')}>
+          <IconButton
+            css={drawerButtonStyle}
+            color="primary"
+            onClick={() => setDrawerOpen((drawerOpen) => !drawerOpen)}
+          >
+            <Layers />
+          </IconButton>
+        </Tooltip>
+      </Box>
+    </>
   );
 }

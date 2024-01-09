@@ -174,7 +174,14 @@ export function MapWrapper(props: Props) {
   }, [selectedTool]);
 
   return (
-    <>
+    <div
+      style={{
+        height: '100%',
+        position: 'relative',
+        display: 'flex',
+        flex: 1,
+      }}
+    >
       <Map
         zoom={zoom}
         onMoveEnd={(zoom, extent) => {
@@ -226,6 +233,7 @@ export function MapWrapper(props: Props) {
         />
 
         <LayerDrawer />
+
         {editable && (
           <MapToolbar
             toolsDisabled={{
@@ -255,6 +263,6 @@ export function MapWrapper(props: Props) {
         )}
       </Map>
       <NavigationBlocker condition={dirty} />
-    </>
+    </div>
   );
 }
