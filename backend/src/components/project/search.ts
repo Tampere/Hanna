@@ -176,6 +176,7 @@ export async function projectSearch(input: ProjectSearch) {
   const { map, limit = 250 } = input;
   const isClusterSearch = map?.zoom && map.zoom < CLUSTER_ZOOM_BELOW;
   const resultSchema = z.object({ result: projectSearchResultSchema });
+
   const dbResult = await getPool().one(sql.type(resultSchema)`
     WITH ranked_projects AS (
       SELECT
@@ -195,7 +196,9 @@ export async function projectSearch(input: ProjectSearch) {
         tsrank,
         similarity AS name_similarity
       FROM ranked_projects, similarity(${input?.text ?? ''}, ranked_projects.project_name)
-      WHERE tsrank IS NULL OR tsrank > 0 OR similarity > 0.1
+      WHERE tsrank IS NULL
+        OR tsrank > 0
+        OR ranked_projects.project_name LIKE '%' || ${input?.text ?? ''} || '%'
     ), investment_projects AS (
       ${investmentProjectFragment(input)}
     ), detailplan_projects AS (
