@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 import { getPool, sql } from '@backend/db';
-import { logger } from '@backend/logging';
 
 import {
   ProjectListParams,
