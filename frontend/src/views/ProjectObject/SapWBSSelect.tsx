@@ -29,6 +29,7 @@ export function SapWBSSelect(props: Props) {
 
   return (
     <Autocomplete
+      readOnly={props.readonlyProps?.InputProps?.readOnly ?? false}
       autoHighlight
       size="small"
       ref={props.field.ref}

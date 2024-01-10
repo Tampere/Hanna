@@ -254,7 +254,7 @@ export function ProjectObjectForm(props: Props) {
       {props.projectObject && (
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <SectionTitle title={tr('projectObject.formTitle')} />
-          {!form.formState.isDirty && !editing ? (
+          {!editing ? (
             <Button
               variant="contained"
               size="small"
@@ -457,6 +457,7 @@ export function ProjectObjectForm(props: Props) {
               size="small"
               type="number"
               InputProps={{
+                readOnly: !editing,
                 endAdornment: <InputAdornment position="end">m</InputAdornment>,
               }}
             />
