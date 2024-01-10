@@ -15,14 +15,10 @@ import {
 async function workTableSearch(input: WorkTableSearch) {
   const objectNameSearch = textToSearchTerms(input.projectObjectName, { minTermLength: 3 });
   const projectNameSearch = textToSearchTerms(input.projectName, { minTermLength: 3 });
-  const projectNameSubstringFragment =
-    !!input.projectName?.length && input.projectName.length > 3
-      ? sql.fragment`similarity(${input.projectName}, project.project_name) as project_name_similarity`
-      : sql.fragment`(SELECT NULL::int as project_name_similarity) as project_name_similarity`;
-  const objectNameSubstringFragment =
-    !!input.projectObjectName?.length && input.projectObjectName.length > 3
-      ? sql.fragment`similarity(${input?.projectObjectName}, project_object.object_name) as object_name_similarity`
-      : sql.fragment`(SELECT NULL::int as object_name_similarity) as object_name_similarity`;
+  const objectNameSubstringSearch =
+    input.projectObjectName && input.projectObjectName?.length >= 3 ? input.projectObjectName : '';
+  const projectNameSubstringSearch =
+    input.projectName && input.projectName?.length >= 3 ? input.projectName : '';
 
   const {
     startDate = null,
@@ -38,19 +34,16 @@ async function workTableSearch(input: WorkTableSearch) {
   WITH search_results AS (
     SELECT
       project_object.*,
-      project.project_name,
-      COALESCE(project_name_similarity, 0) as project_name_similarity,
-      COALESCE(object_name_similarity, 0) as object_name_similarity
+      project.project_name
     FROM app.project_object
     INNER JOIN app.project ON project.id = project_object.project_id
-    INNER JOIN app.project_investment ON project_investment.id = project.id,
-    ${projectNameSubstringFragment}, ${objectNameSubstringFragment}
+    INNER JOIN app.project_investment ON project_investment.id = project.id
 
     WHERE project_object.deleted = false
       -- search date range intersection
       AND daterange(${startDate}, ${endDate}, '[]') && daterange(project_object.start_date, project_object.end_date, '[]')
-      AND (${objectNameSearch}::text IS NULL OR to_tsquery('simple', ${objectNameSearch}) @@ to_tsvector('simple', project_object.object_name) OR object_name_similarity > 0.1)
-      AND (${projectNameSearch}::text IS NULL OR to_tsquery('simple', ${projectNameSearch}) @@ to_tsvector('simple', project.project_name) OR project_name_similarity > 0.1)
+      AND (${objectNameSearch}::text IS NULL OR to_tsquery('simple', ${objectNameSearch}) @@ to_tsvector('simple', project_object.object_name) OR project_object.object_name LIKE '%' || ${objectNameSubstringSearch} || '%')
+      AND (${projectNameSearch}::text IS NULL OR to_tsquery('simple', ${projectNameSearch}) @@ to_tsvector('simple', project.project_name) OR  project.project_name LIKE '%' || ${projectNameSubstringSearch} || '%')
       -- empty array means match all, otherwise check for intersection
       AND (
         ${sql.array(objectType, 'text')} = '{}'::TEXT[] OR
