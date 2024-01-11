@@ -253,28 +253,28 @@ export function ProjectObjectForm(props: Props) {
 
   return (
     <>
-      <FormProvider {...form}>
-        {!props.projectObject && <SectionTitle title={tr('newProjectObject.title')} />}
-        {props.projectObject && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <SectionTitle title={tr('projectObject.formTitle')} />
-            {!form.formState.isDirty && !editing ? (
-              <Button
-                variant="contained"
-                size="small"
-                onClick={() => setEditing(!editing)}
-                endIcon={<Edit />}
-              >
-                {tr('projectForm.editBtnLabel')}
-              </Button>
-            ) : (
-              <Button
-                variant="outlined"
-                size="small"
-                color="secondary"
-                onClick={() => {
-                  form.reset();
-                  setEditing(!editing);
+     <FormProvider {...form}>
+      {!props.projectObject && <SectionTitle title={tr('newProjectObject.title')} />}
+      {props.projectObject && (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <SectionTitle title={tr('projectObject.formTitle')} />
+          {!editing ? (
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => setEditing(!editing)}
+              endIcon={<Edit />}
+            >
+              {tr('projectForm.editBtnLabel')}
+            </Button>
+          ) : (
+            <Button
+              variant="outlined"
+              size="small"
+              color="secondary"
+              onClick={() => {
+                form.reset();
+                setEditing(!editing);
                 }}
                 endIcon={<Undo />}
               >
@@ -465,6 +465,7 @@ export function ProjectObjectForm(props: Props) {
                 size="small"
                 type="number"
                 InputProps={{
+                  readOnly: !editing,
                   endAdornment: <InputAdornment position="end">m</InputAdornment>,
                 }}
               />
@@ -505,6 +506,7 @@ export function ProjectObjectForm(props: Props) {
             >
               {tr('projectObjectForm.createBtnLabel')}
             </Button>
+
           )}
 
           {props.projectObject && editing && (

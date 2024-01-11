@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { Launch } from '@mui/icons-material';
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import {
   GridColDef,
   GridRenderCellParams,
@@ -9,7 +9,6 @@ import {
 } from '@mui/x-data-grid';
 import dayjs from 'dayjs';
 import { useEffect, useRef } from 'react';
-import React from 'react';
 import { Link } from 'react-router-dom';
 
 import {
@@ -17,7 +16,6 @@ import {
   formatCurrency,
   valueTextColor,
 } from '@frontend/components/forms/CurrencyInput';
-import { useTranslations } from '@frontend/stores/lang';
 import { TableCodeCheckbox } from '@frontend/views/WorkTable/CodeCheckbox';
 import { TableCodeSelect } from '@frontend/views/WorkTable/CodeSelect';
 import { CodeSpanMulti } from '@frontend/views/WorkTable/CodeSpanMulti';
@@ -48,26 +46,20 @@ function isFinanceEditingDisabled(row: WorkTableRow, financesRange: FinancesRang
 
   return financesRange < startYear || financesRange > endYear;
 }
-
-type RenderCellType = (params: GridRenderCellParams, totalLabel?: string) => React.ReactNode;
-
 interface MaybeModifiedCellProps<T extends GridValidRowModel> {
   params: GridRenderCellParams<T>;
+  children: React.ReactNode;
   modifiedFields?: ModifiedFields<T>;
-  column: GridColDef<WorkTableRow> & { __isWrapped?: boolean };
-  renderCell: RenderCellType;
 }
 
 function MaybeModifiedCell({
   params,
+  children,
   modifiedFields,
-  column,
-  renderCell,
 }: Readonly<MaybeModifiedCellProps<WorkTableRow>>) {
   const isModified = modifiedFields?.[params.id]?.[params.field as keyof WorkTableRow];
   // WorkTable.tsx defines style with has selector for .modified-cell
   const containerRef = useRef<HTMLDivElement>(null);
-  const tr = useTranslations();
 
   useEffect(() => {
     if (isModified) {
@@ -76,30 +68,6 @@ function MaybeModifiedCell({
       containerRef.current?.parentElement?.classList.remove('modified-cell');
     }
   }, [isModified, containerRef]);
-
-  if (params.row.id === 'sum-row') {
-    if (
-      ['operatives', 'budget', 'actual', 'forecast', 'kayttosuunnitelmanMuutos'].includes(
-        column.field
-      )
-    ) {
-      return (
-        <div
-          css={css`
-            flex: 1;
-          `}
-          ref={containerRef}
-        >
-          {column.field === 'operatives'
-            ? renderCell?.(params, tr('workTable.total'))
-            : renderCell?.(params)}
-        </div>
-      );
-    } else {
-      return null;
-    }
-  }
-
   return (
     <div
       css={css`
@@ -107,7 +75,7 @@ function MaybeModifiedCell({
       `}
       ref={containerRef}
     >
-      {renderCell?.(params)}
+      {children}
     </div>
   );
 }
@@ -292,29 +260,9 @@ const fieldOperatives = {
   field: 'operatives',
   headerName: 'Rakennuttaja / Suunnitteluttaja',
   width: 144,
-  renderCell: ({ value, id }: GridRenderCellParams, totalLabel?: string) => {
-    if (id === 'sum-row') {
-      return (
-        <div>
-          <Typography
-            css={css`
-              font-size: 12px;
-              font-weight: 700;
-              text-align: right;
-              color: black;
-            `}
-            variant="body2"
-          >
-            {totalLabel}
-          </Typography>
-        </div>
-      );
-    }
-    return <ProjectObjectUsers value={value} />;
-  },
+  renderCell: ({ value }: GridRenderCellParams) => <ProjectObjectUsers value={value} />,
   renderEditCell: (params: GridRenderEditCellParams) => {
     const { id, field, value } = params;
-
     return (
       <ProjectObjectUserEdit
         value={value}
@@ -340,27 +288,6 @@ const financesField = (
     width: 128,
     editable: financesRange !== 'allYears',
     renderCell: ({ row, value }: GridRenderCellParams) => {
-      if (row.id === 'sum-row') {
-        return (
-          <div
-            css={css`
-              flex: 1;
-              text-align: right;
-            `}
-          >
-            <Typography
-              css={css`
-                font-weight: 700;
-                font-size: 12px;
-                color: ${CurrencyInputProps?.valueTextColor?.(value) ?? 'black'};
-              `}
-              variant="body2"
-            >
-              {formatCurrency(value)}
-            </Typography>
-          </div>
-        );
-      }
       const startYear = dayjs(row.dateRange.startDate).year();
       const endYear = dayjs(row.dateRange.endDate).year();
       const notInRange =
@@ -464,12 +391,9 @@ export function getColumns({
     sortable: false,
     cellClassName: 'cell-wrap-text',
     renderCell: (params: GridRenderCellParams) => (
-      <MaybeModifiedCell
-        params={params}
-        modifiedFields={modifiedFields}
-        column={column}
-        renderCell={column.renderCell as RenderCellType}
-      />
+      <MaybeModifiedCell params={params} modifiedFields={modifiedFields}>
+        {column.renderCell?.(params)}
+      </MaybeModifiedCell>
     ),
   }));
 }
