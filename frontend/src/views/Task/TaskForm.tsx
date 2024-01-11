@@ -14,6 +14,7 @@ import { CompanyContactSelect } from '@frontend/components/forms/CompanyContactS
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
+import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { getRequiredFields } from '@frontend/utils/form';
 
 import { UpsertTask, upsertTaskSchema } from '@shared/schema/task';
@@ -74,6 +75,8 @@ export function TaskForm(props: Props) {
       endDate: '',
     },
   });
+
+  useNavigationBlocker(form.formState.isDirty, 'taskForm');
 
   useEffect(() => {
     if (props.task) {

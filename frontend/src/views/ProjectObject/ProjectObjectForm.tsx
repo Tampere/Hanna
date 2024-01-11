@@ -28,6 +28,7 @@ import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
 import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
+import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { ProjectTypePath } from '@frontend/types';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
@@ -196,6 +197,8 @@ export function ProjectObjectForm(props: Props) {
     },
   });
 
+  useNavigationBlocker(form.formState.isDirty, 'projectObjectForm');
+
   useEffect(() => {
     if (props.projectObject) {
       form.reset(props.projectObject);
@@ -249,269 +252,275 @@ export function ProjectObjectForm(props: Props) {
   };
 
   return (
-    <FormProvider {...form}>
-      {!props.projectObject && <SectionTitle title={tr('newProjectObject.title')} />}
-      {props.projectObject && (
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <SectionTitle title={tr('projectObject.formTitle')} />
-          {!form.formState.isDirty && !editing ? (
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => setEditing(!editing)}
-              endIcon={<Edit />}
-            >
-              {tr('projectForm.editBtnLabel')}
-            </Button>
-          ) : (
-            <Button
-              variant="outlined"
-              size="small"
-              color="secondary"
-              onClick={() => {
-                form.reset();
-                setEditing(!editing);
-              }}
-              endIcon={<Undo />}
-            >
-              {tr('projectForm.undoBtnLabel')}
-            </Button>
-          )}
-        </Box>
-      )}
-      <form
-        id="projectObjectForm"
-        css={newProjectFormStyle}
-        onSubmit={form.handleSubmit(onSubmit)}
-        autoComplete="off"
-      >
-        <FormField
-          formField="objectName"
-          label={tr('projectObject.nameLabel')}
-          tooltip={tr('projectObject.nameTooltip')}
-          component={(field) => (
-            <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
-          )}
-        />
-
-        <FormField
-          formField="description"
-          label={tr('projectObject.descriptionLabel')}
-          tooltip={tr('projectObject.descriptionTooltip')}
-          component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
-        />
-
-        {!props.projectId && (
+    <>
+      <FormProvider {...form}>
+        {!props.projectObject && <SectionTitle title={tr('newProjectObject.title')} />}
+        {props.projectObject && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <SectionTitle title={tr('projectObject.formTitle')} />
+            {!form.formState.isDirty && !editing ? (
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => setEditing(!editing)}
+                endIcon={<Edit />}
+              >
+                {tr('projectForm.editBtnLabel')}
+              </Button>
+            ) : (
+              <Button
+                variant="outlined"
+                size="small"
+                color="secondary"
+                onClick={() => {
+                  form.reset();
+                  setEditing(!editing);
+                }}
+                endIcon={<Undo />}
+              >
+                {tr('projectForm.undoBtnLabel')}
+              </Button>
+            )}
+          </Box>
+        )}
+        <form
+          id="projectObjectForm"
+          css={newProjectFormStyle}
+          onSubmit={form.handleSubmit(onSubmit)}
+          autoComplete="off"
+        >
           <FormField
-            formField="projectId"
-            label={tr('projectObject.projectLabel')}
-            tooltip={tr('projectObject.projectTooltip')}
-            component={({ ref, ...field }) => {
-              return (
-                <ProjectAutoComplete
-                  {...readonlyProps}
-                  {...field}
-                  onChange={(value) => {
-                    props.setProjectId?.(value ?? '');
-                    field.onChange(value);
-                    form.setValue('sapWBSId', null);
-                  }}
-                />
-              );
-            }}
+            formField="objectName"
+            label={tr('projectObject.nameLabel')}
+            tooltip={tr('projectObject.nameTooltip')}
+            component={(field) => (
+              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
+            )}
           />
-        )}
 
-        <FormField
-          formField="suunnitteluttajaUser"
-          label={tr('projectObject.suunnitteluttajaUserLabel')}
-          tooltip={tr('projectObject.suunnitteluttajaUserTooltip')}
-          component={({ id, onChange, value }) => (
-            <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
-          )}
-        />
+          <FormField
+            formField="description"
+            label={tr('projectObject.descriptionLabel')}
+            tooltip={tr('projectObject.descriptionTooltip')}
+            component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
+          />
 
-        <FormField
-          formField="rakennuttajaUser"
-          label={tr('projectObject.rakennuttajaUserLabel')}
-          tooltip={tr('projectObject.rakennuttajaUserTooltip')}
-          component={({ id, onChange, value }) => (
-            <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
-          )}
-        />
-
-        <FormField
-          formField="lifecycleState"
-          label={tr('projectObject.lifecycleStateLabel')}
-          tooltip={tr('projectObject.lifecycleStateTooltip')}
-          component={({ ref, ...field }) => (
-            <CodeSelect {...field} codeListId="KohteenElinkaarentila" readOnly={!editing} />
-          )}
-        />
-
-        <FormField
-          formField="objectType"
-          label={tr('projectObject.objectTypeLabel')}
-          tooltip={tr('projectObject.objectTypeTooltip')}
-          component={({ ref, ...field }) => (
-            <CodeSelect
-              {...field}
-              multiple
-              codeListId="KohdeTyyppi"
-              readOnly={!editing}
-              maxTags={3}
-            />
-          )}
-        />
-
-        <FormField
-          formField="objectCategory"
-          label={tr('projectObject.objectCategoryLabel')}
-          tooltip={tr('projectObject.objectCategoryTooltip')}
-          component={({ ref, ...field }) => (
-            <CodeSelect
-              {...field}
-              multiple
-              codeListId="KohteenOmaisuusLuokka"
-              readOnly={!editing}
-            />
-          )}
-        />
-
-        <FormField
-          formField="objectUsage"
-          label={tr('projectObject.objectUsageLabel')}
-          tooltip={tr('projectObject.objectUsageTooltip')}
-          component={({ ref, ...field }) => (
-            <CodeSelect
-              {...field}
-              multiple
-              codeListId="KohteenToiminnallinenKayttoTarkoitus"
-              readOnly={!editing}
-            />
-          )}
-        />
-
-        <FormField
-          formField="startDate"
-          label={tr('projectObject.startDateLabel')}
-          tooltip={tr('projectObject.startDateTooltip')}
-          component={(field) => (
-            <FormDatePicker
-              maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
-              readOnly={!editing}
-              field={field}
-            />
-          )}
-        />
-
-        <FormField
-          formField="endDate"
-          label={tr('projectObject.endDateLabel')}
-          tooltip={tr('projectObject.endDateTooltip')}
-          component={(field) => (
-            <FormDatePicker
-              minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
-              readOnly={!editing}
-              field={field}
-            />
-          )}
-        />
-
-        <FormField
-          formField="sapWBSId"
-          label={tr('projectObject.sapWBSIdLabel')}
-          tooltip={tr('projectObject.sapWBSIdTooltip')}
-          component={(field) => (
-            <SapWBSSelect projectId={formProjectId} readonlyProps={readonlyProps} field={field} />
-          )}
-        />
-
-        <FormField
-          formField="landownership"
-          label={tr('projectObject.landownershipLabel')}
-          tooltip={tr('projectObject.landownershipTooltip')}
-          component={({ ref, ...field }) => (
-            <CodeSelect {...field} codeListId="KohteenMaanomistusLaji" readOnly={!editing} />
-          )}
-        />
-
-        <FormField
-          formField="locationOnProperty"
-          label={tr('projectObject.locationOnPropertyLabel')}
-          tooltip={tr('projectObject.locationOnPropertyTooltip')}
-          component={({ ref, ...field }) => (
-            <CodeSelect {...field} codeListId="KohteenSuhdePeruskiinteistoon" readOnly={!editing} />
-          )}
-        />
-
-        <FormField
-          formField="height"
-          label={tr('projectObject.heightLabel')}
-          tooltip={tr('projectObject.heightTooltip')}
-          component={(field) => (
-            <TextField
-              {...readonlyProps}
-              {...field}
-              value={field.value ?? ''}
-              size="small"
-              type="number"
-              InputProps={{
-                endAdornment: <InputAdornment position="end">m</InputAdornment>,
+          {!props.projectId && (
+            <FormField
+              formField="projectId"
+              label={tr('projectObject.projectLabel')}
+              tooltip={tr('projectObject.projectTooltip')}
+              component={({ ref, ...field }) => {
+                return (
+                  <ProjectAutoComplete
+                    {...readonlyProps}
+                    {...field}
+                    onChange={(value) => {
+                      props.setProjectId?.(value ?? '');
+                      field.onChange(value);
+                      form.setValue('sapWBSId', null);
+                    }}
+                  />
+                );
               }}
             />
           )}
-        />
 
-        {!props.projectObject && (!props.geom || props.geom === '[]') && (
-          <Alert sx={{ mt: 1 }} severity="info">
-            {tr('projectObjectForm.infoNoGeom')}
-          </Alert>
-        )}
+          <FormField
+            formField="suunnitteluttajaUser"
+            label={tr('projectObject.suunnitteluttajaUserLabel')}
+            tooltip={tr('projectObject.suunnitteluttajaUserTooltip')}
+            component={({ id, onChange, value }) => (
+              <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
+            )}
+          />
 
-        {!props.projectObject && props.navigateTo && (
-          <div
-            css={css`
-              margin-top: 16px;
-              display: flex;
-              justify-content: space-between;
-            `}
-          >
-            <Button component={Link} to={props.navigateTo} variant="outlined">
-              {tr('cancel')}
+          <FormField
+            formField="rakennuttajaUser"
+            label={tr('projectObject.rakennuttajaUserLabel')}
+            tooltip={tr('projectObject.rakennuttajaUserTooltip')}
+            component={({ id, onChange, value }) => (
+              <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
+            )}
+          />
+
+          <FormField
+            formField="lifecycleState"
+            label={tr('projectObject.lifecycleStateLabel')}
+            tooltip={tr('projectObject.lifecycleStateTooltip')}
+            component={({ ref, ...field }) => (
+              <CodeSelect {...field} codeListId="KohteenElinkaarentila" readOnly={!editing} />
+            )}
+          />
+
+          <FormField
+            formField="objectType"
+            label={tr('projectObject.objectTypeLabel')}
+            tooltip={tr('projectObject.objectTypeTooltip')}
+            component={({ ref, ...field }) => (
+              <CodeSelect
+                {...field}
+                multiple
+                codeListId="KohdeTyyppi"
+                readOnly={!editing}
+                maxTags={3}
+              />
+            )}
+          />
+
+          <FormField
+            formField="objectCategory"
+            label={tr('projectObject.objectCategoryLabel')}
+            tooltip={tr('projectObject.objectCategoryTooltip')}
+            component={({ ref, ...field }) => (
+              <CodeSelect
+                {...field}
+                multiple
+                codeListId="KohteenOmaisuusLuokka"
+                readOnly={!editing}
+              />
+            )}
+          />
+
+          <FormField
+            formField="objectUsage"
+            label={tr('projectObject.objectUsageLabel')}
+            tooltip={tr('projectObject.objectUsageTooltip')}
+            component={({ ref, ...field }) => (
+              <CodeSelect
+                {...field}
+                multiple
+                codeListId="KohteenToiminnallinenKayttoTarkoitus"
+                readOnly={!editing}
+              />
+            )}
+          />
+
+          <FormField
+            formField="startDate"
+            label={tr('projectObject.startDateLabel')}
+            tooltip={tr('projectObject.startDateTooltip')}
+            component={(field) => (
+              <FormDatePicker
+                maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
+                readOnly={!editing}
+                field={field}
+              />
+            )}
+          />
+
+          <FormField
+            formField="endDate"
+            label={tr('projectObject.endDateLabel')}
+            tooltip={tr('projectObject.endDateTooltip')}
+            component={(field) => (
+              <FormDatePicker
+                minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
+                readOnly={!editing}
+                field={field}
+              />
+            )}
+          />
+
+          <FormField
+            formField="sapWBSId"
+            label={tr('projectObject.sapWBSIdLabel')}
+            tooltip={tr('projectObject.sapWBSIdTooltip')}
+            component={(field) => (
+              <SapWBSSelect projectId={formProjectId} readonlyProps={readonlyProps} field={field} />
+            )}
+          />
+
+          <FormField
+            formField="landownership"
+            label={tr('projectObject.landownershipLabel')}
+            tooltip={tr('projectObject.landownershipTooltip')}
+            component={({ ref, ...field }) => (
+              <CodeSelect {...field} codeListId="KohteenMaanomistusLaji" readOnly={!editing} />
+            )}
+          />
+
+          <FormField
+            formField="locationOnProperty"
+            label={tr('projectObject.locationOnPropertyLabel')}
+            tooltip={tr('projectObject.locationOnPropertyTooltip')}
+            component={({ ref, ...field }) => (
+              <CodeSelect
+                {...field}
+                codeListId="KohteenSuhdePeruskiinteistoon"
+                readOnly={!editing}
+              />
+            )}
+          />
+
+          <FormField
+            formField="height"
+            label={tr('projectObject.heightLabel')}
+            tooltip={tr('projectObject.heightTooltip')}
+            component={(field) => (
+              <TextField
+                {...readonlyProps}
+                {...field}
+                value={field.value ?? ''}
+                size="small"
+                type="number"
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">m</InputAdornment>,
+                }}
+              />
+            )}
+          />
+
+          {!props.projectObject && (!props.geom || props.geom === '[]') && (
+            <Alert sx={{ mt: 1 }} severity="info">
+              {tr('projectObjectForm.infoNoGeom')}
+            </Alert>
+          )}
+
+          {!props.projectObject && props.navigateTo && (
+            <div
+              css={css`
+                margin-top: 16px;
+                display: flex;
+                justify-content: space-between;
+              `}
+            >
+              <Button component={Link} to={props.navigateTo} variant="outlined">
+                {tr('cancel')}
+              </Button>
+
+              <SaveOptionsButton form={form} onSubmit={saveAndReturn} />
+            </div>
+          )}
+
+          {!props.projectObject && !props.navigateTo && (
+            <Button
+              disabled={!form.formState.isValid}
+              type="submit"
+              sx={{ mt: 2 }}
+              variant="contained"
+              color="primary"
+              size="small"
+              endIcon={<AddCircle />}
+            >
+              {tr('projectObjectForm.createBtnLabel')}
             </Button>
+          )}
 
-            <SaveOptionsButton form={form} onSubmit={saveAndReturn} />
-          </div>
-        )}
-
-        {!props.projectObject && !props.navigateTo && (
-          <Button
-            disabled={!form.formState.isValid}
-            type="submit"
-            sx={{ mt: 2 }}
-            variant="contained"
-            color="primary"
-            size="small"
-            endIcon={<AddCircle />}
-          >
-            {tr('projectObjectForm.createBtnLabel')}
-          </Button>
-        )}
-
-        {props.projectObject && editing && (
-          <Button
-            size="small"
-            type="submit"
-            variant="contained"
-            sx={{ mt: 2 }}
-            disabled={!form.formState.isValid || !form.formState.isDirty}
-            endIcon={<Save />}
-          >
-            {tr('projectObjectForm.saveBtnLabel')}
-          </Button>
-        )}
-      </form>
-    </FormProvider>
+          {props.projectObject && editing && (
+            <Button
+              size="small"
+              type="submit"
+              variant="contained"
+              sx={{ mt: 2 }}
+              disabled={!form.formState.isValid || !form.formState.isDirty}
+              endIcon={<Save />}
+            >
+              {tr('projectObjectForm.saveBtnLabel')}
+            </Button>
+          )}
+        </form>
+      </FormProvider>
+    </>
   );
 }

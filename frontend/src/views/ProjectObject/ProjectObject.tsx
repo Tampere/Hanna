@@ -5,7 +5,7 @@ import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { ReactElement, useMemo, useState } from 'react';
 import { useLocation, useParams } from 'react-router';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
@@ -55,13 +55,13 @@ function projectObjectTabs(
     },
     {
       tabView: 'talous',
-      url: `/${projectType}/${projectId}/kohde/${projectObjectId}/talous`,
+      url: `/${projectType}/${projectId}/kohde/${projectObjectId}?tab=talous`,
       label: 'project.financeTabLabel',
       icon: <Euro fontSize="small" />,
     },
     {
       tabView: 'tehtavat',
-      url: `/${projectType}/${projectId}/kohde/${projectObjectId}/tehtavat`,
+      url: `/${projectType}/${projectId}/kohde/${projectObjectId}?tab=tehtavat`,
       label: 'task.tasks',
       icon: <Assignment fontSize="small" />,
     },
@@ -87,7 +87,8 @@ export function ProjectObject(props: Props) {
   const navigateTo = new URLSearchParams(location.search).get('from');
 
   const projectObjectId = routeParams?.projectObjectId;
-  const tabView = routeParams.tabView ?? 'default';
+  const [searchParams] = useSearchParams();
+  const tabView = searchParams.get('tab') || 'default';
   const tabs = projectObjectTabs(routeParams.projectId, props.projectType, projectObjectId);
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
 
@@ -175,7 +176,7 @@ export function ProjectObject(props: Props) {
           <Chip
             clickable={true}
             component={Link}
-            to={`/${props.projectType}/${routeParams.projectId}/kohteet`}
+            to={`/${props.projectType}/${routeParams.projectId}?tab=kohteet`}
             label={<u>{project.data?.projectName}</u>}
           />
         )}
@@ -232,7 +233,7 @@ export function ProjectObject(props: Props) {
             ))}
           </Tabs>
 
-          {!routeParams.tabView && (
+          {!searchParams.get('tab') && (
             <Box css={mapContainerStyle}>
               <MapWrapper
                 geoJson={projectObject?.data?.geom}
@@ -251,12 +252,14 @@ export function ProjectObject(props: Props) {
             </Box>
           )}
 
-          {routeParams.tabView && (
+          {searchParams.get('tab') && (
             <Box sx={{ m: 2 }}>
-              {routeParams.tabView === 'talous' && projectObject.data && (
+              {searchParams.get('tab') === 'talous' && projectObject.data && (
                 <ProjectObjectFinances projectObject={projectObject.data} />
               )}
-              {routeParams.tabView === 'tehtavat' && <Tasks projectObjectId={projectObjectId} />}
+              {searchParams.get('tab') === 'tehtavat' && (
+                <Tasks projectObjectId={projectObjectId} />
+              )}
             </Box>
           )}
         </Paper>

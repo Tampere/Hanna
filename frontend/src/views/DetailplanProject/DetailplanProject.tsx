@@ -1,7 +1,7 @@
 import { AccountTree, Mail, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography, css } from '@mui/material';
 import { ReactElement } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
@@ -49,13 +49,13 @@ function getTabs(projectId: string): Tab[] {
     },
     {
       tabView: 'sidoshankkeet',
-      url: `/asemakaavahanke/${projectId}/sidoshankkeet`,
+      url: `/asemakaavahanke/${projectId}?tab=sidoshankkeet`,
       label: 'project.relatedProjectsTabLabel',
       icon: <AccountTree fontSize="small" />,
     },
     {
       tabView: 'tiedotus',
-      url: `/asemakaavahanke/${projectId}/tiedotus`,
+      url: `/asemakaavahanke/${projectId}?tab=tiedotus`,
       label: 'detailplanProject.notification',
       icon: <Mail fontSize="small" />,
     },
@@ -64,7 +64,8 @@ function getTabs(projectId: string): Tab[] {
 
 export function DetailplanProject() {
   const routeParams = useParams() as { projectId: string; tabView: TabView };
-  const tabView = routeParams.tabView ?? 'default';
+  const [searchParams] = useSearchParams();
+  const tabView = searchParams.get('tab') || 'default';
   const tabs = getTabs(routeParams.projectId);
   const projectId = routeParams?.projectId;
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
@@ -145,7 +146,7 @@ export function DetailplanProject() {
             ))}
           </Tabs>
 
-          {!routeParams.tabView && (
+          {tabView === 'default' && (
             <Box css={mapContainerStyle}>
               <MapWrapper
                 geoJson={project.data?.geom}
@@ -156,12 +157,12 @@ export function DetailplanProject() {
             </Box>
           )}
 
-          {routeParams.tabView && (
+          {tabView !== 'default' && (
             <Box sx={{ p: 2, overflowY: 'auto' }}>
-              {routeParams.tabView === 'sidoshankkeet' && (
+              {tabView === 'sidoshankkeet' && (
                 <ProjectRelations projectId={routeParams.projectId} />
               )}
-              {routeParams.tabView === 'tiedotus' && (
+              {tabView === 'tiedotus' && (
                 <DetailplanProjectNotification projectId={routeParams.projectId} />
               )}
             </Box>
