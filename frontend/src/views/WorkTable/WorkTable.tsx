@@ -298,7 +298,7 @@ export default function WorkTable() {
         columns={columns}
         rows={workTableData.data ?? []}
         rowSelection={false}
-        hideFooter
+        //hideFooter
         onCellKeyDown={(_params, event) => {
           // restrict the keyboard behavior to only the keys we want to handle
           if (!['Enter', 'NumpadEnter', 'Backspace', 'Delete'].includes(event.key)) {
