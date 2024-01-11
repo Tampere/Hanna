@@ -4,7 +4,7 @@ import { AddCircle, Edit, HourglassFullTwoTone, Save, Undo } from '@mui/icons-ma
 import { Alert, Box, Button, TextField, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { useAtom, useAtomValue } from 'jotai';
+import { useAtomValue } from 'jotai';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
@@ -134,6 +134,12 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
       });
     },
   });
+
+  useEffect(() => {
+    if (form.formState.isSubmitSuccessful && !props.project) {
+      form.reset();
+    }
+  }, [form.formState.isSubmitSuccessful, form.reset]);
 
   const onSubmit = (data: InvestmentProject | DbInvestmentProject) => {
     projectUpsert.mutate({ ...data, geom: props.geom });

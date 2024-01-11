@@ -237,6 +237,12 @@ export function ProjectObjectForm(props: Props) {
     },
   });
 
+  useEffect(() => {
+    if (form.formState.isSubmitSuccessful && !props.projectObject) {
+      form.reset();
+    }
+  }, [form.formState.isSubmitSuccessful, form.reset]);
+
   const onSubmit = (data: UpsertProjectObject) =>
     projectObjectUpsert.mutate({ ...data, geom: props.geom });
 
@@ -253,28 +259,28 @@ export function ProjectObjectForm(props: Props) {
 
   return (
     <>
-     <FormProvider {...form}>
-      {!props.projectObject && <SectionTitle title={tr('newProjectObject.title')} />}
-      {props.projectObject && (
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <SectionTitle title={tr('projectObject.formTitle')} />
-          {!editing ? (
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => setEditing(!editing)}
-              endIcon={<Edit />}
-            >
-              {tr('projectForm.editBtnLabel')}
-            </Button>
-          ) : (
-            <Button
-              variant="outlined"
-              size="small"
-              color="secondary"
-              onClick={() => {
-                form.reset();
-                setEditing(!editing);
+      <FormProvider {...form}>
+        {!props.projectObject && <SectionTitle title={tr('newProjectObject.title')} />}
+        {props.projectObject && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <SectionTitle title={tr('projectObject.formTitle')} />
+            {!editing ? (
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => setEditing(!editing)}
+                endIcon={<Edit />}
+              >
+                {tr('projectForm.editBtnLabel')}
+              </Button>
+            ) : (
+              <Button
+                variant="outlined"
+                size="small"
+                color="secondary"
+                onClick={() => {
+                  form.reset();
+                  setEditing(!editing);
                 }}
                 endIcon={<Undo />}
               >
@@ -506,7 +512,6 @@ export function ProjectObjectForm(props: Props) {
             >
               {tr('projectObjectForm.createBtnLabel')}
             </Button>
-
           )}
 
           {props.projectObject && editing && (

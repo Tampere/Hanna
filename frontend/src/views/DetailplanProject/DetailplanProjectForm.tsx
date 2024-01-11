@@ -158,6 +158,12 @@ export function DetailplanProjectForm(props: Props) {
     },
   });
 
+  useEffect(() => {
+    if (form.formState.isSubmitSuccessful && !props.project) {
+      form.reset();
+    }
+  }, [form.formState.isSubmitSuccessful, form.reset]);
+
   const onSubmit = (data: DetailplanProject | DbDetailplanProject) => projectUpsert.mutate(data);
 
   return (
