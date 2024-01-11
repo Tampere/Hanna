@@ -8,7 +8,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
-import { NavigationBlocker } from '@frontend/components/Map/NavigationBlocker';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { useDebounce } from '@frontend/utils/useDebounce';
@@ -40,7 +39,6 @@ const dataGridStyle = (theme: Theme) => css`
     animation-name: fadeInOut;
     animation-duration: 5000ms;
   }
-
   & .MuiDataGrid-columnHeaders {
     background: ${theme.palette.primary.main};
     color: white;
@@ -56,16 +54,6 @@ const dataGridStyle = (theme: Theme) => css`
   }
   & .modified-cell {
     background-color: lightyellow;
-  }
-  & .MuiDataGrid-row--lastVisible.MuiDataGrid-row--lastVisible {
-    border-top: double ${theme.palette.primary.main};
-    position: sticky;
-    bottom: 0;
-    background-color: white;
-    color: ${theme.palette.primary.main};
-  }
-  & .MuiDataGrid-virtualScrollerRenderZone {
-    border-bottom: none;
   }
 `;
 
@@ -155,8 +143,6 @@ export default function WorkTable() {
   const columns = useMemo(() => {
     return getColumns({ modifiedFields, financesRange: searchParams.financesRange });
   }, [modifiedFields]);
-
-  const rows = useMemo(() => getRows(), [workTableData]);
 
   useEffect(() => {
     setEditEvents([]);
@@ -261,84 +247,6 @@ export default function WorkTable() {
     updateObjects.mutateAsync(updateData);
   }
 
-  function calculateRowSum(values: number[]) {
-    return values.reduce((sum, value) => sum + value, 0);
-  }
-
-  function getSumRow(
-    budget: number,
-    actual: number,
-    forecast: number,
-    kayttosuunnitelmanMuutos: number
-  ): WorkTableRow {
-    return {
-      id: 'sum-row',
-      objectName: '',
-      lifecycleState: '',
-      dateRange: { startDate: '', endDate: '' },
-      projectLink: { projectId: '', projectName: '' },
-      objectType: [],
-      objectCategory: [],
-      objectUsage: [],
-      operatives: { suunnitteluttajaUser: '', rakennuttajaUser: '' },
-      budgetYear: NaN,
-      budget: budget,
-      actual: actual,
-      forecast: forecast,
-      kayttosuunnitelmanMuutos: kayttosuunnitelmanMuutos,
-    };
-  }
-
-  function getRows() {
-    if (!workTableData?.data || workTableData.data.length === 0) return [];
-    return [
-      ...workTableData.data,
-      getSumRow(
-        calculateRowSum(
-          workTableData.data
-            .map((data: WorkTableRow) =>
-              Number(
-                editEvents.find((event) => event.rowId === data.id && event.field === 'budget')
-                  ?.newValue ?? data.budget
-              )
-            )
-            .filter((budget) => !isNaN(budget))
-        ),
-        calculateRowSum(
-          workTableData.data
-            .map((data) =>
-              Number(
-                editEvents.find((event) => event.rowId === data.id && event.field === 'actual')
-                  ?.newValue ?? data.actual
-              )
-            )
-            .filter((actual) => !isNaN(actual))
-        ),
-        calculateRowSum(
-          workTableData.data
-            .map((data) =>
-              Number(
-                editEvents.find((event) => event.rowId === data.id && event.field === 'forecast')
-                  ?.newValue ?? data.forecast
-              )
-            )
-            .filter((forecast) => !isNaN(forecast))
-        ),
-        calculateRowSum(
-          workTableData.data
-            .map((data) =>
-              Number(
-                editEvents.find(
-                  (event) => event.rowId === data.id && event.field === 'kayttosuunnitelmanMuutos'
-                )?.newValue ?? data.kayttosuunnitelmanMuutos
-              )
-            )
-            .filter((muutos) => !isNaN(muutos))
-        )
-      ),
-    ];
-  }
-
   return (
     <Box
       css={css`
@@ -388,8 +296,7 @@ export default function WorkTable() {
         css={dataGridStyle}
         density={'standard'}
         columns={columns}
-        rows={rows}
-        isCellEditable={(params) => params.row.id !== 'sum-row'}
+        rows={workTableData.data ?? []}
         rowSelection={false}
         hideFooter
         onCellKeyDown={(_params, event) => {
@@ -407,7 +314,6 @@ export default function WorkTable() {
         }}
         disableColumnMenu
       />
-
       <Box
         css={(theme) => css`
           padding: ${theme.spacing(1)};
@@ -465,7 +371,6 @@ export default function WorkTable() {
           </Button>
         </Box>
       </Box>
-      <NavigationBlocker condition={editEvents.length > 0} />
     </Box>
   );
 }
