@@ -247,6 +247,35 @@ export default function WorkTable() {
     updateObjects.mutateAsync(updateData);
   }
 
+  function calculateRowSum(values: number[]) {
+    return values.reduce((sum, value) => sum + value, 0) / 100;
+  }
+
+  function getSummaryData(
+    fieldName: 'budget' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos'
+  ) {
+    const eurFormat = new Intl.NumberFormat('fi-FI', {
+      style: 'currency',
+      currency: 'EUR',
+    });
+
+    if (!workTableData?.data) {
+      return eurFormat.format(0);
+    }
+    const sum = calculateRowSum(
+      workTableData.data
+        .map((data: WorkTableRow) =>
+          Number(
+            editEvents.find((event) => event.rowId === data.id && event.field === fieldName)
+              ?.newValue ?? data[fieldName]
+          )
+        )
+        .filter((data) => !isNaN(data))
+    );
+
+    return eurFormat.format(sum);
+  }
+
   return (
     <Box
       css={css`
@@ -279,6 +308,53 @@ export default function WorkTable() {
         yearRange={yearRange}
         setSearchParams={setSearchParams}
       />
+      <Box
+        css={(theme) => css`
+          display: flex;
+          justify-content: flex-end;
+          flex-wrap: wrap;
+          padding: 1rem 0;
+          gap: 2rem;
+          align-items: flex-end;
+
+          .summaryContainer {
+            display: flex;
+            flex-direction: column;
+            text-align: right;
+          }
+          .summaryLabel {
+            max-width: 150px;
+            font-size: 0.75rem;
+            color: ${theme.palette.primary.dark};
+            line-height: 1.2;
+          }
+          .summaryValue {
+            margin-left: auto;
+            font-size: 0.9rem;
+          }
+        `}
+      >
+        <Box className="summaryContainer">
+          <Typography className="summaryLabel">{tr('workTable.summary.budget')}:</Typography>
+          <Typography className="summaryValue">{getSummaryData('budget')}</Typography>
+        </Box>
+        <Box className="summaryContainer">
+          <Typography className="summaryLabel">{tr('workTable.summary.actual')}:</Typography>
+          <Typography className="summaryValue">{getSummaryData('actual')}</Typography>
+        </Box>
+        <Box className="summaryContainer">
+          <Typography className="summaryLabel">{tr('workTable.summary.forecast')}:</Typography>
+          <Typography className="summaryValue">{getSummaryData('forecast')}</Typography>
+        </Box>
+        <Box className="summaryContainer" style={{ width: 'min-content' }}>
+          <Typography className="summaryLabel">
+            {tr('workTable.summary.kayttosuunnitelmanMuutos')}:
+          </Typography>
+          <Typography className="summaryValue">
+            {getSummaryData('kayttosuunnitelmanMuutos')}
+          </Typography>
+        </Box>
+      </Box>
       <DataGrid
         disableVirtualization
         loading={workTableData.isLoading}
