@@ -399,7 +399,7 @@
   "workTable.summary.budget": "Talousarvio yhteensä",
   "workTable.summary.actual": "Toteuma yhteensä",
   "workTable.summary.forecast": "Ennuste yhteensä",
-  "workTable.summary.kayttosuunnitelmanMuutos": "Kayttösuunnitelman muutos yhteensä",
+  "workTable.summary.kayttosuunnitelmanMuutos": "Käyttösuunnitelman muutos yhteensä",
   "dataTable.error": "Tietojen haussa tapahtui virhe. Yritä myöhemmin uudestaan.",
   "dataTable.noData": "Ei hakutuloksia.",
   "email.subject": "Aihe",
