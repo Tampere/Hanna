@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { AddCircleOutline, Cancel, Redo, Save, Undo } from '@mui/icons-material';
-import { Box, Button, IconButton, Theme, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Divider, IconButton, Paper, Theme, Tooltip, Typography } from '@mui/material';
 import { DataGrid, fiFI, useGridApiRef } from '@mui/x-data-grid';
 import { atom, useAtom } from 'jotai';
 import diff from 'microdiff';
@@ -284,77 +284,83 @@ export default function WorkTable() {
         height: 100%;
       `}
     >
-      <Box
+      <Paper
         css={css`
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 8px;
+          padding: 16px;
+          margin-bottom: 16px;
         `}
       >
-        <Typography variant="h4">{tr('workTable.title')}</Typography>
-        <Button
-          variant="contained"
-          component={Link}
-          to="/kohde/uusi?from=/investointiohjelma"
-          endIcon={<AddCircleOutline />}
-        >
-          {tr('workTable.newProjectObjectBtnLabel')}
-        </Button>
-      </Box>
-      <WorkTableFilters
-        readOnly={editEvents.length > 0}
-        searchParams={searchParams}
-        yearRange={yearRange}
-        setSearchParams={setSearchParams}
-      />
-      <Box
-        css={(theme) => css`
-          display: flex;
-          justify-content: flex-end;
-          flex-wrap: wrap;
-          padding: 1rem 0;
-          gap: 2rem;
-          align-items: flex-end;
-
-          .summaryContainer {
+        <Box
+          css={css`
             display: flex;
-            flex-direction: column;
-            text-align: right;
-          }
-          .summaryLabel {
-            max-width: 150px;
-            font-size: 0.75rem;
-            color: ${theme.palette.primary.dark};
-            line-height: 1.2;
-          }
-          .summaryValue {
-            margin-left: auto;
-            font-size: 0.9rem;
-          }
-        `}
-      >
-        <Box className="summaryContainer">
-          <Typography className="summaryLabel">{tr('workTable.summary.budget')}:</Typography>
-          <Typography className="summaryValue">{getSummaryData('budget')}</Typography>
-        </Box>
-        <Box className="summaryContainer">
-          <Typography className="summaryLabel">{tr('workTable.summary.actual')}:</Typography>
-          <Typography className="summaryValue">{getSummaryData('actual')}</Typography>
-        </Box>
-        <Box className="summaryContainer">
-          <Typography className="summaryLabel">{tr('workTable.summary.forecast')}:</Typography>
-          <Typography className="summaryValue">{getSummaryData('forecast')}</Typography>
-        </Box>
-        <Box className="summaryContainer" style={{ width: 'min-content' }}>
-          <Typography className="summaryLabel">
-            {tr('workTable.summary.kayttosuunnitelmanMuutos')}:
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+          `}
+        >
+          <Typography variant="h4" data-testid="worktable-title">
+            {tr('workTable.title')}
           </Typography>
-          <Typography className="summaryValue">
-            {getSummaryData('kayttosuunnitelmanMuutos')}
-          </Typography>
+          <Button
+            variant="contained"
+            component={Link}
+            to="/kohde/uusi?from=/investointiohjelma"
+            endIcon={<AddCircleOutline />}
+          >
+            {tr('workTable.newProjectObjectBtnLabel')}
+          </Button>
         </Box>
-      </Box>
+        <WorkTableFilters
+          readOnly={editEvents.length > 0}
+          searchParams={searchParams}
+          yearRange={yearRange}
+          setSearchParams={setSearchParams}
+        />
+        <Divider
+          css={css`
+            margin-top: 24px;
+            margin-bottom: 24px;
+          `}
+        />
+        <Box
+          css={(theme) => css`
+            display: flex;
+            padding: 1rem 0;
+            gap: 2rem;
+
+            .summaryContainer {
+              display: flex;
+              gap: 10px;
+              align-items: flex-end;
+            }
+            .summaryLabel {
+              font-weight: 600;
+              white-space: nowrap;
+              color: ${theme.palette.primary.main};
+            }
+          `}
+        >
+          <Box className="summaryContainer">
+            <Typography className="summaryLabel">{tr('workTable.summary.budget')}:</Typography>
+            <Typography>{getSummaryData('budget')}</Typography>
+          </Box>
+          <Box className="summaryContainer">
+            <Typography className="summaryLabel">{tr('workTable.summary.actual')}:</Typography>
+            <Typography>{getSummaryData('actual')}</Typography>
+          </Box>
+          <Box className="summaryContainer">
+            <Typography className="summaryLabel">{tr('workTable.summary.forecast')}:</Typography>
+            <Typography>{getSummaryData('forecast')}</Typography>
+          </Box>
+          <Box className="summaryContainer">
+            <Typography className="summaryLabel" style={{ whiteSpace: 'normal' }}>
+              {tr('workTable.summary.kayttosuunnitelmanMuutos')}:
+            </Typography>
+            <Typography>{getSummaryData('kayttosuunnitelmanMuutos')}</Typography>
+          </Box>
+        </Box>
+      </Paper>
+
       <DataGrid
         disableVirtualization
         loading={workTableData.isLoading}
@@ -374,7 +380,8 @@ export default function WorkTable() {
         columns={columns}
         rows={workTableData.data ?? []}
         rowSelection={false}
-        //hideFooter
+        initialState={{ pagination: { paginationModel: { page: 0, pageSize: 1000 } } }}
+        pageSizeOptions={[100, 500, 1000]}
         onCellKeyDown={(_params, event) => {
           // restrict the keyboard behavior to only the keys we want to handle
           if (!['Enter', 'NumpadEnter', 'Backspace', 'Delete'].includes(event.key)) {

@@ -31,6 +31,8 @@ FROM base AS frontend-build
 WORKDIR ${APPDIR}/frontend
 
 COPY frontend/package*.json ./
+COPY frontend/patches ./patches
+
 RUN npm ci
 
 COPY frontend ./

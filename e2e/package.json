@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "codegen": "playwright codegen https://localhost:1443",
+    "test-ui": "playwright test --ui",
     "test": "playwright test",
     "watch": "nodemon"
   },
