@@ -4,6 +4,7 @@ frontend/*
 !frontend/package*.json
 !frontend/tsconfig.json
 !frontend/src
+!frontend/patches
 !frontend/index.html
 !frontend/vite.config.ts
 !frontend/.eslintrc.cjs
