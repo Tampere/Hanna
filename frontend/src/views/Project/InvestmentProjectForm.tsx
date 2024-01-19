@@ -17,6 +17,7 @@ import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
 import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
+import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { getRequiredFields } from '@frontend/utils/form';
 
 import { mergeErrors } from '@shared/formerror';
@@ -102,6 +103,8 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
     defaultValues: props.project ?? formDefaultValues,
   });
 
+  useNavigationBlocker(form.formState.isDirty, 'investmentForm');
+
   useEffect(() => {
     form.reset(props.project ?? formDefaultValues);
   }, [props.project]);
@@ -131,6 +134,12 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
       });
     },
   });
+
+  useEffect(() => {
+    if (form.formState.isSubmitSuccessful && !props.project) {
+      form.reset();
+    }
+  }, [form.formState.isSubmitSuccessful, form.reset]);
 
   const onSubmit = (data: InvestmentProject | DbInvestmentProject) => {
     projectUpsert.mutate({ ...data, geom: props.geom });

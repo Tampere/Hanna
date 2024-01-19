@@ -25,8 +25,10 @@ import { Link, Outlet } from 'react-router-dom';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { SessionExpiredWarning } from './SessionExpiredWarning';
+import { NavigationBlocker } from './components/NavigationBlocker';
 import NotificationList from './services/notification';
 import { authAtom, sessionExpiredAtom } from './stores/auth';
+import { blockerStatusAtom } from './stores/navigationBlocker';
 
 const theme = createTheme(
   {
@@ -218,6 +220,7 @@ function VersionIndicator() {
 
 export function Layout() {
   const sessionExpired = useAtomValue(sessionExpiredAtom);
+  const blockerStatus = useAtomValue(blockerStatusAtom);
 
   const mainLayoutStyle = css`
     height: 100vh;
@@ -245,6 +248,7 @@ export function Layout() {
           <NotificationList />
           <Box css={mainContentStyle}>
             <Outlet />
+            <NavigationBlocker status={blockerStatus} />
           </Box>
           <VersionIndicator />
           <SessionExpiredWarning />

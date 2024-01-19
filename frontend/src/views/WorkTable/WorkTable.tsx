@@ -10,6 +10,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
+import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { WorkTableFilters } from '@frontend/views/WorkTable/WorkTableFilters';
 import { getColumns } from '@frontend/views/WorkTable/columns';
@@ -127,6 +128,8 @@ export default function WorkTable() {
 
   const [editEvents, setEditEvents] = useState<CellEditEvent[]>([]);
   const [redoEvents, setRedoEvents] = useState<CellEditEvent[]>([]);
+
+  useNavigationBlocker(editEvents.length > 0, 'worktable');
 
   const modifiedFields = useMemo(() => {
     const fields: ModifiedFields<WorkTableRow> = {};

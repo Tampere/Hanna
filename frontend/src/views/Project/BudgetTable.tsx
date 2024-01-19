@@ -16,10 +16,10 @@ import {
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
-import { NavigationBlocker } from '@frontend/components/Map/NavigationBlocker';
 import { FormField } from '@frontend/components/forms';
 import { CurrencyInput, valueTextColor } from '@frontend/components/forms/CurrencyInput';
 import { useTranslations } from '@frontend/stores/lang';
+import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 
 import { YearBudget } from '@shared/schema/project';
 import { YearlyActuals } from '@shared/schema/sapActuals';
@@ -78,6 +78,8 @@ export function BudgetTable(props: Props) {
   const tr = useTranslations();
   const form = useForm<BudgetFormValues>({ mode: 'all', defaultValues: {} });
   const watch = form.watch();
+
+  useNavigationBlocker(form.formState.isDirty, 'budgetTable');
 
   /**
    * Convert budget from object into a simple array for the form
@@ -302,7 +304,6 @@ export function BudgetTable(props: Props) {
           </Box>
         </form>
       </FormProvider>
-      <NavigationBlocker condition={form.formState.isDirty} />
     </>
   );
 }

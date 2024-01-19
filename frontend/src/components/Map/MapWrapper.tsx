@@ -20,11 +20,11 @@ import {
   getGeoJSONFeaturesString,
 } from '@frontend/components/Map/mapInteractions';
 import { baseLayerIdAtom, selectedWFSLayersAtom } from '@frontend/stores/map';
+import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 
 import { LayerDrawer } from './LayerDrawer';
 import { Map, MapInteraction } from './Map';
 import { MapControls } from './MapControls';
-import { NavigationBlocker } from './NavigationBlocker';
 import { createWFSLayer, createWMTSLayer, getMapProjection } from './mapFunctions';
 import { mapOptions } from './mapOptions';
 
@@ -46,6 +46,8 @@ export function MapWrapper(props: Props) {
   const [featuresSelected, setFeaturesSelected] = useState(false);
   const [zoom, setZoom] = useState(mapOptions.tre.defaultZoom);
   const [viewExtent, setViewExtent] = useState<number[]>(mapOptions.tre.extent);
+
+  useNavigationBlocker(dirty, 'map');
 
   useEffect(() => {
     if (props.onMoveEnd) {
@@ -262,7 +264,6 @@ export function MapWrapper(props: Props) {
           />
         )}
       </Map>
-      <NavigationBlocker condition={dirty} />
     </div>
   );
 }

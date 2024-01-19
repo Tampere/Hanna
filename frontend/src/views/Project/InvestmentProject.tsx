@@ -6,6 +6,7 @@ import VectorSource from 'ol/source/Vector';
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
@@ -48,19 +49,19 @@ function projectTabs(projectId: string) {
     },
     {
       tabView: 'talous',
-      url: `/investointihanke/${projectId}/talous`,
+      url: `/investointihanke/${projectId}?tab=talous`,
       label: 'project.financeTabLabel',
       icon: <Euro fontSize="small" />,
     },
     {
       tabView: 'kohteet',
-      url: `/investointihanke/${projectId}/kohteet`,
+      url: `/investointihanke/${projectId}?tab=kohteet`,
       label: 'project.projectObjectsTabLabel',
       icon: <ListAlt fontSize="small" />,
     },
     {
       tabView: 'sidoshankkeet',
-      url: `/investointihanke/${projectId}/sidoshankkeet`,
+      url: `/investointihanke/${projectId}?tab=sidoshankkeet`,
       label: 'project.relatedProjectsTabLabel',
       icon: <AccountTree fontSize="small" />,
     },
@@ -68,8 +69,9 @@ function projectTabs(projectId: string) {
 }
 
 export function InvestmentProject() {
-  const routeParams = useParams() as { projectId: string; tabView?: TabView };
-  const tabView = routeParams.tabView || 'default';
+  const routeParams = useParams() as { projectId: string };
+  const [searchParams] = useSearchParams();
+  const tabView = searchParams.get('tab') || 'default';
   const tabs = projectTabs(routeParams.projectId);
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
   const projectId = routeParams?.projectId;
@@ -202,7 +204,7 @@ export function InvestmentProject() {
             ))}
           </Tabs>
 
-          {!routeParams.tabView && (
+          {tabView === 'default' && (
             <Box css={mapContainerStyle}>
               <MapWrapper
                 geoJson={project?.data?.geom}
@@ -221,13 +223,13 @@ export function InvestmentProject() {
             </Box>
           )}
 
-          {routeParams.tabView && (
+          {tabView !== 'default' && (
             <Box sx={{ m: 2, overflowY: 'auto' }}>
-              {routeParams.tabView === 'talous' && <ProjectFinances project={project.data} />}
-              {routeParams.tabView === 'kohteet' && (
+              {tabView === 'talous' && <ProjectFinances project={project.data} />}
+              {tabView === 'kohteet' && (
                 <ProjectObjectList projectId={projectId} projectType="investointihanke" />
               )}
-              {routeParams.tabView === 'sidoshankkeet' && (
+              {tabView === 'sidoshankkeet' && (
                 <ProjectRelations projectId={routeParams.projectId} />
               )}
             </Box>
