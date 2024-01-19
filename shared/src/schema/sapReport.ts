@@ -17,7 +17,7 @@ export const environmentCodeReportSchema = z.object({
 export const environmentCodeReportFilterSchema = z.object({
   filters: z.object({
     text: z.string().nullable(),
-    plants: z.array(z.string()),
+    plants: z.array(z.string()).optional(),
     reasonsForEnvironmentalInvestment: z.array(z.string()),
     years: z.array(z.number()),
   }),

@@ -351,7 +351,6 @@
   "sapProjectIdField.invalidId": "Annetulla tunnisteella ei löytynyt SAP-projektia tai sen tiedoissa oli virhe.",
   "sapReports.environmentCodes": "Ympäristökoodit",
   "sapReports.environmentCodes.projectId": "Projektin tunnus",
-  "sapReports.environmentCodes.plant": "Toimipiste",
   "sapReports.environmentCodes.wbsId": "Rakenneosan tunnus",
   "sapReports.environmentCodes.wbsName": "Rakenneosan nimi",
   "sapReports.environmentCodes.totalDebit": "Menot",

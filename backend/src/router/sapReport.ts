@@ -17,7 +17,6 @@ import { getLastSyncedAt } from '@backend/components/sap/syncQueue';
 import { getPool, sql } from '@backend/db';
 import { env } from '@backend/env';
 
-import { EXPLICIT_EMPTY } from '@shared/schema/code';
 import {
   blanketContractReportFilterSchema,
   blanketContractReportQuerySchema,
@@ -90,16 +89,6 @@ export const createSapReportRouter = (t: TRPC) => {
       .query(async ({ input }) => {
         return await startBlanketContractReportJob(input);
       }),
-
-    getPlants: baseProcedure.query(async () => {
-      const { rows } = await getPool().query(sql.type(z.object({ plant: z.string() }))`
-        SELECT DISTINCT plant FROM app.sap_wbs
-        WHERE plant IS NOT NULL
-        ORDER BY plant ASC
-      `);
-      const plants = rows.map((row) => row.plant);
-      return [EXPLICIT_EMPTY, ...plants];
-    }),
 
     getBlanketOrderIds: baseProcedure.input(z.object({})).query(async () => {
       const { rows } = await getPool().query(sql.type(z.object({ blanketOrderId: z.string() }))`
