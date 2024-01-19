@@ -5,14 +5,6 @@ import { getPool, sql, textToTsQuery } from '@backend/db';
 import { EXPLICIT_EMPTY } from '@shared/schema/code';
 import { EnvironmentCodeReportQuery, environmentCodeReportSchema } from '@shared/schema/sapReport';
 
-function filterPlantFragment(plants?: EnvironmentCodeReportQuery['filters']['plants']) {
-  if (!plants || plants.length === 0) return sql.fragment`true`;
-
-  const includeEmpty = plants.includes(EXPLICIT_EMPTY);
-  const inArrayFragment = sql.fragment`plant = ANY(${sql.array(plants, 'text')})`;
-  return includeEmpty ? sql.fragment`(${inArrayFragment} OR plant IS NULL)` : inArrayFragment;
-}
-
 function filterReasonForEnvironmentalInvestmentFragment(
   reasonsForEnvironmentalInvestment?: EnvironmentCodeReportQuery['filters']['reasonsForEnvironmentalInvestment']
 ) {
@@ -50,7 +42,6 @@ function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQue
     ), report AS (
       SELECT
         project.sap_project_id "projectId",
-        wbs.plant "plant",
         wbs.wbs_id "wbsId",
         wbs.short_description "wbsName",
         wbs.reason_for_environmental_investment "reasonForEnvironmentalInvestment",
@@ -84,7 +75,6 @@ function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQue
               )`
         : sql.fragment`true`
     }
-    AND (${filterPlantFragment(params?.filters?.plants)})
     AND (${filterReasonForEnvironmentalInvestmentFragment(
       params?.filters?.reasonsForEnvironmentalInvestment
     )})

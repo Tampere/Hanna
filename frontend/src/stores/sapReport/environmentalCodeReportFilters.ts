@@ -7,13 +7,11 @@ import { EnvironmentCodeReportQuery } from '@shared/schema/sapReport';
 
 export const environmentalCodeReportFilterAtom = atom<EnvironmentCodeReportQuery['filters']>({
   text: null,
-  plants: [],
   reasonsForEnvironmentalInvestment: [],
   years: [],
 });
 
 export const textAtom = focusAtom(environmentalCodeReportFilterAtom, (o) => o.prop('text'));
-export const plantsAtom = focusAtom(environmentalCodeReportFilterAtom, (o) => o.prop('plants'));
 export const reasonsForEnvironmentalInvestmentAtom = focusAtom(
   environmentalCodeReportFilterAtom,
   (o) => o.prop('reasonsForEnvironmentalInvestment')

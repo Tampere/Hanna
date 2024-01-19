@@ -28,10 +28,6 @@ export function EnvironmentalCodeReport() {
           projectId: {
             title: tr('sapReports.environmentCodes.projectId'),
           },
-          plant: {
-            title: tr('sapReports.environmentCodes.plant'),
-            width: 50,
-          },
           wbsId: {
             title: tr('sapReports.environmentCodes.wbsId'),
           },

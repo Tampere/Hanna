@@ -18,14 +18,11 @@ import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import {
   environmentalCodeReportFilterAtom,
-  plantsAtom,
   reasonsForEnvironmentalInvestmentAtom,
   textAtom,
   useDebouncedEnvironmentalCodeReportFilters,
   yearsAtom,
 } from '@frontend/stores/sapReport/environmentalCodeReportFilters';
-
-import { EXPLICIT_EMPTY } from '@shared/schema/code';
 
 import { ReportSummary } from './ReportSummary';
 
@@ -34,14 +31,12 @@ export function EnvironmentalCodeReportFilters() {
   const notify = useNotifications();
 
   const [text, setText] = useAtom(textAtom);
-  const [plants, setPlants] = useAtom<string[]>(plantsAtom);
   const [reasonsForEnvironmentalInvestment, setReasonsForEnvironmentalInvestment] = useAtom(
     reasonsForEnvironmentalInvestmentAtom
   );
   const [years, setYears] = useAtom(yearsAtom);
   const filters = useAtomValue(environmentalCodeReportFilterAtom);
 
-  const { data: allPlants, isLoading: allPlantsLoading } = trpc.sapReport.getPlants.useQuery();
   const { data: allYears, isLoading: allYearsLoading } = trpc.sapReport.getYears.useQuery();
   const { sapReport } = trpc.useContext();
 
@@ -97,23 +92,6 @@ export function EnvironmentalCodeReportFilters() {
             maxTags={1}
             showIdInLabel
             allowEmptySelection
-          />
-        </FormControl>
-        <FormControl>
-          <FormLabel htmlFor="plants">{tr('sapReports.environmentCodes.plant')}</FormLabel>
-          <MultiSelect<string>
-            id="plants"
-            options={allPlants ?? []}
-            // use the plant itself as id
-            getOptionId={(opt) => opt}
-            loading={allPlantsLoading}
-            value={plants ?? []}
-            onChange={setPlants}
-            getOptionLabel={(opt) =>
-              opt === EXPLICIT_EMPTY ? tr('sapReports.explicitEmpty') : opt
-            }
-            multiple
-            maxTags={3}
           />
         </FormControl>
         <FormControl>
