@@ -18,7 +18,7 @@ function createItem(date: string, amount: string, objectType: string, entryType:
     TWAER: 'EUR',
     WTGBTR: amount,
     BEKNZ: entryType,
-    BLART: "AA"
+    BLART: 'AA',
   };
 }
 
