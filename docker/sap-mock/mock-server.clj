@@ -223,7 +223,8 @@
        :OBART (:OBART transaction)
        :TWAER "EUR"
        :WTGBTR (:WTGBTR transaction)
-       :BEKNZ (:BEKNZ transaction)})))
+       :BEKNZ (:BEKNZ transaction)
+       :BLART (rand-nth ["AA", "AB", "AF", "DA"])})))
 
   ;;
 ;; Data to output XML
@@ -330,7 +331,7 @@
 (defn generate-actuals-data [actuals]
   [:ACTUALS
    (map
-    (fn [{:keys [BELNR GJAHR BLDAT BUDAT CPUDT PSPID POSID AUFNR VORNR OBJ_TXT OBART TWAER WTGBTR BEKNZ]}]
+    (fn [{:keys [BELNR GJAHR BLDAT BUDAT CPUDT PSPID POSID AUFNR VORNR OBJ_TXT OBART TWAER WTGBTR BEKNZ BLART]}]
       [:item
        [:BELNR BELNR]
        [:GJAHR GJAHR]
@@ -345,7 +346,9 @@
        [:OBART OBART]
        [:TWAER TWAER]
        [:WTGBTR WTGBTR]
-       [:BEKNZ BEKNZ]])
+       [:BEKNZ BEKNZ]
+       [:BLART BLART]
+       ])
     actuals)])
 
 (def not-found-response

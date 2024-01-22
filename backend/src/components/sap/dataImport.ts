@@ -321,7 +321,8 @@ async function insertActuals(conn: DatabaseTransactionConnection, actuals: SAPAc
         object_type,
         currency,
         value_in_currency_subunit,
-        entry_type
+        entry_type,
+        document_type
       )
       VALUES (
         ${actual.documentNumber},
@@ -337,7 +338,8 @@ async function insertActuals(conn: DatabaseTransactionConnection, actuals: SAPAc
         ${actual.objectType},
         ${actual.currency},
         ${actual.valueInCurrencySubunit},
-        ${actual.entryType}
+        ${actual.entryType},
+        ${actual.documentType}
         );
     `);
   }
