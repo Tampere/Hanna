@@ -4,5 +4,5 @@
   "importOrder": ["^@backend/(.*)$", "^@frontend/(.*)$", "^@shared/(.*)$", "^[./]"],
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true,
-  "plugins": ["@prettier/plugin-xml"]
+  "plugins": ["@prettier/plugin-xml", "@trivago/prettier-plugin-sort-imports"]
 }
