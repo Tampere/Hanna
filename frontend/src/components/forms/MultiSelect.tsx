@@ -97,7 +97,7 @@ export function MultiSelect<T>({
           onChange(
             !Array.isArray(newSelection)
               ? []
-              : newSelection.map(getOption).filter((option): option is T => Boolean(option))
+              : newSelection.map(getOption).filter((option): option is T => Boolean(option)),
           );
         } else {
           onChange(Array.isArray(newSelection) ? null : getOption(newSelection) ?? null);

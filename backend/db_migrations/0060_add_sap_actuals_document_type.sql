@@ -1,0 +1,1 @@
+ALTER TABLE app.sap_actuals_item ADD COLUMN document_type TEXT;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { z } from 'zod';
 
 import {
@@ -35,6 +36,7 @@ function transformNetwork(network: any) {
     ACTIVITY: itemAsArray(networkItem?.ACTIVITY?.item),
   }));
 }
+
 
 function transformWBS(wbs: any) {
   const wbsItems = itemAsArray(wbs?.item);
@@ -192,6 +194,7 @@ export function transformActuals(response: object) {
       currency: item.TWAER,
       valueInCurrencySubunit: numericStringToInteger(item.WTGBTR),
       entryType: item.BEKNZ === 'S' ? 'DEBIT' : 'CREDIT',
+      documentType: item.BLART
     };
   });
 

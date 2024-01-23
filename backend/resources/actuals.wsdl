@@ -1,17 +1,22 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<wsdl:definitions name="SI_ZPS_WS_GET_ACTUALS" targetNamespace="Actuals_to_Hanna"
-    xmlns:rfc="urn:sap-com:document:sap:rfc:functions"
-    xmlns:p1="Actuals_to_Hanna"
-    xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy"
-    xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
-    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
-    <wsdl:documentation/>
-    <wsp:UsingPolicy wsdl:required="true"/>
-    <wsp:Policy wsu:Id="OP_SI_ZPS_WS_GET_ACTUALS"/>
+<?xml version="1.0" encoding="UTF-8" ?>
+<wsdl:definitions
+  name="SI_ZPS_WS_GET_ACTUALS"
+  targetNamespace="Actuals_to_Hanna"
+  xmlns:rfc="urn:sap-com:document:sap:rfc:functions"
+  xmlns:p1="Actuals_to_Hanna"
+  xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy"
+  xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+>
+    <wsdl:documentation />
+    <wsp:UsingPolicy wsdl:required="true" />
+    <wsp:Policy wsu:Id="OP_SI_ZPS_WS_GET_ACTUALS" />
     <wsdl:types>
-        <xsd:schema targetNamespace="urn:sap-com:document:sap:rfc:functions"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns="urn:sap-com:document:sap:rfc:functions">
+        <xsd:schema
+      targetNamespace="urn:sap-com:document:sap:rfc:functions"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xmlns="urn:sap-com:document:sap:rfc:functions"
+    >
             <xsd:element name="ZPS_WS_GET_ACTUALS.Response">
                 <xsd:complexType>
                     <xsd:all>
@@ -21,7 +26,12 @@
                             </xsd:annotation>
                             <xsd:complexType>
                                 <xsd:sequence>
-                                    <xsd:element name="item" type="ZPS_WS_ACTUALS_S" minOccurs="0" maxOccurs="unbounded"/>
+                                    <xsd:element
+                    name="item"
+                    type="ZPS_WS_ACTUALS_S"
+                    minOccurs="0"
+                    maxOccurs="unbounded"
+                  />
                                 </xsd:sequence>
                             </xsd:complexType>
                         </xsd:element>
@@ -31,7 +41,12 @@
                             </xsd:annotation>
                             <xsd:complexType>
                                 <xsd:sequence>
-                                    <xsd:element name="item" type="BAPIRET2" minOccurs="0" maxOccurs="unbounded"/>
+                                    <xsd:element
+                    name="item"
+                    type="BAPIRET2"
+                    minOccurs="0"
+                    maxOccurs="unbounded"
+                  />
                                 </xsd:sequence>
                             </xsd:complexType>
                         </xsd:element>
@@ -47,7 +62,7 @@
                             </xsd:annotation>
                             <xsd:simpleType>
                                 <xsd:restriction base="xsd:string">
-                                    <xsd:maxLength value="12"/>
+                                    <xsd:maxLength value="12" />
                                 </xsd:restriction>
                             </xsd:simpleType>
                         </xsd:element>
@@ -63,11 +78,12 @@
                         </xsd:element>
                         <xsd:element name="I_POSID" minOccurs="0">
                             <xsd:annotation>
-                                <xsd:documentation>Work Breakdown Structure Element (WBS Element)</xsd:documentation>
+                                <xsd:documentation
+                >Work Breakdown Structure Element (WBS Element)</xsd:documentation>
                             </xsd:annotation>
                             <xsd:simpleType>
                                 <xsd:restriction base="xsd:string">
-                                    <xsd:maxLength value="24"/>
+                                    <xsd:maxLength value="24" />
                                 </xsd:restriction>
                             </xsd:simpleType>
                         </xsd:element>
@@ -77,7 +93,7 @@
                             </xsd:annotation>
                             <xsd:simpleType>
                                 <xsd:restriction base="xsd:string">
-                                    <xsd:maxLength value="24"/>
+                                    <xsd:maxLength value="24" />
                                 </xsd:restriction>
                             </xsd:simpleType>
                         </xsd:element>
@@ -85,13 +101,15 @@
                 </xsd:complexType>
             </xsd:element>
             <xsd:simpleType name="date">
-                <xsd:union memberTypes="xsd:date genericDate"
-                    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                    xmlns="urn:sap-com:document:sap:rfc:functions"/>
+                <xsd:union
+          memberTypes="xsd:date genericDate"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns="urn:sap-com:document:sap:rfc:functions"
+        />
             </xsd:simpleType>
             <xsd:simpleType name="genericDate">
                 <xsd:restriction base="xsd:string">
-                    <xsd:pattern value="....-..-.."/>
+                    <xsd:pattern value="....-..-.." />
                 </xsd:restriction>
             </xsd:simpleType>
             <xsd:complexType name="BAPIRET2">
@@ -101,11 +119,12 @@
                 <xsd:sequence>
                     <xsd:element name="TYPE" minOccurs="0">
                         <xsd:annotation>
-                            <xsd:documentation>Message type: S Success, E Error, W Warning, I Info, A Abort</xsd:documentation>
+                            <xsd:documentation
+              >Message type: S Success, E Error, W Warning, I Info, A Abort</xsd:documentation>
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="1"/>
+                                <xsd:maxLength value="1" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -115,7 +134,7 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="20"/>
+                                <xsd:maxLength value="20" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -125,8 +144,8 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="3"/>
-                                <xsd:pattern value="\d+"/>
+                                <xsd:maxLength value="3" />
+                                <xsd:pattern value="\d+" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -136,7 +155,7 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="220"/>
+                                <xsd:maxLength value="220" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -146,18 +165,19 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="20"/>
+                                <xsd:maxLength value="20" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
                     <xsd:element name="LOG_MSG_NO" minOccurs="0">
                         <xsd:annotation>
-                            <xsd:documentation>Application log: Internal message serial number</xsd:documentation>
+                            <xsd:documentation
+              >Application log: Internal message serial number</xsd:documentation>
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="6"/>
-                                <xsd:pattern value="\d+"/>
+                                <xsd:maxLength value="6" />
+                                <xsd:pattern value="\d+" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -167,7 +187,7 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="50"/>
+                                <xsd:maxLength value="50" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -177,7 +197,7 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="50"/>
+                                <xsd:maxLength value="50" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -187,7 +207,7 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="50"/>
+                                <xsd:maxLength value="50" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -197,7 +217,7 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="50"/>
+                                <xsd:maxLength value="50" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -207,7 +227,7 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="32"/>
+                                <xsd:maxLength value="32" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -222,17 +242,18 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="30"/>
+                                <xsd:maxLength value="30" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
                     <xsd:element name="SYSTEM" minOccurs="0">
                         <xsd:annotation>
-                            <xsd:documentation>Logical system from which message originates</xsd:documentation>
+                            <xsd:documentation
+              >Logical system from which message originates</xsd:documentation>
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="10"/>
+                                <xsd:maxLength value="10" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -249,7 +270,7 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="10"/>
+                                <xsd:maxLength value="10" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -259,8 +280,8 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="4"/>
-                                <xsd:pattern value="\d+"/>
+                                <xsd:maxLength value="4" />
+                                <xsd:pattern value="\d+" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -285,17 +306,18 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="24"/>
+                                <xsd:maxLength value="24" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
                     <xsd:element name="POSID" minOccurs="0">
                         <xsd:annotation>
-                            <xsd:documentation>Work Breakdown Structure Element (WBS Element)</xsd:documentation>
+                            <xsd:documentation
+              >Work Breakdown Structure Element (WBS Element)</xsd:documentation>
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="24"/>
+                                <xsd:maxLength value="24" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -305,7 +327,7 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="12"/>
+                                <xsd:maxLength value="12" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -315,7 +337,7 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="4"/>
+                                <xsd:maxLength value="4" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -325,7 +347,7 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="60"/>
+                                <xsd:maxLength value="60" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -335,7 +357,7 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="2"/>
+                                <xsd:maxLength value="2" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -345,7 +367,7 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="10"/>
+                                <xsd:maxLength value="10" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -355,7 +377,7 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="40"/>
+                                <xsd:maxLength value="40" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -365,18 +387,19 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="5"/>
+                                <xsd:maxLength value="5" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
                     <xsd:element name="WTGBTR" minOccurs="0">
                         <xsd:annotation>
-                            <xsd:documentation>Total Value in Transaction Currency</xsd:documentation>
+                            <xsd:documentation
+              >Total Value in Transaction Currency</xsd:documentation>
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:decimal">
-                                <xsd:totalDigits value="15"/>
-                                <xsd:fractionDigits value="2"/>
+                                <xsd:totalDigits value="15" />
+                                <xsd:fractionDigits value="2" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -386,7 +409,28 @@
                         </xsd:annotation>
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
-                                <xsd:maxLength value="1"/>
+                                <xsd:maxLength value="1" />
+                            </xsd:restriction>
+                        </xsd:simpleType>
+                    </xsd:element>
+                    <xsd:element minOccurs="0" name="VBUND">
+                        <xsd:annotation>
+                            <xsd:documentation>Company ID of Trading Partner</xsd:documentation>
+                        </xsd:annotation>
+                        <xsd:simpleType>
+                            <xsd:restriction base="xsd:string">
+                                <xsd:maxLength value="6" />
+                            </xsd:restriction>
+                        </xsd:simpleType>
+                    </xsd:element>
+                    <xsd:element minOccurs="0" name="BLART">
+                        <xsd:annotation>
+                            <xsd:documentation
+              >Document type of FI reference document</xsd:documentation>
+                        </xsd:annotation>
+                        <xsd:simpleType>
+                            <xsd:restriction base="xsd:string">
+                                <xsd:maxLength value="2" />
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:element>
@@ -395,37 +439,40 @@
         </xsd:schema>
     </wsdl:types>
     <wsdl:message name="rfc.ZPS_WS_GET_ACTUALS.Input">
-        <wsdl:documentation/>
-        <wsdl:part name="parameters" element="rfc:ZPS_WS_GET_ACTUALS"/>
+        <wsdl:documentation />
+        <wsdl:part name="parameters" element="rfc:ZPS_WS_GET_ACTUALS" />
     </wsdl:message>
     <wsdl:message name="rfc.ZPS_WS_GET_ACTUALS.Output">
-        <wsdl:documentation/>
-        <wsdl:part name="parameters" element="rfc:ZPS_WS_GET_ACTUALS.Response"/>
+        <wsdl:documentation />
+        <wsdl:part name="parameters" element="rfc:ZPS_WS_GET_ACTUALS.Response" />
     </wsdl:message>
     <wsdl:portType name="SI_ZPS_WS_GET_ACTUALS">
-        <wsdl:documentation/>
+        <wsdl:documentation />
         <wsdl:operation name="SI_ZPS_WS_GET_ACTUALS">
-            <wsdl:documentation/>
+            <wsdl:documentation />
             <wsp:Policy>
-                <wsp:PolicyReference URI="#OP_SI_ZPS_WS_GET_ACTUALS"/>
+                <wsp:PolicyReference URI="#OP_SI_ZPS_WS_GET_ACTUALS" />
             </wsp:Policy>
-            <wsdl:input message="p1:rfc.ZPS_WS_GET_ACTUALS.Input"/>
-            <wsdl:output message="p1:rfc.ZPS_WS_GET_ACTUALS.Output"/>
+            <wsdl:input message="p1:rfc.ZPS_WS_GET_ACTUALS.Input" />
+            <wsdl:output message="p1:rfc.ZPS_WS_GET_ACTUALS.Output" />
         </wsdl:operation>
     </wsdl:portType>
     <wsdl:binding name="SI_ZPS_WS_GET_ACTUALSBinding" type="p1:SI_ZPS_WS_GET_ACTUALS">
-        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"
-            xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+        <soap:binding
+      style="document"
+      transport="http://schemas.xmlsoap.org/soap/http"
+      xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    />
         <wsdl:operation name="SI_ZPS_WS_GET_ACTUALS">
-            <soap:operation soapAction="http://sap.com/xi/WebService/soap1.1"
-                xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+            <soap:operation
+        soapAction="http://sap.com/xi/WebService/soap1.1"
+        xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+      />
             <wsdl:input>
-                <soap:body use="literal"
-                    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+                <soap:body use="literal" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" />
             </wsdl:input>
             <wsdl:output>
-                <soap:body use="literal"
-                    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"/>
+                <soap:body use="literal" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" />
             </wsdl:output>
         </wsdl:operation>
     </wsdl:binding>

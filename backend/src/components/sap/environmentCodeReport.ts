@@ -34,9 +34,9 @@ function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQue
       ${
         years.length > 0
           ? sql.fragment`
-        WHERE fiscal_year = ANY(${sql.array(years, 'int4')})
+        WHERE fiscal_year = ANY(${sql.array(years, 'int4')}) AND document_type <> 'AA'
       `
-          : sql.fragment``
+          : sql.fragment`WHERE document_type <> 'AA'`
       }
       GROUP BY wbs_element_id
     ), report AS (
