@@ -16,7 +16,7 @@ export const updateBudgetSchema = z.object({
       amount: z.number().nullable(),
       forecast: z.number().nullable(),
       kayttosuunnitelmanMuutos: z.number().nullable(),
-    })
+    }),
   ),
 });
 
@@ -30,8 +30,8 @@ export const newProjectObjectSchema = z.object({
   objectType: z.array(codeId).superRefine((value) => value.length > 0),
   objectCategory: z.array(codeId).superRefine((value) => value.length > 0),
   objectUsage: z.array(codeId).superRefine((value) => value.length > 0),
-  suunnitteluttajaUser: nonEmptyString,
-  rakennuttajaUser: nonEmptyString,
+  suunnitteluttajaUser: nonEmptyString.optional(),
+  rakennuttajaUser: nonEmptyString.optional(),
   startDate: isoDateString,
   endDate: isoDateString,
   sapWBSId: nonEmptyString.optional().nullable(),
