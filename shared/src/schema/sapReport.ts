@@ -2,22 +2,35 @@ import { z } from 'zod';
 
 export const environmentCodeReportSchema = z.object({
   projectId: z.string(),
-  plant: z.string().nullish(),
   wbsId: z.string(),
   wbsName: z.string(),
   reasonForEnvironmentalInvestment: z.string().nullish(),
   reasonForEnvironmentalInvestmentText: z.string().nullish(),
-  companyCode: z.string().nullish(),
-  companyCodeText: z.string().nullish(),
   totalDebit: z.number().nullish(),
   totalCredit: z.number().nullish(),
   totalActuals: z.number(),
+  actualEntries: z.array(
+    z.object({
+      totalDebit: z.number().nullish(),
+      totalCredit: z.number().nullish(),
+      totalActuals: z.number(),
+      company: z.object({
+        companyCode: z.string().nullish(),
+        companyCodeText: z.string().nullish(),
+      }),
+    }),
+  ),
+  company: z
+    .object({
+      companyCode: z.string().nullish(),
+      companyCodeText: z.string().nullish(),
+    })
+    .optional(),
 });
 
 export const environmentCodeReportFilterSchema = z.object({
   filters: z.object({
     text: z.string().nullable(),
-    plants: z.array(z.string()).optional(),
     reasonsForEnvironmentalInvestment: z.array(z.string()),
     years: z.array(z.number()),
   }),
@@ -49,6 +62,7 @@ export const blanketContractReportSchema = z.object({
   totalDebit: z.number().nullish(),
   totalCredit: z.number().nullish(),
   totalActuals: z.number().nullish(),
+  actualEntries: z.undefined(),
 });
 
 export const blanketContractReportFilterSchema = z.object({

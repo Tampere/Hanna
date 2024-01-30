@@ -279,8 +279,8 @@ const financesField = (
   CurrencyInputProps?: {
     allowNegative?: boolean;
     valueTextColor?: (value: number | null) => string;
-  }
-) => {
+  },
+): GridColDef<WorkTableRow> & { __isWrapped?: boolean } => {
   return {
     field: targetField,
     headerName: targetField,
@@ -368,7 +368,7 @@ export function getColumns({
       financesRange,
       'forecast',
       { headerName: 'Ennuste' },
-      { allowNegative: true, valueTextColor }
+      { allowNegative: true, valueTextColor },
     ),
     financesField(
       financesRange,
@@ -379,7 +379,7 @@ export function getColumns({
       },
       {
         valueTextColor,
-      }
+      },
     ),
   ];
 

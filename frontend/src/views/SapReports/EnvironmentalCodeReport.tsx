@@ -11,7 +11,7 @@ function isInternalCompany(companyId: string) {
 }
 
 export function EnvironmentalCodeReport() {
-  const { sapReport } = trpc.useContext();
+  const { sapReport } = trpc.useUtils();
 
   const filters = useDebouncedEnvironmentalCodeReportFilters();
 
@@ -27,42 +27,37 @@ export function EnvironmentalCodeReport() {
         columns={{
           projectId: {
             title: tr('sapReports.environmentCodes.projectId'),
+            collapsible: false,
           },
           wbsId: {
             title: tr('sapReports.environmentCodes.wbsId'),
+            collapsible: false,
           },
           wbsName: {
             title: tr('sapReports.environmentCodes.wbsName'),
-            width: 400,
+            collapsible: false,
+            width: 250,
+            align: 'right',
           },
           reasonForEnvironmentalInvestment: {
             title: tr('sapReports.environmentCodes.reasonForEnvironmentalInvestment'),
+            collapsible: false,
             align: 'right',
           },
           reasonForEnvironmentalInvestmentText: {
             title: tr('sapReports.environmentCodes.reasonForEnvironmentalInvestmentText'),
+            collapsible: false,
             align: 'right',
+            width: 200,
           },
-          companyCode: {
-            title: tr('sapReports.environmentCodes.companyCode'),
-            align: 'right',
-            format(value) {
-              if (!value) {
-                return '';
-              } else {
-                return value && isInternalCompany(value) ? value : tr('sapReports.externalCompany');
-              }
-            },
-          },
-          companyCodeText: {
-            title: tr('sapReports.environmentCodes.companyCodeText'),
-            align: 'right',
-            format(value, row) {
-              return row?.companyCode && isInternalCompany(row.companyCode) ? value : '';
-            },
+          company: {
+            title: tr('sapReports.environmentCodes.companies'),
+            width: 300,
+            collapsible: true,
           },
           totalDebit: {
             title: tr('sapReports.environmentCodes.totalDebit'),
+            collapsible: true,
             align: 'right',
             format(value) {
               return formatCurrency(value ?? 0);
@@ -71,6 +66,7 @@ export function EnvironmentalCodeReport() {
           },
           totalCredit: {
             title: tr('sapReports.environmentCodes.totalCredit'),
+            collapsible: true,
             align: 'right',
             format(value) {
               return formatCurrency(value ?? 0);
@@ -79,11 +75,51 @@ export function EnvironmentalCodeReport() {
           },
           totalActuals: {
             title: tr('sapReports.environmentCodes.totalActuals'),
+            collapsible: true,
             align: 'right',
             format(value) {
               return formatCurrency(value ?? 0);
             },
             type: 'currency',
+          },
+        }}
+        collapsedColumns={{
+          totalCredit: {
+            collapsible: false,
+            align: 'right',
+            format(value) {
+              return formatCurrency(value ?? 0);
+            },
+            type: 'currency',
+          },
+          totalDebit: {
+            collapsible: false,
+            align: 'right',
+            format(value) {
+              return formatCurrency(value ?? 0);
+            },
+            type: 'currency',
+          },
+          totalActuals: {
+            collapsible: false,
+            align: 'right',
+            format(value) {
+              return formatCurrency(value ?? 0);
+            },
+            type: 'currency',
+          },
+          company: {
+            collapsible: false,
+            align: 'right',
+            format(value) {
+              if (!value?.companyCode || !value?.companyCodeText) {
+                return 'Ei määriteltyä kumppanikoodia';
+              } else {
+                return value && isInternalCompany(value.companyCode)
+                  ? `${value.companyCode}: ${value.companyCodeText}`
+                  : `${value.companyCode}: ${tr('sapReports.externalCompany')}`;
+              }
+            },
           },
         }}
       />
