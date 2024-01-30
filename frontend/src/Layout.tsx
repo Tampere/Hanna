@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { BackupTable, HelpOutline, Logout, Reorder, Settings } from '@mui/icons-material';
+import { BackupTable, Feed, HelpOutline, Logout, Reorder, Settings } from '@mui/icons-material';
 import AccountCircleOutlined from '@mui/icons-material/AccountCircleOutlined';
 import AccountTreeOutlined from '@mui/icons-material/AccountTreeOutlined';
 import {
@@ -14,6 +14,7 @@ import {
   MenuItem,
   ThemeProvider,
   Toolbar,
+  Tooltip,
   Typography,
   createTheme,
 } from '@mui/material';
@@ -69,7 +70,7 @@ const theme = createTheme(
       },
     },
   },
-  fiFI
+  fiFI,
 );
 
 function Navbar() {
@@ -129,6 +130,18 @@ function Navbar() {
               display: flex;
             `}
           >
+            <Tooltip title={tr('pages.eFormLabel')}>
+              <Button
+                component={Link}
+                to=""
+                target="_blank"
+                sx={{ color: 'white', float: 'right' }}
+                startIcon={<Feed />}
+              >
+                {tr('pages.eForm')}
+              </Button>
+            </Tooltip>
+
             <Button
               component={Link}
               to="/ohje"
