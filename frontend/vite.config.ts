@@ -24,6 +24,7 @@ const serverOptions: CommonServerOptions = {
     '/api': proxyAddress,
     '/trpc': proxyAddress,
     '/proxy': proxyAddress,
+    '/redirect-to-elomake': proxyAddress,
   },
 };
 

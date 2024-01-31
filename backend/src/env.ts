@@ -92,6 +92,7 @@ const schema = z.object({
     password: z.string(),
   }),
   adminApiKey: z.string().optional(),
+  projectFormLink: z.string().optional(),
 });
 
 function getEnv() {
@@ -154,14 +155,14 @@ function getEnv() {
               accessUrl: process.env.EMAIL_AUTH_ACCESS_URL,
             }
           : process.env.EMAIL_AUTH_METHOD === 'login'
-          ? {
-              method: 'login',
-              username: process.env.EMAIL_USERNAME,
-              password: process.env.EMAIL_PASSWORD,
-            }
-          : {
-              method: 'none',
-            },
+            ? {
+                method: 'login',
+                username: process.env.EMAIL_USERNAME,
+                password: process.env.EMAIL_PASSWORD,
+              }
+            : {
+                method: 'none',
+              },
     },
     detailplan: {
       notificationRecipients: process.env.DETAILPLAN_NOTIFICATION_RECIPIENTS?.split(',') ?? [],
@@ -179,6 +180,7 @@ function getEnv() {
       password: process.env.GEODATA_PASSWORD,
     },
     adminApiKey: process.env.ADMIN_API_KEY,
+    projectFormLink: process.env.PROJECT_FORM_LINK,
   } as z.infer<typeof schema>);
 }
 
