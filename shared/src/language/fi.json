@@ -16,6 +16,8 @@
   "pages.workTableTitle": "Investointiohjelmointi",
   "pages.managementTitle": "Hallinta",
   "pages.manualTitle": "Ohje",
+  "pages.eForm": "E-lomake",
+  "pages.eFormLabel": "Hankkeen perustamis- ja ostotilauspyyntö",
   "newProject.btnLabel": "Luo uusi hanke",
   "newProject.newInvestmentProject": "Uusi investointihanke",
   "newProject.newDetailplanProject": "Uusi asemakaavahanke",

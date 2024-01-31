@@ -114,6 +114,9 @@ function Navbar() {
             css={css`
               display: flex;
               gap: 10px;
+              .MuiTab-root {
+                color: white;
+              }
               .MuiTabs-indicator {
                 background-color: white;
               }
@@ -128,7 +131,6 @@ function Navbar() {
               component={Link}
               value="hankkeet"
               to="/hankkeet"
-              sx={{ color: 'white' }}
             />
 
             {import.meta.env.VITE_FEATURE_SAP_REPORTS === 'true' && (
@@ -139,7 +141,6 @@ function Navbar() {
                 component={Link}
                 value="sap"
                 to="/sap-raportit/ymparistokoodit"
-                sx={{ color: 'white' }}
               />
             )}
 
@@ -150,7 +151,6 @@ function Navbar() {
               component={Link}
               value="investointiohjelma"
               to="/investointiohjelma"
-              sx={{ color: 'white' }}
             />
           </Tabs>
 
