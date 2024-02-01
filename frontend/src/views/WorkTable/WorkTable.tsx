@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { AddCircleOutline, Cancel, Redo, Save, Undo } from '@mui/icons-material';
-import { Box, Button, Divider, IconButton, Paper, Theme, Tooltip, Typography } from '@mui/material';
+import { Box, Button, IconButton, Theme, Tooltip, Typography } from '@mui/material';
 import { DataGrid, fiFI, useGridApiRef } from '@mui/x-data-grid';
 import { atom, useAtom } from 'jotai';
 import diff from 'microdiff';
@@ -20,7 +20,8 @@ import { WorkTableRow, WorkTableRowUpdate, WorkTableSearch } from '@shared/schem
 import { ModifiedFields } from './diff';
 
 const dataGridStyle = (theme: Theme) => css`
-  height: 100%;
+  height: auto;
+  min-height: auto;
   font-size: 12px;
   .odd {
     background-color: #f3f3f3;
@@ -35,6 +36,9 @@ const dataGridStyle = (theme: Theme) => css`
     100% {
       background-color: inherit;
     }
+  }
+  & .MuiDataGrid-main {
+    overflow: visible;
   }
   .highlight {
     animation-name: fadeInOut;
@@ -307,64 +311,6 @@ export default function WorkTable() {
         >
           {tr('workTable.title')}
         </Typography>
-        <Box
-          css={(theme) => css`
-            margin-left: auto;
-            padding: ${theme.spacing(1)};
-            display: flex;
-            justify-content: space-between;
-            visibility: ${editEvents.length > 0 || redoEvents.length > 0 ? 'visible' : 'hidden'};
-          `}
-        >
-          <Box
-            css={(theme) => {
-              return css`
-                display: flex;
-                gap: ${theme.spacing(1)};
-              `;
-            }}
-          >
-            <IconButton onClick={undo} disabled={editEvents.length === 0}>
-              <Tooltip title={tr('genericForm.undo')}>
-                <Undo />
-              </Tooltip>
-            </IconButton>
-
-            <IconButton onClick={redo} disabled={redoEvents.length === 0}>
-              <Tooltip title={tr('genericForm.redo')}>
-                <Redo />
-              </Tooltip>
-            </IconButton>
-          </Box>
-
-          <Box
-            css={(theme) => {
-              return css`
-                display: flex;
-                gap: ${theme.spacing(1)};
-              `;
-            }}
-          >
-            <Button
-              variant="outlined"
-              size="small"
-              disabled={editEvents.length === 0 || updateObjects.isLoading}
-              onClick={undoAll}
-              endIcon={<Cancel />}
-            >
-              {tr('genericForm.cancelAll')}
-            </Button>
-            <Button
-              variant="contained"
-              size="small"
-              disabled={editEvents.length === 0 || updateObjects.isLoading}
-              onClick={update}
-              endIcon={<Save />}
-            >
-              {tr('genericForm.save')}
-            </Button>
-          </Box>
-        </Box>
         <Button
           variant="contained"
           component={Link}
@@ -459,6 +405,64 @@ export default function WorkTable() {
         }}
         disableColumnMenu
       />
+      <Box
+        css={(theme) => css`
+          margin-left: auto;
+          padding: ${theme.spacing(1)};
+          display: flex;
+          justify-content: space-between;
+          visibility: ${editEvents.length > 0 || redoEvents.length > 0 ? 'visible' : 'hidden'};
+        `}
+      >
+        <Box
+          css={(theme) => {
+            return css`
+              display: flex;
+              gap: ${theme.spacing(1)};
+            `;
+          }}
+        >
+          <IconButton onClick={undo} disabled={editEvents.length === 0}>
+            <Tooltip title={tr('genericForm.undo')}>
+              <Undo />
+            </Tooltip>
+          </IconButton>
+
+          <IconButton onClick={redo} disabled={redoEvents.length === 0}>
+            <Tooltip title={tr('genericForm.redo')}>
+              <Redo />
+            </Tooltip>
+          </IconButton>
+        </Box>
+
+        <Box
+          css={(theme) => {
+            return css`
+              display: flex;
+              gap: ${theme.spacing(1)};
+            `;
+          }}
+        >
+          <Button
+            variant="outlined"
+            size="small"
+            disabled={editEvents.length === 0 || updateObjects.isLoading}
+            onClick={undoAll}
+            endIcon={<Cancel />}
+          >
+            {tr('genericForm.cancelAll')}
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            disabled={editEvents.length === 0 || updateObjects.isLoading}
+            onClick={update}
+            endIcon={<Save />}
+          >
+            {tr('genericForm.save')}
+          </Button>
+        </Box>
+      </Box>
     </Box>
   );
 }
