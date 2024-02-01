@@ -32,7 +32,7 @@ export function EnvironmentalCodeReportFilters() {
 
   const [text, setText] = useAtom(textAtom);
   const [reasonsForEnvironmentalInvestment, setReasonsForEnvironmentalInvestment] = useAtom(
-    reasonsForEnvironmentalInvestmentAtom
+    reasonsForEnvironmentalInvestmentAtom,
   );
   const [years, setYears] = useAtom(yearsAtom);
   const filters = useAtomValue(environmentalCodeReportFilterAtom);

@@ -81,7 +81,7 @@ export function DetailplanProjectForm(props: Props) {
       applicantAddress: '',
       applicantObjective: '',
     }),
-    [currentUser]
+    [currentUser],
   );
 
   const { detailplanProject } = trpc.useContext();
@@ -91,7 +91,7 @@ export function DetailplanProjectForm(props: Props) {
     return async function formValidation(
       values: DbDetailplanProject,
       context: any,
-      options: ResolverOptions<DbDetailplanProject>
+      options: ResolverOptions<DbDetailplanProject>,
     ) {
       const fields = options.names ?? [];
       const isFormValidation = fields && fields.length > 1;

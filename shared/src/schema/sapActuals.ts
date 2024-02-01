@@ -18,6 +18,7 @@ export const incomingItemSchema = z.object({
   WTGBTR: z.string(), // Total value in Transaction Currency
   BEKNZ: z.string(), // Debit / Credit Indicator
   BLART: z.string().nullable(), // Document type of FI reference document
+  VBUND: z.string().nullable(), // Company ID of Trading Partner
 });
 
 export const incomingSapActualsSchema = z.array(incomingItemSchema);
@@ -38,6 +39,7 @@ export const sapActualSchema = z.object({
   valueInCurrencySubunit: z.number().int(),
   entryType: z.enum(['DEBIT', 'CREDIT']),
   documentType: z.string().nullable(),
+  tradingPartnerId: z.string().nullable(),
 });
 
 export type SAPActual = z.infer<typeof sapActualSchema>;

@@ -7,7 +7,7 @@ import { useDebouncedBlanketContractReportFilters } from '@frontend/stores/sapRe
 import { BlanketContractReportFilters } from './BlanketContractReportFilters';
 
 export function BlanketContractReport() {
-  const { sapReport } = trpc.useContext();
+  const { sapReport } = trpc.useUtils();
 
   const tr = useTranslations();
 
@@ -24,32 +24,41 @@ export function BlanketContractReport() {
         columns={{
           projectId: {
             title: tr('sapReports.blanketContracts.projectId'),
+            collapsible: false,
           },
           networkId: {
             title: tr('sapReports.blanketContracts.networkId'),
+            collapsible: false,
           },
           networkName: {
             title: tr('sapReports.blanketContracts.networkName'),
+            collapsible: false,
           },
           projectManagerName: {
             title: tr('sapReports.blanketContracts.projectManagerName'),
+            collapsible: false,
           },
           consultCompany: {
             title: tr('sapReports.blanketContracts.consultCompany'),
+            collapsible: false,
           },
           decisionMaker: {
             title: tr('sapReports.blanketContracts.decisionMaker'),
+            collapsible: false,
           },
           decisionDateText: {
             title: tr('sapReports.blanketContracts.decisionDateText'),
+            collapsible: false,
             align: 'right',
           },
           blanketOrderId: {
             title: tr('sapReports.blanketContracts.blanketOrderId'),
+            collapsible: false,
             align: 'left',
           },
           contractPriceInCurrencySubunit: {
             title: tr('sapReports.blanketContracts.contractPriceInCurrencySubunit'),
+            collapsible: false,
             format(value) {
               return formatCurrency(value);
             },
@@ -58,6 +67,7 @@ export function BlanketContractReport() {
           },
           totalDebit: {
             title: tr('sapReports.blanketContracts.totalDebit'),
+            collapsible: false,
             align: 'right',
             format(value) {
               return formatCurrency(value ?? 0);
@@ -66,6 +76,7 @@ export function BlanketContractReport() {
           },
           totalCredit: {
             title: tr('sapReports.blanketContracts.totalCredit'),
+            collapsible: false,
             align: 'right',
             format(value) {
               return formatCurrency(value ?? 0);
@@ -74,6 +85,7 @@ export function BlanketContractReport() {
           },
           totalActuals: {
             title: tr('sapReports.blanketContracts.totalActuals'),
+            collapsible: false,
             format(value) {
               return formatCurrency(value ?? 0);
             },
