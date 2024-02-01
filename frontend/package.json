@@ -46,7 +46,7 @@
     "markdown-it-anchor": "^8.6.7",
     "patch-package": "^8.0.0",
     "typescript": "5.3.3",
-    "vite": "^4.5.1",
+    "vite": "^4.5.2",
     "vite-plugin-checker": "^0.6.2",
     "vite-plugin-favicons-inject": "^2.2.0",
     "vite-plugin-markdown": "^2.2.0-2",

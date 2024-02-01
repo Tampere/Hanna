@@ -208,7 +208,8 @@
                 transaction (rand-nth [debit debit credit])
                 wbs (-> project :WBS rand-nth)
                 {:keys [GSTRS GLTRS]} (:NETWORK wbs)
-                item-date (generate-date-between GSTRS GLTRS)]]
+                item-date (generate-date-between GSTRS GLTRS)
+                ]]
       {:BELNR (generate-random-id 999999999 10)
        ;; TODO: random dates from valid range
        :GJAHR (.getYear item-date)
@@ -224,7 +225,8 @@
        :TWAER "EUR"
        :WTGBTR (:WTGBTR transaction)
        :BEKNZ (:BEKNZ transaction)
-       :BLART (rand-nth ["AA", "AB", "AF", "DA"])})))
+       :BLART (rand-nth ["AA", "AB", "AF", "DA"])
+       :VBUND (rand-nth ["1110", "1130", "2110", "8999",  nil]) })))
 
   ;;
 ;; Data to output XML
@@ -331,7 +333,7 @@
 (defn generate-actuals-data [actuals]
   [:ACTUALS
    (map
-    (fn [{:keys [BELNR GJAHR BLDAT BUDAT CPUDT PSPID POSID AUFNR VORNR OBJ_TXT OBART TWAER WTGBTR BEKNZ BLART]}]
+    (fn [{:keys [BELNR GJAHR BLDAT BUDAT CPUDT PSPID POSID AUFNR VORNR OBJ_TXT OBART TWAER WTGBTR BEKNZ BLART VBUND]}]
       [:item
        [:BELNR BELNR]
        [:GJAHR GJAHR]
@@ -348,6 +350,7 @@
        [:WTGBTR WTGBTR]
        [:BEKNZ BEKNZ]
        [:BLART BLART]
+       [:VBUND VBUND]
        ])
     actuals)])
 

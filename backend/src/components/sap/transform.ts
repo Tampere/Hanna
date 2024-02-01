@@ -37,7 +37,6 @@ function transformNetwork(network: any) {
   }));
 }
 
-
 function transformWBS(wbs: any) {
   const wbsItems = itemAsArray(wbs?.item);
   return wbsItems.map((item: any) => {
@@ -144,7 +143,7 @@ export function transformProjectInfo(response: object) {
                   plant: activity.WERKS,
                 };
               }),
-            })
+            }),
           ) ?? [],
       };
     }),
@@ -194,7 +193,8 @@ export function transformActuals(response: object) {
       currency: item.TWAER,
       valueInCurrencySubunit: numericStringToInteger(item.WTGBTR),
       entryType: item.BEKNZ === 'S' ? 'DEBIT' : 'CREDIT',
-      documentType: item.BLART
+      documentType: item.BLART,
+      tradingPartnerId: item.VBUND,
     };
   });
 

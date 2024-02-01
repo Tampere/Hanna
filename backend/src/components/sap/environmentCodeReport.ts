@@ -6,7 +6,7 @@ import { EXPLICIT_EMPTY } from '@shared/schema/code';
 import { EnvironmentCodeReportQuery, environmentCodeReportSchema } from '@shared/schema/sapReport';
 
 function filterReasonForEnvironmentalInvestmentFragment(
-  reasonsForEnvironmentalInvestment?: EnvironmentCodeReportQuery['filters']['reasonsForEnvironmentalInvestment']
+  reasonsForEnvironmentalInvestment?: EnvironmentCodeReportQuery['filters']['reasonsForEnvironmentalInvestment'],
 ) {
   if (!reasonsForEnvironmentalInvestment || reasonsForEnvironmentalInvestment.length === 0)
     return sql.fragment`true`;
@@ -14,7 +14,7 @@ function filterReasonForEnvironmentalInvestmentFragment(
   const includeEmpty = reasonsForEnvironmentalInvestment.includes(EXPLICIT_EMPTY);
   const inArrayFragment = sql.fragment`"reasonForEnvironmentalInvestment" = ANY(${sql.array(
     reasonsForEnvironmentalInvestment,
-    'text'
+    'text',
   )})`;
   return includeEmpty
     ? sql.fragment`(${inArrayFragment} OR "reasonForEnvironmentalInvestment" IS NULL)`
@@ -24,13 +24,14 @@ function filterReasonForEnvironmentalInvestmentFragment(
 function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQuery>) {
   const years = params?.filters?.years ?? [];
   return sql.fragment`
-    WITH total_actuals AS (
+    WITH sub_actuals AS (
       SELECT
-        wbs_element_id,
-        sum(value_in_currency_subunit) FILTER (WHERE entry_type = 'DEBIT') AS "totalDebit",
-        sum(value_in_currency_subunit) FILTER (WHERE entry_type = 'CREDIT') AS "totalCredit",
-        sum(value_in_currency_subunit) AS "totalActuals"
-      FROM app.sap_actuals_item
+		    wbs_element_id,
+		    sum(value_in_currency_subunit) FILTER (WHERE entry_type = 'DEBIT') AS "debitSum",
+		    sum(value_in_currency_subunit) FILTER (WHERE entry_type = 'CREDIT') AS "creditSum",
+		    sum(value_in_currency_subunit) AS "actualsSum",
+		    trading_partner_id
+	    FROM app.sap_actuals_item sai
       ${
         years.length > 0
           ? sql.fragment`
@@ -38,6 +39,27 @@ function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQue
       `
           : sql.fragment`WHERE document_type <> 'AA'`
       }
+	    GROUP BY wbs_element_id, trading_partner_id
+    ),
+    total_actuals AS (
+      SELECT
+        wbs_element_id,
+        sum(sub_actuals."debitSum") AS "totalDebit",
+        sum(sub_actuals."creditSum") AS "totalCredit",
+        sum(sub_actuals."actualsSum") AS "totalActuals",
+        array_agg(
+          json_build_object('company',
+            json_build_object(
+              'companyCode', sub_actuals.trading_partner_id,
+              'companyCodeText', company_code.text_fi
+            ),
+          'totalDebit', sub_actuals."debitSum",
+          'totalCredit', sub_actuals."creditSum",
+          'totalActuals', sub_actuals."actualsSum"
+          )
+        ) AS "actualEntries"
+      FROM sub_actuals
+      LEFT JOIN app.code company_code ON company_code.id = ('Kumppani', sub_actuals.trading_partner_id)::app.code_id
       GROUP BY wbs_element_id
     ), report AS (
       SELECT
@@ -45,21 +67,18 @@ function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQue
         wbs.wbs_id "wbsId",
         wbs.short_description "wbsName",
         wbs.reason_for_environmental_investment "reasonForEnvironmentalInvestment",
-        environment_code.text_fi "reasonForEnvironmentalInvestmentText",
-        network.company_code "companyCode",
-        company_code.text_fi "companyCodeText"
+        environment_code.text_fi "reasonForEnvironmentalInvestmentText"
       FROM
         app.sap_wbs wbs
         LEFT JOIN app.sap_project project ON project.sap_project_internal_id = wbs.sap_project_internal_id
-        LEFT JOIN app.sap_network network ON network.wbs_internal_id = wbs.wbs_internal_id
-        LEFT JOIN app.code company_code ON company_code.id = ('Kumppani', network.company_code)::app.code_id
         LEFT JOIN app.code environment_code ON environment_code.id = ('YmpäristönsuojelunSyy', wbs.reason_for_environmental_investment)::app.code_id
     )
     SELECT
       report.*,
       total_actuals."totalDebit",
       total_actuals."totalCredit",
-      total_actuals."totalActuals"
+      total_actuals."totalActuals",
+      total_actuals."actualEntries"
     FROM
       report
       LEFT JOIN total_actuals ON report."wbsId" = total_actuals.wbs_element_id
@@ -76,7 +95,7 @@ function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQue
         : sql.fragment`true`
     }
     AND (${filterReasonForEnvironmentalInvestmentFragment(
-      params?.filters?.reasonsForEnvironmentalInvestment
+      params?.filters?.reasonsForEnvironmentalInvestment,
     )})
     ${
       params?.sort
@@ -99,12 +118,12 @@ export async function getEnvironmentCodeReport(query: EnvironmentCodeReportQuery
 }
 
 export async function getEnvironmentCodeReportRowCount(
-  filters: Pick<EnvironmentCodeReportQuery, 'filters'>
+  filters: Pick<EnvironmentCodeReportQuery, 'filters'>,
 ) {
   return await getPool().one(sql.type(
     z.object({
       rowCount: z.number(),
-    })
+    }),
   )`
     SELECT
       count(*) "rowCount"
@@ -113,14 +132,14 @@ export async function getEnvironmentCodeReportRowCount(
 }
 
 export async function getEnvironmentCodeReportSummary(
-  filters: Pick<EnvironmentCodeReportQuery, 'filters'>
+  filters: Pick<EnvironmentCodeReportQuery, 'filters'>,
 ) {
   return await getPool().one(sql.type(
     z.object({
       totalDebitSum: z.number(),
       totalCreditSum: z.number(),
       totalActualsSum: z.number(),
-    })
+    }),
   )`
     SELECT
       sum("totalDebit") "totalDebitSum",

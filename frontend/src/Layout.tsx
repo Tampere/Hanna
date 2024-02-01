@@ -97,7 +97,14 @@ function Navbar() {
 
   return (
     <AppBar position="static">
-      <Toolbar>
+      <Toolbar
+        css={css`
+          @media (min-width: 600px) {
+            min-height: 54px;
+          }
+          height: 54px;
+        `}
+      >
         <Box sx={{ mr: 2 }}>
           <Typography variant="h6" noWrap component="div" css={logoStyle}>
             Hanna

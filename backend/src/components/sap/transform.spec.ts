@@ -19,6 +19,7 @@ function createItem(date: string, amount: string, objectType: string, entryType:
     WTGBTR: amount,
     BEKNZ: entryType,
     BLART: 'AA',
+    VBUND: '1130',
   };
 }
 
