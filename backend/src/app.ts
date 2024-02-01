@@ -113,6 +113,12 @@ async function run() {
     return { ping: 'pong', now: new Date() };
   });
 
+  server.get('/redirect-to-elomake', async (_req, reply) => {
+    if (env.projectFormLink) {
+      reply.redirect(env.projectFormLink);
+    }
+  });
+
   server.register(healthApi, { prefix: '/api/v1' });
   server.register(reportDownloadApi, { prefix: '/api/v1' });
   server.register(georasterProxy);

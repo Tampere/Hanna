@@ -7,7 +7,7 @@ test.describe('Work table with customized maximum row count', () => {
   });
 
   test('should render without errors', async ({ page }) => {
-    await page.getByRole('link', { name: 'investointiohjelmointi' }).click();
+    await page.getByRole('tab', { name: 'Investointiohjelmointi' }).click();
     const errorHeader = page.getByText('Unexpected Application Error!');
     const header = page.getByTestId('worktable-title');
 

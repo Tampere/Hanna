@@ -1,9 +1,10 @@
-import { expect, Page, test } from '@playwright/test';
-import type { InvestmentProject } from '@shared/schema/project/investment';
-import { sleep } from '@shared/utils';
+import { Page, expect, test } from '@playwright/test';
 import { fillDatePickerValue, getDatePickerValue } from '@utils/date-picker';
 import { login } from '@utils/page';
 import { client } from '@utils/trpc';
+
+import type { InvestmentProject } from '@shared/schema/project/investment';
+import { sleep } from '@shared/utils';
 
 const keskustoriGeom = {
   type: 'Polygon',
@@ -73,7 +74,7 @@ async function createProject(page: Page, project: InvestmentProject) {
   await client.project.updateGeometry.mutate(geometryPayload(projectId, keskustoriGeom));
 
   // Go back to the front page
-  await page.getByRole('link', { name: 'Hankkeet' }).click();
+  await page.getByRole('tab', { name: 'Hankkeet', exact: true }).click();
   await expect(page).toHaveURL('https://localhost:1443/hankkeet');
 
   // Return the created project with ID
@@ -122,7 +123,7 @@ test.describe('Projects', () => {
     await expect(page.locator('textarea[name="description"]')).toHaveValue(project.description);
 
     expect(await getDatePickerValue(page.locator('input[name="startDate"]'))).toBe(
-      project.startDate
+      project.startDate,
     );
     expect(await getDatePickerValue(page.locator('input[name="endDate"]'))).toBe(project.endDate);
 
@@ -174,7 +175,7 @@ test.describe('Projects', () => {
     let searchResults = await page.locator("div[aria-label='Hakutulokset'] > a").allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectA.projectName)) &&
-        searchResults.every((result) => !result.includes(projectB.projectName))
+        searchResults.every((result) => !result.includes(projectB.projectName)),
     ).toBe(true);
 
     // Search for projectB - projectA should not be in results
@@ -183,7 +184,7 @@ test.describe('Projects', () => {
     searchResults = await page.locator("div[aria-label='Hakutulokset'] > a").allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectB.projectName)) &&
-        searchResults.every((result) => !result.includes(projectA.projectName))
+        searchResults.every((result) => !result.includes(projectA.projectName)),
     ).toBe(true);
 
     // Search for both projects
@@ -192,7 +193,7 @@ test.describe('Projects', () => {
     searchResults = await page.locator("div[aria-label='Hakutulokset'] > a").allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectB.projectName)) &&
-        searchResults.some((result) => result.includes(projectA.projectName))
+        searchResults.some((result) => result.includes(projectA.projectName)),
     ).toBe(true);
 
     // Search for all projects with substring
@@ -206,8 +207,8 @@ test.describe('Projects', () => {
         searchResults.some(
           (result) =>
             result.includes(projectA.projectName) &&
-            searchResults.some((result) => result.includes(projectC.projectName))
-        )
+            searchResults.some((result) => result.includes(projectC.projectName)),
+        ),
     ).toBe(true);
 
     // search with elinkaaren tila filter
@@ -219,7 +220,7 @@ test.describe('Projects', () => {
     expect(
       searchResults.some((result) => result.includes(projectA.projectName)) &&
         searchResults.some((result) => result.includes(projectB.projectName)) &&
-        searchResults.every((result) => !result.includes(projectC.projectName))
+        searchResults.every((result) => !result.includes(projectC.projectName)),
     ).toBe(true);
 
     await page.getByRole('option', { name: 'Aloittamatta' }).getByRole('checkbox').uncheck();
@@ -230,7 +231,7 @@ test.describe('Projects', () => {
     expect(
       searchResults.some((result) => result.includes(projectC.projectName)) &&
         searchResults.every((result) => !result.includes(projectA.projectName)) &&
-        searchResults.every((result) => !result.includes(projectB.projectName))
+        searchResults.every((result) => !result.includes(projectB.projectName)),
     ).toBe(true);
 
     // Clean up the test case

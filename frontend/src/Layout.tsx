@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { BackupTable, HelpOutline, Logout, Reorder, Settings } from '@mui/icons-material';
+import { BackupTable, Feed, HelpOutline, Logout, Reorder, Settings } from '@mui/icons-material';
 import AccountCircleOutlined from '@mui/icons-material/AccountCircleOutlined';
 import AccountTreeOutlined from '@mui/icons-material/AccountTreeOutlined';
 import {
@@ -12,14 +12,17 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Tab,
+  Tabs,
   ThemeProvider,
   Toolbar,
+  Tooltip,
   Typography,
   createTheme,
 } from '@mui/material';
 import { fiFI } from '@mui/material/locale';
 import { useAtom, useAtomValue } from 'jotai';
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Link, Outlet } from 'react-router-dom';
 
 import { useTranslations } from '@frontend/stores/lang';
@@ -72,11 +75,14 @@ const theme = createTheme(
   fiFI,
 );
 
+type Tabs = 'hankkeet' | 'sap' | 'investointiohjelma';
+
 function Navbar() {
   const [auth] = useAtom(authAtom);
   const tr = useTranslations();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuAnchor = useRef<HTMLButtonElement>(null);
+  const [selectedTab, setSelectedTab] = useState('hankkeet');
 
   const logoStyle = css`
     font-family: Consolas, Menlo, sans-serif, monospace;
@@ -84,6 +90,10 @@ function Navbar() {
     font-weight: bold;
     letter-spacing: 0.3rem;
   `;
+
+  function handleTabChange(_event: React.SyntheticEvent, value: string) {
+    setSelectedTab(value);
+  }
 
   return (
     <AppBar position="static">
@@ -107,35 +117,66 @@ function Navbar() {
             justify-content: space-between;
           `}
         >
-          <Box
+          <Tabs
             css={css`
               display: flex;
               gap: 10px;
+              .MuiTab-root.MuiTab-root {
+                color: white;
+              }
+              .MuiTabs-indicator {
+                background-color: white;
+              }
             `}
+            value={selectedTab}
+            onChange={handleTabChange}
           >
-            <Button component={Link} to="/hankkeet" sx={{ color: 'white' }}>
-              <AccountTreeOutlined sx={{ mr: 1 }} />
-              {tr('pages.projectsTitle')}
-            </Button>
+            <Tab
+              icon={<AccountTreeOutlined sx={{ mr: 1 }} />}
+              iconPosition="start"
+              label={tr('pages.projectsTitle')}
+              component={Link}
+              value="hankkeet"
+              to="/hankkeet"
+            />
 
             {import.meta.env.VITE_FEATURE_SAP_REPORTS === 'true' && (
-              <Button component={Link} to="/sap-raportit/ymparistokoodit" sx={{ color: 'white' }}>
-                <BackupTable sx={{ mr: 1 }} />
-                {tr('pages.sapReportsTitle')}
-              </Button>
+              <Tab
+                icon={<BackupTable sx={{ mr: 1 }} />}
+                iconPosition="start"
+                label={tr('pages.sapReportsTitle')}
+                component={Link}
+                value="sap"
+                to="/sap-raportit/ymparistokoodit"
+              />
             )}
 
-            <Button component={Link} to="/investointiohjelma" sx={{ color: 'white' }}>
-              <Reorder sx={{ mr: 1 }} />
-              {tr('pages.workTableTitle')}
-            </Button>
-          </Box>
+            <Tab
+              icon={<Reorder sx={{ mr: 1 }} />}
+              iconPosition="start"
+              label={tr('pages.workTableTitle')}
+              component={Link}
+              value="investointiohjelma"
+              to="/investointiohjelma"
+            />
+          </Tabs>
 
           <Box
             css={css`
               display: flex;
             `}
           >
+            <Tooltip title={tr('pages.eFormLabel')}>
+              <Button
+                component={Link}
+                to="/redirect-to-elomake"
+                target="_blank"
+                sx={{ color: 'white', float: 'right' }}
+                startIcon={<Feed />}
+              >
+                {tr('pages.eForm')}
+              </Button>
+            </Tooltip>
             <Button
               component={Link}
               to="/ohje"
