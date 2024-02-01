@@ -106,7 +106,11 @@ function SaveOptionsButton(props: {
       <Button
         onClick={async () => {
           const valid = await form.trigger();
-          if (valid) onSubmit(form.getValues());
+          if (valid) {
+            const data = form.getValues();
+            form.reset(); // reset to set navigation blocker to non-blocking state
+            onSubmit(data);
+          }
         }}
       >
         {tr('projectObjectForm.createAndReturnBtnLabel')}
@@ -163,7 +167,7 @@ export function ProjectObjectForm(props: Props) {
     return async function formValidation(
       values: UpsertProjectObject,
       context: object,
-      options: ResolverOptions<UpsertProjectObject>
+      options: ResolverOptions<UpsertProjectObject>,
     ) {
       const fields = options.names ?? [];
       const isFormValidation = fields && fields.length > 1;
@@ -253,7 +257,7 @@ export function ProjectObjectForm(props: Props) {
         onSuccess: (data) => {
           navigate(`${props.navigateTo}?highlight=${data.id}`);
         },
-      }
+      },
     );
   };
 
