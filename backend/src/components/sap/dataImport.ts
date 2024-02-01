@@ -52,7 +52,7 @@ async function getSapProjectInternalId(conn: DatabaseTransactionConnection, sapP
 
 async function deleteProjectStructures(
   conn: DatabaseTransactionConnection,
-  sapProjectInternalId: string
+  sapProjectInternalId: string,
 ) {
   const deletions = [
     sql.untyped`DELETE FROM app.sap_activity WHERE sap_project_internal_id = ${sapProjectInternalId}`,
@@ -322,7 +322,8 @@ async function insertActuals(conn: DatabaseTransactionConnection, actuals: SAPAc
         currency,
         value_in_currency_subunit,
         entry_type,
-        document_type
+        document_type,
+        trading_partner_id
       )
       VALUES (
         ${actual.documentNumber},
@@ -339,7 +340,8 @@ async function insertActuals(conn: DatabaseTransactionConnection, actuals: SAPAc
         ${actual.currency},
         ${actual.valueInCurrencySubunit},
         ${actual.entryType},
-        ${actual.documentType}
+        ${actual.documentType},
+        ${actual.tradingPartnerId}
         );
     `);
   }
@@ -352,7 +354,7 @@ async function maybeCacheSapActuals(projectId: string, actuals: SAPActual[]) {
       ...actualsByYear,
       [item.fiscalYear]: [...(actualsByYear[item.fiscalYear] ?? []), item],
     }),
-    {} as { [year: string]: SAPActual[] }
+    {} as { [year: string]: SAPActual[] },
   );
 
   await getPool().transaction(async (conn) => {
@@ -361,7 +363,7 @@ async function maybeCacheSapActuals(projectId: string, actuals: SAPActual[]) {
       WHERE sap_project_id = ${projectId}
         AND extract (year FROM posting_date) = ANY (${sql.array(
           Object.keys(actualsByYear),
-          'int4'
+          'int4',
         )})
     `);
 
@@ -373,7 +375,7 @@ async function maybeCacheSapActuals(projectId: string, actuals: SAPActual[]) {
           const hash = md5Hash(jsonActuals);
           return [projectId, year, jsonActuals, hash];
         }),
-        ['text', 'int4', 'jsonb', 'text']
+        ['text', 'int4', 'jsonb', 'text'],
       )}
       ON CONFLICT (sap_project_id, actuals_year, data_hash) DO UPDATE SET last_check = now()
     `);
@@ -395,12 +397,12 @@ export async function getSapActuals(sapProjectId: string, fromYear: number, toYe
   const cachedActuals = await getCachedSapActuals(sapProjectId, fromYear, toYear);
   if (cachedActuals) {
     logger.info(
-      `Found recently cached SAP actuals for ${sapProjectId}, years ${fromYear}-${toYear}...`
+      `Found recently cached SAP actuals for ${sapProjectId}, years ${fromYear}-${toYear}...`,
     );
     return cachedActuals;
   } else {
     logger.info(
-      `No recent cache entry for ${sapProjectId}, years ${fromYear}-${toYear} actuals, fetching...`
+      `No recent cache entry for ${sapProjectId}, years ${fromYear}-${toYear} actuals, fetching...`,
     );
     const wsClient = ActualsService.getClient();
     const [startDate, endDate] = iso8601DateYearRange(fromYear, toYear);

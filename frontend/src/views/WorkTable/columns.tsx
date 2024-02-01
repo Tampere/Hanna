@@ -281,7 +281,7 @@ const financesField = (
     allowNegative?: boolean;
     valueTextColor?: (value: number | null) => string;
   },
-) => {
+): GridColDef<WorkTableRow> & { __isWrapped?: boolean } => {
   return {
     field: targetField,
     headerName: targetField,

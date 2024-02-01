@@ -17,7 +17,9 @@ import { ReactNode, useEffect, useMemo, useState } from 'react';
 
 import { useTranslations } from '@frontend/stores/lang';
 
-interface Sort<TRow extends object> {
+import { DataTableRow } from './DataTableRow';
+
+interface Sort<TRow> {
   key: keyof TRow;
   direction: 'asc' | 'desc';
 }
@@ -26,9 +28,10 @@ interface RowCount {
   rowCount: number;
 }
 
-type ColumnSettings<TRow extends object> = {
+export type ColumnSettings<TRow> = {
   [key in keyof TRow]: {
-    title: string;
+    title?: string;
+    collapsible: boolean;
     format?: (value: TRow[key], row?: TRow) => ReactNode;
     width?: number;
     align?: TableCellProps['align'];
@@ -36,32 +39,42 @@ type ColumnSettings<TRow extends object> = {
   };
 };
 
-interface DataQueryParams<TRow extends object> {
+interface DataQueryParams<TRow> {
   offset?: number;
   limit?: number;
   sort?: Sort<TRow>;
   filters?: object;
 }
 
-interface Props<TRow extends object, TQueryParams extends DataQueryParams<TRow>> {
+interface Props<
+  TRow extends { actualEntries?: TActualEntry[] },
+  TQueryParams extends DataQueryParams<TRow>,
+  TActualEntry extends Partial<TRow>,
+> {
   getRows: (params: TQueryParams) => Promise<readonly TRow[]>;
   getRowCount: (
-    params: TQueryParams['filters'] extends object ? Pick<TQueryParams, 'filters'> : never
+    params: TQueryParams['filters'] extends object ? Pick<TQueryParams, 'filters'> : never,
   ) => Promise<RowCount>;
-  columns: ColumnSettings<TRow>;
-  filters?: TQueryParams['filters'] extends object ? TQueryParams['filters'] : never;
+  columns: ColumnSettings<Omit<TRow, 'actualEntries'>>;
+  collapsedColumns?: ColumnSettings<TActualEntry>;
+  filters: TQueryParams['filters'] extends object ? TQueryParams['filters'] : never;
   rowsPerPageOptions?: number[];
   defaultRowsPerPage?: number;
 }
 
-export function DataTable<TRow extends object, TQueryParams extends DataQueryParams<TRow>>({
+export function DataTable<
+  TRow extends { actualEntries?: TActualEntry[] },
+  TQueryParams extends DataQueryParams<TRow>,
+  TActualEntry extends Partial<TRow>,
+>({
   getRows,
   getRowCount,
   columns,
+  collapsedColumns,
   filters,
   rowsPerPageOptions = [10, 20, 30, 500],
   defaultRowsPerPage = rowsPerPageOptions[0],
-}: Props<TRow, TQueryParams>) {
+}: Props<TRow, TQueryParams, TActualEntry>) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [page, setPage] = useState(0);
@@ -74,7 +87,7 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
 
   const { offset, limit } = useMemo(
     () => ({ offset: page * rowsPerPage, limit: rowsPerPage }),
-    [page, rowsPerPage]
+    [page, rowsPerPage],
   );
 
   const columnKeys = useMemo(() => {
@@ -88,6 +101,7 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
 
     async function reloadSummary() {
       // TODO Some weird TS issues regarding optionality of the filters, though the Props typings are working correctly (which matters the most)...
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { rowCount } = await getRowCount({ filters } as any);
       if (shouldUpdate) {
         setRowCount(rowCount);
@@ -107,7 +121,7 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
     async function reloadTableData() {
       setLoading(true);
       try {
-        const rows = await getRows({ offset, limit, filters, sort } as TQueryParams);
+        const rows = await getRows({ offset, limit, filters, sort } as unknown as TQueryParams);
         // On stacked requests, only update the UI when the latest request has been completed
         if (!shouldUpdate) {
           return;
@@ -129,20 +143,19 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
   }, [offset, limit, JSON.stringify(filters), sort]);
 
   const InfoTextCell = useMemo(
-    () => (props: TableCellProps) =>
-      (
-        <TableCell
-          css={css`
-            text-align: center;
-            padding: 20px;
-          `}
-          colSpan={columnKeys.length}
-          {...props}
-        >
-          <Typography variant="h6">{props.children}</Typography>
-        </TableCell>
-      ),
-    [columnKeys]
+    () => (props: TableCellProps) => (
+      <TableCell
+        css={css`
+          text-align: center;
+          padding: 20px;
+        `}
+        colSpan={columnKeys.length}
+        {...props}
+      >
+        <Typography variant="h6">{props.children}</Typography>
+      </TableCell>
+    ),
+    [columnKeys],
   );
 
   return (
@@ -176,42 +189,49 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
               <TableRow>
                 {columnKeys.map((key) => (
                   <TableCell
+                    css={css`
+                      min-width: ${columns[key].width}px;
+                      color: #fff;
+                    `}
                     key={key.toString()}
-                    width={columns[key].width}
                     align={columns[key].align}
                   >
-                    <TableSortLabel
-                      active={sort?.key === key}
-                      direction={sort?.key === key ? sort.direction : 'asc'}
-                      sx={{
-                        '&.MuiTableSortLabel-root': {
-                          color: '#fff',
-                        },
-                        '&.MuiTableSortLabel-root:hover': {
-                          color: '#eee',
-                        },
-                        '&.Mui-active': {
-                          fontWeight: 700,
-                          color: '#eee',
-                        },
-                        '& .MuiTableSortLabel-icon': {
-                          color: '#eee !important',
-                        },
-                      }}
-                      onClick={() => {
-                        setSort({
-                          key,
-                          direction:
-                            sort?.key === key
-                              ? sort?.direction === 'asc'
-                                ? 'desc'
-                                : 'asc'
-                              : 'asc',
-                        });
-                      }}
-                    >
-                      {columns[key].title}
-                    </TableSortLabel>
+                    {key !== 'company' ? (
+                      <TableSortLabel
+                        active={sort?.key === key}
+                        direction={sort?.key === key ? sort.direction : 'asc'}
+                        sx={{
+                          '&.MuiTableSortLabel-root': {
+                            color: '#fff',
+                          },
+                          '&.MuiTableSortLabel-root:hover': {
+                            color: '#eee',
+                          },
+                          '&.Mui-active': {
+                            fontWeight: 700,
+                            color: '#eee',
+                          },
+                          '& .MuiTableSortLabel-icon': {
+                            color: '#eee !important',
+                          },
+                        }}
+                        onClick={() => {
+                          setSort({
+                            key,
+                            direction:
+                              sort?.key === key
+                                ? sort?.direction === 'asc'
+                                  ? 'desc'
+                                  : 'asc'
+                                : 'asc',
+                          });
+                        }}
+                      >
+                        {columns[key].title}
+                      </TableSortLabel>
+                    ) : (
+                      columns[key].title
+                    )}
                   </TableCell>
                 ))}
               </TableRow>
@@ -234,28 +254,14 @@ export function DataTable<TRow extends object, TQueryParams extends DataQueryPar
                 </TableRow>
               ) : (
                 visibleRows.map((row, index) => (
-                  <TableRow
+                  <DataTableRow
+                    row={row}
+                    collapsedColumns={collapsedColumns ?? null}
+                    columnKeys={columnKeys}
+                    columns={columns}
+                    currencyColumnKeys={currencyColumnKeys}
                     key={index}
-                    css={css`
-                      &:hover {
-                        background: #eee;
-                      }
-                    `}
-                  >
-                    {columnKeys.map((key) => {
-                      const formattedValue =
-                        columns[key].format?.(row[key], row) ?? row[key]?.toString() ?? '';
-                      return (
-                        <TableCell
-                          sx={{ textWrap: currencyColumnKeys.includes(key) ? 'nowrap' : 'wrap' }}
-                          key={key.toString()}
-                          align={columns[key].align}
-                        >
-                          {formattedValue}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
+                  />
                 ))
               )}
               <TableRow

@@ -66,7 +66,7 @@ export function buildSheet<ColumnKey extends string>({
 
   // Initialize column widths from the headers
   const columnWidths = headerValues.map((header) =>
-    calculateTextWidth({ text: header, fontName: 'Calibri', fontSize: '12px', fontWeight: 'bold' })
+    calculateTextWidth({ text: header, fontName: 'Calibri', fontSize: '12px', fontWeight: 'bold' }),
   );
 
   // Generate sum cells
@@ -142,7 +142,7 @@ export async function buildReport(jobId: string, searchParams: ProjectSearch) {
     });
 
     logger.debug(
-      `Running report queries for job ${jobId} with data: ${JSON.stringify(searchParams)}`
+      `Running report queries for job ${jobId} with data: ${JSON.stringify(searchParams)}`,
     );
 
     // Build each sheet in desired order

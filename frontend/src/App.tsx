@@ -1,4 +1,5 @@
 import '@fontsource/roboto';
+import '@fontsource/roboto/500.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpLink } from '@trpc/client';
 import { useAtomValue, useSetAtom } from 'jotai';
@@ -82,15 +83,15 @@ const router = createBrowserRouter(
         <Route path="session-renewed" element={<SessionRenewed />} />
         <Route path="*" element={<NotFound />} />
       </Route>
-    </>
-  )
+    </>,
+  ),
 );
 
 export function App() {
   const tr = useTranslations();
   const setSessionExpired = useSetAtom(sessionExpiredAtom);
   const [queryClient] = useState(
-    () => new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    () => new QueryClient({ defaultOptions: { queries: { retry: false } } }),
   );
   const [trpcClient] = useState(() =>
     trpc.createClient({
@@ -112,7 +113,7 @@ export function App() {
         }),
       ],
       transformer: SuperJSON,
-    })
+    }),
   );
 
   return (

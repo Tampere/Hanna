@@ -16,6 +16,9 @@ const queueName = 'environment-code-report';
 type JobData = Pick<EnvironmentCodeReportQuery, 'filters'>;
 
 type ReportColumnKey = Partial<Suffix<TranslationKey, 'sapReports.environmentCodes.'>>;
+type ActualsReportColumnKey = Partial<
+  Suffix<TranslationKey, 'sapReports.environmentCodes.actualEntries.'>
+>;
 
 export async function setupEnvironmentCodeReportQueue() {
   getTaskQueue().work<JobData>(
@@ -31,16 +34,40 @@ export async function setupEnvironmentCodeReportQueue() {
       });
 
       const headers = Object.keys(rows[0]).reduce(
-        (headers, key) => ({
-          ...headers,
-          [key]: translations['fi'][`sapReports.environmentCodes.${key as ReportColumnKey}`],
-        }),
-        {} as { [key in ReportColumnKey]: string }
+        (headers, key) => {
+          if (key === 'actualEntries') {
+            return headers;
+          }
+          return {
+            ...headers,
+            [key]: translations['fi'][`sapReports.environmentCodes.${key as ReportColumnKey}`],
+          };
+        },
+        {} as { [key in ReportColumnKey]: string },
+      );
+
+      const actualsHeaders = Object.keys(rows[0]).reduce(
+        (headers, key) => {
+          if (key === 'actualEntries') {
+            return {
+              ...headers,
+              companyCode:
+                translations['fi'][`sapReports.environmentCodes.actualEntries.companyCode`],
+              companyCodeText:
+                translations['fi'][`sapReports.environmentCodes.actualEntries.companyCodeText`],
+            };
+          }
+          return {
+            ...headers,
+            [key]: translations['fi'][`sapReports.environmentCodes.${key as ReportColumnKey}`],
+          };
+        },
+        {} as { [key in ReportColumnKey | ActualsReportColumnKey]: string },
       );
 
       const sheet = buildSheet({
         workbook,
-        sheetTitle: translations['fi']['sapReports.environmentCodes'],
+        sheetTitle: translations['fi']['sapReports.environmentCodes.byWps'],
         // Convert data for Excel export
         rows: rows.map((row) => ({
           ...row,
@@ -53,12 +80,33 @@ export async function setupEnvironmentCodeReportQueue() {
         sum: ['totalDebit', 'totalCredit', 'totalActuals'],
       });
 
-      if (!sheet) {
+      const actualsSheet = buildSheet({
+        workbook,
+        sheetTitle: translations['fi']['sapReports.environmentCodes.byCompanies'],
+        rows: rows.flatMap((row) =>
+          row.actualEntries.map((subRow) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { actualEntries, company, ...rest } = row;
+            return {
+              companyCode: subRow.company.companyCode,
+              companyCodeText: subRow.company.companyCodeText,
+              ...rest,
+              totalDebit: subRow.totalDebit == null ? null : subRow.totalDebit / 100,
+              totalCredit: subRow.totalCredit == null ? null : subRow.totalCredit / 100,
+              totalActuals: subRow.totalActuals == null ? null : subRow.totalActuals / 100,
+            };
+          }),
+        ),
+        headers: actualsHeaders,
+        types: { totalDebit: 'currency', totalCredit: 'currency', totalActuals: 'currency' },
+      });
+
+      if (!sheet || !actualsSheet) {
         return;
       }
 
       await saveReportFile(id, 'ymparistokoodit.xlsx', workbook);
-    }
+    },
   );
 }
 
