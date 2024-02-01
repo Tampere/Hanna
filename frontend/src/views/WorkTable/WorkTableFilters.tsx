@@ -18,13 +18,24 @@ interface GridSpanProps {
   span: number;
   row: number;
   children: React.ReactNode;
+  start?: number;
+  wideScreenSpan?: number;
 }
 
-function GridSpan({ span, row, children }: GridSpanProps): React.ReactElement<GridSpanProps> {
+function GridSpan({
+  start,
+  span,
+  row,
+  children,
+  wideScreenSpan,
+}: GridSpanProps): React.ReactElement<GridSpanProps> {
   return (
     <div
       css={css`
-        grid-column: span ${span};
+        @media (min-width: 1500px) {
+          grid-column: ${start ? `${start} / span ${span}` : `span ${wideScreenSpan ?? span}`};
+        }
+        grid-column: ${start ? `${start} / span ${span}` : `span ${span}`};
         grid-row: ${row};
       `}
     >
@@ -65,7 +76,15 @@ export function WorkTableFilters(props: Props) {
   return (
     <div
       css={(theme: Theme) => css`
-        padding: ${theme.spacing(2)} 0;
+        .MuiFormLabel-root {
+          font-size: 12px;
+        }
+        .MuiInputBase-input {
+          font-size: 12px;
+          //height: 1rem;
+        }
+
+        padding: ${theme.spacing(1)} 0;
         display: grid;
         grid-template-columns: repeat(14, 1fr);
         grid-template-rows: 1fr 1fr;
@@ -137,7 +156,7 @@ export function WorkTableFilters(props: Props) {
         </GridSpan>
       </LocalizationProvider>
 
-      <GridSpan row={2} span={2}>
+      <GridSpan row={2} span={3} wideScreenSpan={2}>
         <CustomFormLabel label={tr('projectObject.objectTypeLabel')} htmlFor="objectTypeField" />
         <CodeSelect
           multiple
@@ -149,7 +168,7 @@ export function WorkTableFilters(props: Props) {
         />
       </GridSpan>
 
-      <GridSpan row={2} span={2}>
+      <GridSpan row={2} span={3} wideScreenSpan={2}>
         <CustomFormLabel
           label={tr('projectObject.objectCategoryLabelShort')}
           htmlFor="objectCategoryField"
@@ -164,7 +183,7 @@ export function WorkTableFilters(props: Props) {
         />
       </GridSpan>
 
-      <GridSpan row={2} span={2}>
+      <GridSpan row={2} span={3} wideScreenSpan={2}>
         <CustomFormLabel
           label={tr('projectObject.objectUsageLabelShort')}
           htmlFor="objectUsageField"
@@ -179,7 +198,7 @@ export function WorkTableFilters(props: Props) {
         />
       </GridSpan>
 
-      <GridSpan row={2} span={2}>
+      <GridSpan row={2} span={3} wideScreenSpan={2}>
         <CustomFormLabel
           label={tr('projectObject.lifecycleStateLabel')}
           htmlFor="objectLifecycleState"
@@ -194,15 +213,11 @@ export function WorkTableFilters(props: Props) {
         />
       </GridSpan>
 
-      <GridSpan row={2} span={4}>
-        <span />
-      </GridSpan>
-
       <div
         css={(theme) => css`
           border-left: 1px solid #ccc;
           padding-left: ${theme.spacing(2)};
-          grid-column: span 2;
+          grid-column: 13 / span 2;
           grid-row: 1 / span 2;
           display: flex;
           flex-direction: column;

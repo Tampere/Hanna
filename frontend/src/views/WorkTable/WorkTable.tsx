@@ -43,11 +43,14 @@ const dataGridStyle = (theme: Theme) => css`
   & .MuiDataGrid-columnHeaders {
     background: ${theme.palette.primary.main};
     color: white;
+    height: 45px !important;
+    min-height: 0 !important;
   }
   & .MuiDataGrid-columnHeaderTitle {
     line-height: normal;
     white-space: normal !important;
     word-wrap: break-word;
+    font-weight: 600;
   }
   & .cell-wrap-text {
     white-space: normal !important;
@@ -159,10 +162,10 @@ export default function WorkTable() {
     gridApiRef.current.setRows([...(workTableData.data as WorkTableRow[])]);
 
     const minYear = Math.min(
-      ...workTableData.data.map((row) => new Date(row.dateRange.startDate).getFullYear())
+      ...workTableData.data.map((row) => new Date(row.dateRange.startDate).getFullYear()),
     );
     const maxYear = Math.max(
-      ...workTableData.data.map((row) => new Date(row.dateRange.endDate).getFullYear())
+      ...workTableData.data.map((row) => new Date(row.dateRange.endDate).getFullYear()),
     );
     setYearRange({ startYear: minYear, endYear: maxYear });
   }, [workTableData.data]);
@@ -255,7 +258,7 @@ export default function WorkTable() {
   }
 
   function getSummaryData(
-    fieldName: 'budget' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos'
+    fieldName: 'budget' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos',
   ) {
     const eurFormat = new Intl.NumberFormat('fi-FI', {
       style: 'currency',
@@ -270,10 +273,10 @@ export default function WorkTable() {
         .map((data: WorkTableRow) =>
           Number(
             editEvents.find((event) => event.rowId === data.id && event.field === fieldName)
-              ?.newValue ?? data[fieldName]
-          )
+              ?.newValue ?? data[fieldName],
+          ),
         )
-        .filter((data) => !isNaN(data))
+        .filter((data) => !isNaN(data)),
     );
 
     return eurFormat.format(sum);
@@ -287,82 +290,138 @@ export default function WorkTable() {
         height: 100%;
       `}
     >
-      <Paper
+      <Box
         css={css`
-          padding: 16px;
-          margin-bottom: 16px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
         `}
       >
-        <Box
+        <Typography
+          variant="h4"
+          component="h1"
+          data-testid="worktable-title"
           css={css`
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
+            font-size: 1.8rem;
           `}
         >
-          <Typography variant="h4" data-testid="worktable-title">
-            {tr('workTable.title')}
-          </Typography>
-          <Button
-            variant="contained"
-            component={Link}
-            to="/kohde/uusi?from=/investointiohjelma"
-            endIcon={<AddCircleOutline />}
-          >
-            {tr('workTable.newProjectObjectBtnLabel')}
-          </Button>
-        </Box>
-        <WorkTableFilters
-          readOnly={editEvents.length > 0}
-          searchParams={searchParams}
-          yearRange={yearRange}
-          setSearchParams={setSearchParams}
-        />
-        <Divider
-          css={css`
-            margin-top: 24px;
-            margin-bottom: 24px;
-          `}
-        />
+          {tr('workTable.title')}
+        </Typography>
         <Box
           css={(theme) => css`
+            margin-left: auto;
+            padding: ${theme.spacing(1)};
             display: flex;
-            padding: 1rem 0;
-            gap: 2rem;
-
-            .summaryContainer {
-              display: flex;
-              gap: 10px;
-              align-items: flex-end;
-            }
-            .summaryLabel {
-              font-weight: 600;
-              white-space: nowrap;
-              color: ${theme.palette.primary.main};
-            }
+            justify-content: space-between;
+            visibility: ${editEvents.length > 0 || redoEvents.length > 0 ? 'visible' : 'hidden'};
           `}
         >
-          <Box className="summaryContainer">
-            <Typography className="summaryLabel">{tr('workTable.summary.budget')}:</Typography>
-            <Typography>{getSummaryData('budget')}</Typography>
+          <Box
+            css={(theme) => {
+              return css`
+                display: flex;
+                gap: ${theme.spacing(1)};
+              `;
+            }}
+          >
+            <IconButton onClick={undo} disabled={editEvents.length === 0}>
+              <Tooltip title={tr('genericForm.undo')}>
+                <Undo />
+              </Tooltip>
+            </IconButton>
+
+            <IconButton onClick={redo} disabled={redoEvents.length === 0}>
+              <Tooltip title={tr('genericForm.redo')}>
+                <Redo />
+              </Tooltip>
+            </IconButton>
           </Box>
-          <Box className="summaryContainer">
-            <Typography className="summaryLabel">{tr('workTable.summary.actual')}:</Typography>
-            <Typography>{getSummaryData('actual')}</Typography>
-          </Box>
-          <Box className="summaryContainer">
-            <Typography className="summaryLabel">{tr('workTable.summary.forecast')}:</Typography>
-            <Typography>{getSummaryData('forecast')}</Typography>
-          </Box>
-          <Box className="summaryContainer">
-            <Typography className="summaryLabel" style={{ whiteSpace: 'normal' }}>
-              {tr('workTable.summary.kayttosuunnitelmanMuutos')}:
-            </Typography>
-            <Typography>{getSummaryData('kayttosuunnitelmanMuutos')}</Typography>
+
+          <Box
+            css={(theme) => {
+              return css`
+                display: flex;
+                gap: ${theme.spacing(1)};
+              `;
+            }}
+          >
+            <Button
+              variant="outlined"
+              size="small"
+              disabled={editEvents.length === 0 || updateObjects.isLoading}
+              onClick={undoAll}
+              endIcon={<Cancel />}
+            >
+              {tr('genericForm.cancelAll')}
+            </Button>
+            <Button
+              variant="contained"
+              size="small"
+              disabled={editEvents.length === 0 || updateObjects.isLoading}
+              onClick={update}
+              endIcon={<Save />}
+            >
+              {tr('genericForm.save')}
+            </Button>
           </Box>
         </Box>
-      </Paper>
+        <Button
+          variant="contained"
+          component={Link}
+          to="/kohde/uusi?from=/investointiohjelma"
+          endIcon={<AddCircleOutline />}
+        >
+          {tr('workTable.newProjectObjectBtnLabel')}
+        </Button>
+      </Box>
+      <WorkTableFilters
+        readOnly={editEvents.length > 0}
+        searchParams={searchParams}
+        yearRange={yearRange}
+        setSearchParams={setSearchParams}
+      />
+
+      <Box
+        css={(theme) => css`
+          display: flex;
+          flex-wrap: wrap;
+          padding: 1rem 0;
+          gap: 1.5rem;
+          p {
+            font-size: 0.9rem;
+            white-space: nowrap;
+          }
+          .summaryContainer {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+          }
+          .summaryLabel {
+            font-weight: 600;
+            white-space: nowrap;
+            color: ${theme.palette.primary.main};
+          }
+        `}
+      >
+        <Box className="summaryContainer">
+          <Typography className="summaryLabel">{tr('workTable.summary.budget')}:</Typography>
+          <Typography>{getSummaryData('budget')}</Typography>
+        </Box>
+        <Box className="summaryContainer">
+          <Typography className="summaryLabel">{tr('workTable.summary.actual')}:</Typography>
+          <Typography>{getSummaryData('actual')}</Typography>
+        </Box>
+        <Box className="summaryContainer">
+          <Typography className="summaryLabel">{tr('workTable.summary.forecast')}:</Typography>
+          <Typography>{getSummaryData('forecast')}</Typography>
+        </Box>
+        <Box className="summaryContainer">
+          <Typography className="summaryLabel" style={{ whiteSpace: 'normal' }}>
+            {tr('workTable.summary.kayttosuunnitelmanMuutos')}:
+          </Typography>
+          <Typography>{getSummaryData('kayttosuunnitelmanMuutos')}</Typography>
+        </Box>
+      </Box>
 
       <DataGrid
         disableVirtualization
@@ -400,63 +459,6 @@ export default function WorkTable() {
         }}
         disableColumnMenu
       />
-      <Box
-        css={(theme) => css`
-          padding: ${theme.spacing(1)};
-          display: flex;
-          justify-content: space-between;
-          visibility: ${editEvents.length > 0 || redoEvents.length > 0 ? 'visible' : 'hidden'};
-        `}
-      >
-        <Box
-          css={(theme) => {
-            return css`
-              display: flex;
-              gap: ${theme.spacing(1)};
-            `;
-          }}
-        >
-          <IconButton onClick={undo} disabled={editEvents.length === 0}>
-            <Tooltip title={tr('genericForm.undo')}>
-              <Undo />
-            </Tooltip>
-          </IconButton>
-
-          <IconButton onClick={redo} disabled={redoEvents.length === 0}>
-            <Tooltip title={tr('genericForm.redo')}>
-              <Redo />
-            </Tooltip>
-          </IconButton>
-        </Box>
-
-        <Box
-          css={(theme) => {
-            return css`
-              display: flex;
-              gap: ${theme.spacing(1)};
-            `;
-          }}
-        >
-          <Button
-            variant="outlined"
-            size="small"
-            disabled={editEvents.length === 0 || updateObjects.isLoading}
-            onClick={undoAll}
-          >
-            {tr('genericForm.cancelAll')}
-            <Cancel />
-          </Button>
-          <Button
-            variant="contained"
-            size="small"
-            disabled={editEvents.length === 0 || updateObjects.isLoading}
-            onClick={update}
-          >
-            {tr('genericForm.save')}
-            <Save />
-          </Button>
-        </Box>
-      </Box>
     </Box>
   );
 }

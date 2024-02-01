@@ -3,6 +3,7 @@ import { Launch } from '@mui/icons-material';
 import { Box } from '@mui/material';
 import {
   GridColDef,
+  GridColumnHeaderParams,
   GridRenderCellParams,
   GridRenderEditCellParams,
   GridValidRowModel,
@@ -279,7 +280,7 @@ const financesField = (
   CurrencyInputProps?: {
     allowNegative?: boolean;
     valueTextColor?: (value: number | null) => string;
-  }
+  },
 ) => {
   return {
     field: targetField,
@@ -368,7 +369,7 @@ export function getColumns({
       financesRange,
       'forecast',
       { headerName: 'Ennuste' },
-      { allowNegative: true, valueTextColor }
+      { allowNegative: true, valueTextColor },
     ),
     financesField(
       financesRange,
@@ -379,7 +380,7 @@ export function getColumns({
       },
       {
         valueTextColor,
-      }
+      },
     ),
   ];
 
@@ -390,6 +391,7 @@ export function getColumns({
     filterable: false,
     sortable: false,
     cellClassName: 'cell-wrap-text',
+    headerClassName: 'workTableHeader',
     renderCell: (params: GridRenderCellParams) => (
       <MaybeModifiedCell params={params} modifiedFields={modifiedFields}>
         {column.renderCell?.(params)}

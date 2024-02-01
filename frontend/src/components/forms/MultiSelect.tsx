@@ -1,5 +1,13 @@
 import { CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
-import { Autocomplete, Checkbox, Chip, CircularProgress, Popover, TextField } from '@mui/material';
+import {
+  Autocomplete,
+  Checkbox,
+  Chip,
+  CircularProgress,
+  Popover,
+  TextField,
+  css,
+} from '@mui/material';
 import { useRef, useState } from 'react';
 
 import { useTranslations } from '@frontend/stores/lang';
@@ -110,6 +118,13 @@ export function MultiSelect<T>({
           // Render the popover if selections exceed the maximum tag count
           <>
             <Chip
+              css={css`
+                font-size: 12px;
+                height: 18px;
+                &.MuiChip-root {
+                  max-width: 60%;
+                }
+              `}
               size="small"
               label={`${value.length} ${tr('select.selections')}`}
               color="primary"
@@ -145,6 +160,13 @@ export function MultiSelect<T>({
           // Only render the tags if the limit is not exceeded
           value.map((tag, index) => (
             <Chip
+              css={css`
+                font-size: 12px;
+                height: 18px;
+                &.MuiAutocomplete-tag {
+                  max-width: 60%;
+                }
+              `}
               {...getTagProps({ index })}
               size="small"
               title={getLabel(tag)}
