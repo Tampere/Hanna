@@ -6,10 +6,6 @@ import { useDebouncedEnvironmentalCodeReportFilters } from '@frontend/stores/sap
 
 import { EnvironmentalCodeReportFilters } from './EnvironmentalCodeReportFilters';
 
-function isInternalCompany(companyId: string) {
-  return /^[12]\d{3}$/.test(companyId);
-}
-
 export function EnvironmentalCodeReport() {
   const { sapReport } = trpc.useUtils();
 
@@ -112,12 +108,12 @@ export function EnvironmentalCodeReport() {
             collapsible: false,
             align: 'right',
             format(value) {
-              if (!value?.companyCode || !value?.companyCodeText) {
-                return 'Ei määriteltyä kumppanikoodia';
+              if (!value?.companyCode) {
+                return tr('sapReports.noCompanyCodeDefined');
+              } else if (!value?.companyCodeText) {
+                return `${value.companyCode}: ${tr('sapReports.unknownCompany')}`;
               } else {
-                return value && isInternalCompany(value.companyCode)
-                  ? `${value.companyCode}: ${value.companyCodeText}`
-                  : `${value.companyCode}: ${tr('sapReports.externalCompany')}`;
+                return `${value.companyCode}: ${value.companyCodeText}`;
               }
             },
           },
