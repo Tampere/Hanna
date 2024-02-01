@@ -407,5 +407,6 @@
   "email.subject": "Aihe",
   "send": "Lähetä",
   "clear": "Tyhjennä",
-  "numberOfItems": "ja {0} muuta"
+  "numberOfItems": "ja {0} muuta",
+  "pieces": "{0} kpl"
 }

@@ -2,6 +2,8 @@ import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 import { Box, Collapse, IconButton, TableCell, TableRow, css } from '@mui/material';
 import { useState } from 'react';
 
+import { useTranslations } from '@frontend/stores/lang';
+
 import { ColumnSettings } from '.';
 
 interface DataTableRowProps<
@@ -26,6 +28,7 @@ export function DataTableRow<
   collapsedColumns,
 }: DataTableRowProps<TRow, TActualEntry>) {
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const tr = useTranslations();
   function isValueCell(key: string) {
     return ['company', 'totalCredit', 'totalDebit', 'totalActuals'].includes(key);
   }
@@ -74,7 +77,9 @@ export function DataTableRow<
                         font-style: normal;
                         font-weight: ${isCollapsed ? 400 : 700};
                       `}
-                    >{`${row.actualEntries.length} kpl`}</span>
+                    >
+                      {tr('pieces', row.actualEntries.length)}
+                    </span>
                     <IconButton size="small" onClick={() => setIsCollapsed((prev) => !prev)}>
                       {isCollapsed ? <KeyboardArrowDown /> : <KeyboardArrowUp />}
                     </IconButton>
