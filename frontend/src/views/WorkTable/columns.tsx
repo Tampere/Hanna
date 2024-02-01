@@ -391,7 +391,6 @@ export function getColumns({
     filterable: false,
     sortable: false,
     cellClassName: 'cell-wrap-text',
-    headerClassName: 'workTableHeader',
     renderCell: (params: GridRenderCellParams) => (
       <MaybeModifiedCell params={params} modifiedFields={modifiedFields}>
         {column.renderCell?.(params)}

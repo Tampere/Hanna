@@ -81,7 +81,6 @@ export function WorkTableFilters(props: Props) {
         }
         .MuiInputBase-input {
           font-size: 12px;
-          //height: 1rem;
         }
 
         padding: ${theme.spacing(1)} 0;
