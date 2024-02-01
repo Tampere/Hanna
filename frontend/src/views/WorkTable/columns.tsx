@@ -3,6 +3,7 @@ import { Launch } from '@mui/icons-material';
 import { Box } from '@mui/material';
 import {
   GridColDef,
+  GridColumnHeaderParams,
   GridRenderCellParams,
   GridRenderEditCellParams,
   GridValidRowModel,
