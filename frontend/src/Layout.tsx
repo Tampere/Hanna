@@ -114,7 +114,7 @@ function Navbar() {
             css={css`
               display: flex;
               gap: 10px;
-              .MuiTab-root {
+              .MuiTab-root.MuiTab-root {
                 color: white;
               }
               .MuiTabs-indicator {
