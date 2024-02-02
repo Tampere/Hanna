@@ -226,7 +226,7 @@
        :WTGBTR (:WTGBTR transaction)
        :BEKNZ (:BEKNZ transaction)
        :BLART (rand-nth ["AA", "AB", "AF", "DA"])
-       :VBUND (rand-nth ["1110", "1130", "2110", "8999",  nil]) })))
+       :VBUND (rand-nth ["001110", "001130", "002110", "008999",  nil]) })))
 
   ;;
 ;; Data to output XML

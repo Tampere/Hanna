@@ -22,8 +22,8 @@ import {
 } from '@mui/material';
 import { fiFI } from '@mui/material/locale';
 import { useAtom, useAtomValue } from 'jotai';
-import React, { useRef, useState } from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { useRef, useState } from 'react';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { useTranslations } from '@frontend/stores/lang';
 
@@ -75,14 +75,12 @@ const theme = createTheme(
   fiFI,
 );
 
-type Tabs = 'hankkeet' | 'sap' | 'investointiohjelma';
-
 function Navbar() {
   const [auth] = useAtom(authAtom);
   const tr = useTranslations();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuAnchor = useRef<HTMLButtonElement>(null);
-  const [selectedTab, setSelectedTab] = useState('hankkeet');
+  const { pathname } = useLocation();
 
   const logoStyle = css`
     font-family: Consolas, Menlo, sans-serif, monospace;
@@ -91,16 +89,13 @@ function Navbar() {
     letter-spacing: 0.3rem;
   `;
 
-  function handleTabChange(_event: React.SyntheticEvent, value: string) {
-    setSelectedTab(value);
-  }
+  const tabs = ['hankkeet', 'sap-raportit', 'investointiohjelma', 'hallinta'];
 
   return (
     <AppBar position="static">
       <Toolbar
         css={css`
           @media (min-width: 600px) {
-            min-height: 54px;
           }
           height: 54px;
         `}
@@ -119,8 +114,10 @@ function Navbar() {
         >
           <Tabs
             css={css`
+              flex: 1;
               display: flex;
               gap: 10px;
+
               .MuiTab-root.MuiTab-root {
                 color: white;
               }
@@ -128,8 +125,7 @@ function Navbar() {
                 background-color: white;
               }
             `}
-            value={selectedTab}
-            onChange={handleTabChange}
+            value={tabs.includes(pathname.split('/')[1]) ? pathname.split('/')[1] : false}
           >
             <Tab
               icon={<AccountTreeOutlined sx={{ mr: 1 }} />}
@@ -139,18 +135,16 @@ function Navbar() {
               value="hankkeet"
               to="/hankkeet"
             />
-
             {import.meta.env.VITE_FEATURE_SAP_REPORTS === 'true' && (
               <Tab
                 icon={<BackupTable sx={{ mr: 1 }} />}
                 iconPosition="start"
                 label={tr('pages.sapReportsTitle')}
                 component={Link}
-                value="sap"
+                value="sap-raportit"
                 to="/sap-raportit/ymparistokoodit"
               />
             )}
-
             <Tab
               icon={<Reorder sx={{ mr: 1 }} />}
               iconPosition="start"
@@ -159,6 +153,32 @@ function Navbar() {
               value="investointiohjelma"
               to="/investointiohjelma"
             />
+            <Tooltip title={tr('pages.eFormLabel')} style={{ marginLeft: 'auto' }}>
+              <Tab
+                component={Link}
+                to="/redirect-to-elomake"
+                target="_blank"
+                icon={<Feed />}
+                iconPosition="start"
+                label={tr('pages.eForm')}
+              />
+            </Tooltip>
+            <Tab
+              component={Link}
+              to="/ohje"
+              target="_blank"
+              icon={<HelpOutline />}
+              iconPosition="start"
+              label={tr('pages.manualTitle')}
+            />
+            <Tab
+              component={Link}
+              value="hallinta"
+              to="/hallinta/yritykset"
+              icon={<Settings />}
+              iconPosition="start"
+              label={tr('pages.managementTitle')}
+            />
           </Tabs>
 
           <Box
@@ -166,35 +186,6 @@ function Navbar() {
               display: flex;
             `}
           >
-            <Tooltip title={tr('pages.eFormLabel')}>
-              <Button
-                component={Link}
-                to="/redirect-to-elomake"
-                target="_blank"
-                sx={{ color: 'white', float: 'right' }}
-                startIcon={<Feed />}
-              >
-                {tr('pages.eForm')}
-              </Button>
-            </Tooltip>
-            <Button
-              component={Link}
-              to="/ohje"
-              target="_blank"
-              sx={{ color: 'white', float: 'right' }}
-              startIcon={<HelpOutline />}
-            >
-              {tr('pages.manualTitle')}
-            </Button>
-            <Button
-              component={Link}
-              to="/hallinta/yritykset"
-              sx={{ color: 'white', float: 'right' }}
-              startIcon={<Settings />}
-            >
-              {tr('pages.managementTitle')}
-            </Button>
-
             <span
               css={css`
                 margin-left: 16px;
@@ -294,7 +285,7 @@ export function Layout() {
         <ThemeProvider theme={theme}>
           <Navbar />
           <NotificationList />
-          <Box css={mainContentStyle}>
+          <Box css={mainContentStyle} id="mainContentContainer">
             <Outlet />
             <NavigationBlocker status={blockerStatus} />
           </Box>

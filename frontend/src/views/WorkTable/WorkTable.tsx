@@ -17,11 +17,10 @@ import { getColumns } from '@frontend/views/WorkTable/columns';
 
 import { WorkTableRow, WorkTableRowUpdate, WorkTableSearch } from '@shared/schema/workTable';
 
+import { BackToTopButton } from './BackToTopButton';
 import { ModifiedFields } from './diff';
 
 const dataGridStyle = (theme: Theme) => css`
-  height: auto;
-  min-height: auto;
   font-size: 12px;
   .odd {
     background-color: #f3f3f3;
@@ -37,9 +36,7 @@ const dataGridStyle = (theme: Theme) => css`
       background-color: inherit;
     }
   }
-  & .MuiDataGrid-main {
-    overflow: visible;
-  }
+
   .highlight {
     animation-name: fadeInOut;
     animation-duration: 5000ms;
@@ -102,6 +99,7 @@ export default function WorkTable() {
   const tr = useTranslations();
   const gridApiRef = useGridApiRef();
   const notify = useNotifications();
+  const mainContentElement = document.getElementById('mainContentContainer');
 
   const [yearRange, setYearRange] = useState<{ startYear: number; endYear: number }>({
     startYear: new Date().getFullYear(),
@@ -291,7 +289,7 @@ export default function WorkTable() {
       css={css`
         display: flex;
         flex-direction: column;
-        height: 100%;
+        margin-bottom: 20px;
       `}
     >
       <Box
@@ -407,16 +405,25 @@ export default function WorkTable() {
       />
       <Box
         css={(theme) => css`
-          margin-left: auto;
-          padding: ${theme.spacing(1)};
+          position: absolute;
+          z-index: 100;
+          bottom: 0.5rem;
+          left: 1rem;
+          align-items: center;
           display: flex;
-          justify-content: space-between;
-          visibility: ${editEvents.length > 0 || redoEvents.length > 0 ? 'visible' : 'hidden'};
+          gap: 2rem;
+          padding: ${theme.spacing(1)};
         `}
       >
+        <BackToTopButton element={mainContentElement} />
         <Box
           css={(theme) => {
             return css`
+              border-radius: 4px;
+              border: solid ${theme.palette.primary.main};
+              padding: ${theme.spacing(1)};
+              background-color: white;
+              visibility: ${editEvents.length > 0 || redoEvents.length > 0 ? 'visible' : 'hidden'};
               display: flex;
               gap: ${theme.spacing(1)};
             `;
@@ -433,16 +440,7 @@ export default function WorkTable() {
               <Redo />
             </Tooltip>
           </IconButton>
-        </Box>
 
-        <Box
-          css={(theme) => {
-            return css`
-              display: flex;
-              gap: ${theme.spacing(1)};
-            `;
-          }}
-        >
           <Button
             variant="outlined"
             size="small"

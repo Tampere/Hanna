@@ -194,7 +194,7 @@ export function transformActuals(response: object) {
       valueInCurrencySubunit: numericStringToInteger(item.WTGBTR),
       entryType: item.BEKNZ === 'S' ? 'DEBIT' : 'CREDIT',
       documentType: item.BLART,
-      tradingPartnerId: item.VBUND,
+      tradingPartnerId: item.VBUND ? item.VBUND.replace(/^0+/, '') : item.VBUND,
     };
   });
 
