@@ -247,8 +247,9 @@ export function ProjectObjectForm(props: Props) {
     }
   }, [form.formState.isSubmitSuccessful, form.reset]);
 
-  const onSubmit = (data: UpsertProjectObject) =>
+  const onSubmit = (data: UpsertProjectObject) => {
     projectObjectUpsert.mutate({ ...data, geom: props.geom });
+  };
 
   const saveAndReturn = (data: UpsertProjectObject) => {
     projectObjectUpsert.mutate(
@@ -320,7 +321,7 @@ export function ProjectObjectForm(props: Props) {
               formField="projectId"
               label={tr('projectObject.projectLabel')}
               tooltip={tr('projectObject.projectTooltip')}
-              component={({ ref, ...field }) => {
+              component={({ ...field }) => {
                 return (
                   <ProjectAutoComplete
                     {...readonlyProps}
@@ -353,12 +354,20 @@ export function ProjectObjectForm(props: Props) {
               <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
             )}
           />
+          <FormField
+            formField="objectStage"
+            label={tr('projectObject.objectStageLabel')}
+            tooltip={tr('projectObject.objectStageTooltip')}
+            component={({ ...field }) => (
+              <CodeSelect {...field} codeListId="KohteenLaji" readOnly={!editing} />
+            )}
+          />
 
           <FormField
             formField="lifecycleState"
             label={tr('projectObject.lifecycleStateLabel')}
             tooltip={tr('projectObject.lifecycleStateTooltip')}
-            component={({ ref, ...field }) => (
+            component={({ ...field }) => (
               <CodeSelect {...field} codeListId="KohteenElinkaarentila" readOnly={!editing} />
             )}
           />
@@ -367,7 +376,7 @@ export function ProjectObjectForm(props: Props) {
             formField="objectType"
             label={tr('projectObject.objectTypeLabel')}
             tooltip={tr('projectObject.objectTypeTooltip')}
-            component={({ ref, ...field }) => (
+            component={({ ...field }) => (
               <CodeSelect
                 {...field}
                 multiple
@@ -382,7 +391,7 @@ export function ProjectObjectForm(props: Props) {
             formField="objectCategory"
             label={tr('projectObject.objectCategoryLabel')}
             tooltip={tr('projectObject.objectCategoryTooltip')}
-            component={({ ref, ...field }) => (
+            component={({ ...field }) => (
               <CodeSelect
                 {...field}
                 multiple
@@ -396,7 +405,7 @@ export function ProjectObjectForm(props: Props) {
             formField="objectUsage"
             label={tr('projectObject.objectUsageLabel')}
             tooltip={tr('projectObject.objectUsageTooltip')}
-            component={({ ref, ...field }) => (
+            component={({ ...field }) => (
               <CodeSelect
                 {...field}
                 multiple
@@ -445,7 +454,7 @@ export function ProjectObjectForm(props: Props) {
             formField="landownership"
             label={tr('projectObject.landownershipLabel')}
             tooltip={tr('projectObject.landownershipTooltip')}
-            component={({ ref, ...field }) => (
+            component={({ ...field }) => (
               <CodeSelect {...field} codeListId="KohteenMaanomistusLaji" readOnly={!editing} />
             )}
           />
@@ -454,7 +463,7 @@ export function ProjectObjectForm(props: Props) {
             formField="locationOnProperty"
             label={tr('projectObject.locationOnPropertyLabel')}
             tooltip={tr('projectObject.locationOnPropertyTooltip')}
-            component={({ ref, ...field }) => (
+            component={({ ...field }) => (
               <CodeSelect
                 {...field}
                 codeListId="KohteenSuhdePeruskiinteistoon"

@@ -16,6 +16,7 @@ const codeListIdSchema = z.enum([
   'LiittyvanHankkeenTyyppi',
   'HankkeenElinkaarentila',
   'HankkeenToimielin',
+  'KohteenLaji',
   'KohteenElinkaarentila',
   'KohdeTyyppi',
   'KohteenOmaisuusLuokka',
