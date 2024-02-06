@@ -4,7 +4,7 @@ import { Box, Button, IconButton, Theme, Tooltip, Typography } from '@mui/materi
 import { DataGrid, fiFI, useGridApiRef } from '@mui/x-data-grid';
 import { atom, useAtom } from 'jotai';
 import diff from 'microdiff';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
@@ -20,7 +20,7 @@ import { WorkTableRow, WorkTableRowUpdate, WorkTableSearch } from '@shared/schem
 import { BackToTopButton } from './BackToTopButton';
 import { ModifiedFields } from './diff';
 
-const dataGridStyle = (theme: Theme) => css`
+const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   font-size: 12px;
   .odd {
     background-color: #f3f3f3;
@@ -41,11 +41,19 @@ const dataGridStyle = (theme: Theme) => css`
     animation-name: fadeInOut;
     animation-duration: 5000ms;
   }
+
+  & .MuiDataGrid-main {
+    overflow: visible;
+  }
+
   & .MuiDataGrid-columnHeaders {
     background: ${theme.palette.primary.main};
     color: white;
     height: 45px !important;
     min-height: 0 !important;
+    position: sticky;
+    top: calc(${summaryRowHeight}px - 1rem);
+    z-index: 100;
   }
   & .MuiDataGrid-columnHeaderTitle {
     line-height: normal;
@@ -98,8 +106,10 @@ export default function WorkTable() {
   const query = useDebounce(searchParams, 500);
   const tr = useTranslations();
   const gridApiRef = useGridApiRef();
+  const summaryRowRef = useRef<HTMLElement>();
   const notify = useNotifications();
   const mainContentElement = document.getElementById('mainContentContainer');
+  const [summaryRowHeight, setSummaryRowHeight] = useState(54);
 
   const [yearRange, setYearRange] = useState<{ startYear: number; endYear: number }>({
     startYear: new Date().getFullYear(),
@@ -284,6 +294,15 @@ export default function WorkTable() {
     return eurFormat.format(sum);
   }
 
+  function handleSummaryRowResize() {
+    if (
+      summaryRowRef?.current?.offsetHeight &&
+      summaryRowHeight !== summaryRowRef.current.offsetHeight
+    ) {
+      setSummaryRowHeight(summaryRowRef.current.offsetHeight);
+    }
+  }
+
   return (
     <Box
       css={css`
@@ -326,11 +345,19 @@ export default function WorkTable() {
       />
 
       <Box
+        ref={summaryRowRef}
         css={(theme) => css`
           display: flex;
           flex-wrap: wrap;
-          padding: 1rem 0;
+          margin: 0 -1rem;
+          padding: 1rem;
           gap: 1.5rem;
+          position: sticky;
+          top: -1rem;
+          z-index: 100;
+          outline: solid white;
+          background-color: white;
+          min-height: 54px;
           p {
             font-size: 0.9rem;
             white-space: nowrap;
@@ -368,6 +395,7 @@ export default function WorkTable() {
       </Box>
 
       <DataGrid
+        onResize={handleSummaryRowResize}
         disableVirtualization
         loading={workTableData.isLoading}
         localeText={fiFI.components.MuiDataGrid.defaultProps.localeText}
@@ -381,7 +409,7 @@ export default function WorkTable() {
 
           return newRow;
         }}
-        css={dataGridStyle}
+        css={(theme) => dataGridStyle(theme, summaryRowHeight)}
         density={'standard'}
         columns={columns}
         rows={workTableData.data ?? []}

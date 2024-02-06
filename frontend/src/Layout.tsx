@@ -5,7 +5,6 @@ import AccountTreeOutlined from '@mui/icons-material/AccountTreeOutlined';
 import {
   AppBar,
   Box,
-  Button,
   CssBaseline,
   IconButton,
   ListItemIcon,
@@ -92,7 +91,7 @@ function Navbar() {
   const tabs = ['hankkeet', 'sap-raportit', 'investointiohjelma', 'hallinta'];
 
   return (
-    <AppBar position="static">
+    <AppBar position="static" style={{ zIndex: 200 }}>
       <Toolbar
         css={css`
           @media (min-width: 600px) {
