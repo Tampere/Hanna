@@ -35,7 +35,7 @@ export async function setupBlanketContractReportQueue() {
           ...headers,
           [key]: translations['fi'][`sapReports.blanketContracts.${key as ReportColumnKey}`],
         }),
-        {} as { [key in ReportColumnKey]: string }
+        {} as { [key in ReportColumnKey]: string },
       );
 
       const sheet = buildSheet({
@@ -59,7 +59,7 @@ export async function setupBlanketContractReportQueue() {
       }
 
       await saveReportFile(id, 'puitesopimukset.xlsx', workbook);
-    }
+    },
   );
 }
 

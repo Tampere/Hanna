@@ -81,7 +81,7 @@ export async function buildDetailplanCatalogSheet(workbook: Workbook, searchPara
       ...headers,
       [key]: translations['fi'][`report.columns.${key as ReportColumnKey}`],
     }),
-    {} as { [key in ReportColumnKey]: string }
+    {} as { [key in ReportColumnKey]: string },
   );
 
   buildSheet({

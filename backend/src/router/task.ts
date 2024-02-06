@@ -121,7 +121,7 @@ export async function updateTaskBudget(
   tx: DatabaseTransactionConnection,
   taskId: string,
   budgetItems: BudgetUpdate['budgetItems'],
-  userId: User['id']
+  userId: User['id'],
 ) {
   await addAuditEvent(tx, {
     eventType: 'task.updateBudget',
@@ -142,7 +142,7 @@ export async function updateTaskBudget(
         INSERT INTO app.budget (task_id, "year", amount)
         VALUES (${taskId}, ${item.year}, ${item.amount})
       `);
-    })
+    }),
   );
 }
 

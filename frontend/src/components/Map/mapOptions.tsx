@@ -167,7 +167,7 @@ export const mapOptions = {
       type: 'wfs',
       url: `${geodataBaseUrl}/hallinnolliset_yksikot/wfs?${createWfsParams(
         'hallinnolliset_yksikot:KH_TILASTO',
-        'EPSG:3067'
+        'EPSG:3067',
       )}`,
       style: {
         strokeColor: '#00000',
@@ -184,7 +184,7 @@ export const mapOptions = {
       type: 'wfs',
       url: `${geodataBaseUrl}/kiinteistot/wfs?${createWfsParams(
         'kiinteistot:KIINTEISTOT_ALUE_JULKINEN_GSVIEW',
-        'EPSG:3067'
+        'EPSG:3067',
       )}`,
       style: {
         strokeColor: '#ff0000',
@@ -200,7 +200,7 @@ export const mapOptions = {
       type: 'wfs',
       url: `${geodataBaseUrl}/rakennukset/wfs?${createWfsParams(
         'rakennukset:RAKENN_ST_FA_GSVIEW',
-        'EPSG:3067'
+        'EPSG:3067',
       )}`,
       style: {
         strokeColor: '#000000',
@@ -215,7 +215,7 @@ export const mapOptions = {
       type: 'wfs',
       url: `${geodataBaseUrl}/locus/wfs?${createWfsParams(
         'locus:Katualueen_osa_katu_RpaStreetPart_Polygon_gsview',
-        'EPSG:3067'
+        'EPSG:3067',
       )}`,
       style: {
         strokeColor: '#0000ff',
@@ -230,7 +230,7 @@ export const mapOptions = {
       type: 'wfs',
       url: `${geodataBaseUrl}/locus/wfs?${createWfsParams(
         'locus:Katualueen_osa_klv_RpaStreetPart_Polygon_gsview',
-        'EPSG:3067'
+        'EPSG:3067',
       )}`,
       style: {
         strokeColor: '#000000',

@@ -44,7 +44,7 @@ const pageContentStyle = css`
 function projectObjectTabs(
   projectId: string,
   projectType: ProjectTypePath,
-  projectObjectId: string
+  projectObjectId: string,
 ): Tab[] {
   return [
     {
@@ -98,7 +98,7 @@ export function ProjectObject(props: Props) {
       projectId: routeParams.projectId,
       id: projectObjectId,
     },
-    { enabled: Boolean(projectObjectId) }
+    { enabled: Boolean(projectObjectId) },
   );
 
   const [geom, setGeom] = useState<string | null>(null);

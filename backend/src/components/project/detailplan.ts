@@ -122,7 +122,7 @@ export async function projectUpsert(project: DetailplanProject, user: User) {
 
 export async function validateUpsertProject(
   project: DetailplanProject,
-  tx: DatabaseTransactionConnection | null
+  tx: DatabaseTransactionConnection | null,
 ) {
   const conn = tx ?? getPool();
   return baseProjectValidate(conn, project);
@@ -131,8 +131,8 @@ export async function validateUpsertProject(
 export async function getNextDetailplanId() {
   const { id } = await getPool().one(
     sql.type(
-      z.object({ id: z.number() })
-    )`SELECT COALESCE(MAX(detailplan_id) + 1, 1) AS id FROM app.project_detailplan`
+      z.object({ id: z.number() }),
+    )`SELECT COALESCE(MAX(detailplan_id) + 1, 1) AS id FROM app.project_detailplan`,
   );
   return id;
 }

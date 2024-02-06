@@ -24,7 +24,7 @@ const tabs = [
 export function Management() {
   const tr = useTranslations();
   const routeParams = useParams() as {
-    tabView: typeof tabs[number]['tabView'];
+    tabView: (typeof tabs)[number]['tabView'];
   };
 
   const [searchParams] = useSearchParams();

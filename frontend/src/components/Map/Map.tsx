@@ -183,7 +183,7 @@ export function Map({
         .getLayers()
         .getArray()
         .map((layer) => layer.get('id'))
-        .filter((id) => id)
+        .filter((id) => id),
     );
     interactionLayers?.forEach((layer) => {
       if (!mapLayerIds.has(layer.get('id'))) {

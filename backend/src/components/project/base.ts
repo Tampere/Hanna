@@ -15,7 +15,7 @@ import { codeIdFragment } from '../code';
 async function upsertBaseProject(
   tx: DatabaseTransactionConnection,
   project: UpsertProject,
-  userId: string
+  userId: string,
 ) {
   const data = {
     project_name: project.projectName,
@@ -54,7 +54,7 @@ export async function getProject(id: string) {
       description: z.string(),
       projectName: z.string(),
       geom: z.string(),
-    })
+    }),
   )`
     SELECT
       id,
@@ -93,7 +93,7 @@ export async function deleteProject(id: string, userId: User['id']) {
 
 export async function validateUpsertProject(
   tx: DatabaseTransactionConnection,
-  values: UpsertProject
+  values: UpsertProject,
 ) {
   const validationErrors: FormErrors<UpsertProject> = { errors: {} };
 
@@ -143,7 +143,7 @@ export async function validateUpsertProject(
       result?.projectObjectWBSIds?.length > 0
     ) {
       validationErrors.errors['sapProjectId'] = fieldError(
-        'project.error.existingProjectObjectWBS'
+        'project.error.existingProjectObjectWBS',
       );
     }
   }
@@ -154,7 +154,7 @@ export async function validateUpsertProject(
 export async function baseProjectUpsert(
   tx: DatabaseTransactionConnection,
   project: UpsertProject,
-  user: User
+  user: User,
 ) {
   if (hasErrors(await validateUpsertProject(tx, project))) {
     logger.error('Invalid project data', { input: project });

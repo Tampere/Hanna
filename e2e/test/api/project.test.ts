@@ -45,9 +45,8 @@ test.describe('Project endpoints', () => {
     await login(page);
   });
   test('project validation', async () => {
-    const validationResult = await client.investmentProject.upsertValidate.query(
-      invalidDateProject
-    );
+    const validationResult =
+      await client.investmentProject.upsertValidate.query(invalidDateProject);
 
     expect(validationResult).toStrictEqual({
       errors: {

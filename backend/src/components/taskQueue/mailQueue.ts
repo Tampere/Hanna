@@ -28,7 +28,7 @@ export async function setupMailQueue() {
         logger.error(`Error sending mail: ${error}`);
         throw error;
       }
-    }
+    },
   );
 }
 

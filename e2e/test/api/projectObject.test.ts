@@ -1,7 +1,8 @@
 import test, { expect } from '@playwright/test';
-import { User } from '@shared/schema/user';
 import { login } from '@utils/page';
 import { client } from '@utils/trpc';
+
+import { User } from '@shared/schema/user';
 
 const testProject = (user: User) => ({
   projectName: 'Test project',

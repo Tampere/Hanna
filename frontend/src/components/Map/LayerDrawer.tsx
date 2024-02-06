@@ -82,7 +82,7 @@ function setLayerSelected(layersState: LayerState[], layerId: VectorLayerKey, se
           ...layer,
           selected,
         }
-      : layer
+      : layer,
   );
 }
 
@@ -125,7 +125,7 @@ export function LayerDrawer() {
               key={`vectorlayer-${layerState.id}`}
               onClick={() =>
                 setVectorLayers((prev) =>
-                  setLayerSelected(prev, layerState.id, !layerState.selected)
+                  setLayerSelected(prev, layerState.id, !layerState.selected),
                 )
               }
               disableTouchRipple

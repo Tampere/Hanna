@@ -11,7 +11,7 @@ async function getUser() {
   if (resp.status === 401) {
     // Pass the current location as the redirect parameter
     window.location.href = `/api/v1/auth/login?redirect=${encodeURIComponent(
-      window.location.pathname
+      window.location.pathname,
     )}`;
   }
   return (await resp.json()) as User;

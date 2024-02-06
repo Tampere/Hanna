@@ -16,7 +16,7 @@ type Props = TextFieldProps & {
 
 export const TextFieldWithStatus = forwardRef(function TextFieldWithStatus(
   props: Props,
-  ref: React.ForwardedRef<HTMLDivElement | null>
+  ref: React.ForwardedRef<HTMLDivElement | null>,
 ) {
   const {
     validate,

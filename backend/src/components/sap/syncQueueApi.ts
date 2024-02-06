@@ -16,12 +16,12 @@ export default function (server: FastifyInstance, _opts: FastifyPluginOptions, d
         async (
           req: FastifyRequest<{
             Querystring: { limit?: number };
-          }>
+          }>,
         ) => {
           const limit = req.query.limit;
           const result = await getSyncSummary(limit);
           return result;
-        }
+        },
       );
 
       server.post('/cancel', async () => {
@@ -46,7 +46,7 @@ export default function (server: FastifyInstance, _opts: FastifyPluginOptions, d
 
       done();
     },
-    { prefix: '/sap-sync' }
+    { prefix: '/sap-sync' },
   );
 
   done();

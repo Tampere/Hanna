@@ -84,7 +84,7 @@ const reportRowSchema = z.object({
 
 export async function buildInvestmentProjectReportSheet(
   workbook: Workbook,
-  searchParams: ProjectSearch
+  searchParams: ProjectSearch,
 ) {
   const reportQuery = sql.type(reportRowSchema)`
     WITH projects AS (
@@ -152,7 +152,7 @@ export async function buildInvestmentProjectReportSheet(
       ...headers,
       [key]: translations['fi'][`report.columns.${key as ReportColumnKey}`],
     }),
-    {} as { [key in ReportColumnKey]: string }
+    {} as { [key in ReportColumnKey]: string },
   );
 
   buildSheet({

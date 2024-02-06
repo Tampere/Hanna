@@ -94,7 +94,7 @@ export function createWMTSLayer(
     crossOrigin?: string;
     style?: string;
   },
-  projection: Projection
+  projection: Projection,
 ) {
   const {
     url,
@@ -195,7 +195,7 @@ function createTileResolutions(
   tileSize: number,
   zoomFactor: number,
   zoomLevels: number,
-  projection: Projection
+  projection: Projection,
 ) {
   const projectionExtent = getProjection(projection)?.getExtent();
   const size = getWidth(projectionExtent as Extent) / tileSize;

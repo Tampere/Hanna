@@ -26,7 +26,7 @@ export function CompanyForm(props: Props) {
 
   const company = trpc.company.getById.useQuery(
     { businessId: props.businessId } as { businessId: string },
-    { enabled: !!props.businessId }
+    { enabled: !!props.businessId },
   );
 
   useEffect(() => {

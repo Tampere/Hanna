@@ -46,5 +46,5 @@ const defaultLayerState = [
 export const vectorLayersAtom = atom<LayerState[]>(defaultLayerState);
 
 export const selectedWFSLayersAtom = atom<LayerState[]>((get) =>
-  get(vectorLayersAtom).filter((l) => l.selected)
+  get(vectorLayersAtom).filter((l) => l.selected),
 );

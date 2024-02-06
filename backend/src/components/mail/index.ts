@@ -49,11 +49,11 @@ const transport = createTransport({
           accessUrl: env.email.auth.accessUrl,
         }
       : env.email.auth.method === 'login'
-      ? {
-          username: env.email.auth.username,
-          password: env.email.auth.password,
-        }
-      : {},
+        ? {
+            username: env.email.auth.username,
+            password: env.email.auth.password,
+          }
+        : {},
 } as SMTPPool.Options);
 
 function getTemplateLocals(mail: Pick<Mail, 'template'>) {
@@ -110,7 +110,7 @@ export async function previewMail(mail: Pick<Mail, 'template'>) {
 function addressesToStringArray(addresses: SendMailOptions['to']) {
   // Force addresses to string array - coerce into an array and transform Address objects into strings
   return coerceArray(addresses).map((address) =>
-    typeof address === 'string' ? address : `${address.name} <${address.address}>`
+    typeof address === 'string' ? address : `${address.name} <${address.address}>`,
   );
 }
 

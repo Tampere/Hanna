@@ -64,7 +64,7 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
       async function verify(
         _tokenset: TokenSet,
         userinfo: UserinfoResponse,
-        authDone: (err: Error | null, user?: PassportUser) => void
+        authDone: (err: Error | null, user?: PassportUser) => void,
       ) {
         const id = userinfo.sub;
         if (id) {
@@ -79,8 +79,8 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
         } else {
           authDone(new Error('No identifier found in userinfo'));
         }
-      }
-    )
+      },
+    ),
   );
 
   fastifyPassport.registerUserSerializer(async (user: PassportUser) => {
@@ -127,7 +127,7 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
       }
 
       return fastifyPassport.authenticate('oidc').call(fastify, req, res);
-    }
+    },
   );
 
   fastify.get(opts.oidcOpts.callbackPath, (req, res) => {

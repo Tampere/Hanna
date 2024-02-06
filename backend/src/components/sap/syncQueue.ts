@@ -64,12 +64,12 @@ export async function setupSapSyncQueue() {
           const actuals = await getSapActuals(
             data.projectId,
             new Date(project.plannedStartDate).getFullYear(),
-            new Date().getFullYear()
+            new Date().getFullYear(),
           );
           logger.info(`Loaded ${actuals.length} actuals for project ${data.projectId}`);
         } else {
           logger.info(
-            `No planned start date found for project ${data.projectId}, skipping actuals fetch`
+            `No planned start date found for project ${data.projectId}, skipping actuals fetch`,
           );
         }
       } catch (err) {
@@ -77,7 +77,7 @@ export async function setupSapSyncQueue() {
         console.error(err);
         throw err;
       }
-    }
+    },
   );
 }
 
@@ -104,11 +104,11 @@ export async function setupScheduledSyncQueue() {
             chunk.map((projectId) => ({
               name: queueName,
               data: { projectId, parentJob: id },
-            }))
+            })),
           );
         });
       });
-    }
+    },
   );
 
   // Set the cron schedule on setup

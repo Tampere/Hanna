@@ -13,7 +13,7 @@ const emptyCode = (codeListId: Code['id']['codeListId']) =>
     text: {
       fi: 'Tyhjä arvo',
     },
-  } as const);
+  }) as const;
 
 const codeSelectFragment = sql.fragment`
   SELECT
@@ -30,7 +30,7 @@ const codeSelectFragment = sql.fragment`
 
 export async function getCodesForCodeList(
   codeListId: Code['id']['codeListId'],
-  emptySelection: boolean = false
+  emptySelection: boolean = false,
 ) {
   const results = await getPool().any(sql.type(codeSchema)`
     ${codeSelectFragment}
@@ -42,7 +42,7 @@ export async function getCodesForCodeList(
 
 export function codeIdFragment(
   codeListId: CodeId['codeListId'],
-  codeId: CodeId['id'] | undefined | null
+  codeId: CodeId['id'] | undefined | null,
 ) {
   if (!codeId) return sql.fragment`NULL`;
   return sql.fragment`

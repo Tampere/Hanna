@@ -103,8 +103,8 @@ export async function projectUpsert(project: InvestmentProject, user: User) {
             ${upsertResult.id},
             ${codeIdFragment('Lautakunta', committee)}
           );
-        `)
-      )
+        `),
+      ),
     );
 
     if (project.geom) {
@@ -114,7 +114,7 @@ export async function projectUpsert(project: InvestmentProject, user: User) {
           id: upsertResult.id,
           features: project.geom,
         },
-        user
+        user,
       );
     }
 
@@ -124,7 +124,7 @@ export async function projectUpsert(project: InvestmentProject, user: User) {
 
 export async function validateUpsertProject(
   project: InvestmentProject,
-  tx: DatabaseTransactionConnection | null
+  tx: DatabaseTransactionConnection | null,
 ) {
   const conn = tx ?? getPool();
   return baseProjectValidate(conn, project);

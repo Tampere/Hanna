@@ -42,8 +42,8 @@ export const codeSchema = z.object({
   text: z.object(
     languages.reduce(
       (object, language) => ({ ...object, [language]: z.string() }),
-      {} as { [language in Language]: z.ZodString }
-    )
+      {} as { [language in Language]: z.ZodString },
+    ),
   ),
 });
 

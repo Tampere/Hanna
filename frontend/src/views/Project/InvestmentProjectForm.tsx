@@ -68,7 +68,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
       lifecycleState: '01',
       sapProjectId: null,
     }),
-    [currentUser]
+    [currentUser],
   );
 
   const { investmentProject } = trpc.useContext();
@@ -78,7 +78,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
     return async function formValidation(
       values: InvestmentProject,
       context: any,
-      options: ResolverOptions<InvestmentProject>
+      options: ResolverOptions<InvestmentProject>,
     ) {
       const fields = options.names ?? [];
       const isFormValidation = fields && fields.length > 1;

@@ -1,4 +1,5 @@
 import { Page } from 'playwright';
+
 import { setCookies } from './trpc';
 
 export async function login(page: Page) {
@@ -7,7 +8,7 @@ export async function login(page: Page) {
   page.on('response', (response) => {
     if (response.status() >= 500) {
       console.error(
-        `Received error ${response.status()}. If the servers were not ready, re-run the tests by writing "rs" + <enter>.`
+        `Received error ${response.status()}. If the servers were not ready, re-run the tests by writing "rs" + <enter>.`,
       );
       process.exit(1);
     }

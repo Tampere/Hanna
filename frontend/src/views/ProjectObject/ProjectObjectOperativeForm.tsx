@@ -85,7 +85,7 @@ export function ProjectObjectOperativeForm(props: Props) {
             message: tr('projectObject.error.endDateBeforeStartDate'),
           });
         }
-      })
+      }),
     ),
     context: {
       requiredFields: getRequiredFields(newProjectObjectSchema),

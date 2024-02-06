@@ -30,7 +30,7 @@ export async function retry<T>(
      * Function that is called after each failed attempt before retrying
      */
     onRetry?: (data: { attempt: number; delay: number; error: any }) => void;
-  }
+  },
 ) {
   // Destructure & assign default values if not specified
   const { retries = 10, retryDelay = 5000, timeout = 10000, factor = 2, onRetry } = options;

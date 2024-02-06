@@ -51,7 +51,7 @@ export function ProjectFinances(props: Props) {
       startYear: dayjs(project?.startDate).year(),
       endYear: dayjs(project?.endDate).year(),
     },
-    { enabled: Boolean(project?.id) }
+    { enabled: Boolean(project?.id) },
   );
 
   useEffect(() => {

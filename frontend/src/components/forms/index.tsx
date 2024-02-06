@@ -75,7 +75,7 @@ interface FormFieldProps<T extends object> {
   tooltip?: string;
   required?: boolean;
   component: (
-    field: ControllerRenderProps<FieldValues, string> & { id?: string }
+    field: ControllerRenderProps<FieldValues, string> & { id?: string },
   ) => React.ReactElement;
 }
 

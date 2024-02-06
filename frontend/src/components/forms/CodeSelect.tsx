@@ -45,7 +45,7 @@ export function CodeSelect({
 }: Props) {
   const codes = trpc.code.get.useQuery(
     { codeListId, allowEmptySelection },
-    { staleTime: 60 * 60 * 1000 }
+    { staleTime: 60 * 60 * 1000 },
   );
   const lang = useAtomValue(langAtom);
 

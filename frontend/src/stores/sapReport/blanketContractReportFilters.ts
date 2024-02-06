@@ -14,10 +14,10 @@ export const blanketContractReportFilterAtom = atom<BlanketContractReportQuery['
 
 export const textAtom = focusAtom(blanketContractReportFilterAtom, (o) => o.prop('text'));
 export const consultCompaniesAtom = focusAtom(blanketContractReportFilterAtom, (o) =>
-  o.prop('consultCompanies')
+  o.prop('consultCompanies'),
 );
 export const blanketOrderIdsAtom = focusAtom(blanketContractReportFilterAtom, (o) =>
-  o.prop('blanketOrderIds')
+  o.prop('blanketOrderIds'),
 );
 
 export function useDebouncedBlanketContractReportFilters() {

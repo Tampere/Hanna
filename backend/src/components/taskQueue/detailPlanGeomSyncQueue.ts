@@ -20,7 +20,7 @@ export async function setupDetailPlanGeomSyncQueue() {
     },
     async () => {
       await updateDetailplanGeometries();
-    }
+    },
   );
   await scheduleSync();
 }

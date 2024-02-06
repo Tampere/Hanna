@@ -144,7 +144,7 @@ export function RelationsContainer({
               <Tooltip
                 title={tr('projectRelations.gotoProject').replace(
                   '{x}',
-                  objectOfRelation.projectName
+                  objectOfRelation.projectName,
                 )}
               >
                 <Link
