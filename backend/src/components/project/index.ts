@@ -18,7 +18,7 @@ export async function addProjectRelation(
   projectId: string,
   targetProjectId: string,
   relation: Relation,
-  user: User
+  user: User,
 ) {
   let projectRelation = '';
   let subjectProject = projectId;
@@ -54,7 +54,7 @@ export async function removeProjectRelation(
   projectId: string,
   targetProjectId: string,
   relation: Relation,
-  user: User
+  user: User,
 ) {
   let projectRelation = '';
   let subjectProject = projectId;
@@ -133,7 +133,7 @@ export async function getRelatedProjects(id: string) {
 export async function updateProjectGeometry(
   tx: DatabaseTransactionConnection,
   geometryUpdate: UpdateGeometry,
-  user: User
+  user: User,
 ) {
   const { id, features } = geometryUpdate;
   await addAuditEvent(tx, {
@@ -190,7 +190,7 @@ export async function updateProjectBudget(
   tx: DatabaseTransactionConnection,
   projectId: string,
   budgetItems: BudgetUpdate['budgetItems'],
-  userId: User['id']
+  userId: User['id'],
 ) {
   await addAuditEvent(tx, {
     eventType: 'project.updateBudget',
@@ -203,7 +203,7 @@ export async function updateProjectBudget(
     WHERE project_id = ${projectId}
       AND year = ANY (${sql.array(
         budgetItems.map((yearBudget) => yearBudget.year),
-        'int4'
+        'int4',
       )})
   `);
 
@@ -211,7 +211,7 @@ export async function updateProjectBudget(
     INSERT INTO app.budget (project_id, "year", amount)
     SELECT * FROM ${sql.unnest(
       budgetItems.map((row) => [projectId, row.year, row.amount]),
-      ['uuid', 'int4', 'int8']
+      ['uuid', 'int4', 'int8'],
     )}
   `);
 }

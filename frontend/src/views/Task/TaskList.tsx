@@ -34,7 +34,7 @@ export function TaskList({ projectObjectId }: Props) {
     {
       enabled: Boolean(projectObjectId),
       queryKey: ['task.getByProjectObjectId', { projectObjectId }],
-    }
+    },
   );
 
   return (

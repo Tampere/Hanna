@@ -37,7 +37,7 @@ export const detailplanNotificationTemplates = [
   'update-detailplan-project',
 ] as const;
 
-export type DetailplanNotificationTemplate = typeof detailplanNotificationTemplates[number];
+export type DetailplanNotificationTemplate = (typeof detailplanNotificationTemplates)[number];
 
 export const detailplanNotificationSchema = projectIdSchema.extend({
   template: z.enum(detailplanNotificationTemplates),

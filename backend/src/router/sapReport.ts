@@ -110,7 +110,7 @@ export const createSapReportRouter = (t: TRPC) => {
           SELECT DISTINCT fiscal_year "year" FROM app.sap_actuals_item
           WHERE fiscal_year IS NOT NULL
           ORDER BY fiscal_year DESC
-        `
+        `,
       );
       return rows.map((row) => row.year);
     }),

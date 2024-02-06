@@ -16,7 +16,7 @@ export function ProjectRelations({ projectId }: Props) {
 
   const relations = trpc.project.getRelations.useQuery(
     { id: projectId },
-    { enabled: Boolean(projectId), queryKey: ['project.getRelations', { id: projectId }] }
+    { enabled: Boolean(projectId), queryKey: ['project.getRelations', { id: projectId }] },
   );
 
   /** It should probably be forbidden to add a second relation between this project and projects it is already related to */
@@ -65,7 +65,7 @@ export function ProjectRelations({ projectId }: Props) {
   function addProjectRelation(
     relationType: Relation,
     subjectProjectId: string,
-    objectProjectId: string
+    objectProjectId: string,
   ) {
     relationsUpdate.mutate({
       subjectProjectId: subjectProjectId,
@@ -77,7 +77,7 @@ export function ProjectRelations({ projectId }: Props) {
   function removeProjectRelation(
     relationType: Relation,
     subjectProjectId: string,
-    objectProjectId: string
+    objectProjectId: string,
   ) {
     deleteRelation.mutate({
       subjectProjectId: subjectProjectId,

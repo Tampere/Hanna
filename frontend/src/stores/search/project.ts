@@ -27,19 +27,19 @@ export const projectSearchParamAtom = atom<SearchParams>({
 export const textAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('text'));
 export const dateRangeAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('dateRange'));
 export const lifecycleStatesAtom = focusAtom(projectSearchParamAtom, (o) =>
-  o.prop('lifecycleStates')
+  o.prop('lifecycleStates'),
 );
 export const ownersAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('owners'));
 export const includeWithoutGeomAtom = focusAtom(projectSearchParamAtom, (o) =>
-  o.prop('includeWithoutGeom')
+  o.prop('includeWithoutGeom'),
 );
 
 export const filtersAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('filters'));
 
 export const investmentProjectFiltersAtom = focusAtom(filtersAtom, (o) =>
-  o.prop('investmentProject')
+  o.prop('investmentProject'),
 );
 
 export const detailplanProjectFiltersAtom = focusAtom(filtersAtom, (o) =>
-  o.prop('detailplanProject')
+  o.prop('detailplanProject'),
 );

@@ -50,7 +50,7 @@ export const createSapRouter = (t: TRPC) =>
 
     getYearlyActualsByProjectId: t.procedure
       .input(
-        z.object({ projectId: z.string(), startYear: z.number().int(), endYear: z.number().int() })
+        z.object({ projectId: z.string(), startYear: z.number().int(), endYear: z.number().int() }),
       )
       .query(async ({ input }) => {
         const currentYear = new Date().getFullYear();
@@ -65,8 +65,8 @@ export const createSapRouter = (t: TRPC) =>
         if (result?.sapProjectId) {
           await Promise.all(
             yearRange(input.startYear, endYear).map((year) =>
-              getSapActuals(result.sapProjectId, year)
-            )
+              getSapActuals(result.sapProjectId, year),
+            ),
           );
         }
 
@@ -101,7 +101,7 @@ export const createSapRouter = (t: TRPC) =>
           projectObjectId: z.string(),
           startYear: z.number().int(),
           endYear: z.number().int(),
-        })
+        }),
       )
       .query(async ({ input }) => {
         const currentYear = new Date().getFullYear();
@@ -123,8 +123,8 @@ export const createSapRouter = (t: TRPC) =>
 
         await Promise.all(
           yearRange(input.startYear, endYear).map((year) =>
-            getSapActuals(result.sapProjectId, year)
-          )
+            getSapActuals(result.sapProjectId, year),
+          ),
         );
 
         const returnSchema = z.object({ result: yearlyActualsSchema });

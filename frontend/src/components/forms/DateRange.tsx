@@ -72,10 +72,10 @@ export function CustomDay(props: CustomDayProps) {
 
 export function DateRange(props: Props) {
   const [startDate, setStartDate] = useState<Dayjs | null>(
-    props.value.startDate ? dayjs(props.value.startDate) : null
+    props.value.startDate ? dayjs(props.value.startDate) : null,
   );
   const [endDate, setEndDate] = useState<Dayjs | null>(
-    props.value.endDate ? dayjs(props.value.endDate) : null
+    props.value.endDate ? dayjs(props.value.endDate) : null,
   );
 
   const [open, setOpen] = useState(false);
@@ -103,7 +103,7 @@ export function DateRange(props: Props) {
         endDate: endDate?.format(isoFormat) ?? null,
       });
     },
-    [startDate, endDate]
+    [startDate, endDate],
   );
 
   function handleQuickSelection(selection: QuickSelection) {

@@ -8,7 +8,7 @@ import { TextFieldWithStatus } from './TextFieldWithStatus';
 
 export const SapProjectIdField = forwardRef(function SapProjectIdField(
   props: TextFieldProps & { value: string },
-  ref: React.ForwardedRef<HTMLDivElement | null>
+  ref: React.ForwardedRef<HTMLDivElement | null>,
 ) {
   const { sap } = trpc.useContext();
   const tr = useTranslations();

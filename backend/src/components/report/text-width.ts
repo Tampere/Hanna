@@ -39,7 +39,7 @@ export function calculateTextWidth({
       fontName,
       fontWeight,
       fontSize,
-    })
+    }),
   );
 
   return Math.max(...lengths);

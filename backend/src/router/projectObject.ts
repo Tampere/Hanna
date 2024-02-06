@@ -89,7 +89,7 @@ async function deleteProjectObject(id: string, user: User) {
 
 async function updateObjectTypes(
   tx: DatabaseTransactionConnection,
-  projectObject: UpdateProjectObject
+  projectObject: UpdateProjectObject,
 ) {
   if (!Array.isArray(projectObject.objectType)) {
     return;
@@ -112,7 +112,7 @@ async function updateObjectTypes(
 
 async function updateObjectCategories(
   tx: DatabaseTransactionConnection,
-  projectObject: UpdateProjectObject
+  projectObject: UpdateProjectObject,
 ) {
   if (!Array.isArray(projectObject.objectCategory)) {
     return;
@@ -135,7 +135,7 @@ async function updateObjectCategories(
 
 async function updateObjectUsages(
   tx: DatabaseTransactionConnection,
-  projectObject: UpdateProjectObject
+  projectObject: UpdateProjectObject,
 ) {
   if (!Array.isArray(projectObject.objectUsage)) {
     return;
@@ -158,7 +158,7 @@ async function updateObjectUsages(
 
 async function updateObjectRoles(
   tx: DatabaseTransactionConnection,
-  projectObject: UpdateProjectObject
+  projectObject: UpdateProjectObject,
 ) {
   if (!Array.isArray(projectObject.objectUserRoles)) {
     return;
@@ -178,8 +178,8 @@ async function updateObjectRoles(
           ${projectObject.id},
           ${codeIdFragment('KohdeKayttajaRooli', roleId)}
         );
-      `)
-    )
+      `),
+    ),
   );
 }
 
@@ -202,7 +202,7 @@ export async function updateProjectObjectBudget(
   tx: DatabaseTransactionConnection,
   projectObjectId: string,
   budgetItems: BudgetUpdate['budgetItems'],
-  userId: User['id']
+  userId: User['id'],
 ) {
   await addAuditEvent(tx, {
     eventType: 'projectObject.updateBudget',
@@ -219,7 +219,7 @@ export async function updateProjectObjectBudget(
           amount: item.amount,
           forecast: item.forecast,
           kayttosuunnitelman_muutos: item.kayttosuunnitelmanMuutos,
-        }).filter(([, value]) => value !== undefined)
+        }).filter(([, value]) => value !== undefined),
       );
 
       const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
@@ -232,10 +232,10 @@ export async function updateProjectObjectBudget(
         DO UPDATE SET
         ${sql.join(
           identifiers.map((identifier) => sql.fragment`${identifier} = EXCLUDED.${identifier}`),
-          sql.fragment`,`
+          sql.fragment`,`,
         )}
       `);
-    })
+    }),
   );
 }
 
@@ -262,7 +262,7 @@ export async function getProjectObject(tx: DatabaseTransactionConnection, projec
 
 export async function getProjectObjects(
   tx: DatabaseTransactionConnection,
-  projectObjectIds: string[]
+  projectObjectIds: string[],
 ) {
   return tx.many(sql.type(dbProjectObjectSchema)`
     ${projectObjectFragment}
@@ -284,7 +284,7 @@ function isUpdate(input: UpsertProjectObject): input is UpdateProjectObject {
 
 function getUpdateData(
   projectObject: UpsertProjectObject,
-  userId: string
+  userId: string,
 ): Record<string, ValueExpression> {
   const data = {
     project_id: projectObject.projectId,
@@ -309,13 +309,13 @@ function getUpdateData(
   };
   // filter undefined values
   return Object.fromEntries(
-    Object.entries(data).filter(([, value]) => value !== undefined)
+    Object.entries(data).filter(([, value]) => value !== undefined),
   ) as Record<string, ValueExpression>;
 }
 
 export async function validateUpsertProjectObject(
   tx: DatabaseTransactionConnection,
-  values: UpsertProjectObject
+  values: UpsertProjectObject,
 ) {
   const validationErrors: FormErrors<UpsertProjectObject> = { errors: {} };
 
@@ -357,7 +357,7 @@ export async function validateUpsertProjectObject(
 export async function upsertProjectObject(
   tx: DatabaseTransactionConnection,
   projectObject: UpsertProjectObject,
-  userId: string
+  userId: string,
 ) {
   if (hasErrors(await validateUpsertProjectObject(tx, projectObject))) {
     logger.error('Invalid project data', { input: projectObject });
@@ -393,7 +393,7 @@ export async function upsertProjectObject(
       tx,
       upsertResult.id,
       projectObject.budgetUpdate.budgetItems,
-      userId
+      userId,
     );
   }
   await updateObjectTypes(tx, { ...projectObject, id: upsertResult.id });
@@ -408,7 +408,7 @@ export async function upsertProjectObject(
         id: upsertResult.id,
         features: projectObject.geom,
       },
-      userId
+      userId,
     );
   }
 
@@ -418,7 +418,7 @@ export async function upsertProjectObject(
 async function updateProjectObjectGeometry(
   tx: DatabaseTransactionConnection,
   input: UpdateGeometry,
-  userId: string
+  userId: string,
 ) {
   const { id, features } = input;
 
@@ -485,7 +485,7 @@ export const createProjectObjectRouter = (t: TRPC) =>
             tx,
             input.projectObjectId,
             input.budgetItems,
-            ctx.user.id
+            ctx.user.id,
           );
         });
       }),

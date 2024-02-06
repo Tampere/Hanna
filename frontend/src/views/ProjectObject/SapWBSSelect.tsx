@@ -21,7 +21,7 @@ export function SapWBSSelect(props: Props) {
   const isEnabled = Boolean(props.projectId);
   const wbsProjects = trpc.sap.getWBSByProjectId.useQuery(
     { projectId: props.projectId ?? '' },
-    { enabled: isEnabled }
+    { enabled: isEnabled },
   );
 
   const isLoading = isEnabled && wbsProjects.isLoading;

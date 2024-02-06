@@ -5,7 +5,7 @@ import { env } from './env';
 type FastifyRouteHandler = (
   server: FastifyInstance,
   opts: FastifyPluginOptions,
-  done: () => void
+  done: () => void,
 ) => void;
 
 interface Options {
@@ -34,6 +34,6 @@ export function registerApiKeyRoutes(server: FastifyInstance, opts: Options) {
 
       done();
     },
-    { prefix: opts.prefix }
+    { prefix: opts.prefix },
   );
 }

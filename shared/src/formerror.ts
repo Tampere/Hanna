@@ -28,7 +28,7 @@ export function mergeErrors<T>(errors: FormErrors<T>[]) {
         },
       };
     },
-    { errors: {} }
+    { errors: {} },
   );
 }
 

@@ -37,7 +37,7 @@ export function createDrawInteraction(opts: DrawOptions) {
       new CircleStyle({
         radius: 5,
         fill: new Fill({ color: drawStyle.getStroke()?.getColor() }),
-      })
+      }),
     );
     drawStyle.getStroke()?.setLineDash([3, 10]);
 
@@ -172,7 +172,7 @@ export function featuresFromGeoJSON(geojson: string | object) {
 
 export function deleteSelectedFeatures(
   targetSource: VectorSource<Geometry>,
-  selectionSource: VectorSource<Geometry>
+  selectionSource: VectorSource<Geometry>,
 ) {
   for (const feature of selectionSource.getFeatures()) {
     targetSource.removeFeature(feature);
@@ -183,7 +183,7 @@ export function deleteSelectedFeatures(
 
 export function addFeaturesFromGeoJson(
   targetSource: VectorSource<Geometry>,
-  geoJson?: string | object | null
+  geoJson?: string | object | null,
 ) {
   targetSource.clear();
 

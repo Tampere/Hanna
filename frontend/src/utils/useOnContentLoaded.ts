@@ -17,8 +17,8 @@ export function useOnContentLoaded<T extends HTMLElement>(ref: RefObject<T>, cal
               image.addEventListener('load', resolve);
               // If there are any load errors, consider the content still loaded
               image.addEventListener('error', resolve);
-            })
-        )
+            }),
+        ),
       );
 
       callback();

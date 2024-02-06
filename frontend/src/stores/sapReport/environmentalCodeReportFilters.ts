@@ -14,7 +14,7 @@ export const environmentalCodeReportFilterAtom = atom<EnvironmentCodeReportQuery
 export const textAtom = focusAtom(environmentalCodeReportFilterAtom, (o) => o.prop('text'));
 export const reasonsForEnvironmentalInvestmentAtom = focusAtom(
   environmentalCodeReportFilterAtom,
-  (o) => o.prop('reasonsForEnvironmentalInvestment')
+  (o) => o.prop('reasonsForEnvironmentalInvestment'),
 );
 export const yearsAtom = focusAtom(environmentalCodeReportFilterAtom, (o) => o.prop('years'));
 

@@ -62,7 +62,7 @@ export function TaskForm(props: Props) {
             message: tr('projectObject.error.endDateBeforeStartDate'),
           });
         }
-      })
+      }),
     ),
     context: {
       requiredFields: getRequiredFields(upsertTaskSchema),

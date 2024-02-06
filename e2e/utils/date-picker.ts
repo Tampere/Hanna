@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
-import { Locator } from 'playwright';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import { Locator } from 'playwright';
 
 dayjs.extend(customParseFormat);
 

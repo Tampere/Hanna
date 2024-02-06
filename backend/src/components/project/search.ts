@@ -72,7 +72,7 @@ export function getFilterFragment(input: ProjectSearch) {
         input.lifecycleStates && input.lifecycleStates?.length > 0
           ? sql.fragment`(project.lifecycle_state).id = ANY(${sql.array(
               input.lifecycleStates,
-              'text'
+              'text',
             )})`
           : sql.fragment`true`
       }
@@ -122,7 +122,7 @@ export function investmentProjectFragment(input: ProjectSearch) {
             filters?.committees && filters.committees.length > 0
               ? sql.fragment`(project_committee.committee_type).id = ANY(${sql.array(
                   filters.committees,
-                  'text'
+                  'text',
                 )})`
               : sql.fragment`true`
           }
@@ -147,7 +147,7 @@ export function detailplanProjectFragment(input: ProjectSearch) {
             filters?.preparers && filters.preparers.length > 0
               ? sql.fragment`project_detailplan.preparer = ANY(${sql.array(
                   filters.preparers,
-                  'text'
+                  'text',
                 )})`
               : sql.fragment`true`
           }
@@ -155,7 +155,7 @@ export function detailplanProjectFragment(input: ProjectSearch) {
             filters?.planningZones && filters.planningZones.length > 0
               ? sql.fragment`(project_detailplan.planning_zone).id = ANY(${sql.array(
                   filters.planningZones,
-                  'text'
+                  'text',
                 )})`
               : sql.fragment`true`
           }
@@ -163,7 +163,7 @@ export function detailplanProjectFragment(input: ProjectSearch) {
             filters?.subtypes && filters.subtypes.length > 0
               ? sql.fragment`(project_detailplan.subtype).id = ANY(${sql.array(
                   filters.subtypes,
-                  'text'
+                  'text',
                 )})`
               : sql.fragment`true`
           }

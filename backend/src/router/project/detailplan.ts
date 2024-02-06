@@ -24,7 +24,7 @@ import {
 
 async function getNotificationMailTemplate(
   project: DbDetailplanProject,
-  template: DetailplanNotification['template']
+  template: DetailplanNotification['template'],
 ): Promise<Mail['template']> {
   // Use actual values on the template instead of IDs
   return {

@@ -61,8 +61,8 @@ export function MapWrapper(props: Props) {
     getMapProjection(
       mapOptions.projection.code,
       mapOptions.projection.extent,
-      mapOptions.projection.units
-    )
+      mapOptions.projection.units,
+    ),
   );
   const [baseLayerId] = useAtom(baseLayerIdAtom);
   const selectedWFSLayers = useAtomValue(selectedWFSLayersAtom);
@@ -99,11 +99,11 @@ export function MapWrapper(props: Props) {
           setFeaturesSelected(features.length > 0);
         },
       }),
-    []
+    [],
   );
   const registerModifyInteraction = useMemo(
     () => createModifyInteraction({ source: selectionSource, onModifyEnd: () => setDirty(true) }),
-    []
+    [],
   );
 
   const drawSource = useMemo(() => new VectorSource({ wrapX: false }), []);
@@ -126,7 +126,7 @@ export function MapWrapper(props: Props) {
           setDirty(true);
         },
       }),
-    [selectedTool]
+    [selectedTool],
   );
 
   useEffect(() => {
@@ -250,8 +250,8 @@ export function MapWrapper(props: Props) {
               onFeaturesSaved?.(
                 getGeoJSONFeaturesString(
                   drawSource.getFeatures(),
-                  projection?.getCode() ?? mapOptions.projection.code
-                )
+                  projection?.getCode() ?? mapOptions.projection.code,
+                ),
               );
             }}
             saveDisabled={!dirty}

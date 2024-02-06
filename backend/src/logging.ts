@@ -13,5 +13,5 @@ export const logger = pino(
         },
         level: 'debug',
       }
-    : {}
+    : {},
 );

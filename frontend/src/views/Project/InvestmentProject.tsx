@@ -77,7 +77,7 @@ export function InvestmentProject() {
   const projectId = routeParams?.projectId;
   const project = trpc.investmentProject.get.useQuery(
     { id: projectId },
-    { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { id: projectId }] }
+    { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { id: projectId }] },
   );
 
   const [geom, setGeom] = useState<string | null>(null);
@@ -103,7 +103,7 @@ export function InvestmentProject() {
 
   const projectObjects = trpc.projectObject.getByProjectId.useQuery(
     { projectId },
-    { enabled: Boolean(projectId), queryKey: ['projectObject.getByProjectId', { projectId }] }
+    { enabled: Boolean(projectId), queryKey: ['projectObject.getByProjectId', { projectId }] },
   );
 
   const projectObjectSource = useMemo(() => {

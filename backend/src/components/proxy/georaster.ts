@@ -6,7 +6,7 @@ import { env } from '@backend/env';
 export function georasterProxy(
   server: FastifyInstance,
   _opts: FastifyPluginOptions,
-  done: () => void
+  done: () => void,
 ) {
   server.register(fastifyHttpProxy, {
     upstream: env.proxy.georaster.upstream,
@@ -16,7 +16,7 @@ export function georasterProxy(
         return {
           ...headers,
           Authorization: `Basic ${Buffer.from(
-            `${env.proxy.georaster.username}:${env.proxy.georaster.password}`
+            `${env.proxy.georaster.username}:${env.proxy.georaster.password}`,
           ).toString('base64')}`,
         };
       },

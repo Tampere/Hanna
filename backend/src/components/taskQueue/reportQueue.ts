@@ -16,7 +16,7 @@ export async function setupReportQueue() {
     },
     async ({ id, data }) => {
       await buildReport(id, data);
-    }
+    },
   );
 }
 

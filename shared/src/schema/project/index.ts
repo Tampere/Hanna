@@ -64,7 +64,7 @@ export const projectSearchResultSchema = z.object({
       clusterCount: z.number(),
       clusterLocation: z.string(),
       clusterGeohash: z.string(),
-    })
+    }),
   ),
 });
 
@@ -133,7 +133,7 @@ export const budgetUpdateSchema = z.object({
     z.object({
       year: z.number(),
       amount: z.number().nullable(),
-    })
+    }),
   ),
 });
 

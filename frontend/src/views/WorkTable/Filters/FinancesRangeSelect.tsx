@@ -27,7 +27,7 @@ export function FinancesRangeSelect({ value, onChange, readOnly, yearRange }: Pr
 
   const selectableYears = Array.from(
     { length: yearRange.endYear - yearRange.startYear + 1 },
-    (_, i) => yearRange.startYear + i
+    (_, i) => yearRange.startYear + i,
   ).reverse();
 
   return (

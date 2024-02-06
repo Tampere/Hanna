@@ -44,7 +44,7 @@ export function DetailplanProjectNotification({ projectId }: Props) {
     },
     {
       queryKey: ['detailplanProject.previewNotificationMail', { id: projectId, template }],
-    }
+    },
   );
   const { data: defaultRecipients, isLoading: defaultRecipientsLoading } =
     trpc.detailplanProject.getNotificationRecipients.useQuery();

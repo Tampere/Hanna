@@ -73,7 +73,7 @@ export function DetailplanProject() {
 
   const project = trpc.detailplanProject.get.useQuery(
     { id: projectId },
-    { enabled: Boolean(projectId), queryKey: ['detailplanProject.get', { id: projectId }] }
+    { enabled: Boolean(projectId), queryKey: ['detailplanProject.get', { id: projectId }] },
   );
   const tr = useTranslations();
 

@@ -69,7 +69,7 @@ function blanketContractReportFragment(params?: Partial<BlanketContractReportQue
       params?.filters?.consultCompanies.length
         ? sql.fragment`"consultCompany" = ANY(${sql.array(
             params.filters.consultCompanies,
-            'text'
+            'text',
           )})`
         : sql.fragment`true`
     }
@@ -101,12 +101,12 @@ export async function getBlanketContractReport(query: BlanketContractReportQuery
 }
 
 export async function getBlanketContractReportRowCount(
-  filters: Pick<BlanketContractReportQuery, 'filters'>
+  filters: Pick<BlanketContractReportQuery, 'filters'>,
 ) {
   return await getPool().one(sql.type(
     z.object({
       rowCount: z.number(),
-    })
+    }),
   )`
     SELECT
       count(*) "rowCount"
@@ -115,14 +115,14 @@ export async function getBlanketContractReportRowCount(
 }
 
 export async function getBlanketContractReportSummary(
-  filters: Pick<BlanketContractReportQuery, 'filters'>
+  filters: Pick<BlanketContractReportQuery, 'filters'>,
 ) {
   return await getPool().one(sql.type(
     z.object({
       totalDebitSum: z.number(),
       totalCreditSum: z.number(),
       totalActualsSum: z.number(),
-    })
+    }),
   )`
     SELECT
       sum("totalDebit") "totalDebitSum",

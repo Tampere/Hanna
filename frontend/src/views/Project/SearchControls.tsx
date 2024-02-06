@@ -48,7 +48,7 @@ function makeCalendarQuickSelections(tr: ReturnType<typeof useTranslations>) {
     yearSelections.push({
       label: tr('projectSearch.calendarQuickSelection.year').replace(
         '{year}',
-        dayjs().subtract(i, 'year').format('YYYY')
+        dayjs().subtract(i, 'year').format('YYYY'),
       ),
       period: {
         startDate: dayjs().subtract(i, 'year').startOf('year').format(isoFormat),
