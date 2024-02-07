@@ -369,7 +369,8 @@ export function ProjectObjectForm(props: Props) {
             formField="lifecycleState"
             label={tr('projectObject.lifecycleStateLabel')}
             tooltip={tr('projectObject.lifecycleStateTooltip')}
-            component={({ ...field }) => (
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            component={({ ref, ...field }) => (
               <CodeSelect {...field} codeListId="KohteenElinkaarentila" readOnly={!editing} />
             )}
           />
