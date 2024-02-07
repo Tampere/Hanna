@@ -321,7 +321,8 @@ export function ProjectObjectForm(props: Props) {
               formField="projectId"
               label={tr('projectObject.projectLabel')}
               tooltip={tr('projectObject.projectTooltip')}
-              component={({ ...field }) => {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              component={({ ref, ...field }) => {
                 return (
                   <ProjectAutoComplete
                     {...readonlyProps}
@@ -358,7 +359,8 @@ export function ProjectObjectForm(props: Props) {
             formField="objectStage"
             label={tr('projectObject.objectStageLabel')}
             tooltip={tr('projectObject.objectStageTooltip')}
-            component={({ ...field }) => (
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            component={({ ref, ...field }) => (
               <CodeSelect {...field} codeListId="KohteenLaji" readOnly={!editing} />
             )}
           />
@@ -376,7 +378,8 @@ export function ProjectObjectForm(props: Props) {
             formField="objectType"
             label={tr('projectObject.objectTypeLabel')}
             tooltip={tr('projectObject.objectTypeTooltip')}
-            component={({ ...field }) => (
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            component={({ ref, ...field }) => (
               <CodeSelect
                 {...field}
                 multiple
@@ -391,7 +394,8 @@ export function ProjectObjectForm(props: Props) {
             formField="objectCategory"
             label={tr('projectObject.objectCategoryLabel')}
             tooltip={tr('projectObject.objectCategoryTooltip')}
-            component={({ ...field }) => (
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            component={({ ref, ...field }) => (
               <CodeSelect
                 {...field}
                 multiple
@@ -405,7 +409,8 @@ export function ProjectObjectForm(props: Props) {
             formField="objectUsage"
             label={tr('projectObject.objectUsageLabel')}
             tooltip={tr('projectObject.objectUsageTooltip')}
-            component={({ ...field }) => (
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            component={({ ref, ...field }) => (
               <CodeSelect
                 {...field}
                 multiple
@@ -454,7 +459,8 @@ export function ProjectObjectForm(props: Props) {
             formField="landownership"
             label={tr('projectObject.landownershipLabel')}
             tooltip={tr('projectObject.landownershipTooltip')}
-            component={({ ...field }) => (
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            component={({ ref, ...field }) => (
               <CodeSelect {...field} codeListId="KohteenMaanomistusLaji" readOnly={!editing} />
             )}
           />
@@ -463,7 +469,8 @@ export function ProjectObjectForm(props: Props) {
             formField="locationOnProperty"
             label={tr('projectObject.locationOnPropertyLabel')}
             tooltip={tr('projectObject.locationOnPropertyTooltip')}
-            component={({ ...field }) => (
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            component={({ ref, ...field }) => (
               <CodeSelect
                 {...field}
                 codeListId="KohteenSuhdePeruskiinteistoon"
