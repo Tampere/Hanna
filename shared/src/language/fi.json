@@ -239,6 +239,8 @@
   "projectObject.notifyGeometryUpdateTitle": "Kohteen sijainti päivitetty",
   "projectObject.notifyGeometryUpdateFailedTitle": "Virhe tallentaessa kohteen sijaintia",
   "projectObject.noTasks": "Kohteella ei ole vaiheita",
+  "projectObject.objectStageLabel": "Kohteen laji",
+  "projectObject.objectStageTooltip": "Valitse kohteen laji",
   "projectObjectForm.infoNoGeom": "Olet luomassa kohdetta ilman aluetta",
   "projectObjectForm.createBtnLabel": "Luo kohde",
   "projectObjectForm.createAndReturnBtnLabel": "Tallenna ja palaa",

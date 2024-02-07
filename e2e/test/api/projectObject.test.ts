@@ -20,6 +20,7 @@ const testProjectObject = (projectId: string, user: User) => ({
   projectId,
   description: 'Test description',
   objectName: 'Test project object',
+  objectStage: '01',
   lifecycleState: '01',
   objectType: ['01'],
   objectCategory: ['01'],

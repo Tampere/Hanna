@@ -33,6 +33,7 @@ const projectObjectFragment = sql.fragment`
      object_name AS "objectName",
      description AS "description",
      (lifecycle_state).id AS "lifecycleState",
+     (object_stage).id AS "objectStage",
      suunnitteluttaja_user AS "suunnitteluttajaUser",
      rakennuttaja_user AS "rakennuttajaUser",
      start_date AS "startDate",
@@ -290,6 +291,8 @@ function getUpdateData(
     project_id: projectObject.projectId,
     object_name: projectObject.objectName,
     description: projectObject.description,
+    object_stage:
+      projectObject.objectStage && codeIdFragment('KohteenLaji', projectObject.objectStage),
     lifecycle_state:
       projectObject.lifecycleState &&
       codeIdFragment('KohteenElinkaarentila', projectObject.lifecycleState),
@@ -396,6 +399,7 @@ export async function upsertProjectObject(
       userId,
     );
   }
+
   await updateObjectTypes(tx, { ...projectObject, id: upsertResult.id });
   await updateObjectCategories(tx, { ...projectObject, id: upsertResult.id });
   await updateObjectUsages(tx, { ...projectObject, id: upsertResult.id });
@@ -445,7 +449,7 @@ async function updateProjectObjectGeometry(
 
 export const createProjectObjectRouter = (t: TRPC) =>
   t.router({
-    upsertValidate: t.procedure.input(upsertProjectObjectSchema).query(async ({ input, ctx }) => {
+    upsertValidate: t.procedure.input(upsertProjectObjectSchema).query(async ({ input }) => {
       return await getPool().connect(async (conn) => {
         return await validateUpsertProjectObject(conn, input);
       });
