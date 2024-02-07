@@ -5,4 +5,4 @@ ALTER TABLE app.project_object ADD COLUMN object_stage app.code_id CHECK (
   (object_stage).code_list_id = 'KohteenLaji'
 ) REFERENCES app.code (id);
 UPDATE app.project_object SET object_stage = ('KohteenLaji', '02');
-ALTER TABLE app.project ALTER COLUMN object_stage SET NOT NULL;
+ALTER TABLE app.project_object ALTER COLUMN object_stage SET NOT NULL;
