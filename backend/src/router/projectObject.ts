@@ -291,7 +291,8 @@ function getUpdateData(
     project_id: projectObject.projectId,
     object_name: projectObject.objectName,
     description: projectObject.description,
-    object_stage: codeIdFragment('KohteenLaji', projectObject.objectStage),
+    object_stage:
+      projectObject.objectStage && codeIdFragment('KohteenLaji', projectObject.objectStage),
     lifecycle_state:
       projectObject.lifecycleState &&
       codeIdFragment('KohteenElinkaarentila', projectObject.lifecycleState),
