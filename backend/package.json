@@ -66,7 +66,7 @@
     "excel4node": "^1.8.2",
     "fast-json-stable-stringify": "^2.1.0",
     "fastify": "^4.24.3",
-    "nodemailer": "^6.9.7",
+    "nodemailer": "^6.9.9",
     "openid-client": "^5.6.1",
     "pg-boss": "^9.0.3",
     "pino": "^8.16.2",
