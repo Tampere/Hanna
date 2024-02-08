@@ -102,7 +102,7 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps
       # Start up the stack & wait for all services to be healthy
-      - run: CI=1 docker compose up -d --wait
+      - run: CI=1 docker compose up -f docker-compose.yml -f docker-compose.ci.yml -d --wait
         timeout-minutes: 10
       # Output container logs if any of the previous steps failed
       - run: docker compose logs

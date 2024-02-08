@@ -14,7 +14,8 @@ services:
       # For container based development to show git changes in the whole workspace
       - ../.git:/app/.git:cached
       - ../:/app/
-      - /app/frontend
+      - /app/frontend/dist
+      - /app/frontend/node_modules
       - /app/shared/node_modules
     healthcheck:
       test: curl --fail http://localhost:8080 || exit 1
