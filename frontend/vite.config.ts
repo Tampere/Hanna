@@ -5,7 +5,7 @@ import MarkdownItAnchor from 'markdown-it-anchor';
 import { CommonServerOptions, defineConfig } from 'vite';
 import checker from 'vite-plugin-checker';
 import faviconsInject from 'vite-plugin-favicons-inject';
-import mdPlugin, { Mode } from 'vite-plugin-markdown';
+import { Mode, plugin as mdPlugin } from 'vite-plugin-markdown';
 import svgr from 'vite-plugin-svgr';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
