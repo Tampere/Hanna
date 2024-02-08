@@ -1,6 +1,7 @@
 {
   "strict": true,
   "compilerOptions": {
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {

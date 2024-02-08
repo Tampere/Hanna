@@ -6,6 +6,7 @@
   "engines": {
     "node": "18.18.0"
   },
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -46,13 +47,13 @@
     "markdown-it-anchor": "^8.6.7",
     "patch-package": "^8.0.0",
     "typescript": "5.3.3",
-    "vite": "^4.5.2",
-    "vite-plugin-checker": "^0.6.2",
+    "vite": "^5.0.12",
+    "vite-plugin-checker": "^0.6.4",
     "vite-plugin-favicons-inject": "^2.2.0",
-    "vite-plugin-markdown": "^2.2.0-2",
-    "vite-plugin-svgr": "^3.3.0",
-    "vite-tsconfig-paths": "^4.2.2",
-    "vitest": "^0.34.6"
+    "vite-plugin-markdown": "^2.2.0",
+    "vite-plugin-svgr": "^4.2.0",
+    "vite-tsconfig-paths": "^4.3.1",
+    "vitest": "^1.2.2"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
