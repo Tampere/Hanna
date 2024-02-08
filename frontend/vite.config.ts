@@ -40,9 +40,7 @@ export default defineConfig({
     tsconfigPaths(),
     process.env.NODE_ENV === 'development' &&
       checker({
-        typescript: {
-          buildMode: true,
-        },
+        typescript: true,
         overlay: {
           initialIsOpen: false,
         },
