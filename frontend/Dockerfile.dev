@@ -21,7 +21,7 @@ RUN cd /app/backend && npm install
 RUN cd /app/frontend && \
   # Create the node_modules directory in advance to avoid runtime permission problems
   npm install && \
-  chown -R node node_modules
+  chown -R node .
 
 EXPOSE 8080
 
