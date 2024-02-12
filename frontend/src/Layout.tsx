@@ -88,6 +88,14 @@ function Navbar() {
     letter-spacing: 0.3rem;
   `;
 
+  function getValueFromPathname() {
+    if (pathname === '/') {
+      return 'hankkeet';
+    }
+    const currentPath = pathname.split('/')[1];
+    return tabs.includes(currentPath) ? currentPath : false;
+  }
+
   const tabs = ['hankkeet', 'sap-raportit', 'investointiohjelma', 'hallinta'];
 
   return (
@@ -124,7 +132,7 @@ function Navbar() {
                 background-color: white;
               }
             `}
-            value={tabs.includes(pathname.split('/')[1]) ? pathname.split('/')[1] : false}
+            value={getValueFromPathname()}
           >
             <Tab
               icon={<AccountTreeOutlined sx={{ mr: 1 }} />}
