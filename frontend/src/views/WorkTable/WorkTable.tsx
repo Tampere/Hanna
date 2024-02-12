@@ -18,6 +18,7 @@ import { getColumns } from '@frontend/views/WorkTable/columns';
 import { WorkTableRow, WorkTableRowUpdate, WorkTableSearch } from '@shared/schema/workTable';
 
 import { BackToTopButton } from './BackToTopButton';
+import { YearPicker } from './Filters/YearPicker';
 import { ModifiedFields } from './diff';
 
 const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
@@ -97,9 +98,7 @@ function getCellEditEvent(oldRow: WorkTableRow, newRow: WorkTableRow): CellEditE
   };
 }
 
-const searchAtom = atom<WorkTableSearch>({
-  financesRange: new Date().getFullYear(),
-});
+const searchAtom = atom<WorkTableSearch>({ startDate: null, endDate: null });
 
 export default function WorkTable() {
   const [searchParams, setSearchParams] = useAtom(searchAtom);
@@ -159,7 +158,7 @@ export default function WorkTable() {
   }, [editEvents]);
 
   const columns = useMemo(() => {
-    return getColumns({ modifiedFields, financesRange: searchParams.financesRange });
+    return getColumns({ modifiedFields });
   }, [modifiedFields]);
 
   useEffect(() => {
@@ -258,7 +257,6 @@ export default function WorkTable() {
     const updateData = {} as Record<string, Record<keyof WorkTableRowUpdate, any>>;
     editEvents.forEach((editEvent) => {
       const { rowId, field, newValue } = editEvent;
-      updateData[rowId] = updateData[rowId] ?? { budgetYear: searchParams.financesRange };
       updateData[rowId][field] = newValue;
     });
 
@@ -314,7 +312,7 @@ export default function WorkTable() {
       <Box
         css={css`
           display: flex;
-          justify-content: space-between;
+          gap: 2rem;
           align-items: center;
         `}
       >
@@ -328,7 +326,19 @@ export default function WorkTable() {
         >
           {tr('workTable.title')}
         </Typography>
+        <YearPicker
+          onChange={(dates) =>
+            setSearchParams({
+              ...searchParams,
+              startDate: dates.startDate,
+              endDate: dates.endDate,
+            })
+          }
+        />
         <Button
+          css={css`
+            margin-left: auto;
+          `}
           variant="contained"
           component={Link}
           to="/kohde/uusi?from=/investointiohjelma"

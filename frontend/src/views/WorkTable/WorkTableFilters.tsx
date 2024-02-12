@@ -2,15 +2,12 @@ import { Search } from '@mui/icons-material';
 import { InputAdornment, TextField, Theme, css } from '@mui/material';
 import { LocalizationProvider, fiFI } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs from 'dayjs';
 import { SetStateAction, useAtomValue } from 'jotai';
 import React from 'react';
 
 import { CustomFormLabel } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
-import { FinancesRangeSelect } from '@frontend/views/WorkTable/Filters/FinancesRangeSelect';
-import { YearMonthPicker } from '@frontend/views/WorkTable/Filters/YearMonthPicker';
 
 import { WorkTableSearch } from '@shared/schema/workTable';
 
@@ -85,7 +82,7 @@ export function WorkTableFilters(props: Props) {
 
         padding: ${theme.spacing(1)} 0;
         display: grid;
-        grid-template-columns: repeat(14, 1fr);
+        grid-template-columns: repeat(13, 1fr);
         grid-template-rows: 1fr 1fr;
         gap: ${theme.spacing(2)};
       `}
@@ -126,34 +123,7 @@ export function WorkTableFilters(props: Props) {
           fieldMonthPlaceholder: () => tr('date.monthPlaceholder'),
           fieldYearPlaceholder: () => tr('date.yearPlaceholder'),
         }}
-      >
-        <GridSpan row={1} span={2}>
-          <CustomFormLabel label={tr('workTable.startDate')} htmlFor="startDateField" />
-          <YearMonthPicker
-            value={searchParams?.startDate ?? null}
-            dateMode="startOfMonth"
-            format="YYYY-MM-DD"
-            DatePickerProps={{
-              maxDate: searchParams.endDate ? dayjs(searchParams.endDate) : undefined,
-            }}
-            readOnly={props.readOnly}
-            onChange={(value) => setSearchParams({ ...searchParams, startDate: value })}
-          />
-        </GridSpan>
-        <GridSpan row={1} span={2}>
-          <CustomFormLabel label={tr('workTable.endDate')} htmlFor="endDateField" />
-          <YearMonthPicker
-            value={searchParams?.endDate ?? null}
-            dateMode="endOfMonth"
-            format="YYYY-MM-DD"
-            DatePickerProps={{
-              minDate: searchParams.startDate ? dayjs(searchParams.startDate) : undefined,
-            }}
-            readOnly={props.readOnly}
-            onChange={(value) => setSearchParams({ ...searchParams, endDate: value })}
-          />
-        </GridSpan>
-      </LocalizationProvider>
+      ></LocalizationProvider>
 
       <GridSpan row={2} span={3} wideScreenSpan={2}>
         <CustomFormLabel label={tr('projectObject.objectTypeLabel')} htmlFor="objectTypeField" />
@@ -211,33 +181,6 @@ export function WorkTableFilters(props: Props) {
           onChange={(state) => setSearchParams({ ...searchParams, lifecycleState: state })}
         />
       </GridSpan>
-
-      <div
-        css={(theme) => css`
-          border-left: 1px solid #ccc;
-          padding-left: ${theme.spacing(2)};
-          grid-column: 13 / span 2;
-          grid-row: 1 / span 2;
-          display: flex;
-          flex-direction: column;
-          justify-content: flex-end;
-        `}
-      >
-        <CustomFormLabel label={tr('workTable.financesRangeLabel')} htmlFor="financesRangeField" />
-        <FinancesRangeSelect
-          readOnly={props.readOnly}
-          value={searchParams.financesRange}
-          yearRange={props.yearRange}
-          onChange={(value) => setSearchParams({ ...searchParams, financesRange: value })}
-          {...(searchParams.startDate &&
-            searchParams.endDate && {
-              yearRange: {
-                startYear: dayjs(searchParams.startDate).year(),
-                endYear: dayjs(searchParams.endDate).year(),
-              },
-            })}
-        />
-      </div>
     </div>
   );
 }
