@@ -7,6 +7,7 @@ import { UpsertProjectObject } from '@shared/schema/projectObject';
 import {
   WorkTableSearch,
   WorkTableUpdate,
+  projectObjectYears,
   workTableRowSchema,
   workTableSearchSchema,
   workTableUpdateSchema,
@@ -27,7 +28,6 @@ async function workTableSearch(input: WorkTableSearch) {
     objectCategory = [],
     objectUsage = [],
     lifecycleState = [],
-    financesRange,
   } = input;
 
   const query = sql.type(workTableRowSchema)`
@@ -71,8 +71,10 @@ async function workTableSearch(input: WorkTableSearch) {
       COALESCE(SUM(budget.forecast), null) AS forecast,
       COALESCE(SUM(budget.kayttosuunnitelman_muutos), null) AS kayttosuunnitelman_muutos
     FROM app.budget
-    WHERE ${
-      financesRange === 'allYears' ? sql.fragment`true` : sql.fragment`year = ${financesRange}`
+    ${
+      startDate
+        ? sql.fragment`WHERE year BETWEEN EXTRACT('year' FROM CAST(${startDate} as date)) AND EXTRACT('year' FROM CAST(${endDate} as date))`
+        : sql.fragment``
     }
     GROUP BY project_object_id
   ), po_actual AS (
@@ -81,11 +83,6 @@ async function workTableSearch(input: WorkTableSearch) {
       SUM(value_in_currency_subunit) AS total
     FROM app.sap_actuals_item
     INNER JOIN app.project_object ON project_object.sap_wbs_id = sap_actuals_item.wbs_element_id
-    WHERE ${
-      financesRange === 'allYears'
-        ? sql.fragment`true`
-        : sql.fragment`EXTRACT(YEAR FROM posting_date) = ${financesRange}`
-    }
     GROUP BY project_object.id
   )
   SELECT
@@ -149,6 +146,19 @@ async function workTableUpdate(input: WorkTableUpdate, userId: string) {
   });
 }
 
+async function getWorkTableYearRange() {
+  const data = await getPool().any(sql.type(projectObjectYears)`
+  WITH date_range AS (
+    SELECT
+      MIN(EXTRACT('year' from start_date)) AS min_year,
+      MAX(EXTRACT('year' FROM end_date)) AS max_year
+    FROM app.project_object
+  )
+  SELECT generate_series(min_year::int, max_year::int) AS year FROM date_range;
+  `);
+  return data.map((obj) => Number(obj.year));
+}
+
 export const createWorkTableRouter = (t: TRPC) =>
   t.router({
     search: t.procedure.input(workTableSearchSchema).query(async ({ input }) => {
@@ -157,5 +167,8 @@ export const createWorkTableRouter = (t: TRPC) =>
     update: t.procedure.input(workTableUpdateSchema).mutation(async ({ ctx, input }) => {
       const userId = ctx.user.id;
       return workTableUpdate(input, userId);
+    }),
+    years: t.procedure.query(async () => {
+      return getWorkTableYearRange();
     }),
   });

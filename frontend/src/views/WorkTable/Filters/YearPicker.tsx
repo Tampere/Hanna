@@ -1,0 +1,63 @@
+import { Select, css } from '@mui/material';
+import dayjs from 'dayjs';
+import arraySupport from 'dayjs/plugin/arraySupport';
+
+import { trpc } from '@frontend/client';
+import { useTranslations } from '@frontend/stores/lang';
+
+dayjs.extend(arraySupport);
+
+interface Props {
+  onChange: (dates: { startDate: string; endDate: string }) => void;
+}
+
+export function YearPicker({ onChange }: Props) {
+  const tr = useTranslations();
+  const yearsQuery = trpc.workTable.years.useQuery();
+
+  function getDate(year: number, forStart: boolean = true, format: string = 'YYYY-MM-DD') {
+    return forStart ? dayjs([year, 0, 1]).format(format) : dayjs([year, 11, 31]).format(format);
+  }
+
+  return (
+    <Select
+      css={(theme) => css`
+        color: ${theme.palette.primary.main};
+        & .MuiNativeSelect-select {
+          padding: 0.2rem 0.5rem;
+          font-weight: 500;
+        }
+      `}
+      native
+      size="small"
+      onChange={({ target }) => {
+        if (!target.value || !yearsQuery.data) return;
+
+        if (target.value === 'allYears') {
+          onChange({
+            startDate: getDate(Math.min(...yearsQuery.data)),
+            endDate: getDate(Math.max(...yearsQuery.data), false),
+          });
+        } else {
+          const year = Number(target.value);
+          onChange({ startDate: getDate(year), endDate: getDate(year, false) });
+        }
+      }}
+    >
+      <option value="allYears">{tr('workTable.allYears')}</option>
+      <optgroup label={tr('workTable.yearSelect')}>
+        {yearsQuery.data?.map((year) => (
+          <option
+            css={css`
+              text-align: center;
+            `}
+            key={year}
+            value={year}
+          >
+            {year}
+          </option>
+        ))}
+      </optgroup>
+    </Select>
+  );
+}

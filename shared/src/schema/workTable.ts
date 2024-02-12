@@ -4,7 +4,7 @@ import { nonEmptyString } from './common';
 import { upsertProjectSchema } from './project/base';
 import { dbProjectObjectSchema } from './projectObject';
 
-const financesRangeSchema = z.literal('allYears').or(z.number());
+export const projectObjectYears = z.object({ year: z.number() });
 
 export const workTableSearchSchema = z.object({
   projectName: z.string().optional(),
@@ -15,10 +15,8 @@ export const workTableSearchSchema = z.object({
   objectCategory: dbProjectObjectSchema.shape.objectCategory.optional(),
   objectUsage: dbProjectObjectSchema.shape.objectUsage.optional(),
   lifecycleState: z.array(dbProjectObjectSchema.shape.lifecycleState).optional(),
-  financesRange: financesRangeSchema,
 });
 
-export type FinancesRange = z.infer<typeof financesRangeSchema>;
 export type WorkTableSearch = z.infer<typeof workTableSearchSchema>;
 
 export const workTableRowSchema = z.object({

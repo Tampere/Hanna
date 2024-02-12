@@ -3,12 +3,10 @@ import { Launch } from '@mui/icons-material';
 import { Box } from '@mui/material';
 import {
   GridColDef,
-  GridColumnHeaderParams,
   GridRenderCellParams,
   GridRenderEditCellParams,
   GridValidRowModel,
 } from '@mui/x-data-grid';
-import dayjs from 'dayjs';
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -26,7 +24,7 @@ import {
   ProjectObjectUsers,
 } from '@frontend/views/WorkTable/ProjectObjectUsers';
 
-import { FinancesRange, WorkTableRow } from '@shared/schema/workTable';
+import { WorkTableRow } from '@shared/schema/workTable';
 
 import { CodeSpan } from './CodeSpan';
 import { ProjectObjectNameEdit } from './ProjectObjectNameEdit';
@@ -34,19 +32,8 @@ import { ModifiedFields } from './diff';
 
 interface GetColumnsParams {
   modifiedFields: ModifiedFields<WorkTableRow>;
-  financesRange: FinancesRange;
 }
 
-function isFinanceEditingDisabled(row: WorkTableRow, financesRange: FinancesRange) {
-  if (financesRange === 'allYears') {
-    return true;
-  }
-
-  const startYear = dayjs(row.dateRange.startDate).year();
-  const endYear = dayjs(row.dateRange.endDate).year();
-
-  return financesRange < startYear || financesRange > endYear;
-}
 interface MaybeModifiedCellProps<T extends GridValidRowModel> {
   params: GridRenderCellParams<T>;
   children: React.ReactNode;
@@ -274,7 +261,6 @@ const fieldOperatives = {
 };
 
 const financesField = (
-  financesRange: FinancesRange,
   targetField: 'budget' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos',
   opts?: Partial<GridColDef<WorkTableRow>>,
   CurrencyInputProps?: {
@@ -287,24 +273,7 @@ const financesField = (
     headerName: targetField,
     headerAlign: 'right',
     width: 128,
-    editable: financesRange !== 'allYears',
-    renderCell: ({ row, value }: GridRenderCellParams) => {
-      const startYear = dayjs(row.dateRange.startDate).year();
-      const endYear = dayjs(row.dateRange.endDate).year();
-      const notInRange =
-        financesRange !== 'allYears' && (financesRange < startYear || financesRange > endYear);
-      if (notInRange) {
-        return (
-          <div
-            css={css`
-              flex: 1;
-              text-align: right;
-            `}
-          >
-            —
-          </div>
-        );
-      }
+    renderCell: ({ value }: GridRenderCellParams) => {
       return (
         <div
           css={css`
@@ -319,14 +288,6 @@ const financesField = (
     },
     renderEditCell: (params: GridRenderEditCellParams) => {
       const { id, field, value, api } = params;
-      // NOTE: this is a workaround for not being able to disable editing for a single cell
-      // based on the business logic.
-      const isDisabled = isFinanceEditingDisabled(params.row, financesRange);
-      if (isDisabled) {
-        api.stopCellEditMode({ id: params.id, field: params.field });
-        return <span></span>;
-      }
-
       return (
         <CurrencyInput
           autoFocus
@@ -352,7 +313,6 @@ const financesField = (
 
 export function getColumns({
   modifiedFields,
-  financesRange,
 }: GetColumnsParams): (GridColDef<WorkTableRow> & { __isWrapped?: boolean })[] {
   const columns: (GridColDef<WorkTableRow> & { __isWrapped?: boolean })[] = [
     fieldObjectName,
@@ -363,16 +323,10 @@ export function getColumns({
     fieldObjectCategory,
     fieldObjectUsage,
     fieldOperatives,
-    financesField(financesRange, 'budget', { headerName: 'Talousarvio' }),
-    financesField(financesRange, 'actual', { headerName: 'Toteuma', editable: false }),
+    financesField('budget', { headerName: 'Talousarvio' }),
+    financesField('actual', { headerName: 'Toteuma', editable: false }),
+    financesField('forecast', { headerName: 'Ennuste' }, { allowNegative: true, valueTextColor }),
     financesField(
-      financesRange,
-      'forecast',
-      { headerName: 'Ennuste' },
-      { allowNegative: true, valueTextColor },
-    ),
-    financesField(
-      financesRange,
       'kayttosuunnitelmanMuutos',
       {
         headerName: 'Käyttösuunnitelman muutos',
