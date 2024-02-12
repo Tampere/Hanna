@@ -40,7 +40,7 @@ export default defineConfig({
     tsconfigPaths(),
     process.env.NODE_ENV === 'development' &&
       checker({
-        typescript: true,
+        typescript: { buildMode: true }, // Needed for trpc
         overlay: {
           initialIsOpen: false,
         },
