@@ -14,7 +14,6 @@ import {
 } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { useAtomValue } from 'jotai';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
@@ -26,7 +25,6 @@ import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
-import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { ProjectTypePath } from '@frontend/types';
@@ -147,7 +145,6 @@ export function ProjectObjectForm(props: Props) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(!props.projectObject);
-  const user = useAtomValue(authAtom);
 
   const readonlyProps = useMemo(() => {
     if (editing) {
@@ -184,7 +181,7 @@ export function ProjectObjectForm(props: Props) {
   }, []);
 
   const form = useForm<UpsertProjectObject>({
-    mode: 'all',
+    mode: 'onSubmit',
     resolver: formValidator,
     context: {
       requiredFields: getRequiredFields(newProjectObjectSchema),
@@ -195,8 +192,6 @@ export function ProjectObjectForm(props: Props) {
       description: '',
       startDate: '',
       endDate: '',
-      suunnitteluttajaUser: user?.id,
-      rakennuttajaUser: user?.id,
       objectUserRoles: [],
     },
   });
