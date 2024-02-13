@@ -1,11 +1,8 @@
 import { Select, css } from '@mui/material';
-import dayjs from 'dayjs';
-import arraySupport from 'dayjs/plugin/arraySupport';
 
 import { trpc } from '@frontend/client';
+import dayjs from '@frontend/dayjs';
 import { useTranslations } from '@frontend/stores/lang';
-
-dayjs.extend(arraySupport);
 
 interface Props {
   onChange: (dates: { startDate: string; endDate: string }) => void;

@@ -2,14 +2,13 @@ import { css } from '@emotion/react';
 import { AddCircleOutline, Cancel, Redo, Save, Undo } from '@mui/icons-material';
 import { Box, Button, IconButton, Theme, Tooltip, Typography } from '@mui/material';
 import { DataGrid, fiFI, useGridApiRef } from '@mui/x-data-grid';
-import dayjs from 'dayjs';
-import arraySupport from 'dayjs/plugin/arraySupport';
 import { atom, useAtom } from 'jotai';
 import diff from 'microdiff';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
+import dayjs from '@frontend/dayjs';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
@@ -22,8 +21,6 @@ import { WorkTableRow, WorkTableRowUpdate, WorkTableSearch } from '@shared/schem
 import { BackToTopButton } from './BackToTopButton';
 import { YearPicker } from './Filters/YearPicker';
 import { ModifiedFields } from './diff';
-
-dayjs.extend(arraySupport);
 
 const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   font-size: 12px;
