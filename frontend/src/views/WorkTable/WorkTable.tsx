@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
+import dayjs from '@frontend/dayjs';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
@@ -97,8 +98,11 @@ function getCellEditEvent(oldRow: WorkTableRow, newRow: WorkTableRow): CellEditE
     newValue: newRow[changedField],
   };
 }
-
-const searchAtom = atom<WorkTableSearch>({ startDate: null, endDate: null });
+const thisYear = dayjs().year();
+const searchAtom = atom<WorkTableSearch>({
+  startDate: dayjs([thisYear, 0, 1]).format('YYYY-MM-DD').toString(),
+  endDate: dayjs([thisYear, 11, 31]).format('YYYY-MM-DD').toString(),
+});
 
 export default function WorkTable() {
   const [searchParams, setSearchParams] = useAtom(searchAtom);
@@ -157,9 +161,15 @@ export default function WorkTable() {
     return fields;
   }, [editEvents]);
 
+  const allYearsSelected =
+    dayjs(searchParams.startDate).year() !== dayjs(searchParams.endDate).year();
+
   const columns = useMemo(() => {
-    return getColumns({ modifiedFields });
-  }, [modifiedFields]);
+    return getColumns({
+      modifiedFields,
+      allYearsSelected,
+    });
+  }, [modifiedFields, allYearsSelected]);
 
   useEffect(() => {
     setEditEvents([]);
@@ -257,6 +267,7 @@ export default function WorkTable() {
     const updateData = {} as Record<string, Record<keyof WorkTableRowUpdate, any>>;
     editEvents.forEach((editEvent) => {
       const { rowId, field, newValue } = editEvent;
+      updateData[rowId] = updateData[rowId] ?? { budgetYear: dayjs(searchParams.startDate).year() };
       updateData[rowId][field] = newValue;
     });
 
@@ -327,6 +338,7 @@ export default function WorkTable() {
           {tr('workTable.title')}
         </Typography>
         <YearPicker
+          selectedYear={allYearsSelected ? 'allYears' : dayjs(searchParams.startDate).year()}
           onChange={(dates) =>
             setSearchParams({
               ...searchParams,

@@ -49,7 +49,7 @@ export function DataTableRow<
           return (
             <TableCell
               sx={{
-                textWrap: currencyColumnKeys.includes(key) ? 'nowrap' : 'wrap',
+                textWrap: currencyColumnKeys.includes(key) || key === 'company' ? 'nowrap' : 'wrap',
                 verticalAlign: 'top',
               }}
               key={key.toString()}

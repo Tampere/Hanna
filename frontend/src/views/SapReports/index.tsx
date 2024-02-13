@@ -1,21 +1,18 @@
 import { HandshakeTwoTone, SpaTwoTone } from '@mui/icons-material';
 import { Box, Tab, Tabs, Tooltip, Typography, css } from '@mui/material';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
 import { useAtomValue } from 'jotai';
 import { ReactElement } from 'react';
 import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
+import dayjs from '@frontend/dayjs';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 
 import { TranslationKey } from '@shared/language';
 
 import { BlanketContractReport } from './BlanketContractReport';
 import { EnvironmentalCodeReport } from './EnvironmentalCodeReport';
-
-dayjs.extend(relativeTime);
 
 type TabView = 'ymparistokoodit' | 'puitesopimukset';
 

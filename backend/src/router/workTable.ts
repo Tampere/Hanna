@@ -154,7 +154,9 @@ async function getWorkTableYearRange() {
       MAX(EXTRACT('year' FROM end_date)) AS max_year
     FROM app.project_object
   )
-  SELECT generate_series(min_year::int, max_year::int) AS year FROM date_range;
+  SELECT generate_series(min_year::int, max_year::int) AS year
+  FROM date_range
+  ORDER BY year DESC;
   `);
   return data.map((obj) => Number(obj.year));
 }
