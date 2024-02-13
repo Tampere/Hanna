@@ -21,7 +21,7 @@ export function YearPicker({ onChange, selectedYear }: Props) {
   }
 
   if (!yearsQuery.data) {
-    return;
+    return null;
   }
 
   return (
