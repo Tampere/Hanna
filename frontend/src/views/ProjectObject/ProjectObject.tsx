@@ -23,7 +23,7 @@ import { DeleteProjectObjectDialog } from './DeleteProjectObjectDialog';
 import { ProjectObjectFinances } from './ProjectObjectFinances';
 import { ProjectObjectForm } from './ProjectObjectForm';
 
-type TabView = 'default' | 'talous' | 'tehtavat';
+type TabView = 'default' | 'talous' | 'vaiheet';
 
 interface Tab {
   tabView: TabView;
@@ -60,8 +60,8 @@ function projectObjectTabs(
       icon: <Euro fontSize="small" />,
     },
     {
-      tabView: 'tehtavat',
-      url: `/${projectType}/${projectId}/kohde/${projectObjectId}?tab=tehtavat`,
+      tabView: 'vaiheet',
+      url: `/${projectType}/${projectId}/kohde/${projectObjectId}?tab=vaiheet`,
       label: 'task.tasks',
       icon: <Assignment fontSize="small" />,
     },
@@ -213,6 +213,7 @@ export function ProjectObject(props: Props) {
             display: flex;
             flex-direction: column;
             height: 100%;
+            overflow-y: auto;
           `}
         >
           <Tabs
@@ -254,13 +255,11 @@ export function ProjectObject(props: Props) {
           )}
 
           {searchParams.get('tab') && (
-            <Box sx={{ m: 2 }}>
+            <Box sx={{ m: 2, overflowY: 'auto' }}>
               {searchParams.get('tab') === 'talous' && projectObject.data && (
                 <ProjectObjectFinances projectObject={projectObject.data} />
               )}
-              {searchParams.get('tab') === 'tehtavat' && (
-                <Tasks projectObjectId={projectObjectId} />
-              )}
+              {searchParams.get('tab') === 'vaiheet' && <Tasks projectObjectId={projectObjectId} />}
             </Box>
           )}
         </Paper>
