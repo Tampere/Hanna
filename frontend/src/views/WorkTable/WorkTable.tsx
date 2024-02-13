@@ -2,6 +2,8 @@ import { css } from '@emotion/react';
 import { AddCircleOutline, Cancel, Redo, Save, Undo } from '@mui/icons-material';
 import { Box, Button, IconButton, Theme, Tooltip, Typography } from '@mui/material';
 import { DataGrid, fiFI, useGridApiRef } from '@mui/x-data-grid';
+import dayjs from 'dayjs';
+import arraySupport from 'dayjs/plugin/arraySupport';
 import { atom, useAtom } from 'jotai';
 import diff from 'microdiff';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -20,6 +22,8 @@ import { WorkTableRow, WorkTableRowUpdate, WorkTableSearch } from '@shared/schem
 import { BackToTopButton } from './BackToTopButton';
 import { YearPicker } from './Filters/YearPicker';
 import { ModifiedFields } from './diff';
+
+dayjs.extend(arraySupport);
 
 const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   font-size: 12px;
@@ -97,8 +101,11 @@ function getCellEditEvent(oldRow: WorkTableRow, newRow: WorkTableRow): CellEditE
     newValue: newRow[changedField],
   };
 }
-
-const searchAtom = atom<WorkTableSearch>({ startDate: null, endDate: null });
+const thisYear = dayjs().year();
+const searchAtom = atom<WorkTableSearch>({
+  startDate: dayjs([thisYear, 0, 1]).format('YYYY-MM-DD').toString(),
+  endDate: dayjs([thisYear, 11, 31]).format('YYYY-MM-DD').toString(),
+});
 
 export default function WorkTable() {
   const [searchParams, setSearchParams] = useAtom(searchAtom);
@@ -157,9 +164,15 @@ export default function WorkTable() {
     return fields;
   }, [editEvents]);
 
+  const allYearsSelected =
+    dayjs(searchParams.startDate).year() !== dayjs(searchParams.endDate).year();
+
   const columns = useMemo(() => {
-    return getColumns({ modifiedFields });
-  }, [modifiedFields]);
+    return getColumns({
+      modifiedFields,
+      allYearsSelected,
+    });
+  }, [modifiedFields, allYearsSelected]);
 
   useEffect(() => {
     setEditEvents([]);
@@ -257,6 +270,7 @@ export default function WorkTable() {
     const updateData = {} as Record<string, Record<keyof WorkTableRowUpdate, any>>;
     editEvents.forEach((editEvent) => {
       const { rowId, field, newValue } = editEvent;
+      updateData[rowId] = updateData[rowId] ?? { budgetYear: dayjs(searchParams.startDate).year() };
       updateData[rowId][field] = newValue;
     });
 
@@ -327,6 +341,7 @@ export default function WorkTable() {
           {tr('workTable.title')}
         </Typography>
         <YearPicker
+          selectedYear={allYearsSelected ? 'allYears' : dayjs(searchParams.startDate).year()}
           onChange={(dates) =>
             setSearchParams({
               ...searchParams,

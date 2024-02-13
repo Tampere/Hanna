@@ -32,6 +32,7 @@ import { ModifiedFields } from './diff';
 
 interface GetColumnsParams {
   modifiedFields: ModifiedFields<WorkTableRow>;
+  allYearsSelected: boolean;
 }
 
 interface MaybeModifiedCellProps<T extends GridValidRowModel> {
@@ -313,6 +314,7 @@ const financesField = (
 
 export function getColumns({
   modifiedFields,
+  allYearsSelected,
 }: GetColumnsParams): (GridColDef<WorkTableRow> & { __isWrapped?: boolean })[] {
   const columns: (GridColDef<WorkTableRow> & { __isWrapped?: boolean })[] = [
     fieldObjectName,
@@ -323,14 +325,19 @@ export function getColumns({
     fieldObjectCategory,
     fieldObjectUsage,
     fieldOperatives,
-    financesField('budget', { headerName: 'Talousarvio' }),
+    financesField('budget', { headerName: 'Talousarvio', editable: !allYearsSelected }),
     financesField('actual', { headerName: 'Toteuma', editable: false }),
-    financesField('forecast', { headerName: 'Ennuste' }, { allowNegative: true, valueTextColor }),
+    financesField(
+      'forecast',
+      { headerName: 'Ennuste', editable: !allYearsSelected },
+      { allowNegative: true, valueTextColor },
+    ),
     financesField(
       'kayttosuunnitelmanMuutos',
       {
         headerName: 'Käyttösuunnitelman muutos',
         minWidth: 188,
+        editable: !allYearsSelected,
       },
       {
         valueTextColor,

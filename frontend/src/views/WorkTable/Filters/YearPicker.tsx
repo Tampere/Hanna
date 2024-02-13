@@ -9,9 +9,10 @@ dayjs.extend(arraySupport);
 
 interface Props {
   onChange: (dates: { startDate: string; endDate: string }) => void;
+  selectedYear: number | 'allYears';
 }
 
-export function YearPicker({ onChange }: Props) {
+export function YearPicker({ onChange, selectedYear }: Props) {
   const tr = useTranslations();
   const yearsQuery = trpc.workTable.years.useQuery();
 
@@ -19,8 +20,13 @@ export function YearPicker({ onChange }: Props) {
     return forStart ? dayjs([year, 0, 1]).format(format) : dayjs([year, 11, 31]).format(format);
   }
 
+  if (!yearsQuery.data) {
+    return;
+  }
+
   return (
     <Select
+      value={selectedYear}
       css={(theme) => css`
         color: ${theme.palette.primary.main};
         & .MuiNativeSelect-select {
