@@ -14,6 +14,7 @@
     "dev:server": "tsx watch --clear-screen=false src/app.ts",
     "test": "vitest run",
     "db-migrate": "PGOPTIONS='-c search_path=app,public' tsx src/migration.ts",
+    "db-post-migrate": "PGOPTIONS='-c search_path=app,public' tsx src/postMigration.ts",
     "db-migrate:prod": "PGOPTIONS='-c search_path=app,public' node -r tsconfig-paths/register dist/migration.js"
   },
   "repository": {
