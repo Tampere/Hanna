@@ -1,4 +1,5 @@
-import 'dotenv/config';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+require('dotenv').config();
 
 const create_geoserver_role = `
     CREATE ROLE geoserver;
@@ -18,8 +19,4 @@ const create_geoserver_user = `
     CREATE user geoserver_user WITH PASSWORD '${process.env.DB_GEOSERVER_USER_PASSWORD}';
     GRANT geoserver to geoserver_user;`;
 
-function generateSql() {
-  return `${create_geoserver_role} ${create_geoserver_user}`;
-}
-
-export { generateSql };
+module.exports.generateSql = () => `${create_geoserver_role} ${create_geoserver_user}`;
