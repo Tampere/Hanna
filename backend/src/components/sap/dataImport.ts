@@ -340,7 +340,9 @@ async function insertActuals(conn: DatabaseTransactionConnection, actuals: SAPAc
         ${actual.currency},
         ${actual.valueInCurrencySubunit},
         ${actual.entryType},
-        ${actual.documentType},
+        ${
+          actual?.documentType ?? null
+        }, -- NOTE! Remove nullish coalescing after document type added to production
         ${actual.tradingPartnerId}
         );
     `);
