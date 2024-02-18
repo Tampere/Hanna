@@ -162,7 +162,7 @@ interface SearchResultsProps {
 function SearchResults({ results, loading }: SearchResultsProps) {
   const tr = useTranslations();
   const projectSearchParams = useAtomValue(projectSearchParamAtom);
-  const { project } = trpc.useContext();
+  const { project } = trpc.useUtils();
   const notify = useNotifications();
 
   return (

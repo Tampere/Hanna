@@ -84,7 +84,7 @@ export function DetailplanProjectForm(props: Props) {
     [currentUser],
   );
 
-  const { detailplanProject } = trpc.useContext();
+  const { detailplanProject } = trpc.useUtils();
   const formValidator = useMemo(() => {
     const schemaValidation = zodResolver(detailplanProjectSchema);
 

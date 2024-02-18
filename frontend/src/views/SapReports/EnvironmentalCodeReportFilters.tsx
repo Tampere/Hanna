@@ -38,7 +38,7 @@ export function EnvironmentalCodeReportFilters() {
   const filters = useAtomValue(environmentalCodeReportFilterAtom);
 
   const { data: allYears, isLoading: allYearsLoading } = trpc.sapReport.getYears.useQuery();
-  const { sapReport } = trpc.useContext();
+  const { sapReport } = trpc.useUtils();
 
   const debouncedFilters = useDebouncedEnvironmentalCodeReportFilters();
   const { data: summary, isLoading: summaryLoading } =

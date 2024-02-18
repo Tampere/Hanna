@@ -3,6 +3,7 @@ import fastifySensible from '@fastify/sensible';
 import fastifyStatic from '@fastify/static';
 import { TRPCError } from '@trpc/server';
 import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
+import { getErrorShape } from '@trpc/server/shared';
 import fastify, { FastifyBaseLogger } from 'fastify';
 import { join } from 'path';
 import { serialize } from 'superjson';
@@ -21,7 +22,7 @@ import { SharedPool, createDatabasePool } from '@backend/db';
 import { env } from '@backend/env';
 import { logger } from '@backend/logging';
 import { getClient } from '@backend/oidc';
-import { appRouter, createContext } from '@backend/router';
+import { appRouter, createContext, t } from '@backend/router';
 
 import { registerApiKeyRoutes } from './apiKey';
 import { georasterProxy } from './components/proxy/georaster';
@@ -128,12 +129,13 @@ async function run() {
   server.setErrorHandler((error, req, res) => {
     // Simulate a TRPC error response if such an error was thrown outside a TRPC router
     if (error instanceof TRPCError) {
-      const shape = appRouter.getErrorShape({
+      const shape = getErrorShape({
         error,
         type: 'unknown',
         path: undefined,
         input: undefined,
         ctx: undefined,
+        config: appRouter._def._config,
       });
 
       return res.status(shape.data.httpStatus).send({ error: serialize(shape) });

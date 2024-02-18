@@ -71,7 +71,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
     [currentUser],
   );
 
-  const { investmentProject } = trpc.useContext();
+  const { investmentProject } = trpc.useUtils();
   const formValidator = useMemo(() => {
     const schemaValidation = zodResolver(investmentProjectSchema);
 
