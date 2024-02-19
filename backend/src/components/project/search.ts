@@ -173,7 +173,7 @@ export function detailplanProjectFragment(input: ProjectSearch) {
 }
 
 export async function projectSearch(input: ProjectSearch) {
-  const { map, limit = 250 } = input;
+  const { map, limit = 500 } = input;
   const isClusterSearch = map?.zoom && map.zoom < CLUSTER_ZOOM_BELOW;
   const resultSchema = z.object({ result: projectSearchResultSchema });
 

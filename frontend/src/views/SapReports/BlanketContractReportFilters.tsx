@@ -39,7 +39,7 @@ export function BlanketContractReportFilters() {
 
   const { data: allConsultCompanies, isLoading: allConsultCompaniesLoading } =
     trpc.sapReport.getConsultCompanies.useQuery();
-  const { sapReport } = trpc.useContext();
+  const { sapReport } = trpc.useUtils();
 
   const debouncedFilters = useDebouncedBlanketContractReportFilters();
   const { data: summary, isLoading: summaryLoading } =

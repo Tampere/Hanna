@@ -15,7 +15,7 @@ interface Props extends ButtonProps {
 
 export function AsyncJobButton(props: Props) {
   const { onStart, onFinished, onError, pollingIntervalMs, timeoutMs, ...buttonProps } = props;
-  const { job } = trpc.useContext();
+  const { job } = trpc.useUtils();
 
   const [loading, setLoading] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
