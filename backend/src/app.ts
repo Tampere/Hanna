@@ -22,7 +22,7 @@ import { SharedPool, createDatabasePool } from '@backend/db';
 import { env } from '@backend/env';
 import { logger } from '@backend/logging';
 import { getClient } from '@backend/oidc';
-import { appRouter, createContext, t } from '@backend/router';
+import { appRouter, createContext } from '@backend/router';
 
 import { registerApiKeyRoutes } from './apiKey';
 import { georasterProxy } from './components/proxy/georaster';

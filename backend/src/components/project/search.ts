@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 import { getPool, sql } from '@backend/db';
-import { logger } from '@backend/logging';
 
 import {
   ProjectListParams,
@@ -241,7 +240,7 @@ export async function projectSearch(input: ProjectSearch) {
       'clusters', ${clusterResultsFragment(map?.zoom)}
     ) AS result
     `);
-  logger.warn(dbResult.result);
+
   return dbResult.result;
 }
 
