@@ -31,7 +31,7 @@ import { ProjectTypePath } from '@frontend/types';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
-import { mergeErrors } from '@shared/formerror';
+import { FieldError, mergeErrors } from '@shared/formerror';
 import { ProjectListItem } from '@shared/schema/project';
 import {
   UpsertProjectObject,
@@ -146,6 +146,33 @@ export function ProjectObjectForm(props: Props) {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(!props.projectObject);
 
+  const projectUpsert = trpc.investmentProject.upsert.useMutation({
+    onSuccess: () => {
+      notify({ severity: 'success', title: tr('projectObject.notifyProjectDateRangeUpdated') });
+      form.trigger(['startDate', 'endDate']);
+    },
+    onError: () => {
+      notify({ severity: 'error', title: tr('projectObject.notifyProjectDateRangeUpdateError') });
+    },
+  });
+  const { investmentProject } = trpc.useUtils();
+
+  async function handleProjectDateUpsert(
+    projectId: string,
+    startDate?: string | null,
+    endDate?: string | null,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { geom, ...projectData } = await investmentProject.get.fetch({ id: projectId });
+
+    projectUpsert.mutate({
+      ...projectData,
+      id: projectData.parentId,
+      startDate: startDate ?? projectData.startDate,
+      endDate: endDate ?? projectData.endDate,
+    });
+  }
+
   const readonlyProps = useMemo(() => {
     if (editing) {
       return {};
@@ -167,7 +194,8 @@ export function ProjectObjectForm(props: Props) {
       options: ResolverOptions<UpsertProjectObject>,
     ) {
       const fields = options.names ?? [];
-      const isFormValidation = fields && fields.length > 1;
+
+      const isFormValidation = fields && fields.length > 0;
       const serverErrors = isFormValidation
         ? projectObject.upsertValidate.fetch(values).catch(() => null)
         : null;
@@ -179,9 +207,8 @@ export function ProjectObjectForm(props: Props) {
       };
     };
   }, []);
-
   const form = useForm<UpsertProjectObject>({
-    mode: 'onSubmit',
+    mode: 'all',
     resolver: formValidator,
     context: {
       requiredFields: getRequiredFields(newProjectObjectSchema),
@@ -195,7 +222,6 @@ export function ProjectObjectForm(props: Props) {
       objectUserRoles: [],
     },
   });
-
   useNavigationBlocker(form.formState.isDirty, 'projectObjectForm');
 
   useEffect(() => {
@@ -515,33 +541,71 @@ export function ProjectObjectForm(props: Props) {
               <SaveOptionsButton form={form} onSubmit={saveAndReturn} />
             </div>
           )}
+          <Box
+            css={css`
+              display: flex;
+              flex-direction: column;
+            `}
+          >
+            {props.projectId &&
+              (form.formState.errors?.endDate?.type === 'projectDate' ||
+                form.formState.errors?.startDate?.type === 'projectDate') && (
+                <Alert
+                  css={css`
+                    margin-top: 1rem;
+                    align-items: center;
+                  `}
+                  severity="warning"
+                  action={
+                    <Button
+                      color="inherit"
+                      size="small"
+                      onClick={async () => {
+                        const { startDate, endDate } = form.getValues();
+                        const formErrors = form.formState.errors;
+                        if (props.projectId) {
+                          await handleProjectDateUpsert(
+                            props.projectId,
+                            formErrors?.startDate ? startDate : null,
+                            formErrors?.endDate ? endDate : null,
+                          );
+                        }
+                      }}
+                    >
+                      {tr('projectObjectForm.updateProjectDateRangeLabel')}
+                    </Button>
+                  }
+                >
+                  {tr('projectObjectForm.infoProjectDateOutOfRange')}
+                </Alert>
+              )}
+            {!props.projectObject && !props.navigateTo && (
+              <Button
+                disabled={!form.formState.isValid}
+                type="submit"
+                sx={{ mt: 2 }}
+                variant="contained"
+                color="primary"
+                size="small"
+                endIcon={<AddCircle />}
+              >
+                {tr('projectObjectForm.createBtnLabel')}
+              </Button>
+            )}
 
-          {!props.projectObject && !props.navigateTo && (
-            <Button
-              disabled={!form.formState.isValid}
-              type="submit"
-              sx={{ mt: 2 }}
-              variant="contained"
-              color="primary"
-              size="small"
-              endIcon={<AddCircle />}
-            >
-              {tr('projectObjectForm.createBtnLabel')}
-            </Button>
-          )}
-
-          {props.projectObject && editing && (
-            <Button
-              size="small"
-              type="submit"
-              variant="contained"
-              sx={{ mt: 2 }}
-              disabled={!form.formState.isValid || !form.formState.isDirty}
-              endIcon={<Save />}
-            >
-              {tr('projectObjectForm.saveBtnLabel')}
-            </Button>
-          )}
+            {props.projectObject && editing && (
+              <Button
+                size="small"
+                type="submit"
+                variant="contained"
+                sx={{ mt: 2 }}
+                disabled={!form.formState.isValid || !form.formState.isDirty}
+                endIcon={<Save />}
+              >
+                {tr('projectObjectForm.saveBtnLabel')}
+              </Button>
+            )}
+          </Box>
         </form>
       </FormProvider>
     </>
