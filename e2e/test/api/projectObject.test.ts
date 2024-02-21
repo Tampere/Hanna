@@ -275,7 +275,7 @@ test.describe('Project Object endpoints', () => {
     expect(validationResult).toStrictEqual({
       errors: {
         startDate: { type: 'custom', message: 'projectObject.error.budgetNotIncluded' },
-        endDate: { type: 'custom', message: 'projectObject.error.projectNotIncluded' },
+        endDate: { type: 'projectDate', message: 'projectObject.error.projectNotIncluded' },
       },
     });
   });

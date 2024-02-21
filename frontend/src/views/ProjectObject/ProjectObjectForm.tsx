@@ -31,7 +31,7 @@ import { ProjectTypePath } from '@frontend/types';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
-import { FieldError, mergeErrors } from '@shared/formerror';
+import { mergeErrors } from '@shared/formerror';
 import { ProjectListItem } from '@shared/schema/project';
 import {
   UpsertProjectObject,
