@@ -1,7 +1,7 @@
 import { TranslationKey } from './language';
 
 export interface FieldError {
-  type: 'custom' | 'projectDate';
+  type: 'custom';
   message: TranslationKey;
 }
 
@@ -11,12 +11,9 @@ export type FormErrors<T> = {
   };
 } | null;
 
-export function fieldError(
-  message: TranslationKey,
-  type: 'custom' | 'projectDate' = 'custom',
-): FieldError {
+export function fieldError(message: TranslationKey): FieldError {
   return {
-    type,
+    type: 'custom',
     message,
   };
 }

@@ -195,18 +195,22 @@ export function ProjectObjectForm(props: Props) {
     ) {
       const fields = options.names ?? [];
 
-      const isFormValidation = fields && fields.length > 0;
+      const isFormValidation =
+        fields && (fields.includes('startDate') || fields.includes('endDate') || fields.length > 1);
+
       const serverErrors = isFormValidation
         ? projectObject.upsertValidate.fetch(values).catch(() => null)
         : null;
       const shapeErrors = schemaValidation(values, context, options);
       const errors = await Promise.all([serverErrors, shapeErrors]);
+
       return {
         values,
         errors: mergeErrors(errors).errors,
       };
     };
   }, []);
+
   const form = useForm<UpsertProjectObject>({
     mode: 'all',
     resolver: formValidator,
@@ -222,6 +226,7 @@ export function ProjectObjectForm(props: Props) {
       objectUserRoles: [],
     },
   });
+
   useNavigationBlocker(form.formState.isDirty, 'projectObjectForm');
 
   useEffect(() => {
@@ -519,12 +524,52 @@ export function ProjectObjectForm(props: Props) {
               />
             )}
           />
+          <Box
+            css={css`
+              display: flex;
+              flex-direction: column;
+            `}
+          >
+            {!props.projectObject && (!props.geom || props.geom === '[]') && (
+              <Alert sx={{ mt: 1 }} severity="info">
+                {tr('projectObjectForm.infoNoGeom')}
+              </Alert>
+            )}
 
-          {!props.projectObject && (!props.geom || props.geom === '[]') && (
-            <Alert sx={{ mt: 1 }} severity="info">
-              {tr('projectObjectForm.infoNoGeom')}
-            </Alert>
-          )}
+            {(form.formState.errors?.endDate?.message ===
+              'projectObject.error.projectNotIncluded' ||
+              form.formState.errors?.startDate?.message ===
+                'projectObject.error.projectNotIncluded') && (
+              <Alert
+                css={css`
+                  margin-top: 1rem;
+                  align-items: center;
+                `}
+                severity="warning"
+                action={
+                  <Button
+                    color="inherit"
+                    size="small"
+                    onClick={async () => {
+                      const { startDate, endDate, projectId } = form.getValues();
+                      const formErrors = form.formState.errors;
+                      if (projectId) {
+                        await handleProjectDateUpsert(
+                          projectId,
+                          formErrors?.startDate ? startDate : null,
+                          formErrors?.endDate ? endDate : null,
+                        );
+                      }
+                    }}
+                  >
+                    {tr('projectObjectForm.updateProjectDateRangeLabel')}
+                  </Button>
+                }
+              >
+                {tr('projectObjectForm.infoProjectDateOutOfRange')}
+              </Alert>
+            )}
+          </Box>
 
           {!props.projectObject && props.navigateTo && (
             <div
@@ -541,71 +586,33 @@ export function ProjectObjectForm(props: Props) {
               <SaveOptionsButton form={form} onSubmit={saveAndReturn} />
             </div>
           )}
-          <Box
-            css={css`
-              display: flex;
-              flex-direction: column;
-            `}
-          >
-            {props.projectId &&
-              (form.formState.errors?.endDate?.type === 'projectDate' ||
-                form.formState.errors?.startDate?.type === 'projectDate') && (
-                <Alert
-                  css={css`
-                    margin-top: 1rem;
-                    align-items: center;
-                  `}
-                  severity="warning"
-                  action={
-                    <Button
-                      color="inherit"
-                      size="small"
-                      onClick={async () => {
-                        const { startDate, endDate } = form.getValues();
-                        const formErrors = form.formState.errors;
-                        if (props.projectId) {
-                          await handleProjectDateUpsert(
-                            props.projectId,
-                            formErrors?.startDate ? startDate : null,
-                            formErrors?.endDate ? endDate : null,
-                          );
-                        }
-                      }}
-                    >
-                      {tr('projectObjectForm.updateProjectDateRangeLabel')}
-                    </Button>
-                  }
-                >
-                  {tr('projectObjectForm.infoProjectDateOutOfRange')}
-                </Alert>
-              )}
-            {!props.projectObject && !props.navigateTo && (
-              <Button
-                disabled={!form.formState.isValid}
-                type="submit"
-                sx={{ mt: 2 }}
-                variant="contained"
-                color="primary"
-                size="small"
-                endIcon={<AddCircle />}
-              >
-                {tr('projectObjectForm.createBtnLabel')}
-              </Button>
-            )}
 
-            {props.projectObject && editing && (
-              <Button
-                size="small"
-                type="submit"
-                variant="contained"
-                sx={{ mt: 2 }}
-                disabled={!form.formState.isValid || !form.formState.isDirty}
-                endIcon={<Save />}
-              >
-                {tr('projectObjectForm.saveBtnLabel')}
-              </Button>
-            )}
-          </Box>
+          {!props.projectObject && !props.navigateTo && (
+            <Button
+              disabled={!form.formState.isValid}
+              type="submit"
+              sx={{ mt: 2 }}
+              variant="contained"
+              color="primary"
+              size="small"
+              endIcon={<AddCircle />}
+            >
+              {tr('projectObjectForm.createBtnLabel')}
+            </Button>
+          )}
+
+          {props.projectObject && editing && (
+            <Button
+              size="small"
+              type="submit"
+              variant="contained"
+              sx={{ mt: 2 }}
+              disabled={!form.formState.isValid || !form.formState.isDirty}
+              endIcon={<Save />}
+            >
+              {tr('projectObjectForm.saveBtnLabel')}
+            </Button>
+          )}
         </form>
       </FormProvider>
     </>
