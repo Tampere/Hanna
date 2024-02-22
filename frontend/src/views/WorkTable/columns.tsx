@@ -146,34 +146,50 @@ const fieldProjectLink = {
   headerName: 'Hanke',
   width: 256,
   editable: false,
-  renderCell: (params: GridRenderCellParams) => (
-    <Box
-      css={(theme) => css`
-        display: flex;
-        align-items: center;
-        gap: ${theme.spacing(1)};
-      `}
-    >
-      <Launch fontSize={'small'} htmlColor="#aaa" />
-      <Link
-        to={`/investointihanke/${params.value.projectId}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        css={css`
-          cursor: pointer;
-          color: inherit;
-          text-decoration-line: underline;
-          text-decoration-thickness: 2px;
-          text-decoration-style: dotted;
-          text-decoration-color: #999;
-          text-underline-offset: 3px;
-          margin-right: 2px;
+  renderCell: (params: GridRenderCellParams) => {
+    const allRowIds = params.api.getAllRowIds();
+    const currentRowIndex = allRowIds.findIndex((rowId) => rowId === params.row.id);
+    let displayProjectLink: boolean;
+    if (currentRowIndex > 0) {
+      const previousRow = params.api.getRow(allRowIds[currentRowIndex - 1]);
+      displayProjectLink =
+        params.row.projectLink.projectName !== previousRow.projectLink.projectName;
+    } else {
+      displayProjectLink = true;
+    }
+
+    return (
+      <Box
+        css={(theme) => css`
+          display: flex;
+          align-items: center;
+          gap: ${theme.spacing(1)};
+          justify-content: ${displayProjectLink ? 'flex-start' : 'center'};
         `}
       >
-        {params.value.projectName}
-      </Link>
-    </Box>
-  ),
+        {displayProjectLink ? (
+          <>
+            <Link
+              to={`/investointihanke/${params.value.projectId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              css={css`
+                cursor: pointer;
+                color: inherit;
+                text-underline-offset: 3px;
+                margin-right: 2px;
+              `}
+            >
+              <Launch fontSize={'small'} htmlColor="#aaa" />
+            </Link>
+            {params.value.projectName}
+          </>
+        ) : (
+          '〃'
+        )}
+      </Box>
+    );
+  },
 };
 
 const fieldObjectType = {
@@ -317,10 +333,10 @@ export function getColumns({
   allYearsSelected,
 }: GetColumnsParams): (GridColDef<WorkTableRow> & { __isWrapped?: boolean })[] {
   const columns: (GridColDef<WorkTableRow> & { __isWrapped?: boolean })[] = [
+    fieldProjectLink,
     fieldObjectName,
     fieldObjectLifecycleState,
     fieldDateRange,
-    fieldProjectLink,
     fieldObjectType,
     fieldObjectCategory,
     fieldObjectUsage,

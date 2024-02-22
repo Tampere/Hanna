@@ -28,6 +28,7 @@ async function workTableSearch(input: WorkTableSearch) {
     objectCategory = [],
     objectUsage = [],
     lifecycleState = [],
+    objectStage = [],
   } = input;
 
   const query = sql.type(workTableRowSchema)`
@@ -63,6 +64,10 @@ async function workTableSearch(input: WorkTableSearch) {
       AND (
         ${sql.array(lifecycleState, 'text')} = '{}'::TEXT[] OR
         (project_object.lifecycle_state).id = ANY(${sql.array(lifecycleState, 'text')})
+      )
+      AND (
+        ${sql.array(objectStage, 'text')} = '{}'::TEXT[] OR
+        (project_object.object_stage).id = ANY(${sql.array(objectStage, 'text')})
       )
   ), po_budget AS (
     SELECT
@@ -111,7 +116,7 @@ async function workTableSearch(input: WorkTableSearch) {
   FROM search_results
   LEFT JOIN po_budget ON po_budget.project_object_id = search_results.id
   LEFT JOIN po_actual ON po_actual.po_id = search_results.id
-  ORDER BY object_name ASC
+  ORDER BY project_name ASC, object_name ASC
   `;
 
   return getPool().any(query);

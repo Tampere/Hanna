@@ -15,6 +15,7 @@ export const workTableSearchSchema = z.object({
   objectCategory: dbProjectObjectSchema.shape.objectCategory.optional(),
   objectUsage: dbProjectObjectSchema.shape.objectUsage.optional(),
   lifecycleState: z.array(dbProjectObjectSchema.shape.lifecycleState).optional(),
+  objectStage: z.array(dbProjectObjectSchema.shape.objectStage).optional(),
 });
 
 export type WorkTableSearch = z.infer<typeof workTableSearchSchema>;

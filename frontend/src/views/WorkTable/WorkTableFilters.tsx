@@ -113,6 +113,17 @@ export function WorkTableFilters(props: Props) {
           InputProps={{ ...searchInputProps }}
         />
       </GridSpan>
+      <GridSpan row={1} span={4}>
+        <CustomFormLabel label={tr('projectObject.objectStageLabel')} htmlFor="objectStageField" />
+        <CodeSelect
+          multiple
+          readOnly={props.readOnly}
+          maxTags={1}
+          codeListId="KohteenLaji"
+          value={searchParams.objectStage}
+          onChange={(stage) => setSearchParams({ ...searchParams, objectStage: stage })}
+        />
+      </GridSpan>
 
       <LocalizationProvider
         dateAdapter={AdapterDayjs}
