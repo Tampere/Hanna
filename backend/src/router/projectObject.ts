@@ -322,24 +322,68 @@ export async function validateUpsertProjectObject(
 ) {
   const validationErrors: FormErrors<UpsertProjectObject> = { errors: {} };
 
+  let dateRange;
   if (values?.id && values?.startDate && values?.endDate) {
-    const budgetRange = await tx.maybeOne(sql.untyped`
+    dateRange = await tx.maybeOne(sql.untyped`
+    WITH budget_range AS (
     SELECT
-      extract(year FROM ${values?.startDate}::date) <= min(budget.year) AS "validStartDate",
-      extract(year FROM ${values?.endDate}::date) >= max(budget.year) AS "validEndDate"
+      ${values.id} as id,
+      extract(year FROM ${values?.startDate}::date) <= min(budget.year) AS "validBudgetStartDate",
+      extract(year FROM ${values?.endDate}::date) >= max(budget.year) AS "validBudgetEndDate"
     FROM app.budget
     WHERE project_object_id = ${values?.id}
-    GROUP BY project_object_id;
+    GROUP BY project_object_id
+    ), project_range AS (
+      SELECT
+		    ${values.id} as id,
+        min(p.start_date) <= ${values?.startDate} AS "validProjectStartDate",
+        max(p.end_date) >= ${values?.endDate} AS "validProjectEndDate"
+      FROM app.project_object po
+      LEFT JOIN app.project p ON po.project_id = p.id
+      WHERE po.id = ${values?.id}
+      GROUP BY p.id
+    )
+    SELECT
+      br."validBudgetStartDate",
+      br."validBudgetEndDate",
+      pr."validProjectStartDate",
+      pr."validProjectEndDate"
+    FROM project_range pr
+	  FULL JOIN budget_range br ON pr.id = br.id;
   `);
+  } else if (values?.projectId && values?.startDate && values?.endDate) {
+    dateRange = await tx.maybeOne(sql.untyped`
+     SELECT
+        min(p.start_date) <= ${values?.startDate} AS "validProjectStartDate",
+        max(p.end_date) >= ${values?.endDate} AS "validProjectEndDate"
+      FROM app.project p
+      WHERE p.id = ${values?.projectId}
+      GROUP BY p.id
+    `);
+  }
 
-    if (budgetRange?.validStartDate === false) {
-      validationErrors.errors['startDate'] = fieldError('projectObject.error.budgetNotIncluded');
-    }
+  if (dateRange?.validProjectStartDate === false) {
+    validationErrors.errors['startDate'] = fieldError('projectObject.error.projectNotIncluded');
+  } else if (dateRange?.validBudgetStartDate === false) {
+    validationErrors.errors['startDate'] = fieldError('projectObject.error.budgetNotIncluded');
+  }
 
-    if (budgetRange?.validEndDate === false) {
-      validationErrors.errors['endDate'] = fieldError('projectObject.error.budgetNotIncluded');
+  if (dateRange?.validProjectEndDate === false) {
+    validationErrors.errors['endDate'] = fieldError('projectObject.error.projectNotIncluded');
+  } else if (dateRange?.validBudgetEndDate === false) {
+    validationErrors.errors['endDate'] = fieldError('projectObject.error.budgetNotIncluded');
+  }
+
+  if (values?.startDate && values?.endDate) {
+    // Check that project object start date is not after end date
+    if (values.startDate >= values.endDate) {
+      validationErrors.errors['startDate'] = fieldError(
+        'projectObject.error.endDateBeforeStartDate',
+      );
+      validationErrors.errors['endDate'] = fieldError('projectObject.error.endDateBeforeStartDate');
     }
   }
+
   return validationErrors;
 }
 

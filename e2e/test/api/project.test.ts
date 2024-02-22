@@ -2,6 +2,8 @@ import test, { expect } from '@playwright/test';
 import { login } from '@utils/page';
 import { client } from '@utils/trpc';
 
+import { User } from '@shared/schema/user';
+
 function makePoint(lon: number, lat: number, srid: string) {
   return [
     {
@@ -26,6 +28,26 @@ const invalidDateProject = {
   committees: ['01'],
   sapProjectId: null,
 };
+
+const testProjectObject = (projectId: string, user: User) => ({
+  projectId,
+  description: 'Test description',
+  objectName: 'Test project object',
+  objectStage: '01',
+  lifecycleState: '01',
+  objectType: ['01'],
+  objectCategory: ['01'],
+  objectUsage: ['01'],
+  suunnitteluttajaUser: user.id,
+  rakennuttajaUser: user.id,
+  startDate: '2021-01-01',
+  endDate: '2022-01-01',
+  sapWBSId: null,
+  landownership: null,
+  locationOnProperty: null,
+  height: null,
+  objectUserRoles: [],
+});
 
 const validProject = (userId: string, projectName = 'Test project') => ({
   projectName,
@@ -58,6 +80,43 @@ test.describe('Project endpoints', () => {
           message: 'project.error.endDateBeforeStartDate',
           type: 'custom',
         },
+      },
+    });
+  });
+  test('project validation with date constraints', async () => {
+    const [user] = await client.user.getAll.query();
+    const project = await client.investmentProject.upsert.mutate(validProject(user.id));
+
+    const budgetUpdateInput = {
+      projectId: project.id,
+      budgetItems: [
+        {
+          year: 2021,
+          amount: 50000,
+        },
+      ],
+    };
+    await client.project.updateBudget.mutate(budgetUpdateInput);
+
+    const projectWithNewDates = { ...project, startDate: '2023-01-01', endDate: '2024-01-01' };
+
+    const validationResultWithBudget =
+      await client.investmentProject.upsertValidate.query(projectWithNewDates);
+
+    const projectObject = testProjectObject(project.id, user);
+    await client.projectObject.upsert.mutate(projectObject);
+
+    const validationResultWithObject =
+      await client.investmentProject.upsertValidate.query(projectWithNewDates);
+
+    expect(validationResultWithObject).toStrictEqual({
+      errors: {
+        startDate: { type: 'custom', message: 'project.error.objectNotIncluded' },
+      },
+    });
+    expect(validationResultWithBudget).toStrictEqual({
+      errors: {
+        startDate: { type: 'custom', message: 'project.error.budgetNotIncluded' },
       },
     });
   });

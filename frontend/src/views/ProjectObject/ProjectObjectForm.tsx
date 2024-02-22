@@ -146,6 +146,33 @@ export function ProjectObjectForm(props: Props) {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(!props.projectObject);
 
+  const projectUpsert = trpc.investmentProject.upsert.useMutation({
+    onSuccess: () => {
+      notify({ severity: 'success', title: tr('projectObject.notifyProjectDateRangeUpdated') });
+      form.trigger(['startDate', 'endDate']);
+    },
+    onError: () => {
+      notify({ severity: 'error', title: tr('projectObject.notifyProjectDateRangeUpdateError') });
+    },
+  });
+  const { investmentProject } = trpc.useUtils();
+
+  async function handleProjectDateUpsert(
+    projectId: string,
+    startDate?: string | null,
+    endDate?: string | null,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { geom, ...projectData } = await investmentProject.get.fetch({ id: projectId });
+
+    projectUpsert.mutate({
+      ...projectData,
+      id: projectData.parentId,
+      startDate: startDate ?? projectData.startDate,
+      endDate: endDate ?? projectData.endDate,
+    });
+  }
+
   const readonlyProps = useMemo(() => {
     if (editing) {
       return {};
@@ -167,12 +194,16 @@ export function ProjectObjectForm(props: Props) {
       options: ResolverOptions<UpsertProjectObject>,
     ) {
       const fields = options.names ?? [];
-      const isFormValidation = fields && fields.length > 1;
+
+      const isFormValidation =
+        fields && (fields.includes('startDate') || fields.includes('endDate') || fields.length > 1);
+
       const serverErrors = isFormValidation
         ? projectObject.upsertValidate.fetch(values).catch(() => null)
         : null;
       const shapeErrors = schemaValidation(values, context, options);
       const errors = await Promise.all([serverErrors, shapeErrors]);
+
       return {
         values,
         errors: mergeErrors(errors).errors,
@@ -181,7 +212,7 @@ export function ProjectObjectForm(props: Props) {
   }, []);
 
   const form = useForm<UpsertProjectObject>({
-    mode: 'onSubmit',
+    mode: 'all',
     resolver: formValidator,
     context: {
       requiredFields: getRequiredFields(newProjectObjectSchema),
@@ -493,12 +524,52 @@ export function ProjectObjectForm(props: Props) {
               />
             )}
           />
+          <Box
+            css={css`
+              display: flex;
+              flex-direction: column;
+            `}
+          >
+            {!props.projectObject && (!props.geom || props.geom === '[]') && (
+              <Alert sx={{ mt: 1 }} severity="info">
+                {tr('projectObjectForm.infoNoGeom')}
+              </Alert>
+            )}
 
-          {!props.projectObject && (!props.geom || props.geom === '[]') && (
-            <Alert sx={{ mt: 1 }} severity="info">
-              {tr('projectObjectForm.infoNoGeom')}
-            </Alert>
-          )}
+            {(form.formState.errors?.endDate?.message ===
+              'projectObject.error.projectNotIncluded' ||
+              form.formState.errors?.startDate?.message ===
+                'projectObject.error.projectNotIncluded') && (
+              <Alert
+                css={css`
+                  margin-top: 1rem;
+                  align-items: center;
+                `}
+                severity="warning"
+                action={
+                  <Button
+                    color="inherit"
+                    size="small"
+                    onClick={async () => {
+                      const { startDate, endDate, projectId } = form.getValues();
+                      const formErrors = form.formState.errors;
+                      if (projectId) {
+                        await handleProjectDateUpsert(
+                          projectId,
+                          formErrors?.startDate ? startDate : null,
+                          formErrors?.endDate ? endDate : null,
+                        );
+                      }
+                    }}
+                  >
+                    {tr('projectObjectForm.updateProjectDateRangeLabel')}
+                  </Button>
+                }
+              >
+                {tr('projectObjectForm.infoProjectDateOutOfRange')}
+              </Alert>
+            )}
+          </Box>
 
           {!props.projectObject && props.navigateTo && (
             <div
