@@ -62,10 +62,12 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
         },
       },
       async function verify(
-        _tokenset: TokenSet,
+        tokenset: TokenSet,
         userinfo: UserinfoResponse,
         authDone: (err: Error | null, user?: PassportUser) => void,
       ) {
+        logger.debug(`TOKENSET: ${JSON.stringify(tokenset, null, 2)}`);
+        logger.debug(`USERINFO: ${JSON.stringify(userinfo, null, 2)}`);
         const id = userinfo.sub;
         if (id) {
           const user: PassportUser = {
