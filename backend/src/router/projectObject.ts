@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
 import { codeIdFragment } from '@backend/components/code';
+import { getPermissionContext as getProjectPermissionCtx } from '@backend/components/project/base';
 import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
@@ -25,6 +26,15 @@ import {
   yearBudgetSchema,
 } from '@shared/schema/projectObject';
 import { User } from '@shared/schema/user';
+import {
+  ProjectAccessChecker,
+  ProjectPermissionContext,
+  hasPermission,
+  hasWritePermission,
+  isProjectObjectIdInput,
+  ownsProject,
+  permissionContextSchema,
+} from '@shared/schema/userPermissions';
 
 const projectObjectFragment = sql.fragment`
   SELECT
@@ -52,7 +62,13 @@ const projectObjectFragment = sql.fragment`
       FROM app.project_object_usage
       WHERE project_object.id = project_object_usage.project_object_id) AS "objectUsage",
      height,
-     '[]'::JSONB AS "objectUserRoles" --TODO: Implement
+     '[]'::JSONB AS "objectUserRoles", --TODO: Implement
+    (
+      SELECT json_build_object(
+        'writeUsers', (SELECT array_agg(user_id) FROM app.project_permission WHERE project_id = project_object.project_id AND can_write = true),
+        'owner', (SELECT owner FROM app.project WHERE id = project_object.project_id)
+      )
+    ) AS "permissionCtx"
   FROM app.project_object
   WHERE deleted = false
 `;
@@ -64,18 +80,18 @@ async function getProjectObjectsByProjectId(projectId: string) {
   `);
 }
 
-async function deleteProjectObject(id: string, user: User) {
+async function deleteProjectObject(projectObjectId: string, user: User) {
   await getPool().transaction(async (tx) => {
     await addAuditEvent(tx, {
       eventType: 'projectObject.delete',
-      eventData: { id },
+      eventData: { projectObjectId },
       eventUser: user.id,
     });
     const projectObject = await tx.maybeOne(sql.type(dbProjectObjectSchema)`
       UPDATE app.project_object
       SET
         deleted = true
-      WHERE id = ${id}
+      WHERE id = ${projectObjectId}
       RETURNING id
     `);
 
@@ -97,10 +113,10 @@ async function updateObjectTypes(
   }
 
   await tx.query(sql.untyped`
-    DELETE FROM app.project_object_type WHERE project_object_id = ${projectObject.id}
+    DELETE FROM app.project_object_type WHERE project_object_id = ${projectObject.projectObjectId}
   `);
 
-  const tuples = projectObject.objectType.map((type) => [projectObject.id, type]);
+  const tuples = projectObject.objectType.map((type) => [projectObject.projectObjectId, type]);
 
   await tx.any(sql.untyped`
     INSERT INTO app.project_object_type (project_object_id, object_type)
@@ -120,10 +136,13 @@ async function updateObjectCategories(
   }
 
   await tx.query(sql.untyped`
-    DELETE FROM app.project_object_category WHERE project_object_id = ${projectObject.id}
+    DELETE FROM app.project_object_category WHERE project_object_id = ${projectObject.projectObjectId}
   `);
 
-  const tuples = projectObject.objectCategory.map((category) => [projectObject.id, category]);
+  const tuples = projectObject.objectCategory.map((category) => [
+    projectObject.projectObjectId,
+    category,
+  ]);
 
   await tx.any(sql.untyped`
     INSERT INTO app.project_object_category (project_object_id, object_category)
@@ -143,10 +162,10 @@ async function updateObjectUsages(
   }
 
   await tx.query(sql.untyped`
-    DELETE FROM app.project_object_usage WHERE project_object_id = ${projectObject.id}
+    DELETE FROM app.project_object_usage WHERE project_object_id = ${projectObject.projectObjectId}
   `);
 
-  const tuples = projectObject.objectUsage.map((usage) => [projectObject.id, usage]);
+  const tuples = projectObject.objectUsage.map((usage) => [projectObject.projectObjectId, usage]);
 
   await tx.any(sql.untyped`
     INSERT INTO app.project_object_usage (project_object_id, object_usage)
@@ -167,7 +186,7 @@ async function updateObjectRoles(
 
   tx.query(sql.untyped`
     DELETE FROM app.project_object_user_role
-    WHERE project_object_id = ${projectObject.id}
+    WHERE project_object_id = ${projectObject.projectObjectId}
   `);
 
   await Promise.all(
@@ -176,7 +195,7 @@ async function updateObjectRoles(
         INSERT INTO app.project_object_user_role (user_id, project_object_id, object_role)
         VALUES (
           ${userId},
-          ${projectObject.id},
+          ${projectObject.projectObjectId},
           ${codeIdFragment('KohdeKayttajaRooli', roleId)}
         );
       `),
@@ -272,7 +291,7 @@ export async function getProjectObjects(
 }
 
 function isUpdate(input: UpsertProjectObject): input is UpdateProjectObject {
-  return 'id' in input;
+  return 'projectObjectId' in input;
 }
 
 /**
@@ -323,24 +342,24 @@ export async function validateUpsertProjectObject(
   const validationErrors: FormErrors<UpsertProjectObject> = { errors: {} };
 
   let dateRange;
-  if (values?.id && values?.startDate && values?.endDate) {
+  if (values?.projectObjectId && values?.startDate && values?.endDate) {
     dateRange = await tx.maybeOne(sql.untyped`
     WITH budget_range AS (
     SELECT
-      ${values.id} as id,
+      ${values.projectObjectId} as id,
       extract(year FROM ${values?.startDate}::date) <= min(budget.year) AS "validBudgetStartDate",
       extract(year FROM ${values?.endDate}::date) >= max(budget.year) AS "validBudgetEndDate"
     FROM app.budget
-    WHERE project_object_id = ${values?.id}
+    WHERE project_object_id = ${values?.projectObjectId}
     GROUP BY project_object_id
     ), project_range AS (
       SELECT
-		    ${values.id} as id,
+		    ${values.projectObjectId} as id,
         min(p.start_date) <= ${values?.startDate} AS "validProjectStartDate",
         max(p.end_date) >= ${values?.endDate} AS "validProjectEndDate"
       FROM app.project_object po
       LEFT JOIN app.project p ON po.project_id = p.id
-      WHERE po.id = ${values?.id}
+      WHERE po.id = ${values?.projectObjectId}
       GROUP BY p.id
     )
     SELECT
@@ -414,7 +433,10 @@ export async function upsertProjectObject(
   const data = getUpdateData(projectObject, userId);
   const idents = Object.keys(data).map((key) => sql.identifier([key]));
   const values = Object.values(data);
-  const upsertResultSchema = z.object({ id: nonEmptyString });
+  const upsertResultSchema = z.object({
+    projectObjectId: nonEmptyString,
+    projectId: nonEmptyString,
+  });
 
   await addAuditEvent(tx, {
     eventType: 'projectObject.upsert',
@@ -426,34 +448,36 @@ export async function upsertProjectObject(
     ? await tx.one(sql.type(upsertResultSchema)`
           UPDATE app.project_object
           SET (${sql.join(idents, sql.fragment`,`)}) = ROW(${sql.join(values, sql.fragment`,`)})
-          WHERE id = ${projectObject.id}
-          RETURNING id
+          WHERE id = ${projectObject.projectObjectId}
+          RETURNING id AS "projectObjectId", project_id as "projectId"
       `)
     : await tx.one(sql.type(upsertResultSchema)`
           INSERT INTO app.project_object (${sql.join(idents, sql.fragment`,`)})
           VALUES (${sql.join(values, sql.fragment`,`)})
-          RETURNING id
+          RETURNING id AS "projectObjectId", project_id as "projectId"
       `);
 
   if (projectObject.budgetUpdate?.budgetItems?.length) {
     await updateProjectObjectBudget(
       tx,
-      upsertResult.id,
+      upsertResult.projectObjectId,
       projectObject.budgetUpdate.budgetItems,
       userId,
     );
   }
-
-  await updateObjectTypes(tx, { ...projectObject, id: upsertResult.id });
-  await updateObjectCategories(tx, { ...projectObject, id: upsertResult.id });
-  await updateObjectUsages(tx, { ...projectObject, id: upsertResult.id });
-  await updateObjectRoles(tx, { ...projectObject, id: upsertResult.id });
+  await updateObjectTypes(tx, { ...projectObject, projectObjectId: upsertResult.projectObjectId });
+  await updateObjectCategories(tx, {
+    ...projectObject,
+    projectObjectId: upsertResult.projectObjectId,
+  });
+  await updateObjectUsages(tx, { ...projectObject, projectObjectId: upsertResult.projectObjectId });
+  await updateObjectRoles(tx, { ...projectObject, projectObjectId: upsertResult.projectObjectId });
 
   if (projectObject.geom) {
     updateProjectObjectGeometry(
       tx,
       {
-        id: upsertResult.id,
+        projectObjectId: upsertResult.projectObjectId,
         features: projectObject.geom,
       },
       userId,
@@ -468,7 +492,7 @@ async function updateProjectObjectGeometry(
   input: UpdateGeometry,
   userId: string,
 ) {
-  const { id, features } = input;
+  const { projectObjectId, features } = input;
 
   await addAuditEvent(tx, {
     eventType: 'projectObject.updateGeometry',
@@ -486,36 +510,76 @@ async function updateProjectObjectGeometry(
     UPDATE app.project_object
     SET geom = featureCollection.resultGeom
     FROM featureCollection
-    WHERE id = ${id}
+    WHERE id = ${projectObjectId}
     RETURNING id, ST_AsGeoJSON(geom) AS geom
   `);
 }
 
-export const createProjectObjectRouter = (t: TRPC) =>
-  t.router({
-    upsertValidate: t.procedure.input(z.any()).query(async ({ input }) => {
-      return await getPool().connect(async (conn) => {
-        return await validateUpsertProjectObject(conn, input);
-      });
-    }),
+/**
+ * Permissions inherit from the project to the project object.
+ */
+export async function getPermissionContext(
+  projectObjectId: string,
+  tx?: DatabaseTransactionConnection,
+): Promise<ProjectPermissionContext> {
+  const conn = tx ?? getPool();
+  const permissionCtx = await conn.maybeOne(sql.type(permissionContextSchema)`
+    SELECT
+      project.id AS id,
+      "owner",
+      coalesce(array_agg(project_permission.user_id) FILTER (WHERE can_write = true), '{}') AS "writeUsers"
+    FROM app.project
+    INNER JOIN app.project_object ON project.id = project_object.project_id
+    LEFT JOIN app.project_permission ON project.id = project_permission.project_id
+    WHERE project_object.id = ${projectObjectId}
+    GROUP BY project.id, "owner"
+  `);
+  if (!permissionCtx) {
+    throw new Error('Could not get permission context');
+  }
+  return permissionCtx;
+}
+/**
+ * This function creates a middleware to check if a user has access to a project.
+ * It takes two parameters: a TRPC instance and a function to check if a user has access to a project.
+ * The function 'canAccess' should take a user and a permission context as parameters and return a boolean.
+ * The middleware function returned by this function will throw a TRPCError with a 'BAD_REQUEST' code
+ * if the input is not a project ID or if the user does not have access to the project.
+ * If the user has access to the project, the middleware function will call the next middleware in the stack.
+ *
+ * @param {TRPC} t - The TRPC instance used to create the middleware.
+ * @param {ProjectAccessChecker} canAccess - A function that checks if a user has access to a project.
+ * @returns {Function} A middleware function that checks if a user has access to a project.
+ */
 
-    upsert: t.procedure.input(upsertProjectObjectSchema).mutation(async ({ input, ctx }) => {
-      return await getPool().transaction(async (tx) => {
-        const result = await upsertProjectObject(tx, input, ctx.user.id);
-        return getProjectObject(tx, result.id);
+export const createAccessMiddleware = (t: TRPC) => (canAccess: ProjectAccessChecker) =>
+  t.middleware(async (opts) => {
+    const { ctx, input, next } = opts;
+    if (!isProjectObjectIdInput(input)) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'error.invalidInput',
       });
-    }),
-
-    updateGeometry: t.procedure.input(updateGeometrySchema).mutation(async ({ input, ctx }) => {
-      return await getPool().transaction(async (tx) => {
-        return await updateProjectObjectGeometry(tx, input, ctx.user.id);
+    }
+    const permissionCtx = await getPermissionContext(input.projectObjectId);
+    if (!canAccess(ctx.user, permissionCtx)) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'error.insufficientPermissions',
       });
-    }),
+    }
+    return next();
+  });
 
+export const createProjectObjectRouter = (t: TRPC) => {
+  const withAccess = createAccessMiddleware(t);
+
+  return t.router({
     get: t.procedure.input(getProjectObjectParams).query(async ({ input }) => {
-      return await getPool().connect(async (conn) => {
-        const projectObject = await getProjectObject(conn, input.id);
-        return projectObject;
+      return await getPool().transaction(async (tx) => {
+        const projectObject = await getProjectObject(tx, input.projectObjectId);
+        const permissionCtx = await getPermissionContext(input.projectObjectId, tx);
+        return { ...projectObject, acl: permissionCtx };
       });
     }),
 
@@ -525,8 +589,58 @@ export const createProjectObjectRouter = (t: TRPC) =>
         return await getProjectObjectBudget(input.projectObjectId);
       }),
 
+    getByProjectId: t.procedure
+      .input(z.object({ projectId: nonEmptyString }))
+      .query(async ({ input }) => {
+        return getProjectObjectsByProjectId(input.projectId);
+      }),
+
+    upsertValidate: t.procedure.input(upsertProjectObjectSchema).query(async ({ input }) => {
+      return await getPool().connect(async (conn) => {
+        return await validateUpsertProjectObject(conn, input);
+      });
+    }),
+
+    // Mutations requiring write permissions / project ownership
+
+    upsert: t.procedure.input(upsertProjectObjectSchema).mutation(async ({ input, ctx }) => {
+      return await getPool().transaction(async (tx) => {
+        let permissionCtx;
+        if (!input.projectObjectId && input.projectId) {
+          permissionCtx = await getProjectPermissionCtx(input.projectId);
+        } else if (input.projectObjectId) {
+          permissionCtx = await getPermissionContext(input.projectObjectId);
+        } else {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.invalidInput' });
+        }
+
+        if (!hasWritePermission(ctx.user, permissionCtx) && !ownsProject(ctx.user, permissionCtx)) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
+        } else {
+          return await upsertProjectObject(tx, input, ctx.user.id);
+        }
+      });
+    }),
+
+    updateGeometry: t.procedure
+      .input(updateGeometrySchema)
+      .use(withAccess((usr, ctx) => ownsProject(usr, ctx) || hasWritePermission(usr, ctx)))
+      .mutation(async ({ input, ctx }) => {
+        return await getPool().transaction(async (tx) => {
+          return await updateProjectObjectGeometry(tx, input, ctx.user.id);
+        });
+      }),
+
     updateBudget: t.procedure
       .input(updateBudgetSchema.required())
+      .use(
+        withAccess(
+          (usr, ctx) =>
+            ownsProject(usr, ctx) ||
+            hasWritePermission(usr, ctx) ||
+            hasPermission(usr, 'financials.write'),
+        ),
+      )
       .mutation(async ({ input, ctx }) => {
         return await getPool().transaction(async (tx) => {
           return await updateProjectObjectBudget(
@@ -538,14 +652,12 @@ export const createProjectObjectRouter = (t: TRPC) =>
         });
       }),
 
-    getByProjectId: t.procedure
-      .input(z.object({ projectId: nonEmptyString }))
-      .query(async ({ input }) => {
-        return getProjectObjectsByProjectId(input.projectId);
+    delete: t.procedure
+      .input(deleteProjectObjectSchema)
+      .use(withAccess(ownsProject))
+      .mutation(async ({ input, ctx }) => {
+        const { projectObjectId } = input;
+        return await deleteProjectObject(projectObjectId, ctx.user);
       }),
-
-    delete: t.procedure.input(deleteProjectObjectSchema).mutation(async ({ input, ctx }) => {
-      const { id } = input;
-      return await deleteProjectObject(id, ctx.user);
-    }),
   });
+};

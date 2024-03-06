@@ -1,11 +1,13 @@
-import { AddCircle } from '@mui/icons-material';
+import { AddCircle, SearchTwoTone } from '@mui/icons-material';
 import {
   Box,
   Button,
   CircularProgress,
   Dialog,
   DialogContent,
+  InputAdornment,
   TextField,
+  Typography,
   css,
 } from '@mui/material';
 import { useState } from 'react';
@@ -46,14 +48,16 @@ export function CompanyContactPage(props: Props) {
       <Box
         css={css`
           display: flex;
-          justify-content: flex-end;
+          justify-content: space-between;
           margin-bottom: 24px;
         `}
       >
+        <Typography variant="h4" component="h1">{tr('management.tabs.companyContacts')}</Typography>
         <Box
           css={css`
             display: flex;
             gap: 8px;
+            height: max-content;
           `}
         >
           <Button
@@ -75,6 +79,10 @@ export function CompanyContactPage(props: Props) {
         fullWidth={true}
         placeholder={tr('companyContact.searchPlaceholder')}
         onChange={(e) => setQuery(e.target.value)}
+        InputProps={{startAdornment: (
+        <InputAdornment position="start">
+          <SearchTwoTone />
+        </InputAdornment>)}}
       />
 
       <Box

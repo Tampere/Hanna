@@ -5,7 +5,7 @@ import { isoDateString, nonEmptyString } from '../common';
 import { projectIdSchema, upsertProjectSchema } from './base';
 
 export const detailplanProjectSchema = upsertProjectSchema.extend({
-  id: z.string().optional(),
+  projectId: z.string().optional(),
   diaryId: nonEmptyString,
   diaryDate: isoDateString.nullish(),
   subtype: codeId.nullish(),
@@ -25,9 +25,10 @@ export const detailplanProjectSchema = upsertProjectSchema.extend({
 export type DetailplanProject = z.infer<typeof detailplanProjectSchema>;
 
 export const dbDetailplanSchema = detailplanProjectSchema.extend({
-  id: z.string(),
+  projectId: z.string(),
   geom: z.string().nullable(),
   detailplanId: nonEmptyString,
+  writeUsers: z.array(z.string()),
 });
 
 export type DbDetailplanProject = z.infer<typeof dbDetailplanSchema>;

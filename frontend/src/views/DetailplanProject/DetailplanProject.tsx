@@ -1,5 +1,6 @@
-import { AccountTree, Mail, Map } from '@mui/icons-material';
+import { AccountTree, KeyTwoTone, Mail, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography, css } from '@mui/material';
+import { useAtomValue } from 'jotai';
 import { ReactElement } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 
@@ -7,16 +8,24 @@ import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { PROJECT_AREA_STYLE } from '@frontend/components/Map/styles';
+import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { DeleteProjectDialog } from '@frontend/views/Project/DeleteProjectDialog';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 
 import { TranslationKey } from '@shared/language';
+import { User } from '@shared/schema/user';
+import {
+  ProjectPermissionContext,
+  hasWritePermission,
+  ownsProject,
+} from '@shared/schema/userPermissions';
 
+import { ProjectPermissions } from '../Project/ProjectPermissions';
 import { DetailplanProjectForm } from './DetailplanProjectForm';
 import { DetailplanProjectNotification } from './DetailplanProjectNotification';
 
-type TabView = 'default' | 'sidoshankkeet' | 'tiedotus';
+type TabView = 'default' | 'sidoshankkeet' | 'tiedotus' | 'luvitus';
 
 interface Tab {
   tabView: TabView;
@@ -40,42 +49,62 @@ const mapContainerStyle = css`
   position: relative;
 `;
 
-function getTabs(projectId: string): Tab[] {
+function getTabs(projectId: string) {
   return [
     {
       tabView: 'default',
       url: `/asemakaavahanke/${projectId}`,
       label: 'project.mapTabLabel',
       icon: <Map fontSize="small" />,
+      hasAccess: () => true,
     },
     {
       tabView: 'sidoshankkeet',
       url: `/asemakaavahanke/${projectId}?tab=sidoshankkeet`,
       label: 'project.relatedProjectsTabLabel',
       icon: <AccountTree fontSize="small" />,
+      hasAccess: () => true,
     },
     {
       tabView: 'tiedotus',
       url: `/asemakaavahanke/${projectId}?tab=tiedotus`,
       label: 'detailplanProject.notification',
       icon: <Mail fontSize="small" />,
+      hasAccess: () => true,
     },
-  ];
+    {
+      tabView: 'luvitus',
+      url: `/asemakaavahanke/${projectId}/luvitus`,
+      label: 'project.permissionsTabLabel',
+      icon: <KeyTwoTone fontSize="small" />,
+      hasAccess: (user: User, project: ProjectPermissionContext) => ownsProject(user, project),
+    },
+  ] as const;
 }
 
 export function DetailplanProject() {
   const routeParams = useParams() as { projectId: string; tabView: TabView };
   const [searchParams] = useSearchParams();
   const tabView = searchParams.get('tab') || 'default';
-  const tabs = getTabs(routeParams.projectId);
+  const tabs = getTabs(routeParams.projectId).filter(
+    (tab) => project?.data && user && tab.hasAccess(user, project.data),
+  );
   const projectId = routeParams?.projectId;
-  const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
 
   const project = trpc.detailplanProject.get.useQuery(
-    { id: projectId },
-    { enabled: Boolean(projectId), queryKey: ['detailplanProject.get', { id: projectId }] },
+    { projectId },
+    { enabled: Boolean(projectId), queryKey: ['detailplanProject.get', { projectId }] },
   );
+
   const tr = useTranslations();
+  const user = useAtomValue(authAtom);
+  const userCanModify = Boolean(
+    user &&
+      project.data &&
+      (ownsProject(user, project.data) || hasWritePermission(user, project.data)),
+  );
+
+  const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
 
   if (projectId && project.isLoading) {
     return <Typography>{tr('loading')}</Typography>;
@@ -113,7 +142,8 @@ export function DetailplanProject() {
           <DetailplanProjectForm project={project.data} />
           {project.data && (
             <DeleteProjectDialog
-              projectId={project.data.id ?? ''}
+              disabled={Boolean(user && !ownsProject(user, project.data))}
+              projectId={project.data.projectId ?? ''}
               message={tr('detailplanProject.deleteDialogMessage')}
             />
           )}
@@ -160,11 +190,17 @@ export function DetailplanProject() {
 
           {tabView !== 'default' && (
             <Box sx={{ p: 2, overflowY: 'auto' }}>
-              {tabView === 'sidoshankkeet' && (
-                <ProjectRelations projectId={routeParams.projectId} />
+              {routeParams.tabView === 'sidoshankkeet' && (
+                <ProjectRelations editable={userCanModify} projectId={routeParams.projectId} />
               )}
-              {tabView === 'tiedotus' && (
-                <DetailplanProjectNotification projectId={routeParams.projectId} />
+              {routeParams.tabView === 'tiedotus' && (
+                <DetailplanProjectNotification
+                  enabled={Boolean(user && project.data && ownsProject(user, project.data))}
+                  projectId={routeParams.projectId}
+                />
+              )}
+              {routeParams.tabView === 'luvitus' && (
+                <ProjectPermissions projectId={routeParams.projectId} />
               )}
             </Box>
           )}

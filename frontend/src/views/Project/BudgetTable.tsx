@@ -24,7 +24,7 @@ import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { YearBudget } from '@shared/schema/project';
 import { YearlyActuals } from '@shared/schema/sapActuals';
 
-type BudgetFields = 'amount' | 'forecast' | 'kayttosuunnitelmanMuutos' | 'actual';
+export type BudgetFields = 'amount' | 'forecast' | 'kayttosuunnitelmanMuutos' | 'actual';
 interface Props {
   years: number[];
   budget: readonly YearBudget[];

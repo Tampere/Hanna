@@ -22,7 +22,7 @@ export const updateBudgetSchema = z.object({
 
 export const newProjectObjectSchema = z.object({
   // id here as well since zodResolver in the form hook does not send the id if not in this schema
-  id: z.string().optional().nullable(),
+  projectObjectId: z.string().optional().nullable(),
   projectId: z.string(),
   objectName: nonEmptyString,
   description: nonEmptyString,
@@ -45,18 +45,22 @@ export const newProjectObjectSchema = z.object({
 });
 
 export const updateProjectObjectSchema = newProjectObjectSchema.partial().extend({
-  id: z.string(),
+  projectObjectId: z.string(),
 });
 
 export type NewProjectObject = z.infer<typeof newProjectObjectSchema>;
 export type UpdateProjectObject = z.infer<typeof updateProjectObjectSchema>;
 
 export const dbProjectObjectSchema = newProjectObjectSchema.extend({
-  id: z.string(),
+  projectObjectId: z.string(),
   geom: z.string().nullable(),
   createdAt: isoDateString,
   deleted: z.boolean(),
   updatedBy: z.string(),
+  permissionCtx: z.object({
+    writeUsers: z.array(nonEmptyString),
+    owner: nonEmptyString,
+  }),
 });
 
 export const upsertProjectObjectSchema = z.union([
@@ -70,24 +74,24 @@ export type DBProjectObject = z.infer<typeof dbProjectObjectSchema>;
 
 export const getProjectObjectParams = z.object({
   projectId: z.string(),
-  id: z.string(),
+  projectObjectId: z.string(),
 });
 
 export type ProjectObjectParams = z.infer<typeof getProjectObjectParams>;
 
 export const updateGeometrySchema = z.object({
-  id: z.string(),
+  projectObjectId: z.string(),
   features: z.string(),
 });
 export type UpdateGeometry = z.infer<typeof updateGeometrySchema>;
 
 export const updateGeometryResultSchema = z.object({
-  id: z.string(),
+  projectObjectId: z.string(),
   geom: z.string(),
 });
 
 export const deleteProjectObjectSchema = z.object({
-  id: z.string(),
+  projectObjectId: z.string(),
 });
 
 export type UpdateGeometryResult = z.infer<typeof updateGeometryResultSchema>;

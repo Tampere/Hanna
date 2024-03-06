@@ -13,6 +13,8 @@ import { TaskDialog } from './TaskDialog';
 interface Props {
   projectObjectId: string;
   task: DbTask;
+  isOwner?: boolean;
+  canWrite?: boolean;
 }
 
 const stickyColumnStyle = css`
@@ -21,7 +23,7 @@ const stickyColumnStyle = css`
   background: #fff;
 `;
 
-export function TaskRow(props: Props) {
+export function TaskRow(props: Readonly<Props>) {
   const { task, projectObjectId } = props;
   const tr = useTranslations();
   const lang = useAtomValue(langAtom);
@@ -51,6 +53,8 @@ export function TaskRow(props: Props) {
         open={dialogOpen}
         projectObjectId={projectObjectId}
         task={task}
+        isOwner={props.isOwner}
+        canWrite={props.canWrite}
         onClose={() => setDialogOpen(false)}
       />
     </>

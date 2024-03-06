@@ -1,4 +1,16 @@
 [
-  { "sub": "dev@localhost", "upn": "dev@localhost", "name": "Dev User" },
-  { "sub": "test@localhost", "upn": "test@localhost", "name": "Test User" }
+  { "sub": "foo@localhost", "upn": "foo@localhost", "name": "Foo Bar", "role": null },
+  { "sub": "dev@localhost", "upn": "dev@localhost", "name": "Dev User", "role": "Hanna.User" },
+  {
+    "sub": "test@localhost",
+    "upn": "test@localhost",
+    "name": "Test User",
+    "role": "Hanna.User"
+  },
+  {
+    "sub": "admin@localhost",
+    "upn": "admin@localhost",
+    "name": "Admin User",
+    "role": "Hanna.Admin"
+  }
 ]

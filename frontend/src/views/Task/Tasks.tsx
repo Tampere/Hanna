@@ -10,9 +10,15 @@ import { TaskList } from './TaskList';
 
 interface Props {
   projectObjectId: string;
+  isOwner?: boolean;
+  canWrite?: boolean;
 }
 
-export default function Tasks({ projectObjectId }: Props) {
+export default function Tasks({
+  projectObjectId,
+  isOwner = false,
+  canWrite = false,
+}: Readonly<Props>) {
   const [displayTaskForm, setDisplayTaskForm] = useState(false);
   const tr = useTranslations();
 
@@ -27,6 +33,7 @@ export default function Tasks({ projectObjectId }: Props) {
       >
         <Button
           variant="contained"
+          disabled={!(isOwner || canWrite)}
           color="primary"
           size="small"
           endIcon={displayTaskForm ? <Undo /> : <AddCircle />}
@@ -36,9 +43,13 @@ export default function Tasks({ projectObjectId }: Props) {
         </Button>
       </Box>
       {displayTaskForm ? (
-        <TaskForm projectObjectId={projectObjectId} onSubmit={() => setDisplayTaskForm(false)} />
+        <TaskForm
+          projectObjectId={projectObjectId}
+          userCanModify={isOwner || canWrite}
+          onSubmit={() => setDisplayTaskForm(false)}
+        />
       ) : (
-        <TaskList projectObjectId={projectObjectId} />
+        <TaskList projectObjectId={projectObjectId} isOwner={isOwner} canWrite={canWrite} />
       )}
     </Box>
   );

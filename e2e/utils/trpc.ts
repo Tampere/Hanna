@@ -3,6 +3,7 @@ import { httpLink } from '@trpc/client/links/httpLink';
 import { Agent } from 'https';
 import nodeFetch from 'node-fetch';
 import { setDefaultResultOrder } from 'node:dns';
+import { Cookie, Page } from 'playwright';
 import superjson from 'superjson';
 
 import type { AppRouter } from '../../backend/src/router';
@@ -10,41 +11,31 @@ import type { AppRouter } from '../../backend/src/router';
 // In Node version >= 17 localhost is resolved with IPv6 rather than IPv4 - revert this back to normal to make Caddy work properly
 setDefaultResultOrder('ipv4first');
 
-interface Cookie {
-  name: string;
-  value: string;
+function getCookieHeaderValue(cookies: Cookie[]) {
+  return cookies.map(({ name, value }) => `${name}=${value}`).join('; ');
 }
 
-let cookieStore: Cookie[];
-
-// Use node-fetch to ignore SSL errors
-const agent = new Agent({
-  rejectUnauthorized: false,
-});
-
-export function setCookies(cookies: Cookie[]) {
-  cookieStore = [...cookies];
+export async function createTRPCClient(page: Page) {
+  const agent = new Agent({
+    rejectUnauthorized: false,
+  });
+  const cookies = await page.context().cookies();
+  return createTRPCProxyClient<AppRouter>({
+    links: [
+      httpLink({
+        url: 'https://localhost:1443/trpc',
+        fetch(url, options) {
+          return nodeFetch(url, {
+            ...options,
+            agent,
+            headers: {
+              ...options.headers,
+              cookie: getCookieHeaderValue(cookies),
+            },
+          });
+        },
+      }),
+    ],
+    transformer: superjson,
+  });
 }
-
-function getCookieHeaderValue() {
-  return cookieStore.map(({ name, value }) => `${name}=${value}`).join('; ');
-}
-
-export const client = createTRPCProxyClient<AppRouter>({
-  links: [
-    httpLink({
-      url: 'https://localhost:1443/trpc',
-      fetch(url, options) {
-        return nodeFetch(url, {
-          ...options,
-          agent,
-          headers: {
-            ...options.headers,
-            cookie: getCookieHeaderValue(),
-          },
-        });
-      },
-    }),
-  ],
-  transformer: superjson,
-});

@@ -1,6 +1,7 @@
 import { css } from '@emotion/react';
 import { Assignment, Euro, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
+import { useAtomValue } from 'jotai';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { ReactElement, useMemo, useState } from 'react';
@@ -13,11 +14,13 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
+import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { ProjectTypePath } from '@frontend/types';
 import Tasks from '@frontend/views/Task/Tasks';
 
 import { TranslationKey } from '@shared/language';
+import { hasPermission, hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 import { DeleteProjectObjectDialog } from './DeleteProjectObjectDialog';
 import { ProjectObjectFinances } from './ProjectObjectFinances';
@@ -96,10 +99,11 @@ export function ProjectObject(props: Props) {
   const projectObject = trpc.projectObject.get.useQuery(
     {
       projectId: routeParams.projectId,
-      id: projectObjectId,
+      projectObjectId,
     },
     { enabled: Boolean(projectObjectId) },
   );
+  const user = useAtomValue(authAtom);
 
   const [geom, setGeom] = useState<string | null>(null);
   const [projectId, setProjectId] = useState(routeParams.projectId);
@@ -123,7 +127,7 @@ export function ProjectObject(props: Props) {
     },
   });
 
-  const project = trpc.project.get.useQuery({ id: projectId }, { enabled: Boolean(projectId) });
+  const project = trpc.project.get.useQuery({ projectId }, { enabled: Boolean(projectId) });
 
   // Create vectorlayer of the project geometry
   const projectSource = useMemo(() => {
@@ -164,6 +168,11 @@ export function ProjectObject(props: Props) {
     );
   }
 
+  if (!user || projectObject.isLoading || projectObject.isError) return null;
+
+  const isOwner = ownsProject(user, projectObject.data?.acl);
+  const canWrite = hasWritePermission(user, projectObject.data?.acl);
+
   return (
     <Box
       css={css`
@@ -191,6 +200,8 @@ export function ProjectObject(props: Props) {
       <div css={pageContentStyle}>
         <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
           <ProjectObjectForm
+            userIsOwner={isOwner}
+            userCanWrite={canWrite}
             projectId={routeParams.projectId}
             projectType={props.projectType}
             projectObject={projectObject.data}
@@ -203,6 +214,7 @@ export function ProjectObject(props: Props) {
               projectId={routeParams.projectId}
               projectType={props.projectType}
               projectObjectId={projectObjectId}
+              userIsOwner={isOwner}
             />
           )}
         </Paper>
@@ -240,14 +252,14 @@ export function ProjectObject(props: Props) {
               <MapWrapper
                 geoJson={projectObject?.data?.geom}
                 drawStyle={PROJ_OBJ_STYLE}
-                editable={true}
+                editable={!projectObjectId || isOwner || canWrite}
                 vectorLayers={[projectLayer]}
                 fitExtent="geoJson"
                 onFeaturesSaved={(features) => {
                   if (!projectObject.data) {
                     setGeom(features);
                   } else {
-                    geometryUpdate.mutate({ id: projectObjectId, features });
+                    geometryUpdate.mutate({ projectObjectId, features });
                   }
                 }}
               />
@@ -257,9 +269,15 @@ export function ProjectObject(props: Props) {
           {searchParams.get('tab') && (
             <Box sx={{ m: 2, overflowY: 'auto' }}>
               {searchParams.get('tab') === 'talous' && projectObject.data && (
-                <ProjectObjectFinances projectObject={projectObject.data} />
+                <ProjectObjectFinances
+                  userIsEditor={isOwner || canWrite}
+                  userCanEditFinances={hasPermission(user, 'financials.write')}
+                  projectObject={projectObject.data}
+                />
               )}
-              {searchParams.get('tab') === 'vaiheet' && <Tasks projectObjectId={projectObjectId} />}
+              {searchParams.get('tab') === 'vaiheet' && (
+                <Tasks isOwner={isOwner} canWrite={canWrite} projectObjectId={projectObjectId} />
+              )}
             </Box>
           )}
         </Paper>

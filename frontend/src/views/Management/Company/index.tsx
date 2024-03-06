@@ -1,5 +1,5 @@
 import { AddCircle } from '@mui/icons-material';
-import { Box, Button, CircularProgress, Dialog, DialogContent, css } from '@mui/material';
+import { Box, Button, CircularProgress, Dialog, DialogContent, Typography, css } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
@@ -34,14 +34,16 @@ export function CompanyPage(props: Props) {
       <Box
         css={css`
           display: flex;
-          justify-content: flex-end;
+          justify-content: space-between;
           margin-bottom: 24px;
         `}
       >
+        <Typography variant="h4" component="h1">{tr('management.tabs.companies')}</Typography>
         <Box
           css={css`
             display: flex;
             gap: 8px;
+            height: max-content;
           `}
         >
           <Button

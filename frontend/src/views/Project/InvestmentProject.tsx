@@ -1,6 +1,7 @@
 import { css } from '@emotion/react';
-import { AccountTree, Euro, ListAlt, Map } from '@mui/icons-material';
+import { AccountTree, Euro, KeyTwoTone, ListAlt, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
+import { useAtomValue } from 'jotai';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { useMemo, useState } from 'react';
@@ -14,13 +15,22 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { DRAW_LAYER_Z_INDEX, featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
+import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
 
+import { User } from '@shared/schema/user';
+import {
+  ProjectPermissionContext,
+  hasWritePermission,
+  ownsProject,
+} from '@shared/schema/userPermissions';
+
 import { DeleteProjectDialog } from './DeleteProjectDialog';
 import { InvestmentProjectForm } from './InvestmentProjectForm';
 import { ProjectFinances } from './ProjectFinances';
+import { ProjectPermissions } from './ProjectPermissions';
 
 const pageContentStyle = css`
   display: grid;
@@ -37,33 +47,42 @@ const mapContainerStyle = css`
   position: relative;
 `;
 
-type TabView = 'default' | 'talous' | 'kohteet' | 'sidoshankkeet';
-
-function projectTabs(projectId: string) {
+function getTabs(projectId: string) {
   return [
     {
       tabView: 'default',
       url: `/investointihanke/${projectId}`,
       label: 'project.mapTabLabel',
       icon: <Map fontSize="small" />,
+      hasAccess: () => true,
     },
     {
       tabView: 'talous',
       url: `/investointihanke/${projectId}?tab=talous`,
       label: 'project.financeTabLabel',
       icon: <Euro fontSize="small" />,
+      hasAccess: () => true,
     },
     {
       tabView: 'kohteet',
       url: `/investointihanke/${projectId}?tab=kohteet`,
       label: 'project.projectObjectsTabLabel',
       icon: <ListAlt fontSize="small" />,
+      hasAccess: () => true,
     },
     {
       tabView: 'sidoshankkeet',
       url: `/investointihanke/${projectId}?tab=sidoshankkeet`,
       label: 'project.relatedProjectsTabLabel',
       icon: <AccountTree fontSize="small" />,
+      hasAccess: () => true,
+    },
+    {
+      tabView: 'luvitus',
+      url: `/investointihanke/${projectId}/luvitus`,
+      label: 'project.permissionsTabLabel',
+      icon: <KeyTwoTone fontSize="small" />,
+      hasAccess: (user: User, project: ProjectPermissionContext) => ownsProject(user, project),
     },
   ] as const;
 }
@@ -72,12 +91,21 @@ export function InvestmentProject() {
   const routeParams = useParams() as { projectId: string };
   const [searchParams] = useSearchParams();
   const tabView = searchParams.get('tab') || 'default';
-  const tabs = projectTabs(routeParams.projectId);
+  const tabs = getTabs(routeParams.projectId).filter(
+    (tab) => project?.data && user && tab.hasAccess(user, project.data),
+  );
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
   const projectId = routeParams?.projectId;
+
   const project = trpc.investmentProject.get.useQuery(
-    { id: projectId },
-    { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { id: projectId }] },
+    { projectId },
+    { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { projectId }] },
+  );
+  const user = useAtomValue(authAtom);
+  const userCanModify = Boolean(
+    project.data &&
+      user &&
+      (ownsProject(user, project.data) || hasWritePermission(user, project.data)),
   );
 
   const [geom, setGeom] = useState<string | null>(null);
@@ -170,7 +198,8 @@ export function InvestmentProject() {
           <InvestmentProjectForm edit={!projectId} project={project.data} geom={geom} />
           {project.data && (
             <DeleteProjectDialog
-              projectId={project.data.id}
+              disabled={Boolean(user && !ownsProject(user, project.data))}
+              projectId={project.data.projectId}
               message={tr('project.deleteDialogMessage')}
             />
           )}
@@ -210,12 +239,12 @@ export function InvestmentProject() {
                 geoJson={project?.data?.geom}
                 drawStyle={PROJECT_AREA_STYLE}
                 fitExtent="geoJson"
-                editable={true}
+                editable={!projectId || userCanModify}
                 onFeaturesSaved={(features) => {
                   if (!project.data) {
                     setGeom(features);
                   } else {
-                    geometryUpdate.mutate({ id: projectId, features });
+                    geometryUpdate.mutate({ projectId, features });
                   }
                 }}
                 vectorLayers={[projectObjectsLayer]}
@@ -232,6 +261,7 @@ export function InvestmentProject() {
               {tabView === 'sidoshankkeet' && (
                 <ProjectRelations projectId={routeParams.projectId} />
               )}
+              {tabView === 'luvitus' && <ProjectPermissions projectId={routeParams.projectId} />}
             </Box>
           )}
         </Paper>

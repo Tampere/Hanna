@@ -17,6 +17,8 @@ import { TaskRow } from './TaskRow';
 
 interface Props {
   projectObjectId: string;
+  isOwner?: boolean;
+  canWrite?: boolean;
 }
 
 const stickyColumnStyle = css`
@@ -25,7 +27,7 @@ const stickyColumnStyle = css`
   background: #fff;
 `;
 
-export function TaskList({ projectObjectId }: Props) {
+export function TaskList({ projectObjectId, isOwner = false, canWrite = false }: Props) {
   const tr = useTranslations();
 
   /** Fetch tasks on component mount */
@@ -71,7 +73,13 @@ export function TaskList({ projectObjectId }: Props) {
             </TableHead>
             <TableBody>
               {projectObjectTasks.data?.map((task) => (
-                <TaskRow key={task.id} task={task} projectObjectId={projectObjectId} />
+                <TaskRow
+                  key={task.taskId}
+                  task={task}
+                  projectObjectId={projectObjectId}
+                  isOwner={isOwner}
+                  canWrite={canWrite}
+                />
               ))}
             </TableBody>
           </Table>

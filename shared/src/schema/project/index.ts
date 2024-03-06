@@ -20,7 +20,7 @@ export type ProjectListParams = z.infer<typeof projectListParamsSchema>;
 
 export const projectListItemSchema = z.object({
   projectName: z.string(),
-  id: z.string(),
+  projectId: z.string(),
 });
 
 export type ProjectListItem = z.infer<typeof projectListItemSchema>;
@@ -82,14 +82,14 @@ export interface ProjectRelation {
 }
 
 export const updateGeometrySchema = z.object({
-  id: z.string(),
+  projectId: z.string(),
   features: z.string(),
 });
 
 export type UpdateGeometry = z.infer<typeof updateGeometrySchema>;
 
 export const updateGeometryResultSchema = z.object({
-  id: z.string(),
+  projectId: z.string(),
   geom: z.string(),
 });
 
