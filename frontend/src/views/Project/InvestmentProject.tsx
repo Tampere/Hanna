@@ -79,7 +79,7 @@ function getTabs(projectId: string) {
     },
     {
       tabView: 'luvitus',
-      url: `/investointihanke/${projectId}/luvitus`,
+      url: `/investointihanke/${projectId}?tab=luvitus`,
       label: 'project.permissionsTabLabel',
       icon: <KeyTwoTone fontSize="small" />,
       hasAccess: (user: User, project: ProjectPermissionContext) => ownsProject(user, project),
@@ -91,22 +91,22 @@ export function InvestmentProject() {
   const routeParams = useParams() as { projectId: string };
   const [searchParams] = useSearchParams();
   const tabView = searchParams.get('tab') || 'default';
-  const tabs = getTabs(routeParams.projectId).filter(
-    (tab) => project?.data && user && tab.hasAccess(user, project.data),
-  );
-  const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
+  const user = useAtomValue(authAtom);
   const projectId = routeParams?.projectId;
-
   const project = trpc.investmentProject.get.useQuery(
     { projectId },
     { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { projectId }] },
   );
-  const user = useAtomValue(authAtom);
   const userCanModify = Boolean(
     project.data &&
       user &&
       (ownsProject(user, project.data) || hasWritePermission(user, project.data)),
   );
+
+  const tabs = getTabs(routeParams.projectId).filter(
+    (tab) => project?.data && user && tab.hasAccess(user, project.data),
+  );
+  const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
 
   const [geom, setGeom] = useState<string | null>(null);
 
@@ -254,12 +254,18 @@ export function InvestmentProject() {
 
           {tabView !== 'default' && (
             <Box sx={{ m: 2, overflowY: 'auto' }}>
-              {tabView === 'talous' && <ProjectFinances project={project.data} />}
+              {tabView === 'talous' && (
+                <ProjectFinances editable={userCanModify} project={project.data} />
+              )}
               {tabView === 'kohteet' && (
-                <ProjectObjectList projectId={projectId} projectType="investointihanke" />
+                <ProjectObjectList
+                  editable={userCanModify}
+                  projectId={projectId}
+                  projectType="investointihanke"
+                />
               )}
               {tabView === 'sidoshankkeet' && (
-                <ProjectRelations projectId={routeParams.projectId} />
+                <ProjectRelations projectId={routeParams.projectId} editable={userCanModify} />
               )}
               {tabView === 'luvitus' && <ProjectPermissions projectId={routeParams.projectId} />}
             </Box>

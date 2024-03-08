@@ -17,7 +17,7 @@ const config: Configuration = {
     email: ['upn'],
     openid: ['sub'],
     profile: ['name'],
-    role: ['role'],
+    roles: ['roles']
   },
   features: {
     devInteractions: { enabled: true },

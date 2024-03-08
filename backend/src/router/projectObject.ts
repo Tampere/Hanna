@@ -39,7 +39,7 @@ import {
 const projectObjectFragment = sql.fragment`
   SELECT
      project_id AS "projectId",
-     id,
+     id AS "projectObjectId",
      object_name AS "objectName",
      description AS "description",
      (lifecycle_state).id AS "lifecycleState",
@@ -595,7 +595,7 @@ export const createProjectObjectRouter = (t: TRPC) => {
         return getProjectObjectsByProjectId(input.projectId);
       }),
 
-    upsertValidate: t.procedure.input(upsertProjectObjectSchema).query(async ({ input }) => {
+    upsertValidate: t.procedure.input(z.any()).query(async ({ input }) => {
       return await getPool().connect(async (conn) => {
         return await validateUpsertProjectObject(conn, input);
       });

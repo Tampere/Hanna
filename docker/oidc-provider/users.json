@@ -1,16 +1,27 @@
 [
-  { "sub": "foo@localhost", "upn": "foo@localhost", "name": "Foo Bar", "role": null },
-  { "sub": "dev@localhost", "upn": "dev@localhost", "name": "Dev User", "role": "Hanna.User" },
+  { "sub": "foo@localhost", "upn": "foo@localhost", "name": "Foo Bar", "roles": ["other_role"] },
+  {
+    "sub": "dev@localhost",
+    "upn": "dev@localhost",
+    "name": "Dev User",
+    "roles": ["Hanna_admins", "Hanna_users"]
+  },
   {
     "sub": "test@localhost",
     "upn": "test@localhost",
     "name": "Test User",
-    "role": "Hanna.User"
+    "roles": ["Hanna_users"]
   },
   {
     "sub": "admin@localhost",
     "upn": "admin@localhost",
     "name": "Admin User",
-    "role": "Hanna.Admin"
+    "roles": ["Hanna_admins", "Hanna_users"]
+  },
+  {
+    "sub": null,
+    "upn": "login@localhost",
+    "name": "Togin Test User",
+    "roles": ["Hanna_admins", "Hanna_users"]
   }
 ]

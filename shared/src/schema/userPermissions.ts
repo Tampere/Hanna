@@ -5,6 +5,17 @@ import { User as CtxUser } from './user';
 const ADMIN_ROLE = 'Hanna.Admin' as const;
 const USER_ROLE = 'Hanna.User' as const;
 
+const roleClaims = [
+  'Hanna_test_users',
+  'Hanna_test_admins',
+  'Hanna_users',
+  'Hanna_admins',
+] as const;
+
+const RoleClaimSchema = z.enum(roleClaims);
+
+export type RoleClaim = z.infer<typeof RoleClaimSchema>;
+
 export const userRoleSchema = z.enum([ADMIN_ROLE, USER_ROLE]);
 
 export type UserRole = z.infer<typeof userRoleSchema>;
@@ -38,7 +49,7 @@ export const setPermissionSchema = z.array(
   z.object({
     userId: z.string(),
     permissions: z.array(permissionSchema),
-  })
+  }),
 );
 
 export const permissionContextSchema = z.object({
@@ -50,7 +61,7 @@ export type ProjectPermissionContext = z.infer<typeof permissionContextSchema>;
 
 export type ProjectAccessChecker = (
   user: CtxUser,
-  permissionCtx: ProjectPermissionContext
+  permissionCtx: ProjectPermissionContext,
 ) => boolean;
 
 export const isProjectIdInput = (input: any): input is { projectId: string } => {
@@ -65,22 +76,22 @@ export const isTaskIdInput = (input: any): input is { taskId: string } => {
   return input && typeof input.taskId === 'string';
 };
 
-export function ownsProject(user: CtxUser, permissionCtx: ProjectPermissionContext): boolean {
+export function ownsProject(user: CtxUser, permissionCtx?: ProjectPermissionContext): boolean {
   return (
-    user.role === ADMIN_ROLE || (Boolean(permissionCtx?.owner) && user.id === permissionCtx.owner)
+    user.role === ADMIN_ROLE || (Boolean(permissionCtx?.owner) && user.id === permissionCtx?.owner)
   );
 }
 
 export function hasWritePermission(
   user: CtxUser,
-  permissionCtx: ProjectPermissionContext
+  permissionCtx?: ProjectPermissionContext,
 ): boolean {
-  return user.role === ADMIN_ROLE || permissionCtx?.writeUsers?.includes(user.id);
+  return user.role === ADMIN_ROLE || (permissionCtx?.writeUsers?.includes(user.id) ?? false);
 }
 
 export function hasPermission(user: CtxUser | User, permission: Permission): boolean {
   if ('role' in user) {
-    return user.role === ADMIN_ROLE || user.permissions.includes(permission);
+    return user.role === ADMIN_ROLE || user.permissions?.includes(permission);
   }
-  return user.isAdmin || user.permissions.includes(permission);
+  return user.isAdmin || user.permissions?.includes(permission);
 }

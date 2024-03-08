@@ -168,7 +168,8 @@ export function ProjectObject(props: Props) {
     );
   }
 
-  if (!user || projectObject.isLoading || projectObject.isError) return null;
+  if (!user || (Boolean(projectObjectId) && (projectObject.isLoading || projectObject.isError)))
+    return null;
 
   const isOwner = ownsProject(user, projectObject.data?.acl);
   const canWrite = hasWritePermission(user, projectObject.data?.acl);

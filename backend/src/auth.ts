@@ -8,7 +8,7 @@ import { FastifyInstance, FastifyPluginOptions, FastifyRequest, PassportUser } f
 import { BaseClient, Strategy, TokenSet, UserinfoResponse } from 'openid-client';
 import { Pool } from 'pg';
 
-import { UserRole } from '@shared/schema/userPermissions';
+import { RoleClaim, UserRole } from '@shared/schema/userPermissions';
 
 import { logger } from './logging';
 import { upsertUser } from './user';
@@ -30,6 +30,18 @@ interface AuthPluginOpts extends FastifyPluginOptions {
   sessionOpts: SessionOpts;
   pgPool: Pool;
   publicRouterPaths: Set<string>;
+}
+
+function getUserRole(roles: RoleClaim[]): UserRole {
+  if (roles.includes('Hanna_admins') || roles.includes('Hanna_test_admins')) {
+    return 'Hanna.Admin';
+  } else if (roles.includes('Hanna_users') || roles.includes('Hanna_test_users')) {
+    return 'Hanna.User';
+  }
+  logger.warn(
+    `User role not identified at roles claim, received roles: ${JSON.stringify(roles, null, 2)}`,
+  );
+  return 'Hanna.User';
 }
 
 export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
@@ -60,23 +72,24 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
       {
         client: opts.oidcOpts.client,
         params: {
-          scope: 'email openid profile role',
+          scope: 'email openid profile roles',
         },
       },
       async function verify(
         tokenset: TokenSet,
-        userinfo: UserinfoResponse & { role?: UserRole },
+        userinfo: UserinfoResponse & { roles?: RoleClaim[] },
         authDone: (err: Error | null, user?: PassportUser) => void,
       ) {
         logger.info(`TOKENSET: ${JSON.stringify(tokenset, null, 2)}`);
         logger.info(`USERINFO: ${JSON.stringify(userinfo, null, 2)}`);
         const id = userinfo.sub;
+        const role = getUserRole(userinfo?.roles ?? []);
         if (id) {
           const user = {
             id,
             name: String(userinfo.name),
             email: String(userinfo.upn),
-            role: userinfo.role as UserRole,
+            role,
           };
           // Update user to the database
           const dbUser = await upsertUser(user);

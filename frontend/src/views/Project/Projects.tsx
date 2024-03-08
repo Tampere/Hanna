@@ -122,10 +122,10 @@ const projectTypeRootUrl = {
 
 function ProjectCard({ result }: { result: DbProject }) {
   const tr = useTranslations();
-  const projectUrl = `${projectTypeRootUrl[result.projectType]}/${result.id}`;
+  const projectUrl = `${projectTypeRootUrl[result.projectType]}/${result.projectId}`;
 
   return (
-    <CardActionArea key={result.id} component={Link} to={projectUrl}>
+    <CardActionArea key={result.projectId} component={Link} to={projectUrl}>
       <Card variant="outlined" css={projectCardStyle}>
         <NavigateNext sx={{ color: '#aaa', mr: 1 }} />
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -238,7 +238,7 @@ function SearchResults({ results, loading }: SearchResultsProps) {
         </AsyncJobButton>
       </Box>
       {results?.length > 0
-        ? results.map((result) => <ProjectCard result={result} key={result.id} />)
+        ? results.map((result) => <ProjectCard result={result} key={result.projectId} />)
         : !loading && (
             <Box>
               <p>{tr('projectSearch.noResults')}</p>

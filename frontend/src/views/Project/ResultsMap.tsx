@@ -64,7 +64,7 @@ function getProjectsGeoJSON(projects?: ProjectSearchResult['projects']) {
       const geom = p.geom ? JSON.parse(p.geom) : null;
       return {
         type: 'Feature',
-        id: p.id,
+        id: p.projectId,
         geometry: geom,
         properties: {
           name: p.projectName,

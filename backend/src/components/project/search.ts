@@ -224,7 +224,7 @@ export async function projectSearch(input: ProjectSearch) {
       INNER JOIN app.project ON app.project.id = filtered_projects.id
     ), limited AS (
       SELECT
-        id,
+        id AS "projectId",
         "startDate",
         "endDate",
         "projectName",
