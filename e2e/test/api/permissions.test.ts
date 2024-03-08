@@ -1,6 +1,5 @@
 // TRPC api tests for permissions
 import test, { expect } from '@playwright/test';
-import { User } from '@shared/schema/userPermissions';
 import { login, refreshSession } from '@utils/page';
 import {
   ADMIN_USER,
@@ -9,6 +8,8 @@ import {
   UserSessionObject,
   clearUserPermissions,
 } from '@utils/users';
+
+import { User } from '@shared/schema/userPermissions';
 
 const validProject = (userId: string) => ({
   projectName: 'Test project',
@@ -53,7 +54,7 @@ test.describe('permission testing', () => {
     const newProject = validProject(user.id);
 
     await expect(
-      testSession.client.investmentProject.upsert.mutate({ project: newProject })
+      testSession.client.investmentProject.upsert.mutate({ project: newProject }),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
 
@@ -66,7 +67,7 @@ test.describe('permission testing', () => {
           userId: findUserByEmail(users, ADMIN_USER).userId,
           permissions: ['investmentProject.write'],
         },
-      ])
+      ]),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
 
@@ -82,7 +83,7 @@ test.describe('permission testing', () => {
           permissions: ['investmentProject.write'],
         },
       ]),
-      'admin can grant permissions for users to create new projects'
+      'admin can grant permissions for users to create new projects',
     ).resolves.not.toThrow();
 
     devSession = await refreshSession(browser, DEV_USER, devSession.page);
@@ -105,7 +106,7 @@ test.describe('permission testing', () => {
       expect.objectContaining({
         ...newProject,
         description: 'Updated description',
-      })
+      }),
     );
 
     await expect(
@@ -115,7 +116,7 @@ test.describe('permission testing', () => {
           description: 'Updated description',
         },
       }),
-      'non-owner cannot update the project'
+      'non-owner cannot update the project',
     ).rejects.toThrowError('error.insufficientPermissions');
 
     const newProjectObject = await devSession.client.projectObject.upsert.mutate({
@@ -128,6 +129,7 @@ test.describe('permission testing', () => {
       objectType: ['01'],
       objectCategory: ['01'],
       objectUsage: ['01'],
+      objectStage: '01',
       startDate: '2021-01-01',
       endDate: '2022-01-01',
       objectUserRoles: [],
@@ -135,7 +137,7 @@ test.describe('permission testing', () => {
 
     expect(
       newProjectObject.projectObjectId,
-      'owner can create project objects to project'
+      'owner can create project objects to project',
     ).toBeTruthy();
 
     await devSession.client.project.updatePermissions.mutate({
@@ -151,7 +153,7 @@ test.describe('permission testing', () => {
     });
 
     expect(updatedProject.description, 'project was updated by granted user').toBe(
-      updates.description
+      updates.description,
     );
 
     const newProjectObject2 = await testSession.client.projectObject.upsert.mutate({
@@ -161,6 +163,7 @@ test.describe('permission testing', () => {
       suunnitteluttajaUser: user.id,
       rakennuttajaUser: user.id,
       lifecycleState: '01',
+      objectStage: '01',
       objectType: ['01'],
       objectCategory: ['01'],
       objectUsage: ['01'],
@@ -171,7 +174,7 @@ test.describe('permission testing', () => {
 
     expect(
       newProjectObject2.projectObjectId,
-      'granted user can create project objects to project'
+      'granted user can create project objects to project',
     ).toBeTruthy();
   });
 
@@ -182,7 +185,7 @@ test.describe('permission testing', () => {
           userId: TEST_USER,
           permissions: ['investmentProject.write'],
         },
-      ])
+      ]),
     ).resolves.not.toThrow();
     testSession = await refreshSession(browser, TEST_USER, testSession.page);
 
@@ -210,7 +213,7 @@ test.describe('permission testing', () => {
     await expect(
       testSession.client.project.delete.mutate({
         projectId: project.projectId,
-      })
+      }),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
 
@@ -221,7 +224,7 @@ test.describe('permission testing', () => {
           userId: TEST_USER,
           permissions: ['investmentProject.write'],
         },
-      ])
+      ]),
     ).resolves.not.toThrow();
     testSession = await refreshSession(browser, TEST_USER, testSession.page);
 
@@ -237,6 +240,6 @@ test.describe('permission testing', () => {
       projectId: projectId,
     });
 
-    expect(deletedProject.projectId).toEqual(projectId);
+    expect(deletedProject.project.projectId).toEqual(projectId);
   });
 });

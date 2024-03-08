@@ -95,10 +95,12 @@ test.describe('Project endpoints', () => {
   });
   test('project validation with date constraints', async () => {
     const [user] = await devSession.client.user.getAll.query();
-    const project = await devSession.client.investmentProject.upsert.mutate(validProject(user.id));
+    const project = await devSession.client.investmentProject.upsert.mutate({
+      project: validProject(user.id),
+    });
 
     const budgetUpdateInput = {
-      projectId: project.id,
+      projectId: project.projectId,
       budgetItems: [
         {
           year: 2021,
@@ -113,7 +115,7 @@ test.describe('Project endpoints', () => {
     const validationResultWithBudget =
       await devSession.client.investmentProject.upsertValidate.query(projectWithNewDates);
 
-    const projectObject = testProjectObject(project.id, user);
+    const projectObject = testProjectObject(project.projectId, user);
     await devSession.client.projectObject.upsert.mutate(projectObject);
 
     const validationResultWithObject =
@@ -254,23 +256,25 @@ test.describe('Project endpoints', () => {
       addressText: 'addressText',
     };
 
-    const investmentProject =
-      await devSession.client.investmentProject.upsert.mutate(investmentProjectInput);
-    const detailplanProject =
-      await devSession.client.detailplanProject.upsert.mutate(detailplanProjectInput);
+    const investmentProject = await devSession.client.investmentProject.upsert.mutate({
+      project: investmentProjectInput,
+    });
+    const detailplanProject = await devSession.client.detailplanProject.upsert.mutate({
+      project: detailplanProjectInput,
+    });
 
     await devSession.client.project.updateRelations.mutate({
-      subjectProjectId: investmentProject.id,
-      objectProjectId: detailplanProject.id,
+      subjectProjectId: investmentProject.projectId,
+      objectProjectId: detailplanProject.projectId,
       relation: 'related',
     });
 
     const { relations } = await devSession.client.project.getRelations.query({
-      id: investmentProject.id,
+      projectId: investmentProject.projectId,
     });
     const relatedProject = relations.related[0];
 
-    expect(relatedProject.projectId).toBe(detailplanProject.id);
+    expect(relatedProject.projectId).toBe(detailplanProject.projectId);
     expect(relatedProject.projectName).toBe(detailplanProject.projectName);
     expect(relatedProject.projectType).toBe('detailplanProject');
   });
@@ -287,25 +291,27 @@ test.describe('Project endpoints', () => {
       addressText: 'addressText',
     };
 
-    const investmentProject =
-      await devSession.client.investmentProject.upsert.mutate(investmentProjectInput);
-    const detailplanProject =
-      await devSession.client.detailplanProject.upsert.mutate(detailplanProjectInput);
+    const investmentProject = await devSession.client.investmentProject.upsert.mutate({
+      project: investmentProjectInput,
+    });
+    const detailplanProject = await devSession.client.detailplanProject.upsert.mutate({
+      project: detailplanProjectInput,
+    });
 
     await devSession.client.project.updateRelations.mutate({
-      subjectProjectId: investmentProject.id,
-      objectProjectId: detailplanProject.id,
+      subjectProjectId: investmentProject.projectId,
+      objectProjectId: detailplanProject.projectId,
       relation: 'related',
     });
 
     await devSession.client.project.removeRelation.mutate({
-      subjectProjectId: investmentProject.id,
-      objectProjectId: detailplanProject.id,
+      subjectProjectId: investmentProject.projectId,
+      objectProjectId: detailplanProject.projectId,
       relation: 'related',
     });
 
     const { relations } = await devSession.client.project.getRelations.query({
-      id: investmentProject.id,
+      projectId: investmentProject.projectId,
     });
 
     expect(relations.parents).toBeNull();

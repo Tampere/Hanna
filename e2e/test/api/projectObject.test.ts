@@ -252,7 +252,7 @@ test.describe('Project Object endpoints', () => {
 
   test('project object validation', async () => {
     const validationResult = await devSession.client.projectObject.upsertValidate.query(
-      invalidDateProjectObject(project.id, user),
+      invalidDateProjectObject(project.projectId, user),
     );
 
     expect(validationResult).toStrictEqual({
@@ -270,7 +270,7 @@ test.describe('Project Object endpoints', () => {
   });
 
   test('project object validation with date constraints', async () => {
-    const projectObjectData = testProjectObject(project.id, user);
+    const projectObjectData = testProjectObject(project.projectId, user);
 
     const projectObject = await devSession.client.projectObject.upsert.mutate(projectObjectData);
 
