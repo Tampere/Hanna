@@ -26,6 +26,9 @@ import {
   DetailplanProject,
   detailplanProjectSchema,
 } from '@shared/schema/project/detailplan';
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
+
+import { ProjectOwnerChangeDialog } from '../Project/ProjectOwnerChangeDialog';
 
 const newProjectFormStyle = css`
   display: grid;
@@ -34,6 +37,7 @@ const newProjectFormStyle = css`
 
 interface Props {
   project?: DbDetailplanProject | null;
+  disabled?: boolean;
 }
 
 const readonlyFieldProps = {
@@ -42,7 +46,7 @@ const readonlyFieldProps = {
   InputProps: { readOnly: true },
 } as const;
 
-export function DetailplanProjectForm(props: Props) {
+export function DetailplanProjectForm(props: Readonly<Props>) {
   const tr = useTranslations();
   const notify = useNotifications();
   const queryClient = useQueryClient();
@@ -50,6 +54,7 @@ export function DetailplanProjectForm(props: Props) {
   const [editing, setEditing] = useState(!props.project);
   const currentUser = useAtomValue(authAtom);
   const [nextDetailplanId, setNextDetailplanId] = useState<number | null>(null);
+  const [displayOwnerChangeDialog, setDisplayOwnerChangeDialog] = useState(false);
 
   const readonlyProps = useMemo(() => {
     if (editing) {
@@ -132,14 +137,20 @@ export function DetailplanProjectForm(props: Props) {
   const projectUpsert = trpc.detailplanProject.upsert.useMutation({
     onSuccess: (data) => {
       // Navigate to new url if we are creating a new project
-      if (!props.project && data.id) {
-        navigate(`/asemakaavahanke/${data.id}`);
+      if (!props.project && data.projectId) {
+        navigate(`/asemakaavahanke/${data.projectId}`);
       } else {
         queryClient.invalidateQueries({
-          queryKey: [['detailplanProject', 'get'], { input: { id: data.id } }],
+          queryKey: [['detailplanProject', 'get'], { input: { projectId: data.projectId } }],
         });
         queryClient.invalidateQueries({
-          queryKey: [['detailplanProject', 'previewNotificationMail'], { input: { id: data.id } }],
+          queryKey: [['project', 'getPermissions'], { input: { projectId: data.projectId } }],
+        });
+        queryClient.invalidateQueries({
+          queryKey: [
+            ['detailplanProject', 'previewNotificationMail'],
+            { input: { projectId: data.projectId } },
+          ],
         });
         setEditing(false);
         form.reset(data);
@@ -164,7 +175,15 @@ export function DetailplanProjectForm(props: Props) {
     }
   }, [form.formState.isSubmitSuccessful, form.reset]);
 
-  const onSubmit = (data: DetailplanProject | DbDetailplanProject) => projectUpsert.mutate(data);
+  const ownerWatch = form.watch('owner');
+
+  const onSubmit = (data: DetailplanProject | DbDetailplanProject) => {
+    if (props?.project?.owner && props.project.owner !== ownerWatch) {
+      setDisplayOwnerChangeDialog(true);
+      return;
+    }
+    projectUpsert.mutate({ project: data });
+  };
 
   return (
     <>
@@ -179,6 +198,13 @@ export function DetailplanProjectForm(props: Props) {
               <Button
                 variant="contained"
                 size="small"
+                disabled={
+                  !(
+                    !currentUser ||
+                    ownsProject(currentUser, props.project) ||
+                    hasWritePermission(currentUser, props.project)
+                  )
+                }
                 onClick={() => setEditing(!editing)}
                 endIcon={<Edit />}
               >
@@ -460,6 +486,15 @@ export function DetailplanProjectForm(props: Props) {
           )}
         </form>
       </FormProvider>
+      <ProjectOwnerChangeDialog
+        isOpen={displayOwnerChangeDialog}
+        onCancel={() => setDisplayOwnerChangeDialog(false)}
+        onSave={(keepOwnerRights) => {
+          const data = form.getValues();
+          projectUpsert.mutate({ project: data, keepOwnerRights });
+          setDisplayOwnerChangeDialog(false);
+        }}
+      />
     </>
   );
 }

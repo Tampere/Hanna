@@ -135,7 +135,7 @@ export async function updateProjectGeometry(
   geometryUpdate: UpdateGeometry,
   user: User,
 ) {
-  const { id, features } = geometryUpdate;
+  const { projectId: id, features } = geometryUpdate;
   await addAuditEvent(tx, {
     eventType: 'project.updateGeometry',
     eventData: geometryUpdate,
@@ -152,7 +152,7 @@ export async function updateProjectGeometry(
     SET geom = featureCollection.resultGeom
     FROM featureCollection
     WHERE id = ${id} AND ${id} IN (SELECT id FROM app.project_investment)
-    RETURNING id, ST_AsGeoJSON(geom) AS geom
+    RETURNING id as "projectId", ST_AsGeoJSON(geom) AS geom
   `);
 }
 

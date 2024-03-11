@@ -2,7 +2,7 @@ import { css } from '@emotion/react';
 import { AddCircleOutline, Cancel, Redo, Save, Undo } from '@mui/icons-material';
 import { Box, Button, IconButton, Theme, Tooltip, Typography } from '@mui/material';
 import { DataGrid, fiFI, useGridApiRef } from '@mui/x-data-grid';
-import { atom, useAtom } from 'jotai';
+import { atom, useAtom, useAtomValue } from 'jotai';
 import diff from 'microdiff';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -10,12 +10,19 @@ import { Link, useLocation } from 'react-router-dom';
 import { trpc } from '@frontend/client';
 import dayjs from '@frontend/dayjs';
 import { useNotifications } from '@frontend/services/notification';
+import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { WorkTableFilters } from '@frontend/views/WorkTable/WorkTableFilters';
-import { getColumns } from '@frontend/views/WorkTable/columns';
+import { WorkTableFinanceField, getColumns } from '@frontend/views/WorkTable/columns';
 
+import {
+  hasPermission,
+  hasWritePermission,
+  isAdmin,
+  ownsProject,
+} from '@shared/schema/userPermissions';
 import { WorkTableRow, WorkTableRowUpdate, WorkTableSearch } from '@shared/schema/workTable';
 
 import { BackToTopButton } from './BackToTopButton';
@@ -70,6 +77,13 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   & .modified-cell {
     background-color: lightyellow;
   }
+  & .cell-readonly {
+    color: #7b7b7b;
+    cursor: default;
+  }
+  & .cell-writable {
+    cursor: pointer;
+  }
 `;
 
 type UpdateableFields = keyof Omit<WorkTableRow, 'id' | 'projectLink'>;
@@ -113,6 +127,7 @@ export default function WorkTable() {
   const notify = useNotifications();
   const mainContentElement = document.getElementById('mainContentContainer');
   const [summaryRowHeight, setSummaryRowHeight] = useState(54);
+  const auth = useAtomValue(authAtom);
 
   const [yearRange, setYearRange] = useState<{ startYear: number; endYear: number }>({
     startYear: new Date().getFullYear(),
@@ -312,6 +327,22 @@ export default function WorkTable() {
     }
   }
 
+  function getWritableBudgetFields(
+    permissionCtx: WorkTableRow['permissionCtx'],
+  ): WorkTableFinanceField[] {
+    if (!auth) return [];
+
+    if (isAdmin(auth.role)) {
+      return ['budget', 'forecast', 'kayttosuunnitelmanMuutos'];
+    } else if (hasPermission(auth, 'financials.write')) {
+      return ['budget', 'kayttosuunnitelmanMuutos'];
+    } else if (hasPermission(auth, 'investmentProject.write' || ownsProject(auth, permissionCtx))) {
+      return ['forecast'];
+    } else {
+      return [];
+    }
+  }
+
   return (
     <Box
       css={css`
@@ -418,6 +449,29 @@ export default function WorkTable() {
 
       <DataGrid
         onResize={handleSummaryRowResize}
+        isCellEditable={({ row, field }: { row: WorkTableRow; field: string }) => {
+          if (['budget', 'forecast', 'kayttosuunnitelmanMuutos'].includes(field)) {
+            return getWritableBudgetFields(row.permissionCtx).includes(
+              field as WorkTableFinanceField,
+            );
+          }
+          return Boolean(
+            auth &&
+              (ownsProject(auth, row.permissionCtx) || hasWritePermission(auth, row.permissionCtx)),
+          );
+        }}
+        getCellClassName={({ id, field, row }) => {
+          if (id in modifiedFields && field in modifiedFields[id]) {
+            return 'modified-cell';
+          } else if (
+            auth &&
+            (ownsProject(auth, row.permissionCtx) || hasWritePermission(auth, row.permissionCtx))
+          ) {
+            return 'cell-writable';
+          } else {
+            return 'cell-readonly';
+          }
+        }}
         disableVirtualization
         loading={workTableData.isLoading}
         localeText={fiFI.components.MuiDataGrid.defaultProps.localeText}
@@ -442,6 +496,19 @@ export default function WorkTable() {
           // restrict the keyboard behavior to only the keys we want to handle
           if (!['Enter', 'NumpadEnter', 'Backspace', 'Delete'].includes(event.key)) {
             event.stopPropagation();
+          }
+        }}
+        onCellDoubleClick={async (params, event) => {
+          if (!gridApiRef.current.isCellEditable(params)) {
+            const element = document.elementFromPoint(
+              event.clientX,
+              event.clientY,
+            ) as HTMLElement | null;
+            if (!element) return;
+            element.style.cursor = 'not-allowed';
+            element.addEventListener('mouseleave', () => {
+              element.style.cursor = '';
+            });
           }
         }}
         getRowId={(row) => row.id}

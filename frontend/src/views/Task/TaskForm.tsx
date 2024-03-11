@@ -26,11 +26,12 @@ const newTaskFormStyle = css`
 
 interface Props {
   projectObjectId: string;
+  userCanModify?: boolean;
   task?: UpsertTask | null;
   onSubmit?: () => void;
 }
 
-export function TaskForm(props: Props) {
+export function TaskForm(props: Readonly<Props>) {
   const tr = useTranslations();
   const notify = useNotifications();
   const [editing, setEditing] = useState(!props.task);
@@ -101,7 +102,7 @@ export function TaskForm(props: Props) {
 
       notify({
         severity: 'success',
-        title: props.task?.id
+        title: props.task?.taskId
           ? tr('taskForm.notifyUpdateSuccess')
           : tr('taskForm.notifyCreateSuccess'),
         duration: 5000,
@@ -110,7 +111,7 @@ export function TaskForm(props: Props) {
     onError: () => {
       notify({
         severity: 'error',
-        title: props.task?.id
+        title: props.task?.taskId
           ? tr('taskForm.notifyUpdateFailure')
           : tr('taskForm.notifyCreateFailure'),
       });
@@ -130,6 +131,7 @@ export function TaskForm(props: Props) {
             <Button
               variant="contained"
               size="small"
+              disabled={!props.userCanModify}
               onClick={() => setEditing(!editing)}
               endIcon={<Edit />}
             >

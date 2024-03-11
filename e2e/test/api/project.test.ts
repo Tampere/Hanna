@@ -1,6 +1,6 @@
 import test, { expect } from '@playwright/test';
 import { login } from '@utils/page';
-import { client } from '@utils/trpc';
+import { ADMIN_USER, DEV_USER, UserSessionObject } from '@utils/users';
 
 import { User } from '@shared/schema/user';
 
@@ -62,13 +62,23 @@ const validProject = (userId: string, projectName = 'Test project') => ({
 });
 
 test.describe('Project endpoints', () => {
-  // Login to retrieve the cookies for authorizing tRPC queries
-  test.beforeEach(async ({ page }) => {
-    await login(page);
+  let adminSession: UserSessionObject;
+  let devSession: UserSessionObject;
+
+  test.beforeAll(async ({ browser }) => {
+    adminSession = await login(browser, ADMIN_USER);
+    adminSession.client.userPermissions.setPermissions.mutate([
+      {
+        userId: DEV_USER,
+        permissions: ['investmentProject.write'],
+      },
+    ]);
+    devSession = await login(browser, DEV_USER);
   });
+
   test('project validation', async () => {
     const validationResult =
-      await client.investmentProject.upsertValidate.query(invalidDateProject);
+      await devSession.client.investmentProject.upsertValidate.query(invalidDateProject);
 
     expect(validationResult).toStrictEqual({
       errors: {
@@ -84,11 +94,13 @@ test.describe('Project endpoints', () => {
     });
   });
   test('project validation with date constraints', async () => {
-    const [user] = await client.user.getAll.query();
-    const project = await client.investmentProject.upsert.mutate(validProject(user.id));
+    const [user] = await devSession.client.user.getAll.query();
+    const project = await devSession.client.investmentProject.upsert.mutate({
+      project: validProject(user.id),
+    });
 
     const budgetUpdateInput = {
-      projectId: project.id,
+      projectId: project.projectId,
       budgetItems: [
         {
           year: 2021,
@@ -96,18 +108,18 @@ test.describe('Project endpoints', () => {
         },
       ],
     };
-    await client.project.updateBudget.mutate(budgetUpdateInput);
+    await devSession.client.project.updateBudget.mutate(budgetUpdateInput);
 
     const projectWithNewDates = { ...project, startDate: '2023-01-01', endDate: '2024-01-01' };
 
     const validationResultWithBudget =
-      await client.investmentProject.upsertValidate.query(projectWithNewDates);
+      await devSession.client.investmentProject.upsertValidate.query(projectWithNewDates);
 
-    const projectObject = testProjectObject(project.id, user);
-    await client.projectObject.upsert.mutate(projectObject);
+    const projectObject = testProjectObject(project.projectId, user);
+    await devSession.client.projectObject.upsert.mutate(projectObject);
 
     const validationResultWithObject =
-      await client.investmentProject.upsertValidate.query(projectWithNewDates);
+      await devSession.client.investmentProject.upsertValidate.query(projectWithNewDates);
 
     expect(validationResultWithObject).toStrictEqual({
       errors: {
@@ -122,21 +134,24 @@ test.describe('Project endpoints', () => {
   });
 
   test('project geometry edit', async () => {
-    const [user] = await client.user.getAll.query();
+    const user = await devSession.client.user.self.query();
     const validProjectInput = validProject(user.id);
 
-    const validationResult = await client.investmentProject.upsertValidate.query(validProjectInput);
+    const validationResult =
+      await devSession.client.investmentProject.upsertValidate.query(validProjectInput);
     expect(validationResult).toStrictEqual({ errors: {} });
 
-    const project = await client.investmentProject.upsert.mutate(validProjectInput);
+    const project = await devSession.client.investmentProject.upsert.mutate({
+      project: validProjectInput,
+    });
     const point = makePoint(24487416.69375355, 6821004.272996133, 'EPSG:3878');
 
-    const edit = await client.project.updateGeometry.mutate({
-      id: project.id,
+    const edit = await devSession.client.project.updateGeometry.mutate({
+      projectId: project.projectId,
       features: JSON.stringify(point),
     });
 
-    expect(edit.id).toBe(project.id);
+    expect(edit.projectId).toEqual(project.projectId);
     expect(JSON.parse(edit.geom)).toStrictEqual({
       type: 'MultiPoint',
       crs: { type: 'name', properties: { name: 'EPSG:3878' } },
@@ -145,12 +160,14 @@ test.describe('Project endpoints', () => {
   });
 
   test('project budget update', async () => {
-    const [user] = await client.user.getAll.query();
+    const user = await devSession.client.user.self.query();
     const validProjectInput = validProject(user.id);
 
-    const project = await client.investmentProject.upsert.mutate(validProjectInput);
+    const project = await devSession.client.investmentProject.upsert.mutate({
+      project: validProjectInput,
+    });
     const budgetUpdateInput = {
-      projectId: project.id,
+      projectId: project.projectId,
       budgetItems: [
         {
           year: 2021,
@@ -162,13 +179,17 @@ test.describe('Project endpoints', () => {
         },
       ],
     };
-    const getBudgetResult = await client.project.getBudget.query({ projectId: project.id });
+    const getBudgetResult = await devSession.client.project.getBudget.query({
+      projectId: project.projectId,
+    });
 
     expect(getBudgetResult).toStrictEqual([]);
 
-    await client.project.updateBudget.mutate(budgetUpdateInput);
+    await devSession.client.project.updateBudget.mutate(budgetUpdateInput);
 
-    const updatedBudgetResult = await client.project.getBudget.query({ projectId: project.id });
+    const updatedBudgetResult = await devSession.client.project.getBudget.query({
+      projectId: project.projectId,
+    });
     expect(updatedBudgetResult).toStrictEqual([
       {
         year: 2021,
@@ -189,7 +210,7 @@ test.describe('Project endpoints', () => {
     ]);
 
     const budgetUpdate2021 = {
-      projectId: project.id,
+      projectId: project.projectId,
       budgetItems: [
         {
           year: 2021,
@@ -198,9 +219,11 @@ test.describe('Project endpoints', () => {
       ],
     };
 
-    await client.project.updateBudget.mutate(budgetUpdate2021);
+    await devSession.client.project.updateBudget.mutate(budgetUpdate2021);
 
-    const updatedBudgetResult2021 = await client.project.getBudget.query({ projectId: project.id });
+    const updatedBudgetResult2021 = await devSession.client.project.getBudget.query({
+      projectId: project.projectId,
+    });
     expect(updatedBudgetResult2021).toStrictEqual([
       {
         year: 2021,
@@ -222,7 +245,7 @@ test.describe('Project endpoints', () => {
   });
 
   test('add project relation', async () => {
-    const [user] = await client.user.getAll.query();
+    const [user] = await devSession.client.user.getAll.query();
     const investmentProjectInput = validProject(user.id);
     const detailplanProjectInput = {
       ...validProject(user.id, 'Detailplan project'),
@@ -233,25 +256,31 @@ test.describe('Project endpoints', () => {
       addressText: 'addressText',
     };
 
-    const investmentProject = await client.investmentProject.upsert.mutate(investmentProjectInput);
-    const detailplanProject = await client.detailplanProject.upsert.mutate(detailplanProjectInput);
+    const investmentProject = await devSession.client.investmentProject.upsert.mutate({
+      project: investmentProjectInput,
+    });
+    const detailplanProject = await devSession.client.detailplanProject.upsert.mutate({
+      project: detailplanProjectInput,
+    });
 
-    await client.project.updateRelations.mutate({
-      subjectProjectId: investmentProject.id,
-      objectProjectId: detailplanProject.id,
+    await devSession.client.project.updateRelations.mutate({
+      subjectProjectId: investmentProject.projectId,
+      objectProjectId: detailplanProject.projectId,
       relation: 'related',
     });
 
-    const { relations } = await client.project.getRelations.query({ id: investmentProject.id });
+    const { relations } = await devSession.client.project.getRelations.query({
+      projectId: investmentProject.projectId,
+    });
     const relatedProject = relations.related[0];
 
-    expect(relatedProject.projectId).toBe(detailplanProject.id);
+    expect(relatedProject.projectId).toBe(detailplanProject.projectId);
     expect(relatedProject.projectName).toBe(detailplanProject.projectName);
     expect(relatedProject.projectType).toBe('detailplanProject');
   });
 
   test('remove project relation', async () => {
-    const [user] = await client.user.getAll.query();
+    const [user] = await devSession.client.user.getAll.query();
     const investmentProjectInput = validProject(user.id);
     const detailplanProjectInput = {
       ...validProject(user.id, 'Detailplan project'),
@@ -262,22 +291,28 @@ test.describe('Project endpoints', () => {
       addressText: 'addressText',
     };
 
-    const investmentProject = await client.investmentProject.upsert.mutate(investmentProjectInput);
-    const detailplanProject = await client.detailplanProject.upsert.mutate(detailplanProjectInput);
+    const investmentProject = await devSession.client.investmentProject.upsert.mutate({
+      project: investmentProjectInput,
+    });
+    const detailplanProject = await devSession.client.detailplanProject.upsert.mutate({
+      project: detailplanProjectInput,
+    });
 
-    await client.project.updateRelations.mutate({
-      subjectProjectId: investmentProject.id,
-      objectProjectId: detailplanProject.id,
+    await devSession.client.project.updateRelations.mutate({
+      subjectProjectId: investmentProject.projectId,
+      objectProjectId: detailplanProject.projectId,
       relation: 'related',
     });
 
-    await client.project.removeRelation.mutate({
-      subjectProjectId: investmentProject.id,
-      objectProjectId: detailplanProject.id,
+    await devSession.client.project.removeRelation.mutate({
+      subjectProjectId: investmentProject.projectId,
+      objectProjectId: detailplanProject.projectId,
       relation: 'related',
     });
 
-    const { relations } = await client.project.getRelations.query({ id: investmentProject.id });
+    const { relations } = await devSession.client.project.getRelations.query({
+      projectId: investmentProject.projectId,
+    });
 
     expect(relations.parents).toBeNull();
     expect(relations.related).toBeNull();

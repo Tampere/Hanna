@@ -5,11 +5,11 @@ import { isoDateString, nonEmptyString } from '../common';
 import { projectTypes } from './type';
 
 export const projectIdSchema = z.object({
-  id: z.string(),
+  projectId: z.string(),
 });
 
 export const upsertProjectSchema = z.object({
-  id: z.string().optional(),
+  projectId: z.string().optional(),
   owner: nonEmptyString,
   projectName: nonEmptyString,
   description: nonEmptyString,
@@ -20,12 +20,24 @@ export const upsertProjectSchema = z.object({
 });
 
 export const dbProjectSchema = upsertProjectSchema.extend({
-  id: z.string(),
+  projectId: z.string(),
   geom: z.string().nullable(),
   projectType: z.enum(projectTypes),
   detailplanId: z.number().nullable(),
+  writeUsers: z.array(z.string()),
+});
+
+export const projectPermissionSchema = z.object({
+  projectId: z.string(),
+  permissions: z.array(
+    z.object({
+      userId: z.string(),
+      canWrite: z.boolean(),
+    })
+  ),
 });
 
 export type UpsertProject = z.infer<typeof upsertProjectSchema>;
+export type ProjectPermissions = z.infer<typeof projectPermissionSchema>;
 
 export type DbProject = z.infer<typeof dbProjectSchema>;

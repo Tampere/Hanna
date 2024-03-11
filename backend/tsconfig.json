@@ -12,6 +12,7 @@
     "outDir": "dist",
     "baseUrl": ".",
     "skipLibCheck": true,
+    "composite": true,
     "paths": {
       "@backend/*": ["src/*", "dist/*"],
       "@shared/*": ["node_modules/tre-hanna-shared/src/*", "node_modules/tre-hanna-shared/dist/*"]

@@ -5,7 +5,7 @@ import { nonEmptyString } from '../common';
 import { upsertProjectSchema } from './base';
 
 export const investmentProjectSchema = upsertProjectSchema.extend({
-  id: z.string().optional(),
+  projectId: z.string().optional(),
   parentId: z.string().optional(),
   owner: nonEmptyString,
   personInCharge: nonEmptyString,
@@ -16,9 +16,10 @@ export const investmentProjectSchema = upsertProjectSchema.extend({
 export type InvestmentProject = z.infer<typeof investmentProjectSchema>;
 
 export const dbInvestmentProjectSchema = investmentProjectSchema.extend({
-  id: z.string(),
+  projectId: z.string(),
   parentId: z.string(),
   geom: z.string().nullable(),
+  writeUsers: z.array(z.string()),
 });
 
 export type DbInvestmentProject = z.infer<typeof dbInvestmentProjectSchema>;

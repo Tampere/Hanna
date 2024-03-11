@@ -18,7 +18,7 @@ import { User } from '@shared/schema/user';
 
 const selectProjectFragment = sql.fragment`
   SELECT
-    project.id,
+    project.id AS "projectId",
     project_name AS "projectName",
     description,
     project.start_date AS "startDate",
@@ -42,7 +42,12 @@ const selectProjectFragment = sql.fragment`
     applicant_name AS "applicantName",
     applicant_address AS "applicantAddress",
     applicant_objective AS "applicantObjective",
-    additional_info AS "additionalInfo"
+    additional_info AS "additionalInfo",
+    (
+      SELECT array_agg(user_id)
+      FROM app.project_permission
+      WHERE project_id = project.id AND can_write = true
+    ) AS "writeUsers"
   FROM app.project
   LEFT JOIN app.project_detailplan ON project_detailplan.id = project.id
   WHERE deleted = false
@@ -68,14 +73,18 @@ export async function getProject(id: string, tx?: DatabaseTransactionConnection)
   return { ...project, committees: committees.map(({ id }) => id) };
 }
 
-export async function projectUpsert(project: DetailplanProject, user: User) {
+export async function projectUpsert(
+  project: DetailplanProject,
+  user: User,
+  keepOwnerRights: boolean = false
+) {
   return await getPool().transaction(async (tx) => {
     if (hasErrors(await baseProjectValidate(tx, project))) {
       logger.error('projectUpsert: validation failed', { project });
       throw new Error('Invalid project data');
     }
 
-    const id = await baseProjectUpsert(tx, project, user);
+    const id = await baseProjectUpsert(tx, project, user, keepOwnerRights);
     await addAuditEvent(tx, {
       eventType: 'detailplanProject.upsertProject',
       eventData: project,
@@ -103,20 +112,20 @@ export async function projectUpsert(project: DetailplanProject, user: User) {
     const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
     const values = Object.values(data);
 
-    const upsertResult = project.id
+    const upsertResult = project.projectId
       ? await tx.one(sql.type(projectIdSchema)`
         UPDATE app.project_detailplan
         SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
-        WHERE id = ${project.id}
-        RETURNING id
+        WHERE id = ${project.projectId}
+        RETURNING id AS "projectId"
       `)
       : await tx.one(sql.type(projectIdSchema)`
         INSERT INTO app.project_detailplan (${sql.join(identifiers, sql.fragment`,`)})
         VALUES (${sql.join(values, sql.fragment`,`)})
-        RETURNING id
+        RETURNING id AS "projectId"
       `);
 
-    return getProject(upsertResult.id, tx);
+    return getProject(upsertResult.projectId, tx);
   });
 }
 

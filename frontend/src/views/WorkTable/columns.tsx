@@ -41,6 +41,8 @@ interface MaybeModifiedCellProps<T extends GridValidRowModel> {
   modifiedFields?: ModifiedFields<T>;
 }
 
+export type WorkTableFinanceField = 'budget' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos';
+
 function MaybeModifiedCell({
   params,
   children,

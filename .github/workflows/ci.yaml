@@ -108,7 +108,7 @@ jobs:
       - run: docker compose logs
         if: failure()
       # Execute the E2E tests
-      - run: npm test
+      - run: npm test -- --workers=1
 
   build:
     name: Build

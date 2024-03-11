@@ -224,7 +224,7 @@ export async function projectSearch(input: ProjectSearch) {
       INNER JOIN app.project ON app.project.id = filtered_projects.id
     ), limited AS (
       SELECT
-        id,
+        id AS "projectId",
         "startDate",
         "endDate",
         "projectName",
@@ -245,9 +245,9 @@ export async function projectSearch(input: ProjectSearch) {
 }
 
 export async function listProjects(input: ProjectListParams) {
-  const resultSchema = z.object({ projectName: z.string(), id: z.string() });
+  const resultSchema = z.object({ projectName: z.string(), projectId: z.string() });
   return await getPool().many(sql.type(resultSchema)`
-    SELECT project_name AS "projectName", app.project.id
+    SELECT project_name AS "projectName", app.project.id AS "projectId"
     FROM app.project
     ${
       input.projectType === 'investmentProject'

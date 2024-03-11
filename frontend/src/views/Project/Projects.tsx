@@ -20,12 +20,14 @@ import { Link } from 'react-router-dom';
 import { trpc } from '@frontend/client';
 import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
 import { useNotifications } from '@frontend/services/notification';
+import { authAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { projectSearchParamAtom } from '@frontend/stores/search/project';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { ResultsMap } from '@frontend/views/Project/ResultsMap';
 
 import { DbProject } from '@shared/schema/project/base';
+import { hasPermission } from '@shared/schema/userPermissions';
 
 import { SearchControls } from './SearchControls';
 
@@ -38,51 +40,65 @@ const toolbarContainerStyle = css`
 
 function Toolbar() {
   const tr = useTranslations();
+  const auth = useAtomValue(authAtom);
   const [newProjectMenuOpen, setNewProjectMenuOpen] = useState(false);
   const newProjectMenuAnchor = useRef<HTMLButtonElement>(null);
+
+  const canCreateProject =
+    auth &&
+    (hasPermission(auth, 'investmentProject.write') ||
+      hasPermission(auth, 'detailplanProject.write'));
+
   return (
     <Box css={toolbarContainerStyle}>
       <Typography variant="h4" component="h1">
         {tr('pages.projectsTitle')}
       </Typography>
-      <div>
-        <Button
-          ref={newProjectMenuAnchor}
-          onClick={() => setNewProjectMenuOpen(true)}
-          variant="contained"
-          size="large"
-          style={{ alignItems: 'flex-start' }}
-          endIcon={<AddCircle />}
-        >
-          {tr('newProject.btnLabel')}
-        </Button>
-        <Menu
-          open={newProjectMenuOpen}
-          onClose={() => setNewProjectMenuOpen(false)}
-          anchorEl={newProjectMenuAnchor.current}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
-        >
-          <MenuItem component={Link} to="/investointihanke/luo">
-            <ListItemIcon>
-              <Add />
-            </ListItemIcon>
-            <ListItemText>{tr('newProject.newInvestmentProject')}</ListItemText>
-          </MenuItem>
-          <MenuItem component={Link} to="/asemakaavahanke/luo">
-            <ListItemIcon>
-              <Add />
-            </ListItemIcon>
-            <ListItemText>{tr('newProject.newDetailplanProject')}</ListItemText>
-          </MenuItem>
-        </Menu>
-      </div>
+      {canCreateProject && (
+        <div>
+          <Button
+            ref={newProjectMenuAnchor}
+            onClick={() => setNewProjectMenuOpen(true)}
+            disabled={!canCreateProject}
+            variant="contained"
+            size="large"
+            style={{ alignItems: 'flex-start' }}
+            endIcon={<AddCircle />}
+          >
+            {tr('newProject.btnLabel')}
+          </Button>
+          <Menu
+            open={newProjectMenuOpen}
+            onClose={() => setNewProjectMenuOpen(false)}
+            anchorEl={newProjectMenuAnchor.current}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+          >
+            {auth && hasPermission(auth, 'investmentProject.write') && (
+              <MenuItem component={Link} to="/investointihanke/luo">
+                <ListItemIcon>
+                  <Add />
+                </ListItemIcon>
+                <ListItemText>{tr('newProject.newInvestmentProject')}</ListItemText>
+              </MenuItem>
+            )}
+            {auth && hasPermission(auth, 'detailplanProject.write') && (
+              <MenuItem component={Link} to="/asemakaavahanke/luo">
+                <ListItemIcon>
+                  <Add />
+                </ListItemIcon>
+                <ListItemText>{tr('newProject.newDetailplanProject')}</ListItemText>
+              </MenuItem>
+            )}
+          </Menu>
+        </div>
+      )}
     </Box>
   );
 }
@@ -106,10 +122,10 @@ const projectTypeRootUrl = {
 
 function ProjectCard({ result }: { result: DbProject }) {
   const tr = useTranslations();
-  const projectUrl = `${projectTypeRootUrl[result.projectType]}/${result.id}`;
+  const projectUrl = `${projectTypeRootUrl[result.projectType]}/${result.projectId}`;
 
   return (
-    <CardActionArea key={result.id} component={Link} to={projectUrl}>
+    <CardActionArea key={result.projectId} component={Link} to={projectUrl}>
       <Card variant="outlined" css={projectCardStyle}>
         <NavigateNext sx={{ color: '#aaa', mr: 1 }} />
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -222,7 +238,7 @@ function SearchResults({ results, loading }: SearchResultsProps) {
         </AsyncJobButton>
       </Box>
       {results?.length > 0
-        ? results.map((result) => <ProjectCard result={result} key={result.id} />)
+        ? results.map((result) => <ProjectCard result={result} key={result.projectId} />)
         : !loading && (
             <Box>
               <p>{tr('projectSearch.noResults')}</p>

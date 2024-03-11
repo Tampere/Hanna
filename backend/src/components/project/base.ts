@@ -7,8 +7,9 @@ import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
 
 import { FormErrors, fieldError, hasErrors } from '@shared/formerror';
-import { UpsertProject, projectIdSchema } from '@shared/schema/project/base';
+import { ProjectPermissions, UpsertProject, projectIdSchema } from '@shared/schema/project/base';
 import { User } from '@shared/schema/user';
+import { ProjectPermissionContext, permissionContextSchema } from '@shared/schema/userPermissions';
 
 import { codeIdFragment } from '../code';
 
@@ -31,33 +32,50 @@ async function upsertBaseProject(
   const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
   const values = Object.values(data);
 
-  const upsertResult = project.id
+  const upsertResult = project.projectId
     ? await tx.one(sql.type(projectIdSchema)`
       UPDATE app.project
       SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
-      WHERE id = ${project.id}
-      RETURNING id
+      WHERE id = ${project.projectId}
+      RETURNING id AS "projectId"
     `)
     : await tx.one(sql.type(projectIdSchema)`
       INSERT INTO app.project (${sql.join(identifiers, sql.fragment`,`)})
       VALUES (${sql.join(values, sql.fragment`,`)})
-      RETURNING id
+      RETURNING id AS "projectId"
     `);
 
   return upsertResult;
 }
 
+export async function getPermissionContext(id: string): Promise<ProjectPermissionContext> {
+  const permissionCtx = await getPool().maybeOne(sql.type(permissionContextSchema)`
+    SELECT
+      id,
+      "owner",
+      coalesce(array_agg(project_permission.user_id) FILTER (WHERE can_write = true), '{}') AS "writeUsers"
+    FROM app.project
+    LEFT JOIN app.project_permission ON project.id = project_permission.project_id
+    WHERE project.id = ${id}
+    GROUP BY id, "owner"
+  `);
+  if (!permissionCtx) {
+    throw new Error('Could not get permission context');
+  }
+  return permissionCtx;
+}
+
 export async function getProject(id: string) {
   const project = await getPool().maybeOne(sql.type(
     z.object({
-      id: z.string(),
+      projectId: z.string(),
       description: z.string(),
       projectName: z.string(),
       geom: z.string(),
     }),
   )`
     SELECT
-      id,
+      id AS "projectId",
       description,
       project_name AS "projectName",
       ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom
@@ -74,10 +92,10 @@ export async function getProject(id: string) {
 }
 
 export async function deleteProject(id: string, userId: User['id']) {
-  await getPool().transaction(async (tx) => {
+  return await getPool().transaction(async (tx) => {
     await addAuditEvent(tx, { eventType: 'deleteProject', eventData: { id }, eventUser: userId });
-    const project = await tx.any(sql.type(projectIdSchema)`
-      UPDATE app.project SET deleted = true WHERE id = ${id}
+    const project = await tx.maybeOne(sql.type(projectIdSchema)`
+      UPDATE app.project SET deleted = true WHERE id = ${id} RETURNING id as "projectId"
     `);
     if (!project) {
       throw new TRPCError({
@@ -99,23 +117,23 @@ export async function validateUpsertProject(
     errors: {},
   };
 
-  if (values?.id) {
+  if (values?.projectId) {
     const dateRange = await getPool().maybeOne(sql.untyped`
     WITH budget_range AS (
       SELECT
-        ${values?.id} as id,
+        ${values?.projectId} as id,
         extract(year FROM ${values?.startDate}::date) <= min(b.year) AS "validBudgetStartDate",
         extract(year FROM ${values?.endDate}::date) >= max(b.year) AS "validBudgetEndDate"
       FROM app.budget b
-      WHERE b.project_id = ${values?.id}
+      WHERE b.project_id = ${values?.projectId}
       GROUP BY b.project_id
     ), object_range AS (
       SELECT
-        ${values?.id} as id,
+        ${values?.projectId} as id,
         min(po.start_date) >= ${values?.startDate} AS "validObjectStartDate",
         max(po.end_date) <= ${values?.endDate} AS "validObjectEndDate"
       FROM app.project_object po
-      WHERE po.project_id = ${values?.id}
+      WHERE po.project_id = ${values?.projectId}
       GROUP BY po.project_id
     )
     SELECT
@@ -148,7 +166,7 @@ export async function validateUpsertProject(
 
   // Check that SAP project ID is not changed if project has project objects
   // with selected SAP WBS elements
-  if (values?.id) {
+  if (values?.projectId) {
     const result = await tx.maybeOne(sql.untyped`
       SELECT
         project.id AS "projectId",
@@ -157,7 +175,7 @@ export async function validateUpsertProject(
       FROM app.project
       LEFT JOIN app.sap_project ON project.sap_project_id = sap_project.sap_project_id
       LEFT JOIN app.project_object ON project.id = project_object.project_id
-      WHERE project.id = ${values?.id}
+      WHERE project.id = ${values?.projectId}
       GROUP BY project.id, sap_project.sap_project_id;
     `);
 
@@ -175,15 +193,70 @@ export async function validateUpsertProject(
   return validationErrors;
 }
 
+async function upsertProjectPermissions(
+  tx: DatabaseTransactionConnection,
+  projectPermissions: ProjectPermissions,
+) {
+  const { projectId, permissions } = projectPermissions;
+
+  return await tx.many(sql.type(projectIdSchema)`
+    INSERT INTO app.project_permission (project_id, user_id, can_write)
+    SELECT * FROM ${sql.unnest(
+      permissions.map((permission) => [projectId, permission.userId, permission.canWrite]),
+      ['uuid', 'text', 'bool'],
+    )}
+    ON CONFLICT (project_id, user_id) DO
+    UPDATE SET (project_id, user_id, can_write) = (EXCLUDED.project_id, EXCLUDED.user_id, EXCLUDED.can_write)
+    RETURNING project_id as "projectId";
+  `);
+}
+
 export async function baseProjectUpsert(
   tx: DatabaseTransactionConnection,
   project: UpsertProject,
   user: User,
+  keepOwnerRights: boolean = false,
 ) {
   if (hasErrors(await validateUpsertProject(tx, project))) {
     logger.error('Invalid project data', { input: project });
     throw new Error('Invalid project data');
   }
+
+  if (keepOwnerRights && project.projectId) {
+    const oldOwnerRow = await tx.one(
+      sql.type(
+        z.object({ owner: z.string() }),
+      )`SELECT owner FROM app.project WHERE id = ${project.projectId}`,
+    );
+
+    await projectPermissionUpsert(
+      {
+        projectId: project.projectId,
+        permissions: [{ userId: oldOwnerRow.owner, canWrite: true }],
+      },
+      tx,
+    );
+  }
+
   const result = await upsertBaseProject(tx, project, user.id);
-  return result.id;
+  return result.projectId;
+}
+
+export async function projectPermissionUpsert(
+  projectPermissions: ProjectPermissions,
+  tx?: DatabaseTransactionConnection,
+) {
+  const conn = tx ?? getPool();
+  const result = await upsertProjectPermissions(conn, projectPermissions);
+
+  return result;
+}
+
+export async function getProjectUserPermissions(projectId: string) {
+  return await getPool().many(sql.type(
+    z.object({ userId: z.string(), userName: z.string(), canWrite: z.boolean() }),
+  )`
+  SELECT u.id as "userId", u.name as "userName", COALESCE(pp.can_write, false) as "canWrite"
+  FROM app.user u
+  LEFT JOIN app.project_permission pp ON u.id = pp.user_id AND pp.project_id = ${projectId};`);
 }

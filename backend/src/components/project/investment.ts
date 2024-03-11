@@ -19,7 +19,7 @@ import { User } from '@shared/schema/user';
 
 const selectProjectFragment = sql.fragment`
   SELECT
-    project_investment.id,
+    project_investment.id AS "projectId",
     project.id AS "parentId",
     project_name AS "projectName",
     description,
@@ -30,7 +30,12 @@ const selectProjectFragment = sql.fragment`
     geohash,
     ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
     (project.lifecycle_state).id AS "lifecycleState",
-    sap_project_id AS "sapProjectId"
+    sap_project_id AS "sapProjectId",
+    (
+      SELECT array_agg(user_id)
+      FROM app.project_permission
+      WHERE project_id = project.id AND can_write = true
+    ) AS "writeUsers"
   FROM app.project
   LEFT JOIN app.project_investment ON project_investment.id = project.id
   WHERE deleted = false
@@ -55,19 +60,24 @@ export async function getProject(id: string, tx?: DatabaseTransactionConnection)
   return { ...project, committees: committees.map(({ id }) => id) };
 }
 
-export async function projectUpsert(project: InvestmentProject, user: User) {
+export async function projectUpsert(
+  project: InvestmentProject,
+  user: User,
+  keepOwnerRights: boolean = false
+) {
   return getPool().transaction(async (tx) => {
     if (hasErrors(await validateUpsertProject(project, tx))) {
       logger.error('Invalid project', { project });
       throw new Error('Invalid project');
     }
 
-    const id = await baseProjectUpsert(tx, project, user);
     await addAuditEvent(tx, {
       eventType: 'investmentProject.upsertProject',
       eventData: project,
       eventUser: user.id,
     });
+
+    const id = await baseProjectUpsert(tx, project, user, keepOwnerRights);
 
     const data = {
       id,
@@ -77,22 +87,22 @@ export async function projectUpsert(project: InvestmentProject, user: User) {
     const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
     const values = Object.values(data);
 
-    const upsertResult = project.id
+    const upsertResult = project.projectId
       ? await tx.one(sql.type(projectIdSchema)`
         UPDATE app.project_investment
         SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
-        WHERE id = ${project.id}
-        RETURNING id
+        WHERE id = ${project.projectId}
+        RETURNING id AS "projectId"
       `)
       : await tx.one(sql.type(projectIdSchema)`
         INSERT INTO app.project_investment (${sql.join(identifiers, sql.fragment`,`)})
         VALUES (${sql.join(values, sql.fragment`,`)})
-        RETURNING id
+        RETURNING id AS "projectId"
       `);
 
     tx.query(sql.untyped`
       DELETE FROM app.project_committee
-      WHERE project_id = ${upsertResult.id}
+      WHERE project_id = ${upsertResult.projectId}
     `);
 
     await Promise.all(
@@ -100,7 +110,7 @@ export async function projectUpsert(project: InvestmentProject, user: User) {
         tx.any(sql.untyped`
           INSERT INTO app.project_committee (project_id, committee_type)
           VALUES (
-            ${upsertResult.id},
+            ${upsertResult.projectId},
             ${codeIdFragment('Lautakunta', committee)}
           );
         `),
@@ -111,14 +121,14 @@ export async function projectUpsert(project: InvestmentProject, user: User) {
       updateProjectGeometry(
         tx,
         {
-          id: upsertResult.id,
+          projectId: upsertResult.projectId,
           features: project.geom,
         },
         user,
       );
     }
 
-    return getProject(upsertResult.id, tx);
+    return getProject(upsertResult.projectId, tx);
   });
 }
 
