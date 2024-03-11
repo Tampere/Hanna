@@ -32,8 +32,8 @@ interface AuthPluginOpts extends FastifyPluginOptions {
   publicRouterPaths: Set<string>;
 }
 
-function getUserRole(roles: RoleClaim[]): UserRole {
-  if (roles.includes('Hanna_admins') || roles.includes('Hanna_test_admins')) {
+function getUserRole(roles: string[]): UserRole {
+  if (roles.includes(process.env.HANNA_ADMIN_GROUP as string)) {
     return 'Hanna.Admin';
   } else if (roles.includes('Hanna_users') || roles.includes('Hanna_test_users')) {
     return 'Hanna.User';
