@@ -121,6 +121,18 @@ export const createCompanyRouter = (t: TRPC) =>
         `);
     }),
 
+    getAllContacts: t.procedure.query(async () => {
+      return getPool().any(sql.type(companyContactSchema.required())`
+      SELECT
+        id,
+        contact_name AS "contactName",
+        phone_number AS "phoneNumber",
+        email_address AS "emailAddress",
+        business_id AS "businessId"
+      FROM app.company_contact
+      WHERE deleted IS FALSE`);
+    }),
+
     deleteContact: t.procedure.input(companyContactIdSchema).mutation(async ({ ctx, input }) => {
       await getPool().transaction(async (tx) => {
         await addAuditEvent(tx, {

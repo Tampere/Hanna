@@ -39,6 +39,8 @@ import {
   upsertProjectObjectSchema,
 } from '@shared/schema/projectObject';
 
+import { ProjectObjectFormUserRoles } from './ProjectObjectFormUserRoles';
+
 const newProjectFormStyle = css`
   display: grid;
   margin-top: 16px;
@@ -533,6 +535,14 @@ export function ProjectObjectForm(props: Readonly<Props>) {
               />
             )}
           />
+          <FormField
+            formField="objectUserRoles"
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            component={({ ref, ...field }) => (
+              <ProjectObjectFormUserRoles {...field} readOnly={!editing} />
+            )}
+          />
+
           <Box
             css={css`
               display: flex;
