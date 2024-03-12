@@ -288,6 +288,7 @@
   "userPermissions.detailplanProject.write": "Asemakaavahankkeiden luonti",
   "userPermissions.financials.write": "Talousarvio ja KSM",
   "userPermissions.admin": "Pääkäyttäjä",
+  "userPermissions.noUsersFound": "Ei hakuehtoja vastaavia käyttäjiä",
   "genericForm.selectionCount": "valittuna",
   "genericForm.accept": "Hyväksy",
   "genericForm.select": "Valitse",

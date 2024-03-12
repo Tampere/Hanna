@@ -10,6 +10,7 @@ import { Pool } from 'pg';
 
 import { RoleClaim, UserRole } from '@shared/schema/userPermissions';
 
+import { env } from './env';
 import { logger } from './logging';
 import { upsertUser } from './user';
 
@@ -33,7 +34,7 @@ interface AuthPluginOpts extends FastifyPluginOptions {
 }
 
 function getUserRole(roles: string[]): UserRole {
-  if (roles.includes(process.env.HANNA_ADMIN_GROUP as string)) {
+  if (roles.includes(env.adminGroup as string)) {
     return 'Hanna.Admin';
   } else if (roles.includes('Hanna_users') || roles.includes('Hanna_test_users')) {
     return 'Hanna.User';
@@ -134,7 +135,7 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
       if (req.session) {
         req.logOut();
       }
-      res.redirect(process.env.AUTH_LOGOUT_URL as string);
+      res.redirect(env.auth.logoutUrl as string);
     });
   });
 

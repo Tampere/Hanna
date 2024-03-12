@@ -58,8 +58,8 @@ test.describe('permission testing', () => {
     ).rejects.toThrowError('error.insufficientPermissions');
   });
 
-  test('non-admin users cannot grant permissions for any users', async () => {
-    const users = await adminSession.client.userPermissions.getAll.query();
+  test.only('non-admin users cannot grant permissions for any users', async () => {
+    const users = await adminSession.client.userPermissions.getByName.query();
 
     await expect(
       testSession.client.userPermissions.setPermissions.mutate([

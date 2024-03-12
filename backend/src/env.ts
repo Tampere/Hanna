@@ -37,6 +37,9 @@ const schema = z.object({
     actualsEndpoint: z.string(),
     actualsInfoTTLSeconds: z.number(),
   }),
+  auth: z.object({
+    logoutUrl: z.string(),
+  }),
   enabledFeatures: z.object({
     sapActuals: z.boolean(),
     sapSync: z.boolean(),
@@ -93,6 +96,7 @@ const schema = z.object({
   }),
   adminApiKey: z.string().optional(),
   projectFormLink: z.string().optional(),
+  adminGroup: z.string(),
 });
 
 function getEnv() {
@@ -123,6 +127,9 @@ function getEnv() {
       projectInfoTTLSeconds: Number(process.env.SAP_WS_PROJECTINFO_TTL_SECONDS),
       actualsEndpoint: process.env.SAP_WS_ACTUALS_ENDPOINT,
       actualsInfoTTLSeconds: Number(process.env.SAP_WS_ACTUALS_TTL_SECONDS),
+    },
+    auth: {
+      logoutUrl: process.env.AUTH_LOGOUT_URL,
     },
     enabledFeatures: {
       sapActuals: process.env.FEATURE_ENABLED_SAP_ACTUALS === 'true',
@@ -181,6 +188,7 @@ function getEnv() {
     },
     adminApiKey: process.env.ADMIN_API_KEY,
     projectFormLink: process.env.PROJECT_FORM_LINK,
+    adminGroup: process.env.HANNA_ADMIN_GROUP,
   } as z.infer<typeof schema>);
 }
 

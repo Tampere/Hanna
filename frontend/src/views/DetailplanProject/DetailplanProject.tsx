@@ -86,21 +86,23 @@ export function DetailplanProject() {
   const routeParams = useParams() as { projectId: string; tabView: TabView };
   const [searchParams] = useSearchParams();
   const tabView = searchParams.get('tab') || 'default';
-  const tabs = getTabs(routeParams.projectId).filter(
-    (tab) => project?.data && user && tab.hasAccess(user, project.data),
-  );
   const projectId = routeParams?.projectId;
+  const user = useAtomValue(authAtom);
 
   const project = trpc.detailplanProject.get.useQuery(
     { projectId },
     { enabled: Boolean(projectId), queryKey: ['detailplanProject.get', { projectId }] },
   );
 
+  const tabs = getTabs(routeParams.projectId).filter(
+    (tab) => project?.data && user && tab.hasAccess(user, project.data),
+  );
+
   const tr = useTranslations();
-  const user = useAtomValue(authAtom);
+
   const userCanModify = Boolean(
     user &&
-      project.data &&
+      project?.data &&
       (ownsProject(user, project.data) || hasWritePermission(user, project.data)),
   );
 

@@ -1,21 +1,28 @@
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
 import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 
-import { isAdmin, setPermissionSchema, userSchema } from '@shared/schema/userPermissions';
+import {
+  isAdmin,
+  setPermissionSchema,
+  userSchema,
+  userSearchSchema,
+} from '@shared/schema/userPermissions';
 
-async function getAllUsers() {
-  return getPool().many(sql.type(userSchema)`
+async function searchUsers(userName: string) {
+  return getPool().any(sql.type(userSchema)`
   SELECT
     id AS "userId",
     email AS "userEmail",
     "name" AS "userName",
     "role" AS "userRole",
-    ("role" = 'Hanna.Admin') AS "isAdmin",
+    COALESCE(("role" = 'Hanna.Admin'), false) AS "isAdmin",
     permissions
-  FROM app.user`);
+  FROM app.user
+  WHERE name ILIKE ${'%' + userName + '%'}`);
 }
 
 export const createUserPermissionsRouter = (t: TRPC) => {
@@ -31,8 +38,10 @@ export const createUserPermissionsRouter = (t: TRPC) => {
   });
 
   return t.router({
-    getAll: baseProcedure.query(async () => {
-      return getAllUsers();
+    getByName: baseProcedure.input(userSearchSchema.optional()).query(async ({ input }) => {
+      const userResultSchema = z.array(userSchema);
+      const users = await searchUsers(input?.userName ?? '');
+      return userResultSchema.parse(users ?? []);
     }),
 
     setPermissions: baseProcedure.input(setPermissionSchema).mutation(async ({ input, ctx }) => {
@@ -50,7 +59,7 @@ export const createUserPermissionsRouter = (t: TRPC) => {
               WHERE id = ${userId}
               RETURNING id AS "userId", permissions
             `);
-          })
+          }),
         );
       });
     }),

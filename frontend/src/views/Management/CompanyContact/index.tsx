@@ -52,7 +52,9 @@ export function CompanyContactPage(props: Props) {
           margin-bottom: 24px;
         `}
       >
-        <Typography variant="h4" component="h1">{tr('management.tabs.companyContacts')}</Typography>
+        <Typography variant="h4" component="h1">
+          {tr('management.tabs.companyContacts')}
+        </Typography>
         <Box
           css={css`
             display: flex;
@@ -79,10 +81,13 @@ export function CompanyContactPage(props: Props) {
         fullWidth={true}
         placeholder={tr('companyContact.searchPlaceholder')}
         onChange={(e) => setQuery(e.target.value)}
-        InputProps={{startAdornment: (
-        <InputAdornment position="start">
-          <SearchTwoTone />
-        </InputAdornment>)}}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchTwoTone />
+            </InputAdornment>
+          ),
+        }}
       />
 
       <Box
