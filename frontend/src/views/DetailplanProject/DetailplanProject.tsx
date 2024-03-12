@@ -74,7 +74,7 @@ function getTabs(projectId: string) {
     },
     {
       tabView: 'luvitus',
-      url: `/asemakaavahanke/${projectId}/luvitus`,
+      url: `/asemakaavahanke/${projectId}?tab=luvitus`,
       label: 'project.permissionsTabLabel',
       icon: <KeyTwoTone fontSize="small" />,
       hasAccess: (user: User, project: ProjectPermissionContext) => ownsProject(user, project),
@@ -83,7 +83,7 @@ function getTabs(projectId: string) {
 }
 
 export function DetailplanProject() {
-  const routeParams = useParams() as { projectId: string; tabView: TabView };
+  const routeParams = useParams() as { projectId: string };
   const [searchParams] = useSearchParams();
   const tabView = searchParams.get('tab') || 'default';
   const projectId = routeParams?.projectId;
@@ -192,18 +192,16 @@ export function DetailplanProject() {
 
           {tabView !== 'default' && (
             <Box sx={{ p: 2, overflowY: 'auto' }}>
-              {routeParams.tabView === 'sidoshankkeet' && (
+              {tabView === 'sidoshankkeet' && (
                 <ProjectRelations editable={userCanModify} projectId={routeParams.projectId} />
               )}
-              {routeParams.tabView === 'tiedotus' && (
+              {tabView === 'tiedotus' && (
                 <DetailplanProjectNotification
                   enabled={Boolean(user && project.data && ownsProject(user, project.data))}
                   projectId={routeParams.projectId}
                 />
               )}
-              {routeParams.tabView === 'luvitus' && (
-                <ProjectPermissions projectId={routeParams.projectId} />
-              )}
+              {tabView === 'luvitus' && <ProjectPermissions projectId={routeParams.projectId} />}
             </Box>
           )}
         </Paper>
