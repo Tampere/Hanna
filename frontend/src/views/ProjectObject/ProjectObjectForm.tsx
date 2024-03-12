@@ -8,7 +8,6 @@ import {
   Button,
   ButtonGroup,
   ButtonGroupTypeMap,
-  InputAdornment,
   Popover,
   TextField,
 } from '@mui/material';
@@ -492,49 +491,6 @@ export function ProjectObjectForm(props: Readonly<Props>) {
               <SapWBSSelect projectId={formProjectId} readonlyProps={readonlyProps} field={field} />
             )}
           />
-
-          <FormField
-            formField="landownership"
-            label={tr('projectObject.landownershipLabel')}
-            tooltip={tr('projectObject.landownershipTooltip')}
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            component={({ ref, ...field }) => (
-              <CodeSelect {...field} codeListId="KohteenMaanomistusLaji" readOnly={!editing} />
-            )}
-          />
-
-          <FormField
-            formField="locationOnProperty"
-            label={tr('projectObject.locationOnPropertyLabel')}
-            tooltip={tr('projectObject.locationOnPropertyTooltip')}
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            component={({ ref, ...field }) => (
-              <CodeSelect
-                {...field}
-                codeListId="KohteenSuhdePeruskiinteistoon"
-                readOnly={!editing}
-              />
-            )}
-          />
-
-          <FormField
-            formField="height"
-            label={tr('projectObject.heightLabel')}
-            tooltip={tr('projectObject.heightTooltip')}
-            component={(field) => (
-              <TextField
-                {...readonlyProps}
-                {...field}
-                value={field.value ?? ''}
-                size="small"
-                type="number"
-                InputProps={{
-                  readOnly: !editing,
-                  endAdornment: <InputAdornment position="end">m</InputAdornment>,
-                }}
-              />
-            )}
-          />
           <FormField
             formField="objectUserRoles"
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -542,7 +498,6 @@ export function ProjectObjectForm(props: Readonly<Props>) {
               <ProjectObjectFormUserRoles {...field} readOnly={!editing} />
             )}
           />
-
           <Box
             css={css`
               display: flex;
