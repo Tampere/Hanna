@@ -38,12 +38,16 @@ export const userSchema = z.object({
   userId: z.string(),
   userEmail: z.string(),
   userName: z.string(),
-  userRole: userRoleSchema,
+  userRole: userRoleSchema.nullable(), // nullable if no role is registered at MS Entra for the user
   isAdmin: z.boolean(),
   permissions: z.array(permissionSchema),
 });
 
 export type User = z.infer<typeof userSchema>;
+
+export const userSearchSchema = z.object({
+  userName: z.string(),
+});
 
 export const setPermissionSchema = z.array(
   z.object({

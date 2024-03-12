@@ -15,20 +15,33 @@ import {
   css,
 } from '@mui/material';
 import diff from 'microdiff';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { debounce } from 'tre-hanna-shared/src/utils';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
+import { useDebounce } from '@frontend/utils/useDebounce';
 
 import { hasPermission } from '@shared/schema/userPermissions';
 
 export function UserPermissionsPage() {
   const tr = useTranslations();
-  const { data, isLoading, isError, refetch } = trpc.userPermissions.getAll.useQuery();
+  const [userSearch, setUserSearch] = useState('');
+  const { data, isLoading, isError, refetch } = trpc.userPermissions.getByName.useQuery({
+    userName: useDebounce(userSearch, 500),
+  });
   const [localUserPermissions, setLocalUserPermissions] = useState<typeof userPermissions>([]);
   const updateData = trpc.userPermissions.setPermissions.useMutation();
   const notify = useNotifications();
+
+  const debouncedSearch = useMemo(() => debounce(refetch, 500), []);
+
+  useEffect(() => {
+    if (userSearch) {
+      debouncedSearch();
+    }
+  }, [userSearch]);
 
   const userPermissions = data
     ? [...data]
@@ -52,8 +65,8 @@ export function UserPermissionsPage() {
     : [];
 
   function handlePermissionChange(
-    user: typeof userPermissions[number],
-    permission: typeof user.permissions[number]
+    user: (typeof userPermissions)[number],
+    permission: (typeof user.permissions)[number],
   ) {
     if (!permission) return;
     setLocalUserPermissions((prevPermissions) =>
@@ -65,8 +78,8 @@ export function UserPermissionsPage() {
                 ? prevUser.permissions.filter((perm) => perm !== permission)
                 : [...(prevUser.permissions ?? []), permission],
             }
-          : prevUser
-      )
+          : prevUser,
+      ),
     );
   }
 
@@ -102,10 +115,6 @@ export function UserPermissionsPage() {
   useEffect(() => {
     setLocalUserPermissions(userPermissions);
   }, [data]);
-
-  if (isLoading || isError) {
-    return null;
-  }
 
   return (
     <Box
@@ -169,64 +178,83 @@ export function UserPermissionsPage() {
             </InputAdornment>
           ),
         }}
+        value={userSearch}
+        onChange={(e) => setUserSearch(e.target.value)}
       />
-      <TableContainer
-        css={css`
-          margin-top: 32px;
-        `}
-      >
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>{tr('userPermissions.userName')}</TableCell>
-              <TableCell align="center">{tr('userPermissions.investmentProject.write')}</TableCell>
-              <TableCell align="center">{tr('userPermissions.detailplanProject.write')}</TableCell>
-              <TableCell align="center">{tr('userPermissions.financials.write')}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {localUserPermissions.map((user) => (
-              <TableRow key={user.userId} hover={true}>
-                <TableCell component="th" variant="head" scope="row">
-                  {user.userName}
-                  {user.isAdmin && (
-                    <Typography
-                      variant="body2"
-                      component="span"
-                      css={css`
-                        opacity: 0.7;
-                      `}
-                    >
-                      &nbsp;({tr('userPermissions.admin')})
-                    </Typography>
-                  )}
-                </TableCell>
-                <TableCell align="center">
-                  <Checkbox
-                    checked={hasPermission(user, 'investmentProject.write')}
-                    disabled={user.isAdmin}
-                    onClick={() => handlePermissionChange(user, 'investmentProject.write')}
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  <Checkbox
-                    checked={hasPermission(user, 'detailplanProject.write')}
-                    disabled={user.isAdmin}
-                    onClick={() => handlePermissionChange(user, 'detailplanProject.write')}
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  <Checkbox
-                    checked={hasPermission(user, 'financials.write')}
-                    disabled={user.isAdmin}
-                    onClick={() => handlePermissionChange(user, 'financials.write')}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {!isLoading &&
+        !isError &&
+        (userPermissions?.length > 0 ? (
+          <TableContainer
+            css={css`
+              margin-top: 32px;
+            `}
+          >
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{tr('userPermissions.userName')}</TableCell>
+                  <TableCell align="center">
+                    {tr('userPermissions.investmentProject.write')}
+                  </TableCell>
+                  <TableCell align="center">
+                    {tr('userPermissions.detailplanProject.write')}
+                  </TableCell>
+                  <TableCell align="center">{tr('userPermissions.financials.write')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {localUserPermissions.map((user) => (
+                  <TableRow key={user.userId} hover={true}>
+                    <TableCell component="th" variant="head" scope="row">
+                      {user.userName}
+                      {user.isAdmin && (
+                        <Typography
+                          variant="body2"
+                          component="span"
+                          css={css`
+                            opacity: 0.7;
+                          `}
+                        >
+                          &nbsp;({tr('userPermissions.admin')})
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell align="center">
+                      <Checkbox
+                        checked={hasPermission(user, 'investmentProject.write')}
+                        disabled={user.isAdmin}
+                        onClick={() => handlePermissionChange(user, 'investmentProject.write')}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Checkbox
+                        checked={hasPermission(user, 'detailplanProject.write')}
+                        disabled={user.isAdmin}
+                        onClick={() => handlePermissionChange(user, 'detailplanProject.write')}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Checkbox
+                        checked={hasPermission(user, 'financials.write')}
+                        disabled={user.isAdmin}
+                        onClick={() => handlePermissionChange(user, 'financials.write')}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : (
+          <Typography
+            css={css`
+              margin-top: 3rem;
+              text-align: center;
+            `}
+          >
+            {tr('userPermissions.noUsersFound')}
+          </Typography>
+        ))}
     </Box>
   );
 }
