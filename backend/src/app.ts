@@ -31,6 +31,7 @@ import { setupEnvironmentCodeReportQueue } from './components/sap/environmentCod
 import { initializeTaskQueue } from './components/taskQueue';
 import { setupMailQueue } from './components/taskQueue/mailQueue';
 import { setupReportQueue } from './components/taskQueue/reportQueue';
+import { setupWorkTableReportQueue } from './components/taskQueue/workTableReportQueue';
 
 async function run() {
   ProjectInfoService.initialize({
@@ -58,6 +59,7 @@ async function run() {
     env.enabledFeatures.sapSync ? setupEnvironmentCodeReportQueue() : null,
     env.enabledFeatures.sapSync ? setupBlanketContractReportQueue() : null,
     setupDetailPlanGeomSyncQueue(),
+    setupWorkTableReportQueue(),
   ]);
   // https://github.com/fastify/fastify/issues/4960
   const server = fastify({ logger: logger as FastifyBaseLogger });

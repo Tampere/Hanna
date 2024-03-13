@@ -10,7 +10,7 @@ const codeIdRegex = /^\d{0,4}$/;
 
 export const codeId = z.string().regex(codeIdRegex);
 
-const codeListIdSchema = z.enum([
+export const codeListIdSchema = z.enum([
   'Rahoitusmalli',
   'HankeTyyppi',
   'LiittyvanHankkeenTyyppi',

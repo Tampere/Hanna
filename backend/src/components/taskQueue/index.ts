@@ -51,6 +51,7 @@ export async function startJob<T extends object>(queueName: string, data: T) {
   if (!jobId) {
     throw new Error(`Error assigning job ID in queue "${queueName}"`);
   }
+  logger.warn('Job started with ID: ' + jobId);
   return jobId;
 }
 
