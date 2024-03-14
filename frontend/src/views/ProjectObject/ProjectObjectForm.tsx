@@ -306,6 +306,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
             {!editing ? (
               <Button
                 variant="contained"
+                disabled={!props.userIsOwner && !props.userCanWrite}
                 size="small"
                 onClick={() => setEditing(!editing)}
                 endIcon={<Edit />}
