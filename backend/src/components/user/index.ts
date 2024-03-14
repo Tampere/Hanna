@@ -17,7 +17,7 @@ export async function getAllUsers() {
 export async function getAllNonExtUsers() {
   const users = await getPool().many(sql.type(userSchema)`
     SELECT id, email, name FROM app.user
-    WHERE email NOT LIKE '%@ext.tampere.fi'
+    WHERE email NOT LIKE '%@ext%'
     ORDER BY name ASC
   `);
   return users;
