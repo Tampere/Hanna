@@ -54,51 +54,49 @@ function Toolbar() {
       <Typography variant="h4" component="h1">
         {tr('pages.projectsTitle')}
       </Typography>
-      {canCreateProject && (
-        <div>
-          <Button
-            ref={newProjectMenuAnchor}
-            onClick={() => setNewProjectMenuOpen(true)}
-            disabled={!canCreateProject}
-            variant="contained"
-            size="large"
-            style={{ alignItems: 'flex-start' }}
-            endIcon={<AddCircle />}
-          >
-            {tr('newProject.btnLabel')}
-          </Button>
-          <Menu
-            open={newProjectMenuOpen}
-            onClose={() => setNewProjectMenuOpen(false)}
-            anchorEl={newProjectMenuAnchor.current}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
-            }}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-          >
-            {auth && hasPermission(auth, 'investmentProject.write') && (
-              <MenuItem component={Link} to="/investointihanke/luo">
-                <ListItemIcon>
-                  <Add />
-                </ListItemIcon>
-                <ListItemText>{tr('newProject.newInvestmentProject')}</ListItemText>
-              </MenuItem>
-            )}
-            {auth && hasPermission(auth, 'detailplanProject.write') && (
-              <MenuItem component={Link} to="/asemakaavahanke/luo">
-                <ListItemIcon>
-                  <Add />
-                </ListItemIcon>
-                <ListItemText>{tr('newProject.newDetailplanProject')}</ListItemText>
-              </MenuItem>
-            )}
-          </Menu>
-        </div>
-      )}
+      <div>
+        <Button
+          ref={newProjectMenuAnchor}
+          onClick={() => setNewProjectMenuOpen(true)}
+          disabled={!canCreateProject}
+          variant="contained"
+          size="large"
+          style={{ alignItems: 'flex-start' }}
+          endIcon={<AddCircle />}
+        >
+          {tr('newProject.btnLabel')}
+        </Button>
+        <Menu
+          open={newProjectMenuOpen}
+          onClose={() => setNewProjectMenuOpen(false)}
+          anchorEl={newProjectMenuAnchor.current}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+        >
+          {auth && hasPermission(auth, 'investmentProject.write') && (
+            <MenuItem component={Link} to="/investointihanke/luo">
+              <ListItemIcon>
+                <Add />
+              </ListItemIcon>
+              <ListItemText>{tr('newProject.newInvestmentProject')}</ListItemText>
+            </MenuItem>
+          )}
+          {auth && hasPermission(auth, 'detailplanProject.write') && (
+            <MenuItem component={Link} to="/asemakaavahanke/luo">
+              <ListItemIcon>
+                <Add />
+              </ListItemIcon>
+              <ListItemText>{tr('newProject.newDetailplanProject')}</ListItemText>
+            </MenuItem>
+          )}
+        </Menu>
+      </div>
     </Box>
   );
 }
