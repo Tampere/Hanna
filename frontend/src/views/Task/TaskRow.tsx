@@ -15,6 +15,7 @@ interface Props {
   task: DbTask;
   isOwner?: boolean;
   canWrite?: boolean;
+  canEditFinances?: boolean;
 }
 
 const stickyColumnStyle = css`
@@ -56,6 +57,7 @@ export function TaskRow(props: Readonly<Props>) {
         isOwner={props.isOwner}
         canWrite={props.canWrite}
         onClose={() => setDialogOpen(false)}
+        canEditFinances={props.canEditFinances}
       />
     </>
   );

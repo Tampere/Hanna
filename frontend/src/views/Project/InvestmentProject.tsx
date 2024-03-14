@@ -23,7 +23,7 @@ import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectLi
 import { User } from '@shared/schema/user';
 import {
   ProjectPermissionContext,
-  hasWritePermission,
+  hasPermission,
   ownsProject,
 } from '@shared/schema/userPermissions';
 
@@ -97,11 +97,7 @@ export function InvestmentProject() {
     { projectId },
     { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { projectId }] },
   );
-  const userCanModify = Boolean(
-    project.data &&
-      user &&
-      (ownsProject(user, project.data) || hasWritePermission(user, project.data)),
-  );
+  const userCanModify = Boolean(project.data && user && hasPermission(user, 'financials.write'));
 
   const tabs = getTabs(routeParams.projectId).filter(
     (tab) => project?.data && user && tab.hasAccess(user, project.data),

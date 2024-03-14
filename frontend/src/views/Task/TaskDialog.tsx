@@ -22,6 +22,7 @@ interface Props {
   onClose: () => void;
   isOwner?: boolean;
   canWrite?: boolean;
+  canEditFinances?: boolean;
 }
 
 const dialogContentStyle = css`
@@ -92,7 +93,7 @@ export function TaskDialog(props: Readonly<Props>) {
             <BudgetTable
               years={years}
               fields={['amount']}
-              writableFields={isOwner ? ['amount'] : []}
+              writableFields={props.canEditFinances ? ['amount'] : []}
               budget={budget.data}
               actuals={null} // TODO: coming soon
               actualsLoading={false}
@@ -112,15 +113,15 @@ export function TaskDialog(props: Readonly<Props>) {
         </Box>
       </DialogContent>
       <DialogActions css={dialogActionsStyle}>
-        {isOwner && (
-          <DeleteTaskDialog
-            taskId={task.taskId}
-            onDeleted={() => {
-              invalidateTasks();
-              onClose();
-            }}
-          />
-        )}
+        <DeleteTaskDialog
+          disabled={!isOwner}
+          taskId={task.taskId}
+          onDeleted={() => {
+            invalidateTasks();
+            onClose();
+          }}
+        />
+
         <Button
           css={css`
             align-self: flex-end;
