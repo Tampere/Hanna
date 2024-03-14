@@ -267,7 +267,12 @@ export function InvestmentProject() {
               {tabView === 'sidoshankkeet' && (
                 <ProjectRelations projectId={routeParams.projectId} editable={userCanModify} />
               )}
-              {tabView === 'luvitus' && <ProjectPermissions projectId={routeParams.projectId} />}
+              {tabView === 'luvitus' && (
+                <ProjectPermissions
+                  projectId={routeParams.projectId}
+                  ownerId={project.data?.owner}
+                />
+              )}
             </Box>
           )}
         </Paper>

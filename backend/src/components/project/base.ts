@@ -252,11 +252,18 @@ export async function projectPermissionUpsert(
   return result;
 }
 
-export async function getProjectUserPermissions(projectId: string) {
+export async function getProjectUserPermissions(projectId: string, withAdmins: boolean = true) {
+  logger.warn(`withAdmins: ${withAdmins}`);
   return await getPool().many(sql.type(
     z.object({ userId: z.string(), userName: z.string(), canWrite: z.boolean() }),
   )`
-  SELECT u.id as "userId", u.name as "userName", COALESCE(pp.can_write, false) as "canWrite"
+  SELECT
+    u.id as "userId",
+    u.name as "userName",
+    COALESCE(pp.can_write, false) as "canWrite"
   FROM app.user u
-  LEFT JOIN app.project_permission pp ON u.id = pp.user_id AND pp.project_id = ${projectId};`);
+  LEFT JOIN app.project_permission pp ON u.id = pp.user_id AND pp.project_id = ${projectId}
+  ${
+    withAdmins ? sql.fragment`NULL` : sql.fragment`WHERE u.role IS NULL OR u.role <> 'Hanna.Admin'`
+  };`);
 }
