@@ -93,7 +93,7 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
       },
     });
   }
-  console.log(ownerId);
+
   return !projectId ? null : (
     <Box>
       <Box

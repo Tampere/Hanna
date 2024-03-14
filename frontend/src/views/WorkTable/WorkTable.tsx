@@ -139,6 +139,7 @@ export default function WorkTable() {
   const queryParams = new URLSearchParams(location.search);
   const highlightId = queryParams.get('highlight');
 
+  const participatedProjects = trpc.project.getParticipatedProjects.useQuery();
   const workTableData = trpc.workTable.search.useQuery(query);
   const updateObjects = trpc.workTable.update.useMutation({
     onSuccess: async () => {
@@ -386,6 +387,7 @@ export default function WorkTable() {
           component={Link}
           to="/kohde/uusi?from=/investointiohjelma"
           endIcon={<AddCircleOutline />}
+          disabled={participatedProjects.isLoading || participatedProjects.data?.length === 0}
         >
           {tr('workTable.newProjectObjectBtnLabel')}
         </Button>

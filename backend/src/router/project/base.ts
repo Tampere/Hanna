@@ -11,6 +11,7 @@ import {
 } from '@backend/components/project';
 import {
   deleteProject,
+  getParticipatedProjects,
   getPermissionContext,
   getProject,
   getProjectUserPermissions,
@@ -170,6 +171,10 @@ export const createProjectRouter = (t: TRPC) => {
       .query(async ({ input }) => {
         return await getProjectUserPermissions(input.projectId, input.withAdmins);
       }),
+
+    getParticipatedProjects: t.procedure.query(async ({ ctx }) => {
+      return getParticipatedProjects(ctx.user.id);
+    }),
 
     updatePermissions: t.procedure
       .input(projectPermissionSchema)
