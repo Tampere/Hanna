@@ -253,7 +253,6 @@ export async function projectPermissionUpsert(
 }
 
 export async function getProjectUserPermissions(projectId: string, withAdmins: boolean = true) {
-  logger.warn(`withAdmins: ${withAdmins}`);
   return await getPool().many(sql.type(
     z.object({ userId: z.string(), userName: z.string(), canWrite: z.boolean() }),
   )`

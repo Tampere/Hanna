@@ -8,7 +8,7 @@ import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { PROJECT_AREA_STYLE } from '@frontend/components/Map/styles';
-import { authAtom } from '@frontend/stores/auth';
+import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { DeleteProjectDialog } from '@frontend/views/Project/DeleteProjectDialog';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
@@ -87,7 +87,7 @@ export function DetailplanProject() {
   const [searchParams] = useSearchParams();
   const tabView = searchParams.get('tab') || 'default';
   const projectId = routeParams?.projectId;
-  const user = useAtomValue(authAtom);
+  const user = useAtomValue(asyncUserAtom);
 
   const project = trpc.detailplanProject.get.useQuery(
     { projectId },

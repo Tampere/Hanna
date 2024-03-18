@@ -2,6 +2,8 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
+import { invalidateUserSession } from '@backend/components/session';
+import { searchUsers } from '@backend/components/user';
 import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
 
@@ -11,19 +13,6 @@ import {
   userSchema,
   userSearchSchema,
 } from '@shared/schema/userPermissions';
-
-async function searchUsers(userName: string) {
-  return getPool().any(sql.type(userSchema)`
-  SELECT
-    id AS "userId",
-    email AS "userEmail",
-    "name" AS "userName",
-    "role" AS "userRole",
-    COALESCE(("role" = 'Hanna.Admin'), false) AS "isAdmin",
-    permissions
-  FROM app.user
-  WHERE name ILIKE ${'%' + userName + '%'}`);
-}
 
 export const createUserPermissionsRouter = (t: TRPC) => {
   const baseProcedure = t.procedure.use(async (opts) => {
@@ -51,16 +40,20 @@ export const createUserPermissionsRouter = (t: TRPC) => {
           eventUser: ctx.user.id,
           eventData: input,
         });
-        return await Promise.all(
-          input.map(({ userId, permissions }) => {
-            return tx.query(sql.type(setPermissionSchema)`
+        const updatedUsers = (
+          await Promise.all(
+            input.map(({ userId, permissions }) => {
+              return tx.one(sql.type(setPermissionSchema)`
               UPDATE app.user
               SET permissions = ${sql.array(permissions, 'text')}
               WHERE id = ${userId}
               RETURNING id AS "userId", permissions
             `);
-          }),
-        );
+            }),
+          )
+        ).flat();
+        await invalidateUserSession(updatedUsers.map((u) => u.userId));
+        return updatedUsers;
       });
     }),
   });

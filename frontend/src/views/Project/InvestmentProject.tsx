@@ -15,7 +15,7 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { DRAW_LAYER_Z_INDEX, featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
-import { authAtom } from '@frontend/stores/auth';
+import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
@@ -91,7 +91,7 @@ export function InvestmentProject() {
   const routeParams = useParams() as { projectId: string };
   const [searchParams] = useSearchParams();
   const tabView = searchParams.get('tab') || 'default';
-  const user = useAtomValue(authAtom);
+  const user = useAtomValue(asyncUserAtom);
   const projectId = routeParams?.projectId;
   const project = trpc.investmentProject.get.useQuery(
     { projectId },

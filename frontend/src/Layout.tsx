@@ -20,7 +20,7 @@ import {
   createTheme,
 } from '@mui/material';
 import { fiFI } from '@mui/material/locale';
-import { useAtom, useAtomValue } from 'jotai';
+import { useAtomValue } from 'jotai';
 import { useRef, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
@@ -29,7 +29,7 @@ import { useTranslations } from '@frontend/stores/lang';
 import { SessionExpiredWarning } from './SessionExpiredWarning';
 import { NavigationBlocker } from './components/NavigationBlocker';
 import NotificationList from './services/notification';
-import { authAtom, sessionExpiredAtom } from './stores/auth';
+import { asyncUserAtom, sessionExpiredAtom } from './stores/auth';
 import { blockerStatusAtom } from './stores/navigationBlocker';
 
 const theme = createTheme(
@@ -75,7 +75,7 @@ const theme = createTheme(
 );
 
 function Navbar() {
-  const [auth] = useAtom(authAtom);
+  const auth = useAtomValue(asyncUserAtom);
   const tr = useTranslations();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuAnchor = useRef<HTMLButtonElement>(null);

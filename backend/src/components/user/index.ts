@@ -29,3 +29,16 @@ export async function getUser(id: string) {
     WHERE id = ${id}
   `);
 }
+
+export async function searchUsers(userName: string) {
+  return getPool().any(sql.type(userSchema)`
+  SELECT
+    id AS "userId",
+    email AS "userEmail",
+    "name" AS "userName",
+    "role" AS "userRole",
+    COALESCE(("role" = 'Hanna.Admin'), false) AS "isAdmin",
+    permissions
+  FROM app.user
+  WHERE name ILIKE ${'%' + userName + '%'}`);
+}

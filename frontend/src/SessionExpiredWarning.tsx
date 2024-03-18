@@ -4,13 +4,14 @@ import { useEffect } from 'react';
 
 import { trpc } from '@frontend/client';
 
-import { sessionExpiredAtom } from './stores/auth';
+import { asyncUserAtom, sessionExpiredAtom } from './stores/auth';
 import { useTranslations } from './stores/lang';
 
 const pingIntervalTimeout = 60 * 1000;
 
 export function SessionExpiredWarning() {
   const [sessionExpired, setSessionExpired] = useAtom(sessionExpiredAtom);
+  const [, refreshUserValue] = useAtom(asyncUserAtom);
   const sessionCheck = trpc.session.check.useQuery();
 
   const tr = useTranslations();
@@ -32,6 +33,7 @@ export function SessionExpiredWarning() {
     if (event.data === 'session-renewed') {
       // The opened login window was closed with a successful login -> session is not expired anymore
       window.removeEventListener('message', sessionRenewedListener);
+      refreshUserValue();
       setSessionExpired(false);
     }
   }

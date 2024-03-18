@@ -15,7 +15,7 @@ import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { SapProjectIdField } from '@frontend/components/forms/SapProjectIdField';
 import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
-import { authAtom } from '@frontend/stores/auth';
+import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { getRequiredFields } from '@frontend/utils/form';
@@ -52,7 +52,7 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(!props.project);
-  const currentUser = useAtomValue(authAtom);
+  const currentUser = useAtomValue(asyncUserAtom);
   const [nextDetailplanId, setNextDetailplanId] = useState<number | null>(null);
   const [displayOwnerChangeDialog, setDisplayOwnerChangeDialog] = useState(false);
 

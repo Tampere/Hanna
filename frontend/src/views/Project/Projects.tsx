@@ -20,7 +20,7 @@ import { Link } from 'react-router-dom';
 import { trpc } from '@frontend/client';
 import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
 import { useNotifications } from '@frontend/services/notification';
-import { authAtom } from '@frontend/stores/auth';
+import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { projectSearchParamAtom } from '@frontend/stores/search/project';
 import { useDebounce } from '@frontend/utils/useDebounce';
@@ -40,7 +40,7 @@ const toolbarContainerStyle = css`
 
 function Toolbar() {
   const tr = useTranslations();
-  const auth = useAtomValue(authAtom);
+  const auth = useAtomValue(asyncUserAtom);
   const [newProjectMenuOpen, setNewProjectMenuOpen] = useState(false);
   const newProjectMenuAnchor = useRef<HTMLButtonElement>(null);
 

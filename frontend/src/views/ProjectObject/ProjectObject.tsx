@@ -14,7 +14,7 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
-import { authAtom } from '@frontend/stores/auth';
+import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { ProjectTypePath } from '@frontend/types';
 import Tasks from '@frontend/views/Task/Tasks';
@@ -108,7 +108,7 @@ export function ProjectObject(props: Props) {
     },
     { enabled: Boolean(projectObjectId) },
   );
-  const user = useAtomValue(authAtom);
+  const user = useAtomValue(asyncUserAtom);
 
   const [geom, setGeom] = useState<string | null>(null);
   const [projectId, setProjectId] = useState(routeParams.projectId);

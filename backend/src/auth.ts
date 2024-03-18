@@ -116,6 +116,7 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
     if (opts.publicRouterPaths.has(req.routeOptions.url)) {
       return;
     }
+
     if (!req.user) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
@@ -154,11 +155,12 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
   fastify.get(opts.oidcOpts.callbackPath, (req, res) => {
     fastifyPassport
       .authenticate('oidc', async (req, res, error, user) => {
+        // Get redirect url here because the session is cleared after login
+        const redirectPath = req.session.get('redirectUrl') ?? '/';
         // If there are errors in login (e.g. already used or expired code), redirect to the front page
         if (error || !user) {
           return res.redirect('/');
         }
-
         try {
           await req.login(user);
         } catch (error) {
@@ -166,7 +168,6 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
         }
 
         // Redirect to the original URL if one was found from session, otherwise to the home page
-        const redirectPath = req.session.get('redirectUrl') ?? '/';
         return res.redirect(redirectPath);
       })
       .call(fastify, req, res);
