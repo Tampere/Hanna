@@ -2,7 +2,7 @@ import '@fontsource/roboto';
 import '@fontsource/roboto/500.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpLink } from '@trpc/client';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { Suspense, useState } from 'react';
 import {
   Route,
@@ -23,18 +23,11 @@ import { SapDebugView } from '@frontend/views/SapDebug';
 import WorkTable from '@frontend/views/WorkTable/WorkTable';
 
 import { trpc } from './client';
-import { authAtom, getUserAtom, sessionExpiredAtom } from './stores/auth';
+import { asyncUserAtom, sessionExpiredAtom } from './stores/auth';
 import { useTranslations } from './stores/lang';
 import { Manual } from './views/Manual/Manual';
 import { SapReports } from './views/SapReports';
 import { SessionRenewed } from './views/SessionRenewed';
-
-const UserLoader = () => {
-  const user = useAtomValue(getUserAtom);
-  const setAuth = useSetAtom(authAtom);
-  setAuth(user);
-  return null;
-};
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -89,7 +82,9 @@ const router = createBrowserRouter(
 
 export function App() {
   const tr = useTranslations();
-  const setSessionExpired = useSetAtom(sessionExpiredAtom);
+  const [sessionExpired, setSessionExpired] = useAtom(sessionExpiredAtom);
+  const userValue = useAtomValue(asyncUserAtom);
+
   const [queryClient] = useState(
     () => new QueryClient({ defaultOptions: { queries: { retry: false } } }),
   );
@@ -103,10 +98,14 @@ export function App() {
             const result = await fetch(url, { ...options });
             if (result.status === 401) {
               // Any 401 error in TRPC responses -> session has been expired
-              setSessionExpired(true);
+              if (!sessionExpired) {
+                setSessionExpired(true);
+              }
             } else {
               // Any non-401 status -> session is OK
-              setSessionExpired(false);
+              if (sessionExpired) {
+                setSessionExpired(false);
+              }
             }
             return result;
           },
@@ -118,8 +117,7 @@ export function App() {
 
   return (
     <Suspense fallback={<p>{tr('loading')}</p>}>
-      <UserLoader />
-      {useAtomValue(authAtom) && (
+      {userValue && (
         <trpc.Provider client={trpcClient} queryClient={queryClient}>
           <QueryClientProvider client={queryClient}>
             <RouterProvider router={router} />

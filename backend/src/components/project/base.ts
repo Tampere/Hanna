@@ -252,11 +252,35 @@ export async function projectPermissionUpsert(
   return result;
 }
 
-export async function getProjectUserPermissions(projectId: string) {
+export async function getProjectUserPermissions(projectId: string, withAdmins: boolean = true) {
   return await getPool().many(sql.type(
     z.object({ userId: z.string(), userName: z.string(), canWrite: z.boolean() }),
   )`
-  SELECT u.id as "userId", u.name as "userName", COALESCE(pp.can_write, false) as "canWrite"
+  SELECT
+    u.id as "userId",
+    u.name as "userName",
+    COALESCE(pp.can_write, false) as "canWrite"
   FROM app.user u
-  LEFT JOIN app.project_permission pp ON u.id = pp.user_id AND pp.project_id = ${projectId};`);
+  LEFT JOIN app.project_permission pp ON u.id = pp.user_id AND pp.project_id = ${projectId}
+  ${
+    withAdmins ? sql.fragment`NULL` : sql.fragment`WHERE u.role IS NULL OR u.role <> 'Hanna.Admin'`
+  };`);
+}
+
+export async function getParticipatedProjects(userId: string) {
+  return getPool().any(sql.type(z.object({ projectId: z.string(), projectName: z.string() }))`
+    SELECT
+      p.id as "projectId",
+      p.project_name as "projectName"
+    FROM app.project p, app.project_investment pi
+    WHERE p.id = pi.id AND p.owner = ${userId} AND p.deleted = false
+    UNION
+    SELECT
+    	p.id as "projectId",
+      p.project_name as "projectName"
+    FROM app.project_permission pp
+    LEFT JOIN app.project_investment pi ON pp.project_id = pi.id
+    LEFT JOIN app.project p ON pi.id = pp.project_id
+    WHERE p.id = pi.id AND pp.user_id = ${userId} AND pp.can_write = TRUE AND p.deleted = false;
+  `);
 }

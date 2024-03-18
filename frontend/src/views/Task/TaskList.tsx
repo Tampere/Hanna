@@ -19,6 +19,7 @@ interface Props {
   projectObjectId: string;
   isOwner?: boolean;
   canWrite?: boolean;
+  caneEditFinances?: boolean;
 }
 
 const stickyColumnStyle = css`
@@ -27,7 +28,12 @@ const stickyColumnStyle = css`
   background: #fff;
 `;
 
-export function TaskList({ projectObjectId, isOwner = false, canWrite = false }: Props) {
+export function TaskList({
+  projectObjectId,
+  isOwner = false,
+  canWrite = false,
+  caneEditFinances = false,
+}: Props) {
   const tr = useTranslations();
 
   /** Fetch tasks on component mount */
@@ -79,6 +85,7 @@ export function TaskList({ projectObjectId, isOwner = false, canWrite = false }:
                   projectObjectId={projectObjectId}
                   isOwner={isOwner}
                   canWrite={canWrite}
+                  canEditFinances={caneEditFinances}
                 />
               ))}
             </TableBody>

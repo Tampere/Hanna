@@ -1,8 +1,7 @@
 import { atom } from 'jotai';
+import { atomWithRefresh } from 'jotai/utils';
 
 import { User } from '@shared/schema/user';
-
-export const authAtom = atom<User | null>(null);
 
 export const sessionExpiredAtom = atom<boolean>(false);
 
@@ -17,4 +16,4 @@ async function getUser() {
   return (await resp.json()) as User;
 }
 
-export const getUserAtom = atom<Promise<User>>(async () => getUser());
+export const asyncUserAtom = atomWithRefresh<Promise<User>>(async () => getUser());

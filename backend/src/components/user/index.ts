@@ -17,7 +17,7 @@ export async function getAllUsers() {
 export async function getAllNonExtUsers() {
   const users = await getPool().many(sql.type(userSchema)`
     SELECT id, email, name FROM app.user
-    WHERE email NOT LIKE '%@ext.tampere.fi'
+    WHERE email NOT LIKE '%@ext%'
     ORDER BY name ASC
   `);
   return users;
@@ -28,4 +28,17 @@ export async function getUser(id: string) {
     ${userSelectFragment}
     WHERE id = ${id}
   `);
+}
+
+export async function searchUsers(userName: string) {
+  return getPool().any(sql.type(userSchema)`
+  SELECT
+    id AS "userId",
+    email AS "userEmail",
+    "name" AS "userName",
+    "role" AS "userRole",
+    COALESCE(("role" = 'Hanna.Admin'), false) AS "isAdmin",
+    permissions
+  FROM app.user
+  WHERE name ILIKE ${'%' + userName + '%'}`);
 }

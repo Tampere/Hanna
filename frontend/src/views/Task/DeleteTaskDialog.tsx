@@ -9,9 +9,10 @@ import { useTranslations } from '@frontend/stores/lang';
 interface Props {
   taskId: string;
   onDeleted: () => void;
+  disabled?: boolean;
 }
 
-export function DeleteTaskDialog({ taskId, onDeleted }: Readonly<Props>) {
+export function DeleteTaskDialog({ taskId, onDeleted, disabled = false }: Readonly<Props>) {
   const notify = useNotifications();
   const tr = useTranslations();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -48,6 +49,7 @@ export function DeleteTaskDialog({ taskId, onDeleted }: Readonly<Props>) {
         sx={{ mt: 2 }}
         endIcon={<Delete />}
         onClick={() => setIsDialogOpen(true)}
+        disabled={disabled}
       >
         {tr('taskDelete.delete')}
       </Button>

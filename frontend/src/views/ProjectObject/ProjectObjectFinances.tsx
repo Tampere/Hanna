@@ -56,6 +56,7 @@ export function ProjectObjectFinances(props: Props) {
     if (props.userIsAdmin) {
       return ['amount', 'forecast', 'kayttosuunnitelmanMuutos'];
     } else if (props.userCanEditFinances) {
+      if (props.userIsEditor) return ['amount', 'kayttosuunnitelmanMuutos', 'forecast'];
       return ['amount', 'kayttosuunnitelmanMuutos'];
     } else if (props.userIsEditor) {
       return ['forecast'];

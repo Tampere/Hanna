@@ -62,7 +62,7 @@ interface ProjectAutoCompleteProps {
 
 function ProjectAutoComplete(props: Readonly<ProjectAutoCompleteProps>) {
   const tr = useTranslations();
-  const projects = trpc.project.list.useQuery({ projectType: 'investmentProject' });
+  const projects = trpc.project.getParticipatedProjects.useQuery();
 
   return (
     <Autocomplete<ProjectListItem>
@@ -306,6 +306,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
             {!editing ? (
               <Button
                 variant="contained"
+                disabled={!props.userIsOwner && !props.userCanWrite}
                 size="small"
                 onClick={() => setEditing(!editing)}
                 endIcon={<Edit />}

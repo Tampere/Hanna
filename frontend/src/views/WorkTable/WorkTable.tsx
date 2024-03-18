@@ -10,7 +10,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { trpc } from '@frontend/client';
 import dayjs from '@frontend/dayjs';
 import { useNotifications } from '@frontend/services/notification';
-import { authAtom } from '@frontend/stores/auth';
+import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { useDebounce } from '@frontend/utils/useDebounce';
@@ -127,7 +127,7 @@ export default function WorkTable() {
   const notify = useNotifications();
   const mainContentElement = document.getElementById('mainContentContainer');
   const [summaryRowHeight, setSummaryRowHeight] = useState(54);
-  const auth = useAtomValue(authAtom);
+  const auth = useAtomValue(asyncUserAtom);
 
   const [yearRange, setYearRange] = useState<{ startYear: number; endYear: number }>({
     startYear: new Date().getFullYear(),
@@ -139,6 +139,7 @@ export default function WorkTable() {
   const queryParams = new URLSearchParams(location.search);
   const highlightId = queryParams.get('highlight');
 
+  const participatedProjects = trpc.project.getParticipatedProjects.useQuery();
   const workTableData = trpc.workTable.search.useQuery(query);
   const updateObjects = trpc.workTable.update.useMutation({
     onSuccess: async () => {
@@ -386,6 +387,7 @@ export default function WorkTable() {
           component={Link}
           to="/kohde/uusi?from=/investointiohjelma"
           endIcon={<AddCircleOutline />}
+          disabled={participatedProjects.isLoading || participatedProjects.data?.length === 0}
         >
           {tr('workTable.newProjectObjectBtnLabel')}
         </Button>

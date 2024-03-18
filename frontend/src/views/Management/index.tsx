@@ -3,7 +3,7 @@ import { Box, Tab, Tabs } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 
-import { authAtom } from '@frontend/stores/auth';
+import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { CompanyPage } from '@frontend/views/Management/Company';
 import { CompanyContactPage } from '@frontend/views/Management/CompanyContact';
@@ -39,7 +39,7 @@ export function Management() {
     tabView: (typeof tabs)[number]['tabView'];
   };
 
-  const auth = useAtomValue(authAtom);
+  const auth = useAtomValue(asyncUserAtom);
 
   const [searchParams] = useSearchParams();
   const viewParams = Object.fromEntries(searchParams);

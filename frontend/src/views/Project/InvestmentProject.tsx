@@ -15,7 +15,7 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { DRAW_LAYER_Z_INDEX, featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
-import { authAtom } from '@frontend/stores/auth';
+import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
@@ -23,7 +23,7 @@ import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectLi
 import { User } from '@shared/schema/user';
 import {
   ProjectPermissionContext,
-  hasWritePermission,
+  hasPermission,
   ownsProject,
 } from '@shared/schema/userPermissions';
 
@@ -91,17 +91,13 @@ export function InvestmentProject() {
   const routeParams = useParams() as { projectId: string };
   const [searchParams] = useSearchParams();
   const tabView = searchParams.get('tab') || 'default';
-  const user = useAtomValue(authAtom);
+  const user = useAtomValue(asyncUserAtom);
   const projectId = routeParams?.projectId;
   const project = trpc.investmentProject.get.useQuery(
     { projectId },
     { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { projectId }] },
   );
-  const userCanModify = Boolean(
-    project.data &&
-      user &&
-      (ownsProject(user, project.data) || hasWritePermission(user, project.data)),
-  );
+  const userCanModify = Boolean(project.data && user && hasPermission(user, 'financials.write'));
 
   const tabs = getTabs(routeParams.projectId).filter(
     (tab) => project?.data && user && tab.hasAccess(user, project.data),
@@ -267,7 +263,12 @@ export function InvestmentProject() {
               {tabView === 'sidoshankkeet' && (
                 <ProjectRelations projectId={routeParams.projectId} editable={userCanModify} />
               )}
-              {tabView === 'luvitus' && <ProjectPermissions projectId={routeParams.projectId} />}
+              {tabView === 'luvitus' && (
+                <ProjectPermissions
+                  projectId={routeParams.projectId}
+                  ownerId={project.data?.owner}
+                />
+              )}
             </Box>
           )}
         </Paper>

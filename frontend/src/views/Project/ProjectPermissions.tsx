@@ -24,10 +24,10 @@ import { useTranslations } from '@frontend/stores/lang';
 
 interface Props {
   projectId: string;
+  ownerId?: string;
 }
 
-export function ProjectPermissions(props: Props) {
-  const { projectId } = props;
+export function ProjectPermissions({ projectId, ownerId }: Props) {
   const notify = useNotifications();
   const tr = useTranslations();
   const {
@@ -35,7 +35,7 @@ export function ProjectPermissions(props: Props) {
     isLoading,
     isError,
     refetch,
-  } = trpc.project.getPermissions.useQuery({ projectId: projectId });
+  } = trpc.project.getPermissions.useQuery({ projectId: projectId, withAdmins: false });
   const permissionsUpdate = trpc.project.updatePermissions.useMutation();
   const [searchterm, setSearchterm] = useState('');
   const [localSortedUserPermissions, setLocalSortedUserPermissions] = useState<
@@ -44,6 +44,8 @@ export function ProjectPermissions(props: Props) {
 
   const sortedUserPermissions = userPermissions
     ? [...userPermissions]?.sort((a, b) => {
+        if (a.userId === ownerId) return -1;
+        if (b.userId === ownerId) return 1;
         if (a.canWrite !== b.canWrite) {
           return a.canWrite ? -1 : 1; // List those with edit rights first
         } else {
@@ -63,7 +65,7 @@ export function ProjectPermissions(props: Props) {
         if (userId in ids) return ids;
         return [...ids, userId];
       },
-      [] as string[]
+      [] as string[],
     );
 
     const permissionsToUpdate = localSortedUserPermissions
@@ -196,8 +198,16 @@ export function ProjectPermissions(props: Props) {
                 .filter((user) => user.userName.toLowerCase().includes(searchterm.toLowerCase()))
                 .map((user) => (
                   <TableRow key={user.userId} hover={true}>
-                    <TableCell component="th" variant="head" scope="row">
+                    <TableCell
+                      component="th"
+                      variant="head"
+                      scope="row"
+                      css={css`
+                        ${user.userId === ownerId && 'color: grey'};
+                      `}
+                    >
                       {user.userName}
+                      {user.userId === ownerId ? ` (${tr('project.ownerLabel')})` : ''}
                     </TableCell>
                     <TableCell align="center">
                       <Checkbox
@@ -206,11 +216,12 @@ export function ProjectPermissions(props: Props) {
                             prevUsers.map((prevUser) =>
                               prevUser.userId === user.userId
                                 ? { ...prevUser, canWrite: !prevUser.canWrite }
-                                : prevUser
-                            )
+                                : prevUser,
+                            ),
                           )
                         }
-                        checked={user.canWrite}
+                        checked={user.userId === ownerId || user.canWrite}
+                        disabled={user.userId === ownerId}
                       />
                     </TableCell>
                   </TableRow>

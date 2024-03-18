@@ -23,6 +23,7 @@ import { User } from '@shared/schema/user';
 import {
   ProjectAccessChecker,
   ProjectPermissionContext,
+  hasPermission,
   hasWritePermission,
   isTaskIdInput,
   ownsProject,
@@ -35,7 +36,6 @@ const taskFragment = sql.fragment`
     id AS "taskId",
     task_name AS "taskName",
     description AS "description",
-    contractor_id AS "contractorId",
     (lifecycle_state).id AS "lifecycleState",
     (task_type).id AS "taskType",
     start_date AS "startDate",
@@ -49,7 +49,6 @@ async function upsertTask(task: UpsertTask, userId: User['id']) {
     project_object_id: task.projectObjectId,
     task_name: task.taskName,
     description: task.description,
-    contractor_id: task.contractorId,
     lifecycle_state: codeIdFragment('TehtävänElinkaarentila', task.lifecycleState),
     task_type: codeIdFragment('TehtäväTyyppi', task.taskType),
     start_date: task.startDate,
@@ -249,7 +248,7 @@ export const createTaskRouter = (t: TRPC) => {
 
     updateBudget: t.procedure
       .input(updateBudgetSchema.required())
-      .use(withAccess((usr, ctx) => ownsProject(usr, ctx) || hasWritePermission(usr, ctx)))
+      .use(withAccess((usr) => hasPermission(usr, 'financials.write')))
       .mutation(async ({ input, ctx }) => {
         return await getPool().transaction(async (tx) => {
           return await updateTaskBudget(tx, input.taskId, input.budgetItems, ctx.user.id);
@@ -258,7 +257,7 @@ export const createTaskRouter = (t: TRPC) => {
 
     delete: t.procedure
       .input(taskIdSchema)
-      .use(withAccess((usr, ctx) => ownsProject(usr, ctx) || hasWritePermission(usr, ctx)))
+      .use(withAccess((usr, ctx) => ownsProject(usr, ctx)))
       .mutation(async ({ input, ctx }) => {
         return deleteTask(input.taskId, ctx.user.id);
       }),

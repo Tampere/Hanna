@@ -12,12 +12,14 @@ interface Props {
   projectObjectId: string;
   isOwner?: boolean;
   canWrite?: boolean;
+  canEditFinances?: boolean;
 }
 
 export default function Tasks({
   projectObjectId,
   isOwner = false,
   canWrite = false,
+  canEditFinances = false,
 }: Readonly<Props>) {
   const [displayTaskForm, setDisplayTaskForm] = useState(false);
   const tr = useTranslations();
@@ -49,7 +51,12 @@ export default function Tasks({
           onSubmit={() => setDisplayTaskForm(false)}
         />
       ) : (
-        <TaskList projectObjectId={projectObjectId} isOwner={isOwner} canWrite={canWrite} />
+        <TaskList
+          projectObjectId={projectObjectId}
+          isOwner={isOwner}
+          canWrite={canWrite}
+          caneEditFinances={canEditFinances}
+        />
       )}
     </Box>
   );
