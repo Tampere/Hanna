@@ -24,6 +24,7 @@ export function ProjectObjectFormUserRoles({ value, readOnly, onChange }: Props)
     { codeListId: 'KohdeKayttajaRooli' },
     { staleTime: 60 * 60 * 1000 },
   );
+
   const assignedRoleIds = value.map((role: { roleId: string; userIds: string[] }) => role.roleId);
 
   const unassignedRoles = codes.data?.filter((code) => !assignedRoleIds.includes(code.id.id)) ?? [];
@@ -76,90 +77,94 @@ export function ProjectObjectFormUserRoles({ value, readOnly, onChange }: Props)
           grid-template-columns: 1fr 1fr;
         `}
       >
-        {value?.map(
-          (role: { roleId: string; userIds: string[]; companyContactIds: string[] }, idx) => {
-            const codeObject = getCode(role.roleId);
-            const displayBottomBorder = idx !== value?.length - 1 && readOnly;
-            if (!codeObject) return null;
+        {value?.length === 0 && readOnly ? (
+          <Typography>{tr('projectObjectForm.noRoles')}</Typography>
+        ) : (
+          value?.map(
+            (role: { roleId: string; userIds: string[]; companyContactIds: string[] }, idx) => {
+              const codeObject = getCode(role.roleId);
+              const displayBottomBorder = idx !== value?.length - 1 && readOnly;
+              if (!codeObject) return null;
 
-            return (
-              <>
-                <Box
-                  css={css`
-                    grid-column: 1 / 2;
-                    display: flex;
-                    padding: 0.5rem 0.25rem;
-                    align-items: top;
-                    border-bottom: ${displayBottomBorder && '1px solid lightgray'};
-                    & .MuiAutocomplete-root {
-                      flex: 1;
-                      min-width: 200px;
-                    }
-                  `}
-                >
-                  {readOnly ? (
-                    <Typography
-                      css={css`
-                        font-weight: 500;
-                        color: #777777;
-                      `}
-                      key={role.roleId}
-                    >
-                      {getLabel(codeObject)}:
-                    </Typography>
-                  ) : (
-                    <CodeSelect
-                      disableClearable
+              return (
+                <>
+                  <Box
+                    css={css`
+                      grid-column: 1 / 2;
+                      display: flex;
+                      padding: 0.5rem 0.25rem;
+                      align-items: top;
+                      border-bottom: ${displayBottomBorder && '1px solid lightgray'};
+                      & .MuiAutocomplete-root {
+                        flex: 1;
+                        min-width: 200px;
+                      }
+                    `}
+                  >
+                    {readOnly ? (
+                      <Typography
+                        css={css`
+                          font-weight: 500;
+                          color: #777777;
+                        `}
+                        key={role.roleId}
+                      >
+                        {getLabel(codeObject)}:
+                      </Typography>
+                    ) : (
+                      <CodeSelect
+                        disableClearable
+                        readOnly={readOnly}
+                        options={[codeObject, ...unassignedRoles]}
+                        value={role.roleId}
+                        multiple={false}
+                        onChange={(newRoleId) => handleRoleSelect(newRoleId, role.roleId)}
+                        codeListId="KohdeKayttajaRooli"
+                      />
+                    )}
+                  </Box>
+                  <Box
+                    css={css`
+                      grid-column: 2 / 3;
+                      padding: 0.5rem 0.25rem;
+                      display: flex;
+                      border-bottom: ${displayBottomBorder && '1px solid lightgray'};
+                      align-items: center;
+                      & .MuiAutocomplete-root {
+                        flex: 1;
+                        max-width: 215px;
+                        padding-right: 0;
+                      }
+                      & .MuiInputBase-root {
+                        padding-right: 0;
+                      }
+                    `}
+                  >
+                    <RoleSelect
+                      multiple
+                      id={'rooli'}
+                      value={{ userIds: role.userIds, companyContactIds: role.companyContactIds }}
+                      onChange={(userIds, companyContactIds) =>
+                        handleAssigneeSelect(userIds, companyContactIds, role.roleId)
+                      }
                       readOnly={readOnly}
-                      options={[codeObject, ...unassignedRoles]}
-                      value={role.roleId}
-                      multiple={false}
-                      onChange={(newRoleId) => handleRoleSelect(newRoleId, role.roleId)}
-                      codeListId="KohdeKayttajaRooli"
                     />
-                  )}
-                </Box>
-                <Box
-                  css={css`
-                    grid-column: 2 / 3;
-                    padding: 0.5rem 0.25rem;
-                    display: flex;
-                    border-bottom: ${displayBottomBorder && '1px solid lightgray'};
-                    align-items: center;
-                    & .MuiAutocomplete-root {
-                      flex: 1;
-                      max-width: 215px;
-                      padding-right: 0;
-                    }
-                    & .MuiInputBase-root {
-                      padding-right: 0;
-                    }
-                  `}
-                >
-                  <RoleSelect
-                    multiple
-                    id={'rooli'}
-                    value={{ userIds: role.userIds, companyContactIds: role.companyContactIds }}
-                    onChange={(userIds, companyContactIds) =>
-                      handleAssigneeSelect(userIds, companyContactIds, role.roleId)
-                    }
-                    readOnly={readOnly}
-                  />
-                  {!readOnly && (
-                    <IconButton
-                      size="small"
-                      css={css`
-                        margin-left: auto;
-                      `}
-                      onClick={() => handleDeleteRole(role.roleId)}
-                    >
-                      <DeleteOutline />
-                    </IconButton>
-                  )}
-                </Box>
-              </>
-            );
-          },
+                    {!readOnly && (
+                      <IconButton
+                        size="small"
+                        css={css`
+                          margin-left: auto;
+                        `}
+                        onClick={() => handleDeleteRole(role.roleId)}
+                      >
+                        <DeleteOutline />
+                      </IconButton>
+                    )}
+                  </Box>
+                </>
+              );
+            },
+          )
         )}
       </Box>
       {!readOnly && (
@@ -172,7 +177,7 @@ export function ProjectObjectFormUserRoles({ value, readOnly, onChange }: Props)
           startIcon={<AddSharp />}
           onClick={handleRoleAddition}
         >
-          {tr('projectobjecForm.newRole')}
+          {tr('projectObjectForm.newRole')}
         </Button>
       )}
     </Card>

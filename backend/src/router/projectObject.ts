@@ -77,7 +77,7 @@ const projectObjectFragment = sql.fragment`
         'owner', (SELECT owner FROM app.project WHERE id = project_object.project_id)
       )
     ) AS "permissionCtx",
-     (SELECT json_agg("objectUserRoles") FROM roles r WHERE r.project_object_id = project_object.id) AS "objectUserRoles",
+     (SELECT COALESCE(json_agg("objectUserRoles"), '[]') FROM roles r WHERE r.project_object_id = project_object.id) AS "objectUserRoles",
       height
   FROM app.project_object
   WHERE deleted = false
