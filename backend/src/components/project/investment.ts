@@ -32,7 +32,7 @@ const selectProjectFragment = sql.fragment`
     (project.lifecycle_state).id AS "lifecycleState",
     sap_project_id AS "sapProjectId",
     (
-      SELECT array_agg(user_id)
+      SELECT COALESCE(array_agg(user_id), '{}')
       FROM app.project_permission
       WHERE project_id = project.id AND can_write = true
     ) AS "writeUsers"

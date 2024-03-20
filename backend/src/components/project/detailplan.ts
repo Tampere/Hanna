@@ -44,7 +44,7 @@ const selectProjectFragment = sql.fragment`
     applicant_objective AS "applicantObjective",
     additional_info AS "additionalInfo",
     (
-      SELECT array_agg(user_id)
+      SELECT COALESCE(array_agg(user_id), '{}')
       FROM app.project_permission
       WHERE project_id = project.id AND can_write = true
     ) AS "writeUsers"
@@ -76,7 +76,7 @@ export async function getProject(id: string, tx?: DatabaseTransactionConnection)
 export async function projectUpsert(
   project: DetailplanProject,
   user: User,
-  keepOwnerRights: boolean = false
+  keepOwnerRights: boolean = false,
 ) {
   return await getPool().transaction(async (tx) => {
     if (hasErrors(await baseProjectValidate(tx, project))) {
