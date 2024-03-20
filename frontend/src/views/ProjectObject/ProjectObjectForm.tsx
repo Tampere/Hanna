@@ -62,7 +62,7 @@ interface ProjectAutoCompleteProps {
 
 function ProjectAutoComplete(props: Readonly<ProjectAutoCompleteProps>) {
   const tr = useTranslations();
-  const projects = trpc.project.getParticipatedProjects.useQuery();
+  const projects = trpc.investmentProject.getParticipatedProjects.useQuery();
 
   return (
     <Autocomplete<ProjectListItem>

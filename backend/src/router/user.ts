@@ -1,4 +1,6 @@
-import { getAllNonExtUsers, getAllUsers } from '@backend/components/user';
+import { z } from 'zod';
+
+import { getAllNonExtUsers, getAllUsers, getUser } from '@backend/components/user';
 import { TRPC } from '@backend/router';
 
 export const createUserRouter = (t: TRPC) =>
@@ -6,10 +8,13 @@ export const createUserRouter = (t: TRPC) =>
     self: t.procedure.query(async ({ ctx }) => {
       return ctx.user;
     }),
+    get: t.procedure.input(z.object({ userId: z.string() })).query(async ({ input }) => {
+      return getUser(input.userId);
+    }),
     getAll: t.procedure.query(async () => {
-      return await getAllUsers();
+      return getAllUsers();
     }),
     getAllNonExt: t.procedure.query(async () => {
-      return await getAllNonExtUsers();
+      return getAllNonExtUsers();
     }),
   });

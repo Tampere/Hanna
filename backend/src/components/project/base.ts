@@ -7,7 +7,12 @@ import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
 
 import { FormErrors, fieldError, hasErrors } from '@shared/formerror';
-import { ProjectPermissions, UpsertProject, projectIdSchema } from '@shared/schema/project/base';
+import {
+  ProjectPermissions,
+  UpsertProject,
+  projectIdSchema,
+  projectWritePermissionSchema,
+} from '@shared/schema/project/base';
 import { User } from '@shared/schema/user';
 import { ProjectPermissionContext, permissionContextSchema } from '@shared/schema/userPermissions';
 
@@ -253,34 +258,22 @@ export async function projectPermissionUpsert(
 }
 
 export async function getProjectUserPermissions(projectId: string, withAdmins: boolean = true) {
-  return await getPool().many(sql.type(
-    z.object({ userId: z.string(), userName: z.string(), canWrite: z.boolean() }),
-  )`
+  return getPool().many(sql.type(projectWritePermissionSchema)`
   SELECT
     u.id as "userId",
     u.name as "userName",
     COALESCE(pp.can_write, false) as "canWrite"
   FROM app.user u
+  LEFT JOIN app.project p ON p.owner = u.id AND p.id = ${projectId}
   LEFT JOIN app.project_permission pp ON u.id = pp.user_id AND pp.project_id = ${projectId}
   ${
-    withAdmins ? sql.fragment`NULL` : sql.fragment`WHERE u.role IS NULL OR u.role <> 'Hanna.Admin'`
-  };`);
-}
-
-export async function getParticipatedProjects(userId: string) {
-  return getPool().any(sql.type(z.object({ projectId: z.string(), projectName: z.string() }))`
-    SELECT
-      p.id as "projectId",
-      p.project_name as "projectName"
-    FROM app.project p, app.project_investment pi
-    WHERE p.id = pi.id AND p.owner = ${userId} AND p.deleted = false
-    UNION
-    SELECT
-    	p.id as "projectId",
-      p.project_name as "projectName"
-    FROM app.project_permission pp
-    LEFT JOIN app.project_investment pi ON pp.project_id = pi.id
-    LEFT JOIN app.project p ON pi.id = pp.project_id
-    WHERE p.id = pi.id AND pp.user_id = ${userId} AND pp.can_write = TRUE AND p.deleted = false;
-  `);
+    withAdmins
+      ? sql.fragment`NULL`
+      : sql.fragment`WHERE p.owner = u.id OR (u.role IS NULL OR u.role <> 'Hanna.Admin')`
+  }
+  ORDER BY CASE
+            WHEN u.id = p.owner THEN 1
+            WHEN COALESCE(pp.can_write, false) = true THEN 2
+           END, u.name
+  ;`);
 }

@@ -24,6 +24,7 @@ import { User } from '@shared/schema/user';
 import {
   ProjectPermissionContext,
   hasPermission,
+  hasWritePermission,
   ownsProject,
 } from '@shared/schema/userPermissions';
 
@@ -82,7 +83,8 @@ function getTabs(projectId: string) {
       url: `/investointihanke/${projectId}?tab=luvitus`,
       label: 'project.permissionsTabLabel',
       icon: <KeyTwoTone fontSize="small" />,
-      hasAccess: (user: User, project: ProjectPermissionContext) => ownsProject(user, project),
+      hasAccess: (user: User, project: ProjectPermissionContext) =>
+        ownsProject(user, project) || hasWritePermission(user, project),
     },
   ] as const;
 }
@@ -97,7 +99,14 @@ export function InvestmentProject() {
     { projectId },
     { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { projectId }] },
   );
-  const userCanModify = Boolean(project.data && user && hasPermission(user, 'financials.write'));
+  const userCanModify = Boolean(
+    project.data &&
+      user &&
+      (ownsProject(user, project.data) || hasWritePermission(user, project.data)),
+  );
+  const userCanModifyFinances = Boolean(
+    project.data && user && hasPermission(user, 'financials.write'),
+  );
 
   const tabs = getTabs(routeParams.projectId).filter(
     (tab) => project?.data && user && tab.hasAccess(user, project.data),
@@ -251,7 +260,7 @@ export function InvestmentProject() {
           {tabView !== 'default' && (
             <Box sx={{ m: 2, overflowY: 'auto' }}>
               {tabView === 'talous' && (
-                <ProjectFinances editable={userCanModify} project={project.data} />
+                <ProjectFinances editable={userCanModifyFinances} project={project.data} />
               )}
               {tabView === 'kohteet' && (
                 <ProjectObjectList

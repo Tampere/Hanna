@@ -11,7 +11,6 @@ import {
 } from '@backend/components/project';
 import {
   deleteProject,
-  getParticipatedProjects,
   getPermissionContext,
   getProject,
   getProjectUserPermissions,
@@ -167,14 +166,10 @@ export const createProjectRouter = (t: TRPC) => {
 
     getPermissions: t.procedure
       .input(z.object({ projectId: z.string(), withAdmins: z.boolean().optional() }))
-      .use(withAccess(ownsProject))
+      .use(withAccess((user, ctx) => ownsProject(user, ctx) || hasWritePermission(user, ctx)))
       .query(async ({ input }) => {
         return await getProjectUserPermissions(input.projectId, input.withAdmins);
       }),
-
-    getParticipatedProjects: t.procedure.query(async ({ ctx }) => {
-      return getParticipatedProjects(ctx.user.id);
-    }),
 
     updatePermissions: t.procedure
       .input(projectPermissionSchema)
