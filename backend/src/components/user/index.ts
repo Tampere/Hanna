@@ -3,7 +3,7 @@ import { getPool, sql } from '@backend/db';
 import { userSchema } from '@shared/schema/user';
 
 const userSelectFragment = sql.fragment`
-  SELECT id, email, name FROM app.user
+  SELECT id, email, name, role, permissions FROM app.user
 `;
 
 export async function getAllUsers() {
@@ -16,8 +16,8 @@ export async function getAllUsers() {
 
 export async function getAllNonExtUsers() {
   const users = await getPool().many(sql.type(userSchema)`
-    SELECT id, email, name FROM app.user
-    WHERE email NOT LIKE '%@ext%'
+    ${userSelectFragment}
+    WHERE email NOT LIKE '%ext%'
     ORDER BY name ASC
   `);
   return users;

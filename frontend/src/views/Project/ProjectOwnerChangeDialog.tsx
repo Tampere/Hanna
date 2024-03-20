@@ -9,8 +9,11 @@ import {
   Typography,
   css,
 } from '@mui/material';
+import { useAtomValue } from 'jotai';
 import { useState } from 'react';
+import { isAdmin } from 'tre-hanna-shared/src/schema/userPermissions';
 
+import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 
 interface Props {
@@ -20,6 +23,7 @@ interface Props {
 }
 
 export function ProjectOwnerChangeDialog({ isOpen, onCancel, onSave }: Props) {
+  const auth = useAtomValue(asyncUserAtom);
   const [ownerRightsSelection, setOwnerRightsSelection] = useState(false);
   const tr = useTranslations();
 
@@ -32,7 +36,11 @@ export function ProjectOwnerChangeDialog({ isOpen, onCancel, onSave }: Props) {
     >
       <DialogTitle>{tr('projectForm.ownerChangeDialog.title')}</DialogTitle>
       <DialogContent>
-        <Typography>{tr('projectForm.ownerChangeDialog.content')}</Typography>
+        <Typography>
+          {isAdmin(auth.role)
+            ? tr('projectForm.ownerChangeDialog.adminContent')
+            : tr('projectForm.ownerChangeDialog.content')}
+        </Typography>
         <FormControlLabel
           label={tr('projectForm.ownerChangeDialog.checkboxLabel')}
           control={

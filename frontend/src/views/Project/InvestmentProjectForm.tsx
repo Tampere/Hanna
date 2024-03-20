@@ -26,7 +26,7 @@ import {
   InvestmentProject,
   investmentProjectSchema,
 } from '@shared/schema/project/investment';
-import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
+import { hasWritePermission, isAdmin, ownsProject } from '@shared/schema/userPermissions';
 
 import { ProjectOwnerChangeDialog } from './ProjectOwnerChangeDialog';
 
@@ -49,6 +49,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
   const [editing, setEditing] = useState(props.edit);
   const currentUser = useAtomValue(asyncUserAtom);
   const [displayOwnerChangeDialog, setDisplayOwnerChangeDialog] = useState(false);
+  const { user } = trpc.useUtils();
 
   const readonlyProps = useMemo(() => {
     if (editing) {
@@ -115,17 +116,22 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
   }, [props.project]);
 
   const projectUpsert = trpc.investmentProject.upsert.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       // Navigate to new url if we are creating a new project
       if (!props.project && data.projectId) {
         navigate(`/investointihanke/${data.projectId}`);
       } else {
-        queryClient.invalidateQueries({
-          queryKey: [['project', 'get'], { input: { id: data.projectId } }],
+        await queryClient.invalidateQueries({
+          queryKey: [['investmentProject', 'get'], { input: { projectId: data.projectId } }],
         });
-        queryClient.invalidateQueries({
-          queryKey: [['project', 'getPermissions'], { input: { projectId: data.projectId } }],
+
+        await queryClient.invalidateQueries({
+          queryKey: [
+            ['project', 'getPermissions'],
+            { input: { projectId: data.projectId, withAdmins: false } },
+          ],
         });
+
         setEditing(false);
         form.reset(data);
       }
@@ -149,8 +155,17 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
     }
   }, [form.formState.isSubmitSuccessful, form.reset]);
 
-  const onSubmit = (data: InvestmentProject | DbInvestmentProject) => {
-    if (props?.project?.owner && props.project.owner !== ownerWatch) {
+  const onSubmit = async (data: InvestmentProject | DbInvestmentProject) => {
+    const projectOwner = props?.project?.owner
+      ? await user.get.fetch({ userId: props.project.owner })
+      : null;
+
+    if (
+      projectOwner &&
+      !isAdmin(projectOwner.role) &&
+      !props.project?.writeUsers.includes(projectOwner.id) &&
+      projectOwner?.id !== ownerWatch
+    ) {
       setDisplayOwnerChangeDialog(true);
       return;
     }
@@ -243,7 +258,14 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
             label={tr('project.ownerLabel')}
             tooltip={tr('newProject.ownerTooltip')}
             component={({ id, onChange, value }) => (
-              <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
+              <UserSelect
+                id={id}
+                value={value}
+                onChange={onChange}
+                readOnly={
+                  !editing || Boolean(props.project && !ownsProject(currentUser, props.project))
+                }
+              />
             )}
           />
 

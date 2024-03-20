@@ -90,6 +90,7 @@
   "projectForm.formTitle": "Hankkeen tiedot",
   "projectForm.ownerChangeDialog.title": "Hankkeen omistajan vaihto",
   "projectForm.ownerChangeDialog.content": "Olet luopumassa hankkeen omistajuudesta, etkä voi peruuttaa tätä toimenpidettä itse.",
+  "projectForm.ownerChangeDialog.adminContent": "Haluatko säilyttää edellisen omistajan hankkeen muokkausoikeuden?",
   "projectForm.ownerChangeDialog.checkboxLabel": "Säilytä hankkeen muokkausoikeus",
   "projectPermissions.editPermission": "Muokkausoikeus",
   "projectRelations.parentRelations": "Ylähankkeet",

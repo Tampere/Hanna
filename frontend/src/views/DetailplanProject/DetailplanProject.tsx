@@ -77,7 +77,8 @@ function getTabs(projectId: string) {
       url: `/asemakaavahanke/${projectId}?tab=luvitus`,
       label: 'project.permissionsTabLabel',
       icon: <KeyTwoTone fontSize="small" />,
-      hasAccess: (user: User, project: ProjectPermissionContext) => ownsProject(user, project),
+      hasAccess: (user: User, project: ProjectPermissionContext) =>
+        ownsProject(user, project) || hasWritePermission(user, project),
     },
   ] as const;
 }
@@ -201,7 +202,12 @@ export function DetailplanProject() {
                   projectId={routeParams.projectId}
                 />
               )}
-              {tabView === 'luvitus' && <ProjectPermissions projectId={routeParams.projectId} />}
+              {tabView === 'luvitus' && (
+                <ProjectPermissions
+                  projectId={routeParams.projectId}
+                  ownerId={project.data?.owner}
+                />
+              )}
             </Box>
           )}
         </Paper>

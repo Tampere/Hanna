@@ -26,7 +26,7 @@ import {
   DetailplanProject,
   detailplanProjectSchema,
 } from '@shared/schema/project/detailplan';
-import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
+import { hasWritePermission, isAdmin, ownsProject } from '@shared/schema/userPermissions';
 
 import { ProjectOwnerChangeDialog } from '../Project/ProjectOwnerChangeDialog';
 
@@ -89,7 +89,7 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
     [currentUser],
   );
 
-  const { detailplanProject } = trpc.useUtils();
+  const { detailplanProject, user } = trpc.useUtils();
   const formValidator = useMemo(() => {
     const schemaValidation = zodResolver(detailplanProjectSchema);
 
@@ -144,7 +144,10 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
           queryKey: [['detailplanProject', 'get'], { input: { projectId: data.projectId } }],
         });
         queryClient.invalidateQueries({
-          queryKey: [['project', 'getPermissions'], { input: { projectId: data.projectId } }],
+          queryKey: [
+            ['project', 'getPermissions'],
+            { input: { projectId: data.projectId, withAdmins: false } },
+          ],
         });
         queryClient.invalidateQueries({
           queryKey: [
@@ -177,8 +180,17 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
 
   const ownerWatch = form.watch('owner');
 
-  const onSubmit = (data: DetailplanProject | DbDetailplanProject) => {
-    if (props?.project?.owner && props.project.owner !== ownerWatch) {
+  const onSubmit = async (data: DetailplanProject | DbDetailplanProject) => {
+    const projectOwner = props?.project?.owner
+      ? await user.get.fetch({ userId: props.project.owner })
+      : null;
+
+    if (
+      projectOwner &&
+      !isAdmin(projectOwner.role) &&
+      !props.project?.writeUsers.includes(projectOwner.id) &&
+      projectOwner?.id !== ownerWatch
+    ) {
       setDisplayOwnerChangeDialog(true);
       return;
     }
@@ -273,7 +285,14 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
             label={tr('project.ownerLabel')}
             tooltip={tr('newProject.ownerTooltip')}
             component={({ id, onChange, value }) => (
-              <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
+              <UserSelect
+                id={id}
+                value={value}
+                onChange={onChange}
+                readOnly={
+                  !editing || Boolean(props.project && !ownsProject(currentUser, props.project))
+                }
+              />
             )}
           />
 

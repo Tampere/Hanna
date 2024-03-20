@@ -63,7 +63,7 @@ export async function getProject(id: string, tx?: DatabaseTransactionConnection)
 export async function projectUpsert(
   project: InvestmentProject,
   user: User,
-  keepOwnerRights: boolean = false
+  keepOwnerRights: boolean = false,
 ) {
   return getPool().transaction(async (tx) => {
     if (hasErrors(await validateUpsertProject(project, tx))) {
@@ -138,4 +138,22 @@ export async function validateUpsertProject(
 ) {
   const conn = tx ?? getPool();
   return baseProjectValidate(conn, project);
+}
+
+export async function getParticipatedProjects(userId: string) {
+  return getPool().any(sql.type(z.object({ projectId: z.string(), projectName: z.string() }))`
+    SELECT
+      p.id as "projectId",
+      p.project_name as "projectName"
+    FROM app.project p, app.project_investment pi
+    WHERE p.id = pi.id AND p.owner = ${userId} AND p.deleted = false
+    UNION
+    SELECT
+    	p.id as "projectId",
+      p.project_name as "projectName"
+    FROM app.project_permission pp
+    LEFT JOIN app.project_investment pi ON pp.project_id = pi.id
+    LEFT JOIN app.project p ON pi.id = pp.project_id
+    WHERE p.id = pi.id AND pp.user_id = ${userId} AND pp.can_write = TRUE AND p.deleted = false;
+  `);
 }
