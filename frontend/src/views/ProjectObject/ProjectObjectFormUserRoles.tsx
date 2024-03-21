@@ -1,6 +1,7 @@
 import { AddSharp, DeleteOutline } from '@mui/icons-material';
 import { Box, Button, Card, IconButton, Typography, css } from '@mui/material';
 import { useAtomValue } from 'jotai';
+import { Fragment } from 'react';
 import { ControllerRenderProps, FieldValues } from 'react-hook-form';
 import { Code, CodeId } from 'tre-hanna-shared/src/schema/code';
 import { ProjectObjectUserRole } from 'tre-hanna-shared/src/schema/projectObject';
@@ -87,7 +88,7 @@ export function ProjectObjectFormUserRoles({ value, readOnly, onChange }: Props)
               if (!codeObject) return null;
 
               return (
-                <>
+                <Fragment key={role.roleId}>
                   <Box
                     css={css`
                       grid-column: 1 / 2;
@@ -161,7 +162,7 @@ export function ProjectObjectFormUserRoles({ value, readOnly, onChange }: Props)
                       </IconButton>
                     )}
                   </Box>
-                </>
+                </Fragment>
               );
             },
           )

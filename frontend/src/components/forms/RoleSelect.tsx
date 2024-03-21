@@ -1,4 +1,4 @@
-import { Typography, css } from '@mui/material';
+import { Typography } from '@mui/material';
 import { useMemo } from 'react';
 
 import { trpc } from '@frontend/client';
@@ -76,15 +76,11 @@ export function RoleSelect(props: Props) {
     return multiple ? (
       <Typography>
         {(selection as RoleAssignee[]).map((assignee: RoleAssignee, idx) => (
-          <Typography
-            css={css`
-              display: inline-block;
-            `}
-          >
+          <span key={assignee.id}>
             {assignee.name}
             {(selection as RoleAssignee[]).length - 1 !== idx && ','}
             &nbsp;
-          </Typography>
+          </span>
         ))}
       </Typography>
     ) : (

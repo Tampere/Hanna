@@ -261,7 +261,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
         });
 
         setEditing(false);
-        form.reset(data);
+        form.reset((currentData) => currentData);
       }
       notify({
         severity: 'success',

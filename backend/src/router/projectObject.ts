@@ -40,8 +40,8 @@ const projectObjectFragment = sql.fragment`
   WITH roles AS (
     SELECT json_build_object(
           'roleId', (role).id,
-          'userIds', json_agg(user_id) FILTER (WHERE user_id IS NOT NULL),
-          'companyContactIds', json_agg(company_contact_id) FILTER (WHERE company_contact_id IS NOT NULL)
+          'userIds', COALESCE(json_agg(user_id) FILTER (WHERE user_id IS NOT NULL), '[]'),
+          'companyContactIds', COALESCE(json_agg(company_contact_id) FILTER (WHERE company_contact_id IS NOT NULL), '[]')
         ) AS "objectUserRoles", project_object.id AS project_object_id
       FROM app.project_object_user_role, app.project_object
       WHERE project_object.id = project_object_user_role.project_object_id
