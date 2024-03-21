@@ -8,4 +8,8 @@ INSERT INTO app.code (id, text_fi, text_en) VALUES('(KohdeKayttajaRooli,06)', 'U
 INSERT INTO app.code (id, text_fi, text_en) VALUES('(KohdeKayttajaRooli,07)', 'Turvallisuuskoordinaattori', 'Turvallisuuskoordinaattori');
 INSERT INTO app.code (id, text_fi, text_en) VALUES('(KohdeKayttajaRooli,08)', 'Valvoja', 'Valvoja');
 
+INSERT INTO app.project_object_user_role (project_object_id, role, company_contact_id)
+	SELECT DISTINCT t.project_object_id, '(KohdeKayttajaRooli,06)'::app.code_id, t.contractor_id FROM app.task t
+	WHERE t.contractor_id IS NOT NULL;
+
 ALTER TABLE app.task DROP COLUMN contractor_id;
