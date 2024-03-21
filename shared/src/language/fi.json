@@ -426,6 +426,7 @@
   "workTable.summary.actual": "Toteuma yhteensä",
   "workTable.summary.forecast": "Ennuste yhteensä",
   "workTable.summary.kayttosuunnitelmanMuutos": "Käyttösuunnitelman muutos yhteensä",
+  "workTable.ownerFilterLabel": "Näytä vain omat kohteet",
   "dataTable.error": "Tietojen haussa tapahtui virhe. Yritä myöhemmin uudestaan.",
   "dataTable.noData": "Ei hakutuloksia.",
   "email.subject": "Aihe",
