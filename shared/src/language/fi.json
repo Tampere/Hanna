@@ -33,7 +33,7 @@
   "projectSearch.calendarQuickSelection.year": "Vuosi {year}",
   "projectSearch.projectType": "Hanketyyppi",
   "projectSearch.geometry": "Alue",
-  "projectSearch.showWithoutGeom": "Sisällytä hankkeet ilman alueita",
+  "projectSearch.showOnlyItemsWithGeom": "Sisällytä ainoastaan hankkeet alueilla",
   "projectSearch.generateReport": "Lataa raportti",
   "projectSearch.reportFailed": "Raportin luonti epäonnistui",
   "projectType.investmentProject": "Investointihanke",
