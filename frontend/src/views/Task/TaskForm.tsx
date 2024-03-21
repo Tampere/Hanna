@@ -10,7 +10,6 @@ import { z } from 'zod';
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
-import { CompanyContactSelect } from '@frontend/components/forms/CompanyContactSelect';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
@@ -169,16 +168,6 @@ export function TaskForm(props: Readonly<Props>) {
           tooltip={tr('taskForm.descriptionTooltip')}
           component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
         />
-
-        <FormField
-          formField="contractorId"
-          label={tr('taskForm.contractorLabel')}
-          tooltip={tr('taskForm.contractorTooltip')}
-          component={({ ref, ...field }) => (
-            <CompanyContactSelect {...field} readonlyProps={readonlyProps} />
-          )}
-        />
-
         <FormField
           formField="lifecycleState"
           label={tr('taskForm.lifecycleStateLabel')}

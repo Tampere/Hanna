@@ -98,13 +98,16 @@ export function FormField<T extends object = any>({
       render={({ field, fieldState }) => {
         return (
           <FormControl margin="dense">
-            <CustomFormLabel
-              htmlFor={String(formField)}
-              label={label}
-              tooltip={tooltip}
-              error={fieldState.error}
-              required={required}
-            />
+            {label && (
+              <CustomFormLabel
+                htmlFor={String(formField)}
+                label={label}
+                tooltip={tooltip}
+                error={fieldState.error}
+                required={required}
+              />
+            )}
+
             {component({ ...field, id: String(formField) })}
           </FormControl>
         );

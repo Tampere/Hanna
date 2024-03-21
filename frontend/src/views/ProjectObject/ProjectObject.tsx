@@ -42,7 +42,7 @@ interface Tab {
 
 const pageContentStyle = css`
   display: grid;
-  grid-template-columns: minmax(384px, 1fr) minmax(512px, 2fr);
+  grid-template-columns: minmax(540px, 1fr) minmax(512px, 2fr);
   gap: 16px;
   height: 100%;
   flex: 1;

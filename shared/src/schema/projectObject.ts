@@ -4,8 +4,9 @@ import { codeId } from './code';
 import { isoDateString, nonEmptyString } from './common';
 
 export const projectObjectUserRoleSchema = z.object({
-  userId: nonEmptyString,
   roleId: codeId,
+  userIds: z.array(nonEmptyString),
+  companyContactIds: z.array(nonEmptyString),
 });
 
 export const updateBudgetSchema = z.object({
@@ -108,3 +109,5 @@ export const yearBudgetSchema = z.object({
 export type YearBudget = z.infer<typeof yearBudgetSchema>;
 
 export type BudgetUpdate = z.infer<typeof updateBudgetSchema>;
+
+export type ProjectObjectUserRole = z.infer<typeof projectObjectUserRoleSchema>;
