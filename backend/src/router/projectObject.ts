@@ -328,7 +328,7 @@ export async function validateUpsertProjectObject(
       extract(year FROM ${values?.startDate}::date) <= min(budget.year) AS "validStartDate",
       extract(year FROM ${values?.endDate}::date) >= max(budget.year) AS "validEndDate"
     FROM app.budget
-    WHERE project_object_id = ${values?.id}
+    WHERE project_object_id = ${values?.id} AND (amount is NOT NULL OR forecast is NOT NULL OR kayttosuunnitelman_muutos is NOT NULL)
     GROUP BY project_object_id;
   `);
 
