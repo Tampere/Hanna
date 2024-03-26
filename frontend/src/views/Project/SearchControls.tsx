@@ -180,13 +180,13 @@ export function SearchControls() {
           <FormControlLabel
             control={
               <Checkbox
-                checked={includeWithoutGeom}
+                checked={!includeWithoutGeom}
                 onChange={(_, checked) => {
-                  setIncludeWithoutGeom(checked);
+                  setIncludeWithoutGeom(!checked);
                 }}
               />
             }
-            label={tr('projectSearch.showWithoutGeom')}
+            label={tr('projectSearch.showOnlyItemsWithGeom')}
           />
         </FormGroup>
       </div>
