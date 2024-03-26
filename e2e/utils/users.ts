@@ -2,7 +2,7 @@ import { login } from './page';
 
 export async function clearUserPermissions(client: UserSessionObject['client'], userIds: string[]) {
   return client.userPermissions.setPermissions.mutate(
-    userIds.map((id) => ({ userId: id, permissions: [] }))
+    userIds.map((id) => ({ userId: id, permissions: [] })),
   );
 }
 
