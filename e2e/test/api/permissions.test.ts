@@ -58,7 +58,7 @@ test.describe('permission testing', () => {
     ).rejects.toThrowError('error.insufficientPermissions');
   });
 
-  test.only('non-admin users cannot grant permissions for any users', async () => {
+  test('non-admin users cannot grant permissions for any users', async () => {
     const users = await adminSession.client.userPermissions.getByName.query();
 
     await expect(
@@ -88,6 +88,7 @@ test.describe('permission testing', () => {
 
     devSession = await refreshSession(browser, DEV_USER, devSession.page);
     const user = await devSession.client.user.self.query();
+
     const newProject = validProject(DEV_USER);
 
     let project = await devSession.client.investmentProject.upsert.mutate({ project: newProject });
@@ -109,6 +110,7 @@ test.describe('permission testing', () => {
       }),
     );
 
+    testSession = await refreshSession(browser, TEST_USER, testSession.page);
     await expect(
       testSession.client.investmentProject.upsert.mutate({
         project: {

@@ -6,7 +6,7 @@
   "scripts": {
     "codegen": "playwright codegen https://localhost:1443",
     "test-ui": "playwright test --ui",
-    "test": "playwright test",
+    "test": "playwright test --workers=1",
     "watch": "nodemon"
   },
   "keywords": [],
