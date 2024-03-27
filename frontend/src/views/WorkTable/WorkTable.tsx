@@ -31,7 +31,7 @@ import { ModifiedFields } from './diff';
 
 const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   font-size: 12px;
-  .odd {
+  .even {
     background-color: #f3f3f3;
   }
   @keyframes fadeInOut {
@@ -521,7 +521,7 @@ export default function WorkTable() {
           if (params.id === highlightId) {
             return 'highlight';
           }
-          return params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd';
+          return params.row.projectLink.projectIndex % 2 === 0 ? 'even' : 'odd';
         }}
         disableColumnMenu
       />

@@ -1,11 +1,12 @@
 import { css } from '@emotion/react';
 import { Launch } from '@mui/icons-material';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import {
   GridColDef,
   GridRenderCellParams,
   GridRenderEditCellParams,
   GridValidRowModel,
+  gridPaginatedVisibleSortedGridRowIdsSelector,
 } from '@mui/x-data-grid';
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
@@ -150,10 +151,16 @@ const fieldProjectLink = {
   editable: false,
   renderCell: (params: GridRenderCellParams) => {
     const allRowIds = params.api.getAllRowIds();
-    const currentRowIndex = allRowIds.findIndex((rowId) => rowId === params.row.id);
+    const currentRowIndex = allRowIds.indexOf(params.row.id);
+
+    const currentRowRelativeIndex = gridPaginatedVisibleSortedGridRowIdsSelector(
+      params.api.state,
+    ).indexOf(params.row.id);
     let displayProjectLink: boolean;
-    if (currentRowIndex > 0) {
+
+    if (currentRowRelativeIndex > 0) {
       const previousRow = params.api.getRow(allRowIds[currentRowIndex - 1]);
+
       displayProjectLink =
         params.row.projectLink.projectName !== previousRow.projectLink.projectName;
     } else {
@@ -166,7 +173,7 @@ const fieldProjectLink = {
           display: flex;
           align-items: center;
           gap: ${theme.spacing(1)};
-          justify-content: ${displayProjectLink ? 'flex-start' : 'center'};
+          justify-content: flex-end;
         `}
       >
         {displayProjectLink ? (
@@ -177,17 +184,26 @@ const fieldProjectLink = {
               rel="noopener noreferrer"
               css={css`
                 cursor: pointer;
-                color: inherit;
-                text-underline-offset: 3px;
-                margin-right: 2px;
               `}
             >
               <Launch fontSize={'small'} htmlColor="#aaa" />
             </Link>
-            {params.value.projectName}
+            <b
+              title={params.value.projectName}
+              css={css`
+                color: green;
+                text-align: right;
+                max-width: 220px;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+              `}
+            >
+              {params.value.projectName}
+            </b>
           </>
         ) : (
-          '〃'
+          '└'
         )}
       </Box>
     );
