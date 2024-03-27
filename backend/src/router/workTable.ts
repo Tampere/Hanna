@@ -1,5 +1,4 @@
 import { TRPCError } from '@trpc/server';
-import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 import { textToSearchTerms } from '@backend/components/project/search';
 import { getPool, sql } from '@backend/db';
@@ -8,6 +7,7 @@ import { getProjectObjects, upsertProjectObject } from '@backend/router/projectO
 
 import { UpsertProjectObject } from '@shared/schema/projectObject';
 import { User } from '@shared/schema/user';
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 import {
   WorkTableSearch,
   WorkTableUpdate,
@@ -39,7 +39,8 @@ async function workTableSearch(input: WorkTableSearch) {
   WITH search_results AS (
     SELECT
       project_object.*,
-      project.project_name
+      project.project_name,
+      dense_rank() OVER (ORDER BY project.project_name)::int4 AS "projectIndex"
     FROM app.project_object
     INNER JOIN app.project ON project.id = project_object.project_id
     INNER JOIN app.project_investment ON project_investment.id = project.id
@@ -104,7 +105,8 @@ async function workTableSearch(input: WorkTableSearch) {
     ) AS "dateRange",
     jsonb_build_object(
         'projectId', project_id,
-        'projectName', project_name
+        'projectName', project_name,
+        'projectIndex', "projectIndex"
     ) AS "projectLink",
     (SELECT array_agg((object_type).id) FROM app.project_object_type WHERE search_results.id = project_object_type.project_object_id) AS "objectType",
     (SELECT array_agg((object_category).id) FROM app.project_object_category WHERE search_results.id = project_object_category.project_object_id) AS "objectCategory",

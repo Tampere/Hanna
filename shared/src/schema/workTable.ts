@@ -31,6 +31,7 @@ export const workTableRowSchema = z.object({
   projectLink: z.object({
     projectId: dbProjectObjectSchema.shape.projectId,
     projectName: upsertProjectSchema.shape.projectName,
+    projectIndex: z.number(),
   }),
   objectType: dbProjectObjectSchema.shape.objectType,
   objectCategory: dbProjectObjectSchema.shape.objectCategory,
