@@ -34,6 +34,9 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   .even {
     background-color: #f3f3f3;
   }
+  & .MuiDataGrid-row:hover {
+    background-color: #e7eef9;
+  }
   @keyframes fadeInOut {
     0% {
       background-color: inherit;

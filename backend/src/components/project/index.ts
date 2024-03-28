@@ -170,7 +170,7 @@ export async function getProjectBudget(projectId: string) {
         sum(forecast) AS forecast,
         sum(kayttosuunnitelman_muutos) AS kayttosuunnitelman_muutos
       FROM app.budget
-      WHERE project_object_id IN (SELECT id FROM app.project_object WHERE project_id = ${projectId})
+      WHERE project_object_id IN (SELECT id FROM app.project_object WHERE project_id = ${projectId} AND deleted = false)
       GROUP BY "year"
     )
     SELECT

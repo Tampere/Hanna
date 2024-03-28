@@ -138,7 +138,7 @@ export async function validateUpsertProject(
         min(po.start_date) >= ${values?.startDate} AS "validObjectStartDate",
         max(po.end_date) <= ${values?.endDate} AS "validObjectEndDate"
       FROM app.project_object po
-      WHERE po.project_id = ${values?.projectId}
+      WHERE po.project_id = ${values?.projectId} AND po.deleted = false
       GROUP BY po.project_id
     )
     SELECT
