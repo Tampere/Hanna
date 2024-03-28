@@ -190,7 +190,7 @@ function getEnv() {
     adminApiKey: process.env.ADMIN_API_KEY,
     projectFormLink: process.env.PROJECT_FORM_LINK,
     adminGroup: process.env.HANNA_ADMIN_GROUP,
-    displayExtUsers: process.env.DISPLAY_EXT_USERS,
+    displayExtUsers: process.env.DISPLAY_EXT_USERS === 'true',
   } as z.infer<typeof schema>);
 }
 
