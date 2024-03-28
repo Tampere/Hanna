@@ -97,6 +97,7 @@ const schema = z.object({
   adminApiKey: z.string().optional(),
   projectFormLink: z.string().optional(),
   adminGroup: z.string(),
+  displayExtUsers: z.boolean().optional(),
 });
 
 function getEnv() {
@@ -189,6 +190,7 @@ function getEnv() {
     adminApiKey: process.env.ADMIN_API_KEY,
     projectFormLink: process.env.PROJECT_FORM_LINK,
     adminGroup: process.env.HANNA_ADMIN_GROUP,
+    displayExtUsers: process.env.DISPLAY_EXT_USERS,
   } as z.infer<typeof schema>);
 }
 

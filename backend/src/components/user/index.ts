@@ -1,4 +1,5 @@
 import { getPool, sql } from '@backend/db';
+import { env } from '@backend/env';
 
 import { userSchema } from '@shared/schema/user';
 
@@ -17,7 +18,7 @@ export async function getAllUsers() {
 export async function getAllNonExtUsers() {
   const users = await getPool().many(sql.type(userSchema)`
     ${userSelectFragment}
-    WHERE email NOT LIKE '%ext%'
+    ${env?.displayExtUsers ? sql.fragment`` : sql.fragment`WHERE email NOT LIKE '%ext%'`}
     ORDER BY name ASC
   `);
   return users;
