@@ -93,6 +93,7 @@ async function workTableSearch(input: WorkTableSearch) {
       SUM(value_in_currency_subunit) AS total
     FROM app.sap_actuals_item
     INNER JOIN app.project_object ON project_object.sap_wbs_id = sap_actuals_item.wbs_element_id
+    WHERE fiscal_year BETWEEN EXTRACT('year' FROM CAST(${startDate} as date)) AND EXTRACT('year' FROM CAST(${endDate} as date))
     GROUP BY project_object.id
   )
   SELECT

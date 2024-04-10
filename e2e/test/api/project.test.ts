@@ -64,6 +64,7 @@ const validProject = (userId: string, projectName = 'Test project') => ({
 test.describe('Project endpoints', () => {
   let adminSession: UserSessionObject;
   let devSession: UserSessionObject;
+  let financialsSession: UserSessionObject;
 
   test.beforeAll(async ({ browser }) => {
     adminSession = await login(browser, ADMIN_USER);
@@ -73,6 +74,14 @@ test.describe('Project endpoints', () => {
         permissions: ['investmentProject.write'],
       },
     ]);
+    adminSession.client.userPermissions.setPermissions.mutate([
+      {
+        userId: DEV_USER,
+        permissions: ['financials.write'],
+      },
+    ]);
+
+    financialsSession = await login(browser, DEV_USER);
     devSession = await login(browser, DEV_USER);
   });
 
@@ -237,6 +246,42 @@ test.describe('Project endpoints', () => {
         year: 2022,
         budgetItems: {
           amount: 60000,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
+        },
+      },
+    ]);
+  });
+
+  test('financials writer budget update', async () => {
+    const user = await financialsSession.client.user.self.query();
+    const validProjectInput = validProject(user.id);
+
+    const project = await financialsSession.client.investmentProject.upsert.mutate({
+      project: validProjectInput,
+    });
+
+    const budgetUpdateInput = {
+      projectId: project.projectId,
+      budgetItems: [
+        {
+          year: 2021,
+          amount: 50000,
+        },
+      ],
+    };
+
+    await financialsSession.client.project.updateBudget.mutate(budgetUpdateInput);
+
+    const updatedBudgetResult = await financialsSession.client.project.getBudget.query({
+      projectId: project.projectId,
+    });
+
+    expect(updatedBudgetResult).toStrictEqual([
+      {
+        year: 2021,
+        budgetItems: {
+          amount: 50000,
           forecast: null,
           kayttosuunnitelmanMuutos: null,
         },
