@@ -1,5 +1,5 @@
 import { HandshakeTwoTone, SpaTwoTone } from '@mui/icons-material';
-import { Box, Tab, Tabs, Tooltip, Typography, css } from '@mui/material';
+import { Alert, Box, Tab, Tabs, Tooltip, Typography, css } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { ReactElement } from 'react';
 import { useParams } from 'react-router';
@@ -91,6 +91,11 @@ export function SapReports() {
           </Typography>
         )}
       </Tabs>
+      <Alert severity="warning">
+        Taloustiimin käyttämät SAP-raportit on julkaistu. Teknisistä syistä johtuen raportit on
+        julkaistu, vaikka niiden testaaminen on vielä kesken. Testaaminen saatetaan loppuun kevään
+        aikana. Mikäli raporteista on kysyttävää, ole yhteydessä Ulla Lautaojaan.
+      </Alert>
       {tabView === 'ymparistokoodit' && <EnvironmentalCodeReport />}
       {tabView === 'puitesopimukset' && <BlanketContractReport />}
     </Box>
