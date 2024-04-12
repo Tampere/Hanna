@@ -5,6 +5,9 @@ import {
   workTableColumnCodes,
 } from 'tre-hanna-shared/src/schema/workTable';
 
+import { getCodesForCodeList } from '@backend/components/code';
+import { buildSheet } from '@backend/components/report';
+import { saveReportFile } from '@backend/components/report/report-file';
 import { env } from '@backend/env';
 import { workTableSearch } from '@backend/router/workTable';
 
@@ -13,9 +16,6 @@ import { Code } from '@shared/schema/code';
 import { Suffix } from '@shared/util-types';
 
 import { getTaskQueue, startJob } from '.';
-import { getCodesForCodeList } from '../code';
-import { buildSheet } from '../report';
-import { saveReportFile } from '../report/report-file';
 
 const queueName = 'work-table-report';
 
