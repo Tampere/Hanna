@@ -1,9 +1,4 @@
 import { Workbook } from 'excel4node';
-import {
-  WorkTableSearch,
-  workTableColumnCodeKeys,
-  workTableColumnCodes,
-} from 'tre-hanna-shared/src/schema/workTable';
 
 import { getCodesForCodeList } from '@backend/components/code';
 import { buildSheet } from '@backend/components/report';
@@ -13,6 +8,11 @@ import { workTableSearch } from '@backend/router/workTable';
 
 import { TranslationKey, translations } from '@shared/language';
 import { Code } from '@shared/schema/code';
+import {
+  WorkTableSearch,
+  workTableColumnCodeKeys,
+  workTableColumnCodes,
+} from '@shared/schema/workTable';
 import { Suffix } from '@shared/util-types';
 
 import { getTaskQueue, startJob } from '.';
