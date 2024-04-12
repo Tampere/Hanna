@@ -20,7 +20,7 @@ export const projectSearchParamAtom = atom<SearchParams>({
     zoom: mapOptions.tre.defaultZoom,
     extent: mapOptions.tre.extent,
   },
-  includeWithoutGeom: false,
+  includeWithoutGeom: true,
   filters: {} as const,
 });
 
