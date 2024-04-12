@@ -35,6 +35,7 @@ export async function workTableSearch(input: WorkTableSearch) {
     objectUsage = [],
     lifecycleState = [],
     objectStage = [],
+    projectOwner = null,
   } = input;
 
   const query = sql.type(workTableRowSchema)`
@@ -48,6 +49,7 @@ export async function workTableSearch(input: WorkTableSearch) {
     INNER JOIN app.project_investment ON project_investment.id = project.id
 
     WHERE project_object.deleted = false
+      ${projectOwner ? sql.fragment`AND owner = ${projectOwner}` : sql.fragment``}
       -- search date range intersection
       AND daterange(${startDate}, ${endDate}, '[]') && daterange(project_object.start_date, project_object.end_date, '[]')
       AND (${objectNameSearch}::text IS NULL OR to_tsquery('simple', ${objectNameSearch}) @@ to_tsvector('simple', project_object.object_name) OR project_object.object_name LIKE '%' || ${objectNameSubstringSearch} || '%')

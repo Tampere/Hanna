@@ -27,7 +27,9 @@ import {
 import { WorkTableRow, WorkTableRowUpdate, WorkTableSearch } from '@shared/schema/workTable';
 
 import { BackToTopButton } from './BackToTopButton';
+import { ProjectObjectOwnerFilter } from './Filters/ProjectObjectOwnerFilter';
 import { YearPicker } from './Filters/YearPicker';
+import { WorkTableSummaryRow } from './WorkTableSummaryRow';
 import { ModifiedFields } from './diff';
 
 const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
@@ -92,7 +94,7 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
 
 type UpdateableFields = keyof Omit<WorkTableRow, 'id' | 'projectLink'>;
 
-interface CellEditEvent {
+export interface CellEditEvent {
   rowId: string;
   field: UpdateableFields;
   oldValue: WorkTableRow[keyof WorkTableRow];
@@ -295,35 +297,6 @@ export default function WorkTable() {
     updateObjects.mutateAsync(updateData);
   }
 
-  function calculateRowSum(values: number[]) {
-    return values.reduce((sum, value) => sum + value, 0) / 100;
-  }
-
-  function getSummaryData(
-    fieldName: 'budget' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos',
-  ) {
-    const eurFormat = new Intl.NumberFormat('fi-FI', {
-      style: 'currency',
-      currency: 'EUR',
-    });
-
-    if (!workTableData?.data) {
-      return eurFormat.format(0);
-    }
-    const sum = calculateRowSum(
-      workTableData.data
-        .map((data: WorkTableRow) =>
-          Number(
-            editEvents.find((event) => event.rowId === data.id && event.field === fieldName)
-              ?.newValue ?? data[fieldName],
-          ),
-        )
-        .filter((data) => !isNaN(data)),
-    );
-
-    return eurFormat.format(sum);
-  }
-
   function handleSummaryRowResize() {
     if (
       summaryRowRef?.current?.offsetHeight &&
@@ -346,6 +319,18 @@ export default function WorkTable() {
       return ['forecast'];
     } else {
       return [];
+    }
+  }
+
+  function ownerFilterChange() {
+    if (searchParams.projectOwner) {
+      setSearchParams((prev) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { projectOwner, ...rest } = prev;
+        return rest;
+      });
+    } else {
+      setSearchParams((prev) => ({ ...prev, projectOwner: auth?.id }));
     }
   }
 
@@ -384,6 +369,7 @@ export default function WorkTable() {
             })
           }
         />
+        <ProjectObjectOwnerFilter onChange={ownerFilterChange} />
         <Box
           css={css`
             display: flex;
@@ -432,57 +418,11 @@ export default function WorkTable() {
         yearRange={yearRange}
         setSearchParams={setSearchParams}
       />
-
-      <Box
+      <WorkTableSummaryRow
+        editEvents={editEvents}
+        workTableData={workTableData}
         ref={summaryRowRef}
-        css={(theme) => css`
-          display: flex;
-          flex-wrap: wrap;
-          margin: 0 -1rem;
-          padding: 1rem;
-          gap: 1.5rem;
-          position: sticky;
-          top: -1rem;
-          z-index: 100;
-          outline: solid white;
-          background-color: white;
-          min-height: 54px;
-          p {
-            font-size: 0.9rem;
-            white-space: nowrap;
-          }
-          .summaryContainer {
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-          }
-          .summaryLabel {
-            font-weight: 600;
-            white-space: nowrap;
-            color: ${theme.palette.primary.main};
-          }
-        `}
-      >
-        <Box className="summaryContainer">
-          <Typography className="summaryLabel">{tr('workTable.summary.budget')}:</Typography>
-          <Typography>{getSummaryData('budget')}</Typography>
-        </Box>
-        <Box className="summaryContainer">
-          <Typography className="summaryLabel">{tr('workTable.summary.actual')}:</Typography>
-          <Typography>{getSummaryData('actual')}</Typography>
-        </Box>
-        <Box className="summaryContainer">
-          <Typography className="summaryLabel">{tr('workTable.summary.forecast')}:</Typography>
-          <Typography>{getSummaryData('forecast')}</Typography>
-        </Box>
-        <Box className="summaryContainer">
-          <Typography className="summaryLabel" style={{ whiteSpace: 'normal' }}>
-            {tr('workTable.summary.kayttosuunnitelmanMuutos')}:
-          </Typography>
-          <Typography>{getSummaryData('kayttosuunnitelmanMuutos')}</Typography>
-        </Box>
-      </Box>
-
+      />
       <DataGrid
         onResize={handleSummaryRowResize}
         isCellEditable={({ row, field }: { row: WorkTableRow; field: string }) => {

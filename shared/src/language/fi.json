@@ -430,6 +430,7 @@
   "workTable.summary.actual": "Toteuma yhteensä",
   "workTable.summary.forecast": "Ennuste yhteensä",
   "workTable.summary.kayttosuunnitelmanMuutos": "Käyttösuunnitelman muutos yhteensä",
+  "workTable.ownerFilterLabel": "Näytä vain omat kohteet",
   "workTable.export.label": "Investoinnit",
   "workTable.export.projectName": "Hanke",
   "workTable.export.objectName": "Kohde",
