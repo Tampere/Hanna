@@ -1,0 +1,1 @@
+INSERT INTO app.code VALUES (('KohteenOmaisuusLuokka', '09'), 'Liikuntareitit', 'Liikuntareitit');
