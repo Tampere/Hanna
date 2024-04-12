@@ -6,20 +6,20 @@
   "scripts": {
     "codegen": "playwright codegen https://localhost:1443",
     "test-ui": "playwright test --ui",
-    "test": "playwright test",
+    "test": "playwright test --workers=1",
     "watch": "nodemon"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "^1.40.1",
-    "nodemon": "^3.0.2",
-    "playwright": "^1.40.1"
+    "@playwright/test": "^1.42.1",
+    "nodemon": "^3.1.0",
+    "playwright": "^1.42.1"
   },
   "dependencies": {
-    "@trpc/client": "^10.44.1",
-    "@trpc/server": "^10.44.1",
+    "@trpc/client": "^10.45.2",
+    "@trpc/server": "^10.45.2",
     "dayjs": "^1.11.10",
     "node-fetch": "^2.7.0",
     "superjson": "^1.13.3"

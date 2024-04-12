@@ -22,6 +22,7 @@ export type Props<T> = {
   getOptionLabel?: (item: T) => string;
   getOptionId?: (item: T) => string;
   multiple: boolean;
+  disableClearable?: boolean;
 } & (
   | {
       multiple: true;
@@ -50,6 +51,7 @@ export function MultiSelect<T>({
   getOptionLabel,
   getOptionId,
   maxTags,
+  disableClearable,
 }: Props<T>) {
   const tr = useTranslations();
 
@@ -76,6 +78,7 @@ export function MultiSelect<T>({
 
   return (
     <Autocomplete
+      disableClearable={disableClearable ?? false}
       id={id}
       readOnly={readOnly}
       multiple={multiple}

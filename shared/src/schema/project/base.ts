@@ -33,10 +33,17 @@ export const projectPermissionSchema = z.object({
     z.object({
       userId: z.string(),
       canWrite: z.boolean(),
-    })
+    }),
   ),
 });
 
+export const projectWritePermissionSchema = z.object({
+  userId: z.string(),
+  userName: z.string(),
+  canWrite: z.boolean(),
+});
+
+export type ProjectWritePermission = z.infer<typeof projectWritePermissionSchema>;
 export type UpsertProject = z.infer<typeof upsertProjectSchema>;
 export type ProjectPermissions = z.infer<typeof projectPermissionSchema>;
 

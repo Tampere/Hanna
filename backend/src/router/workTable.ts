@@ -1,7 +1,9 @@
 import { TRPCError } from '@trpc/server';
 
 import { textToSearchTerms } from '@backend/components/project/search';
+import { startWorkTableReportJob } from '@backend/components/taskQueue/workTableReportQueue';
 import { getPool, sql } from '@backend/db';
+import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
 import { getProjectObjects, upsertProjectObject } from '@backend/router/projectObject';
 
@@ -17,7 +19,7 @@ import {
   workTableUpdateSchema,
 } from '@shared/schema/workTable';
 
-async function workTableSearch(input: WorkTableSearch) {
+export async function workTableSearch(input: WorkTableSearch) {
   const objectNameSearch = textToSearchTerms(input.projectObjectName, { minTermLength: 3 });
   const projectNameSearch = textToSearchTerms(input.projectName, { minTermLength: 3 });
   const objectNameSubstringSearch =
@@ -40,7 +42,8 @@ async function workTableSearch(input: WorkTableSearch) {
   WITH search_results AS (
     SELECT
       project_object.*,
-      project.project_name
+      project.project_name,
+      dense_rank() OVER (ORDER BY project.project_name)::int4 AS "projectIndex"
     FROM app.project_object
     INNER JOIN app.project ON project.id = project_object.project_id
     INNER JOIN app.project_investment ON project_investment.id = project.id
@@ -94,6 +97,7 @@ async function workTableSearch(input: WorkTableSearch) {
       SUM(value_in_currency_subunit) AS total
     FROM app.sap_actuals_item
     INNER JOIN app.project_object ON project_object.sap_wbs_id = sap_actuals_item.wbs_element_id
+    WHERE fiscal_year BETWEEN EXTRACT('year' FROM CAST(${startDate} as date)) AND EXTRACT('year' FROM CAST(${endDate} as date))
     GROUP BY project_object.id
   )
   SELECT
@@ -106,7 +110,8 @@ async function workTableSearch(input: WorkTableSearch) {
     ) AS "dateRange",
     jsonb_build_object(
         'projectId', project_id,
-        'projectName', project_name
+        'projectName', project_name,
+        'projectIndex', "projectIndex"
     ) AS "projectLink",
     (SELECT array_agg((object_type).id) FROM app.project_object_type WHERE search_results.id = project_object_type.project_object_id) AS "objectType",
     (SELECT array_agg((object_category).id) FROM app.project_object_category WHERE search_results.id = project_object_category.project_object_id) AS "objectCategory",
@@ -184,7 +189,7 @@ export const createWorkTableRouter = (t: TRPC) =>
       return workTableSearch(input);
     }),
     update: t.procedure.input(workTableUpdateSchema).mutation(async ({ ctx, input }) => {
-      const conn = await getPool();
+      const conn = getPool();
       const user = ctx.user;
       const ids = Object.keys(input);
       const projectObjects = await getProjectObjects(conn, ids);
@@ -204,5 +209,9 @@ export const createWorkTableRouter = (t: TRPC) =>
     }),
     years: t.procedure.query(async () => {
       return getWorkTableYearRange();
+    }),
+    startWorkTableReportJob: t.procedure.input(workTableSearchSchema).query(async ({ input }) => {
+      logger.warn('starting worktable job');
+      return startWorkTableReportJob(input);
     }),
   });

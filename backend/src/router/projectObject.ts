@@ -37,6 +37,16 @@ import {
 } from '@shared/schema/userPermissions';
 
 const projectObjectFragment = sql.fragment`
+  WITH roles AS (
+    SELECT json_build_object(
+          'roleId', (role).id,
+          'userIds', COALESCE(json_agg(user_id) FILTER (WHERE user_id IS NOT NULL), '[]'),
+          'companyContactIds', COALESCE(json_agg(company_contact_id) FILTER (WHERE company_contact_id IS NOT NULL), '[]')
+        ) AS "objectUserRoles", project_object.id AS project_object_id
+      FROM app.project_object_user_role, app.project_object
+      WHERE project_object.id = project_object_user_role.project_object_id
+	    GROUP BY (role).id, project_object.id
+  )
   SELECT
      project_id AS "projectId",
      id AS "projectObjectId",
@@ -61,14 +71,14 @@ const projectObjectFragment = sql.fragment`
      (SELECT json_agg((object_usage).id)
       FROM app.project_object_usage
       WHERE project_object.id = project_object_usage.project_object_id) AS "objectUsage",
-     height,
-     '[]'::JSONB AS "objectUserRoles", --TODO: Implement
     (
       SELECT json_build_object(
         'writeUsers', (SELECT array_agg(user_id) FROM app.project_permission WHERE project_id = project_object.project_id AND can_write = true),
         'owner', (SELECT owner FROM app.project WHERE id = project_object.project_id)
       )
-    ) AS "permissionCtx"
+    ) AS "permissionCtx",
+     (SELECT COALESCE(json_agg("objectUserRoles"), '[]') FROM roles r WHERE r.project_object_id = project_object.id) AS "objectUserRoles",
+      height
   FROM app.project_object
   WHERE deleted = false
 `;
@@ -190,16 +200,28 @@ async function updateObjectRoles(
   `);
 
   await Promise.all(
-    projectObject.objectUserRoles.map(({ userId, roleId }) =>
-      tx.any(sql.untyped`
-        INSERT INTO app.project_object_user_role (user_id, project_object_id, object_role)
-        VALUES (
-          ${userId},
-          ${projectObject.projectObjectId},
-          ${codeIdFragment('KohdeKayttajaRooli', roleId)}
-        );
-      `),
-    ),
+    projectObject.objectUserRoles.map(({ userIds, roleId, companyContactIds }) => [
+      ...userIds.map((userId) =>
+        tx.any(sql.untyped`
+      INSERT INTO app.project_object_user_role (user_id, project_object_id, role)
+      VALUES (
+        ${userId},
+        ${projectObject.projectObjectId},
+        ${codeIdFragment('KohdeKayttajaRooli', roleId)}
+      );
+    `),
+      ),
+      ...companyContactIds.map((contactId) =>
+        tx.any(sql.untyped`
+      INSERT INTO app.project_object_user_role (company_contact_id, project_object_id, role)
+      VALUES (
+        ${contactId},
+        ${projectObject.projectObjectId},
+        ${codeIdFragment('KohdeKayttajaRooli', roleId)}
+      );
+    `),
+      ),
+    ]),
   );
 }
 
@@ -350,7 +372,7 @@ export async function validateUpsertProjectObject(
       extract(year FROM ${values?.startDate}::date) <= min(budget.year) AS "validBudgetStartDate",
       extract(year FROM ${values?.endDate}::date) >= max(budget.year) AS "validBudgetEndDate"
     FROM app.budget
-    WHERE project_object_id = ${values?.projectObjectId}
+    WHERE project_object_id = ${values?.projectObjectId} AND (amount is NOT NULL OR forecast is NOT NULL OR kayttosuunnitelman_muutos is NOT NULL)
     GROUP BY project_object_id
     ), project_range AS (
       SELECT

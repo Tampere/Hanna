@@ -15,7 +15,7 @@ env:
   NODE_VERSION: 18
   IMAGE_NAME: ${{ secrets.REGISTRY_ADDRESS }}/hanna
   APP_VERSION: ${{ github.event_name == 'release' && github.event.release.name || format('build {0}', github.sha) }}
-  VITE_FEATURE_SAP_REPORTS: ${{ github.event_name != 'release' && 'true' || 'false' }}
+  VITE_FEATURE_SAP_REPORTS: 'true'
 
 jobs:
   test-frontend:
@@ -90,7 +90,7 @@ jobs:
       - name: Get installed Playwright version
         id: playwright-version
         run: echo "version=$(npm ls @playwright/test --json | jq --raw-output '.dependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright

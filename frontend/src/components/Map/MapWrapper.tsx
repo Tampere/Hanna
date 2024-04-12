@@ -1,5 +1,6 @@
 import { GlobalStyles } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
+import Feature from 'ol/Feature';
 import { Extent, createEmpty, extend, isEmpty } from 'ol/extent';
 import { Geometry } from 'ol/geom';
 import VectorLayer from 'ol/layer/Vector';
@@ -35,7 +36,7 @@ interface Props {
   onFeaturesSaved?: (features: string) => void;
   onMoveEnd?: (zoom: number, extent: number[]) => void;
   loading?: boolean;
-  vectorLayers?: VectorLayer<VectorSource<Geometry>>[];
+  vectorLayers?: VectorLayer<VectorSource<Feature<Geometry>>>[];
   fitExtent?: 'geoJson' | 'vectorLayers' | 'all';
 }
 

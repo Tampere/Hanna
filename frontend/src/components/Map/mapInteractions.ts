@@ -12,16 +12,16 @@ import Style from 'ol/style/Style';
 import { DEFAULT_DRAW_STYLE } from '@frontend/components/Map/styles';
 
 interface DrawOptions {
-  source: VectorSource<Geometry>;
+  source: VectorSource<Feature<Geometry>>;
   trace: boolean;
-  traceSource: VectorSource<Geometry> | null;
+  traceSource: VectorSource<Feature<Geometry>> | null;
   drawStyle?: Style;
   onDrawEnd?: () => void;
 }
 
 export const DRAW_LAYER_Z_INDEX = 101;
 
-export function createDrawLayer(source: VectorSource<Geometry>, style?: Style) {
+export function createDrawLayer(source: VectorSource<Feature<Geometry>>, style?: Style) {
   return new VectorLayer({
     source,
     zIndex: DRAW_LAYER_Z_INDEX,
@@ -79,7 +79,7 @@ export function createDrawInteraction(opts: DrawOptions) {
  * Selection tool
  */
 
-export function createSelectionLayer(source: VectorSource<Geometry>) {
+export function createSelectionLayer(source: VectorSource<Feature<Geometry>>) {
   return new VectorLayer({
     source,
     properties: { id: 'selectionLayer' },
@@ -93,7 +93,7 @@ export function createSelectionLayer(source: VectorSource<Geometry>) {
 }
 
 interface SelectOptions {
-  source: VectorSource<Geometry>;
+  source: VectorSource<Feature<Geometry>>;
   onSelectionChanged?: (features: Feature<Geometry>[]) => void;
 }
 
@@ -119,7 +119,7 @@ export function createSelectInteraction(opts: SelectOptions) {
  */
 
 interface ModifyOptions {
-  source: VectorSource<Geometry>;
+  source: VectorSource<Feature<Geometry>>;
   onModifyEnd?: () => void;
 }
 
@@ -171,8 +171,8 @@ export function featuresFromGeoJSON(geojson: string | object) {
 }
 
 export function deleteSelectedFeatures(
-  targetSource: VectorSource<Geometry>,
-  selectionSource: VectorSource<Geometry>,
+  targetSource: VectorSource<Feature<Geometry>>,
+  selectionSource: VectorSource<Feature<Geometry>>,
 ) {
   for (const feature of selectionSource.getFeatures()) {
     targetSource.removeFeature(feature);
@@ -182,7 +182,7 @@ export function deleteSelectedFeatures(
 }
 
 export function addFeaturesFromGeoJson(
-  targetSource: VectorSource<Geometry>,
+  targetSource: VectorSource<Feature<Geometry>>,
   geoJson?: string | object | null,
 ) {
   targetSource.clear();

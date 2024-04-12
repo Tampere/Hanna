@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { codeListIdSchema } from './code';
 import { nonEmptyString } from './common';
 import { upsertProjectSchema } from './project/base';
 import { dbProjectObjectSchema } from './projectObject';
@@ -32,6 +33,7 @@ export const workTableRowSchema = z.object({
   projectLink: z.object({
     projectId: dbProjectObjectSchema.shape.projectId,
     projectName: upsertProjectSchema.shape.projectName,
+    projectIndex: z.number(),
   }),
   objectType: dbProjectObjectSchema.shape.objectType,
   objectCategory: dbProjectObjectSchema.shape.objectCategory,
@@ -50,6 +52,22 @@ export const workTableRowSchema = z.object({
     owner: nonEmptyString,
   }),
 });
+
+export const workTableColumnCodesSchema = z.object({
+  lifecycleState: codeListIdSchema.extract(['KohteenElinkaarentila']),
+  objectType: codeListIdSchema.extract(['KohdeTyyppi']),
+  objectCategory: codeListIdSchema.extract(['KohteenOmaisuusLuokka']),
+  objectUsage: codeListIdSchema.extract(['KohteenToiminnallinenKayttoTarkoitus']),
+});
+
+export const workTableColumnCodes = workTableColumnCodesSchema.parse({
+  lifecycleState: 'KohteenElinkaarentila',
+  objectType: 'KohdeTyyppi',
+  objectCategory: 'KohteenOmaisuusLuokka',
+  objectUsage: 'KohteenToiminnallinenKayttoTarkoitus',
+});
+
+export const workTableColumnCodeKeys = workTableColumnCodesSchema.keyof();
 
 export const workTableRowUpdateSchema = workTableRowSchema
   .omit({

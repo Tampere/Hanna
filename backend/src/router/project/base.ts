@@ -11,7 +11,6 @@ import {
 } from '@backend/components/project';
 import {
   deleteProject,
-  getParticipatedProjects,
   getPermissionContext,
   getProject,
   getProjectUserPermissions,
@@ -32,6 +31,7 @@ import {
 import { projectIdSchema, projectPermissionSchema } from '@shared/schema/project/base';
 import {
   ProjectAccessChecker,
+  hasPermission,
   hasWritePermission,
   isProjectIdInput,
   ownsProject,
@@ -120,7 +120,14 @@ export const createProjectRouter = (t: TRPC) => {
 
     updateBudget: t.procedure
       .input(budgetUpdateSchema)
-      .use(withAccess((usr, ctx) => ownsProject(usr, ctx) || hasWritePermission(usr, ctx)))
+      .use(
+        withAccess(
+          (usr, ctx) =>
+            ownsProject(usr, ctx) ||
+            hasWritePermission(usr, ctx) ||
+            hasPermission(usr, 'financials.write'),
+        ),
+      )
       .mutation(async ({ input, ctx }) => {
         return await getPool().transaction(async (tx) => {
           return await updateProjectBudget(tx, input.projectId, input.budgetItems, ctx.user.id);
@@ -167,14 +174,10 @@ export const createProjectRouter = (t: TRPC) => {
 
     getPermissions: t.procedure
       .input(z.object({ projectId: z.string(), withAdmins: z.boolean().optional() }))
-      .use(withAccess(ownsProject))
+      .use(withAccess((user, ctx) => ownsProject(user, ctx) || hasWritePermission(user, ctx)))
       .query(async ({ input }) => {
         return await getProjectUserPermissions(input.projectId, input.withAdmins);
       }),
-
-    getParticipatedProjects: t.procedure.query(async ({ ctx }) => {
-      return getParticipatedProjects(ctx.user.id);
-    }),
 
     updatePermissions: t.procedure
       .input(projectPermissionSchema)

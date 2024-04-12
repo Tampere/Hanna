@@ -39,6 +39,8 @@ import {
   upsertProjectObjectSchema,
 } from '@shared/schema/projectObject';
 
+import { ProjectObjectFormUserRoles } from './ProjectObjectFormUserRoles';
+
 const newProjectFormStyle = css`
   display: grid;
   margin-top: 16px;
@@ -62,7 +64,7 @@ interface ProjectAutoCompleteProps {
 
 function ProjectAutoComplete(props: Readonly<ProjectAutoCompleteProps>) {
   const tr = useTranslations();
-  const projects = trpc.project.getParticipatedProjects.useQuery();
+  const projects = trpc.investmentProject.getParticipatedProjects.useQuery();
 
   return (
     <Autocomplete<ProjectListItem>
@@ -259,7 +261,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
         });
 
         setEditing(false);
-        form.reset(data);
+        form.reset((currentData) => currentData);
       }
       notify({
         severity: 'success',
@@ -533,6 +535,14 @@ export function ProjectObjectForm(props: Readonly<Props>) {
               />
             )}
           />
+          <FormField
+            formField="objectUserRoles"
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            component={({ ref, ...field }) => (
+              <ProjectObjectFormUserRoles {...field} readOnly={!editing} />
+            )}
+          />
+
           <Box
             css={css`
               display: flex;

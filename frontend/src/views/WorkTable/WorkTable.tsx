@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { AddCircleOutline, Cancel, Redo, Save, Undo } from '@mui/icons-material';
+import { AddCircleOutline, Cancel, Download, Redo, Save, Undo } from '@mui/icons-material';
 import { Box, Button, IconButton, Theme, Tooltip, Typography } from '@mui/material';
 import { DataGrid, fiFI, useGridApiRef } from '@mui/x-data-grid';
 import { atom, useAtom, useAtomValue } from 'jotai';
@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
+import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
 import dayjs from '@frontend/dayjs';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
@@ -33,8 +34,11 @@ import { ModifiedFields } from './diff';
 
 const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   font-size: 12px;
-  .odd {
+  .even {
     background-color: #f3f3f3;
+  }
+  & .MuiDataGrid-row:hover {
+    background-color: #e7eef9;
   }
   @keyframes fadeInOut {
     0% {
@@ -131,6 +135,7 @@ export default function WorkTable() {
   const [summaryRowHeight, setSummaryRowHeight] = useState(54);
   const auth = useAtomValue(asyncUserAtom);
 
+  const { workTable } = trpc.useUtils();
   const [yearRange, setYearRange] = useState<{ startYear: number; endYear: number }>({
     startYear: new Date().getFullYear(),
     endYear: new Date().getFullYear(),
@@ -141,7 +146,7 @@ export default function WorkTable() {
   const queryParams = new URLSearchParams(location.search);
   const highlightId = queryParams.get('highlight');
 
-  const participatedProjects = trpc.project.getParticipatedProjects.useQuery();
+  const participatedProjects = trpc.investmentProject.getParticipatedProjects.useQuery();
   const workTableData = trpc.workTable.search.useQuery(query);
   const updateObjects = trpc.workTable.update.useMutation({
     onSuccess: async () => {
@@ -365,18 +370,47 @@ export default function WorkTable() {
           }
         />
         <ProjectObjectOwnerFilter onChange={ownerFilterChange} />
-        <Button
+        <Box
           css={css`
+            display: flex;
+            gap: 1rem;
             margin-left: auto;
           `}
-          variant="contained"
-          component={Link}
-          to="/kohde/uusi?from=/investointiohjelma"
-          endIcon={<AddCircleOutline />}
-          disabled={participatedProjects.isLoading || participatedProjects.data?.length === 0}
         >
-          {tr('workTable.newProjectObjectBtnLabel')}
-        </Button>
+          <AsyncJobButton
+            variant="outlined"
+            onStart={async () => {
+              return workTable.startWorkTableReportJob.fetch(query);
+            }}
+            onError={() => {
+              notify({
+                title: tr('workTable.reportFailed'),
+                severity: 'error',
+              });
+            }}
+            onFinished={(jobId) => {
+              // Create a link element to automatically download the new report
+              const link = document.createElement('a');
+              link.href = `/api/v1/report/file?id=${jobId}`;
+              link.click();
+            }}
+            endIcon={<Download />}
+          >
+            {tr('workTable.downloadReport')}
+          </AsyncJobButton>
+          <Button
+            variant="contained"
+            component={Link}
+            to="/kohde/uusi?from=/investointiohjelma"
+            endIcon={<AddCircleOutline />}
+            disabled={
+              !isAdmin(auth.role) &&
+              (participatedProjects.isLoading || participatedProjects.data?.length === 0)
+            }
+          >
+            {tr('workTable.newProjectObjectBtnLabel')}
+          </Button>
+        </Box>
       </Box>
       <WorkTableFilters
         readOnly={editEvents.length > 0}
@@ -458,7 +492,7 @@ export default function WorkTable() {
           if (params.id === highlightId) {
             return 'highlight';
           }
-          return params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd';
+          return params.row.projectLink.projectIndex % 2 === 0 ? 'even' : 'odd';
         }}
         disableColumnMenu
       />

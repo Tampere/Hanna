@@ -1,3 +1,4 @@
+import Feature from 'ol/Feature';
 import OLMap from 'ol/Map';
 import View from 'ol/View';
 import { ScaleLine } from 'ol/control';
@@ -23,10 +24,10 @@ interface Props {
   baseMapLayers: TileLayer<WMTS>[];
   children?: ReactNode;
   extent: number[] | null;
-  wfsLayers?: VectorLayer<VectorSource<Geometry>>[];
-  vectorLayers?: VectorLayer<VectorSource<Geometry>>[];
+  wfsLayers?: VectorLayer<VectorSource<Feature<Geometry>>>[];
+  vectorLayers?: VectorLayer<VectorSource<Feature<Geometry>>>[];
   interactions?: MapInteraction[] | null;
-  interactionLayers?: VectorLayer<VectorSource<Geometry>>[];
+  interactionLayers?: VectorLayer<VectorSource<Feature<Geometry>>>[];
 }
 
 const { code, units, proj4String } = mapOptions.projection;

@@ -16,7 +16,6 @@ import {
 } from '@mui/material';
 import diff from 'microdiff';
 import { useEffect, useMemo, useState } from 'react';
-import { debounce } from 'tre-hanna-shared/src/utils';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
@@ -24,6 +23,7 @@ import { useTranslations } from '@frontend/stores/lang';
 import { useDebounce } from '@frontend/utils/useDebounce';
 
 import { hasPermission } from '@shared/schema/userPermissions';
+import { debounce } from '@shared/utils';
 
 export function UserPermissionsPage() {
   const tr = useTranslations();

@@ -15,12 +15,17 @@ import {
   TableRow,
   TextField,
 } from '@mui/material';
+import { useAtomValue } from 'jotai';
 import diff from 'microdiff';
 import { useEffect, useState } from 'react';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
+import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
+
+import { ProjectWritePermission } from '@shared/schema/project/base';
+import { ownsProject } from '@shared/schema/userPermissions';
 
 interface Props {
   projectId: string;
@@ -30,45 +35,33 @@ interface Props {
 export function ProjectPermissions({ projectId, ownerId }: Props) {
   const notify = useNotifications();
   const tr = useTranslations();
+  const user = useAtomValue(asyncUserAtom);
   const {
     data: userPermissions,
     isLoading,
     isError,
     refetch,
   } = trpc.project.getPermissions.useQuery({ projectId: projectId, withAdmins: false });
+
   const permissionsUpdate = trpc.project.updatePermissions.useMutation();
   const [searchterm, setSearchterm] = useState('');
-  const [localSortedUserPermissions, setLocalSortedUserPermissions] = useState<
-    typeof sortedUserPermissions
-  >([]);
+  const [localUserPermissions, setLocalUserPermissions] = useState<ProjectWritePermission[]>([]);
 
-  const sortedUserPermissions = userPermissions
-    ? [...userPermissions]?.sort((a, b) => {
-        if (a.userId === ownerId) return -1;
-        if (b.userId === ownerId) return 1;
-        if (a.canWrite !== b.canWrite) {
-          return a.canWrite ? -1 : 1; // List those with edit rights first
-        } else {
-          return a.userName.localeCompare(b.userName);
-        }
-      })
-    : [];
+  const isProjectOwner = ownsProject(user, { owner: ownerId ?? '', writeUsers: [] });
 
   useEffect(() => {
-    setLocalSortedUserPermissions(sortedUserPermissions);
+    if (userPermissions) setLocalUserPermissions([...userPermissions]);
   }, [userPermissions]);
 
   function handleUpdatePermissions() {
-    const changedUserIds = diff(sortedUserPermissions, localSortedUserPermissions).reduce(
-      (ids, diff) => {
-        const userId = localSortedUserPermissions[diff.path[0] as number].userId;
-        if (userId in ids) return ids;
-        return [...ids, userId];
-      },
-      [] as string[],
-    );
+    if (!userPermissions) return;
+    const changedUserIds = diff(userPermissions, localUserPermissions).reduce((ids, diff) => {
+      const userId = localUserPermissions[diff.path[0] as number].userId;
+      if (userId in ids) return ids;
+      return [...ids, userId];
+    }, [] as string[]);
 
-    const permissionsToUpdate = localSortedUserPermissions
+    const permissionsToUpdate = localUserPermissions
       .map((user) => ({
         userId: user.userId,
         canWrite: user.canWrite,
@@ -140,10 +133,11 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
             disabled={
               isLoading ||
               isError ||
-              localSortedUserPermissions.length === 0 ||
-              diff(sortedUserPermissions, localSortedUserPermissions).length === 0
+              !isProjectOwner ||
+              localUserPermissions.length === 0 ||
+              diff(userPermissions, localUserPermissions).length === 0
             }
-            onClick={() => setLocalSortedUserPermissions(sortedUserPermissions)}
+            onClick={() => setLocalUserPermissions([...(userPermissions ?? [])])}
           >
             {tr('genericForm.cancelAll')}
           </Button>
@@ -157,8 +151,9 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
             disabled={
               isLoading ||
               isError ||
-              localSortedUserPermissions.length === 0 ||
-              diff(sortedUserPermissions, localSortedUserPermissions).length === 0
+              !isProjectOwner ||
+              localUserPermissions.length === 0 ||
+              diff(userPermissions, localUserPermissions).length === 0
             }
             onClick={() => handleUpdatePermissions()}
           >
@@ -194,7 +189,7 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
                 </TableCell>
               </TableRow>
             ) : (
-              localSortedUserPermissions
+              localUserPermissions
                 .filter((user) => user.userName.toLowerCase().includes(searchterm.toLowerCase()))
                 .map((user) => (
                   <TableRow key={user.userId} hover={true}>
@@ -212,7 +207,7 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
                     <TableCell align="center">
                       <Checkbox
                         onChange={() =>
-                          setLocalSortedUserPermissions((prevUsers) =>
+                          setLocalUserPermissions((prevUsers) =>
                             prevUsers.map((prevUser) =>
                               prevUser.userId === user.userId
                                 ? { ...prevUser, canWrite: !prevUser.canWrite }
@@ -221,7 +216,7 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
                           )
                         }
                         checked={user.userId === ownerId || user.canWrite}
-                        disabled={user.userId === ownerId}
+                        disabled={!isProjectOwner || user.userId === ownerId}
                       />
                     </TableCell>
                   </TableRow>
