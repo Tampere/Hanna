@@ -25,7 +25,7 @@ import {
   ProjectObjectUsers,
 } from '@frontend/views/WorkTable/ProjectObjectUsers';
 
-import { WorkTableRow } from '@shared/schema/workTable';
+import { WorkTableRow, workTableColumnCodes } from '@shared/schema/workTable';
 
 import { CodeSpan } from './CodeSpan';
 import { ProjectObjectNameEdit } from './ProjectObjectNameEdit';
@@ -118,7 +118,7 @@ const fieldObjectLifecycleState = {
   field: 'lifecycleState',
   headerName: 'Tila',
   renderCell: (params: GridRenderCellParams) => (
-    <CodeSpan codeListId={'KohteenElinkaarentila'} value={params.value} />
+    <CodeSpan codeListId={workTableColumnCodes['lifecycleState']} value={params.value} />
   ),
   renderEditCell: (params: GridRenderEditCellParams) => {
     const { id, field, value } = params;
@@ -215,13 +215,13 @@ const fieldObjectType = {
   headerName: 'Tyyppi',
   width: 160,
   renderCell: (params: GridRenderCellParams) => (
-    <CodeSpanMulti codeListId={'KohdeTyyppi'} value={params.value} />
+    <CodeSpanMulti codeListId={workTableColumnCodes['objectType']} value={params.value} />
   ),
   renderEditCell(params: GridRenderEditCellParams) {
     const { id, field, value } = params;
     return (
       <TableCodeCheckbox
-        codeListId={'KohdeTyyppi'}
+        codeListId={workTableColumnCodes['objectType']}
         value={value}
         onChange={(newValue) => {
           params.api.setEditCellValue({ id, field, value: newValue });
@@ -238,13 +238,13 @@ const fieldObjectCategory = {
   headerName: 'Omaisuusluokka',
   width: 160,
   renderCell: (params: GridRenderCellParams) => (
-    <CodeSpanMulti codeListId={'KohteenOmaisuusLuokka'} value={params.value} />
+    <CodeSpanMulti codeListId={workTableColumnCodes['objectCategory']} value={params.value} />
   ),
   renderEditCell(params: GridRenderEditCellParams) {
     const { id, field, value } = params;
     return (
       <TableCodeCheckbox
-        codeListId={'KohteenOmaisuusLuokka'}
+        codeListId={workTableColumnCodes['objectCategory']}
         value={value}
         onChange={(newValue) => {
           params.api.setEditCellValue({ id, field, value: newValue });
@@ -261,13 +261,13 @@ const fieldObjectUsage = {
   headerName: 'Käyttötarkoitus',
   width: 172,
   renderCell: (params: GridRenderCellParams) => (
-    <CodeSpanMulti codeListId={'KohteenToiminnallinenKayttoTarkoitus'} value={params.value} />
+    <CodeSpanMulti codeListId={workTableColumnCodes['objectUsage']} value={params.value} />
   ),
   renderEditCell(params: GridRenderEditCellParams) {
     const { id, field, value } = params;
     return (
       <TableCodeCheckbox
-        codeListId={'KohteenToiminnallinenKayttoTarkoitus'}
+        codeListId={workTableColumnCodes['objectUsage']}
         value={value}
         onChange={(newValue) => {
           params.api.setEditCellValue({ id, field, value: newValue });

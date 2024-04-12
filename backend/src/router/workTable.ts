@@ -1,7 +1,9 @@
 import { TRPCError } from '@trpc/server';
 
 import { textToSearchTerms } from '@backend/components/project/search';
+import { startWorkTableReportJob } from '@backend/components/taskQueue/workTableReportQueue';
 import { getPool, sql } from '@backend/db';
+import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
 import { getProjectObjects, upsertProjectObject } from '@backend/router/projectObject';
 
@@ -17,7 +19,7 @@ import {
   workTableUpdateSchema,
 } from '@shared/schema/workTable';
 
-async function workTableSearch(input: WorkTableSearch) {
+export async function workTableSearch(input: WorkTableSearch) {
   const objectNameSearch = textToSearchTerms(input.projectObjectName, { minTermLength: 3 });
   const projectNameSearch = textToSearchTerms(input.projectName, { minTermLength: 3 });
   const objectNameSubstringSearch =
@@ -185,7 +187,7 @@ export const createWorkTableRouter = (t: TRPC) =>
       return workTableSearch(input);
     }),
     update: t.procedure.input(workTableUpdateSchema).mutation(async ({ ctx, input }) => {
-      const conn = await getPool();
+      const conn = getPool();
       const user = ctx.user;
       const ids = Object.keys(input);
       const projectObjects = await getProjectObjects(conn, ids);
@@ -205,5 +207,9 @@ export const createWorkTableRouter = (t: TRPC) =>
     }),
     years: t.procedure.query(async () => {
       return getWorkTableYearRange();
+    }),
+    startWorkTableReportJob: t.procedure.input(workTableSearchSchema).query(async ({ input }) => {
+      logger.warn('starting worktable job');
+      return startWorkTableReportJob(input);
     }),
   });
