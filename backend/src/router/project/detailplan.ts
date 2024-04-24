@@ -85,7 +85,7 @@ export const createDetailplanProjectRouter = (t: TRPC) => {
 
     upsert: t.procedure
       .input(
-        z.object({ project: detailplanProjectSchema, keepOwnerRights: z.boolean().optional() })
+        z.object({ project: detailplanProjectSchema, keepOwnerRights: z.boolean().optional() }),
       )
       .mutation(async ({ input, ctx }) => {
         const { project, keepOwnerRights } = input;

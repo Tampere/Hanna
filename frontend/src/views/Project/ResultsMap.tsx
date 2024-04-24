@@ -37,6 +37,7 @@ function clusterGeoJSON(clusters?: ProjectSearchResult['clusters']) {
       properties: {
         id: cluster.clusterGeohash,
         clusterCount: cluster.clusterCount,
+        clusterProjectIds: cluster.clusterProjectIds,
       },
     })),
   };
@@ -120,6 +121,7 @@ export function ResultsMap(props: Props) {
         onMoveEnd={(zoom, extent) => {
           setMap({ zoom: Math.floor(zoom), extent });
         }}
+        projects={props.results?.projects ?? []}
       />
     </Paper>
   );

@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
@@ -22,6 +22,7 @@ import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
+import { activeProjectIdAtom } from '@frontend/stores/map';
 import { projectSearchParamAtom } from '@frontend/stores/search/project';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { ResultsMap } from '@frontend/views/Project/ResultsMap';
@@ -101,11 +102,12 @@ function Toolbar() {
   );
 }
 
-const projectCardStyle = css`
+const projectCardStyle = (highlighted: boolean) => css`
   padding: 16px;
   display: flex;
   align-items: center;
   cursor: pointer;
+  background: ${highlighted ? '#e7eef9' : '#fff'};
   :hover {
     background: #eee;
   }
@@ -118,15 +120,25 @@ const projectTypeRootUrl = {
   investmentProject: '/investointihanke',
 };
 
-function ProjectCard({ result }: { result: DbProject }) {
+function ProjectCard({ result, highlighted }: { result: DbProject; highlighted: boolean }) {
   const tr = useTranslations();
   const projectUrl = `${projectTypeRootUrl[result.projectType]}/${result.projectId}`;
 
   return (
-    <CardActionArea key={result.projectId} component={Link} to={projectUrl}>
-      <Card variant="outlined" css={projectCardStyle}>
+    <CardActionArea
+      id={`project-${result.projectId}`}
+      key={result.projectId}
+      component={Link}
+      to={projectUrl}
+    >
+      <Card variant="outlined" css={projectCardStyle(highlighted)}>
         <NavigateNext sx={{ color: '#aaa', mr: 1 }} />
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
           <Typography sx={{ lineHeight: '120%' }} variant="button">
             {result.projectName}
             {result.detailplanId && (
@@ -143,7 +155,7 @@ function ProjectCard({ result }: { result: DbProject }) {
             )}
           </Typography>
           <Typography sx={{ lineHeight: '120%' }} variant="overline">
-            {dayjs(result.startDate).format(tr('date.format'))} —{' '}
+            {dayjs(result.startDate).format(tr('date.format'))} –{' '}
             {dayjs(result.endDate).format(tr('date.format'))}
           </Typography>
         </Box>
@@ -171,13 +183,25 @@ function ProjectCard({ result }: { result: DbProject }) {
 interface SearchResultsProps {
   results: readonly DbProject[];
   loading?: boolean;
+  activeProjectId: string | null;
 }
 
-function SearchResults({ results, loading }: SearchResultsProps) {
+function SearchResults({ results, loading, activeProjectId }: SearchResultsProps) {
   const tr = useTranslations();
   const projectSearchParams = useAtomValue(projectSearchParamAtom);
   const { project } = trpc.useUtils();
   const notify = useNotifications();
+
+  useEffect(() => {
+    const activeProjectCard = document.getElementById(`project-${activeProjectId}`);
+
+    if (activeProjectCard) {
+      activeProjectCard.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, [activeProjectId]);
 
   return (
     <Box
@@ -236,7 +260,13 @@ function SearchResults({ results, loading }: SearchResultsProps) {
         </AsyncJobButton>
       </Box>
       {results?.length > 0
-        ? results.map((result) => <ProjectCard result={result} key={result.projectId} />)
+        ? results.map((result) => (
+            <ProjectCard
+              result={result}
+              key={result.projectId}
+              highlighted={result.projectId === activeProjectId}
+            />
+          ))
         : !loading && (
             <Box>
               <p>{tr('projectSearch.noResults')}</p>
@@ -257,6 +287,7 @@ const resultsContainerStyle = css`
 
 function ProjectResults() {
   const projectSearchParams = useAtomValue(projectSearchParamAtom);
+  const activeProjectId = useAtomValue(activeProjectIdAtom);
   const search = trpc.project.search.useQuery({
     ...projectSearchParams,
     map: useDebounce(projectSearchParams.map, 400),
@@ -264,7 +295,11 @@ function ProjectResults() {
   });
   return (
     <div css={resultsContainerStyle}>
-      <SearchResults loading={search.isLoading} results={search.data?.projects ?? []} />
+      <SearchResults
+        loading={search.isLoading}
+        results={search.data?.projects ?? []}
+        activeProjectId={activeProjectId}
+      />
       <ResultsMap loading={search.isLoading} results={search.data} />
     </div>
   );

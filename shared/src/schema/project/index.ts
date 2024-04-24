@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { codeId } from '../code';
 import { isoDateString } from '../common';
 import { dbProjectSchema } from './base';
-import { ProjectType } from './type';
+import { ProjectType, projectTypeSchema } from './type';
 
 export const periodSchema = z.object({
   startDate: isoDateString.nullable(),
@@ -13,7 +13,7 @@ export const periodSchema = z.object({
 export type Period = z.infer<typeof periodSchema>;
 
 export const projectListParamsSchema = z.object({
-  projectType: z.enum(['investmentProject', 'detailplanProject']).optional(),
+  projectType: projectTypeSchema.optional(),
 });
 
 export type ProjectListParams = z.infer<typeof projectListParamsSchema>;
@@ -61,6 +61,7 @@ export const projectSearchResultSchema = z.object({
   projects: z.array(dbProjectSchema),
   clusters: z.array(
     z.object({
+      clusterProjectIds: z.array(z.string()),
       clusterCount: z.number(),
       clusterLocation: z.string(),
       clusterGeohash: z.string(),
@@ -99,7 +100,7 @@ const projectRelationSchema = z.object({
   relation: z.enum(['parent', 'child', 'related']),
   projectId: z.string(),
   projectName: z.string(),
-  projectType: z.enum(['investmentProject', 'detailplanProject']),
+  projectType: projectTypeSchema,
 });
 
 export const projectRelationsSchema = z.object({

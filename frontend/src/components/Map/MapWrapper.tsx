@@ -1,5 +1,5 @@
 import { GlobalStyles } from '@mui/material';
-import { useAtom, useAtomValue } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import Feature from 'ol/Feature';
 import { Extent, createEmpty, extend, isEmpty } from 'ol/extent';
 import { Geometry } from 'ol/geom';
@@ -7,7 +7,8 @@ import VectorLayer from 'ol/layer/Vector';
 import { Projection } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
 import Style from 'ol/style/Style';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ProjectSearchResult } from 'tre-hanna-shared/src/schema/project';
 
 import { MapToolbar, ToolType } from '@frontend/components/Map/MapToolbar';
 import {
@@ -20,13 +21,26 @@ import {
   deleteSelectedFeatures,
   getGeoJSONFeaturesString,
 } from '@frontend/components/Map/mapInteractions';
-import { baseLayerIdAtom, selectedWFSLayersAtom } from '@frontend/stores/map';
+import {
+  activeProjectIdAtom,
+  baseLayerIdAtom,
+  defaultFeatureSelectorState,
+  featureSelectorAtom,
+  selectedWFSLayersAtom,
+} from '@frontend/stores/map';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 
 import { LayerDrawer } from './LayerDrawer';
 import { Map, MapInteraction } from './Map';
 import { MapControls } from './MapControls';
-import { createWFSLayer, createWMTSLayer, getMapProjection } from './mapFunctions';
+import { SelectedProjectInfoBox } from './SelectedProjectInfoBox';
+import {
+  createWFSLayer,
+  createWMTSLayer,
+  getFeatureProjectId,
+  getFeatureProjectIds,
+  getMapProjection,
+} from './mapFunctions';
 import { mapOptions } from './mapOptions';
 
 interface Props {
@@ -38,17 +52,27 @@ interface Props {
   loading?: boolean;
   vectorLayers?: VectorLayer<VectorSource<Feature<Geometry>>>[];
   fitExtent?: 'geoJson' | 'vectorLayers' | 'all';
+  projects?: ProjectSearchResult['projects'];
 }
 
 export function MapWrapper(props: Props) {
   const { geoJson, onFeaturesSaved, editable } = props;
 
   const [dirty, setDirty] = useState(false);
-  const [featuresSelected, setFeaturesSelected] = useState(false);
   const [zoom, setZoom] = useState(mapOptions.tre.defaultZoom);
   const [viewExtent, setViewExtent] = useState<number[]>(mapOptions.tre.extent);
+  const [featureSelector, setFeatureSelector] = useAtom(featureSelectorAtom);
+  const setActiveProjectId = useSetAtom(activeProjectIdAtom);
 
+  const mapWrapperRef = useRef<HTMLDivElement>(null);
   useNavigationBlocker(dirty, 'map');
+
+  useEffect(() => {
+    return () => {
+      setFeatureSelector(defaultFeatureSelectorState);
+      setActiveProjectId(null);
+    };
+  }, []);
 
   useEffect(() => {
     if (props.onMoveEnd) {
@@ -97,11 +121,37 @@ export function MapWrapper(props: Props) {
       createSelectInteraction({
         source: selectionSource,
         onSelectionChanged(features) {
-          setFeaturesSelected(features.length > 0);
+          setFeatureSelector({ features: features, pos: [0, 0] });
         },
       }),
     [],
   );
+  const registerProjectSelectInteraction = useMemo(
+    () =>
+      createSelectInteraction({
+        source: selectionSource,
+        onSelectionChanged(features, event) {
+          setActiveProjectId(null);
+          setFeatureSelector({
+            pos: event.mapBrowserEvent.pixel,
+            features: features,
+          });
+
+          if (features.length > 0) {
+            setActiveProjectId(getFeatureProjectId(features[0]));
+            selectionSource.addFeature(features[0]);
+          }
+        },
+        multi: true,
+        delegateFeatureAdding: true,
+        filterLayers(layer) {
+          if (['projectResults', 'clusterResults'].includes(layer.getProperties().id)) return true;
+          return false;
+        },
+      }),
+    [],
+  );
+
   const registerModifyInteraction = useMemo(
     () => createModifyInteraction({ source: selectionSource, onModifyEnd: () => setDirty(true) }),
     [],
@@ -167,7 +217,7 @@ export function MapWrapper(props: Props) {
         break;
       case 'deleteFeature':
         setDirty(true);
-        setFeaturesSelected(false);
+        setFeatureSelector(defaultFeatureSelectorState);
         deleteSelectedFeatures(drawSource, selectionSource);
         break;
       default:
@@ -176,13 +226,19 @@ export function MapWrapper(props: Props) {
     }
   }, [selectedTool]);
 
+  useEffect(() => {
+    if (props.projects) setInteractions([registerProjectSelectInteraction]);
+  }, []);
+
   return (
     <div
+      ref={mapWrapperRef}
       style={{
         height: '100%',
         position: 'relative',
         display: 'flex',
         flex: 1,
+        overflow: 'hidden',
       }}
     >
       <Map
@@ -240,9 +296,9 @@ export function MapWrapper(props: Props) {
         {editable && (
           <MapToolbar
             toolsDisabled={{
-              tracedFeature: !featuresSelected,
-              editFeature: !featuresSelected,
-              deleteFeature: !featuresSelected,
+              tracedFeature: featureSelector.features.length === 0,
+              editFeature: featureSelector.features.length === 0,
+              deleteFeature: featureSelector.features.length === 0,
             }}
             onToolChange={(tool) => setSelectedTool(tool)}
             onSaveClick={() => {
@@ -265,6 +321,30 @@ export function MapWrapper(props: Props) {
           />
         )}
       </Map>
+
+      {props.projects && featureSelector.features.length > 0 && (
+        <SelectedProjectInfoBox
+          projects={props.projects}
+          parentHeight={mapWrapperRef.current?.clientHeight ?? 0}
+          parentWidth={mapWrapperRef.current?.clientWidth ?? 0}
+          pos={featureSelector.pos}
+          handleActiveFeatureChange={(projectId) => {
+            const selectedFeature = featureSelector.features.find((feature) =>
+              getFeatureProjectIds([feature]).includes(projectId),
+            );
+            if (selectedFeature) {
+              selectionSource.clear();
+              selectionSource.addFeature(selectedFeature);
+            }
+          }}
+          handleCloseInfoBox={() => {
+            selectionSource.clear();
+            setFeatureSelector(defaultFeatureSelectorState);
+            setActiveProjectId(null);
+            setInteractions([registerProjectSelectInteraction]);
+          }}
+        />
+      )}
     </div>
   );
 }
