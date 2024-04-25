@@ -92,13 +92,13 @@ function ProjectDetails<TProject extends ProjectBase>({ project }: ProjectDetail
         {dayjs(projectDetails.data.startDate).format(tr('date.format'))} –{' '}
         {dayjs(projectDetails.data.endDate).format(tr('date.format'))}
       </dd>
-      <dt>{tr('projectInfoBox.lifecycleState')}:&nbsp;</dt>{' '}
+      <dt>{tr('projectInfoBox.lifecycleState')}:</dt>
       <dd>{lifecycleStateCodes.get(projectDetails.data.lifecycleState)?.[lang]}</dd>
-      <dt>{tr('projectInfoBox.owner')}:&nbsp;</dt>{' '}
+      <dt>{tr('projectInfoBox.owner')}:;</dt>
       <dd>{getUser(projectDetails.data.owner)?.name}</dd>
-      <dt>{tr('projectInfoBox.projectType')}:&nbsp;</dt>{' '}
+      <dt>{tr('projectInfoBox.projectType')}:</dt>
       <dd>{tr(`projectType.${project.projectType}.short`)}</dd>
-      <dt>{tr('projectInfoBox.committee')}:&nbsp;</dt>{' '}
+      <dt>{tr('projectInfoBox.committee')}:</dt>
       <dd>{committeeCodes.get(projectDetails.data.committees[0])?.[lang]}</dd>
     </dl>
   );
