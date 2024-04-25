@@ -496,7 +496,7 @@ export async function upsertProjectObject(
   await updateObjectRoles(tx, { ...projectObject, projectObjectId: upsertResult.projectObjectId });
 
   if (projectObject.geom) {
-    updateProjectObjectGeometry(
+    await updateProjectObjectGeometry(
       tx,
       {
         projectObjectId: upsertResult.projectObjectId,
