@@ -6,13 +6,13 @@ interface Props {
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export function ProjectObjectOwnerFilter({ onChange }: Props) {
+export function ProjectObjectParticipantFilter({ onChange }: Props) {
   const tr = useTranslations();
   return (
     <FormControlLabel
       value="start"
       control={<Switch onChange={onChange} color="primary" />}
-      label={tr('workTable.ownerFilterLabel')}
+      label={tr('workTable.participantFilterLabel')}
       labelPlacement="start"
     />
   );

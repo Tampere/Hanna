@@ -15,7 +15,7 @@ import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { useDebounce } from '@frontend/utils/useDebounce';
-import { WorkTableFilters } from '@frontend/views/WorkTable/WorkTableFilters';
+import { WorkTableFilters } from '@frontend/views/WorkTable/Filters/WorkTableFilters';
 import { WorkTableFinanceField, getColumns } from '@frontend/views/WorkTable/columns';
 
 import {
@@ -27,7 +27,7 @@ import {
 import { WorkTableRow, WorkTableRowUpdate, WorkTableSearch } from '@shared/schema/workTable';
 
 import { BackToTopButton } from './BackToTopButton';
-import { ProjectObjectOwnerFilter } from './Filters/ProjectObjectOwnerFilter';
+import { ProjectObjectParticipantFilter } from './Filters/ProjectObjectParticipantFilter';
 import { YearPicker } from './Filters/YearPicker';
 import { WorkTableSummaryRow } from './WorkTableSummaryRow';
 import { ModifiedFields } from './diff';
@@ -322,15 +322,18 @@ export default function WorkTable() {
     }
   }
 
-  function ownerFilterChange() {
-    if (searchParams.projectOwner) {
+  function participantFilterChange() {
+    if (searchParams.objectParticipantUser) {
       setSearchParams((prev) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { projectOwner, ...rest } = prev;
+        const { objectParticipantUser, ...rest } = prev;
         return rest;
       });
     } else {
-      setSearchParams((prev) => ({ ...prev, projectOwner: auth?.id }));
+      setSearchParams((prev) => ({
+        ...prev,
+        objectParticipantUser: auth?.id,
+      }));
     }
   }
 
@@ -369,7 +372,7 @@ export default function WorkTable() {
             })
           }
         />
-        <ProjectObjectOwnerFilter onChange={ownerFilterChange} />
+        <ProjectObjectParticipantFilter onChange={participantFilterChange} />
         <Box
           css={css`
             display: flex;
