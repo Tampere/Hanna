@@ -3,13 +3,15 @@ import { click, primaryAction } from 'ol/events/condition';
 import OLGeoJSON, { GeoJSONFeature } from 'ol/format/GeoJSON';
 import { Geometry } from 'ol/geom';
 import { Draw, Modify, Select, Snap } from 'ol/interaction';
+import { SelectEvent } from 'ol/interaction/Select';
+import Layer from 'ol/layer/Layer';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import CircleStyle from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
 import Style from 'ol/style/Style';
 
-import { DEFAULT_DRAW_STYLE } from '@frontend/components/Map/styles';
+import { DEFAULT_DRAW_STYLE, selectionLayerStyle } from '@frontend/components/Map/styles';
 
 interface DrawOptions {
   source: VectorSource<Feature<Geometry>>;
@@ -84,17 +86,16 @@ export function createSelectionLayer(source: VectorSource<Feature<Geometry>>) {
     source,
     properties: { id: 'selectionLayer' },
     zIndex: 100,
-    style: new Style({
-      fill: new Fill({
-        color: 'rgba(255, 255, 0, 0.9)',
-      }),
-    }),
+    style: selectionLayerStyle,
   });
 }
 
 interface SelectOptions {
   source: VectorSource<Feature<Geometry>>;
-  onSelectionChanged?: (features: Feature<Geometry>[]) => void;
+  onSelectionChanged?: (features: Feature<Geometry>[], event: SelectEvent) => void;
+  multi?: boolean;
+  delegateFeatureAdding?: boolean;
+  filterLayers?: (layer: Layer) => boolean;
 }
 
 export function createSelectInteraction(opts: SelectOptions) {
@@ -102,13 +103,17 @@ export function createSelectInteraction(opts: SelectOptions) {
     const select = new Select({
       condition: click,
       style: null,
+      multi: opts?.multi ?? false,
+      layers: opts.filterLayers,
     });
     select.set('type', 'customInteraction');
     select.on('select', (e) => {
       const selectedFeatures = e.target.getFeatures().getArray();
       opts.source.clear();
-      opts.source.addFeatures(selectedFeatures);
-      opts.onSelectionChanged?.(selectedFeatures);
+      if (!opts.delegateFeatureAdding) {
+        opts.source.addFeatures(selectedFeatures);
+      }
+      opts.onSelectionChanged?.(selectedFeatures, e);
     });
     map.addInteraction(select);
   };

@@ -24,6 +24,7 @@ export function makeDrawStyle(fillColor: string, strokeColor: string) {
 const _DEFAULT_FILL = 'rgb(255, 0, 0, 0.4)';
 const _DEFAULT_STROKE = 'rgb(255, 0, 0)';
 export const DEFAULT_DRAW_STYLE = makeDrawStyle(_DEFAULT_FILL, _DEFAULT_STROKE);
+const SELECTION_COLOR = 'rgba(255, 255, 0, 0.9)';
 
 const CLUSTER_RADIUS = 16;
 const CLUSTER_STROKE = '#fff';
@@ -51,6 +52,28 @@ export function clusterStyle(feature: FeatureLike) {
       fill: new Fill({
         color: CLUSTER_STROKE,
       }),
+    }),
+  });
+}
+
+export function selectionLayerStyle(feature: FeatureLike) {
+  const clusterCount = feature.get('clusterCount');
+  return new Style({
+    fill: new Fill({
+      color: SELECTION_COLOR,
+    }),
+    image: new CircleStyle({
+      radius: CLUSTER_RADIUS,
+      fill: new Fill({
+        color: SELECTION_COLOR,
+      }),
+      stroke: new Stroke({ color: '#000', width: CLUSTER_STROKE_WIDTH }),
+    }),
+    text: new Text({
+      font: CLUSTER_FONT,
+      textAlign: 'center',
+      text: clusterCount?.toString() ?? '',
+      fill: new Fill({ color: '#000' }),
     }),
   });
 }

@@ -1,5 +1,7 @@
+import Feature from 'ol/Feature';
 import { Extent, getTopLeft, getWidth } from 'ol/extent';
 import GeoJSON from 'ol/format/GeoJSON';
+import { Geometry } from 'ol/geom';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 import { bbox } from 'ol/loadingstrategy';
@@ -205,4 +207,25 @@ function createTileResolutions(
 
   /** Calculate base resolutions */
   return baseMatrix.map((index) => size / Math.pow(zoomFactor, index));
+}
+
+/**
+ * Get project id from feature, if the feature is a cluster, return the first project id
+ * @param feature
+ * @returns
+ */
+export function getFeatureProjectId(feature: Feature<Geometry>) {
+  return feature.getProperties()?.clusterProjectIds?.[0] ?? feature.getId()?.toString();
+}
+
+/**
+ * Get project ids from features
+ * @param features
+ * @returns
+ */
+export function getFeatureProjectIds(features: Feature<Geometry>[]) {
+  return features
+    .map((feature) => feature.getProperties()?.clusterProjectIds ?? feature.getId()?.toString())
+    .flat(1)
+    .filter(Boolean);
 }

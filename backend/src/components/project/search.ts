@@ -97,6 +97,7 @@ function clusterResultsFragment(zoom: number | undefined) {
       SELECT jsonb_agg(clusters.*)
       FROM (
         SELECT
+          jsonb_agg(id) AS "clusterProjectIds",
           substr(geohash, 1, ${zoomToGeohashLength(zoom)}) AS "clusterGeohash",
           count(*) AS "clusterCount",
           ST_AsGeoJSON(ST_Centroid(ST_Collect(geom))) AS "clusterLocation"
