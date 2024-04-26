@@ -38,7 +38,7 @@ function environmentCodeReportFragment(params?: Partial<EnvironmentCodeReportQue
         WHERE fiscal_year = ANY(${sql.array(
           years,
           'int4',
-        )}) AND document_type IS NULL OR document_type <> 'AA'
+        )}) AND (document_type IS NULL OR document_type <> 'AA')
       `
           : sql.fragment`WHERE document_type IS NULL OR document_type <> 'AA'`
       }
@@ -116,7 +116,6 @@ export async function getEnvironmentCodeReport(query: EnvironmentCodeReportQuery
     ${query.limit != null ? sql.fragment`LIMIT ${query.limit}` : sql.fragment``}
     ${query.offset != null ? sql.fragment`OFFSET ${query.offset}` : sql.fragment``}
   `);
-
   return z.array(environmentCodeReportSchema).parse(result);
 }
 

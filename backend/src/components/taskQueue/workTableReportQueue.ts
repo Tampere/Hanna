@@ -3,6 +3,7 @@ import { Workbook } from 'excel4node';
 import { getCodesForCodeList } from '@backend/components/code';
 import { buildSheet } from '@backend/components/report';
 import { saveReportFile } from '@backend/components/report/report-file';
+import { getAllUsers } from '@backend/components/user';
 import { env } from '@backend/env';
 import { workTableSearch } from '@backend/router/workTable';
 
@@ -31,6 +32,7 @@ export async function setupWorkTableReportQueue() {
       teamConcurrency: env.report.queueConcurrency,
     },
     async ({ id, data }) => {
+      const users = await getAllUsers();
       const workTableData = await workTableSearch(data);
       const workbook = new Workbook({
         dateFormat: 'd.m.yyyy',
@@ -118,8 +120,10 @@ export async function setupWorkTableReportQueue() {
             objectType: formatIdArrayToText(objectType, 'objectType'),
             objectCategory: formatIdArrayToText(objectCategory, 'objectCategory'),
             objectUsage: formatIdArrayToText(objectUsage, 'objectUsage'),
-            rakennuttajaUser: operatives.rakennuttajaUser,
-            suunnitteluttajaUser: operatives.suunnitteluttajaUser,
+            rakennuttajaUser:
+              users.find((user) => user.id === operatives.rakennuttajaUser)?.name ?? null,
+            suunnitteluttajaUser:
+              users.find((user) => user.id === operatives.suunnitteluttajaUser)?.name ?? null,
             budget: budget == null ? null : budget / 100,
             actual: actual == null ? null : actual / 100,
             forecast: forecast == null ? null : forecast / 100,

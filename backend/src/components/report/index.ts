@@ -80,14 +80,18 @@ export function buildSheet<ColumnKey extends string>({
   // Fill in the actual data
   rows.forEach((row, rowIndex) => {
     Object.entries<ReportFieldValue | undefined>(row).forEach(([columnKey, value], column) => {
+      const isCurrencyType = types?.[columnKey as ColumnKey] === 'currency';
+      const cell = sheet.cell(rowIndex + 2, column + 1);
+
       // Skip empty values
       if (value == null) {
+        if (isCurrencyType) {
+          cell.style(currencyStyle);
+        }
         return;
       }
-      const isCurrencyType = types?.[columnKey as ColumnKey] === 'currency';
 
       // Write the value into the cell
-      const cell = sheet.cell(rowIndex + 2, column + 1);
       if (value instanceof Date) {
         cell.date(value);
       } else if (typeof value === 'number') {
