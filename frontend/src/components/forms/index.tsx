@@ -128,7 +128,9 @@ export function FormDatePicker({ field, readOnly, minDate, maxDate }: FormDatePi
       id={field.id}
       name={field.name}
       value={field.value}
-      onChange={(value) => field.onChange(value)}
+      onChange={(value) => {
+        value === 'Invalid Date' ? field.onChange(null) : field.onChange(value);
+      }}
       onClose={field.onBlur}
       readOnly={readOnly}
       minDate={minDate}

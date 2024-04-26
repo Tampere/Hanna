@@ -208,6 +208,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
       const serverErrors = isFormValidation
         ? projectObject.upsertValidate.fetch(values).catch(() => null)
         : null;
+
       const shapeErrors = schemaValidation(values, context, options);
       const errors = await Promise.all([serverErrors, shapeErrors]);
 
@@ -461,11 +462,19 @@ export function ProjectObjectForm(props: Readonly<Props>) {
             formField="startDate"
             label={tr('projectObject.startDateLabel')}
             tooltip={tr('projectObject.startDateTooltip')}
-            component={(field) => (
+            component={({ onChange, ...field }) => (
               <FormDatePicker
                 maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
                 readOnly={!editing}
-                field={field}
+                field={{
+                  onChange: (e) => {
+                    onChange(e);
+                    const startDate = form.getValues('startDate');
+                    const endDate = form.getValues('endDate');
+                    if (endDate && dayjs(startDate).isBefore(endDate)) form.trigger('endDate');
+                  },
+                  ...field,
+                }}
               />
             )}
           />
@@ -474,11 +483,19 @@ export function ProjectObjectForm(props: Readonly<Props>) {
             formField="endDate"
             label={tr('projectObject.endDateLabel')}
             tooltip={tr('projectObject.endDateTooltip')}
-            component={(field) => (
+            component={({ onChange, ...field }) => (
               <FormDatePicker
                 minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
                 readOnly={!editing}
-                field={field}
+                field={{
+                  onChange: (e) => {
+                    onChange(e);
+                    const startDate = form.getValues('startDate');
+                    const endDate = form.getValues('endDate');
+                    if (startDate && dayjs(startDate).isBefore(endDate)) form.trigger('startDate');
+                  },
+                  ...field,
+                }}
               />
             )}
           />
