@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const environmentCodeReportSchema = z.object({
   projectId: z.string(),
   wbsId: z.string(),
-  wbsName: z.string(),
+  wbsName: z.string().nullish(),
   reasonForEnvironmentalInvestment: z.string().nullish(),
   reasonForEnvironmentalInvestmentText: z.string().nullish(),
   totalDebit: z.number().nullish(),
