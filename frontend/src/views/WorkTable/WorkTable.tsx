@@ -372,7 +372,10 @@ export default function WorkTable() {
             })
           }
         />
-        <ProjectObjectParticipantFilter onChange={participantFilterChange} />
+        <ProjectObjectParticipantFilter
+          onChange={participantFilterChange}
+          isChecked={!!searchParams.objectParticipantUser}
+        />
         <Box
           css={css`
             display: flex;
