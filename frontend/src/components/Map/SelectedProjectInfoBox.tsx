@@ -94,7 +94,7 @@ function ProjectDetails<TProject extends ProjectBase>({ project }: ProjectDetail
       </dd>
       <dt>{tr('projectInfoBox.lifecycleState')}:</dt>
       <dd>{lifecycleStateCodes.get(projectDetails.data.lifecycleState)?.[lang]}</dd>
-      <dt>{tr('projectInfoBox.owner')}:;</dt>
+      <dt>{tr('projectInfoBox.owner')}:</dt>
       <dd>{getUser(projectDetails.data.owner)?.name}</dd>
       <dt>{tr('projectInfoBox.projectType')}:</dt>
       <dd>{tr(`projectType.${project.projectType}.short`)}</dd>
@@ -105,6 +105,8 @@ function ProjectDetails<TProject extends ProjectBase>({ project }: ProjectDetail
 }
 
 function StepIndicator({ steps, activeStep }: { steps: number; activeStep: number }) {
+  const MAX_STEPS = 25;
+
   return (
     <Box
       css={css`
@@ -112,24 +114,60 @@ function StepIndicator({ steps, activeStep }: { steps: number; activeStep: numbe
         justify-content: center;
         align-items: center;
         padding: 0.5rem;
+        height: 8px;
       `}
     >
-      {Array.from({ length: steps }).map((_, currentStep) => (
-        <div
-          key={currentStep}
-          css={(theme) => css`
-            background-color: ${activeStep === currentStep
-              ? theme.palette.primary.main
-              : '#00000033'};
-            border-radius: 50%;
-            width: ${activeStep === currentStep ? '8px' : '4px'};
-            height: ${activeStep === currentStep ? '8px' : '4px'};
-            margin: 0 2px;
-            -webkit-transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-            transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-          `}
-        />
-      ))}
+      {Array.from({ length: steps }).map((_, currentStep) => {
+        const remainingSteps = steps - (activeStep + 1);
+        let cutOffIndex: number | null = null;
+
+        if (steps > MAX_STEPS) {
+          if (activeStep === 0 || activeStep <= remainingSteps) {
+            cutOffIndex = MAX_STEPS - 1;
+          } else {
+            cutOffIndex = steps - MAX_STEPS;
+          }
+        }
+
+        if (cutOffIndex !== null) {
+          if (cutOffIndex === MAX_STEPS - 1 && currentStep > cutOffIndex) {
+            return null;
+          } else if (cutOffIndex === steps - MAX_STEPS && currentStep < cutOffIndex) {
+            return null;
+          }
+        }
+
+        return (
+          <div
+            key={currentStep}
+            css={(theme) => css`
+              background-color: ${activeStep === currentStep
+                ? theme.palette.primary.main
+                : '#00000033'};
+              border-radius: 50%;
+              width: ${activeStep === currentStep
+                ? '8px'
+                : currentStep === cutOffIndex
+                  ? '2px'
+                  : '4px'};
+              height: ${activeStep === currentStep
+                ? '8px'
+                : currentStep === cutOffIndex
+                  ? '2px'
+                  : '4px'};
+              margin: 0 2px;
+              -webkit-transition:
+                background-color 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+                width 150ms,
+                height 150ms;
+              transition:
+                background-color 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+                width 150ms,
+                height 150ms;
+            `}
+          />
+        );
+      })}
     </Box>
   );
 }
@@ -268,8 +306,13 @@ export function SelectedProjectInfoBox({
           `}
         >
           <Typography
+            title={activeProject?.projectName}
             css={css`
-              margin-left: ${pageNumberIndicator.length > 3 ? 15 : 0}px;
+              margin-left: ${pageNumberIndicator.length > 3
+                ? pageNumberIndicator.length > 5
+                  ? 30
+                  : 15
+                : 0}px;
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;
