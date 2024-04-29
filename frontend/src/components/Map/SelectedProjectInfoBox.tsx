@@ -105,7 +105,25 @@ function ProjectDetails<TProject extends ProjectBase>({ project }: ProjectDetail
 }
 
 function StepIndicator({ steps, activeStep }: { steps: number; activeStep: number }) {
-  const MAX_STEPS = 25;
+  const MAX_VISIBLE_STEPS = 25;
+  const [visibleStepRange, setVisibleStepRange] = useState<[number, number]>([
+    0,
+    MAX_VISIBLE_STEPS - 1,
+  ]);
+  const withCutOff = steps > MAX_VISIBLE_STEPS;
+
+  function updateStepRange(previousRange: [number, number]): [number, number] {
+    if (activeStep === previousRange[0] && previousRange[0] > 0) {
+      return [previousRange[0] - 1, previousRange[1] - 1];
+    } else if (activeStep === previousRange[1] && previousRange[1] < steps - 1) {
+      return [previousRange[0] + 1, previousRange[1] + 1];
+    }
+    return previousRange;
+  }
+
+  useEffect(() => {
+    setVisibleStepRange(updateStepRange);
+  }, [activeStep]);
 
   return (
     <Box
@@ -118,24 +136,8 @@ function StepIndicator({ steps, activeStep }: { steps: number; activeStep: numbe
       `}
     >
       {Array.from({ length: steps }).map((_, currentStep) => {
-        const remainingSteps = steps - (activeStep + 1);
-        let cutOffIndex: number | null = null;
-
-        if (steps > MAX_STEPS) {
-          if (activeStep === 0 || activeStep <= remainingSteps) {
-            cutOffIndex = MAX_STEPS - 1;
-          } else {
-            cutOffIndex = steps - MAX_STEPS;
-          }
-        }
-
-        if (cutOffIndex !== null) {
-          if (cutOffIndex === MAX_STEPS - 1 && currentStep > cutOffIndex) {
-            return null;
-          } else if (cutOffIndex === steps - MAX_STEPS && currentStep < cutOffIndex) {
-            return null;
-          }
-        }
+        const isEndStep = currentStep === 0 || currentStep === steps - 1;
+        if (currentStep < visibleStepRange[0] || currentStep > visibleStepRange[1]) return null;
 
         return (
           <div
@@ -147,12 +149,12 @@ function StepIndicator({ steps, activeStep }: { steps: number; activeStep: numbe
               border-radius: 50%;
               width: ${activeStep === currentStep
                 ? '8px'
-                : currentStep === cutOffIndex
+                : withCutOff && !isEndStep && visibleStepRange.includes(currentStep)
                   ? '2px'
                   : '4px'};
               height: ${activeStep === currentStep
                 ? '8px'
-                : currentStep === cutOffIndex
+                : withCutOff && !isEndStep && visibleStepRange.includes(currentStep)
                   ? '2px'
                   : '4px'};
               margin: 0 2px;
