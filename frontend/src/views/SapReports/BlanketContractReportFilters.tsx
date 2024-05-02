@@ -26,7 +26,11 @@ import {
 
 import { ReportSummary } from './ReportSummary';
 
-export function BlanketContractReportFilters() {
+interface Props {
+  disableExport?: boolean;
+}
+
+export function BlanketContractReportFilters({ disableExport }: Props) {
   const tr = useTranslations();
   const notify = useNotifications();
 
@@ -134,6 +138,8 @@ export function BlanketContractReportFilters() {
         css={css`
           align-self: flex-end;
         `}
+        disabled={disableExport ?? false}
+        title={disableExport ? tr('sapReports.exportDisabled') : ''}
         variant="outlined"
         onStart={async () => {
           return await sapReport.startBlanketContractReportJob.fetch({ filters });

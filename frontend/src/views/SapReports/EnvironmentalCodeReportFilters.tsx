@@ -26,7 +26,11 @@ import {
 
 import { ReportSummary } from './ReportSummary';
 
-export function EnvironmentalCodeReportFilters() {
+interface Props {
+  disableExport?: boolean;
+}
+
+export function EnvironmentalCodeReportFilters({ disableExport }: Props) {
   const tr = useTranslations();
   const notify = useNotifications();
 
@@ -106,11 +110,14 @@ export function EnvironmentalCodeReportFilters() {
           />
         </FormControl>
       </div>
+
       <AsyncJobButton
         css={css`
           align-self: flex-end;
         `}
+        title={disableExport ? tr('sapReports.exportDisabled') : ''}
         variant="outlined"
+        disabled={disableExport ?? false}
         onStart={async () => {
           return await sapReport.startEnvironmentCodeReportJob.fetch({ filters });
         }}
@@ -136,6 +143,7 @@ export function EnvironmentalCodeReportFilters() {
           margin-bottom: 24px;
         `}
       />
+
       <ReportSummary loading={summaryLoading} summary={summary} />
     </Paper>
   );

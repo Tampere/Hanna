@@ -385,6 +385,12 @@ export default function WorkTable() {
         >
           <AsyncJobButton
             variant="outlined"
+            disabled={workTableData.isLoading || workTableData.data?.length === 0}
+            title={
+              workTableData.isLoading || workTableData.data?.length === 0
+                ? tr('workTable.reportDisabled')
+                : undefined
+            }
             onStart={async () => {
               return workTable.startWorkTableReportJob.fetch(query);
             }}
