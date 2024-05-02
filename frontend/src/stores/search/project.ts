@@ -43,3 +43,5 @@ export const investmentProjectFiltersAtom = focusAtom(filtersAtom, (o) =>
 export const detailplanProjectFiltersAtom = focusAtom(filtersAtom, (o) =>
   o.prop('detailplanProject'),
 );
+
+export const mapAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('map'));

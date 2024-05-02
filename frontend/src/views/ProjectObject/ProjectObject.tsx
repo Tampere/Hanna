@@ -2,7 +2,6 @@ import { css } from '@emotion/react';
 import { Assignment, Euro, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import { useAtomValue } from 'jotai';
-import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { ReactElement, useMemo, useState } from 'react';
 import { useLocation, useParams } from 'react-router';
@@ -12,10 +11,11 @@ import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
-import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
+import { PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
+import { getProjectsLayer } from '@frontend/stores/map';
 import { ProjectTypePath } from '@frontend/types';
 import Tasks from '@frontend/views/Task/Tasks';
 
@@ -146,14 +146,7 @@ export function ProjectObject(props: Props) {
   }, [project.data]);
 
   const projectLayer = useMemo(() => {
-    return new VectorLayer({
-      source: projectSource,
-      style: PROJECT_AREA_STYLE,
-      properties: {
-        id: 'project',
-        type: 'vector',
-      },
-    });
+    return getProjectsLayer(projectSource);
   }, [project.data]);
 
   if (projectObjectId && projectObject?.isLoading) {

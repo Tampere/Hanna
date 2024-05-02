@@ -8,9 +8,9 @@ import { Projection } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
 import Style from 'ol/style/Style';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ProjectSearchResult } from 'tre-hanna-shared/src/schema/project';
 
 import { MapToolbar, ToolType } from '@frontend/components/Map/MapToolbar';
+import { SelectionInfoBox } from '@frontend/components/Map/SelectionInfoBox';
 import {
   addFeaturesFromGeoJson,
   createDrawInteraction,
@@ -22,23 +22,26 @@ import {
   getGeoJSONFeaturesString,
 } from '@frontend/components/Map/mapInteractions';
 import {
-  activeProjectIdAtom,
+  activeItemIdAtom,
   baseLayerIdAtom,
   defaultFeatureSelectorState,
   featureSelectorAtom,
+  selectedItemLayersAtom,
   selectedWFSLayersAtom,
 } from '@frontend/stores/map';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 
+import { ProjectSearchResult } from '@shared/schema/project';
+import { ProjectObjectSearch } from '@shared/schema/projectObject';
+
 import { LayerDrawer } from './LayerDrawer';
 import { Map, MapInteraction } from './Map';
 import { MapControls } from './MapControls';
-import { SelectedProjectInfoBox } from './SelectedProjectInfoBox';
 import {
   createWFSLayer,
   createWMTSLayer,
-  getFeatureProjectId,
-  getFeatureProjectIds,
+  getFeatureItemId,
+  getFeatureItemIds,
   getMapProjection,
 } from './mapFunctions';
 import { mapOptions } from './mapOptions';
@@ -53,6 +56,7 @@ interface Props {
   vectorLayers?: VectorLayer<VectorSource<Feature<Geometry>>>[];
   fitExtent?: 'geoJson' | 'vectorLayers' | 'all';
   projects?: ProjectSearchResult['projects'];
+  projectObjects?: readonly ProjectObjectSearch[];
 }
 
 export function MapWrapper(props: Props) {
@@ -62,7 +66,7 @@ export function MapWrapper(props: Props) {
   const [zoom, setZoom] = useState(mapOptions.tre.defaultZoom);
   const [viewExtent, setViewExtent] = useState<number[]>(mapOptions.tre.extent);
   const [featureSelector, setFeatureSelector] = useAtom(featureSelectorAtom);
-  const setActiveProjectId = useSetAtom(activeProjectIdAtom);
+  const setActiveItemId = useSetAtom(activeItemIdAtom);
 
   const mapWrapperRef = useRef<HTMLDivElement>(null);
   useNavigationBlocker(dirty, 'map');
@@ -70,7 +74,7 @@ export function MapWrapper(props: Props) {
   useEffect(() => {
     return () => {
       setFeatureSelector(defaultFeatureSelectorState);
-      setActiveProjectId(null);
+      setActiveItemId(null);
     };
   }, []);
 
@@ -91,6 +95,7 @@ export function MapWrapper(props: Props) {
   );
   const [baseLayerId] = useAtom(baseLayerIdAtom);
   const selectedWFSLayers = useAtomValue(selectedWFSLayersAtom);
+  const selectedItemLayers = useAtomValue(selectedItemLayersAtom);
 
   const baseMapLayers = useMemo(() => {
     if (!baseLayerId) return [];
@@ -106,6 +111,13 @@ export function MapWrapper(props: Props) {
       .filter((layer) => selectedWFSLayers.findIndex((l) => l.id === layer.id) !== -1)
       .map((layer) => createWFSLayer(layer));
   }, [selectedWFSLayers]);
+
+  const vectorLayers = useMemo(() => {
+    if (!selectedItemLayers || !props.vectorLayers) return [];
+    return props.vectorLayers.filter(
+      (layer) => selectedItemLayers.findIndex((l) => l.id === layer.getProperties().id) !== -1,
+    );
+  }, [selectedItemLayers, props.vectorLayers]);
 
   /**
    * Custom tools and interactions
@@ -131,21 +143,22 @@ export function MapWrapper(props: Props) {
       createSelectInteraction({
         source: selectionSource,
         onSelectionChanged(features, event) {
-          setActiveProjectId(null);
+          setActiveItemId(null);
           setFeatureSelector({
             pos: event.mapBrowserEvent.pixel,
             features: features,
           });
 
           if (features.length > 0) {
-            setActiveProjectId(getFeatureProjectId(features[0]));
+            setActiveItemId(getFeatureItemId(features[0]));
             selectionSource.addFeature(features[0]);
           }
         },
         multi: true,
         delegateFeatureAdding: true,
         filterLayers(layer) {
-          if (['projectResults', 'clusterResults'].includes(layer.getProperties().id)) return true;
+          if (['projects', 'clusterResults', 'projectObjects'].includes(layer.getProperties().id))
+            return true;
           return false;
         },
       }),
@@ -250,7 +263,7 @@ export function MapWrapper(props: Props) {
         extent={extent}
         baseMapLayers={baseMapLayers}
         wfsLayers={WFSLayers}
-        vectorLayers={props.vectorLayers}
+        vectorLayers={vectorLayers}
         interactions={interactions}
         interactionLayers={[selectionLayer, drawLayer]}
       >
@@ -291,7 +304,11 @@ export function MapWrapper(props: Props) {
           onFitScreen={() => setExtent(drawSource?.getExtent())}
         />
 
-        <LayerDrawer />
+        <LayerDrawer
+          enabledItemVectorLayers={
+            props.vectorLayers?.map((layer) => layer.getProperties().id) ?? []
+          }
+        />
 
         {editable && (
           <MapToolbar
@@ -322,16 +339,18 @@ export function MapWrapper(props: Props) {
         )}
       </Map>
 
-      {props.projects && featureSelector.features.length > 0 && (
-        <SelectedProjectInfoBox
+      {props.projects && props.projectObjects && featureSelector.features.length > 0 && (
+        <SelectionInfoBox
           projects={props.projects}
+          projectObjects={props.projectObjects}
           parentHeight={mapWrapperRef.current?.clientHeight ?? 0}
           parentWidth={mapWrapperRef.current?.clientWidth ?? 0}
           pos={featureSelector.pos}
           handleActiveFeatureChange={(projectId) => {
             const selectedFeature = featureSelector.features.find((feature) =>
-              getFeatureProjectIds([feature]).includes(projectId),
+              getFeatureItemIds([feature]).includes(projectId),
             );
+
             if (selectedFeature) {
               selectionSource.clear();
               selectionSource.addFeature(selectedFeature);
@@ -340,7 +359,7 @@ export function MapWrapper(props: Props) {
           handleCloseInfoBox={() => {
             selectionSource.clear();
             setFeatureSelector(defaultFeatureSelectorState);
-            setActiveProjectId(null);
+            setActiveItemId(null);
             setInteractions([registerProjectSelectInteraction]);
           }}
         />

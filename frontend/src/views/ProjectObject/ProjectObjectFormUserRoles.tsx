@@ -3,14 +3,15 @@ import { Box, Button, Card, IconButton, Typography, css } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { Fragment } from 'react';
 import { ControllerRenderProps, FieldValues } from 'react-hook-form';
-import { Code, CodeId } from 'tre-hanna-shared/src/schema/code';
-import { ProjectObjectUserRole } from 'tre-hanna-shared/src/schema/projectObject';
 
 import { trpc } from '@frontend/client';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { RoleSelect } from '@frontend/components/forms/RoleSelect';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
+
+import { Code, CodeId } from '@shared/schema/code';
+import { ProjectObjectUserRole } from '@shared/schema/projectObject';
 
 interface Props {
   value: ProjectObjectUserRole[];

@@ -1,9 +1,10 @@
 import { Box, Typography, css } from '@mui/material';
 import { UseTRPCQueryResult } from '@trpc/react-query/dist/shared';
 import { forwardRef } from 'react';
-import { WorkTableRow } from 'tre-hanna-shared/src/schema/workTable';
 
 import { useTranslations } from '@frontend/stores/lang';
+
+import { WorkTableRow } from '@shared/schema/workTable';
 
 import { CellEditEvent } from './WorkTable';
 

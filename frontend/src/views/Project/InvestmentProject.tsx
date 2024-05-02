@@ -2,7 +2,6 @@ import { css } from '@emotion/react';
 import { AccountTree, Euro, KeyTwoTone, ListAlt, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import { useAtomValue } from 'jotai';
-import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router';
@@ -13,10 +12,11 @@ import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { DRAW_LAYER_Z_INDEX, featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
-import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
+import { PROJECT_AREA_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
+import { getProjectObjectsLayer } from '@frontend/stores/map';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
 
@@ -156,15 +156,9 @@ export function InvestmentProject() {
   }, [projectObjects.data]);
 
   const projectObjectsLayer = useMemo(() => {
-    return new VectorLayer({
-      zIndex: DRAW_LAYER_Z_INDEX + 1,
-      source: projectObjectSource,
-      style: PROJ_OBJ_STYLE,
-      properties: {
-        id: 'projectObjects',
-        type: 'vector',
-      },
-    });
+    const layer = getProjectObjectsLayer(projectObjectSource);
+    layer.setZIndex(DRAW_LAYER_Z_INDEX + 1);
+    return layer;
   }, [projectObjects.data]);
 
   if (projectId && project.isLoading) {

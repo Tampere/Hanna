@@ -22,7 +22,7 @@ import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
-import { activeProjectIdAtom } from '@frontend/stores/map';
+import { activeItemIdAtom } from '@frontend/stores/map';
 import { projectSearchParamAtom } from '@frontend/stores/search/project';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { ResultsMap } from '@frontend/views/Project/ResultsMap';
@@ -287,12 +287,18 @@ const resultsContainerStyle = css`
 
 function ProjectResults() {
   const projectSearchParams = useAtomValue(projectSearchParamAtom);
-  const activeProjectId = useAtomValue(activeProjectIdAtom);
+  const activeProjectId = useAtomValue(activeItemIdAtom);
   const search = trpc.project.search.useQuery({
     ...projectSearchParams,
     map: useDebounce(projectSearchParams.map, 400),
     text: useDebounce(projectSearchParams.text, 250),
   });
+  const projectObjectSearch = trpc.projectObject.searchByProject.useQuery({
+    ...projectSearchParams,
+    map: useDebounce(projectSearchParams.map, 400),
+    text: useDebounce(projectSearchParams.text, 250),
+  });
+
   return (
     <div css={resultsContainerStyle}>
       <SearchResults
@@ -300,7 +306,12 @@ function ProjectResults() {
         results={search.data?.projects ?? []}
         activeProjectId={activeProjectId}
       />
-      <ResultsMap loading={search.isLoading} results={search.data} />
+      <ResultsMap
+        loading={search.isLoading}
+        results={search.data}
+        projectObjectsLoading={projectObjectSearch.isLoading}
+        projectObjectResults={projectObjectSearch.data}
+      />
     </div>
   );
 }

@@ -5,12 +5,14 @@ import { z } from 'zod';
 import { addAuditEvent } from '@backend/components/audit';
 import { codeIdFragment } from '@backend/components/code';
 import { getPermissionContext as getProjectPermissionCtx } from '@backend/components/project/base';
+import { getFilterFragment } from '@backend/components/project/search';
 import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
 
 import { FormErrors, fieldError, hasErrors } from '@shared/formerror';
 import { nonEmptyString } from '@shared/schema/common';
+import { ProjectSearch, projectSearchSchema } from '@shared/schema/project';
 import {
   BudgetUpdate,
   UpdateGeometry,
@@ -19,6 +21,7 @@ import {
   dbProjectObjectSchema,
   deleteProjectObjectSchema,
   getProjectObjectParams,
+  projectObjectSearchSchema,
   updateBudgetSchema,
   updateGeometryResultSchema,
   updateGeometrySchema,
@@ -35,6 +38,8 @@ import {
   ownsProject,
   permissionContextSchema,
 } from '@shared/schema/userPermissions';
+
+const CLUSTER_ZOOM_BELOW = 11;
 
 const projectObjectFragment = sql.fragment`
   WITH roles AS (
@@ -82,6 +87,37 @@ const projectObjectFragment = sql.fragment`
   FROM app.project_object
   WHERE deleted = false
 `;
+
+function getProjectObjectSearchFragment(projectTextSearch?: string) {
+  return sql.fragment`
+  SELECT
+    project.project_name AS "projectName",
+    po.project_id AS "projectId",
+    po.id AS "projectObjectId",
+    po.start_date AS "startDate",
+    po.end_date AS "endDate",
+    po.object_name AS "objectName",
+    (object_stage).id AS "objectStage",
+    ST_AsGeoJSON(ST_CollectionExtract(po.geom)) AS geom
+  FROM app.project_object po
+  LEFT JOIN app.project ON po.project_id = project.id
+  WHERE po.deleted = false ${
+    projectTextSearch
+      ? sql.fragment`AND project.project_name ILIKE '%' || ${projectTextSearch} || '%'`
+      : sql.fragment``
+  }
+  `;
+}
+
+async function getProjectObjectsByProjectSearch(input: ProjectSearch) {
+  const { map, text } = input;
+
+  const isClusterSearch = map?.zoom && map.zoom < CLUSTER_ZOOM_BELOW;
+  if (isClusterSearch) return null;
+  return getPool().any(sql.type(projectObjectSearchSchema)`
+    ${getProjectObjectSearchFragment(text)} AND ${getFilterFragment(input)}
+  `);
+}
 
 async function getProjectObjectsByProjectId(projectId: string) {
   return getPool().any(sql.type(dbProjectObjectSchema)`
@@ -603,6 +639,10 @@ export const createProjectObjectRouter = (t: TRPC) => {
         const permissionCtx = await getPermissionContext(input.projectObjectId, tx);
         return { ...projectObject, acl: permissionCtx };
       });
+    }),
+
+    searchByProject: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
+      return await getProjectObjectsByProjectSearch(input);
     }),
 
     getBudget: t.procedure

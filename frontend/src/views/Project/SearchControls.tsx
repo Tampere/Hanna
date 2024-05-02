@@ -13,9 +13,10 @@ import {
   css,
 } from '@mui/material';
 import dayjs from 'dayjs';
-import { useAtom } from 'jotai';
-import { useState } from 'react';
+import { useAtom, useSetAtom } from 'jotai';
+import { useEffect, useState } from 'react';
 
+import { mapOptions } from '@frontend/components/Map/mapOptions';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { DateRange } from '@frontend/components/forms/DateRange';
 import { ProjectTypeSelect } from '@frontend/components/forms/ProjectTypeSelect';
@@ -26,6 +27,7 @@ import {
   filtersAtom,
   includeWithoutGeomAtom,
   lifecycleStatesAtom,
+  mapAtom,
   ownersAtom,
   textAtom,
 } from '@frontend/stores/search/project';
@@ -87,6 +89,16 @@ export function SearchControls() {
   const [owners, setOwners] = useAtom(ownersAtom);
   const [filters, setFilters] = useAtom(filtersAtom);
   const [includeWithoutGeom, setIncludeWithoutGeom] = useAtom(includeWithoutGeomAtom);
+  const setMap = useSetAtom(mapAtom);
+
+  useEffect(() => {
+    return () => {
+      setMap((map) => ({
+        ...map,
+        zoom: mapOptions.tre.defaultZoom,
+      }));
+    };
+  }, []);
 
   return (
     <Paper
