@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { trpc } from '@frontend/client';
 import { DataTable } from '@frontend/components/DataTable';
 import { formatCurrency } from '@frontend/components/forms/CurrencyInput';
@@ -10,15 +12,19 @@ export function BlanketContractReport() {
   const { sapReport } = trpc.useUtils();
 
   const tr = useTranslations();
-
+  const [dataRows, setDataRows] = useState<number | null>(null);
   const filters = useDebouncedBlanketContractReportFilters();
 
   return (
     <>
-      <BlanketContractReportFilters />
+      <BlanketContractReportFilters disableExport={!dataRows || dataRows === 0} />
       <DataTable
         getRows={sapReport.getBlanketContractReport.fetch}
-        getRowCount={sapReport.getBlanketContractReportRowCount.fetch}
+        getRowCount={async (params) => {
+          const result = await sapReport.getBlanketContractReportRowCount.fetch(params);
+          setDataRows(result.rowCount);
+          return result;
+        }}
         rowsPerPageOptions={[100, 200, 500, 1000]}
         filters={filters}
         columns={{
