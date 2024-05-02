@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { codeId } from './code';
 import { isoDateString, nonEmptyString } from './common';
+import { projectTypeSchema } from './project/type';
 
 export const projectObjectUserRoleSchema = z.object({
   roleId: codeId,
@@ -64,6 +65,18 @@ export const dbProjectObjectSchema = newProjectObjectSchema.extend({
   }),
 });
 
+export const projectObjectSearchSchema = dbProjectObjectSchema
+  .pick({
+    projectId: true,
+    projectObjectId: true,
+    objectName: true,
+    startDate: true,
+    endDate: true,
+    geom: true,
+    objectStage: true,
+  })
+  .extend({ projectName: z.string() });
+
 export const upsertProjectObjectSchema = z.union([
   newProjectObjectSchema,
   updateProjectObjectSchema,
@@ -111,3 +124,5 @@ export type YearBudget = z.infer<typeof yearBudgetSchema>;
 export type BudgetUpdate = z.infer<typeof updateBudgetSchema>;
 
 export type ProjectObjectUserRole = z.infer<typeof projectObjectUserRoleSchema>;
+
+export type ProjectObjectSearch = z.infer<typeof projectObjectSearchSchema>;

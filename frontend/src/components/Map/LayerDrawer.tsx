@@ -1,14 +1,17 @@
 import { css } from '@emotion/react';
-import { DragIndicator, Layers, ToggleOff, ToggleOn } from '@mui/icons-material';
-import { Box, Divider, IconButton, MenuItem, Tooltip, Typography } from '@mui/material';
+import { Layers, ToggleOff, ToggleOn } from '@mui/icons-material';
+import { Box, Divider, IconButton, MenuItem, Theme, Tooltip, Typography } from '@mui/material';
 import { useAtom } from 'jotai';
 import { useState } from 'react';
 
 import { useTranslations } from '@frontend/stores/lang';
 import {
+  ItemLayerState,
   LayerState,
+  VectorItemLayerKey,
   VectorLayerKey,
   baseLayerIdAtom,
+  vectorItemLayersAtom,
   vectorLayersAtom,
 } from '@frontend/stores/map';
 
@@ -49,7 +52,7 @@ const containerStyles = css`
 `;
 
 const drawerStyles = css`
-  min-height: 600px;
+  min-height: 750px;
   position: relative;
   background-color: white;
   flex: 1;
@@ -57,40 +60,39 @@ const drawerStyles = css`
   flex-direction: column;
 `;
 
-const dragIndicatorStyle = css`
-  color: #aaa;
-  :hover {
-    cursor: grab;
-    color: #777;
-    transform: scale(1.3);
-  }
-  transition: transform 0.1s ease-in-out;
-`;
-
-const toggleOnStyle = css`
-  color: green;
+const toggleOnStyle = (theme: Theme) => css`
+  color: ${theme.palette.primary.main};
 `;
 
 const toggleOffStyle = css`
   color: #aaa;
 `;
 
-function setLayerSelected(layersState: LayerState[], layerId: VectorLayerKey, selected: boolean) {
-  return layersState.map((layer) =>
-    layer.id === layerId
+function setLayerSelected(
+  layersState: LayerState[] | ItemLayerState[],
+  layerId: VectorLayerKey | VectorItemLayerKey,
+  selected: boolean,
+) {
+  return layersState.map((layer) => {
+    return layer.id === layerId || (layer.id === 'clusterResults' && layerId === 'projects')
       ? {
           ...layer,
           selected,
         }
-      : layer,
-  );
+      : layer;
+  });
 }
 
-export function LayerDrawer() {
+export function LayerDrawer({
+  enabledItemVectorLayers,
+}: {
+  enabledItemVectorLayers: VectorItemLayerKey[];
+}) {
   const tr = useTranslations();
   const [baseLayerId, setBaseLayerId] = useAtom(baseLayerIdAtom);
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const [vectorLayers, setVectorLayers] = useAtom(vectorLayersAtom);
+  const [vectorItemLayers, setVectorItemLayers] = useAtom(vectorItemLayersAtom);
 
   return (
     <>
@@ -99,6 +101,66 @@ export function LayerDrawer() {
         style={{ zIndex: drawerOpen ? 202 : 0, opacity: drawerOpen ? 0.95 : 0 }}
       >
         <Box css={drawerStyles}>
+          <Typography variant="overline" sx={{ padding: '8px' }}>
+            {tr('map.layerdrawer.projectsAndObjects')}
+          </Typography>
+          {vectorItemLayers.map(
+            (layerState) =>
+              layerState.id !== 'clusterResults' && (
+                <MenuItem
+                  sx={{ display: 'flex', justifyContent: 'space-between' }}
+                  key={`vectorlayer-${layerState.id}`}
+                  disabled={!enabledItemVectorLayers.includes(layerState.id)}
+                  onClick={() =>
+                    setVectorItemLayers(
+                      (prev) =>
+                        setLayerSelected(
+                          prev,
+                          layerState.id,
+                          !layerState.selected,
+                        ) as ItemLayerState[],
+                    )
+                  }
+                  disableTouchRipple
+                >
+                  <Box sx={{ display: 'flex' }}>
+                    <Typography>{tr(`vectorLayer.title.${layerState.id}`)}</Typography>
+                  </Box>
+                  {layerState.selected ? (
+                    <ToggleOn css={toggleOnStyle} fontSize="large" />
+                  ) : (
+                    <ToggleOff css={toggleOffStyle} fontSize="large" />
+                  )}
+                </MenuItem>
+              ),
+          )}
+          <Divider />
+          <Typography variant="overline" sx={{ padding: '8px' }}>
+            {tr('map.layerdrawer.vectorLayersTitle')}
+          </Typography>
+          {vectorLayers.map((layerState) => (
+            <MenuItem
+              sx={{ display: 'flex', justifyContent: 'space-between' }}
+              key={`vectorlayer-${layerState.id}`}
+              onClick={() =>
+                setVectorLayers(
+                  (prev) =>
+                    setLayerSelected(prev, layerState.id, !layerState.selected) as LayerState[],
+                )
+              }
+              disableTouchRipple
+            >
+              <Box sx={{ display: 'flex' }}>
+                <Typography>{tr(`vectorLayer.title.${layerState.id}`)}</Typography>
+              </Box>
+              {layerState.selected ? (
+                <ToggleOn css={toggleOnStyle} fontSize="large" />
+              ) : (
+                <ToggleOff css={toggleOffStyle} fontSize="large" />
+              )}
+            </MenuItem>
+          ))}
+          <Divider />
           <Typography variant="overline" sx={{ padding: '8px' }}>
             {tr('map.layerdrawer.baseLayersTitle')}
           </Typography>
@@ -113,32 +175,6 @@ export function LayerDrawer() {
               }}
             >
               <Typography>{baseMap.name}</Typography>
-            </MenuItem>
-          ))}
-          <Divider />
-          <Typography variant="overline" sx={{ padding: '8px' }}>
-            {tr('map.layerdrawer.vectorLayersTitle')}
-          </Typography>
-          {vectorLayers.map((layerState) => (
-            <MenuItem
-              sx={{ display: 'flex', justifyContent: 'space-between' }}
-              key={`vectorlayer-${layerState.id}`}
-              onClick={() =>
-                setVectorLayers((prev) =>
-                  setLayerSelected(prev, layerState.id, !layerState.selected),
-                )
-              }
-              disableTouchRipple
-            >
-              <Box sx={{ display: 'flex' }}>
-                <DragIndicator css={dragIndicatorStyle} />
-                <Typography>{tr(`vectorLayer.title.${layerState.id}`)}</Typography>
-              </Box>
-              {layerState.selected ? (
-                <ToggleOn css={toggleOnStyle} fontSize="large" />
-              ) : (
-                <ToggleOff css={toggleOffStyle} fontSize="large" />
-              )}
             </MenuItem>
           ))}
         </Box>

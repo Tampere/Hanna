@@ -210,20 +210,20 @@ function createTileResolutions(
 }
 
 /**
- * Get project id from feature, if the feature is a cluster, return the first project id
+ * Get project or project object id from a feature, if the feature is a cluster, return the first project id
  * @param feature
  * @returns
  */
-export function getFeatureProjectId(feature: Feature<Geometry>) {
+export function getFeatureItemId(feature: Feature<Geometry>) {
   return feature.getProperties()?.clusterProjectIds?.[0] ?? feature.getId()?.toString();
 }
 
 /**
- * Get project ids from features
+ * Get project and project object ids from features
  * @param features
  * @returns
  */
-export function getFeatureProjectIds(features: Feature<Geometry>[]) {
+export function getFeatureItemIds(features: Feature<Geometry>[]) {
   return features
     .map((feature) => feature.getProperties()?.clusterProjectIds ?? feature.getId()?.toString())
     .flat(1)

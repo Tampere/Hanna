@@ -11,10 +11,11 @@ import {
 } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { useState } from 'react';
-import { isAdmin } from 'tre-hanna-shared/src/schema/userPermissions';
 
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
+
+import { isAdmin } from '@shared/schema/userPermissions';
 
 interface Props {
   isOpen: boolean;
