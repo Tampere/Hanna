@@ -9,7 +9,7 @@ import { useTranslations } from '@frontend/stores/lang';
 import { activeItemIdAtom, selectedItemIdAtom } from '@frontend/stores/map';
 
 import { ProjectSearchResult } from '@shared/schema/project';
-import { ProjectObjectSearch } from '@shared/schema/projectObject';
+import { ProjectObjectSearchResult } from '@shared/schema/projectObject';
 
 import { ProjectDetails } from './ProjectDetails';
 import { ProjectObjectDetails } from './ProjectObjectDetails';
@@ -20,7 +20,7 @@ interface Props {
   parentHeight: number;
   pos: Pixel;
   projects?: ProjectSearchResult['projects'];
-  projectObjects?: readonly ProjectObjectSearch[];
+  projectObjects?: readonly ProjectObjectSearchResult[];
   handleActiveFeatureChange: (projectId: string) => void;
   handleCloseInfoBox: () => void;
 }
@@ -37,7 +37,7 @@ export function SelectionInfoBox({
   const selectedProjectIds = useAtomValue(selectedItemIdAtom);
   const [activeItemId, setActiveItemId] = useAtom(activeItemIdAtom);
   const [projects, setProjects] = useState<ProjectSearchResult['projects']>([]);
-  const [projectObjects, setProjectObjects] = useState<ProjectObjectSearch[]>([]);
+  const [projectObjects, setProjectObjects] = useState<ProjectObjectSearchResult[]>([]);
 
   useEffect(() => {
     // Doing this the hard way instead of props.projects.filter... to keep the order of the projects right
@@ -63,8 +63,8 @@ export function SelectionInfoBox({
                 (projectObject) => projectObject.projectObjectId === projectId,
               ),
           )
-          .filter<ProjectObjectSearch>(
-            (projectObject): projectObject is ProjectObjectSearch =>
+          .filter<ProjectObjectSearchResult>(
+            (projectObject): projectObject is ProjectObjectSearchResult =>
               typeof projectObject !== 'undefined',
           ),
       );
@@ -73,14 +73,14 @@ export function SelectionInfoBox({
   const allItems = [...(projects ?? []), ...(projectObjects ?? [])];
 
   function isProjectObject(
-    item: ProjectSearchResult['projects'][number] | ProjectObjectSearch,
-  ): item is ProjectObjectSearch {
+    item: ProjectSearchResult['projects'][number] | ProjectObjectSearchResult,
+  ): item is ProjectObjectSearchResult {
     return Object.keys(item).includes('projectObjectId');
   }
 
-  function getItemId(item: ProjectSearchResult['projects'][number] | ProjectObjectSearch) {
+  function getItemId(item: ProjectSearchResult['projects'][number] | ProjectObjectSearchResult) {
     if (Object.keys(item).includes('projectObjectId')) {
-      return (item as ProjectObjectSearch).projectObjectId;
+      return (item as ProjectObjectSearchResult).projectObjectId;
     }
     return item.projectId;
   }
@@ -99,6 +99,18 @@ export function SelectionInfoBox({
     const index = allItems?.findIndex((item) => getItemId(item) === activeItemId) ?? 0;
     if (index === -1) return 0;
     return index;
+  }
+
+  function getLinkUrl(item: ProjectSearchResult['projects'][number] | ProjectObjectSearchResult) {
+    if (isProjectObject(item)) {
+      return `/investointihanke/${item?.projectId}/kohde/${item?.projectObjectId}`;
+    } else if (item.projectType === 'investmentProject') {
+      return `/investointihanke/${item?.projectId}`;
+    } else if (item.projectType === 'detailplanProject') {
+      return `/asemakaavahanke/${item?.projectId}`;
+    } else {
+      return '/';
+    }
   }
 
   const activeItemIndex = getActiveItemIndex();
@@ -218,9 +230,7 @@ export function SelectionInfoBox({
               flex: 1;
               margin-top: auto;
             `}
-            to={`/${'investointihanke'}/${activeItem?.projectId}${
-              isProjectObject(activeItem) ? `/kohde/${activeItem.projectObjectId}` : ''
-            }`}
+            to={getLinkUrl(activeItem)}
           >
             <Button disabled={!projects} endIcon={<ChevronRight />} onClick={handleCloseInfoBox}>
               {isProjectObject(activeItem)

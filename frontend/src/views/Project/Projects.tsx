@@ -288,16 +288,29 @@ const resultsContainerStyle = css`
 function ProjectResults() {
   const projectSearchParams = useAtomValue(projectSearchParamAtom);
   const activeProjectId = useAtomValue(activeItemIdAtom);
+
   const search = trpc.project.search.useQuery({
     ...projectSearchParams,
     map: useDebounce(projectSearchParams.map, 400),
     text: useDebounce(projectSearchParams.text, 250),
   });
-  const projectObjectSearch = trpc.projectObject.searchByProject.useQuery({
-    ...projectSearchParams,
-    map: useDebounce(projectSearchParams.map, 400),
-    text: useDebounce(projectSearchParams.text, 250),
-  });
+
+  const projectObjectSearch = trpc.projectObject.searchByProject.useQuery(
+    {
+      map: useDebounce(projectSearchParams.map, 400),
+      projectIds: search.data?.projects?.map((project) => project.projectId) ?? [],
+    },
+    {
+      enabled: !!search.data,
+      queryKey: [
+        'projectObject.searchByProject',
+        {
+          map: useDebounce(projectSearchParams.map, 400),
+          projectIds: search.data?.projects?.map((project) => project.projectId) ?? [],
+        },
+      ],
+    },
+  );
 
   return (
     <div css={resultsContainerStyle}>

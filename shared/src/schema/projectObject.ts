@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { codeId } from './code';
 import { isoDateString, nonEmptyString } from './common';
-import { projectTypeSchema } from './project/type';
+import { mapSearchSchema } from './project';
 
 export const projectObjectUserRoleSchema = z.object({
   roleId: codeId,
@@ -65,7 +65,12 @@ export const dbProjectObjectSchema = newProjectObjectSchema.extend({
   }),
 });
 
-export const projectObjectSearchSchema = dbProjectObjectSchema
+export const projectObjectSearchSchema = z.object({
+  projectIds: z.array(z.string()),
+  map: mapSearchSchema.optional(),
+});
+
+export const projectObjectSearchResultSchema = dbProjectObjectSchema
   .pick({
     projectId: true,
     projectObjectId: true,
@@ -126,3 +131,4 @@ export type BudgetUpdate = z.infer<typeof updateBudgetSchema>;
 export type ProjectObjectUserRole = z.infer<typeof projectObjectUserRoleSchema>;
 
 export type ProjectObjectSearch = z.infer<typeof projectObjectSearchSchema>;
+export type ProjectObjectSearchResult = z.infer<typeof projectObjectSearchResultSchema>;

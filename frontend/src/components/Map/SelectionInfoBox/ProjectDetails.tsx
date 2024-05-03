@@ -96,8 +96,13 @@ export function ProjectDetails<TProject extends ProjectBase>({
       <dd>{getUser(projectDetails.data.owner)?.name}</dd>
       <dt>{tr('itemInfoBox.projectType')}:</dt>
       <dd>{tr(`projectType.${project.projectType}.short`)}</dd>
-      <dt>{tr('itemInfoBox.committee')}:</dt>
-      <dd>{committeeCodes.get(projectDetails.data.committees[0])?.[lang]}</dd>
+
+      {project.projectType === 'investmentProject' && (
+        <>
+          <dt>{tr('itemInfoBox.committee')}:</dt>
+          <dd>{committeeCodes.get(projectDetails.data.committees[0])?.[lang]}</dd>
+        </>
+      )}
     </dl>
   );
 }

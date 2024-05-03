@@ -1,7 +1,7 @@
 import { Alert, Box, css } from '@mui/material';
 import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
-import { ProjectObjectSearch } from 'tre-hanna-shared/src/schema/projectObject';
+import { ProjectObjectSearchResult } from 'tre-hanna-shared/src/schema/projectObject';
 
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { useCodes } from '@frontend/utils/codes';
@@ -10,7 +10,7 @@ interface ProjectDetailsProps<TProjectObject> {
   projectObject: TProjectObject;
 }
 
-export function ProjectObjectDetails<TProjectObject extends ProjectObjectSearch>({
+export function ProjectObjectDetails<TProjectObject extends ProjectObjectSearchResult>({
   projectObject,
 }: ProjectDetailsProps<TProjectObject>) {
   const lang = useAtomValue(langAtom);

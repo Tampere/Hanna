@@ -32,7 +32,7 @@ import {
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 
 import { ProjectSearchResult } from '@shared/schema/project';
-import { ProjectObjectSearch } from '@shared/schema/projectObject';
+import { ProjectObjectSearchResult } from '@shared/schema/projectObject';
 
 import { LayerDrawer } from './LayerDrawer';
 import { Map, MapInteraction } from './Map';
@@ -56,7 +56,7 @@ interface Props {
   vectorLayers?: VectorLayer<VectorSource<Feature<Geometry>>>[];
   fitExtent?: 'geoJson' | 'vectorLayers' | 'all';
   projects?: ProjectSearchResult['projects'];
-  projectObjects?: readonly ProjectObjectSearch[];
+  projectObjects?: readonly ProjectObjectSearchResult[];
 }
 
 export function MapWrapper(props: Props) {

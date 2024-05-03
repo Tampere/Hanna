@@ -5,22 +5,22 @@ import { z } from 'zod';
 import { addAuditEvent } from '@backend/components/audit';
 import { codeIdFragment } from '@backend/components/code';
 import { getPermissionContext as getProjectPermissionCtx } from '@backend/components/project/base';
-import { getFilterFragment } from '@backend/components/project/search';
 import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
 
 import { FormErrors, fieldError, hasErrors } from '@shared/formerror';
 import { nonEmptyString } from '@shared/schema/common';
-import { ProjectSearch, projectSearchSchema } from '@shared/schema/project';
 import {
   BudgetUpdate,
+  ProjectObjectSearch,
   UpdateGeometry,
   UpdateProjectObject,
   UpsertProjectObject,
   dbProjectObjectSchema,
   deleteProjectObjectSchema,
   getProjectObjectParams,
+  projectObjectSearchResultSchema,
   projectObjectSearchSchema,
   updateBudgetSchema,
   updateGeometryResultSchema,
@@ -88,7 +88,7 @@ const projectObjectFragment = sql.fragment`
   WHERE deleted = false
 `;
 
-function getProjectObjectSearchFragment(projectTextSearch?: string) {
+function getProjectObjectSearchFragment(projectIds?: string[]) {
   return sql.fragment`
   SELECT
     project.project_name AS "projectName",
@@ -102,20 +102,20 @@ function getProjectObjectSearchFragment(projectTextSearch?: string) {
   FROM app.project_object po
   LEFT JOIN app.project ON po.project_id = project.id
   WHERE po.deleted = false ${
-    projectTextSearch
-      ? sql.fragment`AND project.project_name ILIKE '%' || ${projectTextSearch} || '%'`
+    projectIds
+      ? sql.fragment`AND po.project_id = ANY(${sql.array(projectIds, 'uuid')})`
       : sql.fragment``
   }
   `;
 }
 
-async function getProjectObjectsByProjectSearch(input: ProjectSearch) {
-  const { map, text } = input;
+async function getProjectObjectsByProjectSearch(input: ProjectObjectSearch) {
+  const { map, projectIds } = input;
 
   const isClusterSearch = map?.zoom && map.zoom < CLUSTER_ZOOM_BELOW;
   if (isClusterSearch) return null;
-  return getPool().any(sql.type(projectObjectSearchSchema)`
-    ${getProjectObjectSearchFragment(text)} AND ${getFilterFragment(input)}
+  return getPool().any(sql.type(projectObjectSearchResultSchema)`
+    ${getProjectObjectSearchFragment(projectIds)}
   `);
 }
 
@@ -641,7 +641,7 @@ export const createProjectObjectRouter = (t: TRPC) => {
       });
     }),
 
-    searchByProject: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
+    searchByProject: t.procedure.input(projectObjectSearchSchema).query(async ({ input }) => {
       return await getProjectObjectsByProjectSearch(input);
     }),
 
