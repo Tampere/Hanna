@@ -298,7 +298,7 @@ function ProjectResults() {
   const projectObjectSearch = trpc.projectObject.searchByProject.useQuery(
     {
       map: useDebounce(projectSearchParams.map, 400),
-      projectIds: search.data?.projects.map((project) => project.projectId) ?? [],
+      projectIds: search.data?.projects?.map((project) => project.projectId) ?? [],
     },
     {
       enabled: !!search.data,
@@ -306,7 +306,7 @@ function ProjectResults() {
         'projectObject.searchByProject',
         {
           map: useDebounce(projectSearchParams.map, 400),
-          projectIds: search.data?.projects.map((project) => project.projectId) ?? [],
+          projectIds: search.data?.projects?.map((project) => project.projectId) ?? [],
         },
       ],
     },

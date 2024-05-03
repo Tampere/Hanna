@@ -207,6 +207,7 @@ function Navbar() {
           <Typography variant="caption">{auth?.name}</Typography>
 
           <IconButton
+            data-test-id="profileMenuButton"
             size="large"
             aria-label="user"
             color="inherit"

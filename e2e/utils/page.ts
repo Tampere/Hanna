@@ -28,10 +28,7 @@ export async function login(browser: Browser, username: string) {
 
 export async function logout(page: Page) {
   await page.goto('https://localhost:1443/');
-  await page
-    .getByRole('button')
-    .filter({ has: page.getByTestId('AccountCircleOutlinedIcon') })
-    .click();
+  await page.locator('[data-test-id="profileMenuButton"]').click();
   await page.getByTestId('logoutButton').click();
   await expect(page.locator('h1')).toContainText('Sign-out Success');
 }
