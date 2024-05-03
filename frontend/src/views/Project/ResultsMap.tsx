@@ -12,7 +12,7 @@ import { getProjectObjectsLayer, getProjectsLayer } from '@frontend/stores/map';
 import { mapAtom } from '@frontend/stores/search/project';
 
 import { ProjectSearchResult } from '@shared/schema/project';
-import { ProjectObjectSearch } from '@shared/schema/projectObject';
+import { ProjectObjectSearchResult } from '@shared/schema/projectObject';
 
 const resultMapContainerStyle = css`
   min-height: 320px;
@@ -23,7 +23,7 @@ const resultMapContainerStyle = css`
 interface Props {
   results?: ProjectSearchResult;
   loading?: boolean;
-  projectObjectResults?: readonly ProjectObjectSearch[] | null;
+  projectObjectResults?: readonly ProjectObjectSearchResult[] | null;
   projectObjectsLoading?: boolean;
 }
 
@@ -78,7 +78,7 @@ function getProjectsGeoJSON(projects?: ProjectSearchResult['projects']) {
   };
 }
 
-function getProjectObjectGeoJSON(projectObjects?: readonly ProjectObjectSearch[]) {
+function getProjectObjectGeoJSON(projectObjects?: readonly ProjectObjectSearchResult[]) {
   if (!projectObjects || projectObjects.length === 0) {
     return null;
   }
