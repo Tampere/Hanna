@@ -9,9 +9,8 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { addFeaturesFromGeoJson } from '@frontend/components/Map/mapInteractions';
 import { clusterStyle } from '@frontend/components/Map/styles';
 import { getProjectObjectsLayer, getProjectsLayer } from '@frontend/stores/map';
-import { mapAtom } from '@frontend/stores/search/project';
+import { mapAtom } from '@frontend/stores/search/projectObject';
 
-import { ProjectSearchResult } from '@shared/schema/project';
 import { ProjectObjectSearchResult } from '@shared/schema/projectObject';
 
 const resultMapContainerStyle = css`
@@ -21,11 +20,11 @@ const resultMapContainerStyle = css`
 `;
 
 interface Props {
-  results?: ProjectSearchResult & { projectObjects?: ProjectObjectSearchResult['projectObjects'] };
-  loading?: boolean;
+  projectObjectResults?: ProjectObjectSearchResult;
+  projectObjectsLoading?: boolean;
 }
 
-function clusterGeoJSON(clusters?: ProjectSearchResult['clusters']) {
+function clusterGeoJSON(clusters?: ProjectObjectSearchResult['clusters']) {
   if (!clusters || clusters.length === 0) {
     return null;
   }
@@ -38,7 +37,7 @@ function clusterGeoJSON(clusters?: ProjectSearchResult['clusters']) {
       properties: {
         id: cluster.clusterGeohash,
         clusterCount: cluster.clusterCount,
-        clusterProjectIds: cluster.clusterProjectIds,
+        clusterProjectObjectIds: cluster.clusterProjectObjectIds,
       },
     })),
   };
@@ -47,23 +46,23 @@ function clusterGeoJSON(clusters?: ProjectSearchResult['clusters']) {
 function getClusterLayer(source: VectorSource) {
   return new VectorLayer({
     source,
-    style: (feature) => clusterStyle(feature),
+    style: (feature) => clusterStyle(feature, 'projectObject'),
     properties: {
-      id: 'projectClusterResults',
+      id: 'projectObjectClusterResults',
       type: 'vector',
     },
   });
 }
 
-function getProjectsGeoJSON(projects?: ProjectSearchResult['projects']) {
-  if (!projects || projects.length === 0) {
+function getProjectsGeoJSON(projectObjects?: ProjectObjectSearchResult['projectObjects']) {
+  if (!projectObjects || projectObjects.length === 0) {
     return null;
   }
 
   return {
     type: 'FeatureCollection',
-    features: projects.map((p) => {
-      const geom = p.geom ? JSON.parse(p.geom) : null;
+    features: projectObjects.map((p) => {
+      const geom = p.projectGeom ? JSON.parse(p.projectGeom) : null;
       return {
         type: 'Feature',
         id: p.projectId,
@@ -97,7 +96,7 @@ function getProjectObjectGeoJSON(projectObjects?: ProjectObjectSearchResult['pro
   };
 }
 
-export function ResultsMap(props: Props) {
+export function ProjectObjectResultsMap(props: Props) {
   const setMap = useSetAtom(mapAtom);
   const clusterSource = useMemo(() => new VectorSource({}), []);
   const projectSource = useMemo(() => new VectorSource({}), []);
@@ -110,48 +109,42 @@ export function ResultsMap(props: Props) {
   );
 
   useEffect(() => {
-    if (props.loading) {
+    if (props.projectObjectsLoading) {
       return;
     }
-    if (!props.results) {
+
+    if (!props.projectObjectResults) {
       clusterSource.clear();
+      projectObjectSource.clear();
       projectSource.clear();
       return;
-    } else if (props.results?.clusters?.length > 0) {
+    } else if (props.projectObjectResults?.clusters?.length > 0) {
+      projectObjectSource.clear();
       projectSource.clear();
-      const geoJson = clusterGeoJSON(props.results.clusters);
+      const geoJson = clusterGeoJSON(props.projectObjectResults.clusters);
+
       addFeaturesFromGeoJson(clusterSource, geoJson);
     } else {
       clusterSource.clear();
-      const geoJson = getProjectsGeoJSON(props.results?.projects);
-      addFeaturesFromGeoJson(projectSource, geoJson);
-    }
-  }, [props.results]);
-
-  useEffect(() => {
-    if (props.loading) {
-      return;
-    }
-    if (!props.results?.projectObjects || props.results?.clusters?.length > 0) {
-      projectObjectSource.clear();
-      return;
-    } else {
-      const geoJson = getProjectObjectGeoJSON(props.results.projectObjects);
+      const geoJson = getProjectObjectGeoJSON(props.projectObjectResults?.projectObjects);
       addFeaturesFromGeoJson(projectObjectSource, geoJson);
+
+      const projectGeoJson = getProjectsGeoJSON(props.projectObjectResults?.projectObjects);
+      addFeaturesFromGeoJson(projectSource, projectGeoJson);
     }
-  }, [props.results?.projectObjects]);
+  }, [props.projectObjectResults]);
 
   return (
     <Paper css={resultMapContainerStyle} elevation={1}>
       <MapWrapper
-        loading={props.loading}
+        loading={props.projectObjectsLoading}
         editable={false}
         vectorLayers={[projectObjectLayer, projectLayer, clusterLayer]}
         onMoveEnd={(zoom, extent) => {
           setMap({ zoom: Math.floor(zoom), extent });
         }}
-        projects={props.results?.projects ?? []}
-        projectObjects={props.results?.projectObjects ?? []}
+        projectObjects={props.projectObjectResults?.projectObjects ?? []}
+        interactiveLayers={['projectObjects', 'projectObjectClusterResults']}
       />
     </Paper>
   );

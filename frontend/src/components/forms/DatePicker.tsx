@@ -9,6 +9,8 @@ import { useAtomValue } from 'jotai';
 
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 
+import { isoDateFormat } from '@shared/date';
+
 interface Props {
   id?: string;
   name?: string;
@@ -19,8 +21,6 @@ interface Props {
   minDate?: Dayjs;
   maxDate?: Dayjs;
 }
-
-const isoDateStringFormat = 'YYYY-MM-DD';
 
 function CustomTextField(props: TextFieldProps & { name?: string }) {
   return (
@@ -64,9 +64,9 @@ export function DatePicker(props: Props) {
         minDate={minDate}
         maxDate={maxDate}
         format={tr('date.format')}
-        value={!value ? null : dayjs(value, isoDateStringFormat)}
-        onChange={(value) => onChange(value?.format(isoDateStringFormat) ?? null)}
-        onAccept={(value) => onChange(value?.format(isoDateStringFormat) ?? null)}
+        value={!value ? null : dayjs(value, isoDateFormat)}
+        onChange={(value) => onChange(value?.format(isoDateFormat) ?? null)}
+        onAccept={(value) => onChange(value?.format(isoDateFormat) ?? null)}
         onClose={onClose}
         slots={{ textField: CustomTextField as any }}
         slotProps={

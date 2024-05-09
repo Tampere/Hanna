@@ -29,7 +29,14 @@ export type VectorLayerKey =
   | 'kadut'
   | 'kevyenliikenteenvaylat';
 
-export type VectorItemLayerKey = 'projects' | 'projectObjects' | 'clusterResults';
+export const ALL_VECTOR_ITEM_LAYERS = [
+  'projects',
+  'projectObjects',
+  'projectClusterResults',
+  'projectObjectClusterResults',
+] as const;
+
+export type VectorItemLayerKey = (typeof ALL_VECTOR_ITEM_LAYERS)[number];
 
 export interface LayerState {
   id: VectorLayerKey;
@@ -73,7 +80,8 @@ const defaultLayerState = [
 
 const defaultItemLayerState = [
   { id: 'projects' as const, selected: true, opacity: 1 },
-  { id: 'clusterResults' as const, selected: true, opacity: 1 },
+  { id: 'projectClusterResults' as const, selected: true, opacity: 1 },
+  { id: 'projectObjectClusterResults' as const, selected: true, opacity: 1 },
   { id: 'projectObjects' as const, selected: true, opacity: 1 },
 ];
 

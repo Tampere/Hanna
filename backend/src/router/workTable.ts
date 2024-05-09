@@ -1,11 +1,11 @@
 import { TRPCError } from '@trpc/server';
 
 import { textToSearchTerms } from '@backend/components/project/search';
+import { getProjectObjects, upsertProjectObject } from '@backend/components/projectObject';
 import { startWorkTableReportJob } from '@backend/components/taskQueue/workTableReportQueue';
 import { getPool, sql } from '@backend/db';
 import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
-import { getProjectObjects, upsertProjectObject } from '@backend/router/projectObject';
 
 import { UpsertProjectObject } from '@shared/schema/projectObject';
 import { User } from '@shared/schema/user';

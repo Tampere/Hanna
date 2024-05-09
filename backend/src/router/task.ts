@@ -4,9 +4,9 @@ import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit';
 import { codeIdFragment } from '@backend/components/code';
+import { getPermissionContext as getPOPermissionCtx } from '@backend/components/projectObject';
 import { getPool, sql } from '@backend/db';
 import { TRPC } from '@backend/router';
-import { getPermissionContext as getPOPermissionCtx } from '@backend/router/projectObject';
 
 import { nonEmptyString } from '@shared/schema/common';
 import {

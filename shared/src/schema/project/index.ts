@@ -55,6 +55,7 @@ export const projectSearchSchema = z.object({
       })
       .optional(),
   }),
+  withProjectObjects: z.boolean().optional(),
 });
 
 export const projectSearchResultSchema = z.object({

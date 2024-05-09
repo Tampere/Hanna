@@ -17,8 +17,10 @@ import {
   projectPermissionUpsert,
 } from '@backend/components/project/base';
 import { listProjects, projectSearch } from '@backend/components/project/search';
+import { getProjectObjectsByProjectSearch } from '@backend/components/projectObject';
 import { startReportJob } from '@backend/components/taskQueue/reportQueue';
 import { getPool } from '@backend/db';
+import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
 
 import {
@@ -79,7 +81,22 @@ export const createProjectRouter = (t: TRPC) => {
     }),
 
     search: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
-      return projectSearch(input);
+      const { withProjectObjects, ...rest } = input;
+
+      if (withProjectObjects) {
+        return await getPool().transaction(async (tx) => {
+          const projects = await projectSearch(rest, tx);
+          if (!projects.projects) return projects;
+
+          const projectIds = projects.projects.map((project) => project.projectId);
+          const projectObjects = await getProjectObjectsByProjectSearch(
+            { projectIds, map: input.map },
+            tx,
+          );
+          return { ...projects, projectObjects };
+        });
+      }
+      return projectSearch(rest);
     }),
 
     get: t.procedure.input(projectIdSchema).query(async ({ input }) => {

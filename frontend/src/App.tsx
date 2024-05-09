@@ -5,6 +5,7 @@ import { httpLink } from '@trpc/client';
 import { useAtom, useAtomValue } from 'jotai';
 import { Suspense, useState } from 'react';
 import {
+  Navigate,
   Route,
   RouterProvider,
   createBrowserRouter,
@@ -17,7 +18,6 @@ import { DetailplanProject } from '@frontend/views/DetailplanProject/DetailplanP
 import { Management } from '@frontend/views/Management';
 import { NotFound } from '@frontend/views/NotFound';
 import { InvestmentProject } from '@frontend/views/Project/InvestmentProject';
-import { ProjectsPage } from '@frontend/views/Project/Projects';
 import { ProjectObject } from '@frontend/views/ProjectObject/ProjectObject';
 import { SapDebugView } from '@frontend/views/SapDebug';
 import WorkTable from '@frontend/views/WorkTable/WorkTable';
@@ -27,6 +27,7 @@ import { asyncUserAtom, sessionExpiredAtom } from './stores/auth';
 import { useTranslations } from './stores/lang';
 import { Manual } from './views/Manual/Manual';
 import { SapReports } from './views/SapReports';
+import { SearchPage } from './views/Search';
 import { SessionRenewed } from './views/SessionRenewed';
 
 const router = createBrowserRouter(
@@ -34,8 +35,8 @@ const router = createBrowserRouter(
     <>
       <Route path="ohje" element={<Manual />} />
       <Route path="/" element={<Layout />}>
-        <Route index element={<ProjectsPage />} />
-        <Route path="hankkeet" element={<ProjectsPage />} />
+        <Route index element={<Navigate to="/kartta/hankkeet" />} />
+        <Route path="kartta/:tabView" element={<SearchPage />} />
         <Route path="investointihanke/luo" element={<InvestmentProject />} />
         <Route path="investointihanke/:projectId" element={<InvestmentProject />} />
         <Route

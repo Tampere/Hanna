@@ -22,6 +22,8 @@ import {
   getGeoJSONFeaturesString,
 } from '@frontend/components/Map/mapInteractions';
 import {
+  ALL_VECTOR_ITEM_LAYERS,
+  VectorItemLayerKey,
   activeItemIdAtom,
   baseLayerIdAtom,
   defaultFeatureSelectorState,
@@ -56,7 +58,8 @@ interface Props {
   vectorLayers?: VectorLayer<VectorSource<Feature<Geometry>>>[];
   fitExtent?: 'geoJson' | 'vectorLayers' | 'all';
   projects?: ProjectSearchResult['projects'];
-  projectObjects?: readonly ProjectObjectSearchResult[];
+  projectObjects?: ProjectObjectSearchResult['projectObjects'];
+  interactiveLayers?: VectorItemLayerKey[];
 }
 
 export function MapWrapper(props: Props) {
@@ -128,6 +131,7 @@ export function MapWrapper(props: Props) {
 
   const selectionSource = useMemo(() => new VectorSource({ wrapX: false }), []);
   const selectionLayer = useMemo(() => createSelectionLayer(selectionSource), []);
+
   const registerSelectInteraction = useMemo(
     () =>
       createSelectInteraction({
@@ -138,32 +142,30 @@ export function MapWrapper(props: Props) {
       }),
     [],
   );
-  const registerProjectSelectInteraction = useMemo(
-    () =>
-      createSelectInteraction({
-        source: selectionSource,
-        onSelectionChanged(features, event) {
-          setActiveItemId(null);
-          setFeatureSelector({
-            pos: event.mapBrowserEvent.pixel,
-            features: features,
-          });
+  const registerProjectSelectInteraction = useMemo(() => {
+    return createSelectInteraction({
+      source: selectionSource,
+      onSelectionChanged(features, event) {
+        setActiveItemId(null);
+        setFeatureSelector({
+          pos: event.mapBrowserEvent.pixel,
+          features: features,
+        });
 
-          if (features.length > 0) {
-            setActiveItemId(getFeatureItemId(features[0]));
-            selectionSource.addFeature(features[0]);
-          }
-        },
-        multi: true,
-        delegateFeatureAdding: true,
-        filterLayers(layer) {
-          if (['projects', 'clusterResults', 'projectObjects'].includes(layer.getProperties().id))
-            return true;
-          return false;
-        },
-      }),
-    [],
-  );
+        if (features.length > 0) {
+          setActiveItemId(getFeatureItemId(features[0]));
+          selectionSource.addFeature(features[0]);
+        }
+      },
+      multi: true,
+      delegateFeatureAdding: true,
+      filterLayers(layer) {
+        if ((props.interactiveLayers ?? ALL_VECTOR_ITEM_LAYERS).includes(layer.getProperties().id))
+          return true;
+        return false;
+      },
+    });
+  }, []);
 
   const registerModifyInteraction = useMemo(
     () => createModifyInteraction({ source: selectionSource, onModifyEnd: () => setDirty(true) }),
@@ -240,7 +242,7 @@ export function MapWrapper(props: Props) {
   }, [selectedTool]);
 
   useEffect(() => {
-    if (props.projects) setInteractions([registerProjectSelectInteraction]);
+    if (props.projects || props.projectObjects) setInteractions([registerProjectSelectInteraction]);
   }, []);
 
   return (
@@ -339,7 +341,7 @@ export function MapWrapper(props: Props) {
         )}
       </Map>
 
-      {props.projects && props.projectObjects && featureSelector.features.length > 0 && (
+      {(props.projects || props.projectObjects) && featureSelector.features.length > 0 && (
         <SelectionInfoBox
           projects={props.projects}
           projectObjects={props.projectObjects}

@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { Launch } from '@mui/icons-material';
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import {
   GridColDef,
   GridRenderCellParams,

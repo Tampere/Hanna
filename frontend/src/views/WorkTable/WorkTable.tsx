@@ -18,6 +18,7 @@ import { useDebounce } from '@frontend/utils/useDebounce';
 import { WorkTableFilters } from '@frontend/views/WorkTable/Filters/WorkTableFilters';
 import { WorkTableFinanceField, getColumns } from '@frontend/views/WorkTable/columns';
 
+import { isoDateFormat } from '@shared/date';
 import {
   hasPermission,
   hasWritePermission,
@@ -120,8 +121,8 @@ function getCellEditEvent(oldRow: WorkTableRow, newRow: WorkTableRow): CellEditE
 }
 const thisYear = dayjs().year();
 const searchAtom = atom<WorkTableSearch>({
-  startDate: dayjs([thisYear, 0, 1]).format('YYYY-MM-DD').toString(),
-  endDate: dayjs([thisYear, 11, 31]).format('YYYY-MM-DD').toString(),
+  startDate: dayjs([thisYear, 0, 1]).format(isoDateFormat).toString(),
+  endDate: dayjs([thisYear, 11, 31]).format(isoDateFormat).toString(),
 });
 
 export default function WorkTable() {
@@ -144,7 +145,7 @@ export default function WorkTable() {
   // highlight for the newly created project object
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const highlightId = queryParams.get('highlight');
+  const [highlightId, setHighlightId] = useState<string | null>(queryParams.get('highlight'));
 
   const participatedProjects = trpc.investmentProject.getParticipatedProjects.useQuery();
   const workTableData = trpc.workTable.search.useQuery(query);
@@ -237,6 +238,7 @@ export default function WorkTable() {
             const rowElement = document.querySelector(`[data-id='${highlightId}']`);
             if (rowElement) {
               rowElement.scrollIntoView({ behavior: 'smooth' });
+              setTimeout(() => setHighlightId(null), 5000);
               observer.disconnect();
             }
           }

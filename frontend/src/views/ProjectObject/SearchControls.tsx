@@ -1,11 +1,9 @@
-import { Search, UnfoldLess, UnfoldMore } from '@mui/icons-material';
+import { Search } from '@mui/icons-material';
 import {
   Box,
-  Button,
   Checkbox,
   FormControl,
   FormControlLabel,
-  FormGroup,
   FormLabel,
   InputAdornment,
   Paper,
@@ -14,28 +12,28 @@ import {
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { useAtom, useSetAtom } from 'jotai';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import { mapOptions } from '@frontend/components/Map/mapOptions';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { DateRange } from '@frontend/components/forms/DateRange';
-import { ProjectTypeSelect } from '@frontend/components/forms/ProjectTypeSelect';
 import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useTranslations } from '@frontend/stores/lang';
 import {
   dateRangeAtom,
-  filtersAtom,
   includeWithoutGeomAtom,
   lifecycleStatesAtom,
   mapAtom,
-  ownersAtom,
-  textAtom,
-} from '@frontend/stores/search/project';
+  objectCategoryAtom,
+  objectStageAtom,
+  objectTypeAtom,
+  objectUsageAtom,
+  projectObjectNameAtom,
+  rakennuttajaUsersAtom,
+  suunnitteluttajaUsersAtom,
+} from '@frontend/stores/search/projectObject';
 
 import { isoDateFormat } from '@shared/date';
-
-import { DetailplanProjectSearch } from './DetailplanProjectSearch';
-import { InvestmentProjectSearch } from './InvestmentProjectSearch';
 
 const searchControlContainerStyle = css`
   display: grid;
@@ -81,13 +79,17 @@ function makeCalendarQuickSelections(tr: ReturnType<typeof useTranslations>) {
 export function SearchControls() {
   const tr = useTranslations();
 
-  const [expanded, setExpanded] = useState(false);
-  const [text, setText] = useAtom(textAtom);
   const [dateRange, setDateRange] = useAtom(dateRangeAtom);
   const [lifecycleStates, setLifecycleStates] = useAtom(lifecycleStatesAtom);
-  const [owners, setOwners] = useAtom(ownersAtom);
-  const [filters, setFilters] = useAtom(filtersAtom);
   const [includeWithoutGeom, setIncludeWithoutGeom] = useAtom(includeWithoutGeomAtom);
+  const [projectObjectName, setProjectObjectName] = useAtom(projectObjectNameAtom);
+  const [objectStage, setObjectStage] = useAtom(objectStageAtom);
+  const [objectTypes, setObjectTypes] = useAtom(objectTypeAtom);
+  const [objectCategories, setObjectCategories] = useAtom(objectCategoryAtom);
+  const [objectUsages, setObjectUsages] = useAtom(objectUsageAtom);
+  const [suunnitteluttajaUsers, setSuunnitteluttajaUsers] = useAtom(suunnitteluttajaUsersAtom);
+  const [rakennuttajaUsers, setRakennuttajaUsers] = useAtom(rakennuttajaUsersAtom);
+
   const setMap = useSetAtom(mapAtom);
 
   useEffect(() => {
@@ -120,14 +122,16 @@ export function SearchControls() {
     >
       <div css={searchControlContainerStyle}>
         <FormControl>
-          <FormLabel htmlFor="text-search">{tr('itemSearch.textSearchLabel')}</FormLabel>
+          <FormLabel htmlFor="project-object-search">
+            {tr('projectObjectSearch.projectObjectSearchLabel')}
+          </FormLabel>
           <TextField
-            id="text-search"
+            id="project-object-search"
             size="small"
             placeholder={tr('itemSearch.textSearchTip')}
-            value={text}
+            value={projectObjectName}
             onChange={(event) => {
-              setText(event.currentTarget.value);
+              setProjectObjectName(event.currentTarget.value);
             }}
             InputProps={{
               startAdornment: (
@@ -148,8 +152,54 @@ export function SearchControls() {
             />
           </FormControl>
         </Box>
+
         <FormControl>
-          <FormLabel htmlFor="lifecycle-state">{tr('project.lifecycleStateLabel')}</FormLabel>
+          <FormLabel htmlFor="objectStageField">{tr('projectObject.objectStageLabel')}</FormLabel>
+          <CodeSelect
+            multiple
+            maxTags={1}
+            codeListId="KohteenLaji"
+            value={objectStage}
+            onChange={(stages) => setObjectStage(stages)}
+          />
+        </FormControl>
+        <FormControl>
+          <FormLabel htmlFor="objectTypeField">{tr('projectObject.objectTypeLabel')}</FormLabel>
+          <CodeSelect
+            multiple
+            maxTags={1}
+            codeListId="KohdeTyyppi"
+            value={objectTypes}
+            onChange={(types) => setObjectTypes(types)}
+          />
+        </FormControl>
+
+        <FormControl>
+          <FormLabel htmlFor="objectCategoryField">
+            {tr('projectObject.objectCategoryLabelShort')}
+          </FormLabel>
+          <CodeSelect
+            multiple
+            maxTags={1}
+            codeListId="KohteenOmaisuusLuokka"
+            value={objectCategories}
+            onChange={(categories) => setObjectCategories(categories)}
+          />
+        </FormControl>
+        <FormControl>
+          <FormLabel htmlFor="objectUsageField">
+            {tr('projectObject.objectUsageLabelShort')}
+          </FormLabel>
+          <CodeSelect
+            multiple
+            maxTags={1}
+            codeListId="KohteenToiminnallinenKayttoTarkoitus"
+            value={objectUsages}
+            onChange={(usages) => setObjectUsages(usages)}
+          />
+        </FormControl>
+        <FormControl>
+          <FormLabel htmlFor="lifecycle-state">{tr('projectObject.lifecycleStateLabel')}</FormLabel>
           <CodeSelect
             id="lifecycle-state"
             codeListId="HankkeenElinkaarentila"
@@ -160,43 +210,29 @@ export function SearchControls() {
           />
         </FormControl>
         <FormControl>
-          <FormLabel htmlFor="project-type">{tr('projectSearch.projectType')}</FormLabel>
-          <ProjectTypeSelect
-            id="project-type"
-            value={Object.keys(filters) as Array<keyof typeof filters>}
+          <FormLabel htmlFor="rakennuttaja">{tr('projectObjectSearch.rakennuttajaUser')}</FormLabel>
+          <UserSelect
+            id="rakennuttaja"
+            multiple
+            value={rakennuttajaUsers}
+            onChange={setRakennuttajaUsers}
             maxTags={1}
-            onChange={(projectTypes) => {
-              setFilters((filters) => {
-                const previousTypes = new Set(Object.keys(filters)) as Set<keyof typeof filters>;
-                const newTypes = new Set(projectTypes);
-
-                // Remove type filters that are no longer selected
-                for (const type of previousTypes) {
-                  if (!newTypes.has(type)) {
-                    delete filters[type];
-                  }
-                }
-
-                // Add new types
-                for (const type of newTypes) {
-                  if (!previousTypes.has(type)) {
-                    filters[type] = {};
-                  }
-                }
-
-                return {
-                  ...filters,
-                };
-              });
-            }}
           />
         </FormControl>
         <FormControl>
-          <FormLabel htmlFor="owner">{tr('project.ownerLabel')}</FormLabel>
-          <UserSelect id="owner" multiple value={owners} onChange={setOwners} maxTags={1} />
+          <FormLabel htmlFor="suunnitteluttaja">
+            {tr('projectObjectSearch.suunnitteluttajaUser')}
+          </FormLabel>
+          <UserSelect
+            id="suunnitteluttaja"
+            multiple
+            value={suunnitteluttajaUsers}
+            onChange={setSuunnitteluttajaUsers}
+            maxTags={1}
+          />
         </FormControl>
-        <FormGroup>
-          <FormLabel>{tr('projectSearch.geometry')}</FormLabel>
+        <FormControl>
+          <FormLabel>{tr('projectObjectSearch.geometry')}</FormLabel>
           <FormControlLabel
             control={
               <Checkbox
@@ -206,30 +242,10 @@ export function SearchControls() {
                 }}
               />
             }
-            label={tr('projectSearch.showOnlyItemsWithGeom')}
+            label={tr('projectObjectSearch.showOnlyItemsWithGeom')}
           />
-        </FormGroup>
+        </FormControl>
       </div>
-      {expanded && (
-        <>
-          {filters['investmentProject'] && <InvestmentProjectSearch />}
-          {filters['detailplanProject'] && <DetailplanProjectSearch />}
-        </>
-      )}
-      {(filters.investmentProject || filters.detailplanProject) && (
-        <Button
-          size="small"
-          css={css`
-            align-self: flex-end;
-          `}
-          endIcon={expanded ? <UnfoldLess /> : <UnfoldMore />}
-          onClick={() => {
-            setExpanded((previous) => !previous);
-          }}
-        >
-          {expanded ? tr('itemSearch.showLessBtnLabel') : tr('itemSearch.showMoreBtnLabel')}
-        </Button>
-      )}
     </Paper>
   );
 }

@@ -33,13 +33,12 @@ import { hasPermission } from '@shared/schema/userPermissions';
 import { SearchControls } from './SearchControls';
 
 const toolbarContainerStyle = css`
-  padding: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 `;
 
-function Toolbar() {
+export function Toolbar() {
   const tr = useTranslations();
   const auth = useAtomValue(asyncUserAtom);
   const [newProjectMenuOpen, setNewProjectMenuOpen] = useState(false);
@@ -51,10 +50,7 @@ function Toolbar() {
       hasPermission(auth, 'detailplanProject.write'));
 
   return (
-    <Box css={toolbarContainerStyle}>
-      <Typography variant="h4" component="h1">
-        {tr('pages.projectsTitle')}
-      </Typography>
+    <Box css={toolbarContainerStyle} className="toolbar-container">
       <div>
         <Button
           ref={newProjectMenuAnchor}
@@ -103,7 +99,7 @@ function Toolbar() {
 }
 
 const projectCardStyle = (highlighted: boolean) => css`
-  padding: 16px;
+  padding: 12px;
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -162,10 +158,9 @@ function ProjectCard({ result, highlighted }: { result: DbProject; highlighted: 
 
         <span
           css={css`
-            position: absolute;
+            margin-left: auto;
+            align-self: center;
             padding: 2px 6px;
-            bottom: 6px;
-            right: 6px;
             font-size: x-small;
             font-weight: 300;
             border: 1px solid #ddd;
@@ -207,6 +202,8 @@ function SearchResults({ results, loading, activeProjectId }: SearchResultsProps
     <Box
       aria-label={tr('projectListing.searchResultsTitle')}
       css={css`
+        scrollbar-gutter: stable;
+        box-sizing: border-box;
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -269,7 +266,7 @@ function SearchResults({ results, loading, activeProjectId }: SearchResultsProps
           ))
         : !loading && (
             <Box>
-              <p>{tr('projectSearch.noResults')}</p>
+              <p>{tr('itemSearch.noResults')}</p>
             </Box>
           )}
     </Box>
@@ -293,24 +290,8 @@ function ProjectResults() {
     ...projectSearchParams,
     map: useDebounce(projectSearchParams.map, 400),
     text: useDebounce(projectSearchParams.text, 250),
+    withProjectObjects: true,
   });
-
-  const projectObjectSearch = trpc.projectObject.searchByProject.useQuery(
-    {
-      map: useDebounce(projectSearchParams.map, 400),
-      projectIds: search.data?.projects?.map((project) => project.projectId) ?? [],
-    },
-    {
-      enabled: !!search.data,
-      queryKey: [
-        'projectObject.searchByProject',
-        {
-          map: useDebounce(projectSearchParams.map, 400),
-          projectIds: search.data?.projects?.map((project) => project.projectId) ?? [],
-        },
-      ],
-    },
-  );
 
   return (
     <div css={resultsContainerStyle}>
@@ -319,18 +300,14 @@ function ProjectResults() {
         results={search.data?.projects ?? []}
         activeProjectId={activeProjectId}
       />
-      <ResultsMap
-        loading={search.isLoading}
-        results={search.data}
-        projectObjectsLoading={projectObjectSearch.isLoading}
-        projectObjectResults={projectObjectSearch.data}
-      />
+      <ResultsMap loading={search.isLoading} results={search.data} />
     </div>
   );
 }
 
 const projectPageStyle = css`
-  height: 100%;
+  flex: 1;
+  min-height: 600px;
   display: flex;
   flex-direction: column;
 `;
@@ -338,7 +315,6 @@ const projectPageStyle = css`
 export function ProjectsPage() {
   return (
     <Box css={projectPageStyle}>
-      <Toolbar />
       <SearchControls />
       <ProjectResults />
     </Box>

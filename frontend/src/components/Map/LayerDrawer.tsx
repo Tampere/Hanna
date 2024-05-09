@@ -74,7 +74,9 @@ function setLayerSelected(
   selected: boolean,
 ) {
   return layersState.map((layer) => {
-    return layer.id === layerId || (layer.id === 'clusterResults' && layerId === 'projects')
+    return layer.id === layerId ||
+      (layer.id === 'projectClusterResults' && layerId === 'projects') ||
+      (layer.id === 'projectObjectClusterResults' && layerId === 'projectObjects')
       ? {
           ...layer,
           selected,
@@ -82,6 +84,11 @@ function setLayerSelected(
       : layer;
   });
 }
+
+type NonClusterVectorItemLayers = Exclude<
+  VectorItemLayerKey,
+  'projectClusterResults' | 'projectObjectClusterResults'
+>;
 
 export function LayerDrawer({
   enabledItemVectorLayers,
@@ -106,7 +113,7 @@ export function LayerDrawer({
           </Typography>
           {vectorItemLayers.map(
             (layerState) =>
-              layerState.id !== 'clusterResults' && (
+              !['projectClusterResults', 'projectObjectClusterResults'].includes(layerState.id) && (
                 <MenuItem
                   sx={{ display: 'flex', justifyContent: 'space-between' }}
                   key={`vectorlayer-${layerState.id}`}
@@ -124,7 +131,9 @@ export function LayerDrawer({
                   disableTouchRipple
                 >
                   <Box sx={{ display: 'flex' }}>
-                    <Typography>{tr(`vectorLayer.title.${layerState.id}`)}</Typography>
+                    <Typography>
+                      {tr(`vectorLayer.title.${layerState.id as NonClusterVectorItemLayers}`)}
+                    </Typography>
                   </Box>
                   {layerState.selected ? (
                     <ToggleOn css={toggleOnStyle} fontSize="large" />

@@ -5,6 +5,8 @@ import Stroke from 'ol/style/Stroke';
 import Style from 'ol/style/Style';
 import Text from 'ol/style/Text';
 
+import { theme } from '@frontend/Layout';
+
 const _PROJECT_FILL = 'rgb(173, 255, 47, 0.3)';
 const _PROJECT_STROKE = 'rgb(0, 168, 0)';
 const _PROJECT_STROKE_WIDTH = 3;
@@ -29,10 +31,13 @@ const SELECTION_COLOR = 'rgba(255, 255, 0, 0.9)';
 const CLUSTER_RADIUS = 16;
 const CLUSTER_STROKE = '#fff';
 const CLUSTER_STROKE_WIDTH = 2;
-const CLUSTER_FILL = 'rgb(0, 168, 0)';
+const CLUSTER_FILL = { project: 'rgb(0, 168, 0)', projectObject: theme.palette.primary.main };
 const CLUSTER_FONT = 'bold 14px sans-serif';
 
-export function clusterStyle(feature: FeatureLike) {
+export function clusterStyle(
+  feature: FeatureLike,
+  itemType: 'project' | 'projectObject' = 'project',
+) {
   const clusterCount = feature.get('clusterCount');
   return new Style({
     image: new CircleStyle({
@@ -42,7 +47,7 @@ export function clusterStyle(feature: FeatureLike) {
         width: CLUSTER_STROKE_WIDTH,
       }),
       fill: new Fill({
-        color: CLUSTER_FILL,
+        color: CLUSTER_FILL[itemType],
       }),
     }),
     text: new Text({

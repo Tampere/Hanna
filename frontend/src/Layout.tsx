@@ -32,7 +32,7 @@ import NotificationList from './services/notification';
 import { asyncUserAtom, sessionExpiredAtom } from './stores/auth';
 import { blockerStatusAtom } from './stores/navigationBlocker';
 
-const theme = createTheme(
+export const theme = createTheme(
   {
     palette: {
       primary: {
@@ -90,13 +90,13 @@ function Navbar() {
 
   function getValueFromPathname() {
     if (pathname === '/') {
-      return 'hankkeet';
+      return 'kartta';
     }
     const currentPath = pathname.split('/')[1];
     return tabs.includes(currentPath) ? currentPath : false;
   }
 
-  const tabs = ['hankkeet', 'sap-raportit', 'investointiohjelma', 'hallinta'];
+  const tabs = ['kartta', 'sap-raportit', 'investointiohjelma', 'hallinta'];
 
   return (
     <AppBar position="static" style={{ zIndex: 200 }}>
@@ -137,10 +137,10 @@ function Navbar() {
             <Tab
               icon={<AccountTreeOutlined sx={{ mr: 1 }} />}
               iconPosition="start"
-              label={tr('pages.projectsTitle')}
+              label={tr('pages.homeTitle')}
               component={Link}
-              value="hankkeet"
-              to="/hankkeet"
+              value="kartta"
+              to="/kartta/hankkeet"
             />
             {import.meta.env.VITE_FEATURE_SAP_REPORTS === 'true' && (
               <Tab

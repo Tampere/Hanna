@@ -69,7 +69,7 @@ function ProjectAutoComplete(props: Readonly<ProjectAutoCompleteProps>) {
     <Autocomplete<ProjectListItem>
       {...props}
       options={projects?.data ?? []}
-      noOptionsText={tr('projectSearch.noResults')}
+      noOptionsText={tr('itemSearch.noResults')}
       size="small"
       onChange={(_e, value) => {
         props.onChange(value?.projectId);

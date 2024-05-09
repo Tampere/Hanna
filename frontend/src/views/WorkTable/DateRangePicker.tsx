@@ -9,6 +9,8 @@ import { useEffect, useRef, useState } from 'react';
 import { CustomDay } from '@frontend/components/forms/DateRange';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 
+import { isoDateFormat } from '@shared/date';
+
 interface DateRangeViewProps {
   value: { startDate: string; endDate: string };
 }
@@ -133,8 +135,8 @@ export function DateRangeEdit(params: GridEditSingleSelectCellProps) {
                     id: params.id,
                     field: params.field,
                     value: {
-                      startDate: startDate.format('YYYY-MM-DD'),
-                      endDate: endDate.format('YYYY-MM-DD'),
+                      startDate: startDate.format(isoDateFormat),
+                      endDate: endDate.format(isoDateFormat),
                     },
                   });
                   apiRef.current.stopCellEditMode({

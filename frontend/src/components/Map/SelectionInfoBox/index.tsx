@@ -20,10 +20,13 @@ interface Props {
   parentHeight: number;
   pos: Pixel;
   projects?: ProjectSearchResult['projects'];
-  projectObjects?: readonly ProjectObjectSearchResult[];
+  projectObjects?: ProjectObjectSearchResult['projectObjects'];
   handleActiveFeatureChange: (projectId: string) => void;
   handleCloseInfoBox: () => void;
 }
+
+type ProjectObjectResult = ProjectObjectSearchResult['projectObjects'][number];
+type ProjectResult = ProjectSearchResult['projects'][number];
 
 export function SelectionInfoBox({
   parentWidth,
@@ -34,53 +37,52 @@ export function SelectionInfoBox({
   ...props
 }: Props) {
   const tr = useTranslations();
-  const selectedProjectIds = useAtomValue(selectedItemIdAtom);
+  const selectedItemIds = useAtomValue(selectedItemIdAtom);
   const [activeItemId, setActiveItemId] = useAtom(activeItemIdAtom);
   const [projects, setProjects] = useState<ProjectSearchResult['projects']>([]);
-  const [projectObjects, setProjectObjects] = useState<ProjectObjectSearchResult[]>([]);
+  const [projectObjects, setProjectObjects] = useState<ProjectObjectSearchResult['projectObjects']>(
+    [],
+  );
 
   useEffect(() => {
     // Doing this the hard way instead of props.projects.filter... to keep the order of the projects right
     if (props.projects) {
       setProjects(
-        selectedProjectIds
+        selectedItemIds
           .map((projectId) => props?.projects?.find((project) => project.projectId === projectId))
-          .filter<ProjectSearchResult['projects'][number]>(
-            (project): project is ProjectSearchResult['projects'][number] =>
-              typeof project !== 'undefined',
+          .filter<ProjectResult>(
+            (project): project is ProjectResult => typeof project !== 'undefined',
           ),
       );
     }
-  }, [props.projects, selectedProjectIds]);
+  }, [props.projects, selectedItemIds]);
 
   useEffect(() => {
     if (props.projectObjects)
       setProjectObjects(
-        selectedProjectIds
+        selectedItemIds
           .map(
             (projectId) =>
               props?.projectObjects?.find(
                 (projectObject) => projectObject.projectObjectId === projectId,
               ),
           )
-          .filter<ProjectObjectSearchResult>(
-            (projectObject): projectObject is ProjectObjectSearchResult =>
+          .filter<ProjectObjectResult>(
+            (projectObject): projectObject is ProjectObjectResult =>
               typeof projectObject !== 'undefined',
           ),
       );
-  }, [props.projectObjects, selectedProjectIds]);
+  }, [props.projectObjects, selectedItemIds]);
 
   const allItems = [...(projects ?? []), ...(projectObjects ?? [])];
 
-  function isProjectObject(
-    item: ProjectSearchResult['projects'][number] | ProjectObjectSearchResult,
-  ): item is ProjectObjectSearchResult {
+  function isProjectObject(item: ProjectResult | ProjectObjectResult): item is ProjectObjectResult {
     return Object.keys(item).includes('projectObjectId');
   }
 
-  function getItemId(item: ProjectSearchResult['projects'][number] | ProjectObjectSearchResult) {
+  function getItemId(item: ProjectResult | ProjectObjectResult) {
     if (Object.keys(item).includes('projectObjectId')) {
-      return (item as ProjectObjectSearchResult).projectObjectId;
+      return (item as ProjectObjectResult).projectObjectId;
     }
     return item.projectId;
   }
@@ -101,7 +103,7 @@ export function SelectionInfoBox({
     return index;
   }
 
-  function getLinkUrl(item: ProjectSearchResult['projects'][number] | ProjectObjectSearchResult) {
+  function getLinkUrl(item: ProjectResult | ProjectObjectResult) {
     if (isProjectObject(item)) {
       return `/investointihanke/${item?.projectId}/kohde/${item?.projectObjectId}`;
     } else if (item.projectType === 'investmentProject') {
