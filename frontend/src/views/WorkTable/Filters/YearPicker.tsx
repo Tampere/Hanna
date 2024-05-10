@@ -4,6 +4,8 @@ import { trpc } from '@frontend/client';
 import dayjs from '@frontend/dayjs';
 import { useTranslations } from '@frontend/stores/lang';
 
+import { isoDateFormat } from '@shared/date';
+
 interface Props {
   onChange: (dates: { startDate: string; endDate: string }) => void;
   selectedYear: number | 'allYears';
@@ -13,7 +15,7 @@ export function YearPicker({ onChange, selectedYear }: Props) {
   const tr = useTranslations();
   const yearsQuery = trpc.workTable.years.useQuery();
 
-  function getDate(year: number, forStart: boolean = true, format: string = 'YYYY-MM-DD') {
+  function getDate(year: number, forStart: boolean = true, format: string = isoDateFormat) {
     return forStart ? dayjs([year, 0, 1]).format(format) : dayjs([year, 11, 31]).format(format);
   }
 

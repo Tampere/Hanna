@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 import { codeId } from './code';
 import { isoDateString, nonEmptyString } from './common';
-import { mapSearchSchema } from './project';
+import { mapSearchSchema, periodSchema } from './project';
+import { projectTypeSchema } from './project/type';
 
 export const projectObjectUserRoleSchema = z.object({
   roleId: codeId,
@@ -66,21 +67,54 @@ export const dbProjectObjectSchema = newProjectObjectSchema.extend({
 });
 
 export const projectObjectSearchSchema = z.object({
+  limit: z.number().int().optional(),
+  projectObjectName: z.string().optional(),
+  projectName: z.string().optional(),
+  dateRange: periodSchema.optional(),
+  map: mapSearchSchema.optional(),
+  objectParticipantUser: nonEmptyString.optional(),
+  objectTypes: dbProjectObjectSchema.shape.objectType.optional(),
+  objectCategories: dbProjectObjectSchema.shape.objectCategory.optional(),
+  objectUsages: dbProjectObjectSchema.shape.objectUsage.optional(),
+  lifecycleStates: z.array(dbProjectObjectSchema.shape.lifecycleState).optional(),
+  objectStages: z.array(dbProjectObjectSchema.shape.objectStage).optional(),
+  includeWithoutGeom: z.boolean().optional(),
+  rakennuttajaUsers: z.array(nonEmptyString).optional(),
+  suunnitteluttajaUsers: z.array(nonEmptyString).optional(),
+});
+
+export const objectsByProjectSearchSchema = z.object({
   projectIds: z.array(z.string()),
   map: mapSearchSchema.optional(),
 });
 
-export const projectObjectSearchResultSchema = dbProjectObjectSchema
-  .pick({
-    projectId: true,
-    projectObjectId: true,
-    objectName: true,
-    startDate: true,
-    endDate: true,
-    geom: true,
-    objectStage: true,
-  })
-  .extend({ projectName: z.string() });
+export const projectObjectSearchResultSchema = z.object({
+  projectObjects: z.array(
+    dbProjectObjectSchema
+      .pick({
+        projectId: true,
+        projectObjectId: true,
+        objectName: true,
+        startDate: true,
+        endDate: true,
+        geom: true,
+        objectStage: true,
+      })
+      .extend({
+        projectName: z.string(),
+        projectType: projectTypeSchema,
+        projectGeom: z.string().nullish(),
+      }),
+  ),
+  clusters: z.array(
+    z.object({
+      clusterProjectObjectIds: z.array(z.string()),
+      clusterCount: z.number(),
+      clusterLocation: z.string(),
+      clusterGeohash: z.string(),
+    }),
+  ),
+});
 
 export const upsertProjectObjectSchema = z.union([
   newProjectObjectSchema,
@@ -131,4 +165,5 @@ export type BudgetUpdate = z.infer<typeof updateBudgetSchema>;
 export type ProjectObjectUserRole = z.infer<typeof projectObjectUserRoleSchema>;
 
 export type ProjectObjectSearch = z.infer<typeof projectObjectSearchSchema>;
+export type ObjectsByProjectSearch = z.infer<typeof objectsByProjectSearchSchema>;
 export type ProjectObjectSearchResult = z.infer<typeof projectObjectSearchResultSchema>;

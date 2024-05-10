@@ -210,22 +210,31 @@ function createTileResolutions(
 }
 
 /**
- * Get project or project object id from a feature, if the feature is a cluster, return the first project id
+ * Get project or project object id from a feature, if the feature is a cluster, return the first project or project object id
  * @param feature
  * @returns
  */
 export function getFeatureItemId(feature: Feature<Geometry>) {
-  return feature.getProperties()?.clusterProjectIds?.[0] ?? feature.getId()?.toString();
+  return (
+    feature.getProperties()?.clusterProjectIds?.[0] ??
+    feature.getProperties()?.clusterProjectObjectIds?.[0] ??
+    feature.getId()?.toString()
+  );
 }
 
 /**
- * Get project and project object ids from features
+ * Get project or project object ids from features
  * @param features
  * @returns
  */
 export function getFeatureItemIds(features: Feature<Geometry>[]) {
   return features
-    .map((feature) => feature.getProperties()?.clusterProjectIds ?? feature.getId()?.toString())
+    .map(
+      (feature) =>
+        feature.getProperties()?.clusterProjectIds ??
+        feature.getProperties()?.clusterProjectObjectIds ??
+        feature.getId()?.toString(),
+    )
     .flat(1)
     .filter(Boolean);
 }

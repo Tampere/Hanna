@@ -153,7 +153,7 @@ test.describe('Project endpoints', () => {
     const project = await devSession.client.investmentProject.upsert.mutate({
       project: validProjectInput,
     });
-    const point = makePoint(24487416.69375355, 6821004.272996133, 'EPSG:3878');
+    const point = makePoint(326673.014866, 6823373.604181, 'EPSG:3067');
 
     const edit = await devSession.client.project.updateGeometry.mutate({
       projectId: project.projectId,
@@ -163,8 +163,8 @@ test.describe('Project endpoints', () => {
     expect(edit.projectId).toEqual(project.projectId);
     expect(JSON.parse(edit.geom)).toStrictEqual({
       type: 'MultiPoint',
-      crs: { type: 'name', properties: { name: 'EPSG:3878' } },
-      coordinates: [[24487416.69375355, 6821004.272996133]],
+      crs: { type: 'name', properties: { name: 'EPSG:3067' } },
+      coordinates: [[326673.014866, 6823373.604181]],
     });
   });
 

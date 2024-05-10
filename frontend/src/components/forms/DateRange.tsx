@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 
-const isoFormat = 'YYYY-MM-DD';
+import { isoDateFormat } from '@shared/date';
 
 interface Period {
   startDate: string | null;
@@ -99,8 +99,8 @@ export function DateRange(props: Props) {
       }
 
       props.onChange({
-        startDate: startDate?.format(isoFormat) ?? null,
-        endDate: endDate?.format(isoFormat) ?? null,
+        startDate: startDate?.format(isoDateFormat) ?? null,
+        endDate: endDate?.format(isoDateFormat) ?? null,
       });
     },
     [startDate, endDate],

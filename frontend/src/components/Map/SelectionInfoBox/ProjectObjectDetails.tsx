@@ -10,9 +10,9 @@ interface ProjectDetailsProps<TProjectObject> {
   projectObject: TProjectObject;
 }
 
-export function ProjectObjectDetails<TProjectObject extends ProjectObjectSearchResult>({
-  projectObject,
-}: ProjectDetailsProps<TProjectObject>) {
+export function ProjectObjectDetails<
+  TProjectObject extends ProjectObjectSearchResult['projectObjects'][number],
+>({ projectObject }: ProjectDetailsProps<TProjectObject>) {
   const lang = useAtomValue(langAtom);
   const tr = useTranslations();
 

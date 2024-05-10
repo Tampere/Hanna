@@ -71,11 +71,11 @@ export function BlanketContractReportFilters({ disableExport }: Props) {
         `}
       >
         <FormControl>
-          <FormLabel htmlFor="text-search">{tr('projectSearch.textSearchLabel')}</FormLabel>
+          <FormLabel htmlFor="text-search">{tr('itemSearch.textSearchLabel')}</FormLabel>
           <TextField
             id="text-search"
             size="small"
-            placeholder={tr('projectSearch.textSearchTip')}
+            placeholder={tr('itemSearch.textSearchTip')}
             value={text ?? ''}
             onChange={(event) => {
               setText(event.currentTarget.value);

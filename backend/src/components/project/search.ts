@@ -1,6 +1,8 @@
+import { DatabaseTransactionConnection } from 'slonik';
 import { z } from 'zod';
 
 import { getPool, sql } from '@backend/db';
+import { logger } from '@backend/logging';
 
 import {
   ProjectListParams,
@@ -173,12 +175,16 @@ export function detailplanProjectFragment(input: ProjectSearch) {
   `;
 }
 
-export async function projectSearch(input: ProjectSearch) {
+export async function projectSearch(
+  input: ProjectSearch,
+  tx?: DatabaseTransactionConnection | null,
+) {
+  const conn = tx ?? getPool();
   const { map, limit = 500 } = input;
   const isClusterSearch = map?.zoom && map.zoom < CLUSTER_ZOOM_BELOW;
   const resultSchema = z.object({ result: projectSearchResultSchema });
 
-  const dbResult = await getPool().one(sql.type(resultSchema)`
+  const dbResult = await conn.one(sql.type(resultSchema)`
     WITH ranked_projects AS (
       SELECT
         project.id,
