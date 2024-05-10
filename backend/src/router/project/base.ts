@@ -20,7 +20,6 @@ import { listProjects, projectSearch } from '@backend/components/project/search'
 import { getProjectObjectsByProjectSearch } from '@backend/components/projectObject';
 import { startReportJob } from '@backend/components/taskQueue/reportQueue';
 import { getPool } from '@backend/db';
-import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
 
 import {

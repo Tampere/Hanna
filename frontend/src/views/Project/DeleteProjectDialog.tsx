@@ -21,7 +21,7 @@ export function DeleteProjectDialog({ projectId, message, disabled }: Readonly<P
 
   const projectDeleteMutation = trpc.project.delete.useMutation({
     onSuccess: () => {
-      navigate(`/hankkeet`);
+      navigate(`/kartta/hankkeet`);
       notify({
         severity: 'success',
         title: tr('projectDelete.notifyDelete'),

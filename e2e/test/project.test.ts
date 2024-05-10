@@ -78,8 +78,8 @@ async function createProject(
   await client.project.updateGeometry.mutate(geometryPayload(projectId, keskustoriGeom));
 
   // Go back to the front page
-  await page.getByRole('tab', { name: 'Hankkeet', exact: true }).click();
-  await expect(page).toHaveURL('https://localhost:1443/hankkeet');
+  await page.getByRole('banner').getByRole('tab', { name: 'Kartta' }).click();
+  await expect(page).toHaveURL('https://localhost:1443/kartta/hankkeet');
 
   // Return the created project with ID
   return {
@@ -95,12 +95,12 @@ async function deleteProject(page: Page, projectId: string) {
   // Delete the project
   await page.getByRole('button', { name: 'Poista hanke' }).click();
   await page.getByRole('button', { name: 'Poista' }).click();
-  await expect(page).toHaveURL('https://localhost:1443/hankkeet');
+  await expect(page).toHaveURL('https://localhost:1443/kartta/hankkeet');
 
   // Expect the project page to not exist anymore
   await page.goto(`https://localhost:1443/investointihanke/${projectId}`);
   await expect(page.getByText('Hanketta ei löytynyt')).toBeVisible();
-  await page.goto('https://localhost:1443/hankkeet');
+  await page.goto('https://localhost:1443/kartta/hankkeet');
 }
 
 test.describe('Projects', () => {
