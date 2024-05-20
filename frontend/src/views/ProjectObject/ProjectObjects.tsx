@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { NavigateNext } from '@mui/icons-material';
-import { Box, Card, CardActionArea, Chip, Typography } from '@mui/material';
+import { Box, Card, CardActionArea, Chip, Skeleton, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
 import { useEffect, useState } from 'react';
@@ -35,6 +35,43 @@ const projectTypeRootUrl = {
   detailplanProject: '/asemakaavahanke',
   investmentProject: '/investointihanke',
 };
+
+function ProjectObjectCardSkeleton({ count = 1 }: { count: number }) {
+  return (
+    <Box
+      css={css`
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      `}
+    >
+      {Array.from({ length: count }).map(() => (
+        <Box
+          css={css`
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+          `}
+        >
+          <Typography
+            css={css`
+              width: 30%;
+            `}
+          >
+            <Skeleton variant="rectangular" />
+          </Typography>
+          <Skeleton
+            variant="rectangular"
+            height={62}
+            css={css`
+              border-radius: 6px;
+            `}
+          />
+        </Box>
+      ))}
+    </Box>
+  );
+}
 
 function ProjectObjectCard({
   result,
@@ -221,38 +258,43 @@ function SearchResults({ projectObjects, loading, activeProjectObjectId }: Searc
           )}
         </Typography>
       </Box>
-      {projectObjects?.length > 0
-        ? projectObjects.map((result, index) => {
-            const displayProjectName =
-              index === 0 || result.projectId !== projectObjects[index - 1].projectId;
-            return (
-              <Box key={result.projectObjectId}>
-                {displayProjectName && (
-                  <Typography
-                    css={css`
-                      max-width: 75%;
-                      white-space: nowrap;
-                      overflow: hidden;
-                      text-overflow: ellipsis;
-                    `}
-                  >
-                    {result.projectName}:
-                  </Typography>
-                )}
-                <ProjectObjectCard
-                  result={result}
-                  highlighted={result.projectObjectId === activeProjectObjectId}
-                  objectStageCodes={codes.data}
-                  newObjectHighlightId={newObjectHighlightId}
-                />
-              </Box>
-            );
-          })
-        : !loading && (
-            <Box>
-              <p>{tr('itemSearch.noResults')}</p>
+
+      {loading ? (
+        <ProjectObjectCardSkeleton count={3} />
+      ) : projectObjects?.length > 0 ? (
+        projectObjects.map((result, index) => {
+          const displayProjectName =
+            index === 0 || result.projectId !== projectObjects[index - 1].projectId;
+          return (
+            <Box key={result.projectObjectId}>
+              {displayProjectName && (
+                <Typography
+                  css={css`
+                    max-width: 75%;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                  `}
+                >
+                  {result.projectName}:
+                </Typography>
+              )}
+              <ProjectObjectCard
+                result={result}
+                highlighted={result.projectObjectId === activeProjectObjectId}
+                objectStageCodes={codes.data}
+                newObjectHighlightId={newObjectHighlightId}
+              />
             </Box>
-          )}
+          );
+        })
+      ) : (
+        !loading && (
+          <Box>
+            <p>{tr('itemSearch.noResults')}</p>
+          </Box>
+        )
+      )}
     </Box>
   );
 }
@@ -270,10 +312,13 @@ function ProjectObjectResults() {
   const projectObjectSearchParams = useAtomValue(projectObjectSearchParamAtom);
   const activeItemId = useAtomValue(activeItemIdAtom);
 
-  const search = trpc.projectObject.search.useQuery({
-    ...projectObjectSearchParams,
-    map: useDebounce(projectObjectSearchParams.map, 400),
-  });
+  const search = trpc.projectObject.search.useQuery(
+    {
+      ...projectObjectSearchParams,
+      map: useDebounce(projectObjectSearchParams.map, 400),
+    },
+    { structuralSharing: false },
+  );
 
   return (
     <div css={resultsContainerStyle}>
