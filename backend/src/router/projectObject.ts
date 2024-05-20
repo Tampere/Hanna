@@ -15,6 +15,7 @@ import {
   validateUpsertProjectObject,
 } from '@backend/components/projectObject';
 import { getPool } from '@backend/db';
+import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
 
 import { nonEmptyString } from '@shared/schema/common';
@@ -79,7 +80,12 @@ export const createProjectObjectRouter = (t: TRPC) => {
     }),
 
     search: t.procedure.input(projectObjectSearchSchema).query(async ({ input }) => {
-      return await projectObjectSearch(input);
+      const startTime = Date.now();
+      const result = await projectObjectSearch(input);
+      const endTime = Date.now();
+      const runningTime = endTime - startTime;
+      logger.info(`ProjectObjectSearch running time: ${runningTime}ms`);
+      return result;
     }),
 
     getBudget: t.procedure
