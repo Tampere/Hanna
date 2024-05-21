@@ -10,6 +10,7 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Skeleton,
   Typography,
 } from '@mui/material';
 import dayjs from 'dayjs';
@@ -185,6 +186,36 @@ function ProjectCard({
   );
 }
 
+function ProjectCardSkeleton({ count = 1 }: { count: number }) {
+  return (
+    <Box
+      css={css`
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      `}
+    >
+      {Array.from({ length: count }).map(() => (
+        <Box
+          css={css`
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+          `}
+        >
+          <Skeleton
+            variant="rectangular"
+            height={62}
+            css={css`
+              border-radius: 6px;
+            `}
+          />
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
 interface SearchResultsProps {
   results: ProjectSearchResult['projects'];
   loading?: boolean;
@@ -266,19 +297,23 @@ function SearchResults({ results, loading, activeProjectId }: SearchResultsProps
           {tr('projectSearch.generateReport')}
         </AsyncJobButton>
       </Box>
-      {results?.length > 0
-        ? results.map((result) => (
-            <ProjectCard
-              result={result}
-              key={result.projectId}
-              highlighted={result.projectId === activeProjectId}
-            />
-          ))
-        : !loading && (
-            <Box>
-              <p>{tr('itemSearch.noResults')}</p>
-            </Box>
-          )}
+      {loading ? (
+        <ProjectCardSkeleton count={3} />
+      ) : results?.length > 0 ? (
+        results.map((result) => (
+          <ProjectCard
+            result={result}
+            key={result.projectId}
+            highlighted={result.projectId === activeProjectId}
+          />
+        ))
+      ) : (
+        !loading && (
+          <Box>
+            <p>{tr('itemSearch.noResults')}</p>
+          </Box>
+        )
+      )}
     </Box>
   );
 }

@@ -316,13 +316,10 @@ function ProjectObjectResults() {
   const projectObjectSearchParams = useAtomValue(projectObjectSearchParamAtom);
   const activeItemId = useAtomValue(activeItemIdAtom);
 
-  const search = trpc.projectObject.search.useQuery(
-    {
-      ...projectObjectSearchParams,
-      map: useDebounce(projectObjectSearchParams.map, 400),
-    },
-    { structuralSharing: false },
-  );
+  const search = trpc.projectObject.search.useQuery({
+    ...projectObjectSearchParams,
+    map: useDebounce(projectObjectSearchParams.map, 400),
+  });
 
   return (
     <div css={resultsContainerStyle}>
