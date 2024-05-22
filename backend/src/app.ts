@@ -90,7 +90,7 @@ async function run() {
   });
 
   server.register(fastifySensible);
-  server.register(fastifyCompress);
+  server.register(fastifyCompress, { requestEncodings: ['gzip'], encodings: ['gzip'] });
   server.setNotFoundHandler((req, reply) => {
     const url = req.raw.url;
     // For not found backend routes -> throw a 404 error
