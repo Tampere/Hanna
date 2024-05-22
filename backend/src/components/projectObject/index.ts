@@ -104,6 +104,7 @@ function getProjectObjectSearchFragment({
         ? sql.fragment`, ST_AsGeoJSON(ST_CollectionExtract(project.geom)) AS "projectGeom"`
         : sql.fragment``
     }
+
     ${
       withRank
         ? sql.fragment`, dense_rank() OVER (ORDER BY project.project_name)::int4 AS "projectIndex"`
@@ -207,13 +208,15 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
     suunnitteluttajaUsers = [],
   } = input;
 
+  const withGeometries = Boolean(map?.zoom && map.zoom > CLUSTER_ZOOM_BELOW);
+
   const dbResult = await getPool().one(sql.type(resultSchema)`
     WITH search_results AS (
     ${getProjectObjectSearchFragment({
+      withProjectGeometry: withGeometries,
       withRank: true,
       includeDeleted: true,
       withGeoHash: true,
-      withProjectGeometry: true,
     })}
     LEFT JOIN app.project_object_user_role pour ON po.id = pour.project_object_id
 
@@ -267,9 +270,14 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
       "startDate",
       "endDate",
       "objectName",
-      "objectStage",
-      geom,
-      "projectGeom"
+      "objectStage"
+      ${
+        withGeometries
+          ? sql.fragment`, geom,
+      "projectGeom"`
+          : sql.fragment``
+      }
+
     FROM search_results
     ORDER BY "projectIndex"
   ) SELECT jsonb_build_object(
