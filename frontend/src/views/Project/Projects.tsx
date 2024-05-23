@@ -87,6 +87,14 @@ export function Toolbar() {
               <ListItemText>{tr('newProject.newInvestmentProject')}</ListItemText>
             </MenuItem>
           )}
+          {auth && hasPermission(auth, 'maintenanceProject.write') && (
+            <MenuItem component={Link} to="/kunnossapitohanke/luo">
+              <ListItemIcon>
+                <Add />
+              </ListItemIcon>
+              <ListItemText>{tr('newProject.newMaintenanceProject')}</ListItemText>
+            </MenuItem>
+          )}
           {auth && hasPermission(auth, 'detailplanProject.write') && (
             <MenuItem component={Link} to="/asemakaavahanke/luo">
               <ListItemIcon>
@@ -117,6 +125,7 @@ const projectCardStyle = (highlighted: boolean) => css`
 const projectTypeRootUrl = {
   detailplanProject: '/asemakaavahanke',
   investmentProject: '/investointihanke',
+  maintenanceProject: '/kunnossapitohanke',
 };
 
 function ProjectCard({
@@ -190,6 +199,15 @@ function ProjectCardSkeleton({ count = 1 }: { count: number }) {
   return (
     <Box
       css={css`
+        animation: fadeIn 1s ease-in-out;
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
         display: flex;
         flex-direction: column;
         gap: 1rem;

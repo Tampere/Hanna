@@ -121,6 +121,8 @@ export function SelectionInfoBox({
       return `/investointihanke/${item?.projectId}`;
     } else if (item.projectType === 'detailplanProject') {
       return `/asemakaavahanke/${item?.projectId}`;
+    } else if (item.projectType === 'maintenanceProject') {
+      return `/kunnossapitohanke/${item?.projectId}`;
     } else {
       return '/';
     }

@@ -134,6 +134,31 @@ export function investmentProjectFragment(input: ProjectSearch) {
   `;
 }
 
+export function maintenanceProjectFragment(input: ProjectSearch) {
+  const filters = input.filters.maintenanceProject;
+  return sql.fragment`
+    SELECT
+      project_maintenance.id,
+      'maintenanceProject' AS "projectType"
+    FROM app.project_maintenance
+    LEFT JOIN app.project_committee ON project_committee.project_id = project_maintenance.id
+    WHERE ${
+      Object.keys(input.filters).length !== 0 && !filters
+        ? sql.fragment`false`
+        : sql.fragment`
+          ${
+            filters?.committees && filters.committees.length > 0
+              ? sql.fragment`(project_committee.committee_type).id = ANY(${sql.array(
+                  filters.committees,
+                  'text',
+                )})`
+              : sql.fragment`true`
+          }
+        `
+    }
+  `;
+}
+
 export function detailplanProjectFragment(input: ProjectSearch) {
   const filters = input.filters.detailplanProject;
   return sql.fragment`
@@ -208,6 +233,8 @@ export async function projectSearch(
         OR ranked_projects.project_name LIKE '%' || ${input?.text ?? ''} || '%'
     ), investment_projects AS (
       ${investmentProjectFragment(input)}
+    ), maintenance_projects AS (
+      ${maintenanceProjectFragment(input)}
     ), detailplan_projects AS (
       ${detailplanProjectFragment(input)}
     ), projects AS (
@@ -223,7 +250,9 @@ export async function projectSearch(
         geom,
         geohash
       FROM (
-        SELECT id, "projectType", NULL AS "detailplanId" from investment_projects
+        SELECT id, "projectType", NULL::int AS "detailplanId" from investment_projects
+          UNION ALL
+        SELECT id, "projectType", NULL::int AS "detailplanId" from maintenance_projects
           UNION ALL
         SELECT id, "projectType", "detailplanId" from detailplan_projects
       ) AS filtered_projects
@@ -261,6 +290,11 @@ export async function listProjects(input: ProjectListParams) {
         ? sql.fragment`INNER JOIN app.project_investment ON project_investment.id = app.project.id`
         : sql.fragment``
     }
+     ${
+       input.projectType === 'maintenanceProject'
+         ? sql.fragment`INNER JOIN app.project_maintenance ON project_maintenance.id = app.project.id`
+         : sql.fragment``
+     }
     ${
       input.projectType === 'detailplanProject'
         ? sql.fragment`INNER JOIN app.project_detailplan ON project_detailplan.id = app.project.id`

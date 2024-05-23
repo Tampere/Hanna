@@ -6,6 +6,7 @@ import { ProjectSearch } from '@shared/schema/project';
 
 import { buildDetailplanCatalogSheet } from './detailplanProject';
 import { buildInvestmentProjectReportSheet } from './investmentProject';
+import { buildMaintenanceProjectReportSheet } from './maintenanceProject';
 import { saveReportFile } from './report-file';
 import { calculateTextWidth } from './text-width';
 
@@ -151,6 +152,7 @@ export async function buildReport(jobId: string, searchParams: ProjectSearch) {
 
     // Build each sheet in desired order
     await buildInvestmentProjectReportSheet(workbook, searchParams);
+    await buildMaintenanceProjectReportSheet(workbook, searchParams);
     await buildDetailplanCatalogSheet(workbook, searchParams);
 
     await saveReportFile(jobId, 'raportti.xlsx', workbook);

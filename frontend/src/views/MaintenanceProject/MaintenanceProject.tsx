@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { AccountTree, Euro, KeyTwoTone, ListAlt, Map } from '@mui/icons-material';
+import { Euro, KeyTwoTone, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import VectorSource from 'ol/source/Vector';
@@ -17,8 +17,9 @@ import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { getProjectObjectsLayer } from '@frontend/stores/map';
-import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
-import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
+import { DeleteProjectDialog } from '@frontend/views/Project/DeleteProjectDialog';
+import { ProjectFinances } from '@frontend/views/Project/ProjectFinances';
+import { ProjectPermissions } from '@frontend/views/Project/ProjectPermissions';
 
 import { User } from '@shared/schema/user';
 import {
@@ -28,10 +29,7 @@ import {
   ownsProject,
 } from '@shared/schema/userPermissions';
 
-import { DeleteProjectDialog } from './DeleteProjectDialog';
-import { InvestmentProjectForm } from './InvestmentProjectForm';
-import { ProjectFinances } from './ProjectFinances';
-import { ProjectPermissions } from './ProjectPermissions';
+import { MaintenanceProjectForm } from './MaintenanceProjectForm';
 
 const pageContentStyle = css`
   display: grid;
@@ -52,35 +50,21 @@ function getTabs(projectId: string) {
   return [
     {
       tabView: 'default',
-      url: `/investointihanke/${projectId}`,
+      url: `/kunnossapitohanke/${projectId}`,
       label: 'project.mapTabLabel',
       icon: <Map fontSize="small" />,
       hasAccess: () => true,
     },
     {
       tabView: 'talous',
-      url: `/investointihanke/${projectId}?tab=talous`,
+      url: `/kunnossapitohanke/${projectId}?tab=talous`,
       label: 'project.financeTabLabel',
       icon: <Euro fontSize="small" />,
       hasAccess: () => true,
     },
     {
-      tabView: 'kohteet',
-      url: `/investointihanke/${projectId}?tab=kohteet`,
-      label: 'project.projectObjectsTabLabel',
-      icon: <ListAlt fontSize="small" />,
-      hasAccess: () => true,
-    },
-    {
-      tabView: 'sidoshankkeet',
-      url: `/investointihanke/${projectId}?tab=sidoshankkeet`,
-      label: 'project.relatedProjectsTabLabel',
-      icon: <AccountTree fontSize="small" />,
-      hasAccess: () => true,
-    },
-    {
       tabView: 'luvitus',
-      url: `/investointihanke/${projectId}?tab=luvitus`,
+      url: `/kunnossapitohanke/${projectId}?tab=luvitus`,
       label: 'project.permissionsTabLabel',
       icon: <KeyTwoTone fontSize="small" />,
       hasAccess: (user: User, project: ProjectPermissionContext) =>
@@ -89,15 +73,15 @@ function getTabs(projectId: string) {
   ] as const;
 }
 
-export function InvestmentProject() {
+export function MaintenanceProject() {
   const routeParams = useParams() as { projectId: string };
   const [searchParams] = useSearchParams();
   const tabView = searchParams.get('tab') || 'default';
   const user = useAtomValue(asyncUserAtom);
   const projectId = routeParams?.projectId;
-  const project = trpc.investmentProject.get.useQuery(
+  const project = trpc.maintenanceProject.get.useQuery(
     { projectId },
-    { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { projectId }] },
+    { enabled: Boolean(projectId), queryKey: ['maintenanceProject.get', { projectId }] },
   );
   const userCanModify = Boolean(
     project.data &&
@@ -188,13 +172,13 @@ export function InvestmentProject() {
         {project.data ? (
           <Chip label={project.data?.projectName} />
         ) : (
-          <Chip variant="outlined" label={tr('newInvestmentProject.formTitle')} />
+          <Chip variant="outlined" label={tr('newMaintenanceProject.formTitle')} />
         )}
       </Breadcrumbs>
 
       <div css={pageContentStyle}>
         <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
-          <InvestmentProjectForm edit={!projectId} project={project.data} geom={geom} />
+          <MaintenanceProjectForm edit={!projectId} project={project.data} geom={geom} />
           {project.data && (
             <DeleteProjectDialog
               disabled={Boolean(user && !ownsProject(user, project.data))}
@@ -235,19 +219,17 @@ export function InvestmentProject() {
           {tabView === 'default' && (
             <Box css={mapContainerStyle}>
               <MapWrapper
-                drawOptions={{
-                  geoJson: project?.data?.geom ?? null,
-                  drawStyle: PROJECT_AREA_STYLE,
-                  editable: !projectId || userCanModify,
-                  onFeaturesSaved: (features) => {
-                    if (!project.data) {
-                      setGeom(features);
-                    } else {
-                      geometryUpdate.mutate({ projectId, features });
-                    }
-                  },
-                }}
+                geoJson={project?.data?.geom}
+                drawStyle={PROJECT_AREA_STYLE}
                 fitExtent="geoJson"
+                editable={!projectId || userCanModify}
+                onFeaturesSaved={(features) => {
+                  if (!project.data) {
+                    setGeom(features);
+                  } else {
+                    geometryUpdate.mutate({ projectId, features });
+                  }
+                }}
                 vectorLayers={[projectObjectsLayer]}
               />
             </Box>
@@ -259,18 +241,8 @@ export function InvestmentProject() {
                 <ProjectFinances
                   editable={userCanModifyFinances}
                   project={project.data}
-                  writableFields={['amount']}
+                  writableFields={['amount', 'forecast', 'kayttosuunnitelmanMuutos']}
                 />
-              )}
-              {tabView === 'kohteet' && (
-                <ProjectObjectList
-                  editable={userCanModify}
-                  projectId={projectId}
-                  projectType="investointihanke"
-                />
-              )}
-              {tabView === 'sidoshankkeet' && (
-                <ProjectRelations projectId={routeParams.projectId} editable={userCanModify} />
               )}
               {tabView === 'luvitus' && (
                 <ProjectPermissions

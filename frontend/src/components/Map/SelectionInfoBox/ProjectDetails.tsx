@@ -33,7 +33,9 @@ export function ProjectDetails<TProject extends ProjectBase>({
   const projectDetails =
     project.projectType === 'investmentProject'
       ? trpc.investmentProject.get.useQuery({ projectId: project.projectId })
-      : trpc.detailplanProject.get.useQuery({ projectId: project.projectId });
+      : project.projectType === 'maintenanceProject'
+        ? trpc.maintenanceProject.get.useQuery({ projectId: project.projectId })
+        : trpc.detailplanProject.get.useQuery({ projectId: project.projectId });
 
   const lifecycleStateCodes = useCodes('KohteenElinkaarentila');
   const committeeCodes = useCodes('Lautakunta');
@@ -97,7 +99,7 @@ export function ProjectDetails<TProject extends ProjectBase>({
       <dt>{tr('itemInfoBox.projectType')}:</dt>
       <dd>{tr(`projectType.${project.projectType}.short`)}</dd>
 
-      {project.projectType === 'investmentProject' && (
+      {['investmentProject', 'maintenanceProject'].includes(project.projectType) && (
         <>
           <dt>{tr('itemInfoBox.committee')}:</dt>
           <dd>{committeeCodes.get(projectDetails.data.committees[0])?.[lang]}</dd>

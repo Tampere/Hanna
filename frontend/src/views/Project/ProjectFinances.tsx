@@ -7,12 +7,14 @@ import { useTranslations } from '@frontend/stores/lang';
 import { getRange } from '@frontend/utils/array';
 
 import { DbInvestmentProject } from '@shared/schema/project/investment';
+import { DbMaintenanceProject } from '@shared/schema/project/maintenance';
 
-import { BudgetTable } from './BudgetTable';
+import { BudgetFields, BudgetTable } from './BudgetTable';
 
 interface Props {
-  project?: DbInvestmentProject | null;
+  project?: DbInvestmentProject | DbMaintenanceProject | null;
   editable?: boolean;
+  writableFields?: BudgetFields[];
 }
 
 export function ProjectFinances(props: Props) {
@@ -67,7 +69,7 @@ export function ProjectFinances(props: Props) {
       budget={budget.data}
       actuals={yearlyActuals.data}
       actualsLoading={yearlyActuals.isFetching}
-      writableFields={editable ? ['amount'] : []}
+      writableFields={editable ? props.writableFields : []}
       onSave={async (yearBudgets) => {
         const payload = yearBudgets.map((yearBudget) => ({
           year: yearBudget.year,

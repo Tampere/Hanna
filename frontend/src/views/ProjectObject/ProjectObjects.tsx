@@ -35,12 +35,22 @@ const projectObjectCardStyle = (highlighted: boolean) => css`
 const projectTypeRootUrl = {
   detailplanProject: '/asemakaavahanke',
   investmentProject: '/investointihanke',
+  maintenanceProject: '/kunnossapitohanke',
 };
 
 function ProjectObjectCardSkeleton({ count = 1 }: { count: number }) {
   return (
     <Box
       css={css`
+        animation: fadeIn 1s ease-in-out;
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
         display: flex;
         flex-direction: column;
         gap: 1rem;
