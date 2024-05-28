@@ -1,4 +1,4 @@
-<font size="8">Hannan käyttöohjeet</font>
+<font size="8">Käyttöohjeet</font>
 
 <font size="6">Sisällysluettelo</font>
 
@@ -9,11 +9,12 @@
   - [SAP](#sap)
   - [Geoserver](#geoserver)
   - [Hankkeen perustamisen ja ostotilauksen pyyntölomake](#hankkeen-perustamisen-ja-ostotilauksen-pyyntölomake)
-- [Hankkeet -sivu](#hankkeet--sivu)
+- [Karttasivu](#karttasivu)
   - [Uuden hankkeen perustaminen](#uuden-hankkeen-perustaminen)
   - [Hankkeiden hakeminen](#hankkeiden-hakeminen)
+  - [Kohteiden hakeminen](#kohteiden-hakeminen)
   - [Kartan toiminnot](#kartan-toiminnot)
-  - [Hankkeiden vienti taulukkotiedostoon](#hankkeiden-vienti-taulukkotiedostoon)
+  - [Tietojen vienti taulukkotiedostoon](#tietojen-vienti-taulukkotiedostoon)
 - [Käyttöoikeudet](#käyttöoikeudet)
   - [Käyttäjätyypit](#käyttäjätyypit)
   - [Pääkäyttäjän luvitusnäkymä](#pääkäyttäjän-luvitusnäkymä)
@@ -64,9 +65,9 @@ Hanna on Tampereen kaupungin maankäytön suunnittelun ja toteuttamisen hanketie
 Hannan käyttöä laajennetaan käyttäjäryhmä kerrallaan. Kehitys on aloitettu vuonna 2022. Kehittäjänä ja ylläpitäjänä toimii Ubigu Oy. 
 
 # Järjestelmän tuki
-Tukea Hannan käyttämiseen tarjoaa Ulla Lautaoja ([ulla.lautaoja@tampere.fi](mailto:ulla.lautaoja@tampere.fi)). Ulla Lautaoja vastaa myös käyttäjien luvittamisesta Hanna-sovelluksen käyttöön. Hannalla on myös oma Teams -ryhmä, jossa järjestelmän käytöstä ja kehityksestä voi keskustella muiden käyttäjien ja kehittäjien kesken.
+Lähitukea tarjoaa Jaana Turunen ([jaana.turunen@tampere.fi](mailto:jaana.turunen@tampere.fi)). Jaana vastaa myös käyttäjien luvittamisesta sovelluksen käyttöön. Hannalla on myös oma Teams -ryhmä, jossa järjestelmän käytöstä ja kehityksestä voi keskustella muiden käyttäjien ja kehittäjien kesken.
 
-Virhetilanteista ja bugeista viestiä voi lähettää myös suoraan ylläpitäjille osoitteeseen [tuki@ubigu.fi](mailto:tuki@ubigu.fi). 
+Virhetilanteista ja bugeista viestiä voi lähettää myös suoraan kehittäjille osoitteeseen [tuki@ubigu.fi](mailto:tuki@ubigu.fi). 
 
 # Testi- ja tuotantojärjestelmä
 Hannasta on olemassa kaksi eri järjestelmää. Testijärjestelmä toimii osoitteessa [tre-hanna-test.azurewebsites.net](https://tre-hanna-test.azurewebsites.net/). Siellä käyttäjät voivat kokeilla Hannan toiminnallisuuksia ilman huolta järjestelmän rikkoutumisesta tai tuotantokäytön häiriintymisestä. Varsinainen käyttö tapahtuu tuotantojärjestelmässä osoitteessa [hanna.tampere.fi](https://hanna.tampere.fi).
@@ -90,35 +91,57 @@ Paikkatietojen osalta Hanna hyödyntää kaupungin olemassaolevia aineistoja ja 
 ## Hankkeen perustamisen ja ostotilauksen pyyntölomake
 Hannan navigointipalkin oikeasta laidasta löytyy painike, joka ohjaa käyttäjän kaupungin e-lomakkeelle, jota kautta voi pyytää SAP-projektin perustamista ja ostotilauksen tekemistä talousyksiköltä. 
 
-# Hankkeet -sivu
-Hannan sivulla _Hankkeet_ käyttäjä voi tarkastella hankkeita kartalla, hakea hankeita ja perustaa uuden.  Hakutulokset ilmenevät kartan vasemmalla puolella. Hakutuloksissa hankkeelle kerrottaan sen nimi, sen tyyppi ja toteutusväli. Lisäksi asemakaavahankkeille kerrotaan suluissa niiden kaavanumero. 
+# Karttasivu
 
-Kattavimmin hankkeen tiedot löytyvät kuitenkin sen omalta [hankesivulta](#hankesivu). Hankesivu on paikka, missä uuden hankkeen tietojen kirjaus, tietojen muokkaus ja hankkeen poistaminen tapahtuvat. Hankesivulle pääsee valitsemalla hiirellä hakutuloksista haluamansa hankkeen. 
+![karttasivu](/images/karttasivu.png)<br/>
 
-Toistaiseksi kartalla esitetään vain hankkeita. Hakusuodattimet vastaavasti kohdistuvat yksinomaan hankkeisiin. 
+Karttasivun on Hannan laskeutumissivu. Siellä käyttäjä voi tarkastella hankkeita kartalla, hakea niistä haluamaansa ja perustaa uusia.
 
-![hankkeet_sivu](/images/hankkeet_sivu_numeroitu.png)<br/>
-_Hankkeet -sivu näyttää tältä. Se on oletussivu Hannaan kirjautuessa. Hakutoiminnot sijatisevat sivun yläosassa (1). Haulla voi vaikuttaa siihen, mitä hankkeita esitetään kartalla (3) ja hakutuloksissa (2). Hankkeiden piirto kartalla riippuu osittain siitä, kuinka etäältä karttaa katsotaan. Kuvassa hankkeiden sijainnit ovat esitetty kootusti kuvanmukaisilla numeroiduilla pallosymboleilla, jotka tarkentuvat lähentäessä karttaan. Käyttäjä voi valita eri kartta-aineistoja näkyville valitsemalla karttatasovalikon kartan vasemmasta alakulmasta. Hankkeet voi viedä taulukkotiedostoon painikkeesta "lataa raportti" (4). Uuden hankkeen voi perustaa valitsemalla oikeasta yläkulmasta "Luo uusi hanke" (5)._
+Vasemmassa yläkulmassa voit valita tarkasteltavaksi joko hankkeet tai investointikohteet (6). Hakutoiminnot sijaitsevat sivun yläosassa (1), ja ne ovat hanke- tai kohdekohtaisia riippuen valitusta välilehdestä. Hakusuodattimilla voi vaikuttaa siihen, mitä hankkeita ja/tai kohteita esitetään kartalla (3) ja hakutuloksissa (2). Hankkeiden piirtotapa on riippuvainen siitä, kuinka etäältä karttaa katsotaan. Kuvassa hankkeiden sijainnit ovat esitetty kootusti kuvanmukaisilla numeroiduilla pallosymboleilla, jotka tarkentuvat lähentäessä karttaan. Käyttäjä voi valita eri kartta-aineistoja näkyville valitsemalla karttatasovalikon kartan vasemmasta alakulmasta (7). Hankkeet voi viedä taulukkotiedostoon painikkeesta "lataa raportti" (4). Uuden hankkeen voi perustaa valitsemalla oikeasta yläkulmasta "Luo uusi hanke" (5).
+
+Hakutuloksissa hankkeille kerrotaan niiden nimi, tyyppi ja toteutusväli. Lisäksi asemakaavahankkeille kerrotaan suluissa niiden kaavanumero. Kattavimmin hankkeen tiedot löytyvät kuitenkin niiden omilta [hankesivuilta](#hankesivu). Kohteille taas esitetään nimi, niiden hankkeen nimi, toteutusväli sekä kohteen laji (suunnittelu/rakentaminen). Lisäksi kohteet on ryhmitelty hakutuloksiin hankkeittain. Kattavin tieto hankkeista ja niiden kohteista löytyy kuitenkin itse hankesivulta. Sieltä käsin tapahtuu tietojen kirjaus, muokkaus, poistaminen ja käyttöoikeuksien muutokset. Hankesivulta käsin käyttäjä pääsee navigoimaan myös kohteille.
+
+Hankkeet esitetään kartalla vihreinä ja kohteet sinisinä. Toistaiseksi käyttäjä ei pääse vaikuttamaan symbologiaan. 
+
+Käyttäjä voi klikata kartalla näkyviä hankkeita ja kohteita, jolloin niiden tiedot, ja mahdollisuus siirtyä hanke- tai kohdesivulle tulee tarjolle ponnahdusikkunaan. Jos klikkaus kohdistuu useampaan objektiin, niiden välillä voi selata nuolinäppäimillä. Karttavalinta korostetaan keltaisella. Huomioi, että valinta voi poistua, jos muokkaat hakusuodattimia. Toistaiseksi rajapinnoilta haettavien aineistojen (esim. rakennukset) tietoja ei pysty selaamaan kartalla.  
+
+![karttavalinta](/images/karttavalinta.png)
 
 ## Uuden hankkeen perustaminen
 Uusi hanke perustetaan etusivulta löytyvästä _Luo uusi hanke_ -painikkeesta. Painaessaan sitä käyttäjä valitsee ensin, minkä hanketyypin mukaisen hankkeen hän haluaa perustaa. Vain ne hanketyypit, joiden perustamiseen käyttäjällä on oikeus, listataan (lue lisää [käyttöoikeuksista](#käyttöoikeudet)).  Valinta on olennainen, sillä hanketyypeillä on erilaiset tietoskeemat. Tämän jälkeen käyttäjä ohjataan tyhjälle hankesivulle, jossa hankkeen tiedot pääsee täyttämään. 
 
+Uusia kohteita voi perustaa karttasivun kohteet-välilehdeltä, hankesivuilta ja investointiohjemoinnin näkymästä käsin. 
+
 ## Hankkeiden hakeminen
 Hankkeita voi hakea seuraavilla ehdoilla:
-- (vapaa) haku (kohdistuu hankkeen nimeen, kuvaukseen sekä mahd. kaavanumeroon)
-- hakuaikaväli (tarkistaa, leikkaako asetettu aikaväli hankkeen alku- ja loppupäivämäärän väliä)
-- Elinkaaren tila (aloittamatta, käynnissä, valmis, odottaa)
-- Hanketyyppi (asemakaava- vai investointihanke)
+- Vapaa tekstihaku, joka nimeen, kuvaukseen sekä kaavanumeroon, jos kyseessä on asemakaavahanke
+- Hakuaikaväli (tarkistaa, leikkaako asetettu aikaväli hankkeen alku- ja loppupäivämäärän väliä)
+- Elinkaaren tila
+- Hanketyyppi
 - Omistaja
 
 Jos hakuehtoja on useampia, niiden kaikkien pitää toteutua, jotta hanke ilmestyy hakutuloksiin (`JA`-operaattori).Lisäksi, jos käyttäjä valitsee haussa jommankumman hanketyypeistä, ilmestyy hakuosuuden yhteyteen valinta _näytä lisää hakuehtoja_. Sen takaa avautuvasta osiosta käyttäjä voi vielä tarkentaa hakua hanketyypille ominaisilla tiedoilla. Asemakaavahankkeita koskevaa hakua voi esimerkiksi tarkentaa valitsemalla sopivan `suunnittelualueen` tai `valmistelijan`.
 
-Myös itse karttaikkuna voi toimia suodattimena. Hakutuloksiin tulevat oletuksena listatuksi myös hankkeet, joilta puuttuu aluerajaus (sellaisen osoittaminen on vapaavalintaista). Käyttäjä voi painaa painiketta _sisällytä vain hankkeet alueilla_, jolloin hakutuloslista päivittyy käsittämään vain hankkeet, joiden alue leikkaa sen hetkistä karttanäkymää.
+Myös itse karttaikkuna toimii suodattimena. Hakutuloksiin tulevat oletuksena listatuksi myös hankkeet, joilta puuttuu aluerajaus, jonka osoittaminen on vapaavalintaista. Käyttäjä voi painaa painiketta _sisällytä vain hankkeet alueilla_, jolloin hakutuloslista poistuu alueettomat hankkeet. 
 
-Katsoessa karttaa kaukaa esitetään hankkeiden sijainti pyöreänä koontisymbolina, joka ilmoittaa kuinka monta hanketta alueella sijaitsee. Käyttäjän lähentäessä karttaan, muuttuu piirtotapa pallosta hankkeiden varsinaisiin aluerajauksiin. Huominoarvoista on, että toistaiseksi käyttäjä ei voi siirtyä hankkeen sivulle klikkaamalla hankkeen aluerajausta kartalla.
+## Kohteiden hakeminen
+Kohteita voi hakea seuraavilla ehdoilla:
+- Vapaa haku, joka kohdistuu kohteen nimeen ja kuvaukseen
+- Hakuaikaväli (tarkistaa, leikkaako asetettu aikaväli kohteen alku- ja loppupäivämäärän väliä)
+- Kohteen laji (suunnittelu/rakentaminen)
+- Kohteen tyyppi (peruskorjaaminen/uudisrakentaminen/toimivuuden parantaminen)
+- Omaisuusluokka
+- (Toiminnallinen) Käyttötarkoitus
+- Elinkaaren tila (aloittamatta, käynnissä, valmis, odottaa)
+- Rakennuttaja
+- Suunnitteluttaja
+
+Kuten hankkeitakin hakiessa, jos hakuehtoja on useampia, niiden kaikkien pitää toteutua, jotta kohde ilmestyy hakutuloksiin (`JA`-operaattori). 
+
+Myös itse karttaikkuna toimii suodattimena. Hakutuloksiin tulevat oletuksena listatuksi myös kohteet, joilta puuttuu aluerajaus, jonka osoittaminen on vapaavalintaista. Käyttäjä voi painaa painiketta _sisällytä vain kohteet alueilla_, jolloin hakutuloslista poistuu alueettomat kohteet. 
 
 ## Kartan toiminnot
-Karttanäkymää voi liikuttaa raahamalla sitä hiirellä. Hiiren rullaa voi hyödyntää lähentämiseen ja loitontamiseen. Vastaavat painikkeet löytyvät karttaikkunan vasemmasta yläkulmasta. Sieltä löytyy myös painike Palauta zoomaus, joka asettaa karttanäkymän sen oletusrajaukseen.
+Karttanäkymää voi liikuttaa raahamalla sitä hiirellä. Hiiren rullaa voi hyödyntää lähentämiseen ja loitontamiseen. Vastaavat painikkeet löytyvät karttaikkunan vasemmasta yläkulmasta. Sieltä löytyy myös painike _Palauta zoomaus_, joka asettaa karttanäkymän sen oletusrajaukseen.
 
 Karttanäkymään on valittavissa seuraavat taustakartat vasemmasta alakulmasta löytyvästä painikkeesta:
 - Virastokartta
@@ -134,17 +157,19 @@ Lisäksi samaisesta valikosta on valittavissa seuraavat vektorimuotoiset paikkat
 - Kevyen liikenteen väylät
 - Kaupunginosat
 
-Toistaiseksi käyttäjät eivät pysty muokkaamaan tasojen esitystyyliä. 
+Toistaiseksi käyttäjät eivät pysty vaikuttamaan näiden tasojen esitystyyliin. 
 
-## Hankkeiden vienti taulukkotiedostoon
-Hankkeet on mahdollista viedä Excel -taulukkotiedostoon valitsemalla hakutulososion yhteydestä löytyvä _Lataa raportti_ -painike. Tiedostoon viedään sillä hetkellä aktiivisen haun palauttamat hankkeet. Jos hanketyyppejä on useita, viedään ne tiedostossa omille välilehdilleen. Investointihankkeista viedään taulukkotiedostoon lisäksi niiden kohteet, ja tiedot on rivitetty kohteiden mukaan. Esimerkiksi hanke, jolle on kirjattu kahdeksan kohdetta, ilmenee taulukkotiedostossa kahdeksalla rivillä. Toistaiseksi asemakaavahankkeista viedään taulukkotiedostoon vain osa tietokentistä perustuen mallina käytettyyn asemakaavaluetteloon.
+## Tietojen vienti taulukkotiedostoon
+Hankkeet ja/tai niiden kohteet on mahdollista viedä Excel -taulukkotiedostoon valitsemalla hakutulososion yhteydestä löytyvä _Lataa raportti_ -painike. Tiedostoon viedään sillä hetkellä aktiivisen haun palauttamat hankkeet/kohteet. Jos hanketyyppejä on useita, viedään ne tiedostossa omille välilehdilleen. Investointihankkeista viedään taulukkotiedostoon lisäksi niiden kohteet, ja tiedot on rivitetty kohteiden mukaan. Esimerkiksi hanke, jolle on kirjattu kahdeksan kohdetta, ilmenee taulukkotiedostossa kahdeksalla rivillä. 
+
+Toistaiseksi asemakaavahankkeista viedään taulukkotiedostoon vain osa tietokentistä perustuen mallina käytettyyn asemakaavaluetteloon.
 
 # Käyttöoikeudet
 
 ## Käyttäjätyypit
 Hannaan luvitetut käyttäjät jakautuvat perus- ja pääkäyttäjiin. Hanna tunnistaa automaattisesti kirjautumisen yhteydessä, kumpaan ryhmään käyttäjä kuuluu. Pääkäyttäjillä on Hannan käyttöön laajimmat mahdolliset oikeudet, ja he pystyvät  muokkaamaan kaikkia hankkeita, poistamaan niitä ja vaihtamaan niiden omistajia. Peruskäyttäjien käyttöoikeudet on kuvattu tarkemmin alla. 
 
-Jos sinulla on tarve vaihtaa toiseen käyttäjätyyppiin, ole yhteydessä Ulla Lautaojaan (ulla.lautaoja@tampere.fi). 
+Jos sinulla on tarve vaihtaa toiseen käyttäjätyyppiin, ole yhteydessä Jaana Turuseen (jaana.turunen@tampere.fi). 
 
 ## Pääkäyttäjän luvitusnäkymä
 Pääkäyttäjille on luotu oma näkymänsä, joka ei ole tarjolla peruskäyttäjille. Näkymästä käsin pääkäyttäjät voivat muokata seuraavia peruskäyttäjien oikeuksia:
@@ -309,7 +334,6 @@ Hannassa investointihankkeella on asemakaavahankkeesta poiketen laajempi tietoma
 | Alkuajankohta | Ajankohta jolloin hankkeen toteutus alkaa. | Kyllä |
 | Loppuajankohta | Ajankohta jolloin hanke päättyy. Loppuajankohdan täytyy sijaita alkuajankohdan jälkeen. | Kyllä |
 | Omistaja | Hankkeen omistajalla viitataan käyttäjään, joka omistaa hankkeen. Omistaja on lähtökohtaisesti hankkeen perustanut käyttäjä. Sitä voi kuitenkin vaihtaa valitsemalla arvoksi toisen käyttäjän. Omistajalla on oikeus poistaa hanke ja osoittaa siihen muokkausoikeus | Kyllä |
-| Vastuuhenkilö | Hankkeen vastuuhenkilö edustaa käyttäjää, joka on vastuussa hankkeen edistämisestä. Hän voi olla esimerkiksi siinä projektipäällikkönä tai vastaavassa roolissa. | Ei |
 | Elinkaaren tila  | Arvo valitaan seuraavista joukosta: Aloittamatta, Käynnissä, Valmis, Odottaa. Hanke saa perustamisen hetkellä elinkaaritilakseen automaattisesti Aloittamatta. | Kyllä |
 | Lautakunta | Hankkeelle voi valita yhden seuraavista lautakunnista: Yhdyskuntalautakunta, Elinvoima- ja osaamislautakunta, Asunto- ja kiinteistölautakunta, Joukkoliikennelautakunta. Valitsemalla lautakunta osoitetaan hankkeelle se, kenen vuosisuunnitelmasta hankkeen toteutus saa varansa. | Kyllä |
 | SAP-projektin ID | Mikäli investointihanke on perustettu myös SAP-tietojärjestelmään, voi sen SAP-projektin ID:n kertoa Hannan hankkeelle taloustoteuman seuraamiseksi. Ole tarkkana, että annat arvoksi SAP:n projektin tunnisteen, etkä esimerkiksi rakenneosan tunnusta. Hanna validoi annetun tunnisteen ja kertoo käyttäjälle sen onnistumisesta. | Ei |
@@ -331,6 +355,8 @@ Kohteen toteutusväli ei saa sijaita hankkeen toteutusvälin ulkopuolella. Jos k
 | --- | --- | --- | 
 | Nimi | Kohteelle annettu nimi. Nimi ei saa olla sama hankkeen kanssa. | Kyllä | 
 | Kuvaus | Vapaamuotoinen sanallinen kuvaus kohteesta. | Kyllä | 
+| Suunnitteluttaja | Kohteen pääsuunnittelija. Valinta kohdistuu Tampereen sisäisiin henkilöihin. | Ei | 
+| Rakennuttaja | Kohteen päärakennuttaja. Valinta kohdistuu Tampereen sisäisiin henkilöihin. | Ei | 
 | Kohteen laji | Yksilöi, onko kohteessa kyse suunnitelusta vai rakentamisesta. Arvo valitaan alasvetovalikosta. | Kyllä | 
 | Alkuajankohta | Ajankohta jolloin kohteen toteutus alkaa. | Kyllä |
 | Loppuajankohta | Ajankohta jolloin kohteen toteutus päättyy. | Kyllä | 
@@ -342,11 +368,10 @@ Kohteen toteutusväli ei saa sijaita hankkeen toteutusvälin ulkopuolella. Jos k
 
 #### Kohteen toimijat
 Kohteelle voi lisäksi osoittaa toimijoita. Toimija koostuu henkilön ja roolin yhdistelmästä (esimerkiksi Iiro Iironen - urakoitsijan edustaja). Toistaiseksi tarjolla on seuraavat roolit. Rooli listaa täydennetään tarpeen mukaan. 
-- Rakennuttaja
-- Suunnitteluttaja
 - Turvallisuuskoordinaattori
+- Vastaava työnjohtaja
 - Valvoja
-- Suunnittelijan edustaja
+- Suunnittelun edustaja
 - Urakoitsijan edustaja
 
 Toimijoiden yksilöiminen kohteelle ei ole pakollista. Yhteen rooliin on mahdollista osoittaa useita henkilöitä. Henkilöt voivat olla sisäisiä henkilöitä, toisin sanoen kaupungin palveluksessa, tai ulkoisia henkilöitä, kuten esimerkiksi konsultteja. Sisäisten henkilöiden lista juontuu Hannan tuntemista käyttäjistä, eli käyttäjistä, jotka ovat luvitettu Hannaan ja kirjautuneet ainakin kerran. Ulkoisia henkilöitä voi hallita ja lisätä [hallintapaneelista](#yrityksien-ja-heidän-yhteyshenkilöiden-hallinta) käsin kuka tahansa. 
@@ -392,13 +417,12 @@ KSM kirjataan hankkeen kohteille. Hankesivun talousvälilehdellä on vain luetta
 
 # Investointiohjelmointinäkymä
 
+![Investointiohjelmointi](/images/investointiohjelmointi_v2.png)
+
 ## Tietosisältö ja tietojen muokkaaminen
-Investointiohjelmointinäkymä on nimensä mukaisesti tarkoitettu vuosikohtaisen investointiohjelmoinnin rakentamiseen, sen seuraamiseen ja hallinnointiin. Kyseinen näkymä muodostuu taulukosta, joka listaa investointihankkeiden kohteita. Näkymään voi siirtyä päänavigointipalkista käsin. 
+Investointiohjelmointinäkymä on nimensä mukaisesti tarkoitettu vuosikohtaisen investointiohjelmoinnin rakentamiseen, sen seuraamiseen ja hallinnointiin. Kyseinen näkymä muodostuu taulukosta, joka listaa investointihankkeiden **kohteita**. Näkymään voi siirtyä päänavigointipalkista käsin (1). 
 
-![Investointiohjelmointi](/images/investointiohjelmointi.png)
-_Investointiohjelmoinnin sivu näyttää tältä. Sivun löytää Hannan päänavigointipalkista. Jokainen rivi esittää kohdetta ja ne ovat järjestetty hankkeittain. Olennaisin valinta on vuosi, joka rajaa taulukon sisällön tiettynä vuonna toteutettaviin kohteisiin._
-
-Jokaiselle kohteelle on kerrottu seuraavat tiedot, mikäli ne ovat olemassa: 
+Taulukossa (8) jokaiselle kohteelle on kerrottu seuraavat tiedot, mikäli ne ovat olemassa: 
 - Hanke, johon kohde kuuluu
 - Kohteen nimi
 - (Elinkaari-)Tila
@@ -414,7 +438,7 @@ Jokaiselle kohteelle on kerrottu seuraavat tiedot, mikäli ne ovat olemassa:
 
 Painamalla hiirellä kohteen tai hankkeen nimen yhteydessä olevaa ikonia pääset hyppäämään kyseiselle hanke- tai kohdesivulle. Sivu aukeaa uuteen välilehteen. 
 
-Kohderivit on järjestetty taulukkoon hankkeittain. Hankkeen nimi on korostettu vihreällä värillä. Hankkeen nimi on kirjattu vain ensimmäiselle kohteelle ja seuraavilla, samaan hankkeeseen kuuluvilla kohderiveillä hankkeen nimen tilalla on hakanen. Esitystavan tarkoitus on helpottaa hankkeiden erottamista toisistaan. Lisäksi rivin pohjaväri vaihtelee hankkeittain.
+Kohderivit on järjestetty hankkeittain. Hankkeen nimi on korostettu vihreällä värillä. Hankkeen nimi on kirjattu vain ensimmäiselle kohteelle ja seuraavilla, samaan hankkeeseen kuuluvilla kohderiveillä hankkeen nimen tilalla on hakanen. 
 
 Taulukon solujen tietoja pystyy tiettyjä poikkeuksia lukuunottamatta muokkaamaan olettaen, että käyttäjällä on käyttöoikeudet kohteen hankkeeseen. Mikäli käyttäjällä ei ole oikeutta muokata hankkeen kohteita, on tekstin väri vaaleanharmaa. Käyttäjä voi muokata taulukossa näkyviä tietoja kaksoisklikkaamalla hiiren vasemmalla painikkeella haluttuun taulukon soluun, jolloin muokkausikkuna ponnahtaa esiin. Kaikki solut eivät kuitenkaan ole muokattavissa (toteuma, hankkeen nimi). 
 
@@ -428,22 +452,22 @@ Kun muokkaat mitä tahansa solua, ilmestyy taulukon vasempaan alakulmaan joukko 
 
 _Käyttäjän muokattua tietoja ilmestyy taulukon päälle sen vasempaan alareunaan kuvanmukainen palkki._
 
-Vierittämällä sivua alaspäin sivun yläosassa sijaitsevat hakusuodattimet katoavat näkyvistä, jotta taulukko saisi enemmän tilaa käyttöönsä. Samalla taulukon vasempaan alakulmaan ilmestyy painike, jota painamalla käyttäjä pääsee takaisin ylös. Taulukon oikeassa alakulmassa käyttäjä voi vaihdella taulukon sivujen välillä, ja vaikuttaa siihen, kuinka monta riviä yhdellä sivulla näytetään. Oletus on tuhat riviä per sivu. 
+Vierittämällä sivua alaspäin sivun yläosassa sijaitsevat hakusuodattimet (6) katoavat näkyvistä, jotta taulukko saisi enemmän tilaa käyttöönsä. Samalla taulukon vasempaan alakulmaan ilmestyy painike, jota painamalla käyttäjä pääsee takaisin ylös. Taulukon oikeassa alakulmassa käyttäjä voi vaihdella taulukon sivujen välillä, ja vaikuttaa siihen, kuinka monta riviä yhdellä sivulla näytetään. Oletus on tuhat riviä per sivu. 
 
 ![Palaa ylös painike](/images/palaa_ylos_painike.png)
 
 _Kuvassa näkyvä painike ilmestyy vasempaan alakulmaan, kun käyttäjä on vierittänyt taulukon sisältöä alaspäin. Painamalla siitä pääsee palaamaan takaisin ylös._
 
 ## Vuosivalinta hakusuodattimet ja summarivi
-Taulukko kohdistuu ensisijaisesti yhteen kalenterivuoteen. Sivun yläosassa on vuosivalinta, josta käsin käyttäjä pystyy valitsemaan häntä kiinnostavan vuoden. Vuosivalinta vaikuttaa siihen, miltä vuodelta kohderiveille katsotaan talousluvut, eli talousarvio, toteuma, ennuste ja käyttösuunnitelman muutos. Vuosivalinta vaikuttaa myös (talouden) summarivillä näytettäviin lukuihin. Valinta voi kohdistua kerrallaan vain yhteen vuoteen. 
+Taulukko kohdistuu ensisijaisesti yhteen kalenterivuoteen. Sivun yläosassa on vuosivalinta, josta käsin käyttäjä pystyy valitsemaan häntä kiinnostavan vuoden (2). Vuosivalinta vaikuttaa siihen, miltä vuodelta kohderiveille katsotaan talousluvut, eli talousarvio, toteuma, ennuste ja käyttösuunnitelman muutos. Vuosivalinta vaikuttaa myös (talouden) summarivillä näytettäviin lukuihin. Valinta voi kohdistua kerrallaan vain yhteen vuoteen. 
 
 Huomioi, että kohde katsotaan mukaan aina, kun se _leikkaa_ valittua vuotta. Näin ollen kohde, jonka toteutusväli on 31.12.2023-31.12.2024, valikoituisi mukaan vuosivalinnan ollessa `2023`, ja sille näytettävät talousluvut johdettaisiin päivältä yksinään päivältä 31.12.2023. 
 
 Käyttäjä voi valita vuosivalitsimesta myös valinnan `koko elinkaari`, jolloin talousluvut johdetaan kohderiveille niiden koko elinkaaren ajalta. Tällöin talouslukuja ei pysty kuitenkaan muokkaamaan taulukossa. 
 
-Summarivi sijaitsee näkymässä suoraan taulukon päällä. Siihen on laskettu taulukossa kyseisellä hetkellä ilmenevien kohteiden talousarvioiden, toteumien, ennusteiden ja käyttösuunnitelman muutosten summa. Summarivi juontaa lukunsa aina taulukossa sillä hetkellä näkyvistä riveistä, joten myös muut hakusuodattimet tulevat huomioiduksi sen luvuissa. 
+Summarivi (7) sijaitsee näkymässä suoraan taulukon päällä. Siihen on laskettu taulukossa kyseisellä hetkellä ilmenevien kohteiden talousarvioiden, toteumien, ennusteiden ja käyttösuunnitelman muutosten summa. Summarivi juontaa lukunsa aina taulukossa sillä hetkellä näkyvistä riveistä, joten myös muut hakusuodattimet tulevat huomioiduksi sen luvuissa. 
 
-Vuosivalinnan lisäksi käyttäjän tarjolla on joukko muita hakusuodattimia, joilla vaikuttaa taulukkoon tulevien kohderivien joukkoon: 
+Vuosivalinnan (2) lisäksi käyttäjän tarjolla on joukko muita hakusuodattimia (6), joilla vaikuttaa taulukkoon tulevien kohderivien joukkoon: 
 - Kohteen nimi
 - Hankkeen nimi
 - Kohteen laji (rakenuttaminen/suunnittelu)
@@ -452,14 +476,14 @@ Vuosivalinnan lisäksi käyttäjän tarjolla on joukko muita hakusuodattimia, jo
 - Kohteen käyttötarkoitus
 - Elinkaaren tila
 
-Taulukossa näkyvät kohderivit on mahdollista viedä Excel-taulukkoon valitsemalla painikkeen _lataa raportti_. Tiedostoon viedään vain ne tiedot, jotka taulukossa esitetään. 
+Taulukossa näkyvät kohderivit on mahdollista viedä Excel-taulukkoon valitsemalla painikkeen _lataa raportti_ (4). Tiedostoon viedään kohderivit, jotka sen hetkinen suodatus on palauttanut.
 
 Hakusuodattimia voi käyttää yhdessä ja ne toimivat myös yhdessä vuosivalinnan kanssa. Jos käytössä on useampi hakusuodatin, on niiden välinen looginen operaattori `JA`. Näin ollen, jos käyttäjä on valinnut esimerkiksi vuodeksi `2024`, elinkaaritilaksi `aloittamatta` ja käyttötarkoitukseksi `ajoradat`, tulee taulukkoon ajoradat, jotka ovat aloittamatta ja joiden toteutus sijoittuu kokonaan tai osittain vuodelle 2024. 
 
-Käyttäjä voi myös valita vuosivalinnan vierestä painikkeen _Näytä vain omat kohteet_. Tällöin taulukkoon tuodaan vain kohteet, joissa kirjautunut käyttäjä on merkitty johonkin rooliin kohteella. 
+Käyttäjä voi myös valita vuosivalinnan vierestä painikkeen _Näytä vain omat kohteet_ (3). Tällöin taulukkoon tuodaan vain kohteet, joissa kirjautunut käyttäjä on merkitty johonkin rooliin kohteella (esim. rakennuttaja, valvoja. Ei kuitenkaan hankkeen omistaja). 
 
 ## Uuden kohteen lisääminen
-Käyttäjä voi lisätä uuden kohteen myös investointiohjelmoinnista käsin. Valitsemalla oikeasta yläkulmasta `uusi kohde` painikkeen käyttäjä päätyy suoraan kohdesivulle, jossa hän samalla pääsee yksilöimään sen, mihin hankkeeseen kohde avataan. Hankevalinnan alasvetovalikko sisältää vain hankkeet, joissa käyttäjällä on muokkausoikeus. Mikäli käyttäjällä ei ole mihinkään hankkeeseen muokkausoikeutta, näkyy painike harmaana. Kohteen tallentamisen jälkeen käyttäjä palaa takaisin investointiohjelmointinäkymään.
+Käyttäjä voi lisätä uuden kohteen myös investointiohjelmoinnista käsin (5). Valitsemalla oikeasta yläkulmasta `uusi kohde` painikkeen käyttäjä päätyy suoraan kohdesivulle, jossa hän samalla pääsee yksilöimään sen, mihin hankkeeseen kohde avataan. Hankevalinnan alasvetovalikko sisältää vain hankkeet, joissa käyttäjällä on muokkausoikeus. Mikäli käyttäjällä ei ole mihinkään hankkeeseen muokkausoikeutta, näkyy painike harmaana. Kohteen tallentamisen jälkeen käyttäjä palaa takaisin investointiohjelmointinäkymään.
 
 # SAP-raportit näkymä
 
