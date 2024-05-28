@@ -59,7 +59,17 @@ export const projectSearchSchema = z.object({
 });
 
 export const projectSearchResultSchema = z.object({
-  projects: z.array(dbProjectSchema),
+  projects: z.array(
+    dbProjectSchema.pick({
+      geom: true,
+      endDate: true,
+      projectId: true,
+      startDate: true,
+      projectName: true,
+      projectType: true,
+      detailplanId: true,
+    }),
+  ),
   clusters: z.array(
     z.object({
       clusterProjectIds: z.array(z.string()),

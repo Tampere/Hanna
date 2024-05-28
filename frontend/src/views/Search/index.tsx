@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { theme } from '@frontend/Layout';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
+import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 import { ProjectsPage, Toolbar } from '@frontend/views/Project/Projects';
 import { ProjectObjectsPage } from '@frontend/views/ProjectObject/ProjectObjects';
 
@@ -43,6 +44,7 @@ export function SearchPage() {
     tabView: TabView;
   };
   const auth = useAtomValue(asyncUserAtom);
+  const { resetInfoBox } = useMapInfoBox();
 
   return (
     <Box
@@ -64,6 +66,7 @@ export function SearchPage() {
         <Tabs value={tabView} TabIndicatorProps={{ sx: { height: '3px' } }}>
           {tabs.map((tab) => (
             <Tab
+              onClick={resetInfoBox}
               css={css`
                 &.MuiTab-root.Mui-selected {
                   color: ${tab.color};

@@ -1,5 +1,6 @@
 import { GlobalStyles } from '@mui/material';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
+import { RESET } from 'jotai/utils';
 import Feature from 'ol/Feature';
 import { Extent, createEmpty, extend, isEmpty } from 'ol/extent';
 import { Geometry } from 'ol/geom';
@@ -9,8 +10,32 @@ import VectorSource from 'ol/source/Vector';
 import Style from 'ol/style/Style';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { MapToolbar, ToolType } from '@frontend/components/Map/MapToolbar';
-import { SelectionInfoBox } from '@frontend/components/Map/SelectionInfoBox';
+import {
+  ALL_VECTOR_ITEM_LAYERS,
+  VectorItemLayerKey,
+  baseLayerIdAtom,
+  featureSelectorAtom,
+  selectedItemLayersAtom,
+  selectedWFSLayersAtom,
+  selectionSourceAtom,
+} from '@frontend/stores/map';
+import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
+import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
+
+import { ProjectSearchResult } from '@shared/schema/project';
+import { ProjectObjectSearchResult } from '@shared/schema/projectObject';
+
+import { LayerDrawer } from './LayerDrawer';
+import { Map, MapInteraction } from './Map';
+import { MapControls } from './MapControls';
+import { MapToolbar, ToolType } from './MapToolbar';
+import { SelectionInfoBox } from './SelectionInfoBox';
+import {
+  createWFSLayer,
+  createWMTSLayer,
+  getFeatureItemIds,
+  getMapProjection,
+} from './mapFunctions';
 import {
   addFeaturesFromGeoJson,
   createDrawInteraction,
@@ -20,39 +45,18 @@ import {
   createSelectionLayer,
   deleteSelectedFeatures,
   getGeoJSONFeaturesString,
-} from '@frontend/components/Map/mapInteractions';
-import {
-  ALL_VECTOR_ITEM_LAYERS,
-  VectorItemLayerKey,
-  activeItemIdAtom,
-  baseLayerIdAtom,
-  defaultFeatureSelectorState,
-  featureSelectorAtom,
-  selectedItemLayersAtom,
-  selectedWFSLayersAtom,
-} from '@frontend/stores/map';
-import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
-
-import { ProjectSearchResult } from '@shared/schema/project';
-import { ProjectObjectSearchResult } from '@shared/schema/projectObject';
-
-import { LayerDrawer } from './LayerDrawer';
-import { Map, MapInteraction } from './Map';
-import { MapControls } from './MapControls';
-import {
-  createWFSLayer,
-  createWMTSLayer,
-  getFeatureItemId,
-  getFeatureItemIds,
-  getMapProjection,
-} from './mapFunctions';
+} from './mapInteractions';
 import { mapOptions } from './mapOptions';
 
-interface Props {
-  geoJson?: string | object | null;
-  editable?: boolean;
-  drawStyle?: Style;
+export interface DrawOptions {
+  geoJson: string | object | null;
   onFeaturesSaved?: (features: string) => void;
+  drawStyle: Style;
+  editable: boolean;
+}
+
+interface Props {
+  drawOptions?: DrawOptions;
   onMoveEnd?: (zoom: number, extent: number[]) => void;
   loading?: boolean;
   vectorLayers?: VectorLayer<VectorSource<Feature<Geometry>>>[];
@@ -63,23 +67,13 @@ interface Props {
 }
 
 export function MapWrapper(props: Props) {
-  const { geoJson, onFeaturesSaved, editable } = props;
-
-  const [dirty, setDirty] = useState(false);
   const [zoom, setZoom] = useState(mapOptions.tre.defaultZoom);
   const [viewExtent, setViewExtent] = useState<number[]>(mapOptions.tre.extent);
-  const [featureSelector, setFeatureSelector] = useAtom(featureSelectorAtom);
-  const setActiveItemId = useSetAtom(activeItemIdAtom);
 
   const mapWrapperRef = useRef<HTMLDivElement>(null);
-  useNavigationBlocker(dirty, 'map');
 
-  useEffect(() => {
-    return () => {
-      setFeatureSelector(defaultFeatureSelectorState);
-      setActiveItemId(null);
-    };
-  }, []);
+  const [featureSelector, setFeatureSelector] = useAtom(featureSelectorAtom);
+  const selectionSource = useAtomValue(selectionSourceAtom);
 
   useEffect(() => {
     if (props.onMoveEnd) {
@@ -123,14 +117,28 @@ export function MapWrapper(props: Props) {
   }, [selectedItemLayers, props.vectorLayers]);
 
   /**
-   * Custom tools and interactions
+   * Interactions
    */
+
+  const [dirty, setDirty] = useState(false);
+  useNavigationBlocker(dirty, 'map');
+  const { setInfoBox, resetInfoBox, isVisible: infoBoxVisible } = useMapInfoBox();
 
   const [selectedTool, setSelectedTool] = useState<ToolType | null>(null);
   const [interactions, setInteractions] = useState<MapInteraction[] | null>(null);
 
-  const selectionSource = useMemo(() => new VectorSource({ wrapX: false }), []);
   const selectionLayer = useMemo(() => createSelectionLayer(selectionSource), []);
+
+  useEffect(() => {
+    return () => {
+      if (infoBoxVisible) resetInfoBox();
+    };
+  }, []);
+
+  function resetSelectInteractions() {
+    resetInfoBox();
+    setInteractions([registerProjectSelectInteraction]);
+  }
 
   const registerSelectInteraction = useMemo(
     () =>
@@ -146,16 +154,7 @@ export function MapWrapper(props: Props) {
     return createSelectInteraction({
       source: selectionSource,
       onSelectionChanged(features, event) {
-        setActiveItemId(null);
-        setFeatureSelector({
-          pos: event.mapBrowserEvent.pixel,
-          features: features,
-        });
-
-        if (features.length > 0) {
-          setActiveItemId(getFeatureItemId(features[0]));
-          selectionSource.addFeature(features[0]);
-        }
+        setInfoBox(features, event.mapBrowserEvent.pixel);
       },
       multi: true,
       delegateFeatureAdding: true,
@@ -175,17 +174,17 @@ export function MapWrapper(props: Props) {
   const drawSource = useMemo(() => new VectorSource({ wrapX: false }), []);
 
   useEffect(() => {
-    if (geoJson) {
-      addFeaturesFromGeoJson(drawSource, geoJson);
+    if (props.drawOptions?.geoJson) {
+      addFeaturesFromGeoJson(drawSource, props.drawOptions.geoJson);
     }
-  }, [geoJson]);
+  }, [props.drawOptions?.geoJson]);
 
-  const drawLayer = useMemo(() => createDrawLayer(drawSource, props.drawStyle), []);
+  const drawLayer = useMemo(() => createDrawLayer(drawSource, props.drawOptions?.drawStyle), []);
   const registerDrawInteraction = useMemo(
     () =>
       createDrawInteraction({
         source: drawSource,
-        drawStyle: props.drawStyle,
+        drawStyle: props.drawOptions?.drawStyle,
         trace: selectedTool === 'tracedFeature',
         traceSource: selectionSource,
         onDrawEnd: () => {
@@ -199,12 +198,12 @@ export function MapWrapper(props: Props) {
     let extent = createEmpty();
     switch (props.fitExtent) {
       case 'geoJson':
-        if (geoJson) {
+        if (props?.drawOptions?.geoJson && drawSource) {
           setExtent(drawSource.getExtent());
         }
         break;
       case 'vectorLayers':
-        extent = props.vectorLayers?.reduce((extent, layer) => {
+        extent = vectorLayers?.reduce((extent, layer) => {
           const layerExtent = layer.getSource()?.getExtent();
           if (!layerExtent) return extent;
           return extend(extent, layerExtent);
@@ -214,7 +213,7 @@ export function MapWrapper(props: Props) {
         }
         break;
     }
-  }, [geoJson, props.vectorLayers, props.fitExtent]);
+  }, [props.drawOptions?.geoJson, vectorLayers, props.fitExtent]);
 
   useEffect(() => {
     switch (selectedTool) {
@@ -232,7 +231,7 @@ export function MapWrapper(props: Props) {
         break;
       case 'deleteFeature':
         setDirty(true);
-        setFeatureSelector(defaultFeatureSelectorState);
+        setFeatureSelector(RESET);
         deleteSelectedFeatures(drawSource, selectionSource);
         break;
       default:
@@ -256,63 +255,64 @@ export function MapWrapper(props: Props) {
         overflow: 'hidden',
       }}
     >
-      <Map
-        zoom={zoom}
-        onMoveEnd={(zoom, extent) => {
-          setZoom(zoom);
-          setViewExtent(extent);
-        }}
-        extent={extent}
-        baseMapLayers={baseMapLayers}
-        wfsLayers={WFSLayers}
-        vectorLayers={vectorLayers}
-        interactions={interactions}
-        interactionLayers={[selectionLayer, drawLayer]}
-      >
-        {/* Styles for the OpenLayers ScaleLine -component */}
-        <GlobalStyles
-          styles={{
-            '.ol-viewport': {
-              cursor: 'crosshair',
-            },
-            '.ol-scale-line-inner': {
-              marginBottom: '1rem',
-              textAlign: 'center',
-              backgroundColor: 'white',
-              opacity: '0.8',
-              borderLeft: '2px solid #22437b',
-              borderRight: '2px solid #22437b',
-              borderBottom: '2px solid #22437b',
-              borderBottomLeftRadius: '7px',
-              borderBottomRightRadius: '7px',
-            },
-            '.ol-scale-line': {
-              border: '5px 5px 0px 5px',
-              borderStyle: '5px solid green',
-              position: 'absolute',
-              width: '100%',
-              bottom: 0,
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'center',
-            },
-          }}
-        />
-        <MapControls
+      <>
+        <Map
           zoom={zoom}
-          zoomStep={1}
-          defaultZoom={mapOptions.tre.defaultZoom}
-          onZoomChanged={(changedZoom) => setZoom(changedZoom)}
-          onFitScreen={() => setExtent(drawSource?.getExtent())}
-        />
+          onMoveEnd={(zoom, extent) => {
+            setZoom(zoom);
+            setViewExtent(extent);
+          }}
+          extent={extent}
+          baseMapLayers={baseMapLayers}
+          wfsLayers={WFSLayers}
+          vectorLayers={vectorLayers}
+          interactions={interactions}
+          interactionLayers={[selectionLayer, drawLayer]}
+        >
+          {/* Styles for the OpenLayers ScaleLine -component */}
+          <GlobalStyles
+            styles={{
+              '.ol-viewport': {
+                cursor: 'crosshair',
+              },
+              '.ol-scale-line-inner': {
+                marginBottom: '1rem',
+                textAlign: 'center',
+                backgroundColor: 'white',
+                opacity: '0.8',
+                borderLeft: '2px solid #22437b',
+                borderRight: '2px solid #22437b',
+                borderBottom: '2px solid #22437b',
+                borderBottomLeftRadius: '7px',
+                borderBottomRightRadius: '7px',
+              },
+              '.ol-scale-line': {
+                border: '5px 5px 0px 5px',
+                borderStyle: '5px solid green',
+                position: 'absolute',
+                width: '100%',
+                bottom: 0,
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
+              },
+            }}
+          />
+          <MapControls
+            zoom={zoom}
+            zoomStep={1}
+            defaultZoom={mapOptions.tre.defaultZoom}
+            onZoomChanged={(changedZoom) => setZoom(changedZoom)}
+            onFitScreen={() => setExtent(drawSource?.getExtent())}
+          />
 
-        <LayerDrawer
-          enabledItemVectorLayers={
-            props.vectorLayers?.map((layer) => layer.getProperties().id) ?? []
-          }
-        />
-
-        {editable && (
+          <LayerDrawer
+            enabledItemVectorLayers={
+              props.vectorLayers?.map((layer) => layer.getProperties().id) ?? []
+            }
+          />
+        </Map>
+        {props.drawOptions?.editable && (
           <MapToolbar
             toolsDisabled={{
               tracedFeature: featureSelector.features.length === 0,
@@ -323,7 +323,7 @@ export function MapWrapper(props: Props) {
             onSaveClick={() => {
               selectionSource.clear();
               setDirty(false);
-              onFeaturesSaved?.(
+              props.drawOptions?.onFeaturesSaved?.(
                 getGeoJSONFeaturesString(
                   drawSource.getFeatures(),
                   projection?.getCode() ?? mapOptions.projection.code,
@@ -334,38 +334,32 @@ export function MapWrapper(props: Props) {
             onUndoClick={() => {
               selectionSource.clear();
               setDirty(false);
-              addFeaturesFromGeoJson(drawSource, geoJson);
+              addFeaturesFromGeoJson(drawSource, props.drawOptions?.geoJson);
             }}
             undoDisabled={!dirty}
           />
         )}
-      </Map>
+        {infoBoxVisible && (
+          <SelectionInfoBox
+            projects={props.projects}
+            projectObjects={props.projectObjects}
+            parentHeight={mapWrapperRef?.current?.clientHeight ?? 0}
+            parentWidth={mapWrapperRef?.current?.clientWidth ?? 0}
+            pos={featureSelector.pos}
+            handleActiveFeatureChange={(projectId) => {
+              const selectedFeature = featureSelector.features.find((feature) =>
+                getFeatureItemIds([feature]).includes(projectId),
+              );
 
-      {(props.projects || props.projectObjects) && featureSelector.features.length > 0 && (
-        <SelectionInfoBox
-          projects={props.projects}
-          projectObjects={props.projectObjects}
-          parentHeight={mapWrapperRef.current?.clientHeight ?? 0}
-          parentWidth={mapWrapperRef.current?.clientWidth ?? 0}
-          pos={featureSelector.pos}
-          handleActiveFeatureChange={(projectId) => {
-            const selectedFeature = featureSelector.features.find((feature) =>
-              getFeatureItemIds([feature]).includes(projectId),
-            );
-
-            if (selectedFeature) {
-              selectionSource.clear();
-              selectionSource.addFeature(selectedFeature);
-            }
-          }}
-          handleCloseInfoBox={() => {
-            selectionSource.clear();
-            setFeatureSelector(defaultFeatureSelectorState);
-            setActiveItemId(null);
-            setInteractions([registerProjectSelectInteraction]);
-          }}
-        />
-      )}
+              if (selectedFeature) {
+                selectionSource.clear();
+                selectionSource.addFeature(selectedFeature);
+              }
+            }}
+            handleCloseInfoBox={resetSelectInteractions}
+          />
+        )}
+      </>
     </div>
   );
 }

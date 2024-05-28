@@ -235,17 +235,19 @@ export function InvestmentProject() {
           {tabView === 'default' && (
             <Box css={mapContainerStyle}>
               <MapWrapper
-                geoJson={project?.data?.geom}
-                drawStyle={PROJECT_AREA_STYLE}
-                fitExtent="geoJson"
-                editable={!projectId || userCanModify}
-                onFeaturesSaved={(features) => {
-                  if (!project.data) {
-                    setGeom(features);
-                  } else {
-                    geometryUpdate.mutate({ projectId, features });
-                  }
+                drawOptions={{
+                  geoJson: project?.data?.geom ?? null,
+                  drawStyle: PROJECT_AREA_STYLE,
+                  editable: !projectId || userCanModify,
+                  onFeaturesSaved: (features) => {
+                    if (!project.data) {
+                      setGeom(features);
+                    } else {
+                      geometryUpdate.mutate({ projectId, features });
+                    }
+                  },
                 }}
+                fitExtent="geoJson"
                 vectorLayers={[projectObjectsLayer]}
               />
             </Box>

@@ -20,16 +20,19 @@ import { listProjects, projectSearch } from '@backend/components/project/search'
 import { getProjectObjectsByProjectSearch } from '@backend/components/projectObject';
 import { startReportJob } from '@backend/components/taskQueue/reportQueue';
 import { getPool } from '@backend/db';
+import { logger } from '@backend/logging';
 import { TRPC } from '@backend/router';
 
 import {
   budgetUpdateSchema,
   projectListParamsSchema,
+  projectSearchResultSchema,
   projectSearchSchema,
   relationsSchema,
   updateGeometrySchema,
 } from '@shared/schema/project';
 import { projectIdSchema, projectPermissionSchema } from '@shared/schema/project/base';
+import { projectObjectSearchResultSchema } from '@shared/schema/projectObject';
 import {
   ProjectAccessChecker,
   hasPermission,
@@ -79,24 +82,36 @@ export const createProjectRouter = (t: TRPC) => {
       return listProjects(input);
     }),
 
-    search: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
-      const { withProjectObjects, ...rest } = input;
+    search: t.procedure
+      .input(projectSearchSchema)
+      .output(
+        z.object({
+          projects: projectSearchResultSchema.shape.projects,
+          clusters: projectSearchResultSchema.shape.clusters,
+          projectObjects: projectObjectSearchResultSchema.shape.projectObjects.optional(),
+        }),
+      )
+      .query(async ({ input }) => {
+        const { withProjectObjects, ...restSearchParams } = input;
+        if (withProjectObjects) {
+          return await getPool().transaction(async (tx) => {
+            const projects = await projectSearch(restSearchParams, tx);
+            if (projects.projects.length === 0) return projects;
 
-      if (withProjectObjects) {
-        return await getPool().transaction(async (tx) => {
-          const projects = await projectSearch(rest, tx);
-          if (!projects.projects) return projects;
+            const projectIds = projects.projects.map((project) => project.projectId);
+            const projectObjects = await getProjectObjectsByProjectSearch(
+              { projectIds, map: input.map },
+              tx,
+            );
 
-          const projectIds = projects.projects.map((project) => project.projectId);
-          const projectObjects = await getProjectObjectsByProjectSearch(
-            { projectIds, map: input.map },
-            tx,
-          );
-          return { ...projects, projectObjects };
-        });
-      }
-      return projectSearch(rest);
-    }),
+            if (!projectObjects) return projects;
+            return { ...projects, projectObjects };
+          });
+        }
+        const projects = await projectSearch(restSearchParams);
+
+        return projects;
+      }),
 
     get: t.procedure.input(projectIdSchema).query(async ({ input }) => {
       const { projectId } = input;

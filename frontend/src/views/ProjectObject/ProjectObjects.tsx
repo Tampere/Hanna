@@ -45,8 +45,9 @@ function ProjectObjectCardSkeleton({ count = 1 }: { count: number }) {
         gap: 1rem;
       `}
     >
-      {Array.from({ length: count }).map(() => (
+      {Array.from({ length: count }).map((_, idx) => (
         <Box
+          key={idx}
           css={css`
             display: flex;
             flex-direction: column;
