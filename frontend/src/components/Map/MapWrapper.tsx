@@ -302,7 +302,10 @@ export function MapWrapper(props: Props) {
             zoom={zoom}
             zoomStep={1}
             defaultZoom={mapOptions.tre.defaultZoom}
-            onZoomChanged={(changedZoom) => setZoom(changedZoom)}
+            onZoomChanged={(changedZoom) => {
+              if (changedZoom <= mapOptions.tre.maxZoom && changedZoom >= mapOptions.tre.minZoom)
+                setZoom(changedZoom);
+            }}
             onFitScreen={() => setExtent(drawSource?.getExtent())}
           />
 
