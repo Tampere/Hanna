@@ -10,6 +10,7 @@ import { trpc } from '@frontend/client';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { activeItemIdAtom } from '@frontend/stores/map';
 import { projectObjectSearchParamAtom } from '@frontend/stores/search/projectObject';
+import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { ProjectObjectResultsMap } from '@frontend/views/ProjectObject/ProjectObjectResultsMap';
 import { SearchControls } from '@frontend/views/ProjectObject/SearchControls';
@@ -85,6 +86,7 @@ function ProjectObjectCard({
   objectStageCodes?: readonly Code[];
   newObjectHighlightId: string | null;
 }) {
+  const { resetInfoBox } = useMapInfoBox();
   const tr = useTranslations();
   const lang = useAtomValue(langAtom);
   const projectObjectUrl = `${projectTypeRootUrl[result.project.projectType]}/${
@@ -93,6 +95,7 @@ function ProjectObjectCard({
 
   return (
     <CardActionArea
+      onClick={resetInfoBox}
       css={css`
         & .highlight-new {
           animation-name: fadeInOut;

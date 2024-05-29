@@ -6,7 +6,6 @@ import { Geometry } from 'ol/geom';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { useEffect, useMemo } from 'react';
-import { ProjectObjectSearchParentProject } from 'tre-hanna-shared/src/schema/project';
 
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import {
@@ -18,6 +17,7 @@ import { getProjectObjectsLayer, getProjectsLayer } from '@frontend/stores/map';
 import { mapAtom } from '@frontend/stores/search/projectObject';
 import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 
+import { ProjectObjectSearchParentProject } from '@shared/schema/project';
 import { ProjectObjectSearchResult } from '@shared/schema/projectObject';
 
 const resultMapContainerStyle = css`
