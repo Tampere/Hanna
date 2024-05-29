@@ -77,10 +77,10 @@ export function ProjectObjectDetails<
           text-overflow: ellipsis;
           white-space: nowrap;
         `}
-        title={projectObject.projectName}
+        title={projectObject.project.projectName}
         className="long"
       >
-        {projectObject.projectName}
+        {projectObject.project.projectName}
       </dd>
     </dl>
   );

@@ -1,15 +1,22 @@
 import { css } from '@emotion/react';
 import { Paper } from '@mui/material';
 import { useSetAtom } from 'jotai';
+import { Feature } from 'ol';
+import { Geometry } from 'ol/geom';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { useEffect, useMemo } from 'react';
+import { ProjectObjectSearchParentProject } from 'tre-hanna-shared/src/schema/project';
 
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
-import { addFeaturesFromGeoJson } from '@frontend/components/Map/mapInteractions';
+import {
+  addFeaturesFromGeoJson,
+  featuresFromGeoJSON,
+} from '@frontend/components/Map/mapInteractions';
 import { clusterStyle } from '@frontend/components/Map/styles';
 import { getProjectObjectsLayer, getProjectsLayer } from '@frontend/stores/map';
 import { mapAtom } from '@frontend/stores/search/projectObject';
+import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 
 import { ProjectObjectSearchResult } from '@shared/schema/projectObject';
 
@@ -22,6 +29,7 @@ const resultMapContainerStyle = css`
 interface Props {
   projectObjectResults?: ProjectObjectSearchResult;
   projectObjectsLoading?: boolean;
+  projects?: ProjectObjectSearchParentProject[];
 }
 
 function clusterGeoJSON(clusters?: ProjectObjectSearchResult['clusters']) {
@@ -62,13 +70,13 @@ function getProjectsGeoJSON(projectObjects?: ProjectObjectSearchResult['projectO
   return {
     type: 'FeatureCollection',
     features: projectObjects.map((p) => {
-      const geom = p.projectGeom ? JSON.parse(p.projectGeom) : null;
+      const geom = p.project.geom ? JSON.parse(p.project.geom) : null;
       return {
         type: 'Feature',
-        id: p.projectId,
+        id: p.project.projectId,
         geometry: geom,
         properties: {
-          name: p.projectName,
+          name: p.project.projectName,
         },
       };
     }),
@@ -98,6 +106,7 @@ function getProjectObjectGeoJSON(projectObjects?: ProjectObjectSearchResult['pro
 
 export function ProjectObjectResultsMap(props: Props) {
   const setMap = useSetAtom(mapAtom);
+  const { isVisible, updateInfoBoxWithIntersectingFeatures } = useMapInfoBox();
   const clusterSource = useMemo(() => new VectorSource({}), []);
   const projectSource = useMemo(() => new VectorSource({}), []);
   const projectObjectSource = useMemo(() => new VectorSource({}), []);
@@ -134,17 +143,37 @@ export function ProjectObjectResultsMap(props: Props) {
     }
   }, [props.projectObjectResults]);
 
+  useEffect(() => {
+    if (props.projectObjectsLoading || !isVisible || !props.projectObjectResults) return;
+
+    let features: Feature<Geometry>[] = [];
+
+    if (props.projectObjectResults.clusters?.length > 0) {
+      const clusterGeojson = clusterGeoJSON(props.projectObjectResults.clusters);
+      features = clusterGeojson ? featuresFromGeoJSON(clusterGeojson) : [];
+    } else {
+      const objectGeojson = getProjectObjectGeoJSON(props.projectObjectResults?.projectObjects);
+      const projectGeojson = getProjectsGeoJSON(props.projectObjectResults?.projectObjects);
+      features = [
+        ...(objectGeojson ? featuresFromGeoJSON(objectGeojson) : []),
+        ...(projectGeojson ? featuresFromGeoJSON(projectGeojson) : []),
+      ];
+    }
+
+    updateInfoBoxWithIntersectingFeatures(features);
+  }, [props.projectObjectResults]);
+
   return (
     <Paper css={resultMapContainerStyle} elevation={1}>
       <MapWrapper
         loading={props.projectObjectsLoading}
-        editable={false}
         vectorLayers={[projectObjectLayer, projectLayer, clusterLayer]}
         onMoveEnd={(zoom, extent) => {
           setMap({ zoom: Math.floor(zoom), extent });
         }}
         projectObjects={props.projectObjectResults?.projectObjects ?? []}
-        interactiveLayers={['projectObjects', 'projectObjectClusterResults']}
+        projects={props.projects ?? []}
+        interactiveLayers={['projectObjects', 'projectObjectClusterResults', 'projects']}
       />
     </Paper>
   );

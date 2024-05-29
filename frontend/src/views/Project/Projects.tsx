@@ -16,6 +16,7 @@ import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ProjectSearchResult } from 'tre-hanna-shared/src/schema/project';
 
 import { trpc } from '@frontend/client';
 import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
@@ -27,7 +28,6 @@ import { projectSearchParamAtom } from '@frontend/stores/search/project';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { ResultsMap } from '@frontend/views/Project/ResultsMap';
 
-import { DbProject } from '@shared/schema/project/base';
 import { hasPermission } from '@shared/schema/userPermissions';
 
 import { SearchControls } from './SearchControls';
@@ -41,6 +41,7 @@ const toolbarContainerStyle = css`
 export function Toolbar() {
   const tr = useTranslations();
   const auth = useAtomValue(asyncUserAtom);
+
   const [newProjectMenuOpen, setNewProjectMenuOpen] = useState(false);
   const newProjectMenuAnchor = useRef<HTMLButtonElement>(null);
 
@@ -116,7 +117,13 @@ const projectTypeRootUrl = {
   investmentProject: '/investointihanke',
 };
 
-function ProjectCard({ result, highlighted }: { result: DbProject; highlighted: boolean }) {
+function ProjectCard({
+  result,
+  highlighted,
+}: {
+  result: ProjectSearchResult['projects'][number];
+  highlighted: boolean;
+}) {
   const tr = useTranslations();
   const projectUrl = `${projectTypeRootUrl[result.projectType]}/${result.projectId}`;
 
@@ -176,7 +183,7 @@ function ProjectCard({ result, highlighted }: { result: DbProject; highlighted: 
 }
 
 interface SearchResultsProps {
-  results: readonly DbProject[];
+  results: ProjectSearchResult['projects'];
   loading?: boolean;
   activeProjectId: string | null;
 }
@@ -284,7 +291,7 @@ const resultsContainerStyle = css`
 
 function ProjectResults() {
   const projectSearchParams = useAtomValue(projectSearchParamAtom);
-  const activeProjectId = useAtomValue(activeItemIdAtom);
+  const activeItemId = useAtomValue(activeItemIdAtom);
 
   const search = trpc.project.search.useQuery({
     ...projectSearchParams,
@@ -298,7 +305,7 @@ function ProjectResults() {
       <SearchResults
         loading={search.isLoading}
         results={search.data?.projects ?? []}
-        activeProjectId={activeProjectId}
+        activeProjectId={activeItemId}
       />
       <ResultsMap loading={search.isLoading} results={search.data} />
     </div>

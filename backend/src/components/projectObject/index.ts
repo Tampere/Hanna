@@ -89,15 +89,25 @@ function getProjectObjectSearchFragment({
 } = {}) {
   return sql.fragment`
   SELECT
-    project.project_name AS "projectName",
-    CASE WHEN (pi.id IS NULL) THEN 'detailplanProject' ELSE 'investmentProject' END "projectType",
-    po.project_id AS "projectId",
     po.id AS "projectObjectId",
     po.start_date AS "startDate",
     po.end_date AS "endDate",
     po.object_name AS "objectName",
     (object_stage).id AS "objectStage",
-    ST_AsGeoJSON(ST_CollectionExtract(po.geom)) AS geom
+    ST_AsGeoJSON(ST_CollectionExtract(po.geom)) AS geom,
+    jsonb_build_object(
+      'projectId', po.project_id,
+      'startDate', project.start_date,
+      'endDate', project.end_date,
+      'projectName', project.project_name,
+      'projectType', CASE WHEN (pi.id IS NULL) THEN 'detailplanProject' ELSE 'investmentProject' END,
+      'detailplanId', pd.id
+      ${
+        withProjectGeometry
+          ? sql.fragment`,'geom', ST_AsGeoJSON(ST_CollectionExtract(project.geom))`
+          : sql.fragment``
+      }
+    ) as project
     ${withGeoHash ? sql.fragment`, po.geohash` : sql.fragment``}
     ${
       withProjectGeometry
@@ -113,6 +123,7 @@ function getProjectObjectSearchFragment({
   FROM app.project_object po
   INNER JOIN app.project ON po.project_id = project.id
   LEFT JOIN app.project_investment pi ON po.project_id = pi.id
+  LEFT JOIN app.project_detailplan pd ON po.project_id = pd.id
   ${includeDeleted ? sql.fragment`` : sql.fragment`WHERE po.deleted = false`}
   ${
     projectIds
@@ -258,19 +269,17 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
         ${sql.array(suunnitteluttajaUsers, 'text')} = '{}'::TEXT[] OR
         po.suunnitteluttaja_user = ANY(${sql.array(suunnitteluttajaUsers, 'text')})
       )
-    GROUP BY po.id, project.project_name, pi.id, project.geom
+    GROUP BY po.id, project.project_name, pi.id, project.geom, project.start_date, project.end_date, pd.id
     ${objectParticipantFragment(objectParticipantUser)}
     LIMIT ${limit}
   ), project_object_results AS (
     SELECT
-      "projectName",
-      "projectType",
-      "projectId",
       "projectObjectId",
       "startDate",
       "endDate",
       "objectName",
-      "objectStage"
+      "objectStage",
+      project
       ${
         withGeometries
           ? sql.fragment`, geom,

@@ -95,7 +95,7 @@ function clusterResultsFragment(zoom: number | undefined) {
 
   return sql.fragment`
     (
-      SELECT jsonb_agg(clusters.*)
+      SELECT COALESCE(jsonb_agg(clusters.*), '[]'::jsonb)
       FROM (
         SELECT
           jsonb_agg(id) AS "clusterProjectIds",
@@ -103,6 +103,7 @@ function clusterResultsFragment(zoom: number | undefined) {
           count(*) AS "clusterCount",
           ST_AsGeoJSON(ST_Centroid(ST_Collect(geom))) AS "clusterLocation"
         FROM projects
+        WHERE geom IS NOT NULL
         GROUP BY "clusterGeohash"
     ) clusters)
   `;
@@ -242,7 +243,7 @@ export async function projectSearch(
       LIMIT ${limit}
     )
    SELECT jsonb_build_object(
-      'projects', (SELECT jsonb_agg(limited.*) FROM limited),
+      'projects', COALESCE((SELECT jsonb_agg(limited.*) FROM limited), '[]'::jsonb),
       'clusters', ${clusterResultsFragment(map?.zoom)}
     ) AS result
     `);

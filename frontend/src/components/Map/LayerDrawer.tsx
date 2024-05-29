@@ -2,7 +2,8 @@ import { css } from '@emotion/react';
 import { Layers, ToggleOff, ToggleOn } from '@mui/icons-material';
 import { Box, Divider, IconButton, MenuItem, Theme, Tooltip, Typography } from '@mui/material';
 import { useAtom } from 'jotai';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import { useTranslations } from '@frontend/stores/lang';
 import {
@@ -100,6 +101,36 @@ export function LayerDrawer({
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const [vectorLayers, setVectorLayers] = useAtom(vectorLayersAtom);
   const [vectorItemLayers, setVectorItemLayers] = useAtom(vectorItemLayersAtom);
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    let selectedLayerIds: VectorItemLayerKey[] = [];
+    switch (pathname) {
+      case '/kartta/hankkeet':
+        selectedLayerIds = ['projects', 'projectClusterResults'];
+        break;
+      case '/kartta/kohteet':
+        selectedLayerIds = ['projectObjects', 'projectObjectClusterResults'];
+        break;
+      default:
+        selectedLayerIds = [
+          'projects',
+          'projectObjects',
+          'projectClusterResults',
+          'projectObjectClusterResults',
+        ];
+    }
+
+    if (selectedLayerIds.length > 0) {
+      setVectorItemLayers((prev) => {
+        return prev.map((layerState) =>
+          selectedLayerIds.includes(layerState.id)
+            ? { ...layerState, selected: true }
+            : { ...layerState, selected: false },
+        );
+      });
+    }
+  }, []);
 
   return (
     <>

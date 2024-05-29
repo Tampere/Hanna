@@ -45,8 +45,9 @@ function ProjectObjectCardSkeleton({ count = 1 }: { count: number }) {
         gap: 1rem;
       `}
     >
-      {Array.from({ length: count }).map(() => (
+      {Array.from({ length: count }).map((_, idx) => (
         <Box
+          key={idx}
           css={css`
             display: flex;
             flex-direction: column;
@@ -86,9 +87,9 @@ function ProjectObjectCard({
 }) {
   const tr = useTranslations();
   const lang = useAtomValue(langAtom);
-  const projectObjectUrl = `${projectTypeRootUrl[result.projectType]}/${result.projectId}/kohde/${
-    result.projectObjectId
-  }`;
+  const projectObjectUrl = `${projectTypeRootUrl[result.project.projectType]}/${
+    result.project.projectId
+  }/kohde/${result.projectObjectId}`;
 
   return (
     <CardActionArea
@@ -136,7 +137,7 @@ function ProjectObjectCard({
             `}
             color="green"
           >
-            {result.projectName}
+            {result.project.projectName}
           </Typography>
           <Typography sx={{ lineHeight: '120%' }} variant="button">
             {result.objectName}
@@ -264,7 +265,7 @@ function SearchResults({ projectObjects, loading, activeProjectObjectId }: Searc
       ) : projectObjects?.length > 0 ? (
         projectObjects.map((result, index) => {
           const displayProjectName =
-            index === 0 || result.projectId !== projectObjects[index - 1].projectId;
+            index === 0 || result.project.projectId !== projectObjects[index - 1].project.projectId;
           return (
             <Box key={result.projectObjectId}>
               {displayProjectName && (
@@ -276,7 +277,7 @@ function SearchResults({ projectObjects, loading, activeProjectObjectId }: Searc
                     text-overflow: ellipsis;
                   `}
                 >
-                  {result.projectName}:
+                  {result.project.projectName}:
                 </Typography>
               )}
               <ProjectObjectCard
@@ -330,6 +331,7 @@ function ProjectObjectResults() {
       <ProjectObjectResultsMap
         projectObjectsLoading={search.isLoading}
         projectObjectResults={search.data}
+        projects={search.data?.projectObjects?.map?.((projectObject) => projectObject.project)}
       />
     </div>
   );

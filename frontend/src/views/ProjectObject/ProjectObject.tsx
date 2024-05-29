@@ -249,18 +249,20 @@ export function ProjectObject(props: Props) {
           {!searchParams.get('tab') && (
             <Box css={mapContainerStyle}>
               <MapWrapper
-                geoJson={projectObject?.data?.geom}
-                drawStyle={PROJ_OBJ_STYLE}
-                editable={!projectObjectId || isOwner || canWrite}
+                drawOptions={{
+                  geoJson: projectObject?.data?.geom ?? null,
+                  drawStyle: PROJ_OBJ_STYLE,
+                  editable: !projectObjectId || isOwner || canWrite,
+                  onFeaturesSaved: (features) => {
+                    if (!projectObject.data) {
+                      setGeom(features);
+                    } else {
+                      geometryUpdate.mutate({ projectObjectId, features });
+                    }
+                  },
+                }}
                 vectorLayers={[projectLayer]}
                 fitExtent="geoJson"
-                onFeaturesSaved={(features) => {
-                  if (!projectObject.data) {
-                    setGeom(features);
-                  } else {
-                    geometryUpdate.mutate({ projectObjectId, features });
-                  }
-                }}
               />
             </Box>
           )}

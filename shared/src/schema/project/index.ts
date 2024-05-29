@@ -58,8 +58,19 @@ export const projectSearchSchema = z.object({
   withProjectObjects: z.boolean().optional(),
 });
 
+const projectObjectSearchParentProject = dbProjectSchema
+  .pick({
+    endDate: true,
+    projectId: true,
+    startDate: true,
+    projectName: true,
+    projectType: true,
+    detailplanId: true,
+  })
+  .extend({ geom: z.string().nullish() });
+
 export const projectSearchResultSchema = z.object({
-  projects: z.array(dbProjectSchema),
+  projects: z.array(projectObjectSearchParentProject),
   clusters: z.array(
     z.object({
       clusterProjectIds: z.array(z.string()),
@@ -69,6 +80,8 @@ export const projectSearchResultSchema = z.object({
     }),
   ),
 });
+
+export type ProjectObjectSearchParentProject = z.infer<typeof projectObjectSearchParentProject>;
 
 export type ProjectSearchResult = z.infer<typeof projectSearchResultSchema>;
 

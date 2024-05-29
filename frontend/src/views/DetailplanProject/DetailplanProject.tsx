@@ -183,10 +183,12 @@ export function DetailplanProject() {
           {tabView === 'default' && (
             <Box css={mapContainerStyle}>
               <MapWrapper
-                geoJson={project.data?.geom}
-                drawStyle={PROJECT_AREA_STYLE}
+                drawOptions={{
+                  geoJson: project.data?.geom ?? null,
+                  drawStyle: PROJECT_AREA_STYLE,
+                  editable: false,
+                }}
                 fitExtent="geoJson"
-                editable={false}
               />
             </Box>
           )}

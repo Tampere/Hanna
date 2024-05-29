@@ -1,4 +1,5 @@
 import { atom } from 'jotai';
+import { atomWithReset } from 'jotai/utils';
 import { Feature } from 'ol';
 import { Geometry } from 'ol/geom';
 import VectorLayer from 'ol/layer/Vector';
@@ -15,12 +16,12 @@ export interface FeatureSelector {
   features: Feature<Geometry>[];
 }
 
-export const defaultFeatureSelectorState: FeatureSelector = {
+const defaultFeatureSelectorState: FeatureSelector = {
   pos: [0, 0],
   features: [],
 };
 
-export const featureSelectorAtom = atom<FeatureSelector>(defaultFeatureSelectorState);
+export const featureSelectorAtom = atomWithReset<FeatureSelector>(defaultFeatureSelectorState);
 
 export type VectorLayerKey =
   | 'kaupunginosat'
@@ -107,9 +108,13 @@ export function getProjectObjectsLayer(source: VectorSource) {
   });
 }
 
+export const selectionSourceAtom = atom<VectorSource<Feature<Geometry>>>(
+  new VectorSource({ wrapX: false }),
+);
+
 export const activeItemIdAtom = atom<string | null>(null);
 
-export const selectedItemIdAtom = atom<string[]>((get) =>
+export const selectedItemIdsAtom = atom<string[]>((get) =>
   getFeatureItemIds(get(featureSelectorAtom).features),
 );
 

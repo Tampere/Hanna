@@ -1,12 +1,12 @@
-import { ChevronRight, Close, NavigateBefore, NavigateNext } from '@mui/icons-material';
+import { Close, NavigateBefore, NavigateNext } from '@mui/icons-material';
 import { Box, Button, IconButton, Typography, css } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 import { Pixel } from 'ol/pixel';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { useTranslations } from '@frontend/stores/lang';
-import { activeItemIdAtom, selectedItemIdAtom } from '@frontend/stores/map';
+import { activeItemIdAtom, selectedItemIdsAtom } from '@frontend/stores/map';
 
 import { ProjectSearchResult } from '@shared/schema/project';
 import { ProjectObjectSearchResult } from '@shared/schema/projectObject';
@@ -37,12 +37,18 @@ export function SelectionInfoBox({
   ...props
 }: Props) {
   const tr = useTranslations();
-  const selectedItemIds = useAtomValue(selectedItemIdAtom);
+  const selectedItemIds = useAtomValue(selectedItemIdsAtom);
   const [activeItemId, setActiveItemId] = useAtom(activeItemIdAtom);
   const [projects, setProjects] = useState<ProjectSearchResult['projects']>([]);
   const [projectObjects, setProjectObjects] = useState<ProjectObjectSearchResult['projectObjects']>(
     [],
   );
+  const [activeItem, setActiveItem] = useState<
+    | ProjectSearchResult['projects'][number]
+    | ProjectObjectSearchResult['projectObjects'][number]
+    | null
+  >(null);
+  const [infoBoxHeight, setInfoBoxHeight] = useState(190);
 
   useEffect(() => {
     // Doing this the hard way instead of props.projects.filter... to keep the order of the projects right
@@ -74,7 +80,12 @@ export function SelectionInfoBox({
       );
   }, [props.projectObjects, selectedItemIds]);
 
-  const allItems = [...(projects ?? []), ...(projectObjects ?? [])];
+  const allItems = useMemo(
+    () => [...(projects ?? []), ...(projectObjects ?? [])],
+    [projects, projectObjects],
+  );
+
+  const activeItemIndex = getActiveItemIndex();
 
   function isProjectObject(item: ProjectResult | ProjectObjectResult): item is ProjectObjectResult {
     return Object.keys(item).includes('projectObjectId');
@@ -84,7 +95,7 @@ export function SelectionInfoBox({
     if (Object.keys(item).includes('projectObjectId')) {
       return (item as ProjectObjectResult).projectObjectId;
     }
-    return item.projectId;
+    return (item as ProjectResult).projectId;
   }
 
   function handleNext() {
@@ -105,7 +116,7 @@ export function SelectionInfoBox({
 
   function getLinkUrl(item: ProjectResult | ProjectObjectResult) {
     if (isProjectObject(item)) {
-      return `/investointihanke/${item?.projectId}/kohde/${item?.projectObjectId}`;
+      return `/investointihanke/${item?.project.projectId}/kohde/${item?.projectObjectId}`;
     } else if (item.projectType === 'investmentProject') {
       return `/investointihanke/${item?.projectId}`;
     } else if (item.projectType === 'detailplanProject') {
@@ -115,8 +126,15 @@ export function SelectionInfoBox({
     }
   }
 
-  const activeItemIndex = getActiveItemIndex();
-  const activeItem = allItems[activeItemIndex];
+  useEffect(() => {
+    setActiveItem(allItems[getActiveItemIndex()]);
+    if (allItems.length > 1 && infoBoxHeight !== 200) {
+      setInfoBoxHeight(200);
+    } else if (infoBoxHeight !== 190 && allItems.length === 1) {
+      setInfoBoxHeight(190);
+    }
+  }, [allItems, activeItemId]);
+
   const pageNumberIndicator = `${activeItemIndex + 1}/${projects.length + projectObjects.length}`;
 
   const toolbarStyle = css`
@@ -133,7 +151,7 @@ export function SelectionInfoBox({
     );
 
     width: 350px;
-    min-height: ${projects.length > 1 ? 200 : 190}px;
+    min-height: ${infoBoxHeight}px;
     max-height: 55%;
     overflow-y: auto;
     overflow-x: hidden;
@@ -144,119 +162,126 @@ export function SelectionInfoBox({
     padding: 0.25rem;
   `;
 
-  if (!activeItem) return null;
-
   return (
     <Box css={toolbarStyle}>
-      <Box
-        css={css`
-          min-width: 0; // for ellipsis to work
-          display: flex;
-          justify-content: space-between;
-          align-items: end;
-          color: #525252;
-          height: 30px;
-        `}
-      >
-        <Typography>{allItems.length > 1 && pageNumberIndicator}</Typography>
-        <Typography
-          title={isProjectObject(activeItem) ? activeItem.objectName : activeItem.projectName}
-          css={(theme) => css`
-            color: ${isProjectObject(activeItem) ? theme.palette.primary.main : 'green'};
-            margin-right: auto;
-            padding-left: 0.75rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-size: 1rem;
-            font-weight: 700;
-          `}
-        >
-          {isProjectObject(activeItem) ? activeItem.objectName : activeItem.projectName}
-        </Typography>
-        <IconButton
-          css={css`
-            align-self: flex-start;
-            padding: 0;
-          `}
-          onClick={handleCloseInfoBox}
-        >
-          <Close />
-        </IconButton>
-      </Box>
-
-      <Box
-        css={css`
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          width: 100%;
-        `}
-      >
-        {allItems.length > 1 && (
-          <IconButton
-            css={css`
-              padding: 0;
-            `}
-            onClick={handleBack}
-            disabled={activeItemIndex === 0}
-          >
-            <NavigateBefore />
-          </IconButton>
-        )}
+      {activeItem && allItems.length > 0 && (
         <Box
           css={css`
-            padding: 0 0.75rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            min-width: 340px;
           `}
         >
           <Box
             css={css`
-              height: 100px;
-              padding-top: 0.5rem;
+              min-width: 0; // for ellipsis to work
               display: flex;
-              align-items: center;
+              justify-content: space-between;
+              align-items: end;
+              color: #525252;
+              height: 30px;
             `}
           >
-            {isProjectObject(activeItem) ? (
-              <ProjectObjectDetails projectObject={activeItem} />
-            ) : (
-              <ProjectDetails project={activeItem} />
+            <Typography>{allItems.length > 1 && pageNumberIndicator}</Typography>
+            <Typography
+              title={isProjectObject(activeItem) ? activeItem.objectName : activeItem.projectName}
+              css={(theme) => css`
+                color: ${isProjectObject(activeItem) ? theme.palette.primary.main : 'green'};
+                margin-right: auto;
+                padding-left: 0.75rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                font-size: 1rem;
+                font-weight: 700;
+              `}
+            >
+              {isProjectObject(activeItem) ? activeItem.objectName : activeItem.projectName}
+            </Typography>
+            <IconButton
+              css={css`
+                align-self: flex-start;
+                padding: 0;
+              `}
+              onClick={handleCloseInfoBox}
+            >
+              <Close />
+            </IconButton>
+          </Box>
+
+          <Box
+            css={css`
+              min-width: 340px;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              width: 100%;
+            `}
+          >
+            {allItems.length > 1 && (
+              <IconButton
+                css={css`
+                  padding: 0;
+                `}
+                onClick={handleBack}
+                disabled={activeItemIndex === 0}
+              >
+                <NavigateBefore />
+              </IconButton>
+            )}
+            <Box
+              css={css`
+                padding: 0 0.75rem;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+              `}
+            >
+              <Box
+                css={css`
+                  height: 100px;
+                  padding-top: 0.5rem;
+                  display: flex;
+                  align-items: center;
+                `}
+              >
+                {isProjectObject(activeItem) ? (
+                  <ProjectObjectDetails projectObject={activeItem} />
+                ) : (
+                  <ProjectDetails project={activeItem} />
+                )}
+              </Box>
+              <Link
+                css={css`
+                  pointer-events: ${!projects ? 'none' : 'auto'};
+                  flex: 1;
+                  margin-top: auto;
+                `}
+                to={getLinkUrl(activeItem)}
+              >
+                <Button disabled={!projects} onClick={handleCloseInfoBox}>
+                  {isProjectObject(activeItem)
+                    ? tr('itemInfoBox.toObject')
+                    : tr('itemInfoBox.toProject')}
+                </Button>
+              </Link>
+            </Box>
+
+            {allItems.length > 1 && (
+              <IconButton
+                css={css`
+                  margin-left: auto;
+                  padding: 0;
+                `}
+                onClick={handleNext}
+                disabled={activeItemIndex === allItems.length - 1}
+              >
+                <NavigateNext />
+              </IconButton>
             )}
           </Box>
-          <Link
-            css={css`
-              pointer-events: ${!projects ? 'none' : 'auto'};
-              flex: 1;
-              margin-top: auto;
-            `}
-            to={getLinkUrl(activeItem)}
-          >
-            <Button disabled={!projects} endIcon={<ChevronRight />} onClick={handleCloseInfoBox}>
-              {isProjectObject(activeItem)
-                ? tr('itemInfoBox.toObject')
-                : tr('itemInfoBox.toProject')}
-            </Button>
-          </Link>
+          {allItems.length > 1 && (
+            <StepIndicator steps={allItems.length} activeStep={activeItemIndex} />
+          )}
         </Box>
-
-        {allItems.length > 1 && (
-          <IconButton
-            css={css`
-              margin-left: auto;
-              padding: 0;
-            `}
-            onClick={handleNext}
-            disabled={activeItemIndex === allItems.length - 1}
-          >
-            <NavigateNext />
-          </IconButton>
-        )}
-      </Box>
-      {allItems.length > 1 && (
-        <StepIndicator steps={allItems.length} activeStep={activeItemIndex} />
       )}
     </Box>
   );
