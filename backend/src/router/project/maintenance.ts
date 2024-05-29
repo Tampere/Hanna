@@ -33,16 +33,18 @@ export const createMaintenanceProjectRouter = (t: TRPC) => {
 
         if (!hasPermission(ctx.user, 'maintenanceProject.write') && !project.projectId) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
-        } else if (project.projectId) {
+        }
+        if (project.projectId) {
           const permissionCtx = await getPermissionContext(project.projectId);
 
-          if (hasWritePermission(ctx.user, permissionCtx) || ownsProject(ctx.user, permissionCtx)) {
-            return await projectUpsert(project, ctx.user, keepOwnerRights);
+          if (
+            !hasWritePermission(ctx.user, permissionCtx) &&
+            !ownsProject(ctx.user, permissionCtx)
+          ) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
           }
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
-        } else {
-          return await projectUpsert(project, ctx.user, keepOwnerRights);
         }
+        return await projectUpsert(project, ctx.user, keepOwnerRights);
       }),
   });
 };

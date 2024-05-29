@@ -50,7 +50,6 @@ const router = createBrowserRouter(
         <Route path="kohde/uusi" element={<ProjectObject projectType="investointihanke" />} />
         <Route path="kunnossapitohanke/luo" element={<MaintenanceProject />} />
         <Route path="kunnossapitohanke/:projectId" element={<MaintenanceProject />} />
-        <Route path="kunnossapitohanke/:projectId?tab=:tabView" element={<MaintenanceProject />} />
         <Route path="asemakaavahanke/luo" element={<DetailplanProject />} />
         <Route path="asemakaavahanke/:projectId" element={<DetailplanProject />} />
         <Route
