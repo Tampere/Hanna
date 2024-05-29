@@ -130,9 +130,7 @@ export function MapWrapper(props: Props) {
   const selectionLayer = useMemo(() => createSelectionLayer(selectionSource), []);
 
   useEffect(() => {
-    return () => {
-      if (infoBoxVisible) resetInfoBox();
-    };
+    return () => resetInfoBox();
   }, []);
 
   function resetSelectInteractions() {

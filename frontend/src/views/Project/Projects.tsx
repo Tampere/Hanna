@@ -16,7 +16,6 @@ import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ProjectSearchResult } from 'tre-hanna-shared/src/schema/project';
 
 import { trpc } from '@frontend/client';
 import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
@@ -25,9 +24,11 @@ import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { activeItemIdAtom } from '@frontend/stores/map';
 import { projectSearchParamAtom } from '@frontend/stores/search/project';
+import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { ResultsMap } from '@frontend/views/Project/ResultsMap';
 
+import { ProjectSearchResult } from '@shared/schema/project';
 import { hasPermission } from '@shared/schema/userPermissions';
 
 import { SearchControls } from './SearchControls';
@@ -125,10 +126,12 @@ function ProjectCard({
   highlighted: boolean;
 }) {
   const tr = useTranslations();
+  const { resetInfoBox } = useMapInfoBox();
   const projectUrl = `${projectTypeRootUrl[result.projectType]}/${result.projectId}`;
 
   return (
     <CardActionArea
+      onClick={resetInfoBox}
       id={`project-${result.projectId}`}
       key={result.projectId}
       component={Link}

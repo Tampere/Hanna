@@ -1,10 +1,11 @@
 import { Alert, Box, css } from '@mui/material';
 import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
-import { ProjectObjectSearchResult } from 'tre-hanna-shared/src/schema/projectObject';
 
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { useCodes } from '@frontend/utils/codes';
+
+import { ProjectObjectSearchResult } from '@shared/schema/projectObject';
 
 interface ProjectDetailsProps<TProjectObject> {
   projectObject: TProjectObject;
