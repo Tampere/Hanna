@@ -8,7 +8,6 @@ const testProject = (user: User) => ({
   projectName: 'Test project',
   description: 'Test description',
   owner: user.id,
-  personInCharge: user.id,
   startDate: '2021-01-01',
   endDate: '2022-01-01',
   lifecycleState: '01',

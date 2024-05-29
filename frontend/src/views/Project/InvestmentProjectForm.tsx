@@ -65,7 +65,6 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
   const formDefaultValues = useMemo<Partial<DbInvestmentProject>>(
     () => ({
       owner: currentUser?.id,
-      personInCharge: currentUser?.id,
       projectName: '',
       description: '',
       startDate: '',
@@ -266,15 +265,6 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
                   !editing || Boolean(props.project && !ownsProject(currentUser, props.project))
                 }
               />
-            )}
-          />
-
-          <FormField
-            formField="personInCharge"
-            label={tr('project.personInChargeLabel')}
-            tooltip={tr('newProject.personInChargeTooltip')}
-            component={({ id, onChange, value }) => (
-              <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
             )}
           />
 

@@ -15,7 +15,6 @@ const validProject = (userId: string) => ({
   projectName: 'Test project',
   description: 'Test description',
   owner: userId,
-  personInCharge: userId,
   startDate: '2021-01-01',
   endDate: '2022-01-01',
   lifecycleState: '01',
@@ -196,7 +195,7 @@ test.describe('permission testing', () => {
 
     expect(newProject.owner).toBe(user.id);
     // XXX: owner can be changed to another user with option to maintain write permission
-    const updates = { owner: DEV_USER, personInCharge: user.id };
+    const updates = { owner: DEV_USER };
     const project = await testSession.client.investmentProject.upsert.mutate({
       project: { ...newProject, ...updates },
     });
