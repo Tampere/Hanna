@@ -105,11 +105,22 @@ export function LayerDrawer({
 
   useEffect(() => {
     let selectedLayerIds: VectorItemLayerKey[] = [];
-    if (pathname === '/kartta/hankkeet') {
-      selectedLayerIds = ['projects', 'projectClusterResults'];
-    } else if (pathname === '/kartta/kohteet') {
-      selectedLayerIds = ['projectObjects', 'projectObjectClusterResults'];
+    switch (pathname) {
+      case '/kartta/hankkeet':
+        selectedLayerIds = ['projects', 'projectClusterResults'];
+        break;
+      case '/kartta/kohteet':
+        selectedLayerIds = ['projectObjects', 'projectObjectClusterResults'];
+        break;
+      default:
+        selectedLayerIds = [
+          'projects',
+          'projectObjects',
+          'projectClusterResults',
+          'projectObjectClusterResults',
+        ];
     }
+
     if (selectedLayerIds.length > 0) {
       setVectorItemLayers((prev) => {
         return prev.map((layerState) =>

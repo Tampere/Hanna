@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { codeId } from './code';
 import { isoDateString, nonEmptyString } from './common';
 import { mapSearchSchema, periodSchema } from './project';
+import { dbProjectSchema } from './project/base';
 import { projectTypeSchema } from './project/type';
 
 export const projectObjectUserRoleSchema = z.object({
@@ -92,7 +93,6 @@ export const projectObjectSearchResultSchema = z.object({
   projectObjects: z.array(
     dbProjectObjectSchema
       .pick({
-        projectId: true,
         projectObjectId: true,
         objectName: true,
         startDate: true,
@@ -101,9 +101,16 @@ export const projectObjectSearchResultSchema = z.object({
         objectStage: true,
       })
       .extend({
-        projectName: z.string(),
-        projectType: projectTypeSchema,
-        projectGeom: z.string().nullish(),
+        project: dbProjectSchema
+          .pick({
+            endDate: true,
+            projectId: true,
+            startDate: true,
+            projectName: true,
+            projectType: true,
+            detailplanId: true,
+          })
+          .extend({ geom: z.string().nullish() }),
       }),
   ),
   clusters: z.array(

@@ -95,7 +95,7 @@ export function SelectionInfoBox({
     if (Object.keys(item).includes('projectObjectId')) {
       return (item as ProjectObjectResult).projectObjectId;
     }
-    return item.projectId;
+    return (item as ProjectResult).projectId;
   }
 
   function handleNext() {
@@ -116,7 +116,7 @@ export function SelectionInfoBox({
 
   function getLinkUrl(item: ProjectResult | ProjectObjectResult) {
     if (isProjectObject(item)) {
-      return `/investointihanke/${item?.projectId}/kohde/${item?.projectObjectId}`;
+      return `/investointihanke/${item?.project.projectId}/kohde/${item?.projectObjectId}`;
     } else if (item.projectType === 'investmentProject') {
       return `/investointihanke/${item?.projectId}`;
     } else if (item.projectType === 'detailplanProject') {

@@ -6,6 +6,7 @@ import { Geometry } from 'ol/geom';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { useEffect, useMemo } from 'react';
+import { ProjectObjectSearchParentProject } from 'tre-hanna-shared/src/schema/project';
 
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import {
@@ -28,6 +29,7 @@ const resultMapContainerStyle = css`
 interface Props {
   projectObjectResults?: ProjectObjectSearchResult;
   projectObjectsLoading?: boolean;
+  projects?: ProjectObjectSearchParentProject[];
 }
 
 function clusterGeoJSON(clusters?: ProjectObjectSearchResult['clusters']) {
@@ -68,13 +70,13 @@ function getProjectsGeoJSON(projectObjects?: ProjectObjectSearchResult['projectO
   return {
     type: 'FeatureCollection',
     features: projectObjects.map((p) => {
-      const geom = p.projectGeom ? JSON.parse(p.projectGeom) : null;
+      const geom = p.project.geom ? JSON.parse(p.project.geom) : null;
       return {
         type: 'Feature',
-        id: p.projectId,
+        id: p.project.projectId,
         geometry: geom,
         properties: {
-          name: p.projectName,
+          name: p.project.projectName,
         },
       };
     }),
@@ -170,7 +172,8 @@ export function ProjectObjectResultsMap(props: Props) {
           setMap({ zoom: Math.floor(zoom), extent });
         }}
         projectObjects={props.projectObjectResults?.projectObjects ?? []}
-        interactiveLayers={['projectObjects', 'projectObjectClusterResults']}
+        projects={props.projects ?? []}
+        interactiveLayers={['projectObjects', 'projectObjectClusterResults', 'projects']}
       />
     </Paper>
   );
