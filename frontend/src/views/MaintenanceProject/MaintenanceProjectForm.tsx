@@ -19,29 +19,28 @@ import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { getRequiredFields } from '@frontend/utils/form';
+import { ProjectOwnerChangeDialog } from '@frontend/views/Project/ProjectOwnerChangeDialog';
 
 import { mergeErrors } from '@shared/formerror';
 import {
-  DbInvestmentProject,
-  InvestmentProject,
-  investmentProjectSchema,
-} from '@shared/schema/project/investment';
+  DbMaintenanceProject,
+  MaintenanceProject,
+  maintenanceProjectSchema,
+} from '@shared/schema/project/maintenance';
 import { hasWritePermission, isAdmin, ownsProject } from '@shared/schema/userPermissions';
-
-import { ProjectOwnerChangeDialog } from './ProjectOwnerChangeDialog';
 
 const newProjectFormStyle = css`
   display: grid;
   margin-top: 16px;
 `;
 
-interface InvestmentProjectFormProps {
+interface MaintenanceProjectFormProps {
   edit: boolean;
-  project?: DbInvestmentProject | null;
+  project?: DbMaintenanceProject | null;
   geom: string | null;
 }
 
-export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
+export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
   const tr = useTranslations();
   const notify = useNotifications();
   const queryClient = useQueryClient();
@@ -62,7 +61,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
     } as const;
   }, [editing]);
 
-  const formDefaultValues = useMemo<Partial<DbInvestmentProject>>(
+  const formDefaultValues = useMemo<Partial<DbMaintenanceProject>>(
     () => ({
       owner: currentUser?.id,
       projectName: '',
@@ -75,19 +74,19 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
     [currentUser],
   );
 
-  const { investmentProject } = trpc.useUtils();
+  const { maintenanceProject } = trpc.useUtils();
   const formValidator = useMemo(() => {
-    const schemaValidation = zodResolver(investmentProjectSchema);
+    const schemaValidation = zodResolver(maintenanceProjectSchema);
 
     return async function formValidation(
-      values: InvestmentProject,
+      values: MaintenanceProject,
       context: any,
-      options: ResolverOptions<InvestmentProject>,
+      options: ResolverOptions<MaintenanceProject>,
     ) {
       const fields = options.names ?? [];
       const isFormValidation = fields && fields.length > 1;
       const serverErrors = isFormValidation
-        ? investmentProject.upsertValidate.fetch(values).catch(() => null)
+        ? maintenanceProject.upsertValidate.fetch(values).catch(() => null)
         : null;
       const shapeErrors = schemaValidation(values, context, options);
       const errors = await Promise.all([serverErrors, shapeErrors]);
@@ -98,30 +97,30 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
     };
   }, []);
 
-  const form = useForm<InvestmentProject>({
+  const form = useForm<MaintenanceProject>({
     mode: 'all',
     resolver: formValidator,
     context: {
-      requiredFields: getRequiredFields(investmentProjectSchema),
+      requiredFields: getRequiredFields(maintenanceProjectSchema),
     },
     defaultValues: props.project ?? formDefaultValues,
   });
 
-  useNavigationBlocker(form.formState.isDirty, 'investmentForm');
+  useNavigationBlocker(form.formState.isDirty, 'maintenanceForm');
   const ownerWatch = form.watch('owner');
 
   useEffect(() => {
     form.reset(props.project ?? formDefaultValues);
   }, [props.project]);
 
-  const projectUpsert = trpc.investmentProject.upsert.useMutation({
+  const projectUpsert = trpc.maintenanceProject.upsert.useMutation({
     onSuccess: async (data) => {
       // Navigate to new url if we are creating a new project
       if (!props.project && data.projectId) {
-        navigate(`/investointihanke/${data.projectId}`);
+        navigate(`/kunnossapitohanke/${data.projectId}`);
       } else {
         await queryClient.invalidateQueries({
-          queryKey: [['investmentProject', 'get'], { input: { projectId: data.projectId } }],
+          queryKey: [['maintenanceProject', 'get'], { input: { projectId: data.projectId } }],
         });
 
         await queryClient.invalidateQueries({
@@ -154,7 +153,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
     }
   }, [form.formState.isSubmitSuccessful, form.reset]);
 
-  const onSubmit = async (data: InvestmentProject | DbInvestmentProject) => {
+  const onSubmit = async (data: MaintenanceProject | DbMaintenanceProject) => {
     const projectOwner = props?.project?.owner
       ? await user.get.fetch({ userId: props.project.owner })
       : null;
@@ -175,7 +174,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
     <>
       <FormProvider {...form}>
         {!props.project && (
-          <Typography variant="overline">{tr('newInvestmentProject.formTitle')}</Typography>
+          <Typography variant="overline">{tr('newMaintenanceProject.formTitle')}</Typography>
         )}
         {props.project && (
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>

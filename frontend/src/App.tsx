@@ -14,21 +14,21 @@ import {
 import SuperJSON from 'superjson';
 
 import { Layout } from '@frontend/Layout';
+import { trpc } from '@frontend/client';
+import { asyncUserAtom, sessionExpiredAtom } from '@frontend/stores/auth';
+import { useTranslations } from '@frontend/stores/lang';
 import { DetailplanProject } from '@frontend/views/DetailplanProject/DetailplanProject';
+import { MaintenanceProject } from '@frontend/views/MaintenanceProject/MaintenanceProject';
 import { Management } from '@frontend/views/Management';
+import { Manual } from '@frontend/views/Manual/Manual';
 import { NotFound } from '@frontend/views/NotFound';
 import { InvestmentProject } from '@frontend/views/Project/InvestmentProject';
 import { ProjectObject } from '@frontend/views/ProjectObject/ProjectObject';
 import { SapDebugView } from '@frontend/views/SapDebug';
+import { SapReports } from '@frontend/views/SapReports';
+import { SearchPage } from '@frontend/views/Search';
+import { SessionRenewed } from '@frontend/views/SessionRenewed';
 import WorkTable from '@frontend/views/WorkTable/WorkTable';
-
-import { trpc } from './client';
-import { asyncUserAtom, sessionExpiredAtom } from './stores/auth';
-import { useTranslations } from './stores/lang';
-import { Manual } from './views/Manual/Manual';
-import { SapReports } from './views/SapReports';
-import { SearchPage } from './views/Search';
-import { SessionRenewed } from './views/SessionRenewed';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -48,6 +48,8 @@ const router = createBrowserRouter(
           element={<ProjectObject projectType="investointihanke" />}
         />
         <Route path="kohde/uusi" element={<ProjectObject projectType="investointihanke" />} />
+        <Route path="kunnossapitohanke/luo" element={<MaintenanceProject />} />
+        <Route path="kunnossapitohanke/:projectId" element={<MaintenanceProject />} />
         <Route path="asemakaavahanke/luo" element={<DetailplanProject />} />
         <Route path="asemakaavahanke/:projectId" element={<DetailplanProject />} />
         <Route

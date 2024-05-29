@@ -3,24 +3,17 @@ import { z } from 'zod';
 
 import { getPermissionContext } from '@backend/components/project/base';
 import {
-  getParticipatedProjects,
   getProject,
   projectUpsert,
   validateUpsertProject,
-} from '@backend/components/project/investment';
-import { listProjects } from '@backend/components/project/search';
+} from '@backend/components/project/maintenance';
 import { TRPC } from '@backend/router';
 
 import { projectIdSchema } from '@shared/schema/project/base';
-import { investmentProjectSchema } from '@shared/schema/project/investment';
-import {
-  hasPermission,
-  hasWritePermission,
-  isAdmin,
-  ownsProject,
-} from '@shared/schema/userPermissions';
+import { maintenanceProjectSchema } from '@shared/schema/project/maintenance';
+import { hasPermission, hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
-export const createInvestmentProjectRouter = (t: TRPC) => {
+export const createMaintenanceProjectRouter = (t: TRPC) => {
   return t.router({
     get: t.procedure.input(projectIdSchema).query(async ({ input }) => {
       const { projectId } = input;
@@ -33,12 +26,12 @@ export const createInvestmentProjectRouter = (t: TRPC) => {
 
     upsert: t.procedure
       .input(
-        z.object({ project: investmentProjectSchema, keepOwnerRights: z.boolean().optional() }),
+        z.object({ project: maintenanceProjectSchema, keepOwnerRights: z.boolean().optional() }),
       )
       .mutation(async ({ input, ctx }) => {
         const { project, keepOwnerRights } = input;
 
-        if (!hasPermission(ctx.user, 'investmentProject.write') && !project.projectId) {
+        if (!hasPermission(ctx.user, 'maintenanceProject.write') && !project.projectId) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
         }
         if (project.projectId) {
@@ -53,11 +46,5 @@ export const createInvestmentProjectRouter = (t: TRPC) => {
         }
         return await projectUpsert(project, ctx.user, keepOwnerRights);
       }),
-    getParticipatedProjects: t.procedure.query(async ({ ctx }) => {
-      if (isAdmin(ctx.user.role)) {
-        return listProjects({ projectType: 'investmentProject' });
-      }
-      return getParticipatedProjects(ctx.user.id);
-    }),
   });
 };

@@ -89,17 +89,21 @@ export const createDetailplanProjectRouter = (t: TRPC) => {
       )
       .mutation(async ({ input, ctx }) => {
         const { project, keepOwnerRights } = input;
+
         if (!hasPermission(ctx.user, 'detailplanProject.write') && !project.projectId) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
-        } else if (project.projectId) {
-          const permissionCtx = await getPermissionContext(project.projectId);
-          if (hasWritePermission(ctx.user, permissionCtx) || ownsProject(ctx.user, permissionCtx)) {
-            return await projectUpsert(project, ctx.user, keepOwnerRights);
-          }
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
-        } else {
-          return await projectUpsert(project, ctx.user, keepOwnerRights);
         }
+        if (project.projectId) {
+          const permissionCtx = await getPermissionContext(project.projectId);
+
+          if (
+            !hasWritePermission(ctx.user, permissionCtx) &&
+            !ownsProject(ctx.user, permissionCtx)
+          ) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
+          }
+        }
+        return await projectUpsert(project, ctx.user, keepOwnerRights);
       }),
 
     sendNotificationMail: t.procedure

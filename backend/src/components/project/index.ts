@@ -151,7 +151,7 @@ export async function updateProjectGeometry(
     UPDATE app.project
     SET geom = featureCollection.resultGeom
     FROM featureCollection
-    WHERE id = ${id} AND ${id} IN (SELECT id FROM app.project_investment)
+    WHERE id = ${id} AND ${id} IN (SELECT id FROM app.project_investment UNION SELECT id FROM app.project_maintenance)
     RETURNING id as "projectId", ST_AsGeoJSON(geom) AS geom
   `);
 }

@@ -81,8 +81,6 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
         userinfo: UserinfoResponse & { roles?: RoleClaim[] },
         authDone: (err: Error | null, user?: PassportUser) => void,
       ) {
-        logger.info(`TOKENSET: ${JSON.stringify(tokenset, null, 2)}`);
-        logger.info(`USERINFO: ${JSON.stringify(userinfo, null, 2)}`);
         const id = userinfo.sub;
         const role = getUserRole(userinfo?.roles ?? []);
         if (id) {

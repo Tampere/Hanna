@@ -79,6 +79,7 @@ interface Props {
 const projectUrlIdentifier = {
   detailplanProject: 'asemakaavahanke',
   investmentProject: 'investointihanke',
+  maintenanceProject: 'kunnossapitohanke',
 };
 
 export function RelationsContainer({
@@ -106,7 +107,7 @@ export function RelationsContainer({
             id="project-relation-search"
             options={
               projects?.data?.filter(
-                (project) => !unrelatableProjectIds.includes(project.projectId)
+                (project) => !unrelatableProjectIds.includes(project.projectId),
               ) ?? []
             }
             noOptionsText={tr('projectRelations.noFoundProjects')}

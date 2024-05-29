@@ -8,6 +8,7 @@ import { createCompanyRouter } from '@backend/router/company';
 import { createProjectRouter } from '@backend/router/project/base';
 import { createDetailplanProjectRouter } from '@backend/router/project/detailplan';
 import { createInvestmentProjectRouter } from '@backend/router/project/investment';
+import { createMaintenanceProjectRouter } from '@backend/router/project/maintenance';
 import { createProjectObjectRouter } from '@backend/router/projectObject';
 import { createSapRouter } from '@backend/router/sap';
 import { createTaskRouter } from '@backend/router/task';
@@ -42,6 +43,7 @@ const t = initTRPC.context<Context>().create({
 export const appRouter = t.router({
   project: createProjectRouter(t),
   investmentProject: createInvestmentProjectRouter(t),
+  maintenanceProject: createMaintenanceProjectRouter(t),
   detailplanProject: createDetailplanProjectRouter(t),
   projectObject: createProjectObjectRouter(t),
   code: createCodeRouter(t),

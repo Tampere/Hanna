@@ -10,6 +10,7 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Skeleton,
   Typography,
 } from '@mui/material';
 import dayjs from 'dayjs';
@@ -86,6 +87,14 @@ export function Toolbar() {
               <ListItemText>{tr('newProject.newInvestmentProject')}</ListItemText>
             </MenuItem>
           )}
+          {auth && hasPermission(auth, 'maintenanceProject.write') && (
+            <MenuItem component={Link} to="/kunnossapitohanke/luo">
+              <ListItemIcon>
+                <Add />
+              </ListItemIcon>
+              <ListItemText>{tr('newProject.newMaintenanceProject')}</ListItemText>
+            </MenuItem>
+          )}
           {auth && hasPermission(auth, 'detailplanProject.write') && (
             <MenuItem component={Link} to="/asemakaavahanke/luo">
               <ListItemIcon>
@@ -116,6 +125,7 @@ const projectCardStyle = (highlighted: boolean) => css`
 const projectTypeRootUrl = {
   detailplanProject: '/asemakaavahanke',
   investmentProject: '/investointihanke',
+  maintenanceProject: '/kunnossapitohanke',
 };
 
 function ProjectCard({
@@ -182,6 +192,46 @@ function ProjectCard({
         </span>
       </Card>
     </CardActionArea>
+  );
+}
+
+function ProjectCardSkeleton({ count = 1 }: { count: number }) {
+  return (
+    <Box
+      css={css`
+        animation: fadeIn 1s ease-in-out;
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      `}
+    >
+      {Array.from({ length: count }).map((_, idx) => (
+        <Box
+          key={idx}
+          css={css`
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+          `}
+        >
+          <Skeleton
+            variant="rectangular"
+            height={62}
+            css={css`
+              border-radius: 6px;
+            `}
+          />
+        </Box>
+      ))}
+    </Box>
   );
 }
 
@@ -266,19 +316,23 @@ function SearchResults({ results, loading, activeProjectId }: SearchResultsProps
           {tr('projectSearch.generateReport')}
         </AsyncJobButton>
       </Box>
-      {results?.length > 0
-        ? results.map((result) => (
-            <ProjectCard
-              result={result}
-              key={result.projectId}
-              highlighted={result.projectId === activeProjectId}
-            />
-          ))
-        : !loading && (
-            <Box>
-              <p>{tr('itemSearch.noResults')}</p>
-            </Box>
-          )}
+      {loading ? (
+        <ProjectCardSkeleton count={3} />
+      ) : results?.length > 0 ? (
+        results.map((result) => (
+          <ProjectCard
+            result={result}
+            key={result.projectId}
+            highlighted={result.projectId === activeProjectId}
+          />
+        ))
+      ) : (
+        !loading && (
+          <Box>
+            <p>{tr('itemSearch.noResults')}</p>
+          </Box>
+        )
+      )}
     </Box>
   );
 }
