@@ -8,7 +8,6 @@ export const investmentProjectSchema = upsertProjectSchema.extend({
   projectId: z.string().optional(),
   parentId: z.string().optional(),
   owner: nonEmptyString,
-  personInCharge: nonEmptyString,
   committees: z.array(codeId).superRefine((committees) => committees.length > 0),
   geom: z.string().nullable().optional(),
 });

@@ -1,0 +1,1 @@
+ALTER TABLE app.project_investment DROP COLUMN person_in_charge;

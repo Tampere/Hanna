@@ -24,7 +24,6 @@ const selectProjectFragment = sql.fragment`
     project_name AS "projectName",
     description,
     owner,
-    person_in_charge AS "personInCharge",
     project.start_date AS "startDate",
     project.end_date AS "endDate",
     geohash,
@@ -79,24 +78,16 @@ export async function projectUpsert(
 
     const id = await baseProjectUpsert(tx, project, user, keepOwnerRights);
 
-    const data = {
-      id,
-      person_in_charge: project.personInCharge,
-    };
-
-    const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
-    const values = Object.values(data);
-
     const upsertResult = project.projectId
       ? await tx.one(sql.type(projectIdSchema)`
         UPDATE app.project_investment
-        SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
+        SET id = ${id}
         WHERE id = ${project.projectId}
         RETURNING id AS "projectId"
       `)
       : await tx.one(sql.type(projectIdSchema)`
-        INSERT INTO app.project_investment (${sql.join(identifiers, sql.fragment`,`)})
-        VALUES (${sql.join(values, sql.fragment`,`)})
+        INSERT INTO app.project_investment (id)
+        VALUES (${id})
         RETURNING id AS "projectId"
       `);
 
