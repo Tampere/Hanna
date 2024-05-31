@@ -104,11 +104,11 @@ jobs:
       # Start up the stack & wait for all services to be healthy
       - run: CI=1 docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d --wait
         timeout-minutes: 10
-      # Output container logs if any of the previous steps failed
-      - run: docker compose logs
-        if: failure()
       # Execute the E2E tests
       - run: npm test -- --workers=1
+      # Output container logs if any of the previous steps failed
+      - run: docker compose logs backend frontend
+        if: failure()
 
   build:
     name: Build

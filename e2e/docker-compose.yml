@@ -78,6 +78,8 @@ services:
       POSTGRES_USER: app_user_dev
       POSTGRES_PASSWORD: DevPassword
       POSTGRES_DB: app_dev_db
+    ports:
+      - '127.0.0.1:5432:5432'
     volumes:
       - ../docker/db/init/20-init.sql:/docker-entrypoint-initdb.d/20-init.sql
     healthcheck:
