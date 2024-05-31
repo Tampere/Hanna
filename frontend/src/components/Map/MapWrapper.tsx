@@ -45,6 +45,7 @@ import {
   createSelectionLayer,
   deleteSelectedFeatures,
   getGeoJSONFeaturesString,
+  getSelectedDrawLayerFeatures,
 } from './mapInteractions';
 import { mapOptions } from './mapOptions';
 
@@ -165,7 +166,11 @@ export function MapWrapper(props: Props) {
   }, []);
 
   const registerModifyInteraction = useMemo(
-    () => createModifyInteraction({ source: selectionSource, onModifyEnd: () => setDirty(true) }),
+    () =>
+      createModifyInteraction({
+        source: selectionSource,
+        onModifyEnd: () => setDirty(true),
+      }),
     [],
   );
 
@@ -227,10 +232,16 @@ export function MapWrapper(props: Props) {
       case 'editFeature':
         setInteractions([registerModifyInteraction]);
         break;
+      case 'clearSelectedFeature':
+        setFeatureSelector(RESET);
+        selectionSource.clear();
+        break;
       case 'deleteFeature':
         setDirty(true);
-        setFeatureSelector(RESET);
-        deleteSelectedFeatures(drawSource, selectionSource);
+        setFeatureSelector((prev) => ({
+          features: deleteSelectedFeatures(drawSource, selectionSource),
+          pos: prev.pos,
+        }));
         break;
       default:
         setInteractions(null);
@@ -317,12 +328,14 @@ export function MapWrapper(props: Props) {
           <MapToolbar
             toolsDisabled={{
               tracedFeature: featureSelector.features.length === 0,
-              editFeature: featureSelector.features.length === 0,
-              deleteFeature: featureSelector.features.length === 0,
+              editFeature: getSelectedDrawLayerFeatures(featureSelector.features).length === 0,
+              clearSelectedFeature: featureSelector.features.length === 0,
+              deleteFeature: getSelectedDrawLayerFeatures(featureSelector.features).length === 0,
             }}
             onToolChange={(tool) => setSelectedTool(tool)}
             onSaveClick={() => {
               selectionSource.clear();
+              setFeatureSelector(RESET);
               setDirty(false);
               props.drawOptions?.onFeaturesSaved?.(
                 getGeoJSONFeaturesString(
@@ -333,7 +346,10 @@ export function MapWrapper(props: Props) {
             }}
             saveDisabled={!dirty}
             onUndoClick={() => {
-              selectionSource.clear();
+              setFeatureSelector((prev) => ({
+                features: deleteSelectedFeatures(drawSource, selectionSource),
+                pos: prev.pos,
+              }));
               setDirty(false);
               addFeaturesFromGeoJson(drawSource, props.drawOptions?.geoJson);
             }}

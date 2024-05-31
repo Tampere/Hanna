@@ -88,7 +88,7 @@ export function CurrencyInput(props: Readonly<Props>) {
             }
           : style
       }
-      suffix="€"
+      suffix="&nbsp;€"
       // NOTE: react-currency-input-field negative values broken with 'fi-FI' locale
       // groupSeparator and decimalSeparator overrides the en-US locale but somewhere
       // in that library logic fi-FI alters the behaviour of negative values, need to set this

@@ -69,7 +69,7 @@ export function ProjectObjectDetails<
         {dayjs(projectObject.startDate).format(tr('date.format'))} –{' '}
         {dayjs(projectObject.endDate).format(tr('date.format'))}
       </dd>
-      <dt>{tr('itemInfoBox.objectStage')}</dt>
+      <dt>{tr('itemInfoBox.objectStage')}:</dt>
       <dd>{objectStageCodes.get(projectObject.objectStage)?.[lang]}</dd>
       <dt>{tr('itemInfoBox.projectName')}:</dt>
       <dd

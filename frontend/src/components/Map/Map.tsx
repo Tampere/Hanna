@@ -7,6 +7,7 @@ import { Geometry } from 'ol/geom';
 import { defaults as defaultInteractions } from 'ol/interaction';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
+import VectorImageLayer from 'ol/layer/VectorImage';
 import { ProjectionLike } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
 import WMTS from 'ol/source/WMTS';
@@ -24,7 +25,7 @@ interface Props {
   baseMapLayers: TileLayer<WMTS>[];
   children?: ReactNode;
   extent: number[] | null;
-  wfsLayers?: VectorLayer<VectorSource<Feature<Geometry>>>[];
+  wfsLayers?: VectorImageLayer<VectorSource<Feature<Geometry>>>[];
   vectorLayers?: VectorLayer<VectorSource<Feature<Geometry>>>[];
   interactions?: MapInteraction[] | null;
   interactionLayers?: VectorLayer<VectorSource<Feature<Geometry>>>[];

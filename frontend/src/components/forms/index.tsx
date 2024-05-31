@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { Help } from '@mui/icons-material';
-import { FormControl, FormLabel, Tooltip } from '@mui/material';
+import { Box, FormControl, FormLabel, IconButton, Typography } from '@mui/material';
 import { Dayjs } from 'dayjs';
 import React, { useMemo, useState } from 'react';
 import {
@@ -16,6 +16,93 @@ import { useTranslations } from '@frontend/stores/lang';
 import { isTranslationKey } from '@shared/language';
 
 import { DatePicker } from './DatePicker';
+
+function FormTooltip({
+  open,
+  setOpen,
+  text,
+}: {
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  text?: string;
+}) {
+  return (
+    <Box
+      css={css`
+        transform: translateY(-2px);
+        animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        display: flex;
+        align-items: center;
+      `}
+    >
+      {open && text && (
+        <Box
+          css={css`
+            z-index: 400;
+            animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            @keyframes fadeIn {
+              from {
+                opacity: 0;
+              }
+              to {
+                opacity: 1;
+              }
+            }
+            position: relative;
+            right: 6px;
+            bottom: 2px;
+            border-radius: 4px;
+            padding: 4px 6px;
+            background-color: rgba(97, 97, 97, 0.92);
+            border-color: rgba(97, 97, 97, 0.92);
+            :after {
+              content: '';
+              position: absolute;
+              top: 45%;
+              right: -5px;
+              width: 0;
+              height: 0;
+              border-top: 5px solid transparent;
+              border-bottom: 5px solid transparent;
+              border-left: 5px solid black;
+              border-left-color: inherit;
+            }
+          `}
+        >
+          <Typography
+            css={css`
+              font-size: 0.65rem;
+              font-weight: 500;
+              color: white;
+            `}
+          >
+            {text}
+          </Typography>
+        </Box>
+      )}
+      <IconButton
+        css={css`
+          height: 1em;
+          width: 1em;
+          border-radius: 0;
+          border-bottom: 2px dotted red;
+          cursor: pointer;
+        `}
+        onClick={() => setOpen(!open)}
+      >
+        <Help sx={{ color: 'red' }} fontSize="small" />
+      </IconButton>
+    </Box>
+  );
+}
 
 interface CustomFormLabelProps {
   htmlFor?: string;
@@ -49,7 +136,14 @@ export function CustomFormLabel({
         {required && <span>&nbsp;*</span>}
       </span>
       {error && (
-        <Tooltip
+        <FormTooltip
+          open={open}
+          setOpen={setOpen}
+          text={
+            error.type === 'custom' && isTranslationKey(error.message) ? tr(error.message) : tooltip
+          }
+        />
+        /*  <Tooltip
           arrow
           placement="left-end"
           open={open}
@@ -63,7 +157,7 @@ export function CustomFormLabel({
           }
         >
           <Help sx={{ color: 'red' }} onClick={() => setOpen(!open)} fontSize="small" />
-        </Tooltip>
+        </Tooltip> */
       )}
     </FormLabel>
   );

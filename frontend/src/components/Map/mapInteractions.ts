@@ -1,4 +1,4 @@
-import { Feature, Map as OLMap } from 'ol';
+import { Collection, Feature, Map as OLMap } from 'ol';
 import { click, primaryAction } from 'ol/events/condition';
 import OLGeoJSON, { GeoJSONFeature } from 'ol/format/GeoJSON';
 import { Geometry } from 'ol/geom';
@@ -106,9 +106,15 @@ export function createSelectInteraction(opts: SelectOptions) {
       multi: opts?.multi ?? false,
       layers: opts.filterLayers,
     });
+
     select.set('type', 'customInteraction');
     select.on('select', (e) => {
       const selectedFeatures = e.target.getFeatures().getArray();
+
+      selectedFeatures.forEach((f: Feature<Geometry>) => {
+        f.setProperties({ layer: select.getLayer(f).getProperties().id }, true);
+      });
+
       opts.source.clear();
       if (!opts.delegateFeatureAdding) {
         opts.source.addFeatures(selectedFeatures);
@@ -131,10 +137,12 @@ interface ModifyOptions {
 export function createModifyInteraction(opts: ModifyOptions) {
   return function registerInteraction(map: OLMap) {
     const modify = new Modify({
-      source: opts.source,
+      features: new Collection(getSelectedDrawLayerFeatures(opts.source.getFeatures())),
     });
-    opts.source.set('type', 'customInteraction');
-    modify.on('modifyend', () => opts.onModifyEnd?.());
+    modify.set('type', 'customInteraction');
+    modify.on('modifyend', () => {
+      opts.onModifyEnd?.();
+    });
     map.addInteraction(modify);
   };
 }
@@ -179,11 +187,15 @@ export function deleteSelectedFeatures(
   targetSource: VectorSource<Feature<Geometry>>,
   selectionSource: VectorSource<Feature<Geometry>>,
 ) {
-  for (const feature of selectionSource.getFeatures()) {
+  for (const feature of getSelectedDrawLayerFeatures(selectionSource.getFeatures())) {
     targetSource.removeFeature(feature);
     selectionSource.removeFeature(feature);
   }
-  selectionSource.clear();
+  return selectionSource.getFeatures();
+}
+
+export function getSelectedDrawLayerFeatures(features: Feature<Geometry>[]) {
+  return features.filter((f) => f.getProperties().layer === 'drawLayer');
 }
 
 export function addFeaturesFromGeoJson(
