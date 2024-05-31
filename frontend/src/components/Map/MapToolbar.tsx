@@ -1,6 +1,7 @@
 import { css } from '@emotion/react';
 import {
   Check,
+  Clear,
   DeleteForeverTwoTone,
   EditTwoTone,
   PanToolAltTwoTone,
@@ -51,6 +52,7 @@ export type ToolType =
   | 'newFeature'
   | 'tracedFeature'
   | 'editFeature'
+  | 'clearSelectedFeature'
   | 'deleteFeature';
 
 interface Tool {
@@ -80,6 +82,11 @@ const tools: readonly Tool[] = [
     type: 'editFeature',
     icon: <EditTwoTone />,
     tooltip: 'mapEdit.editFeatureTooltip',
+  },
+  {
+    type: 'clearSelectedFeature',
+    icon: <Clear />,
+    tooltip: 'mapEdit.clearSelectedFeatureTooltip',
   },
   {
     type: 'deleteFeature',

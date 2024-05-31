@@ -91,6 +91,9 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   & .cell-writable {
     cursor: pointer;
   }
+  & .MuiDataGrid-virtualScroller {
+    min-height: 125px;
+  }
 `;
 
 type UpdateableFields = keyof Omit<WorkTableRow, 'id' | 'projectLink'>;
@@ -124,6 +127,22 @@ const searchAtom = atom<WorkTableSearch>({
   startDate: dayjs([thisYear, 0, 1]).format(isoDateFormat).toString(),
   endDate: dayjs([thisYear, 11, 31]).format(isoDateFormat).toString(),
 });
+
+function NoRowsOverlay() {
+  const tr = useTranslations();
+  return (
+    <Box
+      css={css`
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      `}
+    >
+      <Typography variant="h6">{tr('workTable.noData')}</Typography>
+    </Box>
+  );
+}
 
 export default function WorkTable() {
   const [searchParams, setSearchParams] = useAtom(searchAtom);
@@ -438,6 +457,7 @@ export default function WorkTable() {
         ref={summaryRowRef}
       />
       <DataGrid
+        slots={{ noRowsOverlay: NoRowsOverlay }}
         onResize={handleSummaryRowResize}
         isCellEditable={({ row, field }: { row: WorkTableRow; field: string }) => {
           if (['budget', 'forecast', 'kayttosuunnitelmanMuutos'].includes(field)) {

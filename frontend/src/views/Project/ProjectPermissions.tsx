@@ -23,6 +23,7 @@ import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
+import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 
 import { ProjectWritePermission } from '@shared/schema/project/base';
 import { ownsProject } from '@shared/schema/userPermissions';
@@ -35,6 +36,7 @@ interface Props {
 export function ProjectPermissions({ projectId, ownerId }: Props) {
   const notify = useNotifications();
   const tr = useTranslations();
+
   const user = useAtomValue(asyncUserAtom);
   const {
     data: userPermissions,
@@ -46,6 +48,9 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
   const permissionsUpdate = trpc.project.updatePermissions.useMutation();
   const [searchterm, setSearchterm] = useState('');
   const [localUserPermissions, setLocalUserPermissions] = useState<ProjectWritePermission[]>([]);
+  const isDirty =
+    !isLoading && !isError && diff(userPermissions, localUserPermissions).length !== 0;
+  useNavigationBlocker(isDirty, 'projectPermissions');
 
   const isProjectOwner = ownsProject(user, { owner: ownerId ?? '', writeUsers: [] });
 
@@ -91,7 +96,11 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
     <Box>
       <Box
         css={css`
+          position: sticky;
+          top: 0;
           display: flex;
+          background-color: white;
+          z-index: 200;
           @media screen and (max-width: 1150px) {
             flex-direction: column;
             align-items: flex-start;

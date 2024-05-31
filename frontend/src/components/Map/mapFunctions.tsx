@@ -3,7 +3,7 @@ import { Extent, getTopLeft, getWidth } from 'ol/extent';
 import GeoJSON from 'ol/format/GeoJSON';
 import { Geometry } from 'ol/geom';
 import TileLayer from 'ol/layer/Tile';
-import VectorLayer from 'ol/layer/Vector';
+import VectorImageLayer from 'ol/layer/VectorImage';
 import { bbox } from 'ol/loadingstrategy';
 import { Projection, get as getProjection } from 'ol/proj';
 import { Units } from 'ol/proj/Units';
@@ -163,7 +163,7 @@ export function createVectorSource(url: string) {
 }
 
 export function createWFSLayer(layer: WFSLayer) {
-  return new VectorLayer({
+  return new VectorImageLayer({
     source: createVectorSource(layer.url),
     style: (feature) =>
       new Style({
