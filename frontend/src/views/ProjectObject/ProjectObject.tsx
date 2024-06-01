@@ -213,7 +213,7 @@ export function ProjectObject(props: Props) {
               projectId={routeParams.projectId}
               projectType={props.projectType}
               projectObjectId={projectObjectId}
-              userIsOwner={isOwner}
+              userCanModify={isOwner || canWrite}
             />
           )}
         </Paper>
