@@ -153,7 +153,7 @@ export const createProjectObjectRouter = (t: TRPC) => {
 
     delete: t.procedure
       .input(deleteProjectObjectSchema)
-      .use(withAccess(ownsProject))
+      .use(withAccess((usr, ctx) => ownsProject(usr, ctx) || hasWritePermission(usr, ctx)))
       .mutation(async ({ input, ctx }) => {
         const { projectObjectId } = input;
         return await deleteProjectObject(projectObjectId, ctx.user);

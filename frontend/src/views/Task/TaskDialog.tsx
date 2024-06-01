@@ -114,7 +114,7 @@ export function TaskDialog(props: Readonly<Props>) {
       </DialogContent>
       <DialogActions css={dialogActionsStyle}>
         <DeleteTaskDialog
-          disabled={!isOwner}
+          disabled={!isOwner && !canWrite}
           taskId={task.taskId}
           onDeleted={() => {
             invalidateTasks();
