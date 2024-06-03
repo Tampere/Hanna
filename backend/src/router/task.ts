@@ -257,7 +257,7 @@ export const createTaskRouter = (t: TRPC) => {
 
     delete: t.procedure
       .input(taskIdSchema)
-      .use(withAccess((usr, ctx) => ownsProject(usr, ctx)))
+      .use(withAccess((usr, ctx) => ownsProject(usr, ctx) || hasWritePermission(usr, ctx)))
       .mutation(async ({ input, ctx }) => {
         return deleteTask(input.taskId, ctx.user.id);
       }),
