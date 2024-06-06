@@ -93,8 +93,8 @@ export const PROJECT_AREA_STYLE = new Style({
   }),
 });
 
-const _PROJ_OBJ_FILL = 'rgb(0, 0, 255, 0.4)';
-const _PROJ_OBJ_STROKE = 'rgb(0, 0, 255)';
+const _PROJ_OBJ_FILL = 'rgb(66, 111, 245, 0.4)';
+const _PROJ_OBJ_STROKE = 'rgb(66, 111, 245)';
 const _PROJ_OBJ_STROKE_WIDTH = 2;
 
 export const PROJ_OBJ_STYLE = new Style({
@@ -104,5 +104,19 @@ export const PROJ_OBJ_STYLE = new Style({
   stroke: new Stroke({
     color: _PROJ_OBJ_STROKE,
     width: _PROJ_OBJ_STROKE_WIDTH,
+  }),
+});
+
+const _PROJ_OBJ_DRAW_FILL = 'rgb(0, 0, 255, 0.4)';
+const _PROJ_OBJ_DRAW_STROKE = 'rgb(0, 0, 255)';
+const _PROJ_OBJ_DRAW_STROKE_WIDTH = 2;
+
+export const PROJ_OBJ_DRAW_STYLE = new Style({
+  fill: new Fill({
+    color: _PROJ_OBJ_DRAW_FILL,
+  }),
+  stroke: new Stroke({
+    color: _PROJ_OBJ_DRAW_STROKE,
+    width: _PROJ_OBJ_DRAW_STROKE_WIDTH,
   }),
 });

@@ -24,6 +24,7 @@ import proj4 from 'proj4';
  * @see https://openlayers.org/en/latest/apidoc/module-ol_source_WMTS-WMTS.html
  */
 import { WFSLayer } from '@frontend/components/Map/mapOptions';
+import { AtLeast } from '@frontend/stores/misc';
 
 /**
  * Default map projection is EPSG:3857 Web Mercator. Uncommon projections,
@@ -237,4 +238,27 @@ export function getFeatureItemIds(features: Feature<Geometry>[]) {
     )
     .flat(1)
     .filter(Boolean);
+}
+
+export function getProjectObjectGeoJSON<T extends Record<string, any>>(
+  projectObjects?: AtLeast<T, 'geom' | 'projectObjectId' | 'objectName'>[],
+) {
+  if (!projectObjects || projectObjects.length === 0) {
+    return null;
+  }
+
+  return {
+    type: 'FeatureCollection',
+    features: projectObjects.map((p) => {
+      const geom = p.geom && typeof p.geom === 'string' ? JSON.parse(p.geom) : null;
+      return {
+        type: 'Feature',
+        id: p.projectObjectId,
+        geometry: geom,
+        properties: {
+          name: p.objectName,
+        },
+      };
+    }),
+  };
 }
