@@ -67,6 +67,12 @@ export const dbProjectObjectSchema = newProjectObjectSchema.extend({
   }),
 });
 
+export const dbProjectObjectGeometrySchema = dbProjectObjectSchema.pick({
+  geom: true,
+  projectObjectId: true,
+  objectName: true,
+});
+
 export const projectObjectSearchSchema = z.object({
   limit: z.number().int().optional(),
   projectObjectName: z.string().optional(),

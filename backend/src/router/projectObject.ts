@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { getPermissionContext as getProjectPermissionCtx } from '@backend/components/project/base';
 import {
   deleteProjectObject,
+  getGeometriesByProjectId,
   getPermissionContext,
   getProjectObject,
   getProjectObjectBudget,
@@ -92,6 +93,12 @@ export const createProjectObjectRouter = (t: TRPC) => {
       .input(z.object({ projectId: nonEmptyString }))
       .query(async ({ input }) => {
         return getProjectObjectsByProjectId(input.projectId);
+      }),
+
+    getGeometriesByProjectId: t.procedure
+      .input(z.object({ projectId: nonEmptyString }))
+      .query(async ({ input }) => {
+        return getGeometriesByProjectId(input.projectId);
       }),
 
     upsertValidate: t.procedure.input(z.any()).query(async ({ input }) => {

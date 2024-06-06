@@ -8,6 +8,7 @@ import VectorSource from 'ol/source/Vector';
 import { useEffect, useMemo } from 'react';
 
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
+import { getProjectObjectGeoJSON } from '@frontend/components/Map/mapFunctions';
 import {
   addFeaturesFromGeoJson,
   featuresFromGeoJSON,
@@ -76,27 +77,6 @@ function getProjectsGeoJSON(projects?: ProjectSearchResult['projects']) {
         geometry: geom,
         properties: {
           name: p.projectName,
-        },
-      };
-    }),
-  };
-}
-
-function getProjectObjectGeoJSON(projectObjects?: ProjectObjectSearchResult['projectObjects']) {
-  if (!projectObjects || projectObjects.length === 0) {
-    return null;
-  }
-
-  return {
-    type: 'FeatureCollection',
-    features: projectObjects.map((p) => {
-      const geom = p.geom ? JSON.parse(p.geom) : null;
-      return {
-        type: 'Feature',
-        id: p.projectObjectId,
-        geometry: geom,
-        properties: {
-          name: p.objectName,
         },
       };
     }),

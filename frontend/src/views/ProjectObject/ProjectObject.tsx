@@ -10,12 +10,13 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
+import { getProjectObjectGeoJSON } from '@frontend/components/Map/mapFunctions';
 import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
-import { PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
+import { PROJ_OBJ_DRAW_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
-import { getProjectsLayer } from '@frontend/stores/map';
+import { getProjectObjectsLayer, getProjectsLayer } from '@frontend/stores/map';
 import { ProjectTypePath } from '@frontend/types';
 import Tasks from '@frontend/views/Task/Tasks';
 
@@ -118,6 +119,7 @@ export function ProjectObject(props: Props) {
   const geometryUpdate = trpc.projectObject.updateGeometry.useMutation({
     onSuccess: () => {
       projectObject.refetch();
+      projectObjectGeometries.refetch();
       notify({
         severity: 'success',
         title: tr('projectObject.notifyGeometryUpdateTitle'),
@@ -133,17 +135,41 @@ export function ProjectObject(props: Props) {
   });
 
   const project = trpc.project.get.useQuery({ projectId }, { enabled: Boolean(projectId) });
+  const projectObjectGeometries = trpc.projectObject.getGeometriesByProjectId.useQuery(
+    { projectId },
+    { enabled: Boolean(projectId) },
+  );
 
   // Create vectorlayer of the project geometry
   const projectSource = useMemo(() => {
     const source = new VectorSource();
     if (project?.data?.geom) {
       const geoJson = JSON.parse(project.data.geom);
+
       const features = geoJson ? featuresFromGeoJSON(geoJson) : [];
       source.addFeatures(features);
     }
     return source;
   }, [project.data]);
+
+  const projectObjectSource = useMemo(() => {
+    const source = new VectorSource();
+    if (projectObjectGeometries?.data) {
+      const geometriesWithouActiveObject = projectObjectGeometries.data.filter(
+        (obj) => obj.projectObjectId !== projectObjectId,
+      );
+      const geoJson = getProjectObjectGeoJSON(geometriesWithouActiveObject);
+
+      const features = geoJson ? featuresFromGeoJSON(geoJson) : [];
+      source.addFeatures(features);
+    }
+
+    return source;
+  }, [projectObjectGeometries.data]);
+
+  const projectObjectLayer = useMemo(() => {
+    return getProjectObjectsLayer(projectObjectSource);
+  }, [projectObjectGeometries.data]);
 
   const projectLayer = useMemo(() => {
     return getProjectsLayer(projectSource);
@@ -251,17 +277,18 @@ export function ProjectObject(props: Props) {
               <MapWrapper
                 drawOptions={{
                   geoJson: projectObject?.data?.geom ?? null,
-                  drawStyle: PROJ_OBJ_STYLE,
+                  drawStyle: PROJ_OBJ_DRAW_STYLE,
                   editable: !projectObjectId || isOwner || canWrite,
                   onFeaturesSaved: (features) => {
                     if (!projectObject.data) {
                       setGeom(features);
+                      projectObjectGeometries.refetch();
                     } else {
                       geometryUpdate.mutate({ projectObjectId, features });
                     }
                   },
                 }}
-                vectorLayers={[projectLayer]}
+                vectorLayers={[projectLayer, projectObjectLayer]}
                 fitExtent="geoJson"
               />
             </Box>

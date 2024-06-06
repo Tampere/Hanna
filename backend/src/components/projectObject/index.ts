@@ -17,6 +17,7 @@ import {
   UpdateGeometry,
   UpdateProjectObject,
   UpsertProjectObject,
+  dbProjectObjectGeometrySchema,
   dbProjectObjectSchema,
   projectObjectSearchResultSchema,
   updateGeometryResultSchema,
@@ -315,6 +316,12 @@ export async function getProjectObjectsByProjectId(projectId: string) {
   return getPool().any(sql.type(dbProjectObjectSchema)`
     ${projectObjectFragment}
     AND project_id = ${projectId}
+  `);
+}
+
+export async function getGeometriesByProjectId(projectId: string) {
+  return getPool().any(sql.type(dbProjectObjectGeometrySchema)`
+    SELECT ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom, id  "projectObjectId", object_name "objectName" FROM app.project_object WHERE project_id = ${projectId};
   `);
 }
 
