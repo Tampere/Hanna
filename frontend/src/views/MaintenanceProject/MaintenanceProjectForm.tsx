@@ -10,6 +10,7 @@ import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
 import { trpc } from '@frontend/client';
+import { ConfirmDialog } from '@frontend/components/dialogs/ConfirmDialog';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { SapProjectIdField } from '@frontend/components/forms/SapProjectIdField';
@@ -47,8 +48,10 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(props.edit);
   const currentUser = useAtomValue(asyncUserAtom);
-  const [displayOwnerChangeDialog, setDisplayOwnerChangeDialog] = useState(false);
-  const { user } = trpc.useUtils();
+  const [ownerChangeDialogOpen, setOwnerChangeDialogOpen] = useState(false);
+  const [keepOwnerRights, setKeepOwnerRights] = useState(false);
+  const [displayInvalidSAPIdDialog, setDisplayInvalidSAPIdDialog] = useState(false);
+  const { user, sap } = trpc.useUtils();
 
   const readonlyProps = useMemo(() => {
     if (editing) {
@@ -148,26 +151,30 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
   });
 
   useEffect(() => {
-    if (form.formState.isSubmitSuccessful && !props.project) {
+    if (form.formState.isSubmitSuccessful && !props.project && !displayInvalidSAPIdDialog) {
       form.reset();
     }
   }, [form.formState.isSubmitSuccessful, form.reset]);
 
   const onSubmit = async (data: MaintenanceProject | DbMaintenanceProject) => {
-    const projectOwner = props?.project?.owner
-      ? await user.get.fetch({ userId: props.project.owner })
-      : null;
-
-    if (
-      projectOwner &&
-      !isAdmin(projectOwner.role) &&
-      !props.project?.writeUsers.includes(projectOwner.id) &&
-      projectOwner?.id !== ownerWatch
-    ) {
-      setDisplayOwnerChangeDialog(true);
+    let validOrEmptySAPId;
+    try {
+      validOrEmptySAPId = data.sapProjectId
+        ? await sap.doesSapProjectIdExist.fetch({
+            projectId: data.sapProjectId,
+          })
+        : true;
+    } catch (error) {
+      validOrEmptySAPId = false;
+    }
+    if (!validOrEmptySAPId) {
+      setDisplayInvalidSAPIdDialog(true);
       return;
     }
-    projectUpsert.mutate({ project: { ...data, geom: props.geom } });
+    projectUpsert.mutate({
+      project: { ...data, geom: props.geom },
+      keepOwnerRights,
+    });
   };
 
   return (
@@ -261,7 +268,22 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
               <UserSelect
                 id={id}
                 value={value}
-                onChange={onChange}
+                onChange={(newUserId) => {
+                  onChange(newUserId);
+
+                  if (props?.project?.owner && newUserId) {
+                    user.get.fetch({ userId: props.project.owner }).then((projectOwner) => {
+                      if (
+                        projectOwner &&
+                        !isAdmin(projectOwner.role) &&
+                        !props.project?.writeUsers.includes(projectOwner.id) &&
+                        projectOwner?.id !== newUserId
+                      ) {
+                        setOwnerChangeDialogOpen(true);
+                      }
+                    });
+                  }
+                }}
                 readOnly={
                   !editing || Boolean(props.project && !ownsProject(currentUser, props.project))
                 }
@@ -351,12 +373,33 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
         </form>
       </FormProvider>
       <ProjectOwnerChangeDialog
-        isOpen={displayOwnerChangeDialog}
-        onCancel={() => setDisplayOwnerChangeDialog(false)}
+        newOwnerId={ownerWatch}
+        isOpen={ownerChangeDialogOpen}
+        onCancel={() => {
+          form.resetField('owner');
+          setKeepOwnerRights(false);
+          setOwnerChangeDialogOpen(false);
+        }}
         onSave={(keepOwnerRights) => {
+          setKeepOwnerRights(keepOwnerRights);
+          setOwnerChangeDialogOpen(false);
+        }}
+      />
+      <ConfirmDialog
+        title={tr('projectForm.invalidSAPId')}
+        content={tr('projectForm.invalidSAPIdConfirmation')}
+        cancelButtonVariant="contained"
+        cancelButtonLabel={tr('cancel')}
+        confirmButtonLabel={tr('genericForm.save')}
+        isOpen={displayInvalidSAPIdDialog}
+        onConfirm={() => {
           const data = form.getValues();
           projectUpsert.mutate({ project: { ...data, geom: props.geom }, keepOwnerRights });
-          setDisplayOwnerChangeDialog(false);
+          setDisplayInvalidSAPIdDialog(false);
+        }}
+        onCancel={() => {
+          form.reset(undefined, { keepValues: true });
+          setDisplayInvalidSAPIdDialog(false);
         }}
       />
     </>

@@ -10,6 +10,7 @@ import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
 import { trpc } from '@frontend/client';
+import { ConfirmDialog } from '@frontend/components/dialogs/ConfirmDialog';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { SapProjectIdField } from '@frontend/components/forms/SapProjectIdField';
@@ -54,7 +55,9 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
   const [editing, setEditing] = useState(!props.project);
   const currentUser = useAtomValue(asyncUserAtom);
   const [nextDetailplanId, setNextDetailplanId] = useState<number | null>(null);
-  const [displayOwnerChangeDialog, setDisplayOwnerChangeDialog] = useState(false);
+  const [ownerChangeDialogOpen, setOwnerChangeDialogOpen] = useState(false);
+  const [keepOwnerRights, setKeepOwnerRights] = useState(false);
+  const [displayInvalidSAPIdDialog, setDisplayInvalidSAPIdDialog] = useState(false);
 
   const readonlyProps = useMemo(() => {
     if (editing) {
@@ -89,7 +92,7 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
     [currentUser],
   );
 
-  const { detailplanProject, user } = trpc.useUtils();
+  const { detailplanProject, user, sap } = trpc.useUtils();
   const formValidator = useMemo(() => {
     const schemaValidation = zodResolver(detailplanProjectSchema);
 
@@ -173,7 +176,7 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
   });
 
   useEffect(() => {
-    if (form.formState.isSubmitSuccessful && !props.project) {
+    if (form.formState.isSubmitSuccessful && !props.project && !displayInvalidSAPIdDialog) {
       form.reset();
     }
   }, [form.formState.isSubmitSuccessful, form.reset]);
@@ -181,20 +184,21 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
   const ownerWatch = form.watch('owner');
 
   const onSubmit = async (data: DetailplanProject | DbDetailplanProject) => {
-    const projectOwner = props?.project?.owner
-      ? await user.get.fetch({ userId: props.project.owner })
-      : null;
-
-    if (
-      projectOwner &&
-      !isAdmin(projectOwner.role) &&
-      !props.project?.writeUsers.includes(projectOwner.id) &&
-      projectOwner?.id !== ownerWatch
-    ) {
-      setDisplayOwnerChangeDialog(true);
+    let validOrEmptySAPId;
+    try {
+      validOrEmptySAPId = data.sapProjectId
+        ? await sap.doesSapProjectIdExist.fetch({
+            projectId: data.sapProjectId,
+          })
+        : true;
+    } catch (error) {
+      validOrEmptySAPId = false;
+    }
+    if (!validOrEmptySAPId) {
+      setDisplayInvalidSAPIdDialog(true);
       return;
     }
-    projectUpsert.mutate({ project: data });
+    projectUpsert.mutate({ project: data, keepOwnerRights });
   };
 
   return (
@@ -288,7 +292,22 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
               <UserSelect
                 id={id}
                 value={value}
-                onChange={onChange}
+                onChange={(newUserId) => {
+                  onChange(newUserId);
+
+                  if (props?.project?.owner && newUserId) {
+                    user.get.fetch({ userId: props.project.owner }).then((projectOwner) => {
+                      if (
+                        projectOwner &&
+                        !isAdmin(projectOwner.role) &&
+                        !props.project?.writeUsers.includes(projectOwner.id) &&
+                        projectOwner?.id !== newUserId
+                      ) {
+                        setOwnerChangeDialogOpen(true);
+                      }
+                    });
+                  }
+                }}
                 readOnly={
                   !editing || Boolean(props.project && !ownsProject(currentUser, props.project))
                 }
@@ -506,12 +525,34 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
         </form>
       </FormProvider>
       <ProjectOwnerChangeDialog
-        isOpen={displayOwnerChangeDialog}
-        onCancel={() => setDisplayOwnerChangeDialog(false)}
+        newOwnerId={ownerWatch}
+        isOpen={ownerChangeDialogOpen}
+        onCancel={() => {
+          form.resetField('owner');
+          setKeepOwnerRights(false);
+          setOwnerChangeDialogOpen(false);
+        }}
         onSave={(keepOwnerRights) => {
+          setKeepOwnerRights(keepOwnerRights);
+          setOwnerChangeDialogOpen(false);
+        }}
+      />
+      <ConfirmDialog
+        title={tr('projectForm.invalidSAPId')}
+        content={tr('projectForm.invalidSAPIdConfirmation')}
+        cancelButtonVariant="contained"
+        cancelButtonLabel={tr('cancel')}
+        confirmButtonLabel={tr('genericForm.save')}
+        isOpen={displayInvalidSAPIdDialog}
+        onConfirm={() => {
           const data = form.getValues();
           projectUpsert.mutate({ project: data, keepOwnerRights });
-          setDisplayOwnerChangeDialog(false);
+
+          setDisplayInvalidSAPIdDialog(false);
+        }}
+        onCancel={() => {
+          form.reset(undefined, { keepValues: true });
+          setDisplayInvalidSAPIdDialog(false);
         }}
       />
     </>

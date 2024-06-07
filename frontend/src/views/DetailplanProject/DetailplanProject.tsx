@@ -194,7 +194,7 @@ export function DetailplanProject() {
           )}
 
           {tabView !== 'default' && (
-            <Box sx={{ p: 2, overflowY: 'auto' }}>
+            <Box sx={{ m: 2, overflowY: 'auto' }}>
               {tabView === 'sidoshankkeet' && (
                 <ProjectRelations editable={userCanModify} projectId={routeParams.projectId} />
               )}

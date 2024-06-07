@@ -72,7 +72,7 @@ export function DetailplanProjectNotification({ projectId, enabled }: Readonly<P
   return isLoading || !preview ? null : (
     <>
       <Box>
-        <FormControl sx={{ mb: 2 }}>
+        <FormControl sx={{ mb: 2, mt: 0.5 }}>
           <InputLabel id="notification-template-label" sx={{ background: '#fff' }}>
             {tr('detailplanProject.notificationTemplate')}
           </InputLabel>

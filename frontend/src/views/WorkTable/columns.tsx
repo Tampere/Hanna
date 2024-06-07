@@ -75,7 +75,7 @@ function MaybeModifiedCell({
 const fieldObjectName = {
   field: 'objectName',
   headerName: 'Kohde',
-  width: 220,
+  width: 300,
   renderCell: (params: GridRenderCellParams<WorkTableRow>) => (
     <Box
       css={css`
@@ -90,7 +90,18 @@ const fieldObjectName = {
       >
         <Launch fontSize={'small'} htmlColor="#aaa" />
       </Link>
-      <b>{params.value}</b>
+      <b
+        title={params.value}
+        css={css`
+          max-height: 40px;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 2;
+          overflow: hidden;
+        `}
+      >
+        {params.value}
+      </b>
     </Box>
   ),
   renderEditCell: (params: GridRenderEditCellParams) => {

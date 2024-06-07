@@ -16,6 +16,7 @@ import {
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
+import { HelpTooltip } from '@frontend/components/HelpTooltip';
 import { FormField } from '@frontend/components/forms';
 import { CurrencyInput, valueTextColor } from '@frontend/components/forms/CurrencyInput';
 import { useTranslations } from '@frontend/stores/lang';
@@ -103,37 +104,60 @@ export function BudgetTable(props: Props) {
         <form onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
           <TableContainer>
             <Table size="small">
-              <TableHead>
+              <TableHead
+                css={css`
+                  & .column-header {
+                    display: flex;
+                    justify-content: flex-end;
+                    align-items: center;
+                  }
+                `}
+              >
                 <TableRow>
                   <TableCell>
-                    <Typography variant="overline">{tr('budgetTable.year')}</Typography>
+                    <Box className="column-header">
+                      <Typography variant="overline">{tr('budgetTable.year')}</Typography>
+                      <HelpTooltip title={tr('budgetTable.yearHelp')} />
+                    </Box>
                   </TableCell>
                   {fields?.includes('amount') && (
                     <TableCell css={cellStyle}>
-                      <Typography variant="overline"> {tr('budgetTable.budget')}</Typography>
+                      <Box className="column-header">
+                        <Typography variant="overline"> {tr('budgetTable.budget')}</Typography>
+                        <HelpTooltip title={tr('budgetTable.budgetHelp')} />
+                      </Box>
                     </TableCell>
                   )}
                   {fields?.includes('actual') && (
                     <TableCell css={cellStyle}>
-                      {props.actualsLoading && <CircularProgress size={10} sx={{ mr: 1 }} />}
-                      <Typography variant="overline">{tr('budgetTable.actual')}</Typography>
+                      <Box className="column-header">
+                        {props.actualsLoading && <CircularProgress size={10} sx={{ mr: 1 }} />}
+                        <Typography variant="overline">{tr('budgetTable.actual')}</Typography>
+                        <HelpTooltip title={tr('budgetTable.actualHelp')} />
+                      </Box>
                     </TableCell>
                   )}
                   {fields?.includes('forecast') && (
                     <TableCell css={cellStyle}>
-                      <Typography variant="overline">{tr('budgetTable.forecast')}</Typography>
+                      <Box className="column-header">
+                        <Typography variant="overline">{tr('budgetTable.forecast')}</Typography>
+                        <HelpTooltip title={tr('budgetTable.forecastHelp')} />
+                      </Box>
                     </TableCell>
                   )}
                   {fields?.includes('kayttosuunnitelmanMuutos') && (
                     <TableCell
                       css={css`
-                        min-width: 256px;
+                        min-width: 280px;
                         text-align: right;
                       `}
                     >
-                      <Typography variant="overline">
-                        {tr('budgetTable.kayttosuunnitelmanMuutos')}
-                      </Typography>
+                      <Box className="column-header">
+                        <Typography variant="overline">
+                          {tr('budgetTable.kayttosuunnitelmanMuutos')}
+                        </Typography>
+                        <HelpTooltip title={tr('budgetTable.kayttosuunnitelmanMuutosHelp')} />
+                      </Box>
                     </TableCell>
                   )}
                   <TableCell sx={{ width: '100%' }} />
