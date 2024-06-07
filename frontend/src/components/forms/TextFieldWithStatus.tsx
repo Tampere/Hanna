@@ -1,5 +1,5 @@
 import { Check, Error, Warning } from '@mui/icons-material';
-import { CircularProgress, TextField, TextFieldProps, Tooltip } from '@mui/material';
+import { CircularProgress, TextField, TextFieldProps, Tooltip, css } from '@mui/material';
 import { forwardRef, useEffect, useMemo, useState } from 'react';
 
 import { useDebounce } from '@frontend/utils/useDebounce';
@@ -14,6 +14,11 @@ type Props = TextFieldProps & {
   debounceDelayMs?: number;
 };
 
+interface TooltipState {
+  isOpen: boolean;
+  timeoutRef: NodeJS.Timeout | null;
+}
+
 export const TextFieldWithStatus = forwardRef(function TextFieldWithStatus(
   props: Props,
   ref: React.ForwardedRef<HTMLDivElement | null>,
@@ -26,8 +31,29 @@ export const TextFieldWithStatus = forwardRef(function TextFieldWithStatus(
     ...TextFieldProps
   } = props;
   const [status, setStatus] = useState<Status>('empty');
+  const [tooltip, setTooltip] = useState<TooltipState>({ isOpen: false, timeoutRef: null });
 
   const debouncedValue = useDebounce(props.value, debounceDelayMs);
+
+  function displayTooltip(duration: number) {
+    setTooltip((prev) => {
+      clearTimeout(prev.timeoutRef ?? undefined);
+      return {
+        isOpen: true,
+        timeoutRef: setTimeout(() => setTooltip({ isOpen: false, timeoutRef: null }), duration),
+      };
+    });
+  }
+
+  function getClosedTooltipState(prev: TooltipState) {
+    if (prev.timeoutRef) clearTimeout(prev.timeoutRef);
+    return { isOpen: false, timeoutRef: null };
+  }
+
+  function getOpenedTooltipState(prev: TooltipState) {
+    if (prev.timeoutRef) clearTimeout(prev.timeoutRef);
+    return { isOpen: true, timeoutRef: null };
+  }
 
   useEffect(() => {
     async function runValidate() {
@@ -36,17 +62,23 @@ export const TextFieldWithStatus = forwardRef(function TextFieldWithStatus(
         return;
       }
       setStatus('loading');
+
       try {
         const isValid = await validate(props.value);
         setStatus(isValid ? 'valid' : 'invalid');
+        if (!isValid) {
+          displayTooltip(3000);
+        }
       } catch (error) {
         setStatus('error');
+        displayTooltip(3000);
       }
     }
     runValidate();
   }, [debouncedValue]);
 
   useEffect(() => {
+    setTooltip(getClosedTooltipState);
     if (!props.value?.length) {
       setStatus('empty');
     } else {
@@ -62,32 +94,61 @@ export const TextFieldWithStatus = forwardRef(function TextFieldWithStatus(
     switch (status) {
       case 'error':
         return (
-          <Tooltip title={tooltipMessages.error}>
+          <Tooltip
+            placement="top"
+            open={tooltip.isOpen}
+            onClose={() => setTooltip(getClosedTooltipState)}
+            onOpen={() => setTooltip(getOpenedTooltipState)}
+            title={tooltipMessages.error}
+          >
             <Warning style={{ color: 'red' }} />
           </Tooltip>
         );
       case 'invalid':
         return (
-          <Tooltip title={tooltipMessages.invalid}>
+          <Tooltip
+            placement="top"
+            open={tooltip.isOpen}
+            onClose={() => setTooltip(getClosedTooltipState)}
+            onOpen={() => setTooltip(getOpenedTooltipState)}
+            title={tooltipMessages.invalid}
+          >
             <Error style={{ color: 'orange' }} />
           </Tooltip>
         );
       case 'valid':
         return (
-          <Tooltip title={tooltipMessages.valid}>
+          <Tooltip
+            placement="top"
+            open={tooltip.isOpen}
+            onClose={() => setTooltip(getClosedTooltipState)}
+            onOpen={() => setTooltip(getOpenedTooltipState)}
+            title={tooltipMessages.valid}
+          >
             <Check style={{ color: 'green' }} />
           </Tooltip>
         );
       case 'loading':
         return (
-          <Tooltip title={tooltipMessages.loading}>
+          <Tooltip
+            placement="top"
+            css={css`
+              display: ${tooltip.isOpen
+                ? 'block'
+                : 'none'}; // To prevent flickering when tooltip is active and status changes
+            `}
+            open={tooltip.isOpen}
+            onClose={() => setTooltip(getClosedTooltipState)}
+            onOpen={() => setTooltip(getOpenedTooltipState)}
+            title={tooltipMessages.loading}
+          >
             <div style={{ display: 'flex' }}>
               <CircularProgress size={20} />
             </div>
           </Tooltip>
         );
     }
-  }, [status, tooltipMessages]);
+  }, [status, tooltipMessages, tooltip.isOpen]);
 
   return (
     <TextField
