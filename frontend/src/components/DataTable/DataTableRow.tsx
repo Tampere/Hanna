@@ -15,6 +15,7 @@ interface DataTableRowProps<
   currencyColumnKeys: (keyof TRow)[];
   row: TRow;
   collapsedColumns: ColumnSettings<TActualEntry> | null;
+  onRowClick?: (row: TRow) => void;
 }
 
 export function DataTableRow<
@@ -26,6 +27,7 @@ export function DataTableRow<
   currencyColumnKeys,
   row,
   collapsedColumns,
+  onRowClick,
 }: DataTableRowProps<TRow, TActualEntry>) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const tr = useTranslations();
@@ -35,7 +37,13 @@ export function DataTableRow<
 
   return (
     <TableRow
+      onClick={() => {
+        if (onRowClick) {
+          onRowClick(row);
+        }
+      }}
       css={css`
+        cursor: ${onRowClick ? 'pointer' : 'auto'};
         &:hover {
           background: #eee;
         }
@@ -48,6 +56,7 @@ export function DataTableRow<
         if (collapsedColumns && 'actualEntries' in row && typeof row.actualEntries === 'object') {
           return (
             <TableCell
+              className={String(key)}
               sx={{
                 textWrap: currencyColumnKeys.includes(key) || key === 'company' ? 'nowrap' : 'wrap',
                 verticalAlign: 'top',
@@ -135,6 +144,7 @@ export function DataTableRow<
 
         return (
           <TableCell
+            className={String(key)}
             sx={{
               textWrap: currencyColumnKeys.includes(key) ? 'nowrap' : 'wrap',
             }}

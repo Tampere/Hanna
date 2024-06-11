@@ -27,7 +27,7 @@ export function ProjectOwnerChangeDialog({ isOpen, onCancel, onSave, newOwnerId 
   const tr = useTranslations();
 
   const user = trpc.user.get.useQuery({ userId: newOwnerId });
-  console.log(user);
+
   return (
     <Dialog
       open={isOpen}
