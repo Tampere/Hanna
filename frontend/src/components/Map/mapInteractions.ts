@@ -85,7 +85,7 @@ export function createSelectionLayer(source: VectorSource<Feature<Geometry>>) {
   return new VectorLayer({
     source,
     properties: { id: 'selectionLayer' },
-    zIndex: 100,
+    zIndex: DRAW_LAYER_Z_INDEX + 1,
     style: selectionLayerStyle,
   });
 }

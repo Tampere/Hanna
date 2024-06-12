@@ -12,7 +12,7 @@ import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { getProjectObjectGeoJSON } from '@frontend/components/Map/mapFunctions';
 import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
-import { PROJ_OBJ_DRAW_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
+import { PROJ_OBJ_DRAW_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
@@ -289,7 +289,7 @@ export function ProjectObject(props: Props) {
                   },
                 }}
                 vectorLayers={[projectLayer, projectObjectLayer]}
-                fitExtent="geoJson"
+                fitExtent="all"
               />
             </Box>
           )}
