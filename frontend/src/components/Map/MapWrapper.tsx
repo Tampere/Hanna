@@ -215,6 +215,19 @@ export function MapWrapper(props: Props) {
           setExtent(extent);
         }
         break;
+      case 'all':
+        if (props?.drawOptions?.geoJson && drawSource) {
+          setExtent(drawSource.getExtent());
+        } else {
+          extent = vectorLayers?.reduce((extent, layer) => {
+            const layerExtent = layer.getSource()?.getExtent();
+            if (!layerExtent) return extent;
+            return extend(extent, layerExtent);
+          }, createEmpty()) as Extent;
+          if (!isEmpty(extent)) {
+            setExtent(extent);
+          }
+        }
     }
   }, [props.drawOptions?.geoJson, vectorLayers, props.fitExtent]);
 

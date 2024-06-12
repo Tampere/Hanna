@@ -108,7 +108,7 @@ export const PROJ_OBJ_STYLE = new Style({
 });
 
 const _PROJ_OBJ_DRAW_FILL = 'rgb(0, 0, 255, 0.4)';
-const _PROJ_OBJ_DRAW_STROKE = 'rgb(0, 0, 255)';
+const _PROJ_OBJ_DRAW_STROKE = 'rgb(255, 100, 0)';
 const _PROJ_OBJ_DRAW_STROKE_WIDTH = 2;
 
 export const PROJ_OBJ_DRAW_STYLE = new Style({
@@ -118,5 +118,6 @@ export const PROJ_OBJ_DRAW_STYLE = new Style({
   stroke: new Stroke({
     color: _PROJ_OBJ_DRAW_STROKE,
     width: _PROJ_OBJ_DRAW_STROKE_WIDTH,
+    lineDash: [4],
   }),
 });

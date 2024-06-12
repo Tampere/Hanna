@@ -289,7 +289,7 @@ export function ProjectObject(props: Props) {
                   },
                 }}
                 vectorLayers={[projectLayer, projectObjectLayer]}
-                fitExtent="geoJson"
+                fitExtent="all"
               />
             </Box>
           )}
