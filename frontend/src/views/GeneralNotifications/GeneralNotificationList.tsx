@@ -79,7 +79,7 @@ export function GeneralNotificationList({ notifications }: Props) {
       `}
     >
       {notifications.map((notification) => (
-        <article css={notificationListStyle}>
+        <article key={notification.id} css={notificationListStyle}>
           <Accordion disableGutters>
             <AccordionSummary
               css={css`

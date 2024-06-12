@@ -36,8 +36,8 @@ export const createGeneralNotificationRouter = (t: TRPC) => {
     delete: t.procedure
       .use(withAccess())
       .input(z.object({ id: z.string() }))
-      .mutation(async ({ input }) => {
-        return deleteGeneralNotification(input.id);
+      .mutation(async ({ input, ctx }) => {
+        return deleteGeneralNotification(input.id, ctx.user.id);
       }),
     upsert: t.procedure
       .use(withAccess())
