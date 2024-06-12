@@ -120,8 +120,21 @@ export function GeneralNotificationForm({ notification, onUpsertSuccess }: Props
   };
 
   return (
-    <>
-      <Box display="flex" alignItems="center">
+    <Box
+      css={css`
+        max-width: 1400px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      `}
+    >
+      <Box
+        css={css`
+          display: flex;
+          align-items: center;
+          align-self: stretch;
+        `}
+      >
         <Typography variant="h4" component="h1" m={2}>
           <span
             css={css`
@@ -157,8 +170,7 @@ export function GeneralNotificationForm({ notification, onUpsertSuccess }: Props
         <form
           css={css`
             display: flex;
-            margin: 0 auto;
-            max-width: 800px;
+            width: 70%;
             flex-direction: column;
           `}
           onSubmit={form.handleSubmit(onSubmit)}
@@ -215,6 +227,7 @@ export function GeneralNotificationForm({ notification, onUpsertSuccess }: Props
                     <Button
                       css={css`
                         margin-left: 1rem;
+                        width: 130px;
                       `}
                       variant="outlined"
                       onClick={() => setDisplayPublished(false)}
@@ -230,8 +243,8 @@ export function GeneralNotificationForm({ notification, onUpsertSuccess }: Props
                 <Button
                   css={css`
                     margin-left: 1rem;
+                    width: 130px;
                   `}
-                  size="small"
                   type="submit"
                   variant="contained"
                   disabled={!isValid || !isDirty || isSubmitting}
@@ -244,6 +257,6 @@ export function GeneralNotificationForm({ notification, onUpsertSuccess }: Props
           </Box>
         </form>
       </FormProvider>
-    </>
+    </Box>
   );
 }

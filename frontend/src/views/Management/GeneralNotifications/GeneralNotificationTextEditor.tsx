@@ -37,9 +37,9 @@ function FunctionButtons({
       <Button
         onClick={() => setDisplayConfirmDialog(true)}
         disabled={disableDelete}
-        css={css`
+        css={(theme) => css`
           margin-right: auto;
-          color: #ef6c00;
+          color: ${theme.palette.secondary.main};
         `}
         endIcon={<Delete />}
       >
@@ -57,7 +57,15 @@ function FunctionButtons({
       >
         {tr('cancel')}
       </Button>
-      <Button variant="contained" disabled={!dirty} onClick={onSave} endIcon={<Save />}>
+      <Button
+        css={css`
+          width: 130px;
+        `}
+        variant="contained"
+        disabled={!dirty}
+        onClick={onSave}
+        endIcon={<Save />}
+      >
         {tr('genericForm.save')}
       </Button>
       <ConfirmDialog
