@@ -257,6 +257,7 @@ function SearchResults({ projectObjects, loading, activeProjectObjectId }: Searc
       >
         <Typography
           variant="h5"
+          component="h1"
           css={css`
             flex-grow: 1;
           `}

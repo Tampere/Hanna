@@ -79,7 +79,7 @@ export const projectObjectSearchSchema = z.object({
   projectName: z.string().optional(),
   dateRange: periodSchema.optional(),
   map: mapSearchSchema.optional(),
-  objectParticipantUser: nonEmptyString.optional(),
+  objectParticipantUser: nonEmptyString.nullish(),
   objectTypes: dbProjectObjectSchema.shape.objectType.optional(),
   objectCategories: dbProjectObjectSchema.shape.objectCategory.optional(),
   objectUsages: dbProjectObjectSchema.shape.objectUsage.optional(),
