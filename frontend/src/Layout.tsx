@@ -175,6 +175,7 @@ function Navbar() {
               to="/tiedotteet"
               icon={<Campaign />}
               iconPosition="start"
+              value="tiedotteet"
               label={tr('pages.generalNotificationTitle')}
             />
             <Tooltip title={tr('pages.eFormLabel')}>
