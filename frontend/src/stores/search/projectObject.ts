@@ -6,7 +6,7 @@ import { mapOptions } from '@frontend/components/Map/mapOptions';
 import { ProjectObjectSearch } from '@shared/schema/projectObject';
 
 // Use the shared schema as base, but omit unused fields and mark the rest as required
-type ObjectSearchParams = Omit<Required<ProjectObjectSearch>, 'limit' | 'objectParticipantUser'>;
+type ObjectSearchParams = Omit<Required<ProjectObjectSearch>, 'limit'>;
 
 export const projectObjectSearchParamAtom = atom<ObjectSearchParams>({
   projectObjectName: '',
@@ -25,6 +25,7 @@ export const projectObjectSearchParamAtom = atom<ObjectSearchParams>({
   objectTypes: [],
   objectCategories: [],
   objectUsages: [],
+  objectParticipantUser: null,
   rakennuttajaUsers: [],
   suunnitteluttajaUsers: [],
 });
@@ -57,6 +58,10 @@ export const rakennuttajaUsersAtom = focusAtom(projectObjectSearchParamAtom, (o)
 );
 export const suunnitteluttajaUsersAtom = focusAtom(projectObjectSearchParamAtom, (o) =>
   o.prop('suunnitteluttajaUsers'),
+);
+
+export const objectParticipantUserAtom = focusAtom(projectObjectSearchParamAtom, (o) =>
+  o.prop('objectParticipantUser'),
 );
 
 export const mapAtom = focusAtom(projectObjectSearchParamAtom, (o) => o.prop('map'));

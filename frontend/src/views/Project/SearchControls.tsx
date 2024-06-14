@@ -2,13 +2,12 @@ import { Search, UnfoldLess, UnfoldMore } from '@mui/icons-material';
 import {
   Box,
   Button,
-  Checkbox,
   FormControl,
   FormControlLabel,
-  FormGroup,
   FormLabel,
   InputAdornment,
   Paper,
+  Switch,
   TextField,
   css,
 } from '@mui/material';
@@ -195,20 +194,23 @@ export function SearchControls() {
           <FormLabel htmlFor="owner">{tr('project.ownerLabel')}</FormLabel>
           <UserSelect id="owner" multiple value={owners} onChange={setOwners} maxTags={1} />
         </FormControl>
-        <FormGroup>
-          <FormLabel>{tr('projectSearch.geometry')}</FormLabel>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={!includeWithoutGeom}
-                onChange={(_, checked) => {
-                  setIncludeWithoutGeom(!checked);
-                }}
-              />
-            }
-            label={tr('projectSearch.showOnlyItemsWithGeom')}
-          />
-        </FormGroup>
+        <FormControlLabel
+          css={css`
+            align-self: end;
+            margin-left: auto;
+          `}
+          control={
+            <Switch
+              checked={!includeWithoutGeom}
+              onChange={(_, checked) => {
+                setIncludeWithoutGeom(!checked);
+              }}
+              color="primary"
+            />
+          }
+          label={tr('projectSearch.showOnlyItemsWithGeom')}
+          labelPlacement="end"
+        />
       </div>
       {expanded && (
         <>

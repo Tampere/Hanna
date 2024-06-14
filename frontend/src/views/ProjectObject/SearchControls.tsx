@@ -1,23 +1,24 @@
 import { Search } from '@mui/icons-material';
 import {
   Box,
-  Checkbox,
   FormControl,
   FormControlLabel,
   FormLabel,
   InputAdornment,
   Paper,
+  Switch,
   TextField,
   css,
 } from '@mui/material';
 import dayjs from 'dayjs';
-import { useAtom, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useEffect } from 'react';
 
 import { mapOptions } from '@frontend/components/Map/mapOptions';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { DateRange } from '@frontend/components/forms/DateRange';
 import { UserSelect } from '@frontend/components/forms/UserSelect';
+import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import {
   dateRangeAtom,
@@ -25,6 +26,7 @@ import {
   lifecycleStatesAtom,
   mapAtom,
   objectCategoryAtom,
+  objectParticipantUserAtom,
   objectStageAtom,
   objectTypeAtom,
   objectUsageAtom,
@@ -87,9 +89,10 @@ export function SearchControls() {
   const [objectTypes, setObjectTypes] = useAtom(objectTypeAtom);
   const [objectCategories, setObjectCategories] = useAtom(objectCategoryAtom);
   const [objectUsages, setObjectUsages] = useAtom(objectUsageAtom);
+  const [objectParticipantUser, setObjectParticipantUser] = useAtom(objectParticipantUserAtom);
   const [suunnitteluttajaUsers, setSuunnitteluttajaUsers] = useAtom(suunnitteluttajaUsersAtom);
   const [rakennuttajaUsers, setRakennuttajaUsers] = useAtom(rakennuttajaUsersAtom);
-
+  const currentUser = useAtomValue(asyncUserAtom);
   const setMap = useSetAtom(mapAtom);
 
   useEffect(() => {
@@ -231,20 +234,44 @@ export function SearchControls() {
             maxTags={1}
           />
         </FormControl>
-        <FormControl>
-          <FormLabel>{tr('projectObjectSearch.geometry')}</FormLabel>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={!includeWithoutGeom}
-                onChange={(_, checked) => {
-                  setIncludeWithoutGeom(!checked);
-                }}
-              />
-            }
-            label={tr('projectObjectSearch.showOnlyItemsWithGeom')}
-          />
-        </FormControl>
+        <FormControlLabel
+          css={css`
+            align-self: end;
+            margin-left: auto;
+          `}
+          control={
+            <Switch
+              checked={!includeWithoutGeom}
+              onChange={(_, checked) => {
+                setIncludeWithoutGeom(!checked);
+              }}
+              color="primary"
+            />
+          }
+          label={tr('projectObjectSearch.showOnlyItemsWithGeom')}
+          labelPlacement="end"
+        />
+
+        <FormControlLabel
+          css={css`
+            align-self: end;
+          `}
+          control={
+            <Switch
+              checked={!!objectParticipantUser}
+              onChange={() => {
+                if (objectParticipantUser) {
+                  setObjectParticipantUser(null);
+                  return;
+                }
+                setObjectParticipantUser(currentUser.id);
+              }}
+              color="primary"
+            />
+          }
+          label={tr('workTable.participantFilterLabel')}
+          labelPlacement="end"
+        />
       </div>
     </Paper>
   );

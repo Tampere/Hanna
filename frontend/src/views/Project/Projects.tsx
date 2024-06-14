@@ -284,6 +284,7 @@ function SearchResults({ results, loading, activeProjectId }: SearchResultsProps
       >
         <Typography
           variant="h5"
+          component="h1"
           css={css`
             flex-grow: 1;
           `}
