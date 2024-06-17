@@ -72,7 +72,7 @@
     "pg-boss": "^9.0.3",
     "pino": "^8.19.0",
     "postgres-migrations": "^5.3.0",
-    "pug": "^3.0.2",
+    "pug": "^3.0.3",
     "server-text-width": "^1.0.2",
     "slonik": "^35.2.1",
     "soap": "^1.0.0",
