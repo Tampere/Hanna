@@ -17,6 +17,7 @@ import { ReactNode, useEffect, useMemo, useState } from 'react';
 
 import { useTranslations } from '@frontend/stores/lang';
 
+import { HelpTooltip } from '../HelpTooltip';
 import { DataTableRow } from './DataTableRow';
 
 interface Sort<TRow> {
@@ -36,6 +37,7 @@ export type ColumnSettings<TRow> = {
     width?: number;
     align?: TableCellProps['align'];
     type?: 'currency';
+    helpTooltip?: string;
   };
 };
 
@@ -231,10 +233,22 @@ export function DataTable<
                           });
                         }}
                       >
+                        {columns[key].helpTooltip && (
+                          <HelpTooltip title={columns[key].helpTooltip as string} />
+                        )}
                         {columns[key].title}
                       </TableSortLabel>
                     ) : (
-                      columns[key].title
+                      <span
+                        css={css`
+                          display: flex;
+                        `}
+                      >
+                        {columns[key].title}
+                        {columns[key].helpTooltip && (
+                          <HelpTooltip title={columns[key].helpTooltip as string} />
+                        )}
+                      </span>
                     )}
                   </TableCell>
                 ))}

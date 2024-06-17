@@ -79,6 +79,7 @@ export function BlanketContractReport() {
               return formatCurrency(value ?? 0);
             },
             type: 'currency',
+            helpTooltip: tr('sapReports.blankeContracts.totalDebitHelp'),
           },
           totalCredit: {
             title: tr('sapReports.blanketContracts.totalCredit'),
@@ -88,6 +89,7 @@ export function BlanketContractReport() {
               return formatCurrency(value ?? 0);
             },
             type: 'currency',
+            helpTooltip: tr('sapReports.blanketContracts.totalCreditHelp'),
           },
           totalActuals: {
             title: tr('sapReports.blanketContracts.totalActuals'),
@@ -97,6 +99,7 @@ export function BlanketContractReport() {
             },
             align: 'right',
             type: 'currency',
+            helpTooltip: tr('sapReports.blanketContracts.totalActualsHelp'),
           },
         }}
       />

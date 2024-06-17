@@ -66,6 +66,7 @@ export function EnvironmentalCodeReport() {
               return formatCurrency(value ?? 0);
             },
             type: 'currency',
+            helpTooltip: tr('sapReports.environmentCodes.totalDebitHelp'),
           },
           totalCredit: {
             title: tr('sapReports.environmentCodes.totalCredit'),
@@ -75,6 +76,7 @@ export function EnvironmentalCodeReport() {
               return formatCurrency(value ?? 0);
             },
             type: 'currency',
+            helpTooltip: tr('sapReports.environmentCodes.totalCreditHelp'),
           },
           totalActuals: {
             title: tr('sapReports.environmentCodes.totalActuals'),
@@ -84,6 +86,7 @@ export function EnvironmentalCodeReport() {
               return formatCurrency(value ?? 0);
             },
             type: 'currency',
+            helpTooltip: tr('sapReports.environmentCodes.totalActualsHelp'),
           },
         }}
         collapsedColumns={{

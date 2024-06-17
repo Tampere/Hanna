@@ -55,6 +55,8 @@ function blanketContractReportFragment(params?: Partial<BlanketContractReportQue
       report_items
       LEFT JOIN total_actuals ON report_items."wbsId" = total_actuals.wbs_element_id
     WHERE
+      "totalActuals" IS NOT NULL
+    AND
       ${
         params?.filters?.text
           ? sql.fragment`

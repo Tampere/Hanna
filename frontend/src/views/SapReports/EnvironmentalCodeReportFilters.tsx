@@ -1,5 +1,6 @@
 import { Download, Search } from '@mui/icons-material';
 import {
+  Box,
   Divider,
   FormControl,
   FormLabel,
@@ -12,6 +13,7 @@ import { useAtom, useAtomValue } from 'jotai';
 
 import { trpc } from '@frontend/client';
 import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
+import { HelpTooltip } from '@frontend/components/HelpTooltip';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { MultiSelect } from '@frontend/components/forms/MultiSelect';
 import { useNotifications } from '@frontend/services/notification';
@@ -62,6 +64,7 @@ export function EnvironmentalCodeReportFilters({ disableExport }: Props) {
           grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
           gap: 16px;
           margin-bottom: 16px;
+          align-items: end;
         `}
       >
         <FormControl>
@@ -99,14 +102,17 @@ export function EnvironmentalCodeReportFilters({ disableExport }: Props) {
           />
         </FormControl>
         <FormControl>
-          <FormLabel htmlFor="year">{tr('sapReports.environmentCodes.year')}</FormLabel>
+          <Box display="flex" alignItems="center">
+            <FormLabel htmlFor="year">{tr('sapReports.environmentCodes.year')}</FormLabel>
+            <HelpTooltip title={tr('sapReports.environmentCodes.yearHelp')} />
+          </Box>
           <MultiSelect
             id="years"
             options={allYears ?? []}
             loading={allYearsLoading}
-            value={years}
-            onChange={(years) => setYears(years.sort((a, b) => b - a))}
-            multiple
+            value={years[0]}
+            onChange={(year) => setYears(year ? [year] : [])}
+            multiple={false}
           />
         </FormControl>
       </div>
