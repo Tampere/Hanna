@@ -1,5 +1,4 @@
 import { TRPCError } from '@trpc/server';
-import { upsertGeneralNotificationSchema } from 'tre-hanna-shared/src/schema/generalNotification';
 import { z } from 'zod';
 
 import {
@@ -12,6 +11,7 @@ import {
 } from '@backend/components/generalNotification';
 import { TRPC } from '@backend/router';
 
+import { upsertGeneralNotificationSchema } from '@shared/schema/generalNotification';
 import { isAdmin } from '@shared/schema/userPermissions';
 
 export const createAccessMiddleware = (t: TRPC) => () =>
