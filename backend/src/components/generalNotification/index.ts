@@ -42,10 +42,8 @@ export async function upsertGeneralNotification(
         )
       : null;
 
-    let result;
-    if (notification?.id && existingNotification) {
-      // Update existing notification
-      result = await tx.one(sql.untyped`
+    return notification?.id && existingNotification
+      ? await tx.one(sql.type(dbGeneralNotificationSchema)`
       UPDATE app.general_notification
       SET
         title = ${notification.title},
@@ -53,10 +51,8 @@ export async function upsertGeneralNotification(
         publisher = ${userId}
       WHERE id = ${notification.id}
       RETURNING id, title, message, created_at "createdAt", publisher
-        `);
-    } else {
-      // Add new notification
-      result = await tx.one(sql.untyped`
+        `)
+      : await tx.one(sql.type(dbGeneralNotificationSchema)`
         INSERT INTO app.general_notification (title, message, publisher)
         VALUES (
             ${notification.title},
@@ -64,8 +60,6 @@ export async function upsertGeneralNotification(
             ${userId})
         RETURNING id, title, message, created_at "createdAt", publisher
         `);
-    }
-    return result;
   });
 }
 

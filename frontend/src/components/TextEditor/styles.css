@@ -2,17 +2,6 @@
   --primary-main: #22437b;
 }
 
-.editor-container {
-  border: solid 0.5px #c4c4c4;
-  border-radius: 4px;
-}
-
-.action-button-container {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem;
-}
-
 .tiptap {
   padding: 0.5rem;
   &.ProseMirror-focused {
