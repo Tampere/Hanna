@@ -1,5 +1,6 @@
 import { Download, Search } from '@mui/icons-material';
 import {
+  Box,
   Divider,
   FormControl,
   FormLabel,
@@ -12,6 +13,7 @@ import { useAtom, useAtomValue } from 'jotai';
 
 import { trpc } from '@frontend/client';
 import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
+import { HelpTooltip } from '@frontend/components/HelpTooltip';
 import { MultiSelect } from '@frontend/components/forms/MultiSelect';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
@@ -68,6 +70,7 @@ export function BlanketContractReportFilters({ disableExport }: Props) {
           grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
           gap: 16px;
           margin-bottom: 16px;
+          align-items: end;
         `}
       >
         <FormControl>
@@ -122,15 +125,23 @@ export function BlanketContractReportFilters({ disableExport }: Props) {
             }}
           />
         </FormControl>
-        <FormControl>
-          <FormLabel htmlFor="year">{tr('sapReports.blanketContracts.year')}</FormLabel>
+        <FormControl
+          css={css`
+            align-self: bottom;
+          `}
+        >
+          <Box display="flex">
+            <FormLabel htmlFor="year">{tr('sapReports.blanketContracts.year')}</FormLabel>
+            <HelpTooltip title={tr('sapReports.blanketContracts.yearHelp')} />
+          </Box>
+
           <MultiSelect
             id="years"
             options={allYears ?? []}
             loading={allYearsLoading}
-            value={years ?? []}
-            onChange={(years) => setYears(years.sort((a, b) => b - a))}
-            multiple
+            value={years[0]}
+            onChange={(year) => setYears(year ? [year] : [])}
+            multiple={false}
           />
         </FormControl>
       </div>
