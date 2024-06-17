@@ -48,7 +48,7 @@ import {
  * @returns {Function} A middleware function that checks if a user has access to a project.
  */
 
-export const createAccessMiddleware = (t: TRPC) => (canAccess: ProjectAccessChecker) =>
+const createAccessMiddleware = (t: TRPC) => (canAccess: ProjectAccessChecker) =>
   t.middleware(async (opts) => {
     const { ctx, input, next } = opts;
     if (!isProjectObjectIdInput(input)) {

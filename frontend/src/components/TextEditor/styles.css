@@ -1,0 +1,21 @@
+:root {
+  --primary-main: #22437b;
+}
+
+.tiptap {
+  padding: 0.5rem;
+  &.ProseMirror-focused {
+    outline: none;
+  }
+  p {
+    margin: 0.75rem 0;
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 1.18;
+  }
+  h2 {
+    color: var(--primary-main);
+    font-size: 14px;
+    font-weight: 700;
+  }
+}

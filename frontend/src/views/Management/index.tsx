@@ -1,4 +1,4 @@
-import { BusinessCenterTwoTone, KeyTwoTone, PersonTwoTone } from '@mui/icons-material';
+import { BusinessCenterTwoTone, Campaign, KeyTwoTone, PersonTwoTone } from '@mui/icons-material';
 import { Box, Tab, Tabs } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
@@ -8,6 +8,8 @@ import { useTranslations } from '@frontend/stores/lang';
 import { CompanyPage } from '@frontend/views/Management/Company';
 import { CompanyContactPage } from '@frontend/views/Management/CompanyContact';
 import { UserPermissionsPage } from '@frontend/views/Management/UserPermissions';
+
+import { ManageGeneralNotifications } from './GeneralNotifications';
 
 const tabs = [
   {
@@ -29,6 +31,13 @@ const tabs = [
     label: 'management.tabs.userPermissions',
     icon: <KeyTwoTone />,
     to: '/hallinta/kayttajien-luvitus',
+    requiredRole: 'Hanna.Admin',
+  },
+  {
+    tabView: 'tiedotteet',
+    label: 'management.tabs.generalNotifications',
+    icon: <Campaign />,
+    to: '/hallinta/tiedotteet',
     requiredRole: 'Hanna.Admin',
   },
 ] as const;
@@ -71,6 +80,7 @@ export function Management() {
       {routeParams.tabView === 'yritysten-yhteyshenkilot' && <CompanyContactPage {...viewParams} />}
       {routeParams.tabView === 'yritykset' && <CompanyPage {...viewParams} />}
       {routeParams.tabView === 'kayttajien-luvitus' && <UserPermissionsPage {...viewParams} />}
+      {routeParams.tabView === 'tiedotteet' && <ManageGeneralNotifications />}
     </Box>
   );
 }

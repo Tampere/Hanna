@@ -1,5 +1,13 @@
 import { css } from '@emotion/react';
-import { BackupTable, Feed, HelpOutline, Logout, Reorder, Settings } from '@mui/icons-material';
+import {
+  BackupTable,
+  Campaign,
+  Feed,
+  HelpOutline,
+  Logout,
+  Reorder,
+  Settings,
+} from '@mui/icons-material';
 import AccountCircleOutlined from '@mui/icons-material/AccountCircleOutlined';
 import AccountTreeOutlined from '@mui/icons-material/AccountTreeOutlined';
 import {
@@ -37,6 +45,7 @@ export const theme = createTheme(
     palette: {
       primary: {
         main: '#22437b',
+        light: '#2196F3',
       },
       secondary: {
         main: '#c83e36',
@@ -96,7 +105,7 @@ function Navbar() {
     return tabs.includes(currentPath) ? currentPath : false;
   }
 
-  const tabs = ['kartta', 'sap-raportit', 'investointiohjelma', 'hallinta'];
+  const tabs = ['kartta', 'sap-raportit', 'investointiohjelma', 'hallinta', 'tiedotteet'];
 
   return (
     <AppBar position="static" style={{ zIndex: 200 }}>
@@ -160,7 +169,16 @@ function Navbar() {
               value="investointiohjelma"
               to="/investointiohjelma"
             />
-            <Tooltip title={tr('pages.eFormLabel')} style={{ marginLeft: 'auto' }}>
+            <Tab
+              style={{ marginLeft: 'auto' }}
+              component={Link}
+              to="/tiedotteet"
+              icon={<Campaign />}
+              iconPosition="start"
+              value="tiedotteet"
+              label={tr('pages.generalNotificationTitle')}
+            />
+            <Tooltip title={tr('pages.eFormLabel')}>
               <Tab
                 component={Link}
                 to="/redirect-to-elomake"

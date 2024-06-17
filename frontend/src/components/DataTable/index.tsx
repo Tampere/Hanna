@@ -55,11 +55,13 @@ interface Props<
   getRowCount: (
     params: TQueryParams['filters'] extends object ? Pick<TQueryParams, 'filters'> : never,
   ) => Promise<RowCount>;
+  onRowClick?: (row: TRow) => void;
   columns: ColumnSettings<Omit<TRow, 'actualEntries'>>;
   collapsedColumns?: ColumnSettings<TActualEntry>;
   filters: TQueryParams['filters'] extends object ? TQueryParams['filters'] : never;
   rowsPerPageOptions?: number[];
   defaultRowsPerPage?: number;
+  disableSorting?: boolean;
 }
 
 export function DataTable<
@@ -69,11 +71,13 @@ export function DataTable<
 >({
   getRows,
   getRowCount,
+  onRowClick,
   columns,
   collapsedColumns,
   filters,
   rowsPerPageOptions = [10, 20, 30, 500],
   defaultRowsPerPage = rowsPerPageOptions[0],
+  disableSorting = false,
 }: Props<TRow, TQueryParams, TActualEntry>) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -196,7 +200,7 @@ export function DataTable<
                     key={key.toString()}
                     align={columns[key].align}
                   >
-                    {key !== 'company' ? (
+                    {key !== 'company' && !disableSorting ? (
                       <TableSortLabel
                         active={sort?.key === key}
                         direction={sort?.key === key ? sort.direction : 'asc'}
@@ -255,6 +259,7 @@ export function DataTable<
               ) : (
                 visibleRows.map((row, index) => (
                   <DataTableRow
+                    onRowClick={onRowClick}
                     row={row}
                     collapsedColumns={collapsedColumns ?? null}
                     columnKeys={columnKeys}
@@ -274,7 +279,7 @@ export function DataTable<
                   pointer-events: none;
                   background: rgba(0, 0, 0, 0.1);
                   opacity: ${loading ? 1 : 0};
-                  transition: opacity 0.1s ease-in;
+                  transition: opacity 0.7s ease-in;
                 `}
               >
                 <TableCell>

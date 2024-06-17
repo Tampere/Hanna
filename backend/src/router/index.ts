@@ -17,6 +17,7 @@ import { createWorkTableRouter } from '@backend/router/workTable';
 
 import { User } from '@shared/schema/user';
 
+import { createGeneralNotificationRouter } from './generalNotification';
 import { createJobRouter } from './job';
 import { createSapReportRouter } from './sapReport';
 import { createSessionRouter } from './session';
@@ -56,6 +57,7 @@ export const appRouter = t.router({
   company: createCompanyRouter(t),
   job: createJobRouter(t),
   workTable: createWorkTableRouter(t),
+  generalNotification: createGeneralNotificationRouter(t),
 });
 
 export type TRPC = typeof t;

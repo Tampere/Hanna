@@ -80,6 +80,8 @@ services:
       POSTGRES_DB: app_dev_db
     volumes:
       - ../docker/db/init/20-init.sql:/docker-entrypoint-initdb.d/20-init.sql
+    ports:
+      - '127.0.0.1:5432:5432'
     healthcheck:
       test: psql -U app_user_dev -d app_dev_db -c "SELECT 1"
       interval: 5s

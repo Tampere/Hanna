@@ -30,6 +30,8 @@ import { SearchPage } from '@frontend/views/Search';
 import { SessionRenewed } from '@frontend/views/SessionRenewed';
 import WorkTable from '@frontend/views/WorkTable/WorkTable';
 
+import { GeneralNotifications } from './views/GeneralNotifications';
+
 const router = createBrowserRouter(
   createRoutesFromElements(
     <>
@@ -65,6 +67,9 @@ const router = createBrowserRouter(
         )}
         <Route path="investointiohjelma" element={<WorkTable />} />
         <Route path="hallinta/:tabView" element={<Management />} />
+        <Route path="hallinta/:tabView/:contentId" element={<Management />} />
+        <Route path="hallinta/:tabView/luo" element={<Management />} />
+        <Route path="tiedotteet" element={<GeneralNotifications />} />
         <Route path="saptest/:sapProjectId" element={<SapDebugView />} />
         <Route path="session-renewed" element={<SessionRenewed />} />
         <Route path="*" element={<NotFound />} />
