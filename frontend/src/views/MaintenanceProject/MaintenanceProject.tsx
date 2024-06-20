@@ -220,6 +220,7 @@ export function MaintenanceProject() {
             <Box css={mapContainerStyle}>
               <MapWrapper
                 drawOptions={{
+                  toolsHidden: ['newPointFeature'],
                   geoJson: project?.data?.geom ?? null,
                   drawStyle: PROJECT_AREA_STYLE,
                   editable: !projectId || userCanModify,
