@@ -315,7 +315,6 @@
   "generalNotifications.deleteDialogTitle": "Poista tiedote",
   "generalNotifications.deleteDialogContent": "Haluatko varmasti poistaa tiedotteen?",
   "generalNotificationForm.publish": "Julkaise",
-  "generalNotificationForm.saveChanges": "Tallenna muutokset",
   "generalNotificationForm.title": "Tiedote",
   "generalNotificationForm.headerFieldLabel": "Otsikko",
   "generalNotificationForm.headerFieldTooltip": "Syötä tiedotteen otsikko",

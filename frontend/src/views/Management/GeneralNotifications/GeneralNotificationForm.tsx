@@ -1,9 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { HourglassFullTwoTone, Save } from '@mui/icons-material';
-import { Box, Button, TextField, Typography, css } from '@mui/material';
+import { Box, TextField, Typography, css } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
@@ -20,6 +19,7 @@ import {
   upsertGeneralNotificationSchema,
 } from '@shared/schema/generalNotification';
 
+import { FormFunctionButtons } from './FormFunctionButtons';
 import { GeneralNotificationTextEditor } from './GeneralNotificationTextEditor';
 
 interface Props {
@@ -76,7 +76,6 @@ export function GeneralNotificationForm({ notification, onUpsertSuccess }: Props
       });
     },
   });
-  const [displayPublished, setDisplayPublished] = useState(true);
 
   const formDefaultValues = useMemo<Partial<UpsertGeneralNotification>>(
     () => ({
@@ -112,7 +111,7 @@ export function GeneralNotificationForm({ notification, onUpsertSuccess }: Props
     }
   }, [form.formState.isSubmitSuccessful, notification]);
 
-  const { isValid, isDirty, isSubmitting } = form.formState;
+  const { isDirty } = form.formState;
   useNavigationBlocker(isDirty, 'generalNotifications');
 
   const onSubmit = async (data: UpsertGeneralNotification) => {
@@ -145,26 +144,6 @@ export function GeneralNotificationForm({ notification, onUpsertSuccess }: Props
           </span>
           {form.watch('title')}
         </Typography>
-        {notification && (
-          <Button
-            css={css`
-              margin-left: 1rem;
-              width: fit-content;
-              height: fit-content;
-              margin-left: auto;
-            `}
-            size="small"
-            onClick={() => {
-              const data = form.getValues();
-              onSubmit(data);
-            }}
-            variant="contained"
-            disabled={!isValid || !isDirty || isSubmitting}
-            endIcon={isSubmitting ? <HourglassFullTwoTone /> : <Save />}
-          >
-            {tr('generalNotificationForm.saveChanges')}
-          </Button>
-        )}
       </Box>
       <FormProvider {...form}>
         <form
@@ -188,71 +167,40 @@ export function GeneralNotificationForm({ notification, onUpsertSuccess }: Props
             tooltip={tr('generalNotificationForm.messageEditorFieldTooltip')}
             component={({ value, onChange }) => (
               <GeneralNotificationTextEditor
-                disableDelete={!notification}
                 value={value}
                 onChange={(value) => {
                   onChange(value);
                 }}
-                onDelete={() => {
-                  const id = form.getValues().id;
-                  if (id) generalNotificationDelete.mutate({ id: id });
-                }}
               />
             )}
           />
+          <FormFunctionButtons
+            isPublished={!!notification}
+            dirty={form.formState.isDirty}
+            disableDelete={!notification}
+            onDelete={() => {
+              const id = form.getValues().id;
+              if (id) generalNotificationDelete.mutate({ id: id });
+            }}
+            onSave={() => {
+              form.handleSubmit(onSubmit)();
+            }}
+            onCancel={() => navigate('/hallinta/tiedotteet')}
+          />
           <Box
             css={css`
-              display: flex;
               margin-left: auto;
-              width: fit-content;
-              align-items: center;
             `}
           >
             {notification ? (
-              <Box
-                css={css`
-                  display: flex;
-                  flex-direction: column;
-                  gap: 0.5rem;
-                `}
-              >
-                {displayPublished && (
-                  <Box display="flex" alignItems="center">
-                    <Typography>
-                      {tr(
-                        'generalNotificationForm.notificationPublished',
-                        dayjs(notification.createdAt).format(`D.M.YYYY [${tr('atTime')}] HH:mm`),
-                      )}
-                    </Typography>
-                    <Button
-                      css={css`
-                        margin-left: 1rem;
-                        width: 130px;
-                      `}
-                      variant="outlined"
-                      onClick={() => setDisplayPublished(false)}
-                    >
-                      {tr('generalNotificationForm.hidePublishInfo')}
-                    </Button>
-                  </Box>
+              <Typography>
+                {tr(
+                  'generalNotificationForm.notificationPublished',
+                  dayjs(notification.createdAt).format(`D.M.YYYY [${tr('atTime')}] HH:mm`),
                 )}
-              </Box>
+              </Typography>
             ) : (
-              <>
-                <Typography>{tr('generalNotificationForm.notificationNotPublished')}</Typography>
-                <Button
-                  css={css`
-                    margin-left: 1rem;
-                    width: 130px;
-                  `}
-                  type="submit"
-                  variant="contained"
-                  disabled={!isValid || !isDirty || isSubmitting}
-                  endIcon={isSubmitting ? <HourglassFullTwoTone /> : <Save />}
-                >
-                  {tr('generalNotificationForm.publish')}
-                </Button>
-              </>
+              <Typography>{tr('generalNotificationForm.notificationNotPublished')}</Typography>
             )}
           </Box>
         </form>

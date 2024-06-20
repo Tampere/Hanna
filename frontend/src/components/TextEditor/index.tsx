@@ -1,8 +1,7 @@
 import { EmotionJSX } from '@emotion/react/types/jsx-namespace';
 import { Box, CssBaseline, css } from '@mui/material';
-import { Editor, EditorContent, useEditor } from '@tiptap/react';
+import { EditorContent, JSONContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { useState } from 'react';
 
 import { MenuBar } from './MenuBar';
 import './styles.css';
@@ -11,28 +10,17 @@ const extensions = [StarterKit];
 
 interface Props {
   content: string;
-  renderFunctionButtons: (
-    resetEditor: () => void,
-    editor: Editor,
-    dirty: boolean,
-    setDirty: React.Dispatch<React.SetStateAction<boolean>>,
-  ) => EmotionJSX.Element;
+  renderFunctionButtons?: () => EmotionJSX.Element;
+  onChange: (content: JSONContent) => void;
 }
 
-export function TextEditor({ content, renderFunctionButtons }: Props) {
-  const [dirty, setDirty] = useState(false);
-
-  function resetEditor() {
-    editor?.commands.setContent(content);
-    setDirty(false);
-  }
-
+export function TextEditor({ content, renderFunctionButtons, onChange }: Props) {
   const editor = useEditor({
     editable: true,
     extensions,
     content: content,
-    onUpdate: () => {
-      if (!dirty) setDirty(true);
+    onUpdate: ({ editor }) => {
+      onChange(editor.getJSON());
     },
   });
 
@@ -49,9 +37,9 @@ export function TextEditor({ content, renderFunctionButtons }: Props) {
         `}
       >
         <MenuBar editor={editor} />
-        <EditorContent editor={editor} />
+        <EditorContent editor={editor} onChange={(val) => console.log(val)} />
       </Box>
-      {renderFunctionButtons?.(resetEditor, editor, dirty, setDirty)}
+      {renderFunctionButtons?.()}
     </CssBaseline>
   );
 }
