@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 import { getPool, sql } from '@backend/db';
 
 import {
@@ -94,4 +96,9 @@ export function getAllGeneralNotifications() {
       dbGeneralNotificationSchema,
     )`${getGeneralNotificationFragment()} ORDER BY gn.created_at DESC`,
   );
+}
+
+export function getRecentGeneralNotificationCount() {
+  return getPool().one(sql.type(z.number())`
+  SELECT count(id) FROM app.general_notification WHERE created_at >= now() - INTERVAL '3 day'`);
 }

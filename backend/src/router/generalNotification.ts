@@ -6,6 +6,7 @@ import {
   getAllGeneralNotifications,
   getGeneralNotification,
   getGeneralNotificationSearchCount,
+  getRecentGeneralNotificationCount,
   searchGeneralNotifications,
   upsertGeneralNotification,
 } from '@backend/components/generalNotification';
@@ -55,6 +56,9 @@ export const createGeneralNotificationRouter = (t: TRPC) => {
     }),
     getAll: t.procedure.query(async () => {
       return getAllGeneralNotifications();
+    }),
+    getRecentGeneralNotificationCount: t.procedure.query(async () => {
+      return getRecentGeneralNotificationCount();
     }),
   });
 };

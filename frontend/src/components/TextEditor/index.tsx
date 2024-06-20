@@ -37,7 +37,7 @@ export function TextEditor({ content, renderFunctionButtons, onChange }: Props) 
         `}
       >
         <MenuBar editor={editor} />
-        <EditorContent editor={editor} onChange={(val) => console.log(val)} />
+        <EditorContent editor={editor} />
       </Box>
       {renderFunctionButtons?.()}
     </CssBaseline>
