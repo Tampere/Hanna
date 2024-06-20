@@ -1,7 +1,7 @@
 import { GlobalStyles } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 import { RESET } from 'jotai/utils';
-import Feature from 'ol/Feature';
+import Feature, { FeatureLike } from 'ol/Feature';
 import { Extent, createEmpty, extend, isEmpty } from 'ol/extent';
 import { Geometry } from 'ol/geom';
 import VectorLayer from 'ol/layer/Vector';
@@ -48,11 +48,14 @@ import {
   getSelectedDrawLayerFeatures,
 } from './mapInteractions';
 import { mapOptions } from './mapOptions';
+import { DEFAULT_DRAW_STYLE } from './styles';
 
 export interface DrawOptions {
   geoJson: string | object | null;
   onFeaturesSaved?: (features: string) => void;
   drawStyle: Style;
+  pointDrawStyle?: Style;
+  toolsHidden?: ToolType[];
   editable: boolean;
 }
 
@@ -182,17 +185,30 @@ export function MapWrapper(props: Props) {
     }
   }, [props.drawOptions?.geoJson]);
 
-  const drawLayer = useMemo(() => createDrawLayer(drawSource, props.drawOptions?.drawStyle), []);
+  function drawSourceHasGeometryOfType(geometryType: 'Point' | 'Polygon') {
+    return drawSource
+      .getFeatures()
+      ?.some((feature) => feature.getGeometry()?.getType() === geometryType);
+  }
+
+  const drawLayer = useMemo(
+    () => createDrawLayer(drawSource, props.drawOptions?.drawStyle ?? DEFAULT_DRAW_STYLE),
+    [],
+  );
   const registerDrawInteraction = useMemo(
     () =>
       createDrawInteraction({
         source: drawSource,
-        drawStyle: props.drawOptions?.drawStyle,
+        drawStyle:
+          selectedTool === 'newPointFeature'
+            ? props.drawOptions?.pointDrawStyle
+            : props.drawOptions?.drawStyle,
         trace: selectedTool === 'tracedFeature',
         traceSource: selectionSource,
         onDrawEnd: () => {
           setDirty(true);
         },
+        drawType: selectedTool === 'newPointFeature' ? 'Point' : 'Polygon',
       }),
     [selectedTool],
   );
@@ -237,6 +253,7 @@ export function MapWrapper(props: Props) {
         setInteractions([registerSelectInteraction]);
         break;
       case 'newFeature':
+      case 'newPointFeature':
         setInteractions([registerDrawInteraction]);
         break;
       case 'tracedFeature':
@@ -339,8 +356,12 @@ export function MapWrapper(props: Props) {
         </Map>
         {props.drawOptions?.editable && (
           <MapToolbar
+            toolsHidden={props.drawOptions?.toolsHidden}
             toolsDisabled={{
-              tracedFeature: featureSelector.features.length === 0,
+              newFeature: drawSourceHasGeometryOfType('Point'),
+              newPointFeature: drawSourceHasGeometryOfType('Polygon'),
+              tracedFeature:
+                featureSelector.features.length === 0 || drawSourceHasGeometryOfType('Point'),
               editFeature: getSelectedDrawLayerFeatures(featureSelector.features).length === 0,
               clearSelectedFeature: featureSelector.features.length === 0,
               deleteFeature: getSelectedDrawLayerFeatures(featureSelector.features).length === 0,

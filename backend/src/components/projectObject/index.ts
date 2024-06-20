@@ -38,7 +38,7 @@ const projectObjectFragment = sql.fragment`
       FROM app.project_object_user_role, app.project_object
       WHERE project_object.id = project_object_user_role.project_object_id
 	    GROUP BY (role).id, project_object.id
-  )
+  ), geometry_dump AS (SELECT po.id "dumpProjectObjectId", (st_dump(po.geom)).geom FROM app.project_object po)
   SELECT
      project_id AS "projectId",
      id AS "projectObjectId",
@@ -51,7 +51,8 @@ const projectObjectFragment = sql.fragment`
      start_date AS "startDate",
      end_date AS "endDate",
      sap_wbs_id AS "sapWBSId",
-     ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
+     ST_AsGeoJSON(ST_CollectionExtract(project_object.geom)) AS geom,
+     COALESCE(jsonb_agg(ST_AsGeoJSON(geometry_dump.geom)) FILTER (WHERE geometry_dump.geom IS NOT null), '[]'::jsonb) as "geometryDump",
      (landownership).id AS "landownership",
      (location_on_property).id AS "locationOnProperty",
      (SELECT json_agg((object_type).id)
@@ -72,7 +73,9 @@ const projectObjectFragment = sql.fragment`
      (SELECT COALESCE(json_agg("objectUserRoles"), '[]') FROM roles r WHERE r.project_object_id = project_object.id) AS "objectUserRoles",
       height
   FROM app.project_object
+  LEFT JOIN geometry_dump ON geometry_dump."dumpProjectObjectId" = project_object.id
   WHERE deleted = false
+  GROUP BY project_object.id
 `;
 
 function getProjectObjectSearchFragment({
@@ -315,7 +318,7 @@ export async function getProjectObjectsByProjectSearch(
 export async function getProjectObjectsByProjectId(projectId: string) {
   return getPool().any(sql.type(dbProjectObjectSchema)`
     ${projectObjectFragment}
-    AND project_id = ${projectId}
+    HAVING project_id = ${projectId}
   `);
 }
 
@@ -526,7 +529,7 @@ export async function updateProjectObjectBudget(
 export async function getProjectObject(tx: DatabaseTransactionConnection, projectObjectId: string) {
   return tx.one(sql.type(dbProjectObjectSchema)`
     ${projectObjectFragment}
-    AND id = ${projectObjectId}
+    HAVING id = ${projectObjectId}
   `);
 }
 
@@ -543,7 +546,7 @@ export async function getProjectObjects(
 ) {
   return tx.many(sql.type(dbProjectObjectSchema)`
     ${projectObjectFragment}
-    AND id = ANY(${sql.array(projectObjectIds, 'uuid')})
+    HAVING id = ANY(${sql.array(projectObjectIds, 'uuid')})
   `);
 }
 
