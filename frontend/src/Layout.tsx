@@ -35,6 +35,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { SessionExpiredWarning } from './SessionExpiredWarning';
+import { trpc } from './client';
 import { NavigationBlocker } from './components/NavigationBlocker';
 import NotificationList from './services/notification';
 import { asyncUserAtom, sessionExpiredAtom } from './stores/auth';
@@ -89,6 +90,10 @@ function Navbar() {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuAnchor = useRef<HTMLButtonElement>(null);
   const { pathname } = useLocation();
+  const recentGeneralNotifications =
+    trpc.generalNotification.getRecentGeneralNotificationCount.useQuery(undefined, {
+      staleTime: 15 * 60 * 1000,
+    });
 
   const logoStyle = css`
     font-family: Consolas, Menlo, sans-serif, monospace;
@@ -169,15 +174,41 @@ function Navbar() {
               value="investointiohjelma"
               to="/investointiohjelma"
             />
-            <Tab
-              style={{ marginLeft: 'auto' }}
-              component={Link}
-              to="/tiedotteet"
-              icon={<Campaign />}
-              iconPosition="start"
-              value="tiedotteet"
-              label={tr('pages.generalNotificationTitle')}
-            />
+            {recentGeneralNotifications?.data && recentGeneralNotifications.data.count > 0 ? (
+              <Tab
+                style={{ marginLeft: 'auto' }}
+                component={Link}
+                to="/tiedotteet"
+                icon={<Campaign />}
+                iconPosition="start"
+                value="tiedotteet"
+                label={
+                  <Tooltip title={tr('pages.generalNewGeneralNotificationsTooltip')}>
+                    <>
+                      {tr('pages.generalNotificationTitle')}&nbsp;
+                      <span
+                        css={css`
+                          color: #e46c29;
+                        `}
+                      >
+                        [{tr('pages.generalNotificationTitleNew').toUpperCase()}]
+                      </span>
+                    </>
+                  </Tooltip>
+                }
+              />
+            ) : (
+              <Tab
+                style={{ marginLeft: 'auto' }}
+                component={Link}
+                to="/tiedotteet"
+                icon={<Campaign />}
+                iconPosition="start"
+                value="tiedotteet"
+                label={tr('pages.generalNotificationTitle')}
+              />
+            )}
+
             <Tooltip title={tr('pages.eFormLabel')}>
               <Tab
                 component={Link}
