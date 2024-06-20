@@ -175,15 +175,15 @@ function Navbar() {
               to="/investointiohjelma"
             />
             {recentGeneralNotifications?.data && recentGeneralNotifications.data.count > 0 ? (
-              <Tooltip title={tr('pages.generalNewGeneralNotificationsTooltip')}>
-                <Tab
-                  style={{ marginLeft: 'auto' }}
-                  component={Link}
-                  to="/tiedotteet"
-                  icon={<Campaign />}
-                  iconPosition="start"
-                  value="tiedotteet"
-                  label={
+              <Tab
+                style={{ marginLeft: 'auto' }}
+                component={Link}
+                to="/tiedotteet"
+                icon={<Campaign />}
+                iconPosition="start"
+                value="tiedotteet"
+                label={
+                  <Tooltip title={tr('pages.generalNewGeneralNotificationsTooltip')}>
                     <>
                       {tr('pages.generalNotificationTitle')}&nbsp;
                       <span
@@ -194,9 +194,9 @@ function Navbar() {
                         [{tr('pages.generalNotificationTitleNew').toUpperCase()}]
                       </span>
                     </>
-                  }
-                />
-              </Tooltip>
+                  </Tooltip>
+                }
+              />
             ) : (
               <Tab
                 style={{ marginLeft: 'auto' }}
