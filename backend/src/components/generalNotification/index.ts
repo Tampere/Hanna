@@ -85,9 +85,13 @@ export function getGeneralNotificationSearchCount() {
 
 export function searchGeneralNotifications() {
   return getPool().any(sql.type(searchGeneralNotificationsSchema)`
-    ${getGeneralNotificationFragment(true)}`);
+    ${getGeneralNotificationFragment(true)} ORDER BY gn.created_at DESC`);
 }
 
 export function getAllGeneralNotifications() {
-  return getPool().any(sql.type(dbGeneralNotificationSchema)`${getGeneralNotificationFragment()}`);
+  return getPool().any(
+    sql.type(
+      dbGeneralNotificationSchema,
+    )`${getGeneralNotificationFragment()} ORDER BY gn.created_at DESC`,
+  );
 }
