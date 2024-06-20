@@ -99,6 +99,6 @@ export function getAllGeneralNotifications() {
 }
 
 export function getRecentGeneralNotificationCount() {
-  return getPool().one(sql.type(z.number())`
+  return getPool().one(sql.type(z.object({ count: z.number() }))`
   SELECT count(id) FROM app.general_notification WHERE created_at >= now() - INTERVAL '3 day'`);
 }
