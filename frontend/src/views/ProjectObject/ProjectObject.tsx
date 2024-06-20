@@ -276,7 +276,7 @@ export function ProjectObject(props: Props) {
             <Box css={mapContainerStyle}>
               <MapWrapper
                 drawOptions={{
-                  geoJson: projectObject?.data?.geom ?? null,
+                  geoJson: projectObject?.data?.geometryDump ?? null,
                   drawStyle: PROJ_OBJ_DRAW_STYLE,
                   editable: !projectObjectId || isOwner || canWrite,
                   onFeaturesSaved: (features) => {

@@ -9,9 +9,13 @@ import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import CircleStyle from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
-import Style from 'ol/style/Style';
+import Style, { StyleLike } from 'ol/style/Style';
 
-import { DEFAULT_DRAW_STYLE, selectionLayerStyle } from '@frontend/components/Map/styles';
+import {
+  DEFAULT_DRAW_STYLE,
+  DEFAULT_POINT_STYLE,
+  selectionLayerStyle,
+} from '@frontend/components/Map/styles';
 
 interface DrawOptions {
   source: VectorSource<Feature<Geometry>>;
@@ -19,11 +23,14 @@ interface DrawOptions {
   traceSource: VectorSource<Feature<Geometry>> | null;
   drawStyle?: Style;
   onDrawEnd?: () => void;
+  drawType: 'Polygon' | 'Point';
 }
 
 export const DRAW_LAYER_Z_INDEX = 101;
 
-export function createDrawLayer(source: VectorSource<Feature<Geometry>>, style?: Style) {
+const defaultStyles = { Polygon: DEFAULT_DRAW_STYLE, Point: DEFAULT_POINT_STYLE };
+
+export function createDrawLayer(source: VectorSource<Feature<Geometry>>, style?: StyleLike) {
   return new VectorLayer({
     source,
     zIndex: DRAW_LAYER_Z_INDEX,
@@ -34,18 +41,21 @@ export function createDrawLayer(source: VectorSource<Feature<Geometry>>, style?:
 
 export function createDrawInteraction(opts: DrawOptions) {
   return function registerInteraction(map: OLMap) {
-    const drawStyle = (opts.drawStyle || DEFAULT_DRAW_STYLE).clone();
-    drawStyle.setImage(
-      new CircleStyle({
-        radius: 5,
-        fill: new Fill({ color: drawStyle.getStroke()?.getColor() }),
-      }),
-    );
-    drawStyle.getStroke()?.setLineDash([3, 10]);
+    const drawStyle = (opts.drawStyle || defaultStyles[opts.drawType]).clone();
+
+    if (opts.drawType === 'Polygon') {
+      drawStyle.setImage(
+        new CircleStyle({
+          radius: 5,
+          fill: new Fill({ color: drawStyle.getStroke()?.getColor() }),
+        }),
+      );
+      drawStyle.getStroke()?.setLineDash([3, 10]);
+    }
 
     const draw = new Draw({
       source: opts.source,
-      type: 'Polygon',
+      type: opts.drawType,
       condition: primaryAction,
       style: drawStyle,
       trace: opts.trace,
@@ -179,6 +189,9 @@ export function getGeoJSONFeaturesString(features: Feature<Geometry>[], projecti
 
 export function featuresFromGeoJSON(geojson: string | object) {
   const geoJson = new OLGeoJSON();
+  if (Array.isArray(geojson)) {
+    return geojson.flatMap((f) => geoJson.readFeature(f, {}));
+  }
   const features = geoJson.readFeatures(geojson, {});
   return features;
 }
@@ -203,7 +216,6 @@ export function addFeaturesFromGeoJson(
   geoJson?: string | object | null,
 ) {
   targetSource.clear();
-
   const features = geoJson ? featuresFromGeoJSON(geoJson) : [];
   for (const feature of features) {
     targetSource.addFeature(feature);

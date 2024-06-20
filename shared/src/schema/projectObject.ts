@@ -4,7 +4,6 @@ import { codeId } from './code';
 import { isoDateString, nonEmptyString } from './common';
 import { mapSearchSchema, periodSchema } from './project';
 import { dbProjectSchema } from './project/base';
-import { projectTypeSchema } from './project/type';
 
 export const projectObjectUserRoleSchema = z.object({
   roleId: codeId,
@@ -58,6 +57,7 @@ export type UpdateProjectObject = z.infer<typeof updateProjectObjectSchema>;
 export const dbProjectObjectSchema = newProjectObjectSchema.extend({
   projectObjectId: z.string(),
   geom: z.string().nullable(),
+  geometryDump: z.array(z.string()).nullish(),
   createdAt: isoDateString,
   deleted: z.boolean(),
   updatedBy: z.string(),

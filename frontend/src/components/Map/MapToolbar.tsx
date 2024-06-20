@@ -6,6 +6,7 @@ import {
   EditTwoTone,
   PanToolAltTwoTone,
   PentagonTwoTone,
+  PlaceTwoTone,
   RoundedCornerTwoTone,
   UndoTwoTone,
 } from '@mui/icons-material';
@@ -50,6 +51,7 @@ const toolBtnStyle = css`
 export type ToolType =
   | 'selectFeature'
   | 'newFeature'
+  | 'newPointFeature'
   | 'tracedFeature'
   | 'editFeature'
   | 'clearSelectedFeature'
@@ -59,14 +61,22 @@ interface Tool {
   type: ToolType;
   icon: JSX.Element;
   tooltip: TranslationKey;
+  disabledTooltip?: TranslationKey;
   color?: 'primary' | 'secondary';
 }
 
 const tools: readonly Tool[] = [
   {
+    type: 'newPointFeature',
+    icon: <PlaceTwoTone />,
+    tooltip: 'mapEdit.newPointFetureTooltip',
+    disabledTooltip: 'mapEdit.newPointFeatureDisabledTooltip',
+  },
+  {
     type: 'newFeature',
     icon: <PentagonTwoTone />,
     tooltip: 'mapEdit.newFeatureTooltip',
+    disabledTooltip: 'mapEdit.newFeatureDisabledTooltip',
   },
   {
     type: 'selectFeature',
@@ -98,6 +108,7 @@ const tools: readonly Tool[] = [
 
 interface Props {
   toolsDisabled: Partial<Record<ToolType, boolean>>;
+  toolsHidden?: ToolType[];
   onToolChange: (tool: ToolType | null) => void;
   onSaveClick: () => void;
   onUndoClick: () => void;
@@ -116,20 +127,31 @@ export function MapToolbar(props: Props) {
 
   return (
     <Box css={toolsContainerStyle}>
-      {tools.map((tool) => (
-        <Tooltip placement="left" key={tool.type} title={tr(tool.tooltip)}>
-          <Box>
-            <IconButton
-              disabled={props.toolsDisabled[tool.type]}
-              css={selectedTool === tool.type ? selectedToolStyle : toolBtnStyle}
-              color={tool?.color || 'primary'}
-              onClick={() => handleToolClick(selectedTool === tool.type ? null : tool.type)}
-            >
-              {tool.icon}
-            </IconButton>
-          </Box>
-        </Tooltip>
-      ))}
+      {tools.map((tool) => {
+        if (props.toolsHidden?.includes(tool.type)) return null;
+        return (
+          <Tooltip
+            placement="left"
+            key={tool.type}
+            title={
+              tool.disabledTooltip && props.toolsDisabled[tool.type]
+                ? tr(tool.disabledTooltip)
+                : tr(tool.tooltip)
+            }
+          >
+            <Box>
+              <IconButton
+                disabled={props.toolsDisabled[tool.type]}
+                css={selectedTool === tool.type ? selectedToolStyle : toolBtnStyle}
+                color={tool?.color || 'primary'}
+                onClick={() => handleToolClick(selectedTool === tool.type ? null : tool.type)}
+              >
+                {tool.icon}
+              </IconButton>
+            </Box>
+          </Tooltip>
+        );
+      })}
       <Divider sx={{ mt: 2, mb: 2 }} />
       <Tooltip placement="left" title={tr('mapEdit.undoTooltip')}>
         <Box>
