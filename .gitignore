@@ -9,6 +9,7 @@ node_modules
 .env.test-db
 temp
 *.http
+*.azcli
 /test-results/
 /playwright-report/
 /blob-report/
