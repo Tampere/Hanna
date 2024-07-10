@@ -14,7 +14,7 @@ export function ProjectObjectParticipantFilter({ onChange, isChecked }: Props) {
     <FormControlLabel
       control={<Switch checked={isChecked} onChange={onChange} color="primary" />}
       label={tr('workTable.participantFilterLabel')}
-      labelPlacement="start"
+      labelPlacement="end"
     />
   );
 }
