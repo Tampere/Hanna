@@ -60,12 +60,16 @@ export async function setupSapSyncQueue() {
         logger.info(`Starting SAP sync for project ${data.projectId}...`);
         const project = await getSapProject(data.projectId);
         logger.info(`Loaded SAP project ${project?.sapProjectId}, fetching actuals...`);
-        if (project?.plannedStartDate) {
-          const actuals = await getSapActuals(
-            data.projectId,
-            new Date(project.plannedStartDate).getFullYear(),
-            new Date().getFullYear(),
-          );
+        const plannedStartYear = project?.plannedStartDate
+          ? new Date(project?.plannedStartDate).getFullYear()
+          : null;
+        const currentYear = new Date().getFullYear();
+        if (plannedStartYear) {
+          if (plannedStartYear > currentYear) {
+            logger.info('Planned start year is in the future, skipping actuals fetch');
+            return;
+          }
+          const actuals = await getSapActuals(data.projectId, plannedStartYear, currentYear);
           logger.info(`Loaded ${actuals.length} actuals for project ${data.projectId}`);
         } else {
           logger.info(
