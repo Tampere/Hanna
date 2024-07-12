@@ -4,6 +4,7 @@
     "declaration": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "lib": ["ES2015"],
     "outDir": "dist"
   },
