@@ -14,7 +14,6 @@ const schema = z.object({
   logLevel: z.enum(['debug', 'info', 'warn', 'error']),
   serverPort: z.number(),
   cookieSecret: z.string(),
-  fastifyTrustProxy: z.boolean(),
   appUrl: z.string(),
   db: z.object({
     host: z.string(),
@@ -107,7 +106,6 @@ function getEnv() {
     logLevel: process.env.LOG_LEVEL,
     serverPort: Number(process.env.SERVER_PORT),
     cookieSecret: process.env.COOKIE_SECRET,
-    fastifyTrustProxy: process.env.FASTIFY_TRUST_PROXY === 'true',
     appUrl: process.env.APP_URL,
     db: {
       host: process.env.PG_HOST,

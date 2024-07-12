@@ -5,8 +5,7 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "lib": ["ES2015"],
-    "outDir": "dist",
-    "skipLibCheck": true
+    "outDir": "dist"
   },
   "include": ["src"],
   "exclude": ["src/**/*.test.ts"]
