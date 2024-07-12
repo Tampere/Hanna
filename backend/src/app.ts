@@ -62,7 +62,10 @@ async function run() {
     setupWorkTableReportQueue(),
   ]);
   // https://github.com/fastify/fastify/issues/4960
-  const server = fastify({ logger: logger as FastifyBaseLogger });
+  const server = fastify({
+    logger: logger as FastifyBaseLogger,
+    trustProxy: env.fastifyTrustProxy ?? false,
+  });
   const oidcClient = await getClient();
 
   registerApiKeyRoutes(server, { prefix: '/api/v1/admin', apis: [syncQueueApi] });
