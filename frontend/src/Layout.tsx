@@ -4,6 +4,7 @@ import {
   Campaign,
   Feed,
   HelpOutline,
+  InfoOutlined,
   Logout,
   Reorder,
   Settings,
@@ -13,7 +14,12 @@ import AccountTreeOutlined from '@mui/icons-material/AccountTreeOutlined';
 import {
   AppBar,
   Box,
+  Button,
   CssBaseline,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   ListItemIcon,
   ListItemText,
@@ -84,23 +90,24 @@ export const theme = createTheme(
   fiFI,
 );
 
+const logoStyle = css`
+  font-family: Consolas, Menlo, sans-serif, monospace;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 0.3rem;
+`;
+
 function Navbar() {
   const auth = useAtomValue(asyncUserAtom);
   const tr = useTranslations();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [aboutDialogOpen, setAboutDialogOpen] = useState(false);
   const profileMenuAnchor = useRef<HTMLButtonElement>(null);
   const { pathname } = useLocation();
   const recentGeneralNotifications =
     trpc.generalNotification.getRecentGeneralNotificationCount.useQuery(undefined, {
       staleTime: 15 * 60 * 1000,
     });
-
-  const logoStyle = css`
-    font-family: Consolas, Menlo, sans-serif, monospace;
-    text-transform: uppercase;
-    font-weight: bold;
-    letter-spacing: 0.3rem;
-  `;
 
   function getValueFromPathname() {
     if (pathname === '/') {
@@ -278,6 +285,12 @@ function Navbar() {
               horizontal: 'right',
             }}
           >
+            <MenuItem onClick={() => setAboutDialogOpen(true)}>
+              <ListItemIcon>
+                <InfoOutlined />
+              </ListItemIcon>
+              <ListItemText>{tr('about.title')}</ListItemText>
+            </MenuItem>
             <MenuItem
               data-testid="logoutButton"
               onClick={() => {
@@ -290,6 +303,12 @@ function Navbar() {
               </ListItemIcon>
               <ListItemText>{tr('profile.logout')}</ListItemText>
             </MenuItem>
+            <AboutDialog
+              open={aboutDialogOpen}
+              handleClose={() => {
+                setAboutDialogOpen(false);
+              }}
+            />
           </Menu>
         </Box>
       </Toolbar>
@@ -297,21 +316,47 @@ function Navbar() {
   );
 }
 
-function VersionIndicator() {
+function AboutDialog({ open, handleClose }: { open: boolean; handleClose: () => void }) {
+  const tr = useTranslations();
+
   return (
-    <Typography
-      css={css`
-        position: fixed;
-        right: 0;
-        bottom: 0;
-        padding: 4px 8px;
-        border-radius: 10px 0 0 0;
-        background: #fff;
-        opacity: 0.7;
-      `}
-    >
-      Hanna {APP_VERSION}
-    </Typography>
+    <Dialog open={open} onClose={handleClose}>
+      <DialogTitle css={logoStyle}>Hanna</DialogTitle>
+      <DialogContent
+        css={css`
+          padding: 0 auto;
+        `}
+      >
+        <dl
+          css={css`
+            min-width: 220px;
+            display: grid;
+            column-gap: 0.5rem;
+            grid-template-columns: 1fr 2fr;
+            padding: 0 1rem;
+
+            & dt {
+              grid-column: 1;
+              font-weight: bold;
+              color: #777777;
+            }
+            & dd {
+              grid-column: 2;
+              justify-self: start;
+              margin-left: 0;
+            }
+          `}
+        >
+          <dt>{tr('version')}:</dt>
+          <dd>{APP_VERSION}</dd>
+        </dl>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} autoFocus>
+          {tr('close')}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 
@@ -347,7 +392,6 @@ export function Layout() {
             <Outlet />
             <NavigationBlocker status={blockerStatus} />
           </Box>
-          <VersionIndicator />
           <SessionExpiredWarning />
         </ThemeProvider>
       </Box>
