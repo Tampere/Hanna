@@ -6,9 +6,10 @@ interface Props extends TabProps<typeof Link> {
 }
 
 export function TooltipLinkTab(props: Props) {
+  const { title, ...tabProps } = props;
   return (
-    <Tooltip title={props.title}>
-      <Tab component={Link} {...props} />
+    <Tooltip title={title}>
+      <Tab component={Link} {...tabProps} />
     </Tooltip>
   );
 }
