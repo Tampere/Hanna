@@ -7,6 +7,7 @@ import {
   GridRenderEditCellParams,
   GridValidRowModel,
   gridPaginatedVisibleSortedGridRowIdsSelector,
+  useGridApiContext,
 } from '@mui/x-data-grid';
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
@@ -163,10 +164,11 @@ const fieldProjectLink = {
   renderCell: (params: GridRenderCellParams) => {
     const allRowIds = params.api.getAllRowIds();
     const currentRowIndex = allRowIds.indexOf(params.row.id);
+    const apiRef = useGridApiContext();
 
-    const currentRowRelativeIndex = gridPaginatedVisibleSortedGridRowIdsSelector(
-      params.api.state,
-    ).indexOf(params.row.id);
+    const currentRowRelativeIndex = gridPaginatedVisibleSortedGridRowIdsSelector(apiRef).indexOf(
+      params.row.id,
+    );
     let displayProjectLink: boolean;
 
     if (currentRowRelativeIndex > 0) {

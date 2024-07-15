@@ -1,7 +1,7 @@
 import { GlobalStyles } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 import { RESET } from 'jotai/utils';
-import Feature, { FeatureLike } from 'ol/Feature';
+import Feature from 'ol/Feature';
 import { Extent, createEmpty, extend, isEmpty } from 'ol/extent';
 import { Geometry } from 'ol/geom';
 import VectorLayer from 'ol/layer/Vector';
@@ -63,7 +63,7 @@ interface Props {
   drawOptions?: DrawOptions;
   onMoveEnd?: (zoom: number, extent: number[]) => void;
   loading?: boolean;
-  vectorLayers?: VectorLayer<VectorSource<Feature<Geometry>>>[];
+  vectorLayers?: VectorLayer<Feature<Geometry>>[];
   fitExtent?: 'geoJson' | 'vectorLayers' | 'all';
   projects?: ProjectSearchResult['projects'];
   projectObjects?: ProjectObjectSearchResult['projectObjects'];
