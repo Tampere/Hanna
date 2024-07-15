@@ -43,6 +43,7 @@ import { useTranslations } from '@frontend/stores/lang';
 import { SessionExpiredWarning } from './SessionExpiredWarning';
 import { trpc } from './client';
 import { NavigationBlocker } from './components/NavigationBlocker';
+import { TooltipLinkTab } from './components/TooltipLinkTab';
 import NotificationList from './services/notification';
 import { asyncUserAtom, sessionExpiredAtom } from './stores/auth';
 import { blockerStatusAtom } from './stores/navigationBlocker';
@@ -182,26 +183,24 @@ function Navbar() {
               to="/investointiohjelma"
             />
             {recentGeneralNotifications?.data && recentGeneralNotifications.data.count > 0 ? (
-              <Tab
+              <TooltipLinkTab
+                title={tr('pages.generalNewGeneralNotificationsTooltip')}
                 style={{ marginLeft: 'auto' }}
-                component={Link}
                 to="/tiedotteet"
                 icon={<Campaign />}
                 iconPosition="start"
                 value="tiedotteet"
                 label={
-                  <Tooltip title={tr('pages.generalNewGeneralNotificationsTooltip')}>
-                    <>
-                      {tr('pages.generalNotificationTitle')}&nbsp;
-                      <span
-                        css={css`
-                          color: #e46c29;
-                        `}
-                      >
-                        [{tr('pages.generalNotificationTitleNew').toUpperCase()}]
-                      </span>
-                    </>
-                  </Tooltip>
+                  <>
+                    {tr('pages.generalNotificationTitle')}&nbsp;
+                    <span
+                      css={css`
+                        color: #e46c29;
+                      `}
+                    >
+                      [{tr('pages.generalNotificationTitleNew').toUpperCase()}]
+                    </span>
+                  </>
                 }
               />
             ) : (
@@ -215,17 +214,14 @@ function Navbar() {
                 label={tr('pages.generalNotificationTitle')}
               />
             )}
-
-            <Tooltip title={tr('pages.eFormLabel')}>
-              <Tab
-                component={Link}
-                to="/redirect-to-elomake"
-                target="_blank"
-                icon={<Feed />}
-                iconPosition="start"
-                label={tr('pages.eForm')}
-              />
-            </Tooltip>
+            <TooltipLinkTab
+              title={tr('pages.eFormLabel')}
+              to="/redirect-to-elomake"
+              target="_blank"
+              icon={<Feed />}
+              iconPosition="start"
+              label={tr('pages.eForm')}
+            />
             <Tab
               component={Link}
               to="/ohje"
