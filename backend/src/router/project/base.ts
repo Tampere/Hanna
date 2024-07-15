@@ -212,8 +212,8 @@ export const createProjectRouter = (t: TRPC) => {
     updatePermissions: t.procedure
       .input(projectPermissionSchema)
       .use(withAccess(ownsProject))
-      .mutation(async ({ input }) => {
-        return await projectPermissionUpsert(input);
+      .mutation(async ({ input, ctx }) => {
+        return await projectPermissionUpsert(input, ctx.user.id);
       }),
   });
 };
