@@ -1,4 +1,5 @@
 import test, { expect } from '@playwright/test';
+import { clearObjects } from '@utils/db';
 import { login } from '@utils/page';
 import { ADMIN_USER, DEV_USER, UserSessionObject } from '@utils/users';
 
@@ -27,6 +28,46 @@ const testProjectObject = (projectId: string, user: User) => ({
   suunnitteluttajaUser: user.id,
   rakennuttajaUser: user.id,
   startDate: '2021-01-01',
+  endDate: '2022-01-01',
+  sapWBSId: null,
+  landownership: null,
+  locationOnProperty: null,
+  height: null,
+  objectUserRoles: [],
+});
+
+const testProjectObject2 = (projectId: string, user: User) => ({
+  projectId,
+  description: 'Test description 2',
+  objectName: 'Test project object 2',
+  objectStage: '01',
+  lifecycleState: '01',
+  objectType: ['01'],
+  objectCategory: ['01'],
+  objectUsage: ['01'],
+  suunnitteluttajaUser: user.id,
+  rakennuttajaUser: user.id,
+  startDate: '2021-02-01',
+  endDate: '2022-01-01',
+  sapWBSId: null,
+  landownership: null,
+  locationOnProperty: null,
+  height: null,
+  objectUserRoles: [],
+});
+
+const testProjectObject3 = (projectId: string, user: User) => ({
+  projectId,
+  description: 'Test description 3',
+  objectName: 'Test project object 3',
+  objectStage: '01',
+  lifecycleState: '01',
+  objectType: ['01'],
+  objectCategory: ['01'],
+  objectUsage: ['01'],
+  suunnitteluttajaUser: user.id,
+  rakennuttajaUser: user.id,
+  startDate: '2021-03-01',
   endDate: '2022-01-01',
   sapWBSId: null,
   landownership: null,
@@ -79,6 +120,10 @@ test.describe('Project Object endpoints', () => {
       project: testProject(user),
       keepOwnerRights: true,
     });
+  });
+
+  test.afterEach(async () => {
+    await clearObjects();
   });
 
   test('Project Object upsertion', async () => {
@@ -301,5 +346,40 @@ test.describe('Project Object endpoints', () => {
         endDate: { type: 'custom', message: 'projectObject.error.projectNotIncluded' },
       },
     });
+  });
+  test('project object search', async () => {
+    const user = await devSession.client.user.self.query();
+
+    await devSession.client.projectObject.upsert.mutate(testProjectObject(project.projectId, user));
+    await devSession.client.projectObject.upsert.mutate(
+      testProjectObject2(project.projectId, user),
+    );
+    await devSession.client.projectObject.upsert.mutate(
+      testProjectObject3(project.projectId, user),
+    );
+
+    const searchResult = await devSession.client.projectObject.search.query({
+      dateRange: {
+        startDate: '2021-01-01',
+        endDate: '2021-01-31',
+      },
+    });
+    const searchResult2 = await devSession.client.projectObject.search.query({
+      dateRange: {
+        startDate: '2021-01-01',
+        endDate: '2021-02-28',
+      },
+    });
+
+    const searchResult3 = await devSession.client.projectObject.search.query({
+      dateRange: {
+        startDate: '2021-01-01',
+        endDate: '2021-03-31',
+      },
+    });
+
+    expect(searchResult.projectObjects.length).toBe(1);
+    expect(searchResult2.projectObjects.length).toBe(2);
+    expect(searchResult3.projectObjects.length).toBe(3);
   });
 });

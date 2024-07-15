@@ -179,6 +179,8 @@
   "map.layerdrawer.close": "Sulje karttatasovalikko",
   "map.fitScreen": "Sovita näkymään",
   "map.resetZoom": "Palauta zoomaus",
+  "about.title": "Tietoja palvelusta",
+  "version": "Versio",
   "profile.logout": "Kirjaudu ulos",
   "select.noOptions": "Ei tuloksia",
   "select.selections": "valintaa",

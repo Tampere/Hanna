@@ -239,6 +239,7 @@ export async function baseProjectUpsert(
         projectId: project.projectId,
         permissions: [{ userId: oldOwnerRow.owner, canWrite: true }],
       },
+      user.id,
       tx,
     );
   }
@@ -249,9 +250,16 @@ export async function baseProjectUpsert(
 
 export async function projectPermissionUpsert(
   projectPermissions: ProjectPermissions,
+  userId: string,
   tx?: DatabaseTransactionConnection,
 ) {
   const conn = tx ?? getPool();
+
+  await addAuditEvent(conn, {
+    eventType: 'projectPermission.upsert',
+    eventData: projectPermissions,
+    eventUser: userId,
+  });
   const result = await upsertProjectPermissions(conn, projectPermissions);
 
   return result;
