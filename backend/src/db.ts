@@ -45,6 +45,13 @@ export async function createDatabasePool() {
     PgPool: SharedPool,
     typeParsers: [
       ...createTypeParserPreset(),
+      // Convert int8 to numbers
+      {
+        name: 'int8',
+        parse(value) {
+          return parseInt(value, 10);
+        },
+      },
       // Convert timestamps to JS dates
       {
         name: 'timestamp',

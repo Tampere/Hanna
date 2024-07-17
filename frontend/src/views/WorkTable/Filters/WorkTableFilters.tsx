@@ -1,7 +1,8 @@
 import { Search } from '@mui/icons-material';
 import { InputAdornment, TextField, Theme, css } from '@mui/material';
-import { LocalizationProvider, fiFI } from '@mui/x-date-pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { fiFI } from '@mui/x-date-pickers/locales';
 import { SetStateAction, useAtomValue } from 'jotai';
 import React from 'react';
 

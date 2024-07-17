@@ -1,7 +1,8 @@
 import { css } from '@emotion/react';
 import { AddCircleOutline, Cancel, Download, Redo, Save, Undo } from '@mui/icons-material';
 import { Box, Button, IconButton, Theme, Tooltip, Typography } from '@mui/material';
-import { DataGrid, fiFI, useGridApiRef } from '@mui/x-data-grid';
+import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
+import { fiFI } from '@mui/x-data-grid/locales';
 import { atom, useAtom, useAtomValue } from 'jotai';
 import diff from 'microdiff';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -62,7 +63,7 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
     overflow: visible;
   }
 
-  & .MuiDataGrid-columnHeaders {
+  & .MuiDataGrid-columnHeader {
     background: ${theme.palette.primary.main};
     color: white;
     height: 45px !important;

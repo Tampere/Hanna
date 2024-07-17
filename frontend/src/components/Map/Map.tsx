@@ -9,7 +9,6 @@ import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 import VectorImageLayer from 'ol/layer/VectorImage';
 import { ProjectionLike } from 'ol/proj';
-import VectorSource from 'ol/source/Vector';
 import WMTS from 'ol/source/WMTS';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 
@@ -25,10 +24,10 @@ interface Props {
   baseMapLayers: TileLayer<WMTS>[];
   children?: ReactNode;
   extent: number[] | null;
-  wfsLayers?: VectorImageLayer<VectorSource<Feature<Geometry>>>[];
-  vectorLayers?: VectorLayer<VectorSource<Feature<Geometry>>>[];
+  wfsLayers?: VectorImageLayer<Feature<Geometry>>[];
+  vectorLayers?: VectorLayer<Feature<Geometry>>[];
   interactions?: MapInteraction[] | null;
-  interactionLayers?: VectorLayer<VectorSource<Feature<Geometry>>>[];
+  interactionLayers?: VectorLayer<Feature<Geometry>>[];
 }
 
 const { code, units, proj4String } = mapOptions.projection;
