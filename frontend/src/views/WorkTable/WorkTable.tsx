@@ -63,7 +63,7 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
     overflow: visible;
   }
 
-  & .MuiDataGrid-columnHeaders {
+  & .MuiDataGrid-columnHeader {
     background: ${theme.palette.primary.main};
     color: white;
     height: 45px !important;
