@@ -8,46 +8,38 @@ import { Link } from 'react-router-dom';
 import { useTranslations } from '@frontend/stores/lang';
 import { activeItemIdAtom, selectedItemIdsAtom } from '@frontend/stores/map';
 
-import { ProjectSearchResult } from '@shared/schema/project';
-import { ProjectObjectSearchResult } from '@shared/schema/projectObject';
-
+import { ProjectData, ProjectObjectData } from '../MapWrapper';
 import { ProjectDetails } from './ProjectDetails';
 import { ProjectObjectDetails } from './ProjectObjectDetails';
 import { StepIndicator } from './StepIndicator';
 
-interface Props {
+interface Props<TProject, TProjectObject> {
   parentWidth: number;
   parentHeight: number;
   pos: Pixel;
-  projects?: ProjectSearchResult['projects'];
-  projectObjects?: ProjectObjectSearchResult['projectObjects'];
+  projects?: TProject[];
+  projectObjects?: TProjectObject[];
   handleActiveFeatureChange: (projectId: string) => void;
   handleCloseInfoBox: () => void;
 }
 
-type ProjectObjectResult = ProjectObjectSearchResult['projectObjects'][number];
-type ProjectResult = ProjectSearchResult['projects'][number];
-
-export function SelectionInfoBox({
+export function SelectionInfoBox<
+  TProject extends ProjectData,
+  TProjectObject extends ProjectObjectData,
+>({
   parentWidth,
   parentHeight,
   pos,
   handleActiveFeatureChange,
   handleCloseInfoBox,
   ...props
-}: Props) {
+}: Props<TProject, TProjectObject>) {
   const tr = useTranslations();
   const selectedItemIds = useAtomValue(selectedItemIdsAtom);
   const [activeItemId, setActiveItemId] = useAtom(activeItemIdAtom);
-  const [projects, setProjects] = useState<ProjectSearchResult['projects']>([]);
-  const [projectObjects, setProjectObjects] = useState<ProjectObjectSearchResult['projectObjects']>(
-    [],
-  );
-  const [activeItem, setActiveItem] = useState<
-    | ProjectSearchResult['projects'][number]
-    | ProjectObjectSearchResult['projectObjects'][number]
-    | null
-  >(null);
+  const [projects, setProjects] = useState<TProject[]>([]);
+  const [projectObjects, setProjectObjects] = useState<TProjectObject[]>([]);
+  const [activeItem, setActiveItem] = useState<TProject | TProjectObject | null>(null);
   const [infoBoxHeight, setInfoBoxHeight] = useState(190);
 
   useEffect(() => {
@@ -56,9 +48,7 @@ export function SelectionInfoBox({
       setProjects(
         selectedItemIds
           .map((projectId) => props?.projects?.find((project) => project.projectId === projectId))
-          .filter<ProjectResult>(
-            (project): project is ProjectResult => typeof project !== 'undefined',
-          ),
+          .filter<TProject>((project): project is TProject => typeof project !== 'undefined'),
       );
     }
   }, [props.projects, selectedItemIds]);
@@ -73,8 +63,8 @@ export function SelectionInfoBox({
                 (projectObject) => projectObject.projectObjectId === projectId,
               ),
           )
-          .filter<ProjectObjectResult>(
-            (projectObject): projectObject is ProjectObjectResult =>
+          .filter<TProjectObject>(
+            (projectObject): projectObject is TProjectObject =>
               typeof projectObject !== 'undefined',
           ),
       );
@@ -87,15 +77,15 @@ export function SelectionInfoBox({
 
   const activeItemIndex = getActiveItemIndex();
 
-  function isProjectObject(item: ProjectResult | ProjectObjectResult): item is ProjectObjectResult {
+  function isProjectObject(item: TProject | TProjectObject): item is TProjectObject {
     return Object.keys(item).includes('projectObjectId');
   }
 
-  function getItemId(item: ProjectResult | ProjectObjectResult) {
+  function getItemId(item: TProject | TProjectObject) {
     if (Object.keys(item).includes('projectObjectId')) {
-      return (item as ProjectObjectResult).projectObjectId;
+      return (item as TProjectObject).projectObjectId;
     }
-    return (item as ProjectResult).projectId;
+    return (item as TProject).projectId;
   }
 
   function handleNext() {
@@ -114,7 +104,7 @@ export function SelectionInfoBox({
     return index;
   }
 
-  function getLinkUrl(item: ProjectResult | ProjectObjectResult) {
+  function getLinkUrl(item: TProject | TProjectObject) {
     if (isProjectObject(item)) {
       return `/investointihanke/${item?.project.projectId}/kohde/${item?.projectObjectId}`;
     } else if (item.projectType === 'investmentProject') {

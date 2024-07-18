@@ -6,7 +6,7 @@ import { mapOptions } from '@frontend/components/Map/mapOptions';
 import { ProjectObjectSearch } from '@shared/schema/projectObject';
 
 // Use the shared schema as base, but omit unused fields and mark the rest as required
-type ObjectSearchParams = Omit<Required<ProjectObjectSearch>, 'limit'>;
+type ObjectSearchParams = Omit<Required<ProjectObjectSearch>, 'limit' | 'projectId'>;
 
 export const projectObjectSearchParamAtom = atom<ObjectSearchParams>({
   projectObjectName: '',

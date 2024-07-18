@@ -13,6 +13,7 @@ import {
   projectIdSchema,
   projectWritePermissionSchema,
 } from '@shared/schema/project/base';
+import { projectTypeSchema } from '@shared/schema/project/type';
 import { User } from '@shared/schema/user';
 import { ProjectPermissionContext, permissionContextSchema } from '@shared/schema/userPermissions';
 
@@ -77,15 +78,28 @@ export async function getProject(id: string) {
       description: z.string(),
       projectName: z.string(),
       geom: z.string(),
+      startDate: z.string(),
+      endDate: z.string(),
+      projectType: projectTypeSchema,
     }),
   )`
     SELECT
-      id AS "projectId",
+      app.project.id AS "projectId",
       description,
       project_name AS "projectName",
-      ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom
+      ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
+      start_date AS "startDate",
+      end_date AS "endDate",
+      CASE
+        WHEN project_investment.id IS NOT NULL THEN 'investmentProject'
+        WHEN project_detailplan.id IS NOT NULL THEN 'detailplanProject'
+        WHEN project_maintenance.id IS NOT NULL THEN 'maintenanceProject'
+      END AS "projectType"
     FROM app.project
-    WHERE id = ${id}
+    LEFT JOIN app.project_investment ON project_investment.id = app.project.id
+    LEFT JOIN app.project_detailplan ON project_detailplan.id = app.project.id
+    LEFT JOIN app.project_maintenance ON project_maintenance.id = app.project.id
+    WHERE app.project.id = ${id}
       AND deleted = false
   `);
   if (!project) {

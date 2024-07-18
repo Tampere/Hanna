@@ -6,19 +6,13 @@ import { trpc } from '@frontend/client';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { useCodes } from '@frontend/utils/codes';
 
-import { ProjectType } from '@shared/schema/project/type';
+import { ProjectData } from '../MapWrapper';
 
 interface ProjectDetailsProps<TProject> {
   project: TProject;
 }
 
-interface ProjectBase {
-  projectId: string;
-  projectName: string;
-  projectType: ProjectType;
-}
-
-export function ProjectDetails<TProject extends ProjectBase>({
+export function ProjectDetails<TProject extends ProjectData>({
   project,
 }: ProjectDetailsProps<TProject>) {
   const lang = useAtomValue(langAtom);

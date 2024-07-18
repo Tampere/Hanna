@@ -147,6 +147,7 @@ export function InvestmentProject() {
           const geoJson = JSON.parse(projObj.geom);
           const features = geoJson ? featuresFromGeoJSON(geoJson) : [];
           for (const feature of features) {
+            feature.setId(projObj.projectObjectId);
             source.addFeature(feature);
           }
         }
@@ -250,6 +251,16 @@ export function InvestmentProject() {
                 }}
                 fitExtent="geoJson"
                 vectorLayers={[projectObjectsLayer]}
+                projectObjects={
+                  projectObjects.data?.map((obj) => ({
+                    ...obj,
+                    project: {
+                      projectId: projectId,
+                      projectName: project.data?.projectName ?? '',
+                    },
+                  })) ?? []
+                }
+                interactiveLayers={['projectObjects']}
               />
             </Box>
           )}

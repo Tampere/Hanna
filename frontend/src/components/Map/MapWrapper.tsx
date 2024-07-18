@@ -22,9 +22,6 @@ import {
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 
-import { ProjectSearchResult } from '@shared/schema/project';
-import { ProjectObjectSearchResult } from '@shared/schema/projectObject';
-
 import { LayerDrawer } from './LayerDrawer';
 import { Map, MapInteraction } from './Map';
 import { MapControls } from './MapControls';
@@ -59,18 +56,40 @@ export interface DrawOptions {
   editable: boolean;
 }
 
-interface Props {
+export interface ProjectData {
+  projectId: string;
+  projectName: string;
+  endDate: string;
+  startDate: string;
+  projectType: 'investmentProject' | 'detailplanProject' | 'maintenanceProject';
+}
+
+export interface ProjectObjectData {
+  projectObjectId: string;
+  objectName: string;
+  startDate: string;
+  endDate: string;
+  objectStage: string;
+  project: {
+    projectId: string;
+    projectName: string;
+  };
+}
+
+interface Props<TProject, TProjectObject> {
   drawOptions?: DrawOptions;
   onMoveEnd?: (zoom: number, extent: number[]) => void;
   loading?: boolean;
   vectorLayers?: VectorLayer<Feature<Geometry>>[];
   fitExtent?: 'geoJson' | 'vectorLayers' | 'all';
-  projects?: ProjectSearchResult['projects'];
-  projectObjects?: ProjectObjectSearchResult['projectObjects'];
+  projects?: TProject[];
+  projectObjects?: TProjectObject[];
   interactiveLayers?: VectorItemLayerKey[];
 }
 
-export function MapWrapper(props: Props) {
+export function MapWrapper<TProject extends ProjectData, TProjectObject extends ProjectObjectData>(
+  props: Props<TProject, TProjectObject>,
+) {
   const [zoom, setZoom] = useState(mapOptions.tre.defaultZoom);
   const [viewExtent, setViewExtent] = useState<number[]>(mapOptions.tre.extent);
 
@@ -247,6 +266,14 @@ export function MapWrapper(props: Props) {
     }
   }, [props.drawOptions?.geoJson, vectorLayers, props.fitExtent]);
 
+  function drawFinished() {
+    if (props.projects || props.projectObjects) {
+      setInteractions([registerProjectSelectInteraction]);
+    } else {
+      setInteractions(null);
+    }
+  }
+
   useEffect(() => {
     switch (selectedTool) {
       case 'selectFeature':
@@ -265,6 +292,7 @@ export function MapWrapper(props: Props) {
       case 'clearSelectedFeature':
         setFeatureSelector(RESET);
         selectionSource.clear();
+        drawFinished();
         break;
       case 'deleteFeature':
         setDirty(true);
@@ -272,9 +300,10 @@ export function MapWrapper(props: Props) {
           features: deleteSelectedFeatures(drawSource, selectionSource),
           pos: prev.pos,
         }));
+        drawFinished();
         break;
       default:
-        setInteractions(null);
+        drawFinished();
         break;
     }
   }, [selectedTool]);
@@ -358,12 +387,15 @@ export function MapWrapper(props: Props) {
           <MapToolbar
             toolsHidden={props.drawOptions?.toolsHidden}
             toolsDisabled={{
-              newFeature: drawSourceHasGeometryOfType('Point'),
-              newPointFeature: drawSourceHasGeometryOfType('Polygon'),
+              selectFeature: infoBoxVisible,
+              newFeature: drawSourceHasGeometryOfType('Point') || infoBoxVisible,
+              newPointFeature: drawSourceHasGeometryOfType('Polygon') || infoBoxVisible,
               tracedFeature:
-                featureSelector.features.length === 0 || drawSourceHasGeometryOfType('Point'),
+                featureSelector.features.length === 0 ||
+                drawSourceHasGeometryOfType('Point') ||
+                infoBoxVisible,
               editFeature: getSelectedDrawLayerFeatures(featureSelector.features).length === 0,
-              clearSelectedFeature: featureSelector.features.length === 0,
+              clearSelectedFeature: featureSelector.features.length === 0 || infoBoxVisible,
               deleteFeature: getSelectedDrawLayerFeatures(featureSelector.features).length === 0,
             }}
             onToolChange={(tool) => setSelectedTool(tool)}

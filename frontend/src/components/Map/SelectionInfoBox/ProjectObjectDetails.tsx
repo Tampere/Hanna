@@ -5,15 +5,15 @@ import { useAtomValue } from 'jotai';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { useCodes } from '@frontend/utils/codes';
 
-import { ProjectObjectSearchResult } from '@shared/schema/projectObject';
+import { ProjectObjectData } from '../MapWrapper';
 
 interface ProjectDetailsProps<TProjectObject> {
   projectObject: TProjectObject;
 }
 
-export function ProjectObjectDetails<
-  TProjectObject extends ProjectObjectSearchResult['projectObjects'][number],
->({ projectObject }: ProjectDetailsProps<TProjectObject>) {
+export function ProjectObjectDetails<TProjectObject extends ProjectObjectData>({
+  projectObject,
+}: ProjectDetailsProps<TProjectObject>) {
   const lang = useAtomValue(langAtom);
   const tr = useTranslations();
 
