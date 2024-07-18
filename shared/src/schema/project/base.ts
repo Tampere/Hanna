@@ -41,6 +41,7 @@ export const projectWritePermissionSchema = z.object({
   userId: z.string(),
   userName: z.string(),
   canWrite: z.boolean(),
+  isAdmin: z.boolean(),
 });
 
 export type ProjectWritePermission = z.infer<typeof projectWritePermissionSchema>;

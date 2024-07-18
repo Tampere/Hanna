@@ -15,18 +15,15 @@ import {
   TableRow,
   TextField,
 } from '@mui/material';
-import { useAtomValue } from 'jotai';
 import diff from 'microdiff';
 import { useEffect, useState } from 'react';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
-import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 
 import { ProjectWritePermission } from '@shared/schema/project/base';
-import { ownsProject } from '@shared/schema/userPermissions';
 
 interface Props {
   projectId: string;
@@ -37,13 +34,12 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
   const notify = useNotifications();
   const tr = useTranslations();
 
-  const user = useAtomValue(asyncUserAtom);
   const {
     data: userPermissions,
     isLoading,
     isError,
     refetch,
-  } = trpc.project.getPermissions.useQuery({ projectId: projectId, withAdmins: false });
+  } = trpc.project.getPermissions.useQuery({ projectId: projectId, withAdmins: true });
 
   const permissionsUpdate = trpc.project.updatePermissions.useMutation();
   const [searchterm, setSearchterm] = useState('');
@@ -51,8 +47,6 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
   const isDirty =
     !isLoading && !isError && diff(userPermissions, localUserPermissions).length !== 0;
   useNavigationBlocker(isDirty, 'projectPermissions');
-
-  const isProjectOwner = ownsProject(user, { owner: ownerId ?? '', writeUsers: [] });
 
   useEffect(() => {
     if (userPermissions) setLocalUserPermissions([...userPermissions]);
@@ -142,7 +136,6 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
             disabled={
               isLoading ||
               isError ||
-              !isProjectOwner ||
               localUserPermissions.length === 0 ||
               diff(userPermissions, localUserPermissions).length === 0
             }
@@ -160,7 +153,6 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
             disabled={
               isLoading ||
               isError ||
-              !isProjectOwner ||
               localUserPermissions.length === 0 ||
               diff(userPermissions, localUserPermissions).length === 0
             }
@@ -207,11 +199,15 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
                       variant="head"
                       scope="row"
                       css={css`
-                        ${user.userId === ownerId && 'color: grey'};
+                        ${(user.userId === ownerId || user.isAdmin) && 'color: grey'};
                       `}
                     >
                       {user.userName}
-                      {user.userId === ownerId ? ` (${tr('project.ownerLabel')})` : ''}
+                      {user.userId === ownerId
+                        ? ` (${tr('project.ownerLabel')})`
+                        : user.isAdmin
+                          ? ` (${tr('project.adminLabel')})`
+                          : ''}
                     </TableCell>
                     <TableCell align="center">
                       <Checkbox
@@ -224,8 +220,8 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
                             ),
                           )
                         }
-                        checked={user.userId === ownerId || user.canWrite}
-                        disabled={!isProjectOwner || user.userId === ownerId}
+                        checked={user.userId === ownerId || user.canWrite || user.isAdmin}
+                        disabled={user.userId === ownerId || user.isAdmin}
                       />
                     </TableCell>
                   </TableRow>
