@@ -9,23 +9,33 @@ import {
   Typography,
   css,
 } from '@mui/material';
-import { useState } from 'react';
+import { useAtomValue } from 'jotai';
 
 import { trpc } from '@frontend/client';
+import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
+
+import { isAdmin } from '@shared/schema/userPermissions';
 
 interface Props {
   newOwnerId: string;
   isOpen: boolean;
   onCancel: () => void;
   onSave: (keepOwnerRights: boolean) => void;
+  keepOwnerRights: boolean;
+  setKeepOwnerRights: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export function ProjectOwnerChangeDialog({ isOpen, onCancel, onSave, newOwnerId }: Props) {
-  const [ownerRightsSelection, setOwnerRightsSelection] = useState(false);
-
+export function ProjectOwnerChangeDialog({
+  isOpen,
+  onCancel,
+  onSave,
+  newOwnerId,
+  keepOwnerRights,
+  setKeepOwnerRights,
+}: Props) {
   const tr = useTranslations();
-
+  const loggedUser = useAtomValue(asyncUserAtom);
   const user = trpc.user.get.useQuery({ userId: newOwnerId });
 
   return (
@@ -39,7 +49,9 @@ export function ProjectOwnerChangeDialog({ isOpen, onCancel, onSave, newOwnerId 
     >
       <DialogTitle>{tr('projectForm.ownerChangeDialog.title')}</DialogTitle>
       <DialogContent>
-        <Typography>{tr('projectForm.ownerChangeDialog.firstContent')}</Typography>
+        {!isAdmin(loggedUser.role) && (
+          <Typography>{tr('projectForm.ownerChangeDialog.firstContent')}</Typography>
+        )}
 
         {user.data && (
           <Typography>
@@ -47,13 +59,15 @@ export function ProjectOwnerChangeDialog({ isOpen, onCancel, onSave, newOwnerId 
             <b>{user.data.name}</b>.
           </Typography>
         )}
-        <Typography
-          css={css`
-            font-weight: bold;
-          `}
-        >
-          {tr('projectForm.ownerChangeDialog.secondContent')}
-        </Typography>
+        {!isAdmin(loggedUser.role) && (
+          <Typography
+            css={css`
+              font-weight: bold;
+            `}
+          >
+            {tr('projectForm.ownerChangeDialog.secondContent')}
+          </Typography>
+        )}
         <FormControlLabel
           css={css`
             margin-left: 0.25rem;
@@ -61,8 +75,8 @@ export function ProjectOwnerChangeDialog({ isOpen, onCancel, onSave, newOwnerId 
           label={tr('projectForm.ownerChangeDialog.checkboxLabel')}
           control={
             <Checkbox
-              checked={ownerRightsSelection}
-              onChange={() => setOwnerRightsSelection(!ownerRightsSelection)}
+              checked={keepOwnerRights}
+              onChange={() => setKeepOwnerRights(!keepOwnerRights)}
             />
           }
         />
@@ -74,7 +88,7 @@ export function ProjectOwnerChangeDialog({ isOpen, onCancel, onSave, newOwnerId 
         <Button
           variant="contained"
           onClick={() => {
-            onSave(ownerRightsSelection);
+            onSave(keepOwnerRights);
           }}
         >
           {tr('ok')}

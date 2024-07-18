@@ -149,7 +149,7 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
         queryClient.invalidateQueries({
           queryKey: [
             ['project', 'getPermissions'],
-            { input: { projectId: data.projectId, withAdmins: false } },
+            { input: { projectId: data.projectId, withAdmins: true } },
           ],
         });
         queryClient.invalidateQueries({
@@ -199,6 +199,7 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
       return;
     }
     projectUpsert.mutate({ project: data, keepOwnerRights });
+    setKeepOwnerRights(false);
   };
 
   return (
@@ -527,6 +528,8 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
       <ProjectOwnerChangeDialog
         newOwnerId={ownerWatch}
         isOpen={ownerChangeDialogOpen}
+        keepOwnerRights={keepOwnerRights}
+        setKeepOwnerRights={setKeepOwnerRights}
         onCancel={() => {
           form.resetField('owner');
           setKeepOwnerRights(false);

@@ -130,7 +130,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
         await queryClient.invalidateQueries({
           queryKey: [
             ['project', 'getPermissions'],
-            { input: { projectId: data.projectId, withAdmins: false } },
+            { input: { projectId: data.projectId, withAdmins: true } },
           ],
         });
 
@@ -377,6 +377,8 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
       <ProjectOwnerChangeDialog
         newOwnerId={ownerWatch}
         isOpen={ownerChangeDialogOpen}
+        keepOwnerRights={keepOwnerRights}
+        setKeepOwnerRights={setKeepOwnerRights}
         onCancel={() => {
           form.resetField('owner');
           setKeepOwnerRights(false);

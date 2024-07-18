@@ -270,13 +270,14 @@ export async function getProjectUserPermissions(projectId: string, withAdmins: b
   SELECT
     u.id as "userId",
     u.name as "userName",
-    COALESCE(pp.can_write, false) as "canWrite"
+    COALESCE(pp.can_write, false) as "canWrite",
+    (u.role IS NOT NULL AND u.role = 'Hanna.Admin') as "isAdmin"
   FROM app.user u
   LEFT JOIN app.project p ON p.owner = u.id AND p.id = ${projectId}
   LEFT JOIN app.project_permission pp ON u.id = pp.user_id AND pp.project_id = ${projectId}
   ${
     withAdmins
-      ? sql.fragment`NULL`
+      ? sql.fragment``
       : sql.fragment`WHERE p.owner = u.id OR (u.role IS NULL OR u.role <> 'Hanna.Admin')`
   }
   ORDER BY CASE
