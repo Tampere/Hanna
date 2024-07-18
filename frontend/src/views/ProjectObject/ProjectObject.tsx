@@ -109,6 +109,9 @@ export function ProjectObject(props: Props) {
     },
     { enabled: Boolean(projectObjectId) },
   );
+  const projectObjects = trpc.projectObject.getByProjectId.useQuery({
+    projectId: routeParams.projectId,
+  });
   const user = useAtomValue(asyncUserAtom);
 
   const [geom, setGeom] = useState<string | null>(null);
@@ -147,6 +150,9 @@ export function ProjectObject(props: Props) {
       const geoJson = JSON.parse(project.data.geom);
 
       const features = geoJson ? featuresFromGeoJSON(geoJson) : [];
+      features.forEach((feature) => {
+        feature.setId(project.data.projectId);
+      });
       source.addFeatures(features);
     }
     return source;
@@ -155,21 +161,21 @@ export function ProjectObject(props: Props) {
   const projectObjectSource = useMemo(() => {
     const source = new VectorSource();
     if (projectObjectGeometries?.data) {
-      const geometriesWithouActiveObject = projectObjectGeometries.data.filter(
+      const geometriesWithoutActiveObject = projectObjectGeometries.data.filter(
         (obj) => obj.projectObjectId !== projectObjectId,
       );
-      const geoJson = getProjectObjectGeoJSON(geometriesWithouActiveObject);
+      const geoJson = getProjectObjectGeoJSON(geometriesWithoutActiveObject);
 
       const features = geoJson ? featuresFromGeoJSON(geoJson) : [];
       source.addFeatures(features);
     }
 
     return source;
-  }, [projectObjectGeometries.data]);
+  }, [projectObjectGeometries.data, projectObjectId]);
 
   const projectObjectLayer = useMemo(() => {
     return getProjectObjectsLayer(projectObjectSource);
-  }, [projectObjectGeometries.data]);
+  }, [projectObjectGeometries.data, projectObjectId]);
 
   const projectLayer = useMemo(() => {
     return getProjectsLayer(projectSource);
@@ -290,6 +296,19 @@ export function ProjectObject(props: Props) {
                 }}
                 vectorLayers={[projectLayer, projectObjectLayer]}
                 fitExtent="all"
+                projectObjects={
+                  projectObjects.data
+                    ?.filter((obj) => obj.projectObjectId !== projectObjectId)
+                    .map((obj) => ({
+                      ...obj,
+                      project: {
+                        projectId: projectId,
+                        projectName: project.data?.projectName ?? '',
+                      },
+                    })) ?? []
+                }
+                interactiveLayers={['projectObjects', 'projects']}
+                projects={project.data ? [project.data] : []}
               />
             </Box>
           )}

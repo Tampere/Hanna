@@ -77,6 +77,7 @@ export const projectObjectSearchSchema = z.object({
   limit: z.number().int().optional(),
   projectObjectName: z.string().optional(),
   projectName: z.string().optional(),
+  projectId: z.string().optional(),
   dateRange: periodSchema.optional(),
   map: mapSearchSchema.optional(),
   objectParticipantUser: nonEmptyString.nullish(),
