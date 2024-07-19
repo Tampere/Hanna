@@ -60,7 +60,7 @@ export const mapOptions = {
       type: 'base',
       options: {
         protocol: 'wmts',
-        url: 'https://georaster.tampere.fi/geoserver/gwc/service/wmts?service=WMTS',
+        url: '/proxy/georaster/gwc/service/wmts?service=WMTS',
         layer: 'georaster:virastokartta_vari_EPSG_3067',
         matrixSet: 'JHS',
         projection: 'EPSG:3067',
@@ -81,7 +81,7 @@ export const mapOptions = {
       type: 'base',
       options: {
         protocol: 'wmts',
-        url: 'https://georaster.tampere.fi/geoserver/gwc/service/wmts?service=WMTS',
+        url: '/proxy/georaster/gwc/service/wmts?service=WMTS',
         layer: 'georaster:opaskartta_EPSG_3067',
         matrixSet: 'JHS',
         projection: 'EPSG:3067',
@@ -123,7 +123,7 @@ export const mapOptions = {
       type: 'base',
       options: {
         protocol: 'wmts',
-        url: 'https://georaster.tampere.fi/geoserver/gwc/service/wmts?service=WMTS',
+        url: '/proxy/georaster/gwc/service/wmts?service=WMTS',
         layer: 'georaster:2011v_tre_EPSG_3067',
         matrixSet: 'JHS',
         projection: 'EPSG:3067',
@@ -144,7 +144,7 @@ export const mapOptions = {
       type: 'base',
       options: {
         protocol: 'wmts',
-        url: 'https://georaster.tampere.fi/geoserver/gwc/service/wmts?service=WMTS',
+        url: '/proxy/georaster/gwc/service/wmts?service=WMTS',
         layer: 'georaster:ajantasa_asemakaava_EPSG_3067',
         matrixSet: 'JHS',
         projection: 'EPSG:3067',

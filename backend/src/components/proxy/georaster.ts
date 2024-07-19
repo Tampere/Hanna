@@ -12,12 +12,21 @@ export function georasterProxy(
     upstream: env.proxy.georaster.upstream,
     prefix: '/proxy/georaster',
     replyOptions: {
-      rewriteRequestHeaders: (_request, headers) => {
+      rewriteRequestHeaders: (request, headers) => {
+        const withAuth = Boolean(
+          request.query &&
+            typeof request.query === 'object' &&
+            'layer' in request.query &&
+            request.query['layer'] === 'georaster:kantakartta_mml_harmaa_EPSG_3067',
+        );
+
         return {
           ...headers,
-          Authorization: `Basic ${Buffer.from(
-            `${env.proxy.georaster.username}:${env.proxy.georaster.password}`,
-          ).toString('base64')}`,
+          ...(withAuth && {
+            Authorization: `Basic ${Buffer.from(
+              `${env.proxy.georaster.username}:${env.proxy.georaster.password}`,
+            ).toString('base64')}`,
+          }),
         };
       },
     },
