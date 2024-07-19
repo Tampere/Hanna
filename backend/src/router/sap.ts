@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { getSapActuals, getSapProject, sapProjectExists } from '@backend/components/sap/dataImport';
 import { getPool, sql } from '@backend/db';
+import { logger } from '@backend/logging';
 
 import { yearlyActualsSchema } from '@shared/schema/sapActuals';
 
@@ -33,16 +34,24 @@ export const createSapRouter = (t: TRPC) =>
           FROM app.project
           WHERE id = ${input.projectId}
         `);
+
         if (result?.sapProjectId) {
-          const sapProject = await getSapProject(result?.sapProjectId);
-          return sapProject?.wbs
-            .filter((wbs) => wbs.hierarchyLevel > 1)
-            .map((wbs) => {
-              return {
-                wbsId: wbs.wbsId,
-                shortDescription: wbs.shortDescription,
-              };
-            });
+          try {
+            const sapProject = await getSapProject(result?.sapProjectId);
+            return (
+              sapProject?.wbs
+                .filter((wbs) => wbs.hierarchyLevel > 1)
+                .map((wbs) => {
+                  return {
+                    wbsId: wbs.wbsId,
+                    shortDescription: wbs.shortDescription,
+                  };
+                }) ?? []
+            );
+          } catch (error) {
+            logger.info(`Error getting sap project for wbs selection`);
+            return [];
+          }
         } else {
           return null;
         }
