@@ -1,10 +1,10 @@
 import { css } from '@emotion/react';
-import { Assignment, Euro, Map } from '@mui/icons-material';
-import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
+import { Assignment, Euro, Map, Undo } from '@mui/icons-material';
+import { Box, Breadcrumbs, Button, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import VectorSource from 'ol/source/Vector';
 import { ReactElement, useMemo, useState } from 'react';
-import { useLocation, useParams } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
@@ -98,6 +98,7 @@ export function ProjectObject(props: Props) {
 
   const projectObjectId = routeParams?.projectObjectId;
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const tabView = searchParams.get('tab') || 'default';
   const tabs = projectObjectTabs(routeParams.projectId, props.projectType, projectObjectId);
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
@@ -212,21 +213,44 @@ export function ProjectObject(props: Props) {
         flex-direction: column;
       `}
     >
-      <Breadcrumbs sx={{ mb: 1 }}>
-        {routeParams.projectId && (
-          <Chip
-            clickable={true}
-            component={Link}
-            to={`/${props.projectType}/${routeParams.projectId}?tab=kohteet`}
-            label={<u>{project.data?.projectName}</u>}
-          />
+      <Box
+        css={css`
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+        `}
+      >
+        <Breadcrumbs sx={{ mb: 1 }}>
+          {routeParams.projectId && (
+            <Chip
+              clickable={true}
+              component={Link}
+              to={`/${props.projectType}/${routeParams.projectId}?tab=kohteet`}
+              label={<u>{project.data?.projectName}</u>}
+            />
+          )}
+          {projectObject.data ? (
+            <Chip label={projectObject.data?.objectName} />
+          ) : (
+            <Chip variant="outlined" label={tr('newProjectObject.title')} />
+          )}
+        </Breadcrumbs>
+        {!projectObject.data && (
+          <Button
+            css={css`
+              margin: 0 0 0 auto;
+            `}
+            size="small"
+            startIcon={<Undo />}
+            variant="contained"
+            sx={{ mt: 2 }}
+            onClick={() => navigate(-1)}
+          >
+            {tr('cancel')}
+          </Button>
         )}
-        {projectObject.data ? (
-          <Chip label={projectObject.data?.objectName} />
-        ) : (
-          <Chip variant="outlined" label={tr('newProjectObject.title')} />
-        )}
-      </Breadcrumbs>
+      </Box>
 
       <div css={pageContentStyle}>
         <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
