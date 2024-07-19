@@ -21,7 +21,7 @@ export function ErrorPage({ severity, message, title }: Props) {
         {message}
       </Alert>
       <Button
-        endIcon={<ArrowBack />}
+        startIcon={<ArrowBack />}
         variant="contained"
         sx={{ mt: 2 }}
         onClick={() => navigate(-1)}

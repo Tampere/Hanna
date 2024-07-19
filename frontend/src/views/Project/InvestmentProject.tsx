@@ -1,10 +1,10 @@
 import { css } from '@emotion/react';
-import { AccountTree, Euro, KeyTwoTone, ListAlt, Map } from '@mui/icons-material';
-import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
+import { AccountTree, Euro, KeyTwoTone, ListAlt, Map, Undo } from '@mui/icons-material';
+import { Box, Breadcrumbs, Button, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import VectorSource from 'ol/source/Vector';
 import { useMemo, useState } from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
 
@@ -92,6 +92,7 @@ function getTabs(projectId: string) {
 export function InvestmentProject() {
   const routeParams = useParams() as { projectId: string };
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const tabView = searchParams.get('tab') || 'default';
   const user = useAtomValue(asyncUserAtom);
   const projectId = routeParams?.projectId;
@@ -185,13 +186,36 @@ export function InvestmentProject() {
         flex-direction: column;
       `}
     >
-      <Breadcrumbs sx={{ mb: 1 }}>
-        {project.data ? (
-          <Chip label={project.data?.projectName} />
-        ) : (
-          <Chip variant="outlined" label={tr('newInvestmentProject.formTitle')} />
+      <Box
+        css={css`
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+        `}
+      >
+        <Breadcrumbs>
+          {project.data ? (
+            <Chip label={project.data?.projectName} />
+          ) : (
+            <Chip variant="outlined" label={tr('newInvestmentProject.formTitle')} />
+          )}
+        </Breadcrumbs>
+        {!projectId && (
+          <Button
+            css={css`
+              margin: 0 0 0 auto;
+            `}
+            size="small"
+            startIcon={<Undo />}
+            variant="contained"
+            sx={{ mt: 2 }}
+            onClick={() => navigate(-1)}
+          >
+            {tr('cancel')}
+          </Button>
         )}
-      </Breadcrumbs>
+      </Box>
 
       <div css={pageContentStyle}>
         <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">

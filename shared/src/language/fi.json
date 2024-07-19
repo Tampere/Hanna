@@ -266,6 +266,7 @@
   "projectObject.endDateTooltip": "Valitse kohteen lopetuspäivämäärä.",
   "projectObject.sapWBSIdLabel": "SAP-rakenneosa",
   "projectObject.sapWBSIdTooltip": "Valitse SAP-rakenneosa.",
+  "projectObject.sapWBSIdNoSAPProjectIdTooltip": "Hankkeelle ei ole määritetty SAP-projektia.",
   "projectObject.landownershipLabel": "Maanomistuslaji",
   "projectObject.landownershipTooltip": "Valitse kohteen maanomistuslaji.",
   "projectObject.locationOnPropertyLabel": "Kohteen suhde peruskiinteistöön",
