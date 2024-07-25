@@ -91,6 +91,7 @@ export function TaskDialog(props: Readonly<Props>) {
           <SectionTitle title={tr('task.budget')} />
           {!budget?.data ? null : (
             <BudgetTable
+              enableTooltips={false}
               years={years}
               fields={['amount']}
               writableFields={props.canEditFinances ? ['amount'] : []}

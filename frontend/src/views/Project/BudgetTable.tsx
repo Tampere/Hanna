@@ -34,6 +34,7 @@ interface Props {
   actualsLoading?: boolean;
   writableFields?: BudgetFields[];
   fields?: BudgetFields[];
+  enableTooltips?: boolean;
 }
 
 type BudgetFormValues = Record<string, YearBudget['budgetItems']>;
@@ -68,7 +69,13 @@ const cellStyle = css`
 `;
 
 export function BudgetTable(props: Props) {
-  const { years, budget, onSave, writableFields } = {
+  const {
+    years,
+    budget,
+    onSave,
+    writableFields,
+    enableTooltips = true,
+  } = {
     ...props,
   };
 
@@ -117,14 +124,14 @@ export function BudgetTable(props: Props) {
                   <TableCell>
                     <Box className="column-header">
                       <Typography variant="overline">{tr('budgetTable.year')}</Typography>
-                      <HelpTooltip title={tr('budgetTable.yearHelp')} />
+                      {enableTooltips && <HelpTooltip title={tr('budgetTable.yearHelp')} />}
                     </Box>
                   </TableCell>
                   {fields?.includes('amount') && (
                     <TableCell css={cellStyle}>
                       <Box className="column-header">
                         <Typography variant="overline"> {tr('budgetTable.budget')}</Typography>
-                        <HelpTooltip title={tr('budgetTable.budgetHelp')} />
+                        {enableTooltips && <HelpTooltip title={tr('budgetTable.budgetHelp')} />}
                       </Box>
                     </TableCell>
                   )}
@@ -133,7 +140,7 @@ export function BudgetTable(props: Props) {
                       <Box className="column-header">
                         {props.actualsLoading && <CircularProgress size={10} sx={{ mr: 1 }} />}
                         <Typography variant="overline">{tr('budgetTable.actual')}</Typography>
-                        <HelpTooltip title={tr('budgetTable.actualHelp')} />
+                        {enableTooltips && <HelpTooltip title={tr('budgetTable.actualHelp')} />}
                       </Box>
                     </TableCell>
                   )}
@@ -141,7 +148,7 @@ export function BudgetTable(props: Props) {
                     <TableCell css={cellStyle}>
                       <Box className="column-header">
                         <Typography variant="overline">{tr('budgetTable.forecast')}</Typography>
-                        <HelpTooltip title={tr('budgetTable.forecastHelp')} />
+                        {enableTooltips && <HelpTooltip title={tr('budgetTable.forecastHelp')} />}
                       </Box>
                     </TableCell>
                   )}
@@ -156,7 +163,9 @@ export function BudgetTable(props: Props) {
                         <Typography variant="overline">
                           {tr('budgetTable.kayttosuunnitelmanMuutos')}
                         </Typography>
-                        <HelpTooltip title={tr('budgetTable.kayttosuunnitelmanMuutosHelp')} />
+                        {enableTooltips && (
+                          <HelpTooltip title={tr('budgetTable.kayttosuunnitelmanMuutosHelp')} />
+                        )}
                       </Box>
                     </TableCell>
                   )}
