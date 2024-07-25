@@ -233,6 +233,8 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
   );
 
   useEffect(() => {
+    console.log('extent effect', props.fitExtent);
+    console.log(props?.drawOptions?.geoJson, drawSource);
     let extent = createEmpty();
     switch (props.fitExtent) {
       case 'geoJson':
@@ -251,7 +253,11 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
         }
         break;
       case 'all':
-        if (props?.drawOptions?.geoJson && drawSource) {
+        if (
+          ((props.drawOptions?.geoJson && !Array.isArray(props.drawOptions.geoJson)) ||
+            (Array.isArray(props.drawOptions?.geoJson) && props.drawOptions.geoJson.length > 0)) &&
+          drawSource
+        ) {
           setExtent(drawSource.getExtent());
         } else {
           extent = vectorLayers?.reduce((extent, layer) => {
@@ -259,6 +265,7 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
             if (!layerExtent) return extent;
             return extend(extent, layerExtent);
           }, createEmpty()) as Extent;
+
           if (!isEmpty(extent)) {
             setExtent(extent);
           }
