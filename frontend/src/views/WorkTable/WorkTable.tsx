@@ -10,6 +10,7 @@ import { Link, useLocation } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
+import { SplitButton } from '@frontend/components/SplitButton';
 import dayjs from '@frontend/dayjs';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
@@ -26,7 +27,12 @@ import {
   isAdmin,
   ownsProject,
 } from '@shared/schema/userPermissions';
-import { WorkTableRow, WorkTableRowUpdate, WorkTableSearch } from '@shared/schema/workTable';
+import {
+  ReportTemplate,
+  WorkTableRow,
+  WorkTableRowUpdate,
+  WorkTableSearch,
+} from '@shared/schema/workTable';
 
 import { BackToTopButton } from './BackToTopButton';
 import { ProjectObjectParticipantFilter } from './Filters/ProjectObjectParticipantFilter';
@@ -52,6 +58,12 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
     100% {
       background-color: inherit;
     }
+  }
+
+  & .MuiDataGrid-cell {
+    display: flex;
+    align-items: center;
+    line-height: normal;
   }
 
   .highlight {
@@ -125,8 +137,8 @@ function getCellEditEvent(oldRow: WorkTableRow, newRow: WorkTableRow): CellEditE
 }
 const thisYear = dayjs().year();
 const searchAtom = atom<WorkTableSearch>({
-  startDate: dayjs([thisYear, 0, 1]).format(isoDateFormat).toString(),
-  endDate: dayjs([thisYear, 11, 31]).format(isoDateFormat).toString(),
+  objectStartDate: dayjs([thisYear, 0, 1]).format(isoDateFormat).toString(),
+  objectEndDate: dayjs([thisYear, 11, 31]).format(isoDateFormat).toString(),
 });
 
 function NoRowsOverlay() {
@@ -206,7 +218,7 @@ export default function WorkTable() {
   }, [editEvents]);
 
   const allYearsSelected =
-    dayjs(searchParams.startDate).year() !== dayjs(searchParams.endDate).year();
+    dayjs(searchParams.objectStartDate).year() !== dayjs(searchParams.objectEndDate).year();
 
   const columns = useMemo(() => {
     return getColumns({
@@ -227,10 +239,10 @@ export default function WorkTable() {
     gridApiRef.current.setRows([...(workTableData.data as WorkTableRow[])]);
 
     const minYear = Math.min(
-      ...workTableData.data.map((row) => new Date(row.dateRange.startDate).getFullYear()),
+      ...workTableData.data.map((row) => new Date(row.objectDateRange.startDate).getFullYear()),
     );
     const maxYear = Math.max(
-      ...workTableData.data.map((row) => new Date(row.dateRange.endDate).getFullYear()),
+      ...workTableData.data.map((row) => new Date(row.objectDateRange.endDate).getFullYear()),
     );
     setYearRange({ startYear: minYear, endYear: maxYear });
   }, [workTableData.data]);
@@ -312,7 +324,9 @@ export default function WorkTable() {
     const updateData = {} as Record<string, Record<keyof WorkTableRowUpdate, any>>;
     editEvents.forEach((editEvent) => {
       const { rowId, field, newValue } = editEvent;
-      updateData[rowId] = updateData[rowId] ?? { budgetYear: dayjs(searchParams.startDate).year() };
+      updateData[rowId] = updateData[rowId] ?? {
+        budgetYear: dayjs(searchParams.objectStartDate).year(),
+      };
       updateData[rowId][field] = newValue;
     });
 
@@ -359,6 +373,25 @@ export default function WorkTable() {
     }
   }
 
+  const workTableReportSettings: {
+    title: string;
+    reportTemplate: ReportTemplate;
+  }[] = [
+    { title: tr('workTable.printReport'), reportTemplate: 'print' },
+    {
+      title: tr('workTable.basicReport'),
+      reportTemplate: 'basic',
+    },
+    {
+      title: tr('workTable.expencesReport'),
+      reportTemplate: 'expences',
+    },
+    {
+      title: tr('workTable.rolesReport'),
+      reportTemplate: 'roles',
+    },
+  ];
+
   return (
     <Box
       css={css`
@@ -385,12 +418,12 @@ export default function WorkTable() {
           {tr('workTable.title')}
         </Typography>
         <YearPicker
-          selectedYear={allYearsSelected ? 'allYears' : dayjs(searchParams.startDate).year()}
+          selectedYear={allYearsSelected ? 'allYears' : dayjs(searchParams.objectStartDate).year()}
           onChange={(dates) =>
             setSearchParams({
               ...searchParams,
-              startDate: dates.startDate,
-              endDate: dates.endDate,
+              objectStartDate: dates.startDate,
+              objectEndDate: dates.endDate,
             })
           }
         />
@@ -405,33 +438,42 @@ export default function WorkTable() {
             margin-left: auto;
           `}
         >
-          <AsyncJobButton
-            variant="outlined"
-            disabled={workTableData.isLoading || workTableData.data?.length === 0}
-            title={
-              workTableData.isLoading || workTableData.data?.length === 0
-                ? tr('workTable.reportDisabled')
-                : undefined
-            }
-            onStart={async () => {
-              return workTable.startWorkTableReportJob.fetch(query);
-            }}
-            onError={() => {
-              notify({
-                title: tr('workTable.reportFailed'),
-                severity: 'error',
-              });
-            }}
-            onFinished={(jobId) => {
-              // Create a link element to automatically download the new report
-              const link = document.createElement('a');
-              link.href = `/api/v1/report/file?id=${jobId}`;
-              link.click();
-            }}
-            endIcon={<Download />}
-          >
-            {tr('workTable.downloadReport')}
-          </AsyncJobButton>
+          <SplitButton
+            options={workTableReportSettings.map((setting) => setting.title)}
+            renderButton={(label, selectedIndex) => (
+              <AsyncJobButton
+                variant="outlined"
+                disabled={workTableData.isLoading || workTableData.data?.length === 0}
+                title={
+                  workTableData.isLoading || workTableData.data?.length === 0
+                    ? tr('workTable.reportDisabled')
+                    : undefined
+                }
+                onStart={async () => {
+                  return workTable.startWorkTableReportJob.fetch({
+                    ...query,
+                    reportTemplate: workTableReportSettings[selectedIndex].reportTemplate,
+                  });
+                }}
+                onError={() => {
+                  notify({
+                    title: tr('workTable.reportFailed'),
+                    severity: 'error',
+                  });
+                }}
+                onFinished={(jobId) => {
+                  // Create a link element to automatically download the new report
+                  const link = document.createElement('a');
+                  link.href = `/api/v1/report/file?id=${jobId}`;
+                  link.click();
+                }}
+                endIcon={<Download />}
+              >
+                {label}
+              </AsyncJobButton>
+            )}
+          />
+
           <Button
             variant="contained"
             component={Link}

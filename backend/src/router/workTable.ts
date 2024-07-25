@@ -1,4 +1,5 @@
 import { TRPCError } from '@trpc/server';
+import { FragmentSqlToken } from 'slonik';
 
 import { textToSearchTerms } from '@backend/components/project/search';
 import { getProjectObjects, upsertProjectObject } from '@backend/components/projectObject';
@@ -11,13 +12,80 @@ import { UpsertProjectObject } from '@shared/schema/projectObject';
 import { User } from '@shared/schema/user';
 import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 import {
+  ReportTemplate,
+  WorkTableColumn,
   WorkTableSearch,
   WorkTableUpdate,
   projectObjectYears,
+  templateColumns,
   workTableRowSchema,
   workTableSearchSchema,
   workTableUpdateSchema,
 } from '@shared/schema/workTable';
+
+function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'print') {
+  const columnMappings: Record<WorkTableColumn, FragmentSqlToken> = {
+    objectName: sql.fragment`object_name AS "objectName"`,
+    lifecycleState: sql.fragment`(search_results.lifecycle_state).id AS "lifecycleState"`,
+    objectDateRange: sql.fragment`jsonb_build_object(
+        'startDate', start_date,
+        'endDate', end_date
+    ) AS "objectDateRange"`,
+    projectDateRange: sql.fragment`jsonb_build_object(
+        'startDate', project_start_date,
+        'endDate', project_end_date
+    ) AS "projectDateRange"`,
+    projectLink: sql.fragment`jsonb_build_object(
+        'projectId', project_id,
+        'projectName', project_name,
+        'projectIndex', "projectIndex"
+    ) AS "projectLink"`,
+    objectType: sql.fragment`(SELECT array_agg((object_type).id) FROM app.project_object_type WHERE search_results.id = project_object_type.project_object_id) AS "objectType"`,
+    objectCategory: sql.fragment`(SELECT array_agg((object_category).id) FROM app.project_object_category WHERE search_results.id = project_object_category.project_object_id) AS "objectCategory"`,
+    objectUsage: sql.fragment`(SELECT array_agg((object_usage).id) FROM app.project_object_usage WHERE search_results.id = project_object_usage.project_object_id) AS "objectUsage"`,
+    operatives: sql.fragment`jsonb_build_object(
+        'rakennuttajaUser', rakennuttaja_user,
+        'suunnitteluttajaUser', suunnitteluttaja_user
+    ) AS "operatives"`,
+    actual: sql.fragment`po_actual.total AS "actual"`,
+    budget: sql.fragment`po_budget.budget AS "budget"`,
+    forecast: sql.fragment`po_budget.forecast AS "forecast"`,
+    kayttosuunnitelmanMuutos: sql.fragment`po_budget.kayttosuunnitelman_muutos AS "kayttosuunnitelmanMuutos"`,
+    sapProjectId: sql.fragment`search_results.sap_project_id AS "sapProjectId"`,
+    budgetYear: sql.fragment``,
+    sapWbsId: sql.fragment`search_results.sap_wbs_id AS "sapWbsId"`,
+    companyContacts: sql.fragment`
+      COALESCE
+      (
+        (
+        SELECT array_agg(po_roles."objectUserRoles")
+        FROM po_roles
+        WHERE po_roles."objectUserRoles"->>'roleId' = '06' AND po_roles.project_object_id = search_results.id
+        ), '{}'::json[]
+      ) AS "companyContacts"`,
+    objectRoles: sql.fragment`
+      COALESCE
+      (
+        (
+        SELECT array_agg(po_roles."objectUserRoles")
+        FROM po_roles
+        WHERE po_roles.project_object_id = search_results.id
+        ), '{}'::json[]
+      ) AS "objectRoles"`,
+  };
+
+  return sql.fragment`
+  ${sql.join(
+    templateColumns[reportTemplate].map((column) => columnMappings[column]),
+    sql.fragment`, `,
+  )},
+  search_results.id AS "id",
+  (SELECT jsonb_build_object(
+    'writeUsers', (SELECT array_agg(user_id) FROM app.project_permission WHERE project_id = search_results.project_id AND can_write = true),
+    'owner', (SELECT owner FROM app.project WHERE id = search_results.project_id)
+  )
+) AS "permissionCtx"`;
+}
 
 export async function workTableSearch(input: WorkTableSearch) {
   const objectNameSearch = textToSearchTerms(input.projectObjectName, { minTermLength: 3 });
@@ -28,8 +96,8 @@ export async function workTableSearch(input: WorkTableSearch) {
     input.projectName && input.projectName?.length >= 3 ? input.projectName : '';
 
   const {
-    startDate = null,
-    endDate = null,
+    objectStartDate = null,
+    objectEndDate = null,
     objectType = [],
     objectCategory = [],
     objectUsage = [],
@@ -42,8 +110,12 @@ export async function workTableSearch(input: WorkTableSearch) {
   WITH search_results AS (
     SELECT
       project_object.*,
+      project.id AS "projectId",
       project.project_name,
-      dense_rank() OVER (ORDER BY project.project_name)::int4 AS "projectIndex"
+      dense_rank() OVER (ORDER BY project.project_name)::int4 AS "projectIndex",
+      project.sap_project_id,
+      project.start_date AS project_start_date,
+      project.end_date AS project_end_date
     FROM app.project_object
     INNER JOIN app.project ON project.id = project_object.project_id
     INNER JOIN app.project_investment ON project_investment.id = project.id
@@ -51,7 +123,7 @@ export async function workTableSearch(input: WorkTableSearch) {
 
     WHERE project_object.deleted = false
       -- search date range intersection
-      AND daterange(${startDate}, ${endDate}, '[]') && daterange(project_object.start_date, project_object.end_date, '[]')
+      AND daterange(${objectStartDate}, ${objectEndDate}, '[]') && daterange(project_object.start_date, project_object.end_date, '[]')
       AND (${objectNameSearch}::text IS NULL OR to_tsquery('simple', ${objectNameSearch}) @@ to_tsvector('simple', project_object.object_name) OR project_object.object_name LIKE '%' || ${objectNameSubstringSearch} || '%')
       AND (${projectNameSearch}::text IS NULL OR to_tsquery('simple', ${projectNameSearch}) @@ to_tsvector('simple', project.project_name) OR  project.project_name LIKE '%' || ${projectNameSubstringSearch} || '%')
       -- empty array means match all, otherwise check for intersection
@@ -78,7 +150,7 @@ export async function workTableSearch(input: WorkTableSearch) {
         ${sql.array(objectStage, 'text')} = '{}'::TEXT[] OR
         (project_object.object_stage).id = ANY(${sql.array(objectStage, 'text')})
       )
-    GROUP BY project_object.id, project.project_name
+    GROUP BY project_object.id, project.id
     ${
       objectParticipantUser
         ? sql.fragment`HAVING rakennuttaja_user = ${objectParticipantUser} OR suunnitteluttaja_user = ${objectParticipantUser} OR ${objectParticipantUser} = ANY(array_agg(pour.user_id))`
@@ -92,8 +164,8 @@ export async function workTableSearch(input: WorkTableSearch) {
       COALESCE(SUM(budget.kayttosuunnitelman_muutos), null) AS kayttosuunnitelman_muutos
     FROM app.budget
     ${
-      startDate
-        ? sql.fragment`WHERE year BETWEEN EXTRACT('year' FROM CAST(${startDate} as date)) AND EXTRACT('year' FROM CAST(${endDate} as date))`
+      objectStartDate
+        ? sql.fragment`WHERE year BETWEEN EXTRACT('year' FROM CAST(${objectStartDate} as date)) AND EXTRACT('year' FROM CAST(${objectEndDate} as date))`
         : sql.fragment``
     }
     GROUP BY project_object_id
@@ -103,39 +175,22 @@ export async function workTableSearch(input: WorkTableSearch) {
       SUM(value_in_currency_subunit) AS total
     FROM app.sap_actuals_item
     INNER JOIN app.project_object ON project_object.sap_wbs_id = sap_actuals_item.wbs_element_id
-    WHERE fiscal_year BETWEEN EXTRACT('year' FROM CAST(${startDate} as date)) AND EXTRACT('year' FROM CAST(${endDate} as date))
+    WHERE fiscal_year BETWEEN EXTRACT('year' FROM CAST(${objectStartDate} as date)) AND EXTRACT('year' FROM CAST(${objectEndDate} as date))
     GROUP BY project_object.id
+  ), po_roles AS (
+    SELECT
+    project_object_id,
+    json_build_object(
+          'roleId', (role).id,
+          'userIds', COALESCE(json_agg(user_id) FILTER (WHERE user_id IS NOT NULL), '[]'),
+          'companyContactIds', COALESCE(json_agg(company_contact_id) FILTER (WHERE company_contact_id IS NOT NULL), '[]')
+        )  AS "objectUserRoles"
+      FROM app.project_object_user_role, search_results
+      WHERE search_results.id = project_object_user_role.project_object_id
+	    GROUP BY (role).id, search_results.id, project_object_id
   )
   SELECT
-    search_results.id AS "id",
-    object_name AS "objectName",
-    (search_results.lifecycle_state).id AS "lifecycleState",
-    jsonb_build_object(
-        'startDate', start_date,
-        'endDate', end_date
-    ) AS "dateRange",
-    jsonb_build_object(
-        'projectId', project_id,
-        'projectName', project_name,
-        'projectIndex', "projectIndex"
-    ) AS "projectLink",
-    (SELECT array_agg((object_type).id) FROM app.project_object_type WHERE search_results.id = project_object_type.project_object_id) AS "objectType",
-    (SELECT array_agg((object_category).id) FROM app.project_object_category WHERE search_results.id = project_object_category.project_object_id) AS "objectCategory",
-    (SELECT array_agg((object_usage).id) FROM app.project_object_usage WHERE search_results.id = project_object_usage.project_object_id) AS "objectUsage",
-    jsonb_build_object(
-        'rakennuttajaUser', rakennuttaja_user,
-        'suunnitteluttajaUser', suunnitteluttaja_user
-    ) AS "operatives",
-    po_budget.budget AS "budget",
-    po_actual.total AS "actual",
-    po_budget.forecast AS "forecast",
-    po_budget.kayttosuunnitelman_muutos AS "kayttosuunnitelmanMuutos",
-    (
-      SELECT jsonb_build_object(
-        'writeUsers', (SELECT array_agg(user_id) FROM app.project_permission WHERE project_id = search_results.project_id AND can_write = true),
-        'owner', (SELECT owner FROM app.project WHERE id = search_results.project_id)
-      )
-    )AS "permissionCtx"
+    ${getWorkTableSearchSelectFragment(input.reportTemplate)}
   FROM search_results
   LEFT JOIN po_budget ON po_budget.project_object_id = search_results.id
   LEFT JOIN po_actual ON po_actual.po_id = search_results.id
@@ -150,8 +205,8 @@ async function workTableUpdate(input: WorkTableUpdate, user: User) {
     const { budgetYear, budget, forecast, kayttosuunnitelmanMuutos, ...poUpdate } = projectObject;
     return {
       ...poUpdate,
-      startDate: projectObject.dateRange?.startDate,
-      endDate: projectObject.dateRange?.endDate,
+      startDate: projectObject.objectDateRange?.startDate,
+      endDate: projectObject.objectDateRange?.endDate,
       rakennuttajaUser: projectObject.operatives?.rakennuttajaUser,
       suunnitteluttajaUser: projectObject.operatives?.suunnitteluttajaUser,
       projectObjectId,

@@ -2,33 +2,22 @@ import { z } from 'zod';
 
 import { codeListIdSchema } from './code';
 import { nonEmptyString } from './common';
-import { upsertProjectSchema } from './project/base';
-import { dbProjectObjectSchema } from './projectObject';
+import { dbProjectSchema, upsertProjectSchema } from './project/base';
+import { dbProjectObjectSchema, projectObjectUserRoleSchema } from './projectObject';
 
 export const projectObjectYears = z.object({ year: z.number() });
-
-export const workTableSearchSchema = z.object({
-  projectName: z.string().optional(),
-  projectObjectName: z.string().optional(),
-  startDate: dbProjectObjectSchema.shape.startDate.optional().nullable(),
-  endDate: dbProjectObjectSchema.shape.endDate.optional().nullable(),
-  objectType: dbProjectObjectSchema.shape.objectType.optional(),
-  objectCategory: dbProjectObjectSchema.shape.objectCategory.optional(),
-  objectUsage: dbProjectObjectSchema.shape.objectUsage.optional(),
-  lifecycleState: z.array(dbProjectObjectSchema.shape.lifecycleState).optional(),
-  objectStage: z.array(dbProjectObjectSchema.shape.objectStage).optional(),
-  objectParticipantUser: nonEmptyString.optional(),
-});
-
-export type WorkTableSearch = z.infer<typeof workTableSearchSchema>;
 
 export const workTableRowSchema = z.object({
   id: nonEmptyString,
   objectName: dbProjectObjectSchema.shape.objectName,
   lifecycleState: dbProjectObjectSchema.shape.lifecycleState,
-  dateRange: z.object({
+  objectDateRange: z.object({
     startDate: dbProjectObjectSchema.shape.startDate,
     endDate: dbProjectObjectSchema.shape.endDate,
+  }),
+  projectDateRange: z.object({
+    startDate: dbProjectSchema.shape.startDate,
+    endDate: dbProjectSchema.shape.endDate,
   }),
   projectLink: z.object({
     projectId: dbProjectObjectSchema.shape.projectId,
@@ -51,13 +40,38 @@ export const workTableRowSchema = z.object({
     writeUsers: z.array(nonEmptyString),
     owner: nonEmptyString,
   }),
+  sapWbsId: dbProjectObjectSchema.shape.sapWBSId.optional(),
+  sapProjectId: dbProjectSchema.shape.sapProjectId.optional(),
+  companyContacts: z.array(projectObjectUserRoleSchema),
+  objectRoles: z.array(projectObjectUserRoleSchema),
 });
+
+const workTableColumnKeys = workTableRowSchema.keyof().exclude(['id', 'permissionCtx']);
+export type WorkTableColumn = z.infer<typeof workTableColumnKeys>;
+const reportTemplate = z.enum(['print', 'basic', 'expences', 'roles']);
+
+export const workTableSearchSchema = z.object({
+  projectName: z.string().optional(),
+  projectObjectName: z.string().optional(),
+  objectStartDate: dbProjectObjectSchema.shape.startDate.optional().nullable(),
+  objectEndDate: dbProjectObjectSchema.shape.endDate.optional().nullable(),
+  objectType: dbProjectObjectSchema.shape.objectType.optional(),
+  objectCategory: dbProjectObjectSchema.shape.objectCategory.optional(),
+  objectUsage: dbProjectObjectSchema.shape.objectUsage.optional(),
+  lifecycleState: z.array(dbProjectObjectSchema.shape.lifecycleState).optional(),
+  objectStage: z.array(dbProjectObjectSchema.shape.objectStage).optional(),
+  objectParticipantUser: nonEmptyString.optional(),
+  reportTemplate: reportTemplate.optional(),
+});
+
+export type WorkTableSearch = z.infer<typeof workTableSearchSchema>;
 
 export const workTableColumnCodesSchema = z.object({
   lifecycleState: codeListIdSchema.extract(['KohteenElinkaarentila']),
   objectType: codeListIdSchema.extract(['KohdeTyyppi']),
   objectCategory: codeListIdSchema.extract(['KohteenOmaisuusLuokka']),
   objectUsage: codeListIdSchema.extract(['KohteenToiminnallinenKayttoTarkoitus']),
+  objectRoles: codeListIdSchema.extract(['KohdeKayttajaRooli']),
 });
 
 export const workTableColumnCodes = workTableColumnCodesSchema.parse({
@@ -65,6 +79,7 @@ export const workTableColumnCodes = workTableColumnCodesSchema.parse({
   objectType: 'KohdeTyyppi',
   objectCategory: 'KohteenOmaisuusLuokka',
   objectUsage: 'KohteenToiminnallinenKayttoTarkoitus',
+  objectRoles: 'KohdeKayttajaRooli',
 });
 
 export const workTableColumnCodeKeys = workTableColumnCodesSchema.keyof();
@@ -83,3 +98,48 @@ export type WorkTableRowUpdate = z.infer<typeof workTableRowUpdateSchema>;
 export const workTableUpdateSchema = z.record(workTableRowUpdateSchema);
 
 export type WorkTableUpdate = z.infer<typeof workTableUpdateSchema>;
+
+export type ReportTemplate = z.infer<typeof reportTemplate>;
+
+export const templateColumns: Record<ReportTemplate, WorkTableColumn[]> = {
+  print: [
+    'projectLink',
+    'objectName',
+    'lifecycleState',
+    'objectDateRange',
+    'objectType',
+    'objectCategory',
+    'objectUsage',
+    'operatives',
+    'budget',
+    'actual',
+    'forecast',
+    'kayttosuunnitelmanMuutos',
+    'sapProjectId',
+    'sapWbsId',
+  ],
+  basic: [
+    'projectLink',
+    'projectDateRange',
+    'sapProjectId',
+    'objectName',
+    'objectDateRange',
+    'sapWbsId',
+    'operatives',
+  ],
+  expences: [
+    'projectLink',
+    'projectDateRange',
+    'sapProjectId',
+    'objectName',
+    'objectDateRange',
+    'sapWbsId',
+    'operatives',
+    'budget',
+    'actual',
+    'forecast',
+    'kayttosuunnitelmanMuutos',
+    'companyContacts',
+  ],
+  roles: ['projectLink', 'objectName', 'objectDateRange', 'objectRoles'],
+} as const;
