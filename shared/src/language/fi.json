@@ -74,6 +74,7 @@
   "project.permissionsTabLabel": "Luvitus",
   "project.noProjectObjects": "Hankkeella ei ole kohteita.",
   "project.deleteDialogMessage": "Olet poistamassa hanketta. Huomaa, että poistamalla hankkeen poistetaan samalla hankkeesseen liittyvät kohteet sekä vaiheet. Haluatko varmasti poistaa hankkeen?",
+  "maintenanceProject.disclaimer": "Kunnossapitohanketta kehitetään ja tuodaan saataville Hannaan askelittain. Kunnossapitohankkeen tuotantokäytön aloituksen tarkasta ajankohdasta sovitaan erikseen asianomaisten kanssa. Kunnossapitohankkeita ei suositella toistaiseksi avattavan tuotantoon, eli osoitteessa hanna.tampere.fi.",
   "newInvestmentProject.formTitle": "Uusi investointihanke",
   "newMaintenanceProject.formTitle": "Uusi kunnossapitohanke",
   "newProject.projectNameTooltip": "Syötä hankkeelle nimi.",
