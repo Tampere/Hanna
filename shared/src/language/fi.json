@@ -210,7 +210,7 @@
   "mapEdit.newFeatureDisabledTooltip": "Alueen lisääminen ei ole sallittua, jos kartalla on piirrettyjä pisteitä.",
   "mapEdit.newPointFetureTooltip": "Luo piste",
   "mapEdit.newPointFeatureDisabledTooltip": "Pisteen lisääminen ei ole sallittua, jos kartalla on piirrettyjä alueita.",
-  "mapEdit.selectFeatureTooltip": "Valitse alue",
+  "mapEdit.selectFeatureTooltip": "Valitse alue tai piste",
   "mapEdit.tracedFeatureTooltip": "Jäljitä valittuja alueita",
   "mapEdit.editFeatureTooltip": "Muokkaa valittuja alueita",
   "mapEdit.clearSelectedFeatureTooltip": "Tyhjennä valinta",
