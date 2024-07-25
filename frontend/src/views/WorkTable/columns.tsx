@@ -149,7 +149,7 @@ const fieldObjectLifecycleState = {
 };
 
 const fieldDateRange = {
-  field: 'dateRange',
+  field: 'objectDateRange',
   headerName: 'Toteutusväli',
   width: 90,
   renderCell: (params: GridRenderCellParams) => <DateRangeView value={params.value} />,
@@ -398,6 +398,7 @@ export function getColumns({
     editable: column.editable !== false,
     filterable: false,
     sortable: false,
+    resizable: false,
     cellClassName: 'cell-wrap-text',
     renderCell: (params: GridRenderCellParams) => (
       <MaybeModifiedCell params={params} modifiedFields={modifiedFields}>

@@ -1,16 +1,22 @@
+import dayjs from 'dayjs';
 import { Workbook } from 'excel4node';
+import { ProjectObjectUserRole } from 'tre-hanna-shared/src/schema/projectObject';
 
 import { getCodesForCodeList } from '@backend/components/code';
 import { buildSheet } from '@backend/components/report';
 import { saveReportFile } from '@backend/components/report/report-file';
 import { getAllUsers } from '@backend/components/user';
 import { env } from '@backend/env';
+import { getAllContactsAndCompanies } from '@backend/router/company';
 import { workTableSearch } from '@backend/router/workTable';
 
+import { reportDateFormat } from '@shared/date';
 import { TranslationKey, translations } from '@shared/language';
 import { Code } from '@shared/schema/code';
 import {
+  WorkTableRow,
   WorkTableSearch,
+  templateColumns,
   workTableColumnCodeKeys,
   workTableColumnCodes,
 } from '@shared/schema/workTable';
@@ -22,7 +28,7 @@ const queueName = 'work-table-report';
 
 type JobData = WorkTableSearch;
 
-type ReportColumnKey = Partial<Suffix<TranslationKey, 'workTable.export.'>>;
+type ReportColumnKey = Exclude<Partial<Suffix<TranslationKey, 'workTable.export.'>>, 'label'>;
 
 export async function setupWorkTableReportQueue() {
   getTaskQueue().work<JobData>(
@@ -33,6 +39,7 @@ export async function setupWorkTableReportQueue() {
     },
     async ({ id, data }) => {
       const users = await getAllUsers();
+      const contacts = await getAllContactsAndCompanies();
       const workTableData = await workTableSearch(data);
       const workbook = new Workbook({
         dateFormat: 'd.m.yyyy',
@@ -41,11 +48,20 @@ export async function setupWorkTableReportQueue() {
       const headers = Object.keys(workTableData[0]).reduce(
         (headers, key) => {
           switch (key) {
-            case 'dateRange':
+            case 'id':
+            case 'permissionCtx':
+              return headers;
+            case 'projectDateRange':
               return {
                 ...headers,
-                startDate: translations['fi']['workTable.export.startDate'],
-                endDate: translations['fi']['workTable.export.endDate'],
+                projectStartDate: translations['fi']['workTable.export.projectStartDate'],
+                projectEndDate: translations['fi']['workTable.export.projectEndDate'],
+              };
+            case 'objectDateRange':
+              return {
+                ...headers,
+                objectStartDate: translations['fi']['workTable.export.objectStartDate'],
+                objectEndDate: translations['fi']['workTable.export.objectEndDate'],
               };
             case 'projectLink':
               return {
@@ -88,49 +104,89 @@ export async function setupWorkTableReportQueue() {
           .join(', ');
       }
 
+      function getUserRoleString(userId: string) {
+        const user = users.find((u) => u.id === userId);
+        return user ? `${user.name} (${translations['fi']['workTable.cityOfTampere']})` : null;
+      }
+
+      function getCompanyContactRoleString(contactId: string) {
+        const contact = contacts.find((c) => c.id === contactId);
+        return contact ? `${contact.contactName} (${contact.companyName})` : null;
+      }
+
+      function formatRolesToUsersAndContacts(roles: ProjectObjectUserRole[]) {
+        return roles
+          .flatMap((role) =>
+            role.userIds
+              .map(getUserRoleString)
+              .concat(role.companyContactIds.map(getCompanyContactRoleString)),
+          )
+          .join(', ');
+      }
+
+      function formatRolesToText(roles: ProjectObjectUserRole[]) {
+        return roles
+          .map((role) => {
+            const roleName =
+              codes.objectRoles.find((code) => code.id.id === role.roleId)?.text['fi'] ?? '';
+            return `${roleName}: ${role.userIds
+              .map(getUserRoleString)
+              .concat(role.companyContactIds.map(getCompanyContactRoleString))
+              .join(', ')}`;
+          })
+          .join('; ');
+      }
+
+      const formatRows: Record<
+        ReportColumnKey,
+        (row: Omit<WorkTableRow, 'id' | 'permissionCtx'>) => string | number | undefined | null
+      > = {
+        projectName: (row) => row.projectLink.projectName,
+        objectName: (row) => row.objectName,
+        lifecycleState: (row) =>
+          codes.lifecycleState.find((code) => code.id.id === row.lifecycleState)?.text['fi'],
+        projectStartDate: (row) => dayjs(row.projectDateRange.startDate).format(reportDateFormat),
+        projectEndDate: (row) => dayjs(row.projectDateRange.endDate).format(reportDateFormat),
+        objectStartDate: (row) => dayjs(row.objectDateRange.startDate).format(reportDateFormat),
+        objectEndDate: (row) => dayjs(row.objectDateRange.endDate).format(reportDateFormat),
+        objectType: (row) => formatIdArrayToText(row.objectType, 'objectType'),
+        objectCategory: (row) => formatIdArrayToText(row.objectCategory, 'objectCategory'),
+        objectUsage: (row) => formatIdArrayToText(row.objectUsage, 'objectUsage'),
+        rakennuttajaUser: (row) =>
+          users.find((user) => user.id === row.operatives.rakennuttajaUser)?.name ?? null,
+        suunnitteluttajaUser: (row) =>
+          users.find((user) => user.id === row.operatives.suunnitteluttajaUser)?.name ?? null,
+        budget: (row) => (row.budget == null ? null : row.budget / 100),
+        actual: (row) => (row.actual == null ? null : row.actual / 100),
+        forecast: (row) => (row.forecast == null ? null : row.forecast / 100),
+        kayttosuunnitelmanMuutos: (row) =>
+          row.kayttosuunnitelmanMuutos == null ? null : row.kayttosuunnitelmanMuutos / 100,
+        sapWbsId: (row) => row.sapWbsId,
+        sapProjectId: (row) => row.sapProjectId,
+        companyContacts: (row) => formatRolesToUsersAndContacts(row.companyContacts),
+        objectRoles: (row) => formatRolesToText(row.objectRoles),
+      };
+
+      function getRows() {
+        return workTableData.map((row) => {
+          return (Object.keys(headers) as ReportColumnKey[]).reduce(
+            (formattedRow, columnKey) => {
+              return {
+                ...formattedRow,
+                [columnKey]: formatRows[columnKey](row),
+              };
+            },
+            {} as { [key in ReportColumnKey]: string },
+          );
+        });
+      }
+
+      const financeColumns = ['budget', 'actual', 'forecast', 'kayttosuunnitelmanMuutos'];
+
       const sheet = buildSheet<ReportColumnKey>({
         workbook,
         sheetTitle: translations['fi']['workTable.export.label'],
-        rows: workTableData.map((row) => {
-          const {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            id,
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            permissionCtx,
-            dateRange,
-            projectLink,
-            operatives,
-            objectType,
-            objectCategory,
-            objectUsage,
-            budget,
-            actual,
-            forecast,
-            kayttosuunnitelmanMuutos,
-            lifecycleState,
-            ...rest
-          } = row;
-          return {
-            projectName: projectLink.projectName,
-            ...rest,
-            lifecycleState: codes.lifecycleState.find((code) => code.id.id === lifecycleState)
-              ?.text['fi'],
-            startDate: dateRange.startDate,
-            endDate: dateRange.endDate,
-            objectType: formatIdArrayToText(objectType, 'objectType'),
-            objectCategory: formatIdArrayToText(objectCategory, 'objectCategory'),
-            objectUsage: formatIdArrayToText(objectUsage, 'objectUsage'),
-            rakennuttajaUser:
-              users.find((user) => user.id === operatives.rakennuttajaUser)?.name ?? null,
-            suunnitteluttajaUser:
-              users.find((user) => user.id === operatives.suunnitteluttajaUser)?.name ?? null,
-            budget: budget == null ? null : budget / 100,
-            actual: actual == null ? null : actual / 100,
-            forecast: forecast == null ? null : forecast / 100,
-            kayttosuunnitelmanMuutos:
-              kayttosuunnitelmanMuutos == null ? null : kayttosuunnitelmanMuutos / 100,
-          };
-        }),
+        rows: getRows(),
         headers: headers,
         types: {
           budget: 'currency',
@@ -138,14 +194,23 @@ export async function setupWorkTableReportQueue() {
           forecast: 'currency',
           kayttosuunnitelmanMuutos: 'currency',
         },
-        sum: ['budget', 'actual', 'forecast', 'kayttosuunnitelmanMuutos'],
+        sum: (data.reportTemplate && templateColumns[data.reportTemplate])?.filter((column) =>
+          financeColumns.includes(column),
+        ) as ReportColumnKey[],
       });
 
       if (!sheet) {
         return;
       }
 
-      await saveReportFile(id, 'investoinnit.xlsx', workbook);
+      const workbookNames = {
+        print: translations['fi']['workTable.printReport'],
+        basic: translations['fi']['workTable.basicReport'],
+        expences: translations['fi']['workTable.expencesReport'],
+        roles: translations['fi']['workTable.rolesReport'],
+      };
+
+      await saveReportFile(id, `${workbookNames[data.reportTemplate ?? 'print']}.xlsx`, workbook);
     },
   );
 }

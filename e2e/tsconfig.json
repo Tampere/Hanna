@@ -2,6 +2,7 @@
   "strict": true,
   "compilerOptions": {
     "skipLibCheck": true,
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {

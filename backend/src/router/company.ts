@@ -22,6 +22,19 @@ const selectCompanyFragment = sql.fragment`
   WHERE deleted IS FALSE
 `;
 
+export function getAllContactsAndCompanies() {
+  return getPool().any(sql.type(
+    z.object({ id: nonEmptyString, contactName: z.string(), companyName: z.string() }),
+  )`
+      SELECT
+        id,
+        cc.contact_name AS "contactName",
+        c.company_name AS "companyName"
+      FROM app.company_contact cc
+      LEFT JOIN app.company c ON cc.business_id = c.business_id
+      WHERE c.deleted IS FALSE AND cc.deleted IS FALSE`);
+}
+
 export const createCompanyRouter = (t: TRPC) =>
   t.router({
     upsert: t.procedure.input(companySchema).mutation(async ({ ctx, input }) => {

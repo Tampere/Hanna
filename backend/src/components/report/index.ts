@@ -16,6 +16,8 @@ type CustomFieldType = 'currency';
 // Eyeballed approximation how much the width differs from Excel width
 const excelWidthFactor = 1 / 7.5;
 
+const columnMaxWidth = 600;
+
 function generateSumCell(sheet: Worksheet, rowIndex: number, columnIndex: number) {
   // Create a cell object with the numeric indices & figure out its Excel reference
   const cell = sheet.cell(rowIndex, columnIndex);
@@ -83,6 +85,7 @@ export function buildSheet<ColumnKey extends string>({
     Object.entries<ReportFieldValue | undefined>(row).forEach(([columnKey, value], column) => {
       const isCurrencyType = types?.[columnKey as ColumnKey] === 'currency';
       const cell = sheet.cell(rowIndex + 2, column + 1);
+      cell.style({ alignment: { wrapText: true, vertical: 'top' } });
 
       // Skip empty values
       if (value == null) {
@@ -118,7 +121,7 @@ export function buildSheet<ColumnKey extends string>({
       }
 
       if (width > columnWidths[column]) {
-        columnWidths[column] = width;
+        columnWidths[column] = width <= columnMaxWidth ? width : columnMaxWidth;
       }
     });
   });
