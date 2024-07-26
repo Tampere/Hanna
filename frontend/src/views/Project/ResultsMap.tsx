@@ -153,7 +153,7 @@ export function ResultsMap(props: Props) {
     <Paper css={resultMapContainerStyle} elevation={1}>
       <MapWrapper
         loading={props.loading}
-        vectorLayers={[projectObjectLayer, projectLayer, clusterLayer]}
+        vectorLayers={[projectLayer, projectObjectLayer, clusterLayer]}
         onMoveEnd={(zoom, extent) => {
           setMap({ zoom: Math.floor(zoom), extent });
         }}

@@ -7,7 +7,7 @@ import { Geometry } from 'ol/geom';
 import VectorLayer from 'ol/layer/Vector';
 import { Projection } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
-import Style from 'ol/style/Style';
+import { StyleLike } from 'ol/style/Style';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
@@ -50,8 +50,8 @@ import { DEFAULT_DRAW_STYLE } from './styles';
 export interface DrawOptions {
   geoJson: string | object | null;
   onFeaturesSaved?: (features: string) => void;
-  drawStyle: Style;
-  pointDrawStyle?: Style;
+  drawStyle: StyleLike;
+  pointDrawStyle?: StyleLike;
   toolsHidden?: ToolType[];
   editable: boolean;
 }

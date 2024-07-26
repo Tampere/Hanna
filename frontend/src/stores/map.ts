@@ -97,9 +97,10 @@ export function getProjectsLayer(source: VectorSource) {
   });
 }
 
-export function getProjectObjectsLayer(source: VectorSource) {
+export function getProjectObjectsLayer(source: VectorSource, opacity?: number) {
   return new VectorLayer({
     source,
+    opacity: opacity ?? 1,
     style: PROJ_OBJ_STYLE,
     properties: {
       id: 'projectObjects',

@@ -175,7 +175,7 @@ export function ProjectObject(props: Props) {
   }, [projectObjectGeometries.data, projectObjectId]);
 
   const projectObjectLayer = useMemo(() => {
-    return getProjectObjectsLayer(projectObjectSource);
+    return getProjectObjectsLayer(projectObjectSource, 0.4);
   }, [projectObjectGeometries.data, projectObjectId]);
 
   const projectLayer = useMemo(() => {
