@@ -167,7 +167,7 @@ export function ProjectObjectResultsMap(props: Props) {
     <Paper css={resultMapContainerStyle} elevation={1}>
       <MapWrapper
         loading={props.projectObjectsLoading}
-        vectorLayers={[projectObjectLayer, projectLayer, clusterLayer]}
+        vectorLayers={[projectLayer, projectObjectLayer, clusterLayer]}
         onMoveEnd={(zoom, extent) => {
           setMap({ zoom: Math.floor(zoom), extent });
         }}

@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { Euro, KeyTwoTone, Map, Undo } from '@mui/icons-material';
-import { Box, Breadcrumbs, Button, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
+import { Alert, Box, Breadcrumbs, Button, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import VectorSource from 'ol/source/Vector';
 import { useMemo, useState } from 'react';
@@ -184,15 +184,16 @@ export function MaintenanceProject() {
             <Chip variant="outlined" label={tr('newMaintenanceProject.formTitle')} />
           )}
         </Breadcrumbs>
+        <Alert severity="warning">{tr('maintenanceProject.disclaimer')}</Alert>
         {!projectId && (
           <Button
             css={css`
               margin: 0 0 0 auto;
+              min-width: fit-content;
             `}
             size="small"
             startIcon={<Undo />}
             variant="contained"
-            sx={{ mt: 2 }}
             onClick={() => navigate(-1)}
           >
             {tr('cancel')}

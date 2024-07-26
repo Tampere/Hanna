@@ -1,8 +1,13 @@
-import { sql } from 'slonik';
+import { FragmentSqlToken, sql } from 'slonik';
 
 import { getPool } from '@backend/db';
 
-import { Code, CodeId, EXPLICIT_EMPTY, codeSchema } from '@shared/schema/code';
+import { Code, CodeId, EXPLICIT_EMPTY, OrderingOptions, codeSchema } from '@shared/schema/code';
+
+const orderingFragments: Record<OrderingOptions['type'], FragmentSqlToken> = {
+  alphabetical: sql.fragment`ORDER BY text_fi`,
+  custom: sql.fragment`ORDER BY t.ord`,
+};
 
 const emptyCode = (codeListId: Code['id']['codeListId']) =>
   ({
@@ -15,7 +20,8 @@ const emptyCode = (codeListId: Code['id']['codeListId']) =>
     },
   }) as const;
 
-const codeSelectFragment = sql.fragment`
+function getCodeSelectFragment(customOrderById?: string[]) {
+  return sql.fragment`
   SELECT
     json_build_object(
       'codeListId', (code.id).code_list_id,
@@ -26,15 +32,45 @@ const codeSelectFragment = sql.fragment`
       'en', text_en
     ) AS text
   FROM app.code
+  ${
+    customOrderById
+      ? sql.fragment`LEFT JOIN UNNEST(${sql.array(
+          customOrderById,
+          'text',
+        )}) WITH ORDINALITY t(id, ord) ON (app.code.id).id = t.id`
+      : sql.fragment``
+  }
 `;
+}
+
+function getOrderingOptionsByCodeListId(
+  codeListId: Code['id']['codeListId'],
+): OrderingOptions | null {
+  switch (codeListId) {
+    case 'KohteenElinkaarentila':
+      return { type: 'custom', ids: ['05', '01', '02', '03'] };
+    case 'KohteenOmaisuusLuokka':
+    case 'KohteenToiminnallinenKayttoTarkoitus':
+      return { type: 'alphabetical' };
+    default:
+      return null;
+  }
+}
 
 export async function getCodesForCodeList(
   codeListId: Code['id']['codeListId'],
   emptySelection: boolean = false,
 ) {
+  const orderingOptions = getOrderingOptionsByCodeListId(codeListId);
+
   const results = await getPool().any(sql.type(codeSchema)`
-    ${codeSelectFragment}
+    ${
+      orderingOptions?.type === 'custom'
+        ? getCodeSelectFragment(orderingOptions.ids)
+        : getCodeSelectFragment()
+    }
     WHERE (code.id).code_list_id = ${codeListId}
+    ${orderingOptions ? orderingFragments[orderingOptions.type] : sql.fragment``}
   `);
 
   return emptySelection ? [emptyCode(codeListId), ...results] : results;
@@ -52,7 +88,7 @@ export function codeIdFragment(
 
 export async function getCodeText({ id, codeListId }: CodeId) {
   const { text } = await getPool().one(sql.type(codeSchema)`
-    ${codeSelectFragment}
+    ${getCodeSelectFragment()}
     WHERE
       (code.id).code_list_id = ${codeListId}
       AND (code.id).id = ${id}

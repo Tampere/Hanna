@@ -324,7 +324,12 @@ export async function getProjectObjectsByProjectId(projectId: string) {
 
 export async function getGeometriesByProjectId(projectId: string) {
   return getPool().any(sql.type(dbProjectObjectGeometrySchema)`
-    SELECT ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom, id  "projectObjectId", object_name "objectName" FROM app.project_object WHERE project_id = ${projectId};
+    SELECT
+      ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
+      id  "projectObjectId",
+      object_name "objectName"
+    FROM app.project_object
+    WHERE project_id = ${projectId} AND deleted = false;
   `);
 }
 

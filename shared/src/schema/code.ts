@@ -47,9 +47,15 @@ export const codeSchema = z.object({
     ),
   ),
 });
+//{ type: 'alphabetical' } | { type: 'custom'; ids: string[] }
+const orderingOptionsSchema = z.object({
+  type: z.enum(['alphabetical', 'custom']),
+  ids: z.array(z.string()).optional(),
+});
 
 export type Code = z.infer<typeof codeSchema>;
 export type CodeId = z.infer<typeof codeIdSchema>;
+export type OrderingOptions = z.infer<typeof orderingOptionsSchema>;
 
 export const codeSearchSchema = z.object({
   codeListId: codeListIdSchema,

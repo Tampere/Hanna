@@ -9,7 +9,7 @@ import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import CircleStyle from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
-import Style, { StyleLike } from 'ol/style/Style';
+import { StyleLike } from 'ol/style/Style';
 
 import {
   DEFAULT_DRAW_STYLE,
@@ -21,7 +21,7 @@ interface DrawOptions {
   source: VectorSource<Feature<Geometry>>;
   trace: boolean;
   traceSource: VectorSource<Feature<Geometry>> | null;
-  drawStyle?: Style;
+  drawStyle?: StyleLike;
   onDrawEnd?: () => void;
   drawType: 'Polygon' | 'Point';
 }
@@ -41,16 +41,19 @@ export function createDrawLayer(source: VectorSource<Feature<Geometry>>, style?:
 
 export function createDrawInteraction(opts: DrawOptions) {
   return function registerInteraction(map: OLMap) {
-    const drawStyle = (opts.drawStyle || defaultStyles[opts.drawType]).clone();
+    let drawStyle = opts.drawStyle || defaultStyles[opts.drawType];
 
-    if (opts.drawType === 'Polygon') {
-      drawStyle.setImage(
-        new CircleStyle({
-          radius: 5,
-          fill: new Fill({ color: drawStyle.getStroke()?.getColor() }),
-        }),
-      );
-      drawStyle.getStroke()?.setLineDash([3, 10]);
+    if (!Array.isArray(drawStyle) && typeof drawStyle !== 'function') {
+      drawStyle = drawStyle.clone();
+      if (opts.drawType === 'Polygon') {
+        drawStyle.setImage(
+          new CircleStyle({
+            radius: 5,
+            fill: new Fill({ color: drawStyle.getStroke()?.getColor() }),
+          }),
+        );
+        drawStyle.getStroke()?.setLineDash([3, 10]);
+      }
     }
 
     const draw = new Draw({
