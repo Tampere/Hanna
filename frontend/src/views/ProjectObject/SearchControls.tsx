@@ -205,7 +205,7 @@ export function SearchControls() {
           <FormLabel htmlFor="lifecycle-state">{tr('projectObject.lifecycleStateLabel')}</FormLabel>
           <CodeSelect
             id="lifecycle-state"
-            codeListId="HankkeenElinkaarentila"
+            codeListId="KohteenElinkaarentila"
             multiple
             value={lifecycleStates}
             onChange={setLifecycleStates}

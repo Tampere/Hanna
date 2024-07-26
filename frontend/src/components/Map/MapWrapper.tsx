@@ -233,8 +233,6 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
   );
 
   useEffect(() => {
-    console.log('extent effect', props.fitExtent);
-    console.log(props?.drawOptions?.geoJson, drawSource);
     let extent = createEmpty();
     switch (props.fitExtent) {
       case 'geoJson':
