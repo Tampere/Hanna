@@ -7,7 +7,11 @@ import { Pixel } from 'ol/pixel';
 import VectorSource from 'ol/source/Vector';
 
 import { getFeatureItemIds } from '@frontend/components/Map/mapFunctions';
-import { PROJECT_AREA_STYLE, PROJ_OBJ_STYLE } from '@frontend/components/Map/styles';
+import {
+  PROJECT_AREA_STYLE,
+  PROJECT_OBJECT_STYLE,
+  getStyleWithPointIcon,
+} from '@frontend/components/Map/styles';
 
 export const baseLayerIdAtom = atom<string>('virastokartta');
 
@@ -101,7 +105,7 @@ export function getProjectObjectsLayer(source: VectorSource, opacity?: number) {
   return new VectorLayer({
     source,
     opacity: opacity ?? 1,
-    style: PROJ_OBJ_STYLE,
+    style: getStyleWithPointIcon(PROJECT_OBJECT_STYLE),
     properties: {
       id: 'projectObjects',
       type: 'vector',

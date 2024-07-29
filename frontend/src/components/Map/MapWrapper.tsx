@@ -7,7 +7,7 @@ import { Geometry } from 'ol/geom';
 import VectorLayer from 'ol/layer/Vector';
 import { Projection } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
-import { StyleLike } from 'ol/style/Style';
+import Style from 'ol/style/Style';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
@@ -45,13 +45,11 @@ import {
   getSelectedDrawLayerFeatures,
 } from './mapInteractions';
 import { mapOptions } from './mapOptions';
-import { DEFAULT_DRAW_STYLE } from './styles';
 
 export interface DrawOptions {
   geoJson: string | object | null;
   onFeaturesSaved?: (features: string) => void;
-  drawStyle: StyleLike;
-  pointDrawStyle?: StyleLike;
+  drawStyle: Style | Style[];
   toolsHidden?: ToolType[];
   editable: boolean;
 }
@@ -210,18 +208,13 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
       ?.some((feature) => feature.getGeometry()?.getType() === geometryType);
   }
 
-  const drawLayer = useMemo(
-    () => createDrawLayer(drawSource, props.drawOptions?.drawStyle ?? DEFAULT_DRAW_STYLE),
-    [],
-  );
+  const drawLayer = useMemo(() => createDrawLayer(drawSource, props.drawOptions?.drawStyle), []);
+
   const registerDrawInteraction = useMemo(
     () =>
       createDrawInteraction({
         source: drawSource,
-        drawStyle:
-          selectedTool === 'newPointFeature'
-            ? props.drawOptions?.pointDrawStyle
-            : props.drawOptions?.drawStyle,
+        drawStyle: props.drawOptions?.drawStyle,
         trace: selectedTool === 'tracedFeature',
         traceSource: selectionSource,
         onDrawEnd: () => {

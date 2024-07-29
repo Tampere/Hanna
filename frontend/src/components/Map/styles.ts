@@ -3,7 +3,7 @@ import CircleStyle from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
 import IconStyle from 'ol/style/Icon';
 import Stroke from 'ol/style/Stroke';
-import Style from 'ol/style/Style';
+import Style, { StyleFunction } from 'ol/style/Style';
 import Text from 'ol/style/Text';
 
 import { theme } from '@frontend/Layout';
@@ -99,67 +99,50 @@ export function selectionLayerStyle(feature: FeatureLike) {
   });
 }
 
-export function PROJECT_AREA_STYLE() {
-  return [
-    new Style({
-      fill: new Fill({
-        color: _PROJECT_FILL,
-      }),
-      stroke: new Stroke({
-        color: _PROJECT_STROKE,
-        width: _PROJECT_STROKE_WIDTH,
-      }),
-      zIndex: 1,
+export const PROJECT_AREA_STYLE = [
+  new Style({
+    fill: new Fill({
+      color: _PROJECT_FILL,
     }),
-    new Style({
-      stroke: new Stroke({
-        color: _DEFAULT_HIGHLIGHT_STROKE,
-        width: _PROJECT_STROKE_WIDTH + 4,
-      }),
-      zIndex: 0,
+    stroke: new Stroke({
+      color: _PROJECT_STROKE,
+      width: _PROJECT_STROKE_WIDTH,
     }),
-  ];
-}
+    zIndex: 1,
+  }),
+  new Style({
+    stroke: new Stroke({
+      color: _DEFAULT_HIGHLIGHT_STROKE,
+      width: _PROJECT_STROKE_WIDTH + 4,
+    }),
+    zIndex: 0,
+  }),
+];
 
 const _PROJ_OBJ_FILL = 'rgb(66, 111, 245, 0.4)';
 const _PROJ_OBJ_STROKE = 'rgb(66, 111, 245)';
 const _PROJ_OBJ_STROKE_WIDTH = 2;
 
-export function PROJ_OBJ_STYLE(feature: FeatureLike, resolution: number) {
-  return [
-    new Style({
-      fill: new Fill({
-        color: _PROJ_OBJ_FILL,
-      }),
-      stroke: new Stroke({
-        color: _PROJ_OBJ_STROKE,
-        width: _PROJ_OBJ_STROKE_WIDTH,
-      }),
-      image: new IconStyle({
-        src: projectObjectPoint.toString(),
-        scale: getObjectIconScale(resolution),
-      }),
-      zIndex: 1,
+export const PROJECT_OBJECT_STYLE = [
+  new Style({
+    fill: new Fill({
+      color: _PROJ_OBJ_FILL,
+    }),
+    stroke: new Stroke({
+      color: _PROJ_OBJ_STROKE,
+      width: _PROJ_OBJ_STROKE_WIDTH,
+    }),
+    zIndex: 1,
+  }),
+  new Style({
+    stroke: new Stroke({
+      color: _DEFAULT_HIGHLIGHT_STROKE,
+      width: _PROJECT_STROKE_WIDTH + 4,
     }),
 
-    new Style({
-      stroke: new Stroke({
-        color: _DEFAULT_HIGHLIGHT_STROKE,
-        width: _PROJECT_STROKE_WIDTH + 4,
-      }),
-
-      // To make every part of the icon clickable
-      image: new CircleStyle({
-        radius: 20.5, // Half of the icon width
-        scale: getObjectIconScale(resolution),
-        fill: new Fill({
-          color: 'transparent',
-        }),
-      }),
-      zIndex: 0,
-    }),
-  ];
-}
+    zIndex: 0,
+  }),
+];
 
 const _PROJ_OBJ_DRAW_FILL = 'rgb(0, 0, 255, 0.4)';
 const _PROJ_OBJ_DRAW_STROKE = 'rgb(255, 100, 0)';
@@ -169,20 +152,39 @@ function getObjectIconScale(zoom: number) {
   return Math.max(0.5, Math.min(0.8, 1 / zoom));
 }
 
-export function PROJ_OBJ_DRAW_STYLE(feature: FeatureLike, resolution: number) {
-  return new Style({
-    fill: new Fill({
-      color: _PROJ_OBJ_DRAW_FILL,
-    }),
-    stroke: new Stroke({
-      color: _PROJ_OBJ_DRAW_STROKE,
-      width: _PROJ_OBJ_DRAW_STROKE_WIDTH,
-      lineDash: [4],
-    }),
-    image: new IconStyle({
-      opacity: 1,
-      src: projectObjectPoint.toString(),
-      scale: getObjectIconScale(resolution),
-    }),
-  });
+export const PROJ_OBJ_DRAW_STYLE = new Style({
+  fill: new Fill({
+    color: _PROJ_OBJ_DRAW_FILL,
+  }),
+  stroke: new Stroke({
+    color: _PROJ_OBJ_DRAW_STROKE,
+    width: _PROJ_OBJ_DRAW_STROKE_WIDTH,
+    lineDash: [4],
+  }),
+});
+
+export function getStyleWithPointIcon(style: Style | Style[]): StyleFunction {
+  return function (feature: FeatureLike, resolution: number) {
+    const styles = Array.isArray(style) ? style : [style];
+    return [
+      ...styles,
+      new Style({
+        image: new IconStyle({
+          opacity: 1,
+          src: projectObjectPoint.toString(),
+          scale: getObjectIconScale(resolution),
+        }),
+      }),
+      new Style({
+        // To make every part of the icon clickable
+        image: new CircleStyle({
+          radius: 20.5, // Half of the icon width
+          scale: getObjectIconScale(resolution),
+          fill: new Fill({
+            color: 'transparent',
+          }),
+        }),
+      }),
+    ];
+  };
 }

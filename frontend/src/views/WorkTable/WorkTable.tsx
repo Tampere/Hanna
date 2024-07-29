@@ -500,6 +500,7 @@ export default function WorkTable() {
         ref={summaryRowRef}
       />
       <DataGrid
+        autoHeight
         slots={{ noRowsOverlay: NoRowsOverlay }}
         onResize={handleSummaryRowResize}
         isCellEditable={({ row, field }: { row: WorkTableRow; field: string }) => {

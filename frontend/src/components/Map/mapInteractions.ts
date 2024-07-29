@@ -9,11 +9,12 @@ import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import CircleStyle from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
-import { StyleLike } from 'ol/style/Style';
+import Style, { StyleLike } from 'ol/style/Style';
 
 import {
   DEFAULT_DRAW_STYLE,
   DEFAULT_POINT_STYLE,
+  getStyleWithPointIcon,
   selectionLayerStyle,
 } from '@frontend/components/Map/styles';
 
@@ -21,7 +22,7 @@ interface DrawOptions {
   source: VectorSource<Feature<Geometry>>;
   trace: boolean;
   traceSource: VectorSource<Feature<Geometry>> | null;
-  drawStyle?: StyleLike;
+  drawStyle?: Style | Style[];
   onDrawEnd?: () => void;
   drawType: 'Polygon' | 'Point';
 }
@@ -30,20 +31,31 @@ export const DRAW_LAYER_Z_INDEX = 101;
 
 const defaultStyles = { Polygon: DEFAULT_DRAW_STYLE, Point: DEFAULT_POINT_STYLE };
 
-export function createDrawLayer(source: VectorSource<Feature<Geometry>>, style?: StyleLike) {
+export function createDrawLayer(source: VectorSource<Feature<Geometry>>, style?: Style | Style[]) {
   return new VectorLayer({
     source,
     zIndex: DRAW_LAYER_Z_INDEX,
     properties: { id: 'drawLayer' },
-    style: style || DEFAULT_DRAW_STYLE,
+    style: style ? getStyleWithPointIcon(style) : DEFAULT_DRAW_STYLE,
   });
 }
 
 export function createDrawInteraction(opts: DrawOptions) {
   return function registerInteraction(map: OLMap) {
-    let drawStyle = opts.drawStyle || defaultStyles[opts.drawType];
+    let drawStyle: StyleLike = opts.drawStyle || defaultStyles[opts.drawType];
 
-    if (!Array.isArray(drawStyle) && typeof drawStyle !== 'function') {
+    if (Array.isArray(drawStyle)) {
+      drawStyle = drawStyle.map((styleObject) => styleObject.clone());
+      if (opts.drawType === 'Polygon') {
+        drawStyle[0].setImage(
+          new CircleStyle({
+            radius: 5,
+            fill: new Fill({ color: drawStyle[0].getStroke()?.getColor() }),
+          }),
+        );
+        drawStyle[0].getStroke()?.setLineDash([3, 10]);
+      }
+    } else {
       drawStyle = drawStyle.clone();
       if (opts.drawType === 'Polygon') {
         drawStyle.setImage(
@@ -54,6 +66,9 @@ export function createDrawInteraction(opts: DrawOptions) {
         );
         drawStyle.getStroke()?.setLineDash([3, 10]);
       }
+    }
+    if (opts.drawType === 'Point') {
+      drawStyle = getStyleWithPointIcon(drawStyle);
     }
 
     const draw = new Draw({

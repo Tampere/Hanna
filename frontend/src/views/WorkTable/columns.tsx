@@ -151,7 +151,7 @@ const fieldObjectLifecycleState = {
 const fieldDateRange = {
   field: 'objectDateRange',
   headerName: 'Toteutusväli',
-  width: 90,
+  width: 95,
   renderCell: (params: GridRenderCellParams) => <DateRangeView value={params.value} />,
   renderEditCell: (params: GridRenderEditCellParams) => <DateRangeEdit {...params} />,
 };

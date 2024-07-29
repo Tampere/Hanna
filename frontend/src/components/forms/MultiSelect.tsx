@@ -161,21 +161,25 @@ export function MultiSelect<T>({
           </>
         ) : maxTags == null || value.length <= maxTags ? (
           // Only render the tags if the limit is not exceeded
-          value.map((tag, index) => (
-            <Chip
-              css={css`
-                font-size: 12px;
-                height: 18px;
-                &.MuiAutocomplete-tag {
-                  max-width: 60%;
-                }
-              `}
-              {...getTagProps({ index })}
-              size="small"
-              title={getLabel(tag)}
-              label={getLabel(tag)}
-            ></Chip>
-          ))
+          value.map((tag, index) => {
+            const { key, ...props } = getTagProps({ index });
+            return (
+              <Chip
+                key={key}
+                css={css`
+                  font-size: 12px;
+                  height: 18px;
+                  &.MuiAutocomplete-tag {
+                    max-width: 60%;
+                  }
+                `}
+                {...props}
+                size="small"
+                title={getLabel(tag)}
+                label={getLabel(tag)}
+              ></Chip>
+            );
+          })
         ) : null;
       }}
       renderOption={(props, id, { selected }) => (
