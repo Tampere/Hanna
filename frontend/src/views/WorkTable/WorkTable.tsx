@@ -40,8 +40,16 @@ import { YearPicker } from './Filters/YearPicker';
 import { WorkTableSummaryRow } from './WorkTableSummaryRow';
 import { ModifiedFields } from './diff';
 
+const pinnedColumns = [
+  { name: 'projectLink', offset: 0 },
+  { name: 'objectName', offset: 256 },
+];
+
 const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   font-size: 12px;
+  .odd {
+    background-color: #fff;
+  }
   .even {
     background-color: #f3f3f3;
   }
@@ -59,7 +67,14 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
       background-color: inherit;
     }
   }
-
+  ${pinnedColumns.map(
+    (column) => `.pinned-${column.name} {
+        background-color: inherit;
+        position: sticky;
+        left: ${column.offset}px;
+        z-index: 101;
+  }`,
+  )}
   & .MuiDataGrid-cell {
     display: flex;
     align-items: center;
@@ -83,6 +98,13 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
     position: sticky;
     top: calc(${summaryRowHeight}px - 1rem);
     z-index: 100;
+    ${pinnedColumns.map(
+      (column) => `&.pinned-${column.name} {
+        position: sticky;
+        left: ${column.offset}px;
+        z-index: 101;
+      }`,
+    )}
   }
   & .MuiDataGrid-columnHeaderTitle {
     line-height: normal;
@@ -224,6 +246,7 @@ export default function WorkTable() {
     return getColumns({
       modifiedFields,
       allYearsSelected,
+      pinnedColumns: pinnedColumns.map((column) => column.name),
     });
   }, [modifiedFields, allYearsSelected]);
 
@@ -515,16 +538,21 @@ export default function WorkTable() {
           );
         }}
         getCellClassName={({ id, field, row }) => {
+          const classNames = [];
+          if (pinnedColumns.map((column) => column.name).includes(field)) {
+            classNames.push(`pinned-${field}`);
+          }
           if (id in modifiedFields && field in modifiedFields[id]) {
-            return 'modified-cell';
+            classNames.push('modified-cell');
           } else if (
             auth &&
             (ownsProject(auth, row.permissionCtx) || hasWritePermission(auth, row.permissionCtx))
           ) {
-            return 'cell-writable';
+            classNames.push('cell-writable');
           } else {
-            return 'cell-readonly';
+            classNames.push('cell-readonly');
           }
+          return classNames.join(' ');
         }}
         disableVirtualization
         loading={workTableData.isLoading}
