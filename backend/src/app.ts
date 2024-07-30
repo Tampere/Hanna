@@ -112,7 +112,8 @@ async function run() {
     prefix: '/',
   });
 
-  server.get('/api/v1/ping', async () => {
+  server.get('/api/v1/ping', async (req) => {
+    logger.info(`Ping request received, headers: ${JSON.stringify(req.headers)}`);
     return { ping: 'pong', now: new Date() };
   });
 
