@@ -62,7 +62,7 @@ async function run() {
     setupWorkTableReportQueue(),
   ]);
   // https://github.com/fastify/fastify/issues/4960
-  const server = fastify({ logger: logger as FastifyBaseLogger });
+  const server = fastify({ logger: logger as FastifyBaseLogger, trustProxy: 1 });
   const oidcClient = await getClient();
 
   registerApiKeyRoutes(server, { prefix: '/api/v1/admin', apis: [syncQueueApi] });
@@ -113,7 +113,7 @@ async function run() {
   });
 
   server.get('/api/v1/ping', async (req) => {
-    logger.info(`Ping request received, headers: ${JSON.stringify(req.headers)}`);
+    logger.info(`Ping request received, headers: ${JSON.stringify(req.headers)}, ips: ${req.ips}`);
     return { ping: 'pong', now: new Date() };
   });
 
