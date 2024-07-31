@@ -76,7 +76,8 @@ function MaybeModifiedCell({
 const fieldObjectName = {
   field: 'objectName',
   headerName: 'Kohde',
-  width: 300,
+  flex: 1,
+  minWidth: 300,
   renderCell: (params: GridRenderCellParams<WorkTableRow>) => (
     <Box
       css={css`
@@ -151,7 +152,8 @@ const fieldObjectLifecycleState = {
 const fieldDateRange = {
   field: 'objectDateRange',
   headerName: 'Toteutusväli',
-  width: 95,
+  flex: 1,
+  minWidth: 95,
   renderCell: (params: GridRenderCellParams) => <DateRangeView value={params.value} />,
   renderEditCell: (params: GridRenderEditCellParams) => <DateRangeEdit {...params} />,
 };
@@ -159,7 +161,8 @@ const fieldDateRange = {
 const fieldProjectLink = {
   field: 'projectLink',
   headerName: 'Hanke',
-  width: 256,
+  flex: 1,
+  minWidth: 256,
   editable: false,
   renderCell: (params: GridRenderCellParams) => {
     const allRowIds = params.api.getAllRowIds();
@@ -226,7 +229,8 @@ const fieldProjectLink = {
 const fieldObjectType = {
   field: 'objectType',
   headerName: 'Tyyppi',
-  width: 160,
+  flex: 1,
+  minWidth: 160,
   renderCell: (params: GridRenderCellParams) => (
     <CodeSpanMulti codeListId={workTableColumnCodes['objectType']} value={params.value} />
   ),
@@ -249,7 +253,8 @@ const fieldObjectType = {
 const fieldObjectCategory = {
   field: 'objectCategory',
   headerName: 'Omaisuusluokka',
-  width: 160,
+  flex: 1,
+  minWidth: 160,
   renderCell: (params: GridRenderCellParams) => (
     <CodeSpanMulti codeListId={workTableColumnCodes['objectCategory']} value={params.value} />
   ),
@@ -272,7 +277,8 @@ const fieldObjectCategory = {
 const fieldObjectUsage = {
   field: 'objectUsage',
   headerName: 'Käyttötarkoitus',
-  width: 172,
+  flex: 1,
+  minWidth: 172,
   renderCell: (params: GridRenderCellParams) => (
     <CodeSpanMulti codeListId={workTableColumnCodes['objectUsage']} value={params.value} />
   ),
@@ -295,7 +301,8 @@ const fieldObjectUsage = {
 const fieldOperatives = {
   field: 'operatives',
   headerName: 'Rakennuttaja / Suunnitteluttaja',
-  width: 144,
+  flex: 1,
+  minWidth: 144,
   renderCell: ({ value }: GridRenderCellParams) => <ProjectObjectUsers value={value} />,
   renderEditCell: (params: GridRenderEditCellParams) => {
     const { id, field, value } = params;
@@ -320,7 +327,8 @@ const financesField = (
     field: targetField,
     headerName: targetField,
     headerAlign: 'right',
-    width: 128,
+    flex: 1,
+    minWidth: 128,
     renderCell: ({ value }: GridRenderCellParams) => {
       return (
         <div
@@ -383,6 +391,7 @@ export function getColumns({
       'kayttosuunnitelmanMuutos',
       {
         headerName: 'Käyttösuunnitelman muutos',
+        flex: 1,
         minWidth: 188,
         editable: !allYearsSelected,
       },
