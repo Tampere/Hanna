@@ -1,6 +1,15 @@
 import { css } from '@emotion/react';
-import { AddCircleOutline, Cancel, Download, Redo, Save, Undo } from '@mui/icons-material';
-import { Box, Button, IconButton, Theme, Tooltip, Typography } from '@mui/material';
+import {
+  AddCircleOutline,
+  Cancel,
+  Download,
+  ExpandLess,
+  ExpandMore,
+  Redo,
+  Save,
+  Undo,
+} from '@mui/icons-material';
+import { Box, Button, Chip, IconButton, Theme, Tooltip, Typography } from '@mui/material';
 import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
 import { fiFI } from '@mui/x-data-grid/locales';
 import { atom, useAtom, useAtomValue } from 'jotai';
@@ -40,8 +49,17 @@ import { YearPicker } from './Filters/YearPicker';
 import { WorkTableSummaryRow } from './WorkTableSummaryRow';
 import { ModifiedFields } from './diff';
 
+const pinnedColumns = [
+  { name: 'projectLink', offset: 0 },
+  { name: 'objectName', offset: 256 },
+];
+
 const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
+  min-height: 160px;
   font-size: 12px;
+  .odd {
+    background-color: #fff;
+  }
   .even {
     background-color: #f3f3f3;
   }
@@ -59,7 +77,17 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
       background-color: inherit;
     }
   }
-
+  ${pinnedColumns.map(
+    (column, idx) => `.pinned-${column.name} {
+        background-color: inherit;
+        position: sticky;
+        left: ${column.offset}px;
+        z-index: 101;
+        border-right: ${
+          idx === pinnedColumns.length - 1 ? '1px solid var(--DataGrid-rowBorderColor)' : 'none'
+        };
+  }`,
+  )}
   & .MuiDataGrid-cell {
     display: flex;
     align-items: center;
@@ -71,10 +99,6 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
     animation-duration: 5000ms;
   }
 
-  & .MuiDataGrid-main {
-    overflow: visible;
-  }
-
   & .MuiDataGrid-columnHeader {
     background: ${theme.palette.primary.main};
     color: white;
@@ -83,6 +107,13 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
     position: sticky;
     top: calc(${summaryRowHeight}px - 1rem);
     z-index: 100;
+    ${pinnedColumns.map(
+      (column) => `&.pinned-${column.name} {
+        position: sticky;
+        left: ${column.offset}px;
+        z-index: 101;
+      }`,
+    )}
   }
   & .MuiDataGrid-columnHeaderTitle {
     line-height: normal;
@@ -166,6 +197,7 @@ export default function WorkTable() {
   const notify = useNotifications();
   const mainContentElement = document.getElementById('mainContentContainer');
   const [summaryRowHeight, setSummaryRowHeight] = useState(54);
+  const [expanded, setExpanded] = useState(true);
   const auth = useAtomValue(asyncUserAtom);
 
   const { workTable } = trpc.useUtils();
@@ -224,6 +256,7 @@ export default function WorkTable() {
     return getColumns({
       modifiedFields,
       allYearsSelected,
+      pinnedColumns: pinnedColumns.map((column) => column.name),
     });
   }, [modifiedFields, allYearsSelected]);
 
@@ -392,12 +425,33 @@ export default function WorkTable() {
     },
   ];
 
+  function calculateUsedSearchParamsCount(searchParams: WorkTableSearch): number {
+    return (Object.keys(searchParams) as (keyof WorkTableSearch)[]).reduce((count, key) => {
+      if (['objectStartDate', 'objectEndDate', 'objectParticipantUser'].includes(key)) {
+        return count;
+      }
+
+      const keyValue = searchParams[key];
+      if (Array.isArray(keyValue) && keyValue.length === 0) {
+        return count;
+      }
+      if (typeof keyValue === 'string' && keyValue === '') {
+        return count;
+      }
+      return count + 1;
+    }, 0);
+  }
+
+  const searchParamsCount = useMemo(
+    () => calculateUsedSearchParamsCount(searchParams),
+    [searchParams],
+  );
   return (
     <Box
       css={css`
+        height: 100%;
         display: flex;
         flex-direction: column;
-        margin-bottom: 20px;
       `}
     >
       <Box
@@ -489,18 +543,62 @@ export default function WorkTable() {
         </Box>
       </Box>
       <WorkTableFilters
+        expanded={expanded}
         readOnly={editEvents.length > 0}
         searchParams={searchParams}
         yearRange={yearRange}
         setSearchParams={setSearchParams}
       />
-      <WorkTableSummaryRow
-        editEvents={editEvents}
-        workTableData={workTableData}
-        ref={summaryRowRef}
-      />
+      <Box
+        css={css`
+          display: flex;
+          align-items: center;
+        `}
+      >
+        <WorkTableSummaryRow
+          editEvents={editEvents}
+          workTableData={workTableData}
+          ref={summaryRowRef}
+        />
+        <Box
+          css={css`
+            display: flex;
+            margin-left: auto;
+            align-items: center;
+          `}
+        >
+          {!expanded && searchParamsCount > 0 && (
+            <Chip
+              variant="outlined"
+              css={css`
+                font-size: 12px;
+                border-color: orange;
+              `}
+              label={
+                searchParamsCount === 1
+                  ? tr('workTable.search.chipLabelSingle')
+                  : tr('workTable.search.chipLabelMultiple', searchParamsCount)
+              }
+            />
+          )}
+          <Tooltip
+            enterDelay={500}
+            title={expanded ? tr('workTable.search.hide') : tr('workTable.search.show')}
+          >
+            <IconButton
+              css={css`
+                grid-column: 13;
+                height: fit-content;
+              `}
+              onClick={() => setExpanded((prev) => !prev)}
+            >
+              {expanded ? <ExpandLess /> : <ExpandMore />}
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Box>
+
       <DataGrid
-        autoHeight
         slots={{ noRowsOverlay: NoRowsOverlay }}
         onResize={handleSummaryRowResize}
         isCellEditable={({ row, field }: { row: WorkTableRow; field: string }) => {
@@ -515,16 +613,21 @@ export default function WorkTable() {
           );
         }}
         getCellClassName={({ id, field, row }) => {
+          const classNames = [];
+          if (pinnedColumns.map((column) => column.name).includes(field)) {
+            classNames.push(`pinned-${field}`);
+          }
           if (id in modifiedFields && field in modifiedFields[id]) {
-            return 'modified-cell';
+            classNames.push('modified-cell');
           } else if (
             auth &&
             (ownsProject(auth, row.permissionCtx) || hasWritePermission(auth, row.permissionCtx))
           ) {
-            return 'cell-writable';
+            classNames.push('cell-writable');
           } else {
-            return 'cell-readonly';
+            classNames.push('cell-readonly');
           }
+          return classNames.join(' ');
         }}
         disableVirtualization
         loading={workTableData.isLoading}

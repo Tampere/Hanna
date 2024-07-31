@@ -35,6 +35,7 @@ import { ModifiedFields } from './diff';
 interface GetColumnsParams {
   modifiedFields: ModifiedFields<WorkTableRow>;
   allYearsSelected: boolean;
+  pinnedColumns: string[];
 }
 
 interface MaybeModifiedCellProps<T extends GridValidRowModel> {
@@ -370,6 +371,7 @@ const financesField = (
 export function getColumns({
   modifiedFields,
   allYearsSelected,
+  pinnedColumns,
 }: GetColumnsParams): (GridColDef<WorkTableRow> & { __isWrapped?: boolean })[] {
   const columns: (GridColDef<WorkTableRow> & { __isWrapped?: boolean })[] = [
     fieldProjectLink,
@@ -404,6 +406,7 @@ export function getColumns({
   // Set common fields and wrap cell render to MaybeModifiedCell to avoid repetition
   return columns.map((column) => ({
     ...column,
+    ...(pinnedColumns.includes(column.field) && { headerClassName: `pinned-${column.field}` }),
     editable: column.editable !== false,
     filterable: false,
     sortable: false,
