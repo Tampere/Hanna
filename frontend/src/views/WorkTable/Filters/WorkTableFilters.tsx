@@ -47,10 +47,12 @@ interface Props {
   setSearchParams: (value: SetStateAction<WorkTableSearch>) => void;
   yearRange: { startYear: number; endYear: number };
   readOnly?: boolean;
+  expanded: boolean;
 }
 
 export function WorkTableFilters(props: Props) {
   const { searchParams, setSearchParams } = props;
+
   const tr = useTranslations();
   const lang = useAtomValue(langAtom);
 
@@ -82,117 +84,133 @@ export function WorkTableFilters(props: Props) {
         }
 
         padding: ${theme.spacing(1)} 0;
-        display: grid;
+        ${props.expanded
+          ? `display: grid;
         grid-template-columns: repeat(13, 1fr);
         grid-template-rows: 1fr 1fr;
-        gap: ${theme.spacing(2)};
+        gap: ${theme.spacing(2)};`
+          : `display: flex;`}
       `}
     >
-      <GridSpan row={1} span={4}>
-        <CustomFormLabel
-          label={tr('projectObject.nameLabelFull')}
-          htmlFor="projectObjectNameField"
-        />
-        <TextField
-          {...textFieldProps}
-          id="projectObjectNameField"
-          placeholder={tr('search.searchTerm', 3)}
-          value={searchParams.projectObjectName}
-          onChange={(e) => setSearchParams({ ...searchParams, projectObjectName: e.target.value })}
-          InputProps={{ ...searchInputProps }}
-        />
-      </GridSpan>
+      {props.expanded && (
+        <>
+          <GridSpan row={1} span={4}>
+            <CustomFormLabel
+              label={tr('projectObject.nameLabelFull')}
+              htmlFor="projectObjectNameField"
+            />
+            <TextField
+              {...textFieldProps}
+              id="projectObjectNameField"
+              placeholder={tr('search.searchTerm', 3)}
+              value={searchParams.projectObjectName}
+              onChange={(e) =>
+                setSearchParams({ ...searchParams, projectObjectName: e.target.value })
+              }
+              InputProps={{ ...searchInputProps }}
+            />
+          </GridSpan>
 
-      <GridSpan row={1} span={4}>
-        <CustomFormLabel label={tr('project.projectNameLabel')} htmlFor="projectNameField" />
-        <TextField
-          {...textFieldProps}
-          id="projectNameField"
-          placeholder={tr('search.searchTerm', 3)}
-          value={searchParams.projectName}
-          onChange={(e) => setSearchParams({ ...searchParams, projectName: e.target.value })}
-          InputProps={{ ...searchInputProps }}
-        />
-      </GridSpan>
-      <GridSpan row={1} span={4}>
-        <CustomFormLabel label={tr('projectObject.objectStageLabel')} htmlFor="objectStageField" />
-        <CodeSelect
-          multiple
-          readOnly={props.readOnly}
-          maxTags={1}
-          codeListId="KohteenLaji"
-          value={searchParams.objectStage}
-          onChange={(stage) => setSearchParams({ ...searchParams, objectStage: stage })}
-        />
-      </GridSpan>
+          <GridSpan row={1} span={4}>
+            <CustomFormLabel label={tr('project.projectNameLabel')} htmlFor="projectNameField" />
+            <TextField
+              {...textFieldProps}
+              id="projectNameField"
+              placeholder={tr('search.searchTerm', 3)}
+              value={searchParams.projectName}
+              onChange={(e) => setSearchParams({ ...searchParams, projectName: e.target.value })}
+              InputProps={{ ...searchInputProps }}
+            />
+          </GridSpan>
+          <GridSpan row={1} span={4}>
+            <CustomFormLabel
+              label={tr('projectObject.objectStageLabel')}
+              htmlFor="objectStageField"
+            />
+            <CodeSelect
+              multiple
+              readOnly={props.readOnly}
+              maxTags={1}
+              codeListId="KohteenLaji"
+              value={searchParams.objectStage}
+              onChange={(stage) => setSearchParams({ ...searchParams, objectStage: stage })}
+            />
+          </GridSpan>
 
-      <LocalizationProvider
-        dateAdapter={AdapterDayjs}
-        adapterLocale={lang}
-        localeText={{
-          ...fiFI.components.MuiLocalizationProvider.defaultProps.localeText,
-          // Add missing localizations for field placeholders
-          fieldMonthPlaceholder: () => tr('date.monthPlaceholder'),
-          fieldYearPlaceholder: () => tr('date.yearPlaceholder'),
-        }}
-      ></LocalizationProvider>
+          <LocalizationProvider
+            dateAdapter={AdapterDayjs}
+            adapterLocale={lang}
+            localeText={{
+              ...fiFI.components.MuiLocalizationProvider.defaultProps.localeText,
+              // Add missing localizations for field placeholders
+              fieldMonthPlaceholder: () => tr('date.monthPlaceholder'),
+              fieldYearPlaceholder: () => tr('date.yearPlaceholder'),
+            }}
+          ></LocalizationProvider>
 
-      <GridSpan row={2} span={3} wideScreenSpan={2}>
-        <CustomFormLabel label={tr('projectObject.objectTypeLabel')} htmlFor="objectTypeField" />
-        <CodeSelect
-          multiple
-          readOnly={props.readOnly}
-          maxTags={1}
-          codeListId="KohdeTyyppi"
-          value={searchParams.objectType}
-          onChange={(type) => setSearchParams({ ...searchParams, objectType: type })}
-        />
-      </GridSpan>
+          <GridSpan row={2} span={3} wideScreenSpan={2}>
+            <CustomFormLabel
+              label={tr('projectObject.objectTypeLabel')}
+              htmlFor="objectTypeField"
+            />
+            <CodeSelect
+              multiple
+              readOnly={props.readOnly}
+              maxTags={1}
+              codeListId="KohdeTyyppi"
+              value={searchParams.objectType}
+              onChange={(type) => setSearchParams({ ...searchParams, objectType: type })}
+            />
+          </GridSpan>
 
-      <GridSpan row={2} span={3} wideScreenSpan={2}>
-        <CustomFormLabel
-          label={tr('projectObject.objectCategoryLabelShort')}
-          htmlFor="objectCategoryField"
-        />
-        <CodeSelect
-          multiple
-          readOnly={props.readOnly}
-          maxTags={1}
-          codeListId="KohteenOmaisuusLuokka"
-          value={searchParams.objectCategory}
-          onChange={(category) => setSearchParams({ ...searchParams, objectCategory: category })}
-        />
-      </GridSpan>
+          <GridSpan row={2} span={3} wideScreenSpan={2}>
+            <CustomFormLabel
+              label={tr('projectObject.objectCategoryLabelShort')}
+              htmlFor="objectCategoryField"
+            />
+            <CodeSelect
+              multiple
+              readOnly={props.readOnly}
+              maxTags={1}
+              codeListId="KohteenOmaisuusLuokka"
+              value={searchParams.objectCategory}
+              onChange={(category) =>
+                setSearchParams({ ...searchParams, objectCategory: category })
+              }
+            />
+          </GridSpan>
 
-      <GridSpan row={2} span={3} wideScreenSpan={2}>
-        <CustomFormLabel
-          label={tr('projectObject.objectUsageLabelShort')}
-          htmlFor="objectUsageField"
-        />
-        <CodeSelect
-          multiple
-          readOnly={props.readOnly}
-          maxTags={1}
-          codeListId="KohteenToiminnallinenKayttoTarkoitus"
-          value={searchParams.objectUsage}
-          onChange={(usage) => setSearchParams({ ...searchParams, objectUsage: usage })}
-        />
-      </GridSpan>
+          <GridSpan row={2} span={3} wideScreenSpan={2}>
+            <CustomFormLabel
+              label={tr('projectObject.objectUsageLabelShort')}
+              htmlFor="objectUsageField"
+            />
+            <CodeSelect
+              multiple
+              readOnly={props.readOnly}
+              maxTags={1}
+              codeListId="KohteenToiminnallinenKayttoTarkoitus"
+              value={searchParams.objectUsage}
+              onChange={(usage) => setSearchParams({ ...searchParams, objectUsage: usage })}
+            />
+          </GridSpan>
 
-      <GridSpan row={2} span={3} wideScreenSpan={2}>
-        <CustomFormLabel
-          label={tr('projectObject.lifecycleStateLabel')}
-          htmlFor="objectLifecycleState"
-        />
-        <CodeSelect
-          multiple
-          readOnly={props.readOnly}
-          maxTags={1}
-          codeListId="KohteenElinkaarentila"
-          value={searchParams.lifecycleState}
-          onChange={(state) => setSearchParams({ ...searchParams, lifecycleState: state })}
-        />
-      </GridSpan>
+          <GridSpan row={2} span={3} wideScreenSpan={2}>
+            <CustomFormLabel
+              label={tr('projectObject.lifecycleStateLabel')}
+              htmlFor="objectLifecycleState"
+            />
+            <CodeSelect
+              multiple
+              readOnly={props.readOnly}
+              maxTags={1}
+              codeListId="KohteenElinkaarentila"
+              value={searchParams.lifecycleState}
+              onChange={(state) => setSearchParams({ ...searchParams, lifecycleState: state })}
+            />
+          </GridSpan>
+        </>
+      )}
     </div>
   );
 }

@@ -54,13 +54,9 @@ export const WorkTableSummaryRow = forwardRef(function WorkTableSummaryRow(
       css={(theme) => css`
         display: flex;
         flex-wrap: wrap;
-        margin: 0 -1rem;
         padding: 1rem;
         gap: 1.5rem;
-        position: sticky;
-        top: -1rem;
         z-index: 100;
-        outline: solid white;
         background-color: white;
         min-height: 54px;
         p {
