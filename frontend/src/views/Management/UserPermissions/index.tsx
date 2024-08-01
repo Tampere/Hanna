@@ -120,13 +120,17 @@ export function UserPermissionsPage() {
     <Box
       css={css`
         padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        flex: 1;
+        min-height: 0; // This is needed to make the permissions table scrollable
       `}
     >
       <Box
         css={css`
           display: flex;
           justify-content: space-between;
-          margin-bottom: 24px;
           align-items: center;
         `}
       >
@@ -186,11 +190,22 @@ export function UserPermissionsPage() {
         (userPermissions?.length > 0 ? (
           <TableContainer
             css={css`
-              margin-top: 32px;
+              overflow: auto;
             `}
           >
             <Table size="small">
-              <TableHead>
+              <TableHead
+                css={css`
+                  position: sticky;
+                  top: 0;
+                  background-color: white;
+                  z-index: 1;
+                  outline: 1px solid rgba(0, 0, 0, 0.5);
+                  th {
+                    border: 0;
+                  }
+                `}
+              >
                 <TableRow>
                   <TableCell>{tr('userPermissions.userName')}</TableCell>
                   <TableCell align="center">

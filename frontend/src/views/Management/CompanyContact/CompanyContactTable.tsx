@@ -1,5 +1,5 @@
 import { DeleteForeverTwoTone, EditTwoTone } from '@mui/icons-material';
-import { Button, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import { Button, Table, TableBody, TableCell, TableHead, TableRow, css } from '@mui/material';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
@@ -36,7 +36,18 @@ export function CompanyContactTable(props: Props) {
 
   return (
     <Table size="small">
-      <TableHead>
+      <TableHead
+        css={css`
+          position: sticky;
+          top: 0;
+          background-color: white;
+          z-index: 1;
+          outline: 1px solid rgba(0, 0, 0, 0.5);
+          th {
+            border: 0;
+          }
+        `}
+      >
         <TableRow>
           <TableCell>{tr('companyContact.name')}</TableCell>
           <TableCell>{tr('companyContact.phone')}</TableCell>

@@ -43,13 +43,17 @@ export function CompanyContactPage(props: Props) {
     <Box
       css={css`
         padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        flex: 1;
+        min-height: 0; // This is needed to make the company contact table scrollable
       `}
     >
       <Box
         css={css`
           display: flex;
           justify-content: space-between;
-          margin-bottom: 24px;
         `}
       >
         <Typography variant="h4" component="h1">
@@ -92,7 +96,8 @@ export function CompanyContactPage(props: Props) {
 
       <Box
         css={css`
-          margin-top: 32px;
+          flex: 1;
+          overflow: auto;
         `}
       >
         {loading && <CircularProgress />}
