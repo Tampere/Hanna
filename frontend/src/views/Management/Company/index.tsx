@@ -1,5 +1,13 @@
 import { AddCircle } from '@mui/icons-material';
-import { Box, Button, CircularProgress, Dialog, DialogContent, Typography, css } from '@mui/material';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogContent,
+  Typography,
+  css,
+} from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
@@ -29,16 +37,22 @@ export function CompanyPage(props: Props) {
     <Box
       css={css`
         padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        flex: 1;
+        min-height: 0; // This is needed to make the company table scrollable
       `}
     >
       <Box
         css={css`
           display: flex;
           justify-content: space-between;
-          margin-bottom: 24px;
         `}
       >
-        <Typography variant="h4" component="h1">{tr('management.tabs.companies')}</Typography>
+        <Typography variant="h4" component="h1">
+          {tr('management.tabs.companies')}
+        </Typography>
         <Box
           css={css`
             display: flex;
@@ -60,7 +74,7 @@ export function CompanyPage(props: Props) {
 
       <Box
         css={css`
-          margin-top: 32px;
+          overflow: auto;
         `}
       >
         {loading && <CircularProgress />}

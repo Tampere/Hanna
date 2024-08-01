@@ -1,5 +1,5 @@
 import { BusinessCenterTwoTone, Campaign, KeyTwoTone, PersonTwoTone } from '@mui/icons-material';
-import { Box, Tab, Tabs } from '@mui/material';
+import { Box, Tab, Tabs, css } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 
@@ -54,7 +54,14 @@ export function Management() {
   const viewParams = Object.fromEntries(searchParams);
 
   return (
-    <Box>
+    <Box
+      css={css`
+        display: flex;
+        flex-direction: column;
+
+        height: 100%;
+      `}
+    >
       <Tabs
         value={routeParams.tabView}
         indicatorColor="primary"
