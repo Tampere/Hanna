@@ -4,7 +4,7 @@
   "description": "Tampere Hanna Backend",
   "main": "src/app.ts",
   "engines": {
-    "node": "18.18.0"
+    "node": "18.20.4"
   },
   "scripts": {
     "build": "tsc",
@@ -37,17 +37,17 @@
     "@types/email-templates": "^10.0.4",
     "@types/node": "^20.14.13",
     "@types/nodemailer": "^6.4.15",
-    "@typescript-eslint/eslint-plugin": "^7.16.0",
-    "@typescript-eslint/parser": "^7.16.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "concurrently": "^8.2.2",
     "eslint": "^8.57.0",
     "node-dev": "^8.0.0",
     "pino-pretty": "^11.2.2",
     "tsconfig-paths": "^4.2.0",
-    "tsx": "^4.16.2",
+    "tsx": "^4.16.5",
     "typescript": "^5.5.4",
     "vite-tsconfig-paths": "^4.3.2",
-    "vitest": "^2.0.4"
+    "vitest": "^2.0.5"
   },
   "dependencies": {
     "@fastify/compress": "^7.0.3",
@@ -76,7 +76,7 @@
     "pug": "^3.0.3",
     "server-text-width": "^1.0.2",
     "slonik": "^38.0.0",
-    "soap": "^1.0.4",
+    "soap": "^1.1.0",
     "superjson": "^1.13.3",
     "tre-hanna-shared": "file:../shared",
     "zod": "^3.23.8"
