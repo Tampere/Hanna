@@ -7,7 +7,7 @@ frontend/*
 !frontend/patches
 !frontend/index.html
 !frontend/vite.config.ts
-!frontend/.eslintrc.cjs
+!frontend/eslint.config.mjs
 !frontend/public
 
 backend/*
@@ -15,7 +15,7 @@ backend/*
 !backend/tsconfig*.json
 !backend/src
 !backend/db_migrations
-!backend/.eslintrc.cjs
+!backend/eslint.config.mjs
 !backend/types
 !backend/resources
 !backend/email-templates
