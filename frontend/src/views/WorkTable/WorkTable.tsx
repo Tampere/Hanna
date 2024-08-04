@@ -195,9 +195,10 @@ export default function WorkTable() {
   const gridApiRef = useGridApiRef();
   const summaryRowRef = useRef<HTMLElement>();
   const notify = useNotifications();
-  const mainContentElement = document.getElementById('mainContentContainer');
+  const workTableScrollableElement = document.querySelector('.MuiDataGrid-virtualScroller');
   const [summaryRowHeight, setSummaryRowHeight] = useState(54);
   const [expanded, setExpanded] = useState(true);
+  const [filterExpandTooltipOpen, setFilterExpandTooltipOpen] = useState(false);
   const auth = useAtomValue(asyncUserAtom);
 
   const { workTable } = trpc.useUtils();
@@ -446,6 +447,7 @@ export default function WorkTable() {
     () => calculateUsedSearchParamsCount(searchParams),
     [searchParams],
   );
+
   return (
     <Box
       css={css`
@@ -582,6 +584,9 @@ export default function WorkTable() {
             />
           )}
           <Tooltip
+            open={filterExpandTooltipOpen}
+            onOpen={() => setFilterExpandTooltipOpen(true)}
+            onClose={() => setFilterExpandTooltipOpen(false)}
             enterDelay={500}
             title={expanded ? tr('workTable.search.hide') : tr('workTable.search.show')}
           >
@@ -590,7 +595,10 @@ export default function WorkTable() {
                 grid-column: 13;
                 height: fit-content;
               `}
-              onClick={() => setExpanded((prev) => !prev)}
+              onClick={() => {
+                setExpanded((prev) => !prev);
+                setFilterExpandTooltipOpen(false);
+              }}
             >
               {expanded ? <ExpandLess /> : <ExpandMore />}
             </IconButton>
@@ -689,7 +697,7 @@ export default function WorkTable() {
           padding: ${theme.spacing(1)};
         `}
       >
-        <BackToTopButton element={mainContentElement} />
+        <BackToTopButton element={workTableScrollableElement} />
         <Box
           css={(theme) => {
             return css`

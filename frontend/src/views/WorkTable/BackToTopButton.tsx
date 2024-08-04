@@ -3,7 +3,7 @@ import { Fab, Zoom, css } from '@mui/material';
 import { useEffect, useState } from 'react';
 
 interface Props {
-  element: HTMLElement | null;
+  element: Element | null;
 }
 
 export function BackToTopButton({ element }: Props) {
