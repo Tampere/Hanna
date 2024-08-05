@@ -2,14 +2,14 @@ import { TRPCError } from '@trpc/server';
 import { DatabaseTransactionConnection, ValueExpression } from 'slonik';
 import { z } from 'zod';
 
-import { addAuditEvent } from '@backend/components/audit';
-import { codeIdFragment } from '@backend/components/code';
-import { textToSearchTerms } from '@backend/components/project/search';
-import { getPool, sql } from '@backend/db';
-import { logger } from '@backend/logging';
+import { addAuditEvent } from '@backend/components/audit.js';
+import { codeIdFragment } from '@backend/components/code/index.js';
+import { textToSearchTerms } from '@backend/components/project/search.js';
+import { getPool, sql } from '@backend/db.js';
+import { logger } from '@backend/logging.js';
 
-import { FormErrors, fieldError, hasErrors } from '@shared/formerror';
-import { nonEmptyString } from '@shared/schema/common';
+import { FormErrors, fieldError, hasErrors } from '@shared/formerror.js';
+import { nonEmptyString } from '@shared/schema/common.js';
 import {
   BudgetUpdate,
   ObjectsByProjectSearch,
@@ -22,9 +22,12 @@ import {
   projectObjectSearchResultSchema,
   updateGeometryResultSchema,
   yearBudgetSchema,
-} from '@shared/schema/projectObject';
-import { User } from '@shared/schema/user';
-import { ProjectPermissionContext, permissionContextSchema } from '@shared/schema/userPermissions';
+} from '@shared/schema/projectObject.js';
+import { User } from '@shared/schema/user.js';
+import {
+  ProjectPermissionContext,
+  permissionContextSchema,
+} from '@shared/schema/userPermissions.js';
 
 const CLUSTER_ZOOM_BELOW = 10;
 

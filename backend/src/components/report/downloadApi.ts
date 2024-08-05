@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 
-import { getPool, sql } from '@backend/db';
+import { getPool, sql } from '@backend/db.js';
 
 export default function (server: FastifyInstance, _opts: FastifyPluginOptions, done: () => void) {
   server.get('/report/file', async (request, reply) => {

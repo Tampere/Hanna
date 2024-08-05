@@ -1,4 +1,4 @@
-import { login } from './page';
+import { login } from './page.js';
 
 export async function clearUserPermissions(client: UserSessionObject['client'], userIds: string[]) {
   return client.userPermissions.setPermissions.mutate(

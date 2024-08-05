@@ -1,8 +1,8 @@
 import PgBoss from 'pg-boss';
 import { z } from 'zod';
 
-import { connectionDsn, getPool, sql } from '@backend/db';
-import { logger } from '@backend/logging';
+import { connectionDsn, getPool, sql } from '@backend/db.js';
+import { logger } from '@backend/logging.js';
 
 let boss: PgBoss | null = null;
 

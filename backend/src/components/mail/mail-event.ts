@@ -1,6 +1,6 @@
-import { getPool, sql } from '@backend/db';
+import { getPool, sql } from '@backend/db.js';
 
-import { detailplanNotificationMailEventSchema } from '@shared/schema/project/detailplan';
+import { detailplanNotificationMailEventSchema } from '@shared/schema/project/detailplan.js';
 
 export async function getMailEvents(projectId: string) {
   return await getPool().any(sql.type(detailplanNotificationMailEventSchema)`

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { User as CtxUser } from './user';
+import { User as CtxUser } from './user.js';
 
 const ADMIN_ROLE = 'Hanna.Admin' as const;
 const USER_ROLE = 'Hanna.User' as const;

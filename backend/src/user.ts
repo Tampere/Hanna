@@ -1,8 +1,8 @@
 import { sql } from 'slonik';
 
-import { UpsertUserInput, userSchema } from '@shared/schema/user';
+import { UpsertUserInput, userSchema } from '@shared/schema/user.js';
 
-import { getPool } from './db';
+import { getPool } from './db.js';
 
 export async function upsertUser(user: UpsertUserInput) {
   return getPool().maybeOne(sql.type(userSchema)`

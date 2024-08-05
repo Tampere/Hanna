@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { isoDateString, nonEmptyString } from './common';
+import { isoDateString, nonEmptyString } from './common.js';
 
 export const dbGeneralNotificationSchema = z.object({
   id: nonEmptyString,

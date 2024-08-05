@@ -1,7 +1,7 @@
 import { migrate } from 'postgres-migrations';
 
-import { SharedPool, createDatabasePool } from './db';
-import { logger } from './logging';
+import { SharedPool, createDatabasePool } from './db.js';
+import { logger } from './logging.js';
 
 async function runMigrations() {
   await createDatabasePool();
