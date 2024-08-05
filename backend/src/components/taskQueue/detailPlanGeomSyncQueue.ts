@@ -1,6 +1,6 @@
-import { updateDetailplanGeometries } from '@backend/components/detailplan-geom/geodata';
-import { getTaskQueue } from '@backend/components/taskQueue';
-import { logger } from '@backend/logging';
+import { updateDetailplanGeometries } from '@backend/components/detailplan-geom/geodata.js';
+import { getTaskQueue } from '@backend/components/taskQueue/index.js';
+import { logger } from '@backend/logging.js';
 
 const QUEUE_NAME = 'detail-plan-geom-sync';
 const CRON_DAILY_AT_0005 = '5 0 * * *';

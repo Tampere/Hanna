@@ -8,11 +8,11 @@ import { FastifyInstance, FastifyPluginOptions, FastifyRequest, PassportUser } f
 import { BaseClient, Strategy, TokenSet, UserinfoResponse } from 'openid-client';
 import { Pool } from 'pg';
 
-import { RoleClaim, UserRole } from '@shared/schema/userPermissions';
+import { RoleClaim, UserRole } from '@shared/schema/userPermissions.js';
 
-import { env } from './env';
-import { logger } from './logging';
-import { upsertUser } from './user';
+import { env } from './env.js';
+import { logger } from './logging.js';
+import { upsertUser } from './user.js';
 
 interface SessionOpts {
   cookieSecret: string;

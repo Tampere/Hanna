@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { isoDateString } from './common';
+import { isoDateString } from './common.js';
 
 export const incomingItemSchema = z.object({
   BELNR: z.string(), // Document number

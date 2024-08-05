@@ -5,33 +5,36 @@ import { TRPCError } from '@trpc/server';
 import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
 import { getErrorShape } from '@trpc/server/shared';
 import fastify, { FastifyBaseLogger } from 'fastify';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import { serialize } from 'superjson';
+import { fileURLToPath } from 'url';
 
-import { registerAuth } from '@backend/auth';
-import healthApi from '@backend/components/health/api';
-import reportDownloadApi from '@backend/components/report/downloadApi';
+import { registerAuth } from '@backend/auth.js';
+import healthApi from '@backend/components/health/api.js';
+import reportDownloadApi from '@backend/components/report/downloadApi.js';
 import {
   setupScheduledSyncQueue as setupDailySapSyncQueue,
   setupSapSyncQueue,
-} from '@backend/components/sap/syncQueue';
-import syncQueueApi from '@backend/components/sap/syncQueueApi';
-import { ActualsService, ProjectInfoService } from '@backend/components/sap/webservice';
-import { setupDetailPlanGeomSyncQueue } from '@backend/components/taskQueue/detailPlanGeomSyncQueue';
-import { SharedPool, createDatabasePool } from '@backend/db';
-import { env } from '@backend/env';
-import { logger } from '@backend/logging';
-import { getClient } from '@backend/oidc';
-import { appRouter, createContext } from '@backend/router';
+} from '@backend/components/sap/syncQueue.js';
+import syncQueueApi from '@backend/components/sap/syncQueueApi.js';
+import { ActualsService, ProjectInfoService } from '@backend/components/sap/webservice.js';
+import { setupDetailPlanGeomSyncQueue } from '@backend/components/taskQueue/detailPlanGeomSyncQueue.js';
+import { SharedPool, createDatabasePool } from '@backend/db.js';
+import { env } from '@backend/env.js';
+import { logger } from '@backend/logging.js';
+import { getClient } from '@backend/oidc.js';
+import { appRouter, createContext } from '@backend/router/index.js';
 
-import { registerApiKeyRoutes } from './apiKey';
-import { georasterProxy } from './components/proxy/georaster';
-import { setupBlanketContractReportQueue } from './components/sap/blanketContractReportQueue';
-import { setupEnvironmentCodeReportQueue } from './components/sap/environmentCodeReportQueue';
-import { initializeTaskQueue } from './components/taskQueue';
-import { setupMailQueue } from './components/taskQueue/mailQueue';
-import { setupReportQueue } from './components/taskQueue/reportQueue';
-import { setupWorkTableReportQueue } from './components/taskQueue/workTableReportQueue';
+import { registerApiKeyRoutes } from './apiKey.js';
+import { georasterProxy } from './components/proxy/georaster.js';
+import { setupBlanketContractReportQueue } from './components/sap/blanketContractReportQueue.js';
+import { setupEnvironmentCodeReportQueue } from './components/sap/environmentCodeReportQueue.js';
+import { initializeTaskQueue } from './components/taskQueue/index.js';
+import { setupMailQueue } from './components/taskQueue/mailQueue.js';
+import { setupReportQueue } from './components/taskQueue/reportQueue.js';
+import { setupWorkTableReportQueue } from './components/taskQueue/workTableReportQueue.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 async function run() {
   ProjectInfoService.initialize({

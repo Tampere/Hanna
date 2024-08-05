@@ -2,6 +2,7 @@
   "name": "tre-hanna-shared",
   "version": "0.1.0",
   "description": "Tampere Hanna backend/frontend shared code",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "test": "vitest run"

@@ -1,7 +1,7 @@
 import fastifyHttpProxy from '@fastify/http-proxy';
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 
-import { env } from '@backend/env';
+import { env } from '@backend/env.js';
 
 export function georasterProxy(
   server: FastifyInstance,

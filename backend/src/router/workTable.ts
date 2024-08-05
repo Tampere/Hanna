@@ -1,16 +1,16 @@
 import { TRPCError } from '@trpc/server';
 import { FragmentSqlToken } from 'slonik';
 
-import { textToSearchTerms } from '@backend/components/project/search';
-import { getProjectObjects, upsertProjectObject } from '@backend/components/projectObject';
-import { startWorkTableReportJob } from '@backend/components/taskQueue/workTableReportQueue';
-import { getPool, sql } from '@backend/db';
-import { logger } from '@backend/logging';
-import { TRPC } from '@backend/router';
+import { textToSearchTerms } from '@backend/components/project/search.js';
+import { getProjectObjects, upsertProjectObject } from '@backend/components/projectObject/index.js';
+import { startWorkTableReportJob } from '@backend/components/taskQueue/workTableReportQueue.js';
+import { getPool, sql } from '@backend/db.js';
+import { logger } from '@backend/logging.js';
+import { TRPC } from '@backend/router/index.js';
 
-import { UpsertProjectObject } from '@shared/schema/projectObject';
-import { User } from '@shared/schema/user';
-import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
+import { UpsertProjectObject } from '@shared/schema/projectObject.js';
+import { User } from '@shared/schema/user.js';
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions.js';
 import {
   ReportTemplate,
   WorkTableColumn,
@@ -21,7 +21,7 @@ import {
   workTableRowSchema,
   workTableSearchSchema,
   workTableUpdateSchema,
-} from '@shared/schema/workTable';
+} from '@shared/schema/workTable.js';
 
 function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'print') {
   const columnMappings: Record<WorkTableColumn, FragmentSqlToken> = {

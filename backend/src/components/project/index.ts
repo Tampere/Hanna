@@ -1,7 +1,7 @@
 import { DatabaseTransactionConnection } from 'slonik';
 
-import { addAuditEvent } from '@backend/components/audit';
-import { getPool, sql } from '@backend/db';
+import { addAuditEvent } from '@backend/components/audit.js';
+import { getPool, sql } from '@backend/db.js';
 
 import {
   BudgetUpdate,
@@ -11,8 +11,8 @@ import {
   relationsSchema,
   updateGeometryResultSchema,
   yearBudgetSchema,
-} from '@shared/schema/project';
-import { User } from '@shared/schema/user';
+} from '@shared/schema/project/index.js';
+import { User } from '@shared/schema/user.js';
 
 export async function addProjectRelation(
   projectId: string,

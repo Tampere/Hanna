@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 
-import { env } from './env';
+import { env } from './env.js';
 
 type FastifyRouteHandler = (
   server: FastifyInstance,

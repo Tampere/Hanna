@@ -1,4 +1,4 @@
-import { TranslationKey } from './language';
+import { TranslationKey } from './language/index.js';
 
 export interface FieldError {
   type: 'custom';

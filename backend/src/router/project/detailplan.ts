@@ -1,30 +1,30 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
-import { getCodeText } from '@backend/components/code';
-import { Mail, previewMail } from '@backend/components/mail';
-import { getMailEvents } from '@backend/components/mail/mail-event';
-import { getPermissionContext } from '@backend/components/project/base';
+import { getCodeText } from '@backend/components/code/index.js';
+import { Mail, previewMail } from '@backend/components/mail/index.js';
+import { getMailEvents } from '@backend/components/mail/mail-event.js';
+import { getPermissionContext } from '@backend/components/project/base.js';
 import {
   getNextDetailplanId,
   getProject,
   projectUpsert,
   validateUpsertProject,
-} from '@backend/components/project/detailplan';
-import { startSendMailJob } from '@backend/components/taskQueue/mailQueue';
-import { getUser } from '@backend/components/user';
-import { env } from '@backend/env';
-import { TRPC } from '@backend/router';
-import { createAccessMiddleware } from '@backend/router/project/base';
+} from '@backend/components/project/detailplan.js';
+import { startSendMailJob } from '@backend/components/taskQueue/mailQueue.js';
+import { getUser } from '@backend/components/user/index.js';
+import { env } from '@backend/env.js';
+import { TRPC } from '@backend/router/index.js';
+import { createAccessMiddleware } from '@backend/router/project/base.js';
 
-import { projectIdSchema } from '@shared/schema/project/base';
+import { projectIdSchema } from '@shared/schema/project/base.js';
 import {
   DbDetailplanProject,
   DetailplanNotification,
   detailplanNotificationSchema,
   detailplanProjectSchema,
-} from '@shared/schema/project/detailplan';
-import { hasPermission, hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
+} from '@shared/schema/project/detailplan.js';
+import { hasPermission, hasWritePermission, ownsProject } from '@shared/schema/userPermissions.js';
 
 async function getNotificationMailTemplate(
   project: DbDetailplanProject,
