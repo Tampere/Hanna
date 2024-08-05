@@ -1,15 +1,15 @@
 import { Workbook } from 'excel4node';
 
-import { env } from '@backend/env.js';
+import { env } from '@backend/env';
 
-import { TranslationKey, translations } from '@shared/language/index.js';
-import { BlanketContractReportQuery } from '@shared/schema/sapReport.js';
-import { Suffix } from '@shared/util-types.js';
+import { TranslationKey, translations } from '@shared/language';
+import { BlanketContractReportQuery } from '@shared/schema/sapReport';
+import { Suffix } from '@shared/util-types';
 
-import { buildSheet } from '../report/index.js';
-import { saveReportFile } from '../report/report-file.js';
-import { getTaskQueue, startJob } from '../taskQueue/index.js';
-import { getBlanketContractReport } from './blanketContractReport.js';
+import { buildSheet } from '../report';
+import { saveReportFile } from '../report/report-file';
+import { getTaskQueue, startJob } from '../taskQueue';
+import { getBlanketContractReport } from './blanketContractReport';
 
 const queueName = 'blanket-contract-report';
 

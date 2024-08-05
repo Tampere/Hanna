@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { isoDateString } from './common.js';
+import { isoDateString } from './common';
 
 /**
  * Incoming SAP objects

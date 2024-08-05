@@ -2,8 +2,6 @@
   "compilerOptions": {
     "strict": true,
     "declaration": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

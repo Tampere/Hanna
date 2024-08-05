@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { getAllNonExtUsers, getAllUsers, getUser } from '@backend/components/user/index.js';
-import { TRPC } from '@backend/router/index.js';
+import { getAllNonExtUsers, getAllUsers, getUser } from '@backend/components/user';
+import { TRPC } from '@backend/router';
 
 export const createUserRouter = (t: TRPC) =>
   t.router({

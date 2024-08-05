@@ -1,7 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
-import { getPermissionContext as getProjectPermissionCtx } from '@backend/components/project/base.js';
+import { getPermissionContext as getProjectPermissionCtx } from '@backend/components/project/base';
 import {
   deleteProjectObject,
   getGeometriesByProjectId,
@@ -14,11 +14,11 @@ import {
   updateProjectObjectGeometry,
   upsertProjectObject,
   validateUpsertProjectObject,
-} from '@backend/components/projectObject/index.js';
-import { getPool } from '@backend/db.js';
-import { TRPC } from '@backend/router/index.js';
+} from '@backend/components/projectObject';
+import { getPool } from '@backend/db';
+import { TRPC } from '@backend/router';
 
-import { nonEmptyString } from '@shared/schema/common.js';
+import { nonEmptyString } from '@shared/schema/common';
 import {
   deleteProjectObjectSchema,
   getProjectObjectParams,
@@ -26,14 +26,14 @@ import {
   updateBudgetSchema,
   updateGeometrySchema,
   upsertProjectObjectSchema,
-} from '@shared/schema/projectObject.js';
+} from '@shared/schema/projectObject';
 import {
   ProjectAccessChecker,
   hasPermission,
   hasWritePermission,
   isProjectObjectIdInput,
   ownsProject,
-} from '@shared/schema/userPermissions.js';
+} from '@shared/schema/userPermissions';
 
 /**
  * This function creates a middleware to check if a user has access to a project.

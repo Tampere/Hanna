@@ -1,5 +1,5 @@
-import { createDatabasePool, getPool, sql } from './db.js';
-import { logger } from './logging.js';
+import { createDatabasePool, getPool, sql } from './db';
+import { logger } from './logging';
 
 async function runPostMigration() {
   await createDatabasePool();

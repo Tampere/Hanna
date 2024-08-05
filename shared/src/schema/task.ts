@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { codeId } from './code.js';
-import { isoDateString, nonEmptyString } from './common.js';
+import { codeId } from './code';
+import { isoDateString, nonEmptyString } from './common';
 
 export const upsertTaskSchema = z.object({
   taskId: z.string().optional(),

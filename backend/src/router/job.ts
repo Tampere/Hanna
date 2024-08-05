@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
-import { getJob } from '@backend/components/taskQueue/index.js';
+import { getJob } from '@backend/components/taskQueue';
 
-import { TRPC } from './index.js';
+import { TRPC } from '.';
 
 export const createJobRouter = (t: TRPC) =>
   t.router({

@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { sql } from 'slonik';
 
-import { getPool } from '@backend/db.js';
-import { env } from '@backend/env.js';
-import { logger } from '@backend/logging.js';
+import { getPool } from '@backend/db';
+import { env } from '@backend/env';
+import { logger } from '@backend/logging';
 
 const API_TIMEOUT_MS = 15000;
 const BASE_URL = 'https://geodata.tampere.fi/geoserver/maankaytto/ows';

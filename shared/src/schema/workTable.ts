@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
-import { codeListIdSchema } from './code.js';
-import { nonEmptyString } from './common.js';
-import { dbProjectSchema, upsertProjectSchema } from './project/base.js';
-import { dbProjectObjectSchema, projectObjectUserRoleSchema } from './projectObject.js';
+import { codeListIdSchema } from './code';
+import { nonEmptyString } from './common';
+import { dbProjectSchema, upsertProjectSchema } from './project/base';
+import { dbProjectObjectSchema, projectObjectUserRoleSchema } from './projectObject';
 
 export const projectObjectYears = z.object({ year: z.number() });
 

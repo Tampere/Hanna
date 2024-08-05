@@ -9,11 +9,11 @@ import {
   getRecentGeneralNotificationCount,
   searchGeneralNotifications,
   upsertGeneralNotification,
-} from '@backend/components/generalNotification/index.js';
-import { TRPC } from '@backend/router/index.js';
+} from '@backend/components/generalNotification';
+import { TRPC } from '@backend/router';
 
-import { upsertGeneralNotificationSchema } from '@shared/schema/generalNotification.js';
-import { isAdmin } from '@shared/schema/userPermissions.js';
+import { upsertGeneralNotificationSchema } from '@shared/schema/generalNotification';
+import { isAdmin } from '@shared/schema/userPermissions';
 
 export const createAccessMiddleware = (t: TRPC) => () =>
   t.middleware(async (opts) => {

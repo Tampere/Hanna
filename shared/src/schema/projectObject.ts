@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
-import { codeId } from './code.js';
-import { isoDateString, nonEmptyString } from './common.js';
-import { dbProjectSchema } from './project/base.js';
-import { mapSearchSchema, periodSchema } from './project/index.js';
+import { codeId } from './code';
+import { isoDateString, nonEmptyString } from './common';
+import { mapSearchSchema, periodSchema } from './project';
+import { dbProjectSchema } from './project/base';
 
 export const projectObjectUserRoleSchema = z.object({
   roleId: codeId,

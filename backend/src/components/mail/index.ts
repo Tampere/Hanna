@@ -3,12 +3,12 @@ import { SendMailOptions, createTransport } from 'nodemailer';
 import SMTPPool from 'nodemailer/lib/smtp-pool';
 import { resolve } from 'path';
 
-import { getPool, sql } from '@backend/db.js';
-import { env } from '@backend/env.js';
+import { getPool, sql } from '@backend/db';
+import { env } from '@backend/env';
 
-import { DbDetailplanProject } from '@shared/schema/project/detailplan.js';
-import { User } from '@shared/schema/user.js';
-import { coerceArray } from '@shared/utils.js';
+import { DbDetailplanProject } from '@shared/schema/project/detailplan';
+import { User } from '@shared/schema/user';
+import { coerceArray } from '@shared/utils';
 
 interface Template<Name extends string, Parameters extends Record<string, any>> {
   template: {

@@ -1,7 +1,7 @@
 import { Browser, Page } from 'playwright';
 import { expect } from 'playwright/test';
 
-import { createTRPCClient } from './trpc.js';
+import { createTRPCClient } from './trpc';
 
 export async function login(browser: Browser, username: string) {
   const context = await browser.newContext();

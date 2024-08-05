@@ -2,13 +2,13 @@ import { TRPCError } from '@trpc/server';
 import { DatabaseTransactionConnection } from 'slonik';
 import { z } from 'zod';
 
-import { addAuditEvent } from '@backend/components/audit.js';
-import { codeIdFragment } from '@backend/components/code/index.js';
-import { getPermissionContext as getPOPermissionCtx } from '@backend/components/projectObject/index.js';
-import { getPool, sql } from '@backend/db.js';
-import { TRPC } from '@backend/router/index.js';
+import { addAuditEvent } from '@backend/components/audit';
+import { codeIdFragment } from '@backend/components/code';
+import { getPermissionContext as getPOPermissionCtx } from '@backend/components/projectObject';
+import { getPool, sql } from '@backend/db';
+import { TRPC } from '@backend/router';
 
-import { nonEmptyString } from '@shared/schema/common.js';
+import { nonEmptyString } from '@shared/schema/common';
 import {
   BudgetUpdate,
   UpsertTask,
@@ -18,8 +18,8 @@ import {
   updateBudgetSchema,
   upsertTaskSchema,
   yearBudgetSchema,
-} from '@shared/schema/task.js';
-import { User } from '@shared/schema/user.js';
+} from '@shared/schema/task';
+import { User } from '@shared/schema/user';
 import {
   ProjectAccessChecker,
   ProjectPermissionContext,
@@ -28,7 +28,7 @@ import {
   isTaskIdInput,
   ownsProject,
   permissionContextSchema,
-} from '@shared/schema/userPermissions.js';
+} from '@shared/schema/userPermissions';
 
 const taskFragment = sql.fragment`
   SELECT

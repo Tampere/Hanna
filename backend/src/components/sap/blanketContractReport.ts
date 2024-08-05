@@ -1,11 +1,8 @@
 import { z } from 'zod';
 
-import { getPool, sql, textToTsQuery } from '@backend/db.js';
+import { getPool, sql, textToTsQuery } from '@backend/db';
 
-import {
-  BlanketContractReportQuery,
-  blanketContractReportSchema,
-} from '@shared/schema/sapReport.js';
+import { BlanketContractReportQuery, blanketContractReportSchema } from '@shared/schema/sapReport';
 
 function filterBlanketOrderIdsFragment(blanketOrderIds: string[]) {
   return blanketOrderIds.length > 0

@@ -1,9 +1,9 @@
-import { buildReport } from '@backend/components/report/index.js';
-import { env } from '@backend/env.js';
+import { buildReport } from '@backend/components/report';
+import { env } from '@backend/env';
 
-import { ProjectSearch } from '@shared/schema/project/index.js';
+import { ProjectSearch } from '@shared/schema/project';
 
-import { getTaskQueue, startJob } from './index.js';
+import { getTaskQueue, startJob } from '.';
 
 const queueName = 'report';
 
