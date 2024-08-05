@@ -4,14 +4,14 @@ import {
   getCompanyProjectList,
   getSapActuals,
   getSapProject,
-} from '@backend/components/sap/dataImport.js';
-import { getPool, sql } from '@backend/db.js';
-import { env } from '@backend/env.js';
-import { logger } from '@backend/logging.js';
+} from '@backend/components/sap/dataImport';
+import { getPool, sql } from '@backend/db';
+import { env } from '@backend/env';
+import { logger } from '@backend/logging';
 
-import { arrayChunks } from '@shared/utils.js';
+import { arrayChunks } from '@shared/utils';
 
-import { getPendingJobs, getTaskQueue } from '../taskQueue/index.js';
+import { getPendingJobs, getTaskQueue } from '../taskQueue';
 
 const queueName = 'sap-sync';
 const scheduleQueueName = 'scheduled-sap-sync';

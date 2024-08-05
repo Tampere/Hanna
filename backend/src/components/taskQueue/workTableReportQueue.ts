@@ -1,28 +1,28 @@
 import dayjs from 'dayjs';
 import { Workbook } from 'excel4node';
-import { ProjectObjectUserRole } from 'tre-hanna-shared/src/schema/projectObject.js';
+import { ProjectObjectUserRole } from 'tre-hanna-shared/src/schema/projectObject';
 
-import { getCodesForCodeList } from '@backend/components/code/index.js';
-import { buildSheet } from '@backend/components/report/index.js';
-import { saveReportFile } from '@backend/components/report/report-file.js';
-import { getAllUsers } from '@backend/components/user/index.js';
-import { env } from '@backend/env.js';
-import { getAllContactsAndCompanies } from '@backend/router/company.js';
-import { workTableSearch } from '@backend/router/workTable.js';
+import { getCodesForCodeList } from '@backend/components/code';
+import { buildSheet } from '@backend/components/report';
+import { saveReportFile } from '@backend/components/report/report-file';
+import { getAllUsers } from '@backend/components/user';
+import { env } from '@backend/env';
+import { getAllContactsAndCompanies } from '@backend/router/company';
+import { workTableSearch } from '@backend/router/workTable';
 
-import { reportDateFormat } from '@shared/date.js';
-import { TranslationKey, translations } from '@shared/language/index.js';
-import { Code } from '@shared/schema/code.js';
+import { reportDateFormat } from '@shared/date';
+import { TranslationKey, translations } from '@shared/language';
+import { Code } from '@shared/schema/code';
 import {
   WorkTableRow,
   WorkTableSearch,
   templateColumns,
   workTableColumnCodeKeys,
   workTableColumnCodes,
-} from '@shared/schema/workTable.js';
-import { Suffix } from '@shared/util-types.js';
+} from '@shared/schema/workTable';
+import { Suffix } from '@shared/util-types';
 
-import { getTaskQueue, startJob } from './index.js';
+import { getTaskQueue, startJob } from '.';
 
 const queueName = 'work-table-report';
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { transformActuals } from './transform.js';
+import { transformActuals } from './transform';
 
 function createItem(date: string, amount: string, objectType: string, entryType: string) {
   return {

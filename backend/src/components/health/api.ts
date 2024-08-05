@@ -7,9 +7,9 @@ import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { sql } from 'slonik';
 import { z } from 'zod';
 
-import { getPool } from '@backend/db.js';
-import { env } from '@backend/env.js';
-import { logger } from '@backend/logging.js';
+import { getPool } from '@backend/db';
+import { env } from '@backend/env';
+import { logger } from '@backend/logging';
 
 interface ComponentCheckResult {
   status: 'pass' | 'fail';

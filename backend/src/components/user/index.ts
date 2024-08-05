@@ -1,7 +1,7 @@
-import { getPool, sql } from '@backend/db.js';
-import { env } from '@backend/env.js';
+import { getPool, sql } from '@backend/db';
+import { env } from '@backend/env';
 
-import { userSchema } from '@shared/schema/user.js';
+import { userSchema } from '@shared/schema/user';
 
 const userSelectFragment = sql.fragment`
   SELECT id, email, name, role, permissions FROM app.user

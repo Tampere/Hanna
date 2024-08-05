@@ -1,24 +1,24 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
-import { getPermissionContext } from '@backend/components/project/base.js';
+import { getPermissionContext } from '@backend/components/project/base';
 import {
   getParticipatedProjects,
   getProject,
   projectUpsert,
   validateUpsertProject,
-} from '@backend/components/project/investment.js';
-import { listProjects } from '@backend/components/project/search.js';
-import { TRPC } from '@backend/router/index.js';
+} from '@backend/components/project/investment';
+import { listProjects } from '@backend/components/project/search';
+import { TRPC } from '@backend/router';
 
-import { projectIdSchema } from '@shared/schema/project/base.js';
-import { investmentProjectSchema } from '@shared/schema/project/investment.js';
+import { projectIdSchema } from '@shared/schema/project/base';
+import { investmentProjectSchema } from '@shared/schema/project/investment';
 import {
   hasPermission,
   hasWritePermission,
   isAdmin,
   ownsProject,
-} from '@shared/schema/userPermissions.js';
+} from '@shared/schema/userPermissions';
 
 export const createInvestmentProjectRouter = (t: TRPC) => {
   return t.router({

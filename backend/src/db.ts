@@ -1,4 +1,4 @@
-import pg from 'pg';
+import { Pool, PoolConfig } from 'pg';
 import {
   DatabasePool,
   createPool,
@@ -7,16 +7,16 @@ import {
   stringifyDsn,
 } from 'slonik';
 
-import { env } from '@backend/env.js';
-import { logger } from '@backend/logging.js';
+import { env } from '@backend/env';
+import { logger } from '@backend/logging';
 
 // * fastify session plugin requires a 'pg' connection pool
 // * slonik pool can be created with custom class.
 // In order to use one and only one connection pool we need access the
 // underlying pg pool instance that can be passed to fastify session plugin.
-export class SharedPool extends pg.Pool {
-  private static pool: pg.Pool;
-  constructor(config: pg.PoolConfig) {
+export class SharedPool extends Pool {
+  private static pool: Pool;
+  constructor(config: PoolConfig) {
     super(config);
     SharedPool.pool = this;
   }

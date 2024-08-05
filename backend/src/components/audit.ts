@@ -1,9 +1,9 @@
 import stringify from 'fast-json-stable-stringify';
 import { DatabaseTransactionConnection } from 'slonik';
 
-import { sql } from '@backend/db.js';
+import { sql } from '@backend/db';
 
-import { User } from '@shared/schema/user.js';
+import { User } from '@shared/schema/user';
 
 interface AuditEvent {
   eventType: string;

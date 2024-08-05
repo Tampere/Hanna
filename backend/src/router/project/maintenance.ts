@@ -1,17 +1,17 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
-import { getPermissionContext } from '@backend/components/project/base.js';
+import { getPermissionContext } from '@backend/components/project/base';
 import {
   getProject,
   projectUpsert,
   validateUpsertProject,
-} from '@backend/components/project/maintenance.js';
-import { TRPC } from '@backend/router/index.js';
+} from '@backend/components/project/maintenance';
+import { TRPC } from '@backend/router';
 
-import { projectIdSchema } from '@shared/schema/project/base.js';
-import { maintenanceProjectSchema } from '@shared/schema/project/maintenance.js';
-import { hasPermission, hasWritePermission, ownsProject } from '@shared/schema/userPermissions.js';
+import { projectIdSchema } from '@shared/schema/project/base';
+import { maintenanceProjectSchema } from '@shared/schema/project/maintenance';
+import { hasPermission, hasWritePermission, ownsProject } from '@shared/schema/userPermissions';
 
 export const createMaintenanceProjectRouter = (t: TRPC) => {
   return t.router({

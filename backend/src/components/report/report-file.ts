@@ -1,7 +1,7 @@
 import { Workbook } from 'excel4node';
 
-import { getPool, sql } from '@backend/db.js';
-import { logger } from '@backend/logging.js';
+import { getPool, sql } from '@backend/db';
+import { logger } from '@backend/logging';
 
 export async function saveReportFile(id: string, fileName: string, workbook: Workbook) {
   const buffer = await workbook.writeToBuffer();

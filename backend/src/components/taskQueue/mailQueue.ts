@@ -1,10 +1,10 @@
-import { env } from '@backend/env.js';
-import { logger } from '@backend/logging.js';
+import { env } from '@backend/env';
+import { logger } from '@backend/logging';
 
-import { User } from '@shared/schema/user.js';
+import { User } from '@shared/schema/user';
 
-import { Mail, sendMail } from '../mail/index.js';
-import { getTaskQueue, startJob } from './index.js';
+import { getTaskQueue, startJob } from '.';
+import { Mail, sendMail } from '../mail';
 
 const queueName = 'mail';
 

@@ -1,4 +1,4 @@
-import { getPool, sql } from '@backend/db.js';
+import { getPool, sql } from '@backend/db';
 
 export async function invalidateUserSession(userIds: string[]) {
   return getPool().any(

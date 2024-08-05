@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { userRoleSchema } from './userPermissions.js';
+import { userRoleSchema } from './userPermissions';
 
 export const userSchema = z.object({
   id: z.string(),

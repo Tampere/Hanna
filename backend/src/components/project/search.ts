@@ -1,13 +1,13 @@
 import { DatabaseTransactionConnection } from 'slonik';
 import { z } from 'zod';
 
-import { getPool, sql } from '@backend/db.js';
+import { getPool, sql } from '@backend/db';
 
 import {
   ProjectListParams,
   ProjectSearch,
   projectSearchResultSchema,
-} from '@shared/schema/project/index.js';
+} from '@shared/schema/project';
 
 const CLUSTER_ZOOM_BELOW = 10;
 

@@ -5,7 +5,7 @@ import {
   incomingItemSchema,
   incomingSapActualsSchema,
   sapActualsSchema,
-} from '@shared/schema/sapActuals.js';
+} from '@shared/schema/sapActuals';
 import {
   SAPActivity,
   SAPNetwork,
@@ -13,7 +13,7 @@ import {
   SAPWBS,
   incomingSapProjectSchema,
   sapProjectSchema,
-} from '@shared/schema/sapProject.js';
+} from '@shared/schema/sapProject';
 
 function itemAsArray<T>(item: T | T[]) {
   if (item && Array.isArray(item)) {

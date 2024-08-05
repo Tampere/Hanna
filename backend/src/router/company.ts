@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
-import { addAuditEvent } from '@backend/components/audit.js';
-import { getPool, sql } from '@backend/db.js';
-import { TRPC } from '@backend/router/index.js';
+import { addAuditEvent } from '@backend/components/audit';
+import { getPool, sql } from '@backend/db';
+import { TRPC } from '@backend/router';
 
-import { nonEmptyString } from '@shared/schema/common.js';
+import { nonEmptyString } from '@shared/schema/common';
 import {
   companyContactIdSchema,
   companyContactSchema,
@@ -12,7 +12,7 @@ import {
   companyContactSearchResultSchema,
   companyIdSchema,
   companySchema,
-} from '@shared/schema/company.js';
+} from '@shared/schema/company';
 
 const selectCompanyFragment = sql.fragment`
   SELECT

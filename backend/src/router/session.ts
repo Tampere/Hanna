@@ -1,4 +1,4 @@
-import { TRPC } from '@backend/router/index.js';
+import { TRPC } from '@backend/router';
 
 export const createSessionRouter = (t: TRPC) =>
   t.router({

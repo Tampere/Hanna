@@ -2,26 +2,26 @@ import { inferAsyncReturnType, initTRPC } from '@trpc/server';
 import { CreateFastifyContextOptions } from '@trpc/server/adapters/fastify';
 import superjson from 'superjson';
 
-import { logger } from '@backend/logging.js';
-import { createCodeRouter } from '@backend/router/code.js';
-import { createCompanyRouter } from '@backend/router/company.js';
-import { createProjectRouter } from '@backend/router/project/base.js';
-import { createDetailplanProjectRouter } from '@backend/router/project/detailplan.js';
-import { createInvestmentProjectRouter } from '@backend/router/project/investment.js';
-import { createMaintenanceProjectRouter } from '@backend/router/project/maintenance.js';
-import { createProjectObjectRouter } from '@backend/router/projectObject.js';
-import { createSapRouter } from '@backend/router/sap.js';
-import { createTaskRouter } from '@backend/router/task.js';
-import { createUserPermissionsRouter } from '@backend/router/userPermissions.js';
-import { createWorkTableRouter } from '@backend/router/workTable.js';
+import { logger } from '@backend/logging';
+import { createCodeRouter } from '@backend/router/code';
+import { createCompanyRouter } from '@backend/router/company';
+import { createProjectRouter } from '@backend/router/project/base';
+import { createDetailplanProjectRouter } from '@backend/router/project/detailplan';
+import { createInvestmentProjectRouter } from '@backend/router/project/investment';
+import { createMaintenanceProjectRouter } from '@backend/router/project/maintenance';
+import { createProjectObjectRouter } from '@backend/router/projectObject';
+import { createSapRouter } from '@backend/router/sap';
+import { createTaskRouter } from '@backend/router/task';
+import { createUserPermissionsRouter } from '@backend/router/userPermissions';
+import { createWorkTableRouter } from '@backend/router/workTable';
 
-import { User } from '@shared/schema/user.js';
+import { User } from '@shared/schema/user';
 
-import { createGeneralNotificationRouter } from './generalNotification.js';
-import { createJobRouter } from './job.js';
-import { createSapReportRouter } from './sapReport.js';
-import { createSessionRouter } from './session.js';
-import { createUserRouter } from './user.js';
+import { createGeneralNotificationRouter } from './generalNotification';
+import { createJobRouter } from './job';
+import { createSapReportRouter } from './sapReport';
+import { createSessionRouter } from './session';
+import { createUserRouter } from './user';
 
 export function createContext({ req, res }: CreateFastifyContextOptions) {
   // FIXME: user is serialized as string, but PassportUser is an object, need to

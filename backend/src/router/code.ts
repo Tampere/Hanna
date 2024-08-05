@@ -1,8 +1,8 @@
-import { getCodesForCodeList } from '@backend/components/code/index.js';
+import { getCodesForCodeList } from '@backend/components/code';
 
-import { codeSearchSchema } from '@shared/schema/code.js';
+import { codeSearchSchema } from '@shared/schema/code';
 
-import { TRPC } from './index.js';
+import { TRPC } from '.';
 
 export const createCodeRouter = (t: TRPC) =>
   t.router({

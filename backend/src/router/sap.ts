@@ -1,16 +1,12 @@
 import { z } from 'zod';
 
-import {
-  getSapActuals,
-  getSapProject,
-  sapProjectExists,
-} from '@backend/components/sap/dataImport.js';
-import { getPool, sql } from '@backend/db.js';
-import { logger } from '@backend/logging.js';
+import { getSapActuals, getSapProject, sapProjectExists } from '@backend/components/sap/dataImport';
+import { getPool, sql } from '@backend/db';
+import { logger } from '@backend/logging';
 
-import { yearlyActualsSchema } from '@shared/schema/sapActuals.js';
+import { yearlyActualsSchema } from '@shared/schema/sapActuals';
 
-import { TRPC } from './index.js';
+import { TRPC } from '.';
 
 function yearRange(start: number, end: number) {
   return Array.from({ length: end - start + 1 }, (_, i) => i + start);

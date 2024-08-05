@@ -2,11 +2,9 @@
   "strict": true,
   "compilerOptions": {
     "skipLibCheck": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "baseUrl": ".",
-    "types": ["node"],
     "paths": {
       "@utils/*": ["utils/*"],
       "@shared/*": ["../shared/src/*"]

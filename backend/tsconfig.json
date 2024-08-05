@@ -2,10 +2,10 @@
   "compilerOptions": {
     "lib": ["es2022"],
     "target": "es2022",
-    "module": "NodeNext",
+    "module": "commonjs",
     "strict": true,
     "allowJs": false,
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "sourceMap": true,

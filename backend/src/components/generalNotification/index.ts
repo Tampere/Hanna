@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
-import { getPool, sql } from '@backend/db.js';
+import { getPool, sql } from '@backend/db';
 
 import {
   UpsertGeneralNotification,
   dbGeneralNotificationSchema,
   searchGeneralNotificationsSchema,
-} from '@shared/schema/generalNotification.js';
+} from '@shared/schema/generalNotification';
 
-import { addAuditEvent } from '../audit.js';
+import { addAuditEvent } from '../audit';
 
 function getGeneralNotificationFragment(withId: boolean = true) {
   return sql.fragment`

@@ -2,25 +2,22 @@ import { TRPCError } from '@trpc/server';
 import { DatabaseTransactionConnection } from 'slonik';
 import { z } from 'zod';
 
-import { addAuditEvent } from '@backend/components/audit.js';
-import { getPool, sql } from '@backend/db.js';
-import { logger } from '@backend/logging.js';
+import { addAuditEvent } from '@backend/components/audit';
+import { getPool, sql } from '@backend/db';
+import { logger } from '@backend/logging';
 
-import { FormErrors, fieldError, hasErrors } from '@shared/formerror.js';
+import { FormErrors, fieldError, hasErrors } from '@shared/formerror';
 import {
   ProjectPermissions,
   UpsertProject,
   projectIdSchema,
   projectWritePermissionSchema,
-} from '@shared/schema/project/base.js';
-import { projectTypeSchema } from '@shared/schema/project/type.js';
-import { User } from '@shared/schema/user.js';
-import {
-  ProjectPermissionContext,
-  permissionContextSchema,
-} from '@shared/schema/userPermissions.js';
+} from '@shared/schema/project/base';
+import { projectTypeSchema } from '@shared/schema/project/type';
+import { User } from '@shared/schema/user';
+import { ProjectPermissionContext, permissionContextSchema } from '@shared/schema/userPermissions';
 
-import { codeIdFragment } from '../code/index.js';
+import { codeIdFragment } from '../code';
 
 async function upsertBaseProject(
   tx: DatabaseTransactionConnection,

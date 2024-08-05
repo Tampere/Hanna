@@ -5,16 +5,16 @@ import {
   getFilterFragment,
   investmentProjectFragment,
   textToSearchTerms,
-} from '@backend/components/project/search.js';
-import { getPool, sql } from '@backend/db.js';
-import { logger } from '@backend/logging.js';
+} from '@backend/components/project/search';
+import { getPool, sql } from '@backend/db';
+import { logger } from '@backend/logging';
 
-import { TranslationKey, translations } from '@shared/language/index.js';
-import { dateStringSchema, datetimeSchema } from '@shared/schema/common.js';
-import { ProjectSearch } from '@shared/schema/project/index.js';
-import { Suffix } from '@shared/util-types.js';
+import { TranslationKey, translations } from '@shared/language';
+import { dateStringSchema, datetimeSchema } from '@shared/schema/common';
+import { ProjectSearch } from '@shared/schema/project';
+import { Suffix } from '@shared/util-types';
 
-import { buildSheet } from './index.js';
+import { buildSheet } from '.';
 
 type ReportColumnKey = Partial<Suffix<TranslationKey, 'report.columns.'>>;
 

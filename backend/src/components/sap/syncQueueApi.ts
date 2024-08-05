@@ -6,7 +6,7 @@ import {
   manuallyStartSync,
   scheduleSync,
   unscheduleSync,
-} from './syncQueue.js';
+} from './syncQueue';
 
 export default function (server: FastifyInstance, _opts: FastifyPluginOptions, done: () => void) {
   server.register(

@@ -1,8 +1,8 @@
 import { FragmentSqlToken, sql } from 'slonik';
 
-import { getPool } from '@backend/db.js';
+import { getPool } from '@backend/db';
 
-import { Code, CodeId, EXPLICIT_EMPTY, OrderingOptions, codeSchema } from '@shared/schema/code.js';
+import { Code, CodeId, EXPLICIT_EMPTY, OrderingOptions, codeSchema } from '@shared/schema/code';
 
 const orderingFragments: Record<OrderingOptions['type'], FragmentSqlToken> = {
   alphabetical: sql.fragment`ORDER BY text_fi`,
