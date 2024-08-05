@@ -62,6 +62,7 @@ function getTemplateLocals(mail: Pick<Mail, 'template'>) {
 
 export async function sendMail(mail: Mail, metadata?: { userId: User['id']; projectId?: string }) {
   const email = new EmailTemplate({
+    preview: false,
     views: {
       root: resolve(__dirname, '../../..', 'email-templates'),
     },
