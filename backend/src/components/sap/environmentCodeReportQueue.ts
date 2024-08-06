@@ -1,15 +1,15 @@
 import { Workbook } from 'excel4node';
 
-import { env } from '@backend/env';
+import { env } from '@backend/env.js';
 
-import { TranslationKey, translations } from '@shared/language';
-import { EnvironmentCodeReportQuery } from '@shared/schema/sapReport';
-import { Suffix } from '@shared/util-types';
+import { TranslationKey, translations } from '@shared/language/index.js';
+import { EnvironmentCodeReportQuery } from '@shared/schema/sapReport.js';
+import { Suffix } from '@shared/util-types.js';
 
-import { buildSheet } from '../report';
-import { saveReportFile } from '../report/report-file';
-import { getTaskQueue, startJob } from '../taskQueue';
-import { getEnvironmentCodeReport } from './environmentCodeReport';
+import { buildSheet } from '../report/index.js';
+import { saveReportFile } from '../report/report-file.js';
+import { getTaskQueue, startJob } from '../taskQueue/index.js';
+import { getEnvironmentCodeReport } from './environmentCodeReport.js';
 
 const queueName = 'environment-code-report';
 

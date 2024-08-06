@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
-import { codeId } from '../code';
-import { nonEmptyString } from '../common';
-import { upsertProjectSchema } from './base';
+import { codeId } from '../code.js';
+import { nonEmptyString } from '../common.js';
+import { upsertProjectSchema } from './base.js';
 
 export const investmentProjectSchema = upsertProjectSchema.extend({
   projectId: z.string().optional(),

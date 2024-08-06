@@ -2,26 +2,27 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
 import {
+  deleteProject,
+  getPermissionContext,
+  getProject,
+  getProjectUserPermissions,
+  projectPermissionUpsert,
+} from '@backend/components/project/base.js';
+import {
   addProjectRelation,
   getProjectBudget,
   getRelatedProjects,
   removeProjectRelation,
   updateProjectBudget,
   updateProjectGeometry,
-} from '@backend/components/project';
-import {
-  deleteProject,
-  getPermissionContext,
-  getProject,
-  getProjectUserPermissions,
-  projectPermissionUpsert,
-} from '@backend/components/project/base';
-import { listProjects, projectSearch } from '@backend/components/project/search';
-import { getProjectObjectsByProjectSearch } from '@backend/components/projectObject';
-import { startReportJob } from '@backend/components/taskQueue/reportQueue';
-import { getPool } from '@backend/db';
-import { TRPC } from '@backend/router';
+} from '@backend/components/project/index.js';
+import { listProjects, projectSearch } from '@backend/components/project/search.js';
+import { getProjectObjectsByProjectSearch } from '@backend/components/projectObject/index.js';
+import { startReportJob } from '@backend/components/taskQueue/reportQueue.js';
+import { getPool } from '@backend/db.js';
+import { TRPC } from '@backend/router/index.js';
 
+import { projectIdSchema, projectPermissionSchema } from '@shared/schema/project/base.js';
 import {
   budgetUpdateSchema,
   projectListParamsSchema,
@@ -29,16 +30,15 @@ import {
   projectSearchSchema,
   relationsSchema,
   updateGeometrySchema,
-} from '@shared/schema/project';
-import { projectIdSchema, projectPermissionSchema } from '@shared/schema/project/base';
-import { projectObjectSearchResultSchema } from '@shared/schema/projectObject';
+} from '@shared/schema/project/index.js';
+import { projectObjectSearchResultSchema } from '@shared/schema/projectObject.js';
 import {
   ProjectAccessChecker,
   hasPermission,
   hasWritePermission,
   isProjectIdInput,
   ownsProject,
-} from '@shared/schema/userPermissions';
+} from '@shared/schema/userPermissions.js';
 
 /**
  * This function creates a middleware to check if a user has access to a project.

@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
-import { codeId } from '../code';
-import { isoDateString } from '../common';
-import { dbProjectSchema } from './base';
-import { ProjectType, projectTypeSchema } from './type';
+import { codeId } from '../code.js';
+import { isoDateString } from '../common.js';
+import { dbProjectSchema } from './base.js';
+import { ProjectType, projectTypeSchema } from './type.js';
 
 export const periodSchema = z.object({
   startDate: isoDateString.nullable(),

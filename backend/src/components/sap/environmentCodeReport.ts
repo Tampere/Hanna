@@ -1,9 +1,12 @@
 import { z } from 'zod';
 
-import { getPool, sql, textToTsQuery } from '@backend/db';
+import { getPool, sql, textToTsQuery } from '@backend/db.js';
 
-import { EXPLICIT_EMPTY } from '@shared/schema/code';
-import { EnvironmentCodeReportQuery, environmentCodeReportSchema } from '@shared/schema/sapReport';
+import { EXPLICIT_EMPTY } from '@shared/schema/code.js';
+import {
+  EnvironmentCodeReportQuery,
+  environmentCodeReportSchema,
+} from '@shared/schema/sapReport.js';
 
 function filterReasonForEnvironmentalInvestmentFragment(
   reasonsForEnvironmentalInvestment?: EnvironmentCodeReportQuery['filters']['reasonsForEnvironmentalInvestment'],

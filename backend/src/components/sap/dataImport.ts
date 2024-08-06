@@ -3,14 +3,14 @@ import stringify from 'fast-json-stable-stringify';
 import { DatabaseTransactionConnection } from 'slonik';
 import { z } from 'zod';
 
-import { transformActuals, transformProjectInfo } from '@backend/components/sap/transform';
-import { ActualsService, ProjectInfoService } from '@backend/components/sap/webservice';
-import { getPool, sql } from '@backend/db';
-import { env } from '@backend/env';
-import { logger } from '@backend/logging';
+import { transformActuals, transformProjectInfo } from '@backend/components/sap/transform.js';
+import { ActualsService, ProjectInfoService } from '@backend/components/sap/webservice.js';
+import { getPool, sql } from '@backend/db.js';
+import { env } from '@backend/env.js';
+import { logger } from '@backend/logging.js';
 
-import { SAPActual, sapActualsSchema } from '@shared/schema/sapActuals';
-import { SAPProject, sapProjectSchema } from '@shared/schema/sapProject';
+import { SAPActual, sapActualsSchema } from '@shared/schema/sapActuals.js';
+import { SAPProject, sapProjectSchema } from '@shared/schema/sapProject.js';
 
 async function getCachedSapProject(projectId: string) {
   const result = await getPool().maybeOne(sql.type(z.object({ projectInfo: sapProjectSchema }))`

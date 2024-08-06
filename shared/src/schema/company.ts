@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { nonEmptyString } from './common';
+import { nonEmptyString } from './common.js';
 
 export const companySchema = z.object({
   businessId: nonEmptyString,

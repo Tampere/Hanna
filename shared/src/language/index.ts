@@ -1,4 +1,4 @@
-import fi from './fi.json';
+import { fi } from './fi.js';
 
 export const translations = { fi };
 

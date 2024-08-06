@@ -78,7 +78,7 @@ interface Props<TProject, TProjectObject> {
   drawOptions?: DrawOptions;
   onMoveEnd?: (zoom: number, extent: number[]) => void;
   loading?: boolean;
-  vectorLayers?: VectorLayer<Feature<Geometry>>[];
+  vectorLayers?: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>[];
   fitExtent?: 'geoJson' | 'vectorLayers' | 'all';
   projects?: TProject[];
   projectObjects?: TProjectObject[];
