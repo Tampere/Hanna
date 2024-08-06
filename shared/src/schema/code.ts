@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { Language, languages } from '../language';
+import { Language, languages } from '../language/index.js';
 
 export const EXPLICIT_EMPTY = '0';
 

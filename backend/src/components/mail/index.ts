@@ -1,14 +1,17 @@
 import EmailTemplate from 'email-templates';
 import { SendMailOptions, createTransport } from 'nodemailer';
 import SMTPPool from 'nodemailer/lib/smtp-pool';
-import { resolve } from 'path';
+import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
 
-import { getPool, sql } from '@backend/db';
-import { env } from '@backend/env';
+import { getPool, sql } from '@backend/db.js';
+import { env } from '@backend/env.js';
 
-import { DbDetailplanProject } from '@shared/schema/project/detailplan';
-import { User } from '@shared/schema/user';
-import { coerceArray } from '@shared/utils';
+import { DbDetailplanProject } from '@shared/schema/project/detailplan.js';
+import { User } from '@shared/schema/user.js';
+import { coerceArray } from '@shared/utils.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 interface Template<Name extends string, Parameters extends Record<string, any>> {
   template: {

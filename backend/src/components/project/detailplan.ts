@@ -2,19 +2,19 @@ import { TRPCError } from '@trpc/server';
 import { DatabaseTransactionConnection } from 'slonik';
 import { z } from 'zod';
 
-import { addAuditEvent } from '@backend/components/audit';
-import { codeIdFragment } from '@backend/components/code';
+import { addAuditEvent } from '@backend/components/audit.js';
+import { codeIdFragment } from '@backend/components/code/index.js';
 import {
   baseProjectUpsert,
   validateUpsertProject as baseProjectValidate,
-} from '@backend/components/project/base';
-import { getPool, sql } from '@backend/db';
-import { logger } from '@backend/logging';
+} from '@backend/components/project/base.js';
+import { getPool, sql } from '@backend/db.js';
+import { logger } from '@backend/logging.js';
 
-import { hasErrors } from '@shared/formerror';
-import { projectIdSchema } from '@shared/schema/project/base';
-import { DetailplanProject, dbDetailplanSchema } from '@shared/schema/project/detailplan';
-import { User } from '@shared/schema/user';
+import { hasErrors } from '@shared/formerror.js';
+import { projectIdSchema } from '@shared/schema/project/base.js';
+import { DetailplanProject, dbDetailplanSchema } from '@shared/schema/project/detailplan.js';
+import { User } from '@shared/schema/user.js';
 
 const selectProjectFragment = sql.fragment`
   SELECT

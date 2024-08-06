@@ -1,14 +1,6 @@
 import 'dotenv/config';
 import { z } from 'zod';
 
-if (process.env.NODE_ENV === 'development') {
-  try {
-    require('../.env');
-  } catch (err) {
-    // Ignore errors - only used for restarting server on .env changes
-  }
-}
-
 const schema = z.object({
   nodeEnv: z.enum(['development', 'production', 'test']),
   logLevel: z.enum(['debug', 'info', 'warn', 'error']),

@@ -1,6 +1,6 @@
 import { init } from 'server-text-width';
 
-import { translations } from '@shared/language';
+import { translations } from '@shared/language/index.js';
 
 type SupportedFontName = 'Calibri';
 type SupportedFontSize = '12px';

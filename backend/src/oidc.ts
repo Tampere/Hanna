@@ -1,9 +1,9 @@
 import { Issuer } from 'openid-client';
 
-import { retry } from '@shared/utils';
+import { retry } from '@shared/utils.js';
 
-import { env } from './env';
-import { logger } from './logging';
+import { env } from './env.js';
+import { logger } from './logging.js';
 
 export async function getClient() {
   logger.info('Discovering OpenID Connect provider');

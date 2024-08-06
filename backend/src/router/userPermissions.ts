@@ -1,18 +1,18 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
-import { addAuditEvent } from '@backend/components/audit';
-import { invalidateUserSession } from '@backend/components/session';
-import { searchUsers } from '@backend/components/user';
-import { getPool, sql } from '@backend/db';
-import { TRPC } from '@backend/router';
+import { addAuditEvent } from '@backend/components/audit.js';
+import { invalidateUserSession } from '@backend/components/session/index.js';
+import { searchUsers } from '@backend/components/user/index.js';
+import { getPool, sql } from '@backend/db.js';
+import { TRPC } from '@backend/router/index.js';
 
 import {
   isAdmin,
   setPermissionSchema,
   userSchema,
   userSearchSchema,
-} from '@shared/schema/userPermissions';
+} from '@shared/schema/userPermissions.js';
 
 export const createUserPermissionsRouter = (t: TRPC) => {
   const baseProcedure = t.procedure.use(async (opts) => {

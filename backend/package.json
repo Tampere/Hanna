@@ -6,16 +6,17 @@
   "engines": {
     "node": "18.20.4"
   },
+  "type": "module",
   "scripts": {
-    "build": "tsc",
-    "start": "node -r tsconfig-paths/register dist/app.js",
+    "build": "tsc && tsc-alias",
+    "start": "node dist/app.js",
     "dev": "concurrently 'npm:dev:*'",
     "dev:tsc": "tsc --watch --noEmit --preserveWatchOutput --pretty",
     "dev:server": "tsx watch --clear-screen=false src/app.ts",
     "test": "vitest run",
     "db-migrate": "PGOPTIONS='-c search_path=app,public' tsx src/migration.ts",
     "db-post-migrate": "PGOPTIONS='-c search_path=app,public' tsx src/postMigration.ts",
-    "db-migrate:prod": "PGOPTIONS='-c search_path=app,public' node -r tsconfig-paths/register dist/migration.js"
+    "db-migrate:prod": "PGOPTIONS='-c search_path=app,public' node dist/migration.js"
   },
   "repository": {
     "type": "git",
@@ -41,7 +42,7 @@
     "eslint": "^9.8.0",
     "node-dev": "^8.0.0",
     "pino-pretty": "^11.2.2",
-    "tsconfig-paths": "^4.2.0",
+    "tsc-alias": "^1.8.10",
     "tsx": "^4.16.5",
     "typescript": "^5.5.4",
     "typescript-eslint": "^8.0.0",
@@ -76,13 +77,8 @@
     "server-text-width": "^1.0.2",
     "slonik": "^38.0.0",
     "soap": "^1.1.0",
-    "superjson": "^1.13.3",
+    "superjson": "^2.2.1",
     "tre-hanna-shared": "file:../shared",
     "zod": "^3.23.8"
-  },
-  "overrides": {
-    "soap": {
-      "axios": "^1.2.2"
-    }
   }
 }

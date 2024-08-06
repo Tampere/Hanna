@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
-import { codeId } from '../code';
-import { isoDateString, nonEmptyString } from '../common';
-import { projectTypes } from './type';
+import { codeId } from '../code.js';
+import { isoDateString, nonEmptyString } from '../common.js';
+import { projectTypes } from './type.js';
 
 export const projectIdSchema = z.object({
   projectId: z.string(),

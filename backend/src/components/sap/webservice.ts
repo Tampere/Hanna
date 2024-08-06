@@ -2,7 +2,7 @@ import axios from 'axios';
 import path from 'path';
 import { BasicAuthSecurity, Client, createClientAsync } from 'soap';
 
-import { logger } from '@backend/logging';
+import { logger } from '@backend/logging.js';
 
 interface WebServiceConfig {
   endpoint: string;
@@ -37,7 +37,7 @@ class WebService {
     });
 
     this.client = await createClientAsync(path.join(process.cwd(), config.wsdlResourcePath), {
-      request: axiosClient,
+      request: axiosClient as any, // Some type discrepancies between axios imported as a module and axios used by soap here,
     });
 
     this.client.setSecurity(new BasicAuthSecurity(config.basicAuthUser, config.basicAuthPass));

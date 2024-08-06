@@ -1,14 +1,14 @@
 import { Workbook, Worksheet } from 'excel4node';
 
-import { logger } from '@backend/logging';
+import { logger } from '@backend/logging.js';
 
-import { ProjectSearch } from '@shared/schema/project';
+import { ProjectSearch } from '@shared/schema/project/index.js';
 
-import { buildDetailplanCatalogSheet } from './detailplanProject';
-import { buildInvestmentProjectReportSheet } from './investmentProject';
-import { buildMaintenanceProjectReportSheet } from './maintenanceProject';
-import { saveReportFile } from './report-file';
-import { calculateTextWidth } from './text-width';
+import { buildDetailplanCatalogSheet } from './detailplanProject.js';
+import { buildInvestmentProjectReportSheet } from './investmentProject.js';
+import { buildMaintenanceProjectReportSheet } from './maintenanceProject.js';
+import { saveReportFile } from './report-file.js';
+import { calculateTextWidth } from './text-width.js';
 
 type ReportFieldValue = string | number | Date | null;
 type CustomFieldType = 'currency';

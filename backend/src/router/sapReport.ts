@@ -5,26 +5,26 @@ import {
   getBlanketContractReport,
   getBlanketContractReportRowCount,
   getBlanketContractReportSummary,
-} from '@backend/components/sap/blanketContractReport';
-import { startBlanketContractReportJob } from '@backend/components/sap/blanketContractReportQueue';
+} from '@backend/components/sap/blanketContractReport.js';
+import { startBlanketContractReportJob } from '@backend/components/sap/blanketContractReportQueue.js';
 import {
   getEnvironmentCodeReport,
   getEnvironmentCodeReportRowCount,
   getEnvironmentCodeReportSummary,
-} from '@backend/components/sap/environmentCodeReport';
-import { startEnvironmentCodeReportJob } from '@backend/components/sap/environmentCodeReportQueue';
-import { getLastSyncedAt } from '@backend/components/sap/syncQueue';
-import { getPool, sql } from '@backend/db';
-import { env } from '@backend/env';
+} from '@backend/components/sap/environmentCodeReport.js';
+import { startEnvironmentCodeReportJob } from '@backend/components/sap/environmentCodeReportQueue.js';
+import { getLastSyncedAt } from '@backend/components/sap/syncQueue.js';
+import { getPool, sql } from '@backend/db.js';
+import { env } from '@backend/env.js';
 
 import {
   blanketContractReportFilterSchema,
   blanketContractReportQuerySchema,
   environmentCodeReportFilterSchema,
   environmentCodeReportQuerySchema,
-} from '@shared/schema/sapReport';
+} from '@shared/schema/sapReport.js';
 
-import { TRPC } from '.';
+import { TRPC } from './index.js';
 
 export const createSapReportRouter = (t: TRPC) => {
   const baseProcedure = t.procedure.use(async (opts) => {
