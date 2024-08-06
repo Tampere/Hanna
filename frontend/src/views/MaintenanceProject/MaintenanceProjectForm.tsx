@@ -71,6 +71,9 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
       description: '',
       startDate: '',
       endDate: '',
+      contract: '',
+      decision: '',
+      poNumber: '',
       lifecycleState: '01',
       sapProjectId: null,
     }),
@@ -164,7 +167,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
             projectId: data.sapProjectId,
           })
         : true;
-    } catch (error) {
+    } catch {
       validOrEmptySAPId = false;
     }
     if (!validOrEmptySAPId) {
@@ -319,6 +322,27 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
                 readOnly={!editing}
                 codeListId="Lautakunta"
               />
+            )}
+          />
+          <FormField
+            formField="contract"
+            label={tr('maintenanceProject.contract')}
+            component={(field) => (
+              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
+            )}
+          />
+          <FormField
+            formField="decision"
+            label={tr('maintenanceProject.decision')}
+            component={(field) => (
+              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
+            )}
+          />
+          <FormField
+            formField="poNumber"
+            label={tr('maintenanceProject.poNumber')}
+            component={(field) => (
+              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
             )}
           />
 

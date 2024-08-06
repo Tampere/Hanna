@@ -191,7 +191,7 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
             projectId: data.sapProjectId,
           })
         : true;
-    } catch (error) {
+    } catch {
       validOrEmptySAPId = false;
     }
     if (!validOrEmptySAPId) {

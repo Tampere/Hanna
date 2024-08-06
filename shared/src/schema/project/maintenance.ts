@@ -9,7 +9,10 @@ export const maintenanceProjectSchema = upsertProjectSchema.extend({
   parentId: z.string().optional(),
   owner: nonEmptyString,
   committees: z.array(codeId).superRefine((committees) => committees.length > 0),
-  geom: z.string().nullable().optional(),
+  geom: z.string().nullish(),
+  contract: z.string().nullish(),
+  decision: z.string().nullish(),
+  poNumber: z.string().nullish(),
 });
 
 export type MaintenanceProject = z.infer<typeof maintenanceProjectSchema>;
