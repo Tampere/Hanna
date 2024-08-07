@@ -6,6 +6,7 @@ import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
 import { getErrorShape } from '@trpc/server/shared';
 import fastify, { FastifyBaseLogger } from 'fastify';
 import { dirname, join } from 'path';
+import { Pool } from 'pg';
 import { serialize } from 'superjson';
 import { fileURLToPath } from 'url';
 
@@ -19,7 +20,7 @@ import {
 import syncQueueApi from '@backend/components/sap/syncQueueApi.js';
 import { ActualsService, ProjectInfoService } from '@backend/components/sap/webservice.js';
 import { setupDetailPlanGeomSyncQueue } from '@backend/components/taskQueue/detailPlanGeomSyncQueue.js';
-import { SharedPool, createDatabasePool } from '@backend/db.js';
+import { createDatabasePool, createPgPool } from '@backend/db.js';
 import { env } from '@backend/env.js';
 import { logger } from '@backend/logging.js';
 import { getClient } from '@backend/oidc.js';
@@ -78,7 +79,7 @@ async function run() {
       scope: 'email openid',
       client: oidcClient,
     },
-    pgPool: SharedPool.getPool(),
+    pgPool: createPgPool(),
     sessionOpts: {
       cookieSecret: env.cookieSecret,
       cookieMaxAge: 1000 * 60 * 60,
