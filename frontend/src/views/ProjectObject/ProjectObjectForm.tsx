@@ -340,7 +340,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="objectName"
             label={tr('projectObject.nameLabel')}
-            tooltip={tr('projectObject.nameTooltip')}
+            errorTooltip={tr('projectObject.nameTooltip')}
             component={(field) => (
               <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
             )}
@@ -349,7 +349,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="description"
             label={tr('projectObject.descriptionLabel')}
-            tooltip={tr('projectObject.descriptionTooltip')}
+            errorTooltip={tr('projectObject.descriptionTooltip')}
             component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
           />
 
@@ -357,7 +357,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
             <FormField
               formField="projectId"
               label={tr('projectObject.projectLabel')}
-              tooltip={tr('projectObject.projectTooltip')}
+              errorTooltip={tr('projectObject.projectTooltip')}
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               component={({ ref, ...field }) => {
                 return (
@@ -378,7 +378,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="suunnitteluttajaUser"
             label={tr('projectObject.suunnitteluttajaUserLabel')}
-            tooltip={tr('projectObject.suunnitteluttajaUserTooltip')}
+            errorTooltip={tr('projectObject.suunnitteluttajaUserTooltip')}
             component={({ id, onChange, value }) => (
               <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
             )}
@@ -387,7 +387,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="rakennuttajaUser"
             label={tr('projectObject.rakennuttajaUserLabel')}
-            tooltip={tr('projectObject.rakennuttajaUserTooltip')}
+            errorTooltip={tr('projectObject.rakennuttajaUserTooltip')}
             component={({ id, onChange, value }) => (
               <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
             )}
@@ -395,7 +395,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="objectStage"
             label={tr('projectObject.objectStageLabel')}
-            tooltip={tr('projectObject.objectStageTooltip')}
+            errorTooltip={tr('projectObject.objectStageTooltip')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, ...field }) => (
               <CodeSelect {...field} codeListId="KohteenLaji" readOnly={!editing} />
@@ -405,7 +405,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="lifecycleState"
             label={tr('projectObject.lifecycleStateLabel')}
-            tooltip={tr('projectObject.lifecycleStateTooltip')}
+            errorTooltip={tr('projectObject.lifecycleStateTooltip')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, ...field }) => (
               <CodeSelect {...field} codeListId="KohteenElinkaarentila" readOnly={!editing} />
@@ -415,7 +415,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="objectType"
             label={tr('projectObject.objectTypeLabel')}
-            tooltip={tr('projectObject.objectTypeTooltip')}
+            errorTooltip={tr('projectObject.objectTypeTooltip')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, ...field }) => (
               <CodeSelect
@@ -431,7 +431,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="objectCategory"
             label={tr('projectObject.objectCategoryLabel')}
-            tooltip={tr('projectObject.objectCategoryTooltip')}
+            errorTooltip={tr('projectObject.objectCategoryTooltip')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, ...field }) => (
               <CodeSelect
@@ -446,7 +446,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="objectUsage"
             label={tr('projectObject.objectUsageLabel')}
-            tooltip={tr('projectObject.objectUsageTooltip')}
+            errorTooltip={tr('projectObject.objectUsageTooltip')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, ...field }) => (
               <CodeSelect
@@ -461,7 +461,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="startDate"
             label={tr('projectObject.startDateLabel')}
-            tooltip={tr('projectObject.startDateTooltip')}
+            errorTooltip={tr('projectObject.startDateTooltip')}
             component={({ onChange, ...field }) => (
               <FormDatePicker
                 maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
@@ -482,7 +482,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="endDate"
             label={tr('projectObject.endDateLabel')}
-            tooltip={tr('projectObject.endDateTooltip')}
+            errorTooltip={tr('projectObject.endDateTooltip')}
             component={({ onChange, ...field }) => (
               <FormDatePicker
                 minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
@@ -503,7 +503,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="sapWBSId"
             label={tr('projectObject.sapWBSIdLabel')}
-            tooltip={tr('projectObject.sapWBSIdTooltip')}
+            errorTooltip={tr('projectObject.sapWBSIdTooltip')}
             component={(field) => (
               <SapWBSSelect projectId={formProjectId} readonlyProps={readonlyProps} field={field} />
             )}

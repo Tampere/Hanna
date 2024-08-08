@@ -247,7 +247,7 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
           <FormField<DetailplanProject>
             formField="projectName"
             label={tr('project.projectNameLabel')}
-            tooltip={tr('newProject.projectNameTooltip')}
+            errorTooltip={tr('newProject.projectNameTooltip')}
             component={(field) => (
               <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
             )}
@@ -256,14 +256,14 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
           <FormField<DetailplanProject>
             formField="description"
             label={tr('project.descriptionLabel')}
-            tooltip={tr('newProject.descriptionTooltip')}
+            errorTooltip={tr('newProject.descriptionTooltip')}
             component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
           />
 
           <FormField
             formField="startDate"
             label={tr('project.startDateLabel')}
-            tooltip={tr('newProject.startDateTooltip')}
+            errorTooltip={tr('newProject.startDateTooltip')}
             component={(field) => (
               <FormDatePicker
                 maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
@@ -275,7 +275,7 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
           <FormField
             formField="endDate"
             label={tr('project.endDateLabel')}
-            tooltip={tr('newProject.endDateTooltip')}
+            errorTooltip={tr('newProject.endDateTooltip')}
             component={(field) => (
               <FormDatePicker
                 minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
@@ -288,7 +288,7 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
           <FormField<DetailplanProject>
             formField="owner"
             label={tr('project.ownerLabel')}
-            tooltip={tr('newProject.ownerTooltip')}
+            errorTooltip={tr('newProject.ownerTooltip')}
             component={({ id, onChange, value }) => (
               <UserSelect
                 id={id}
@@ -319,7 +319,7 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
           <FormField<DetailplanProject>
             formField="preparer"
             label={tr('detailplanProject.preparerLabel')}
-            tooltip={tr('newDetailplanProject.preparerTooltip')}
+            errorTooltip={tr('newDetailplanProject.preparerTooltip')}
             component={({ id, onChange, value }) => (
               <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
             )}
@@ -328,7 +328,7 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
           <FormField
             formField="lifecycleState"
             label={tr('project.lifecycleStateLabel')}
-            tooltip={tr('newProject.lifecycleStateTooltip')}
+            errorTooltip={tr('newProject.lifecycleStateTooltip')}
             component={({ id, onChange, value }) => (
               <CodeSelect
                 id={id}
@@ -343,7 +343,7 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
           <FormField<DetailplanProject>
             formField="district"
             label={tr('detailplanProject.districtLabel')}
-            tooltip={tr('newDetailplanProject.districtTooltip')}
+            errorTooltip={tr('newDetailplanProject.districtTooltip')}
             component={(field) => (
               <TextField {...readonlyProps} {...field} value={field.value ?? ''} size="small" />
             )}
@@ -352,7 +352,7 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
           <FormField<DetailplanProject>
             formField="blockName"
             label={tr('detailplanProject.blockNameLabel')}
-            tooltip={tr('newDetailplanProject.blockNameTooltip')}
+            errorTooltip={tr('newDetailplanProject.blockNameTooltip')}
             component={(field) => (
               <TextField {...readonlyProps} {...field} value={field.value ?? ''} size="small" />
             )}
@@ -361,7 +361,7 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
           <FormField<DetailplanProject>
             formField="addressText"
             label={tr('detailplanProject.addressTextLabel')}
-            tooltip={tr('newDetailplanProject.addressTextTooltip')}
+            errorTooltip={tr('newDetailplanProject.addressTextTooltip')}
             component={(field) => (
               <TextField {...readonlyProps} {...field} value={field.value ?? ''} size="small" />
             )}

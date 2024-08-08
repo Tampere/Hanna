@@ -156,7 +156,7 @@ export function TaskForm(props: Readonly<Props>) {
         <FormField
           formField="taskName"
           label={tr('taskForm.taskNameLabel')}
-          tooltip={tr('taskForm.taskNameTooltip')}
+          errorTooltip={tr('taskForm.taskNameTooltip')}
           component={(field) => (
             <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
           )}
@@ -165,13 +165,13 @@ export function TaskForm(props: Readonly<Props>) {
         <FormField
           formField="description"
           label={tr('taskForm.descriptionLabel')}
-          tooltip={tr('taskForm.descriptionTooltip')}
+          errorTooltip={tr('taskForm.descriptionTooltip')}
           component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
         />
         <FormField
           formField="lifecycleState"
           label={tr('taskForm.lifecycleStateLabel')}
-          tooltip={tr('taskForm.lifecycleStateTooltip')}
+          errorTooltip={tr('taskForm.lifecycleStateTooltip')}
           component={({ ref, ...field }) => (
             <CodeSelect {...field} codeListId="TehtävänElinkaarentila" readOnly={!editing} />
           )}
@@ -180,7 +180,7 @@ export function TaskForm(props: Readonly<Props>) {
         <FormField
           formField="taskType"
           label={tr('taskForm.taskTypeLabel')}
-          tooltip={tr('taskForm.taskTypeTooltip')}
+          errorTooltip={tr('taskForm.taskTypeTooltip')}
           component={({ ref, ...field }) => (
             <CodeSelect {...field} codeListId="TehtäväTyyppi" readOnly={!editing} showIdInLabel />
           )}
@@ -189,7 +189,7 @@ export function TaskForm(props: Readonly<Props>) {
         <FormField
           formField="startDate"
           label={tr('taskForm.startDateLabel')}
-          tooltip={tr('taskForm.startDateTooltip')}
+          errorTooltip={tr('taskForm.startDateTooltip')}
           component={(field) => (
             <FormDatePicker
               maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
@@ -202,7 +202,7 @@ export function TaskForm(props: Readonly<Props>) {
         <FormField
           formField="endDate"
           label={tr('taskForm.endDateLabel')}
-          tooltip={tr('taskForm.endDateTooltip')}
+          errorTooltip={tr('taskForm.endDateTooltip')}
           component={(field) => (
             <FormDatePicker
               minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
