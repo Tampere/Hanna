@@ -6,7 +6,6 @@ import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify';
 import { getErrorShape } from '@trpc/server/shared';
 import fastify, { FastifyBaseLogger } from 'fastify';
 import { dirname, join } from 'path';
-import { Pool } from 'pg';
 import { serialize } from 'superjson';
 import { fileURLToPath } from 'url';
 

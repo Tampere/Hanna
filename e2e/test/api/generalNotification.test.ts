@@ -1,8 +1,8 @@
 // TRPC api tests for permissions
-import test, { expect } from '@playwright/test';
-import { clearGeneralNotifications, clearObjects } from '@utils/db';
-import { login } from '@utils/page';
-import { ADMIN_USER, UserSessionObject } from '@utils/users';
+import { expect, test } from '@playwright/test';
+import { clearGeneralNotifications, clearObjects } from '@utils/db.js';
+import { login } from '@utils/page.js';
+import { ADMIN_USER, UserSessionObject } from '@utils/users.js';
 
 const newNotification = {
   id: null,

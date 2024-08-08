@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "composite": true,
     "lib": ["es2022"],
     "target": "es2022",
     "module": "NodeNext",

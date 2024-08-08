@@ -440,7 +440,7 @@ async function updateObjectRoles(
     return;
   }
 
-  tx.query(sql.untyped`
+  await tx.query(sql.untyped`
     DELETE FROM app.project_object_user_role
     WHERE project_object_id = ${projectObject.projectObjectId}
   `);
@@ -705,13 +705,11 @@ export async function upsertProjectObject(
     projectObjectId: nonEmptyString,
     projectId: nonEmptyString,
   });
-
   await addAuditEvent(tx, {
     eventType: 'projectObject.upsert',
     eventData: projectObject,
     eventUser: userId,
   });
-
   const upsertResult = isUpdate(projectObject)
     ? await tx.one(sql.type(upsertResultSchema)`
           UPDATE app.project_object
@@ -751,7 +749,6 @@ export async function upsertProjectObject(
       userId,
     );
   }
-
   return upsertResult;
 }
 

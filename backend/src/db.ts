@@ -22,6 +22,7 @@ export const connectionDsn =
 let pool: DatabasePool | null = null;
 
 export function createPgPool() {
+  logger.info(`creating pg pool with ${connectionDsn}`);
   return new pg.Pool({
     connectionString: connectionDsn,
     connectionTimeoutMillis: 1000,

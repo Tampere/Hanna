@@ -1,6 +1,6 @@
-import test, { expect } from '@playwright/test';
-import { login } from '@utils/page';
-import { DEV_USER, UserSessionObject } from '@utils/users';
+import { expect, test } from '@playwright/test';
+import { login } from '@utils/page.js';
+import { DEV_USER, UserSessionObject } from '@utils/users.js';
 
 test.describe('Project endpoints', () => {
   let devSession: UserSessionObject;

@@ -1,8 +1,8 @@
-import test, { expect } from '@playwright/test';
-import { login } from '@utils/page';
-import { ADMIN_USER, UserSessionObject } from '@utils/users';
+import { expect, test } from '@playwright/test';
+import { login } from '@utils/page.js';
+import { ADMIN_USER, UserSessionObject } from '@utils/users.js';
 
-import type { Code } from '@shared/schema/code';
+import type { Code } from '@shared/schema/code.js';
 
 test.describe('Code endpoints', () => {
   let adminSession: UserSessionObject;

@@ -57,8 +57,12 @@ async function upsertBaseProject(
   return upsertResult;
 }
 
-export async function getPermissionContext(id: string): Promise<ProjectPermissionContext> {
-  const permissionCtx = await getPool().maybeOne(sql.type(permissionContextSchema)`
+export async function getPermissionContext(
+  id: string,
+  tx?: DatabaseTransactionConnection,
+): Promise<ProjectPermissionContext> {
+  const conn = tx ?? getPool();
+  const permissionCtx = await conn.maybeOne(sql.type(permissionContextSchema)`
     SELECT
       id,
       "owner",
@@ -139,8 +143,10 @@ export async function validateUpsertProject(
     errors: {},
   };
 
+  const conn = tx ?? getPool();
+
   if (values?.projectId) {
-    const dateRange = await getPool().maybeOne(sql.untyped`
+    const dateRange = await conn.maybeOne(sql.untyped`
     WITH budget_range AS (
       SELECT
         ${values?.projectId} as id,
@@ -189,7 +195,7 @@ export async function validateUpsertProject(
   // Check that SAP project ID is not changed if project has project objects
   // with selected SAP WBS elements
   if (values?.projectId) {
-    const result = await tx.maybeOne(sql.untyped`
+    const result = await conn.maybeOne(sql.untyped`
       SELECT
         project.id AS "projectId",
         sap_project.sap_project_id AS "sapProjectId",

@@ -1,13 +1,13 @@
 // TRPC api tests for permissions
-import test, { expect } from '@playwright/test';
-import { login, refreshSession } from '@utils/page';
+import { expect, test } from '@playwright/test';
+import { login, refreshSession } from '@utils/page.js';
 import {
   ADMIN_USER,
   DEV_USER,
   TEST_USER,
   UserSessionObject,
   clearUserPermissions,
-} from '@utils/users';
+} from '@utils/users.js';
 
 const newNotification = {
   id: null,

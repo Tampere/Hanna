@@ -1,9 +1,9 @@
-import test, { expect } from '@playwright/test';
-import { clearObjects } from '@utils/db';
-import { login } from '@utils/page';
-import { ADMIN_USER, DEV_USER, UserSessionObject } from '@utils/users';
+import { expect, test } from '@playwright/test';
+import { clearObjects } from '@utils/db.js';
+import { login } from '@utils/page.js';
+import { ADMIN_USER, DEV_USER, UserSessionObject } from '@utils/users.js';
 
-import { User } from '@shared/schema/user';
+import { User } from '@shared/schema/user.js';
 
 const testProject = (user: User) => ({
   projectName: 'Test project',

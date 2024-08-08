@@ -1,8 +1,8 @@
-import test, { expect } from '@playwright/test';
-import { login } from '@utils/page';
-import { ADMIN_USER, DEV_USER, UserSessionObject } from '@utils/users';
+import { expect, test } from '@playwright/test';
+import { login } from '@utils/page.js';
+import { ADMIN_USER, DEV_USER, UserSessionObject } from '@utils/users.js';
 
-import { User } from '@shared/schema/user';
+import { User } from '@shared/schema/user.js';
 
 function makePoint(lon: number, lat: number, srid: string) {
   return [
@@ -105,7 +105,6 @@ test.describe('Project endpoints', () => {
     const project = await devSession.client.investmentProject.upsert.mutate({
       project: validProject(user.id),
     });
-
     const budgetUpdateInput = {
       projectId: project.projectId,
       budgetItems: [
