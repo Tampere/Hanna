@@ -52,7 +52,10 @@ export const createUserPermissionsRouter = (t: TRPC) => {
             }),
           )
         ).flat();
-        await invalidateUserSession(updatedUsers.map((u) => u.userId));
+        await invalidateUserSession(
+          updatedUsers.map((u) => u.userId),
+          tx,
+        );
         return updatedUsers;
       });
     }),

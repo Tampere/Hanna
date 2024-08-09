@@ -10,21 +10,6 @@ import {
 import { env } from '@backend/env.js';
 import { logger } from '@backend/logging.js';
 
-// * fastify session plugin requires a 'pg' connection pool
-// * slonik pool can be created with custom class.
-// In order to use one and only one connection pool we need access the
-// underlying pg pool instance that can be passed to fastify session plugin.
-export class SharedPool extends pg.Pool {
-  private static pool: pg.Pool;
-  constructor(config: pg.PoolConfig) {
-    super(config);
-    SharedPool.pool = this;
-  }
-  static getPool() {
-    return SharedPool.pool;
-  }
-}
-
 export const connectionDsn =
   stringifyDsn({
     databaseName: env.db.database,
@@ -36,13 +21,25 @@ export const connectionDsn =
 
 let pool: DatabasePool | null = null;
 
+export function createPgPool() {
+  logger.info(`creating pg pool with ${connectionDsn}`);
+  return new pg.Pool({
+    connectionString: connectionDsn,
+    connectionTimeoutMillis: 1000,
+    idleTimeoutMillis: 5000,
+    max: 5,
+  });
+}
+
 export async function createDatabasePool() {
   // The password in DSN may include URI decoded characters
   const uriEncodedPassword = encodeURIComponent(env.db.password);
   const redactedDsn = connectionDsn.replace(uriEncodedPassword, '********');
   logger.info(`Connecting to ${redactedDsn}`);
   pool = await createPool(connectionDsn, {
-    PgPool: SharedPool,
+    connectionTimeout: 1000,
+    idleTimeout: 5000,
+    maximumPoolSize: 10,
     typeParsers: [
       ...createTypeParserPreset(),
       // Convert int8 to numbers

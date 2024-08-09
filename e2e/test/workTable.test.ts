@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { login } from '@utils/page';
-import { TEST_USER, UserSessionObject } from '@utils/users';
+import { login } from '@utils/page.js';
+import { TEST_USER, UserSessionObject } from '@utils/users.js';
 
 test.describe('Work table with customized maximum row count', () => {
   let userSession: UserSessionObject;

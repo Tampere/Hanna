@@ -9,6 +9,7 @@ import {
   validateUpsertProject,
 } from '@backend/components/project/investment.js';
 import { listProjects } from '@backend/components/project/search.js';
+import { logger } from '@backend/logging.js';
 import { TRPC } from '@backend/router/index.js';
 
 import { projectIdSchema } from '@shared/schema/project/base.js';
@@ -51,6 +52,7 @@ export const createInvestmentProjectRouter = (t: TRPC) => {
             throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
           }
         }
+
         return await projectUpsert(project, ctx.user, keepOwnerRights);
       }),
     getParticipatedProjects: t.procedure.query(async ({ ctx }) => {

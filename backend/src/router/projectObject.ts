@@ -113,18 +113,17 @@ export const createProjectObjectRouter = (t: TRPC) => {
       return await getPool().transaction(async (tx) => {
         let permissionCtx;
         if (!input.projectObjectId && input.projectId) {
-          permissionCtx = await getProjectPermissionCtx(input.projectId);
+          permissionCtx = await getProjectPermissionCtx(input.projectId, tx);
         } else if (input.projectObjectId) {
-          permissionCtx = await getPermissionContext(input.projectObjectId);
+          permissionCtx = await getPermissionContext(input.projectObjectId, tx);
         } else {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.invalidInput' });
         }
 
         if (!hasWritePermission(ctx.user, permissionCtx) && !ownsProject(ctx.user, permissionCtx)) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
-        } else {
-          return await upsertProjectObject(tx, input, ctx.user.id);
         }
+        return upsertProjectObject(tx, input, ctx.user.id);
       });
     }),
 

@@ -13,7 +13,7 @@ const schema = z.object({
     database: z.string(),
     username: z.string(),
     password: z.string(),
-    sslMode: z.enum(['disable', 'no-verify', 'require']),
+    sslMode: z.enum(['disable', 'allow', 'prefer', 'require', 'verify-ca', 'verify-full']),
   }),
   oidc: z.object({
     discovery_url: z.string(),
