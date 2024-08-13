@@ -73,7 +73,7 @@ export function ProjectFinances(props: Props) {
       onSave={async (yearBudgets) => {
         const payload = yearBudgets.map((yearBudget) => ({
           year: yearBudget.year,
-          amount: yearBudget.budgetItems.amount,
+          estimate: yearBudget.budgetItems.estimate ?? null,
         }));
 
         await saveBudgetMutation.mutateAsync({

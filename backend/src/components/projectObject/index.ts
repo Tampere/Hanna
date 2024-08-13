@@ -476,6 +476,8 @@ export async function getProjectObjectBudget(projectObjectId: string) {
     SELECT
       "year",
       jsonb_build_object(
+        'estimate', estimate,
+        'contractPrice', contract_price,
         'amount', amount,
         'forecast', forecast,
         'kayttosuunnitelmanMuutos', kayttosuunnitelman_muutos
@@ -504,6 +506,8 @@ export async function updateProjectObjectBudget(
       const data = Object.fromEntries(
         Object.entries({
           year: item.year,
+          estimate: item.estimate,
+          contract_price: item.contractPrice,
           amount: item.amount,
           forecast: item.forecast,
           kayttosuunnitelman_muutos: item.kayttosuunnitelmanMuutos,

@@ -134,7 +134,7 @@ test.describe('Project Object endpoints', () => {
     });
 
     const projectObject = testProjectObject(project.projectId, user);
-    const resp = await devSession.client.projectObject.upsert.mutate(projectObject);
+    const resp = await devSession.client.investmentProjectObject.upsert.mutate(projectObject);
 
     expect(resp.projectObjectId).toBeTruthy();
 
@@ -144,7 +144,8 @@ test.describe('Project Object endpoints', () => {
       description: 'Updated description',
     };
 
-    const updatedResp = await devSession.client.projectObject.upsert.mutate(updatedProjectObject);
+    const updatedResp =
+      await devSession.client.investmentProjectObject.upsert.mutate(updatedProjectObject);
 
     expect(updatedResp.projectObjectId).toBe(resp.projectObjectId);
 
@@ -154,7 +155,8 @@ test.describe('Project Object endpoints', () => {
       description: 'Partial update',
     };
 
-    const partialUpdateResp = await devSession.client.projectObject.upsert.mutate(partialUpdate);
+    const partialUpdateResp =
+      await devSession.client.investmentProjectObject.upsert.mutate(partialUpdate);
 
     expect(partialUpdateResp.projectObjectId).toBe(resp.projectObjectId);
   });
@@ -168,7 +170,7 @@ test.describe('Project Object endpoints', () => {
 
     const projectObject = testProjectObject(project.projectId, user);
 
-    const resp = await devSession.client.projectObject.upsert.mutate(projectObject);
+    const resp = await devSession.client.investmentProjectObject.upsert.mutate(projectObject);
     expect(resp.projectObjectId).toBeTruthy();
 
     const budget = await devSession.client.projectObject.getBudget.query({
@@ -182,6 +184,8 @@ test.describe('Project Object endpoints', () => {
       budgetItems: [
         {
           year: 2021,
+          estimate: 10000,
+          contractPrice: 10000,
           amount: 10000,
           forecast: 2500,
           kayttosuunnitelmanMuutos: 5000,
@@ -198,6 +202,8 @@ test.describe('Project Object endpoints', () => {
       {
         year: 2021,
         budgetItems: {
+          estimate: 10000,
+          contractPrice: 10000,
           amount: 10000,
           forecast: 2500,
           kayttosuunnitelmanMuutos: 5000,
@@ -211,12 +217,16 @@ test.describe('Project Object endpoints', () => {
       budgetItems: [
         {
           year: 2021,
+          estimate: 10000,
+          contractPrice: 10000,
           amount: 12500,
           forecast: -1000,
           kayttosuunnitelmanMuutos: 5000,
         },
         {
           year: 2022,
+          estimate: 10000,
+          contractPrice: 10000,
           amount: 7500,
           forecast: -2500,
           kayttosuunnitelmanMuutos: 0,
@@ -234,6 +244,8 @@ test.describe('Project Object endpoints', () => {
       {
         year: 2021,
         budgetItems: {
+          estimate: 10000,
+          contractPrice: 10000,
           amount: 12500,
           forecast: -1000,
           kayttosuunnitelmanMuutos: 5000,
@@ -242,6 +254,8 @@ test.describe('Project Object endpoints', () => {
       {
         year: 2022,
         budgetItems: {
+          estimate: 10000,
+          contractPrice: 10000,
           amount: 7500,
           forecast: -2500,
           kayttosuunnitelmanMuutos: 0,
@@ -250,18 +264,22 @@ test.describe('Project Object endpoints', () => {
     ]);
 
     const projectObject2 = testProjectObject(project.projectId, user);
-    const resp2 = await devSession.client.projectObject.upsert.mutate({
+    const resp2 = await devSession.client.investmentProjectObject.upsert.mutate({
       ...projectObject2,
       budgetUpdate: {
         budgetItems: [
           {
             year: 2021,
+            estimate: 10000,
+            contractPrice: 10000,
             amount: 7500,
             forecast: 2000,
             kayttosuunnitelmanMuutos: 1000,
           },
           {
             year: 2022,
+            estimate: 10000,
+            contractPrice: 10000,
             amount: 5000,
             forecast: -1000,
             kayttosuunnitelmanMuutos: 1000,
@@ -278,7 +296,8 @@ test.describe('Project Object endpoints', () => {
       {
         year: 2021,
         budgetItems: {
-          amount: null,
+          estimate: null,
+          amount: 20000, // Sum of project object amounts
           forecast: 1000,
           kayttosuunnitelmanMuutos: 6000,
         },
@@ -286,7 +305,8 @@ test.describe('Project Object endpoints', () => {
       {
         year: 2022,
         budgetItems: {
-          amount: null,
+          estimate: null,
+          amount: 12500, // Sum of project object amounts
           forecast: -3500,
           kayttosuunnitelmanMuutos: 1000,
         },
@@ -316,13 +336,16 @@ test.describe('Project Object endpoints', () => {
   test('project object validation with date constraints', async () => {
     const projectObjectData = testProjectObject(project.projectId, user);
 
-    const projectObject = await devSession.client.projectObject.upsert.mutate(projectObjectData);
+    const projectObject =
+      await devSession.client.investmentProjectObject.upsert.mutate(projectObjectData);
 
     const budgetUpdateInput = {
       projectObjectId: projectObject.projectObjectId,
       budgetItems: [
         {
           year: 2021,
+          estimate: 50000,
+          contractPrice: 50000,
           amount: 50000,
           forecast: 50000,
           kayttosuunnitelmanMuutos: 0,
@@ -350,11 +373,13 @@ test.describe('Project Object endpoints', () => {
   test('project object search', async () => {
     const user = await devSession.client.user.self.query();
 
-    await devSession.client.projectObject.upsert.mutate(testProjectObject(project.projectId, user));
-    await devSession.client.projectObject.upsert.mutate(
+    await devSession.client.investmentProjectObject.upsert.mutate(
+      testProjectObject(project.projectId, user),
+    );
+    await devSession.client.investmentProjectObject.upsert.mutate(
       testProjectObject2(project.projectId, user),
     );
-    await devSession.client.projectObject.upsert.mutate(
+    await devSession.client.investmentProjectObject.upsert.mutate(
       testProjectObject3(project.projectId, user),
     );
 

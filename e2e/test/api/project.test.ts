@@ -110,10 +110,11 @@ test.describe('Project endpoints', () => {
       budgetItems: [
         {
           year: 2021,
-          amount: 50000,
+          estimate: 50000,
         },
       ],
     };
+
     await devSession.client.project.updateBudget.mutate(budgetUpdateInput);
 
     const projectWithNewDates = { ...project, startDate: '2023-01-01', endDate: '2024-01-01' };
@@ -122,7 +123,7 @@ test.describe('Project endpoints', () => {
       await devSession.client.investmentProject.upsertValidate.query(projectWithNewDates);
 
     const projectObject = testProjectObject(project.projectId, user);
-    await devSession.client.projectObject.upsert.mutate(projectObject);
+    await devSession.client.investmentProjectObject.upsert.mutate(projectObject);
 
     const validationResultWithObject =
       await devSession.client.investmentProject.upsertValidate.query(projectWithNewDates);
@@ -177,11 +178,11 @@ test.describe('Project endpoints', () => {
       budgetItems: [
         {
           year: 2021,
-          amount: 50000,
+          estimate: 50000,
         },
         {
           year: 2022,
-          amount: 60000,
+          estimate: 60000,
         },
       ],
     };
@@ -200,7 +201,8 @@ test.describe('Project endpoints', () => {
       {
         year: 2021,
         budgetItems: {
-          amount: 50000,
+          estimate: 50000,
+          amount: null,
           forecast: null,
           kayttosuunnitelmanMuutos: null,
         },
@@ -208,7 +210,8 @@ test.describe('Project endpoints', () => {
       {
         year: 2022,
         budgetItems: {
-          amount: 60000,
+          estimate: 60000,
+          amount: null,
           forecast: null,
           kayttosuunnitelmanMuutos: null,
         },
@@ -220,7 +223,7 @@ test.describe('Project endpoints', () => {
       budgetItems: [
         {
           year: 2021,
-          amount: 70000,
+          estimate: 70000,
         },
       ],
     };
@@ -234,7 +237,8 @@ test.describe('Project endpoints', () => {
       {
         year: 2021,
         budgetItems: {
-          amount: 70000,
+          estimate: 70000,
+          amount: null,
           forecast: null,
           kayttosuunnitelmanMuutos: null,
         },
@@ -242,7 +246,8 @@ test.describe('Project endpoints', () => {
       {
         year: 2022,
         budgetItems: {
-          amount: 60000,
+          estimate: 60000,
+          amount: null,
           forecast: null,
           kayttosuunnitelmanMuutos: null,
         },
@@ -263,7 +268,7 @@ test.describe('Project endpoints', () => {
       budgetItems: [
         {
           year: 2021,
-          amount: 50000,
+          estimate: 50000,
         },
       ],
     };
@@ -278,7 +283,8 @@ test.describe('Project endpoints', () => {
       {
         year: 2021,
         budgetItems: {
-          amount: 50000,
+          estimate: 50000,
+          amount: null,
           forecast: null,
           kayttosuunnitelmanMuutos: null,
         },

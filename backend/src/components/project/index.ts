@@ -161,12 +161,13 @@ export async function getProjectBudget(projectId: string) {
     WITH project_budget AS (
       SELECT
         "year",
-        amount
+        estimate
       FROM app.budget
       WHERE project_id = ${projectId}
     ), project_object_budget AS (
       SELECT
         year,
+        sum(amount) AS amount,
         sum(forecast) AS forecast,
         sum(kayttosuunnitelman_muutos) AS kayttosuunnitelman_muutos
       FROM app.budget
@@ -176,7 +177,8 @@ export async function getProjectBudget(projectId: string) {
     SELECT
       coalesce(project_budget.year, project_object_budget.year) AS "year",
       jsonb_build_object(
-        'amount', project_budget.amount,
+        'estimate', project_budget.estimate,
+        'amount', project_object_budget.amount,
         'forecast', project_object_budget.forecast,
         'kayttosuunnitelmanMuutos', project_object_budget.kayttosuunnitelman_muutos
       ) AS "budgetItems"
@@ -202,15 +204,15 @@ export async function updateProjectBudget(
     DELETE FROM app.budget
     WHERE project_id = ${projectId}
       AND year = ANY (${sql.array(
-        budgetItems.map((yearBudget) => yearBudget.year),
+        budgetItems.map((budgetItem) => budgetItem.year),
         'int4',
       )})
   `);
 
   await tx.any(sql.untyped`
-    INSERT INTO app.budget (project_id, "year", amount)
+    INSERT INTO app.budget (project_id, "year", estimate)
     SELECT * FROM ${sql.unnest(
-      budgetItems.map((row) => [projectId, row.year, row.amount]),
+      budgetItems.map((row) => [projectId, row.year, row.estimate]),
       ['uuid', 'int4', 'int8'],
     )}
   `);

@@ -269,7 +269,7 @@ export function MaintenanceProject() {
                 <ProjectFinances
                   editable={userCanModifyFinances}
                   project={project.data}
-                  writableFields={['amount', 'forecast', 'kayttosuunnitelmanMuutos']}
+                  writableFields={['estimate', 'amount', 'forecast', 'kayttosuunnitelmanMuutos']}
                 />
               )}
               {tabView === 'luvitus' && (

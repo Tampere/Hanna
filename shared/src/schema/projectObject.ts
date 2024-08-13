@@ -16,6 +16,8 @@ export const updateBudgetSchema = z.object({
   budgetItems: z.array(
     z.object({
       year: z.number(),
+      estimate: z.number().nullable(),
+      contractPrice: z.number().nullable(),
       amount: z.number().nullable(),
       forecast: z.number().nullable(),
       kayttosuunnitelmanMuutos: z.number().nullable(),
@@ -166,6 +168,8 @@ export type UpdateGeometryResult = z.infer<typeof updateGeometryResultSchema>;
 export const yearBudgetSchema = z.object({
   year: z.number(),
   budgetItems: z.object({
+    estimate: z.number().nullable(),
+    contractPrice: z.number().nullable(),
     amount: z.number().nullable(),
     forecast: z.number().nullable(),
     kayttosuunnitelmanMuutos: z.number().nullable(),

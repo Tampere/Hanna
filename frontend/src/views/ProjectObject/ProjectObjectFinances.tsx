@@ -54,12 +54,13 @@ export function ProjectObjectFinances(props: Props) {
 
   function getWritableFields(): BudgetFields[] {
     if (props.userIsAdmin) {
-      return ['amount', 'forecast', 'kayttosuunnitelmanMuutos'];
+      return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
     } else if (props.userCanEditFinances) {
-      if (props.userIsEditor) return ['amount', 'kayttosuunnitelmanMuutos', 'forecast'];
-      return ['amount', 'kayttosuunnitelmanMuutos'];
+      if (props.userIsEditor)
+        return ['estimate', 'contractPrice', 'amount', 'kayttosuunnitelmanMuutos', 'forecast'];
+      return ['estimate', 'amount', 'contractPrice', 'kayttosuunnitelmanMuutos'];
     } else if (props.userIsEditor) {
-      return ['forecast'];
+      return ['estimate', 'contractPrice', 'forecast'];
     } else {
       return [];
     }
@@ -84,10 +85,20 @@ export function ProjectObjectFinances(props: Props) {
       budget={budget.data}
       actuals={yearlyActuals.data}
       actualsLoading={yearlyActuals.isFetching}
+      fields={[
+        'estimate',
+        'contractPrice',
+        'amount',
+        'forecast',
+        'kayttosuunnitelmanMuutos',
+        'actual',
+      ]}
       writableFields={getWritableFields()}
       onSave={async (yearBudgets) => {
         const payload = yearBudgets.map((yearBudget) => ({
           year: yearBudget.year,
+          estimate: yearBudget.budgetItems.estimate ?? null,
+          contractPrice: yearBudget.budgetItems.contractPrice ?? null,
           amount: yearBudget.budgetItems.amount,
           forecast: yearBudget.budgetItems?.forecast ?? null,
           kayttosuunnitelmanMuutos: yearBudget.budgetItems.kayttosuunnitelmanMuutos ?? null,

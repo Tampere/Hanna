@@ -120,7 +120,7 @@ test.describe('permission testing', () => {
       'non-owner cannot update the project',
     ).rejects.toThrowError('error.insufficientPermissions');
 
-    const newProjectObject = await devSession.client.projectObject.upsert.mutate({
+    const newProjectObject = await devSession.client.investmentProjectObject.upsert.mutate({
       projectId: testProjectId,
       objectName: 'Test project object',
       description: 'Test project object description',
@@ -157,7 +157,7 @@ test.describe('permission testing', () => {
       updates.description,
     );
 
-    const newProjectObject2 = await testSession.client.projectObject.upsert.mutate({
+    const newProjectObject2 = await testSession.client.investmentProjectObject.upsert.mutate({
       projectId: testProjectId,
       objectName: 'Test project object 2',
       description: 'Test project object description 2',

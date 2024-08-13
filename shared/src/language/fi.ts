@@ -239,9 +239,14 @@ export const fi = {
   'budgetTable.year': 'Vuosi',
   'budgetTable.yearHelp':
     'Talousluvut osoitetaan vuosikohtaisina. Näkymässä tarjolla olevat vuodet johdetaan suoraan käyttäjän kirjaamasta toteutusvälistä (alku- ja loppupäivämäärä).',
+  'budgetTable.estimate': 'Kustannusarvio',
+  'budgetTable.estimateHelp':
+    'Kustannusarvio on käyttäjän arvioima toteutukseen osoitettava rahamäärä',
+  'budgetTable.contractPrice': 'Sopimushinta',
+  'budgetTable.contractPriceHelp': 'Sopimushinta on urakoitsijan kanssa sovittu hinta',
   'budgetTable.budget': 'Talousarvio',
   'budgetTable.budgetHelp':
-    'Talousarvio on käyttäjän arvioima toteutukseen osoitettava rahamäärä, jonka valtuusto hyväksyy talousarviovuodelle ennen edellisen vuoden loppua. Kirjattava talousarvio on aina positiivinen luku, joka viittaa tulevaan kustannukseen. Talousarvion voi toistaiseksi kirjata sekä hanke- että kohdetasolla. Oikeus kirjata talousarvioita on rajattu vain tietyille käyttäjille.',
+    'Talousarvio on valtuuston hyväksymä rahamäärä talousarviovuodelle ennen edellisen vuoden loppua. Kirjattava talousarvio on aina positiivinen luku, joka viittaa tulevaan kustannukseen. Talousarvion voi kirjata vain kohdetasolla. Oikeus kirjata talousarvioita on rajattu vain tietyille käyttäjille.',
   'budgetTable.actual': 'Toteuma',
   'budgetTable.actualHelp':
     'Toteuma kertoo toteutukseen kuluneen rahasumman kahden desimaalin tarkkuudella. Toteuma haetaan suoraan SAP:sta, ja sen Hannassa esittämisen ehtona on, että sopiva SAP-tunniste on annettu tiedoksi. Hannasta käsin toteumaa ei voi muokata. Toteuma päivittyy kerran vuorokaudessa. Toteumaan tulevat huomioiduksi sekä tulot että menot. Positiivinen luku viittaa siihen, että kaupungille on syntynyt kustannuksia, kun taas negatiivinen luku viittaa siihen, että kaupungille on syntynyt tuloja. Huomioi, että toteumatietoa voi olla SAP:ssa mahdollisesti myös Hannaan kirjatun toteutusvälin ulkopuolella.',

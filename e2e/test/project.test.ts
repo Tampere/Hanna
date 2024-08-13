@@ -62,11 +62,11 @@ async function createProject(
 
   const lifecycleText = lifecycleStateToText[project.lifecycleState];
   if (lifecycleText) {
-    await page.getByLabel('Elinkaaren tila').click();
+    await page.getByLabel('Elinkaaren tila *', { exact: true }).click();
     await page.getByRole('option', { name: lifecycleText }).click();
   }
 
-  await page.getByLabel('Lautakunta').click();
+  await page.getByLabel('Lautakunta *', { exact: true }).click();
   await page.getByRole('option', { name: 'Yhdyskuntalautakunta' }).click();
 
   await page.getByRole('button', { name: 'Lisää hanke' }).click();
