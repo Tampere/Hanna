@@ -234,7 +234,7 @@ async function maybeCacheProjectInfo({ projectId, projectInfo }: MaybeCacheProje
   const hash = md5Hash(jsonProjectInfo);
 
   await getPool().transaction(async (conn) => {
-    conn.any(sql.untyped`
+    await conn.any(sql.untyped`
       INSERT INTO app.sap_projectinfo_raw (sap_project_id, raw_data, data_hash)
       VALUES (${projectId}, ${jsonProjectInfo}, ${hash})
       ON CONFLICT (sap_project_id, data_hash) DO UPDATE SET last_check = now()
@@ -360,7 +360,7 @@ async function maybeCacheSapActuals(projectId: string, actuals: SAPActual[]) {
   );
 
   await getPool().transaction(async (conn) => {
-    conn.any(sql.untyped`
+    await conn.any(sql.untyped`
       DELETE FROM app.sap_actuals_item
       WHERE sap_project_id = ${projectId}
         AND extract (year FROM posting_date) = ANY (${sql.array(
@@ -369,7 +369,7 @@ async function maybeCacheSapActuals(projectId: string, actuals: SAPActual[]) {
         )})
     `);
 
-    conn.any(sql.untyped`
+    await conn.any(sql.untyped`
       INSERT INTO app.sap_actuals_raw (sap_project_id, actuals_year, raw_data, data_hash)
       SELECT * FROM ${sql.unnest(
         Object.entries(actualsByYear).map(([year, actuals]) => {

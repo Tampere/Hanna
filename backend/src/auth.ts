@@ -132,9 +132,14 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
       if (error) logger.error(error);
 
       if (req.session) {
-        req.logOut();
+        req
+          .logOut()
+          .then(() => res.redirect(env.auth.logoutUrl))
+          .catch((error) => {
+            logger.info(`Error logging out, ${error}`);
+          });
       }
-      res.redirect(env.auth.logoutUrl as string);
+      res.redirect(env.auth.logoutUrl);
     });
   });
 

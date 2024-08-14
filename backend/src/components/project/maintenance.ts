@@ -89,7 +89,7 @@ export async function projectUpsert(
         RETURNING id AS "projectId"
       `);
 
-    tx.query(sql.untyped`
+    await tx.query(sql.untyped`
       DELETE FROM app.project_committee
       WHERE project_id = ${upsertResult.projectId}
     `);
@@ -107,7 +107,7 @@ export async function projectUpsert(
     );
 
     if (project.geom) {
-      updateProjectGeometry(
+      await updateProjectGeometry(
         tx,
         {
           projectId: upsertResult.projectId,
