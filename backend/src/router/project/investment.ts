@@ -9,7 +9,6 @@ import {
   validateUpsertProject,
 } from '@backend/components/project/investment.js';
 import { listProjects } from '@backend/components/project/search.js';
-import { logger } from '@backend/logging.js';
 import { TRPC } from '@backend/router/index.js';
 
 import { projectIdSchema } from '@shared/schema/project/base.js';

@@ -17,7 +17,7 @@ import {
   updateProjectGeometry,
 } from '@backend/components/project/index.js';
 import { listProjects, projectSearch } from '@backend/components/project/search.js';
-import { getProjectObjectsByProjectSearch } from '@backend/components/projectObject/index.js';
+import { getProjectObjectsByProjectSearch } from '@backend/components/projectObject/search.js';
 import { startReportJob } from '@backend/components/taskQueue/reportQueue.js';
 import { getPool } from '@backend/db.js';
 import { TRPC } from '@backend/router/index.js';
@@ -31,7 +31,7 @@ import {
   relationsSchema,
   updateGeometrySchema,
 } from '@shared/schema/project/index.js';
-import { projectObjectSearchResultSchema } from '@shared/schema/projectObject.js';
+import { projectObjectSearchResultSchema } from '@shared/schema/projectObject/search.js';
 import {
   ProjectAccessChecker,
   hasPermission,

@@ -278,9 +278,11 @@ export function InvestmentProject() {
                 projectObjects={
                   projectObjects.data?.map((obj) => ({
                     ...obj,
+                    objectStage: obj.objectStage ?? '',
                     project: {
                       projectId: projectId,
                       projectName: project.data?.projectName ?? '',
+                      projectType: 'investmentProject',
                     },
                   })) ?? []
                 }

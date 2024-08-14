@@ -87,21 +87,23 @@ export function ProjectObjectList(props: Props) {
                     {dayjs(projObj.startDate).format(tr('date.format'))} —{' '}
                     {dayjs(projObj.endDate).format(tr('date.format'))}
                   </Typography>
-                  <span
-                    css={css`
-                      padding: 2px 6px;
-                      font-size: x-small;
-                      font-weight: 500;
-                      color: #333;
-                      border-radius: 8px;
-                      background-color: ${projObj.objectStage === '01' ? '#91c9ea' : '#f1eeeb'};
-                      position: absolute;
-                      bottom: 0.5rem;
-                      right: 1rem;
-                    `}
-                  >
-                    {getObjectStageTextById(projObj.objectStage)}
-                  </span>
+                  {props.projectType === 'investointihanke' && (
+                    <span
+                      css={css`
+                        padding: 2px 6px;
+                        font-size: x-small;
+                        font-weight: 500;
+                        color: #333;
+                        border-radius: 8px;
+                        background-color: ${projObj.objectStage === '01' ? '#91c9ea' : '#f1eeeb'};
+                        position: absolute;
+                        bottom: 0.5rem;
+                        right: 1rem;
+                      `}
+                    >
+                      {getObjectStageTextById(projObj.objectStage)}
+                    </span>
+                  )}
                 </Box>
               </Card>
             </CardActionArea>

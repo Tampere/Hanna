@@ -106,7 +106,12 @@ export function SelectionInfoBox<
 
   function getLinkUrl(item: TProject | TProjectObject) {
     if (isProjectObject(item)) {
-      return `/investointihanke/${item?.project.projectId}/kohde/${item?.projectObjectId}`;
+      if (item.project.projectType === 'investmentProject') {
+        return `/investointihanke/${item?.project.projectId}/kohde/${item?.projectObjectId}`;
+      } else if (item.project.projectType === 'maintenanceProject') {
+        return `/kunnossapitohanke/${item?.project.projectId}/kohde/${item?.projectObjectId}`;
+      }
+      return '/kartta/kohteet';
     } else if (item.projectType === 'investmentProject') {
       return `/investointihanke/${item?.projectId}`;
     } else if (item.projectType === 'detailplanProject') {

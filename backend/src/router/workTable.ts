@@ -2,13 +2,16 @@ import { TRPCError } from '@trpc/server';
 import { FragmentSqlToken } from 'slonik';
 
 import { textToSearchTerms } from '@backend/components/project/search.js';
-import { getProjectObjects, upsertProjectObject } from '@backend/components/projectObject/index.js';
+import {
+  getProjectObjects,
+  upsertProjectObject,
+} from '@backend/components/projectObject/investment.js';
 import { startWorkTableReportJob } from '@backend/components/taskQueue/workTableReportQueue.js';
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
 import { TRPC } from '@backend/router/index.js';
 
-import { UpsertProjectObject } from '@shared/schema/projectObject.js';
+import { UpsertInvestmentProjectObject } from '@shared/schema/projectObject/investment.js';
 import { User } from '@shared/schema/user.js';
 import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions.js';
 import {
@@ -110,6 +113,9 @@ export async function workTableSearch(input: WorkTableSearch) {
   WITH search_results AS (
     SELECT
       project_object.*,
+      poi.object_stage,
+      poi.rakennuttaja_user,
+      poi.suunnitteluttaja_user,
       project.id AS "projectId",
       project.project_name,
       dense_rank() OVER (ORDER BY project.project_name)::int4 AS "projectIndex",
@@ -117,6 +123,7 @@ export async function workTableSearch(input: WorkTableSearch) {
       project.start_date AS project_start_date,
       project.end_date AS project_end_date
     FROM app.project_object
+    LEFT JOIN app.project_object_investment poi ON project_object.id = poi.project_object_id
     INNER JOIN app.project ON project.id = project_object.project_id
     INNER JOIN app.project_investment ON project_investment.id = project.id
     LEFT JOIN app.project_object_user_role pour ON project_object.id = pour.project_object_id
@@ -148,12 +155,12 @@ export async function workTableSearch(input: WorkTableSearch) {
       )
       AND (
         ${sql.array(objectStage, 'text')} = '{}'::TEXT[] OR
-        (project_object.object_stage).id = ANY(${sql.array(objectStage, 'text')})
+        (poi.object_stage).id = ANY(${sql.array(objectStage, 'text')})
       )
-    GROUP BY project_object.id, project.id
+    GROUP BY project_object.id, poi.project_object_id, project.id
     ${
       objectParticipantUser
-        ? sql.fragment`HAVING rakennuttaja_user = ${objectParticipantUser} OR suunnitteluttaja_user = ${objectParticipantUser} OR ${objectParticipantUser} = ANY(array_agg(pour.user_id))`
+        ? sql.fragment`HAVING poi.rakennuttaja_user = ${objectParticipantUser} OR poi.suunnitteluttaja_user = ${objectParticipantUser} OR ${objectParticipantUser} = ANY(array_agg(pour.user_id))`
         : sql.fragment``
     }
   ), po_budget AS (
@@ -220,7 +227,7 @@ async function workTableUpdate(input: WorkTableUpdate, user: User) {
           },
         ],
       },
-    } as UpsertProjectObject;
+    } as UpsertInvestmentProjectObject;
   });
 
   return await getPool().transaction(async (tx) => {

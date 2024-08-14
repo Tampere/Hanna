@@ -123,6 +123,7 @@ test.describe('Project endpoints', () => {
       await devSession.client.investmentProject.upsertValidate.query(projectWithNewDates);
 
     const projectObject = testProjectObject(project.projectId, user);
+
     await devSession.client.investmentProjectObject.upsert.mutate(projectObject);
 
     const validationResultWithObject =

@@ -29,8 +29,9 @@ import {
 } from '@shared/schema/userPermissions';
 
 import { DeleteProjectObjectDialog } from './DeleteProjectObjectDialog';
+import { InvestmentProjectObjectForm } from './InvestmentProjectObjectForm';
+import { MaintenanceProjectObjectForm } from './MaintenanceProjectObjectForm';
 import { ProjectObjectFinances } from './ProjectObjectFinances';
-import { ProjectObjectForm } from './ProjectObjectForm';
 
 type TabView = 'default' | 'talous' | 'vaiheet';
 
@@ -84,7 +85,7 @@ const mapContainerStyle = css`
 `;
 
 interface Props {
-  projectType: ProjectTypePath;
+  projectType: Exclude<ProjectTypePath, 'asemakaavahanke'>;
 }
 
 export function ProjectObject(props: Props) {
@@ -103,16 +104,26 @@ export function ProjectObject(props: Props) {
   const tabs = projectObjectTabs(routeParams.projectId, props.projectType, projectObjectId);
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
 
-  const projectObject = trpc.projectObject.get.useQuery(
-    {
-      projectId: routeParams.projectId,
-      projectObjectId,
-    },
-    { enabled: Boolean(projectObjectId) },
-  );
+  const projectObject =
+    props.projectType === 'investointihanke'
+      ? trpc.investmentProjectObject.get.useQuery(
+          {
+            projectId: routeParams.projectId,
+            projectObjectId,
+          },
+          { enabled: Boolean(projectObjectId) },
+        )
+      : trpc.maintenanceProjectObject.get.useQuery(
+          {
+            projectId: routeParams.projectId,
+            projectObjectId,
+          },
+          { enabled: Boolean(projectObjectId) },
+        );
   const projectObjects = trpc.projectObject.getByProjectId.useQuery({
     projectId: routeParams.projectId,
   });
+
   const user = useAtomValue(asyncUserAtom);
 
   const [geom, setGeom] = useState<string | null>(null);
@@ -254,16 +265,30 @@ export function ProjectObject(props: Props) {
 
       <div css={pageContentStyle}>
         <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
-          <ProjectObjectForm
-            userIsOwner={isOwner}
-            userCanWrite={canWrite}
-            projectId={routeParams.projectId}
-            projectType={props.projectType}
-            projectObject={projectObject.data}
-            geom={geom}
-            setProjectId={setProjectId}
-            navigateTo={navigateTo}
-          />
+          {props.projectType === 'investointihanke' && (
+            <InvestmentProjectObjectForm
+              userIsOwner={isOwner}
+              userCanWrite={canWrite}
+              projectId={routeParams.projectId}
+              projectType={props.projectType}
+              projectObject={projectObject.data}
+              geom={geom}
+              setProjectId={setProjectId}
+              navigateTo={navigateTo}
+            />
+          )}
+          {props.projectType === 'kunnossapitohanke' && (
+            <MaintenanceProjectObjectForm
+              userIsOwner={isOwner}
+              userCanWrite={canWrite}
+              projectId={routeParams.projectId}
+              projectType={props.projectType}
+              projectObject={projectObject.data}
+              geom={geom}
+              setProjectId={setProjectId}
+              navigateTo={navigateTo}
+            />
+          )}
           {projectObject.data && (
             <DeleteProjectObjectDialog
               projectId={routeParams.projectId}
@@ -328,6 +353,7 @@ export function ProjectObject(props: Props) {
                       project: {
                         projectId: projectId,
                         projectName: project.data?.projectName ?? '',
+                        projectType: project.data?.projectType,
                       },
                     })) ?? []
                 }

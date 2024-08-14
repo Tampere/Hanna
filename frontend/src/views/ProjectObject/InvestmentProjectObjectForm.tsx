@@ -33,10 +33,10 @@ import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 import { mergeErrors } from '@shared/formerror';
 import { ProjectListItem } from '@shared/schema/project';
 import {
-  UpsertProjectObject,
-  newProjectObjectSchema,
-  upsertProjectObjectSchema,
-} from '@shared/schema/projectObject';
+  UpsertInvestmentProjectObject,
+  newInvestmentProjectObjectSchema,
+  upsertInvestmentProjectObjectSchema,
+} from '@shared/schema/projectObject/investment';
 
 import { ProjectObjectFormUserRoles } from './ProjectObjectFormUserRoles';
 
@@ -48,7 +48,7 @@ const newProjectFormStyle = css`
 interface Props {
   projectId?: string;
   projectType: ProjectTypePath;
-  projectObject?: UpsertProjectObject | null;
+  projectObject?: UpsertInvestmentProjectObject | null;
   geom?: string | null;
   setProjectId?: (projectId: string) => void;
   navigateTo?: string | null;
@@ -83,8 +83,8 @@ function ProjectAutoComplete(props: Readonly<ProjectAutoCompleteProps>) {
 
 function SaveOptionsButton(
   props: Readonly<{
-    form: ReturnType<typeof useForm<UpsertProjectObject>>;
-    onSubmit: (data: UpsertProjectObject) => void;
+    form: ReturnType<typeof useForm<UpsertInvestmentProjectObject>>;
+    onSubmit: (data: UpsertInvestmentProjectObject) => void;
   }>,
 ) {
   const tr = useTranslations();
@@ -144,7 +144,7 @@ function SaveOptionsButton(
   );
 }
 
-export function ProjectObjectForm(props: Readonly<Props>) {
+export function InvestmentProjectObjectForm(props: Readonly<Props>) {
   const tr = useTranslations();
   const notify = useNotifications();
   const queryClient = useQueryClient();
@@ -193,12 +193,12 @@ export function ProjectObjectForm(props: Readonly<Props>) {
 
   const { projectObject } = trpc.useUtils();
   const formValidator = useMemo(() => {
-    const schemaValidation = zodResolver(upsertProjectObjectSchema);
+    const schemaValidation = zodResolver(upsertInvestmentProjectObjectSchema);
 
     return async function formValidation(
-      values: UpsertProjectObject,
+      values: UpsertInvestmentProjectObject,
       context: object,
-      options: ResolverOptions<UpsertProjectObject>,
+      options: ResolverOptions<UpsertInvestmentProjectObject>,
     ) {
       const fields = options.names ?? [];
 
@@ -219,11 +219,11 @@ export function ProjectObjectForm(props: Readonly<Props>) {
     };
   }, []);
 
-  const form = useForm<UpsertProjectObject>({
+  const form = useForm<UpsertInvestmentProjectObject>({
     mode: 'all',
     resolver: formValidator,
     context: {
-      requiredFields: getRequiredFields(newProjectObjectSchema),
+      requiredFields: getRequiredFields(newInvestmentProjectObjectSchema),
     },
     defaultValues: props.projectObject ?? {
       projectId: props.projectId,
@@ -245,7 +245,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
 
   const formProjectId = form.watch('projectId');
 
-  const projectObjectUpsert = trpc.projectObject.upsert.useMutation({
+  const projectObjectUpsert = trpc.investmentProjectObject.upsert.useMutation({
     onSuccess: (data) => {
       if (!props.projectObject && data.projectObjectId) {
         navigate(`/${props.projectType}/${data.projectId}/kohde/${data.projectObjectId}`);
@@ -283,11 +283,11 @@ export function ProjectObjectForm(props: Readonly<Props>) {
     }
   }, [form.formState.isSubmitSuccessful, form.reset]);
 
-  const onSubmit = (data: UpsertProjectObject) => {
+  const onSubmit = (data: UpsertInvestmentProjectObject) => {
     projectObjectUpsert.mutate({ ...data, geom: props.geom });
   };
 
-  const saveAndReturn = (data: UpsertProjectObject) => {
+  const saveAndReturn = (data: UpsertInvestmentProjectObject) => {
     projectObjectUpsert.mutate(
       { ...data, geom: props.geom },
       {

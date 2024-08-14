@@ -5,23 +5,24 @@ import superjson from 'superjson';
 import { logger } from '@backend/logging.js';
 import { createCodeRouter } from '@backend/router/code.js';
 import { createCompanyRouter } from '@backend/router/company.js';
+import { createGeneralNotificationRouter } from '@backend/router/generalNotification.js';
+import { createJobRouter } from '@backend/router/job.js';
 import { createProjectRouter } from '@backend/router/project/base.js';
 import { createDetailplanProjectRouter } from '@backend/router/project/detailplan.js';
 import { createInvestmentProjectRouter } from '@backend/router/project/investment.js';
 import { createMaintenanceProjectRouter } from '@backend/router/project/maintenance.js';
-import { createProjectObjectRouter } from '@backend/router/projectObject.js';
+import { createProjectObjectRouter } from '@backend/router/projectObject/base.js';
+import { createInvestmentProjectObjectRouter } from '@backend/router/projectObject/investment.js';
+import { createMaintenanceProjectObjectRouter } from '@backend/router/projectObject/maintenance.js';
 import { createSapRouter } from '@backend/router/sap.js';
+import { createSapReportRouter } from '@backend/router/sapReport.js';
+import { createSessionRouter } from '@backend/router/session.js';
 import { createTaskRouter } from '@backend/router/task.js';
+import { createUserRouter } from '@backend/router/user.js';
 import { createUserPermissionsRouter } from '@backend/router/userPermissions.js';
 import { createWorkTableRouter } from '@backend/router/workTable.js';
 
 import { User } from '@shared/schema/user.js';
-
-import { createGeneralNotificationRouter } from './generalNotification.js';
-import { createJobRouter } from './job.js';
-import { createSapReportRouter } from './sapReport.js';
-import { createSessionRouter } from './session.js';
-import { createUserRouter } from './user.js';
 
 export function createContext({ req, res }: CreateFastifyContextOptions) {
   // FIXME: user is serialized as string, but PassportUser is an object, need to
@@ -47,6 +48,8 @@ export const appRouter = t.router({
   maintenanceProject: createMaintenanceProjectRouter(t),
   detailplanProject: createDetailplanProjectRouter(t),
   projectObject: createProjectObjectRouter(t),
+  investmentProjectObject: createInvestmentProjectObjectRouter(t),
+  maintenanceProjectObject: createMaintenanceProjectObjectRouter(t),
   code: createCodeRouter(t),
   sap: createSapRouter(t),
   sapReport: createSapReportRouter(t),

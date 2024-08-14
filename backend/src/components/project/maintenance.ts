@@ -11,6 +11,7 @@ import {
 import { updateProjectGeometry } from '@backend/components/project/index.js';
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
+import { parseOptionalString } from '@backend/utils.js';
 
 import { hasErrors } from '@shared/formerror.js';
 import { projectIdSchema } from '@shared/schema/project/base.js';
@@ -86,11 +87,10 @@ export async function projectUpsert(
 
     const data = {
       id,
-      contract: project.contract ?? null,
-      decision: project.decision ?? null,
-      purchase_order_number: project.poNumber ?? null,
+      contract: parseOptionalString(project.contract),
+      decision: parseOptionalString(project.decision),
+      purchase_order_number: parseOptionalString(project.poNumber),
     };
-
     const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
     const values = Object.values(data);
 

@@ -1,6 +1,5 @@
 import dayjs from 'dayjs';
 import { Workbook } from 'excel4node';
-import { ProjectObjectUserRole } from 'tre-hanna-shared/src/schema/projectObject.js';
 
 import { getCodesForCodeList } from '@backend/components/code/index.js';
 import { buildSheet } from '@backend/components/report/index.js';
@@ -13,6 +12,7 @@ import { workTableSearch } from '@backend/router/workTable.js';
 import { reportDateFormat } from '@shared/date.js';
 import { TranslationKey, translations } from '@shared/language/index.js';
 import { Code } from '@shared/schema/code.js';
+import { ProjectObjectUserRole } from '@shared/schema/projectObject/base.js';
 import {
   WorkTableRow,
   WorkTableSearch,

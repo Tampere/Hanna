@@ -6,19 +6,21 @@ import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { getRange } from '@frontend/utils/array';
 
-import { DBProjectObject } from '@shared/schema/projectObject';
+import { CommonDbProjectObject } from '@shared/schema/projectObject/base';
 
 import { BudgetFields, BudgetTable } from '../Project/BudgetTable';
 
-interface Props {
-  projectObject: DBProjectObject;
+interface Props<TProjectObject extends CommonDbProjectObject> {
+  projectObject: TProjectObject;
   userCanEditFinances?: boolean;
   userIsEditor?: boolean;
   userCanWrite?: boolean;
   userIsAdmin?: boolean;
 }
 
-export function ProjectObjectFinances(props: Props) {
+export function ProjectObjectFinances<TProjectObject extends CommonDbProjectObject>(
+  props: Props<TProjectObject>,
+) {
   const { projectObject } = props;
   const budget = !projectObject.projectObjectId
     ? null

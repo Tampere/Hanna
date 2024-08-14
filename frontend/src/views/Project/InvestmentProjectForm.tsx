@@ -165,7 +165,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
             projectId: data.sapProjectId,
           })
         : true;
-    } catch (error) {
+    } catch {
       validOrEmptySAPId = false;
     }
     if (!validOrEmptySAPId) {

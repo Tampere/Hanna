@@ -11,7 +11,7 @@ import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 
 import { Code, CodeId } from '@shared/schema/code';
-import { ProjectObjectUserRole } from '@shared/schema/projectObject';
+import { ProjectObjectUserRole } from '@shared/schema/projectObject/base';
 
 interface Props {
   value: ProjectObjectUserRole[];

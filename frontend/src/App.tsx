@@ -52,16 +52,17 @@ const router = createBrowserRouter(
         <Route path="kohde/uusi" element={<ProjectObject projectType="investointihanke" />} />
         <Route path="kunnossapitohanke/luo" element={<MaintenanceProject />} />
         <Route path="kunnossapitohanke/:projectId" element={<MaintenanceProject />} />
+        <Route
+          path="kunnossapitohanke/:projectId/uusi-kohde"
+          element={<ProjectObject projectType="kunnossapitohanke" />}
+        />
+        <Route
+          path="kunnossapitohanke/:projectId/kohde/:projectObjectId"
+          element={<ProjectObject projectType="kunnossapitohanke" />}
+        />
         <Route path="asemakaavahanke/luo" element={<DetailplanProject />} />
         <Route path="asemakaavahanke/:projectId" element={<DetailplanProject />} />
-        <Route
-          path="asemakaavahanke/:projectId/uusi-kohde"
-          element={<ProjectObject projectType="asemakaavahanke" />}
-        />
-        <Route
-          path="asemakaavahanke/:projectId/kohde/:projectObjectId"
-          element={<ProjectObject projectType="asemakaavahanke" />}
-        />
+
         {import.meta.env.VITE_FEATURE_SAP_REPORTS === 'true' && (
           <Route path="sap-raportit/:tabView" element={<SapReports />} />
         )}

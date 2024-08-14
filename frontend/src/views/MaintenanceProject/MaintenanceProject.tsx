@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { Euro, KeyTwoTone, Map, Undo } from '@mui/icons-material';
+import { Euro, KeyTwoTone, ListAlt, Map, Undo } from '@mui/icons-material';
 import { Alert, Box, Breadcrumbs, Button, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import VectorSource from 'ol/source/Vector';
@@ -17,9 +17,11 @@ import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { getProjectObjectsLayer } from '@frontend/stores/map';
+import { MaintenanceProjectForm } from '@frontend/views/MaintenanceProject/MaintenanceProjectForm';
 import { DeleteProjectDialog } from '@frontend/views/Project/DeleteProjectDialog';
 import { ProjectFinances } from '@frontend/views/Project/ProjectFinances';
 import { ProjectPermissions } from '@frontend/views/Project/ProjectPermissions';
+import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
 
 import { User } from '@shared/schema/user';
 import {
@@ -28,8 +30,6 @@ import {
   hasWritePermission,
   ownsProject,
 } from '@shared/schema/userPermissions';
-
-import { MaintenanceProjectForm } from './MaintenanceProjectForm';
 
 const pageContentStyle = css`
   display: grid;
@@ -60,6 +60,13 @@ function getTabs(projectId: string) {
       url: `/kunnossapitohanke/${projectId}?tab=talous`,
       label: 'project.financeTabLabel',
       icon: <Euro fontSize="small" />,
+      hasAccess: () => true,
+    },
+    {
+      tabView: 'kohteet',
+      url: `/kunnossapitohanke/${projectId}?tab=kohteet`,
+      label: 'project.projectObjectsTabLabel',
+      icon: <ListAlt fontSize="small" />,
       hasAccess: () => true,
     },
     {
@@ -269,7 +276,14 @@ export function MaintenanceProject() {
                 <ProjectFinances
                   editable={userCanModifyFinances}
                   project={project.data}
-                  writableFields={['estimate', 'amount', 'forecast', 'kayttosuunnitelmanMuutos']}
+                  writableFields={['estimate', 'forecast', 'kayttosuunnitelmanMuutos']}
+                />
+              )}
+              {tabView === 'kohteet' && (
+                <ProjectObjectList
+                  editable={userCanModify}
+                  projectId={projectId}
+                  projectType="kunnossapitohanke"
                 />
               )}
               {tabView === 'luvitus' && (

@@ -16,7 +16,7 @@ import { ProjectObjectResultsMap } from '@frontend/views/ProjectObject/ProjectOb
 import { SearchControls } from '@frontend/views/ProjectObject/SearchControls';
 
 import { Code } from '@shared/schema/code';
-import { ProjectObjectSearchResult } from '@shared/schema/projectObject';
+import { ProjectObjectSearchResult } from '@shared/schema/projectObject/search';
 
 const projectObjectCardStyle = (highlighted: boolean) => css`
   padding: 12px;
