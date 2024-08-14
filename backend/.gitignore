@@ -2,4 +2,6 @@ node_modules
 .env
 dist
 .history
+tsconfig.trpc.tsbuildinfo
+tsconfig.tsbuildinfo
 

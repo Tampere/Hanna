@@ -52,7 +52,7 @@ export const createSapRouter = (t: TRPC) =>
                   };
                 }) ?? []
             );
-          } catch (error) {
+          } catch {
             logger.info(`Error getting sap project for wbs selection`);
             return [];
           }
