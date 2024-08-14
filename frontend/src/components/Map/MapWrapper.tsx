@@ -71,6 +71,7 @@ export interface ProjectObjectData {
   project: {
     projectId: string;
     projectName: string;
+    projectType?: ProjectData['projectType'];
   };
 }
 

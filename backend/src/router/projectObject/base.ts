@@ -1,32 +1,27 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
-import { getPermissionContext as getProjectPermissionCtx } from '@backend/components/project/base.js';
 import {
   deleteProjectObject,
   getGeometriesByProjectId,
   getPermissionContext,
-  getProjectObject,
   getProjectObjectBudget,
   getProjectObjectsByProjectId,
-  projectObjectSearch,
   updateProjectObjectBudget,
   updateProjectObjectGeometry,
-  upsertProjectObject,
   validateUpsertProjectObject,
 } from '@backend/components/projectObject/index.js';
+import { projectObjectSearch } from '@backend/components/projectObject/search.js';
 import { getPool } from '@backend/db.js';
 import { TRPC } from '@backend/router/index.js';
 
 import { nonEmptyString } from '@shared/schema/common.js';
 import {
   deleteProjectObjectSchema,
-  getProjectObjectParams,
-  projectObjectSearchSchema,
   updateBudgetSchema,
   updateGeometrySchema,
-  upsertProjectObjectSchema,
-} from '@shared/schema/projectObject.js';
+} from '@shared/schema/projectObject/base.js';
+import { projectObjectSearchSchema } from '@shared/schema/projectObject/search.js';
 import {
   ProjectAccessChecker,
   hasPermission,
@@ -48,7 +43,7 @@ import {
  * @returns {Function} A middleware function that checks if a user has access to a project.
  */
 
-const createAccessMiddleware = (t: TRPC) => (canAccess: ProjectAccessChecker) =>
+export const createAccessMiddleware = (t: TRPC) => (canAccess: ProjectAccessChecker) =>
   t.middleware(async (opts) => {
     const { ctx, input, next } = opts;
     if (!isProjectObjectIdInput(input)) {
@@ -71,14 +66,6 @@ export const createProjectObjectRouter = (t: TRPC) => {
   const withAccess = createAccessMiddleware(t);
 
   return t.router({
-    get: t.procedure.input(getProjectObjectParams).query(async ({ input }) => {
-      return await getPool().transaction(async (tx) => {
-        const projectObject = await getProjectObject(tx, input.projectObjectId);
-        const permissionCtx = await getPermissionContext(input.projectObjectId, tx);
-        return { ...projectObject, acl: permissionCtx };
-      });
-    }),
-
     search: t.procedure.input(projectObjectSearchSchema).query(async ({ input }) => {
       return await projectObjectSearch(input);
     }),
@@ -108,24 +95,6 @@ export const createProjectObjectRouter = (t: TRPC) => {
     }),
 
     // Mutations requiring write permissions / project ownership
-
-    upsert: t.procedure.input(upsertProjectObjectSchema).mutation(async ({ input, ctx }) => {
-      return await getPool().transaction(async (tx) => {
-        let permissionCtx;
-        if (!input.projectObjectId && input.projectId) {
-          permissionCtx = await getProjectPermissionCtx(input.projectId, tx);
-        } else if (input.projectObjectId) {
-          permissionCtx = await getPermissionContext(input.projectObjectId, tx);
-        } else {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.invalidInput' });
-        }
-
-        if (!hasWritePermission(ctx.user, permissionCtx) && !ownsProject(ctx.user, permissionCtx)) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.insufficientPermissions' });
-        }
-        return upsertProjectObject(tx, input, ctx.user.id);
-      });
-    }),
 
     updateGeometry: t.procedure
       .input(updateGeometrySchema)

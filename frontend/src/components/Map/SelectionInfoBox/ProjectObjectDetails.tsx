@@ -69,8 +69,12 @@ export function ProjectObjectDetails<TProjectObject extends ProjectObjectData>({
         {dayjs(projectObject.startDate).format(tr('date.format'))} –{' '}
         {dayjs(projectObject.endDate).format(tr('date.format'))}
       </dd>
-      <dt>{tr('itemInfoBox.objectStage')}:</dt>
-      <dd>{objectStageCodes.get(projectObject.objectStage)?.[lang]}</dd>
+      {projectObject.objectStage && (
+        <>
+          <dt>{tr('itemInfoBox.objectStage')}:</dt>
+          <dd>{objectStageCodes.get(projectObject.objectStage)?.[lang]}</dd>
+        </>
+      )}
       <dt>{tr('itemInfoBox.projectName')}:</dt>
       <dd
         css={css`
@@ -82,6 +86,11 @@ export function ProjectObjectDetails<TProjectObject extends ProjectObjectData>({
         className="long"
       >
         {projectObject.project.projectName}
+      </dd>
+      <dt>{tr('itemInfoBox.projectType')}:</dt>
+      <dd>
+        {projectObject.project.projectType &&
+          tr(`projectType.${projectObject.project.projectType}.short`)}
       </dd>
     </dl>
   );

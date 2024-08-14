@@ -158,13 +158,13 @@ export function GeneralNotificationForm({ notification, onUpsertSuccess }: Props
           <FormField
             formField="title"
             label={tr('generalNotificationForm.headerFieldLabel')}
-            tooltip={tr('generalNotificationForm.headerFieldTooltip')}
+            errorTooltip={tr('generalNotificationForm.headerFieldTooltip')}
             component={(field) => <TextField {...field} size="small" autoFocus />}
           />
           <FormField
             formField={'message'}
             label={tr('generalNotificationForm.messageEditorFieldLabel')}
-            tooltip={tr('generalNotificationForm.messageEditorFieldTooltip')}
+            errorTooltip={tr('generalNotificationForm.messageEditorFieldTooltip')}
             component={({ value, onChange }) => (
               <GeneralNotificationTextEditor
                 value={value}

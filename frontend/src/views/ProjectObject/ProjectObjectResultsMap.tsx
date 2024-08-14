@@ -18,7 +18,7 @@ import { mapAtom } from '@frontend/stores/search/projectObject';
 import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 
 import { ProjectObjectSearchParentProject } from '@shared/schema/project';
-import { ProjectObjectSearchResult } from '@shared/schema/projectObject';
+import { ProjectObjectSearchResult } from '@shared/schema/projectObject/search';
 
 const resultMapContainerStyle = css`
   min-height: 320px;

@@ -80,13 +80,22 @@ export const fi = {
     'Kunnossapitohanketta kehitetään ja tuodaan saataville Hannaan askelittain. Kunnossapitohankkeen tuotantokäytön aloituksen tarkasta ajankohdasta sovitaan erikseen asianomaisten kanssa. Kunnossapitohankkeita ei suositella toistaiseksi avattavan tuotantoon, eli osoitteessa hanna.tampere.fi.',
   'newInvestmentProject.formTitle': 'Uusi investointihanke',
   'newMaintenanceProject.formTitle': 'Uusi kunnossapitohanke',
-  'newProject.projectNameTooltip': 'Syötä hankkeelle nimi.',
-  'newProject.descriptionTooltip': 'Syötä hankkeelle kuvaus.',
+  'maintenanceProject.contract': 'Sopimus',
+  'maintenanceProject.contractTooltip': 'Syötä sopimuksen nimi.',
+  'maintenanceProject.decision': 'Päätös',
+  'maintenanceProject.decisionTooltip': 'Syötä päätöksen nimi.',
+  'maintenanceProject.poNumber': 'Ostotilausnumero',
+  'maintenanceProject.poNumberTooltip': 'Syötä ostotilausnumero.',
+  'newProject.projectNameTooltip':
+    'Hankkeen nimi on yksilöllinen ja kuvaa alueellista kokonaisuutta. Kaava-aluetta kuvaavassa nimessä mainitaan kaavan numero. Uutta hanketta luotaessa on varmistettava, ettei hanketta ole jo perustettu.',
+  'newProject.descriptionTooltip':
+    'Hankkeen kuvaukseen kirjataan lyhyesti hankkeen sisältö ja mahdolliset perustelut sekä alueelliset tavoitteet.',
   'newProject.startDateTooltip': 'Valitse hankkeen alkuajankohta.',
   'newProject.endDateTooltip': 'Valitse hankkeen loppuajankohta.',
   'newProject.lifecycleStateTooltip': 'Valitse elinkaaren tila.',
   'newProject.ownerTooltip': 'Valitse omistaja.',
   'newProject.committeeTooltip': 'Valitse lautakunta.',
+  'newProject.sapProjectIdTooltip': 'Syötä hankkeen SAP-projektin ID.',
   'newProject.basicInfoSectionLabel': 'Perustiedot',
   'newProject.infoNoGeom': 'Olet luomassa hankkeen ilman aluetta.',
   'newProject.createBtnLabel': 'Lisää hanke',
@@ -232,9 +241,17 @@ export const fi = {
   'budgetTable.year': 'Vuosi',
   'budgetTable.yearHelp':
     'Talousluvut osoitetaan vuosikohtaisina. Näkymässä tarjolla olevat vuodet johdetaan suoraan käyttäjän kirjaamasta toteutusvälistä (alku- ja loppupäivämäärä).',
+  'budgetTable.estimate': 'Kustannusarvio',
+  'budgetTable.projectEstimateHelp':
+    'Hankkeen suunniteltu kustannus, joka on ehdolla talousarvioon.',
+  'budgetTable.projectObjectEstimateHelp':
+    'Kohteen suunniteltu kustannus, joka on ehdolla talousarvioon.',
+  'budgetTable.contractPrice': 'Sopimushinta',
+  'budgetTable.contractPriceHelp':
+    'Kohteen toteuttamiseksi laaditun urakkasopimuksen kokonaishinta.',
   'budgetTable.budget': 'Talousarvio',
   'budgetTable.budgetHelp':
-    'Talousarvio on käyttäjän arvioima toteutukseen osoitettava rahamäärä, jonka valtuusto hyväksyy talousarviovuodelle ennen edellisen vuoden loppua. Kirjattava talousarvio on aina positiivinen luku, joka viittaa tulevaan kustannukseen. Talousarvion voi toistaiseksi kirjata sekä hanke- että kohdetasolla. Oikeus kirjata talousarvioita on rajattu vain tietyille käyttäjille.',
+    'Talousarvio on valtuuston hyväksymä rahamäärä talousarviovuodelle ennen edellisen vuoden loppua. Kirjattava talousarvio on aina positiivinen luku, joka viittaa tulevaan kustannukseen. Talousarvion voi kirjata vain kohdetasolla. Oikeus kirjata talousarvioita on rajattu vain tietyille käyttäjille.',
   'budgetTable.actual': 'Toteuma',
   'budgetTable.actualHelp':
     'Toteuma kertoo toteutukseen kuluneen rahasumman kahden desimaalin tarkkuudella. Toteuma haetaan suoraan SAP:sta, ja sen Hannassa esittämisen ehtona on, että sopiva SAP-tunniste on annettu tiedoksi. Hannasta käsin toteumaa ei voi muokata. Toteuma päivittyy kerran vuorokaudessa. Toteumaan tulevat huomioiduksi sekä tulot että menot. Positiivinen luku viittaa siihen, että kaupungille on syntynyt kustannuksia, kun taas negatiivinen luku viittaa siihen, että kaupungille on syntynyt tuloja. Huomioi, että toteumatietoa voi olla SAP:ssa mahdollisesti myös Hannaan kirjatun toteutusvälin ulkopuolella.',
@@ -251,14 +268,18 @@ export const fi = {
   'newProjectObject.title': 'Uusi kohde',
   'newProjectObject.notifyUpsert': 'Kohteen tiedot tallennettu.',
   'newProjectObject.notifyUpsertFailed': 'Kohteen tallennus epäonnistui.',
+  'projectObject.nameTooltip':
+    'Kohteen nimi on yksilöllinen ja kohdetta luotaessa on varmistettava, ettei kohdetta ole jo perustettu. Nimi on sama kuin SAP-rakenneosalla.',
+  'projectObject.nameErrorTooltip': 'Syötä kohteen nimi',
+  'projectObject.descriptionTooltip':
+    'Kohteen kuvaukseen kirjataan lyhyesti kohteen sisältö, toimenpiteet ja perustelut.',
+  'projectObject.descriptionErrorTooltip': 'Syötä kohteen kuvaus',
   'projectObject.nameLabel': 'Nimi',
   'projectObject.nameLabelFull': 'Kohteen nimi',
-  'projectObject.nameTooltip': 'Syötä kohteen nimi.',
   'projectObject.projectLabel': 'Hanke',
   'projectObject.projectTooltip': 'Valitse hanke, jolle kohde lisätään.',
   'projectObject.createNewBtnLabel': 'Luo uusi kohde',
   'projectObject.descriptionLabel': 'Kuvaus',
-  'projectObject.descriptionTooltip': 'Syötä kohteen kuvaus.',
   'projectObject.suunnitteluttajaUserLabel': 'Suunnitteluttaja',
   'projectObject.suunnitteluttajaUserTooltip': 'Syötä kohteen suunnitteluttaja.',
   'projectObject.rakennuttajaUserLabel': 'Rakennuttaja',

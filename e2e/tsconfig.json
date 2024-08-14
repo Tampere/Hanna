@@ -12,5 +12,5 @@
       "@shared/*": ["../shared/src/*"]
     }
   },
-  "references": [{ "path": "../backend" }]
+  "references": [{ "path": "../backend/tsconfig.trpc.json" }]
 }

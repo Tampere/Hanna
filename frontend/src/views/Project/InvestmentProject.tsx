@@ -278,9 +278,11 @@ export function InvestmentProject() {
                 projectObjects={
                   projectObjects.data?.map((obj) => ({
                     ...obj,
+                    objectStage: obj.objectStage ?? '',
                     project: {
                       projectId: projectId,
                       projectName: project.data?.projectName ?? '',
+                      projectType: 'investmentProject',
                     },
                   })) ?? []
                 }
@@ -295,7 +297,7 @@ export function InvestmentProject() {
                 <ProjectFinances
                   editable={userCanModifyFinances}
                   project={project.data}
-                  writableFields={['amount']}
+                  writableFields={['estimate']}
                 />
               )}
               {tabView === 'kohteet' && (

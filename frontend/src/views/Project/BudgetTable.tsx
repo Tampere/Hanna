@@ -25,7 +25,13 @@ import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { YearBudget } from '@shared/schema/project';
 import { YearlyActuals } from '@shared/schema/sapActuals';
 
-export type BudgetFields = 'amount' | 'forecast' | 'kayttosuunnitelmanMuutos' | 'actual';
+export type BudgetFields =
+  | 'estimate'
+  | 'contractPrice'
+  | 'amount'
+  | 'forecast'
+  | 'kayttosuunnitelmanMuutos'
+  | 'actual';
 interface Props {
   years: number[];
   budget: readonly YearBudget[];
@@ -35,16 +41,20 @@ interface Props {
   writableFields?: BudgetFields[];
   fields?: BudgetFields[];
   enableTooltips?: boolean;
+  customTooltips?: Partial<Record<BudgetFields, string>>;
 }
 
 type BudgetFormValues = Record<string, YearBudget['budgetItems']>;
 
-function budgetToFormValues(budget: YearBudget[], projectYears: number[]) {
+function budgetToFormValues<
+  TBudget extends { year: number; budgetItems: YearBudget['budgetItems'] } = YearBudget,
+>(budget: TBudget[], projectYears: number[]) {
   const values: BudgetFormValues = {};
   for (const year of projectYears) {
     const yearBudget = budget.find((b) => b.year === year);
     values[year] = yearBudget?.budgetItems ?? {
       amount: null,
+      estimate: null,
       forecast: null,
       kayttosuunnitelmanMuutos: null,
     };
@@ -79,7 +89,7 @@ export function BudgetTable(props: Props) {
     ...props,
   };
 
-  const { fields = ['amount', 'forecast', 'kayttosuunnitelmanMuutos', 'actual'] } = {
+  const { fields = ['estimate', 'amount', 'forecast', 'kayttosuunnitelmanMuutos', 'actual'] } = {
     ...props,
   };
 
@@ -127,11 +137,48 @@ export function BudgetTable(props: Props) {
                       {enableTooltips && <HelpTooltip title={tr('budgetTable.yearHelp')} />}
                     </Box>
                   </TableCell>
+
+                  {fields?.includes('estimate') && (
+                    <TableCell>
+                      <Box className="column-header">
+                        <Typography variant="overline">{tr('budgetTable.estimate')}</Typography>
+                        {enableTooltips && (
+                          <HelpTooltip
+                            title={
+                              props.customTooltips?.estimate ??
+                              tr('budgetTable.projectEstimateHelp')
+                            }
+                          />
+                        )}
+                      </Box>{' '}
+                    </TableCell>
+                  )}
+                  {fields?.includes('contractPrice') && (
+                    <TableCell>
+                      <Box className="column-header">
+                        <Typography variant="overline">
+                          {tr('budgetTable.contractPrice')}
+                        </Typography>
+                        {enableTooltips && (
+                          <HelpTooltip
+                            title={
+                              props.customTooltips?.contractPrice ??
+                              tr('budgetTable.contractPriceHelp')
+                            }
+                          />
+                        )}
+                      </Box>{' '}
+                    </TableCell>
+                  )}
                   {fields?.includes('amount') && (
                     <TableCell css={cellStyle}>
                       <Box className="column-header">
                         <Typography variant="overline"> {tr('budgetTable.budget')}</Typography>
-                        {enableTooltips && <HelpTooltip title={tr('budgetTable.budgetHelp')} />}
+                        {enableTooltips && (
+                          <HelpTooltip
+                            title={props.customTooltips?.amount ?? tr('budgetTable.budgetHelp')}
+                          />
+                        )}
                       </Box>
                     </TableCell>
                   )}
@@ -140,7 +187,11 @@ export function BudgetTable(props: Props) {
                       <Box className="column-header">
                         {props.actualsLoading && <CircularProgress size={10} sx={{ mr: 1 }} />}
                         <Typography variant="overline">{tr('budgetTable.actual')}</Typography>
-                        {enableTooltips && <HelpTooltip title={tr('budgetTable.actualHelp')} />}
+                        {enableTooltips && (
+                          <HelpTooltip
+                            title={props.customTooltips?.actual ?? tr('budgetTable.actualHelp')}
+                          />
+                        )}
                       </Box>
                     </TableCell>
                   )}
@@ -148,7 +199,11 @@ export function BudgetTable(props: Props) {
                     <TableCell css={cellStyle}>
                       <Box className="column-header">
                         <Typography variant="overline">{tr('budgetTable.forecast')}</Typography>
-                        {enableTooltips && <HelpTooltip title={tr('budgetTable.forecastHelp')} />}
+                        {enableTooltips && (
+                          <HelpTooltip
+                            title={props.customTooltips?.forecast ?? tr('budgetTable.forecastHelp')}
+                          />
+                        )}
                       </Box>
                     </TableCell>
                   )}
@@ -164,7 +219,12 @@ export function BudgetTable(props: Props) {
                           {tr('budgetTable.kayttosuunnitelmanMuutos')}
                         </Typography>
                         {enableTooltips && (
-                          <HelpTooltip title={tr('budgetTable.kayttosuunnitelmanMuutosHelp')} />
+                          <HelpTooltip
+                            title={
+                              props.customTooltips?.kayttosuunnitelmanMuutos ??
+                              tr('budgetTable.kayttosuunnitelmanMuutosHelp')
+                            }
+                          />
                         )}
                       </Box>
                     </TableCell>
@@ -176,6 +236,35 @@ export function BudgetTable(props: Props) {
                 {years?.map((year) => (
                   <TableRow key={year}>
                     <TableCell>{year}</TableCell>
+
+                    {fields?.includes('estimate') && (
+                      <TableCell>
+                        <FormField
+                          formField={`${String(year)}.estimate`}
+                          component={({ ref, onChange, ...field }) => (
+                            <CurrencyInput
+                              {...field}
+                              onChange={writableFields?.includes('estimate') ? onChange : undefined}
+                            />
+                          )}
+                        />
+                      </TableCell>
+                    )}
+                    {fields?.includes('contractPrice') && (
+                      <TableCell>
+                        <FormField
+                          formField={`${String(year)}.contractPrice`}
+                          component={({ ref, onChange, ...field }) => (
+                            <CurrencyInput
+                              {...field}
+                              onChange={
+                                writableFields?.includes('contractPrice') ? onChange : undefined
+                              }
+                            />
+                          )}
+                        />
+                      </TableCell>
+                    )}
                     {fields?.includes('amount') && (
                       <TableCell>
                         <FormField
@@ -189,6 +278,7 @@ export function BudgetTable(props: Props) {
                         />
                       </TableCell>
                     )}
+
                     {fields?.includes('actual') && (
                       <TableCell>
                         {!props.actualsLoading ? (
@@ -246,6 +336,30 @@ export function BudgetTable(props: Props) {
                   <TableCell>
                     <Typography variant="overline">{tr('budgetTable.total')}</Typography>
                   </TableCell>
+                  {fields?.includes('estimate') && (
+                    <TableCell>
+                      <CurrencyInput
+                        value={
+                          watch &&
+                          Object.values(watch).reduce((total, budgetItem) => {
+                            return (total || 0) + (budgetItem.estimate ?? 0);
+                          }, 0)
+                        }
+                      />
+                    </TableCell>
+                  )}
+                  {fields?.includes('contractPrice') && (
+                    <TableCell>
+                      <CurrencyInput
+                        value={
+                          watch &&
+                          Object.values(watch).reduce((total, budgetItem) => {
+                            return (total || 0) + (budgetItem.contractPrice ?? 0);
+                          }, 0)
+                        }
+                      />
+                    </TableCell>
+                  )}
                   {fields?.includes('amount') && (
                     <TableCell>
                       <CurrencyInput

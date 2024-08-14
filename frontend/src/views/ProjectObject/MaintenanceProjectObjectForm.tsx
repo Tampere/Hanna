@@ -3,7 +3,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AddCircle, ArrowDropDown, ArrowDropUp, Edit, Save, Undo } from '@mui/icons-material';
 import {
   Alert,
-  Autocomplete,
   Box,
   Button,
   ButtonGroup,
@@ -22,7 +21,6 @@ import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
-import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
@@ -31,12 +29,11 @@ import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
 import { mergeErrors } from '@shared/formerror';
-import { ProjectListItem } from '@shared/schema/project';
 import {
-  UpsertProjectObject,
-  newProjectObjectSchema,
-  upsertProjectObjectSchema,
-} from '@shared/schema/projectObject';
+  UpsertMaintenanceProjectObject,
+  newMaintenanceProjectObjectSchema,
+  upsertMaintenanceProjectObjectSchema,
+} from '@shared/schema/projectObject/maintenance';
 
 import { ProjectObjectFormUserRoles } from './ProjectObjectFormUserRoles';
 
@@ -48,7 +45,7 @@ const newProjectFormStyle = css`
 interface Props {
   projectId?: string;
   projectType: ProjectTypePath;
-  projectObject?: UpsertProjectObject | null;
+  projectObject?: UpsertMaintenanceProjectObject | null;
   geom?: string | null;
   setProjectId?: (projectId: string) => void;
   navigateTo?: string | null;
@@ -56,35 +53,10 @@ interface Props {
   userCanWrite?: boolean;
 }
 
-interface ProjectAutoCompleteProps {
-  value: ProjectListItem;
-  onChange: (value?: string) => void;
-}
-
-function ProjectAutoComplete(props: Readonly<ProjectAutoCompleteProps>) {
-  const tr = useTranslations();
-  const projects = trpc.investmentProject.getParticipatedProjects.useQuery();
-
-  return (
-    <Autocomplete<ProjectListItem>
-      {...props}
-      options={projects?.data ?? []}
-      noOptionsText={tr('itemSearch.noResults')}
-      size="small"
-      onChange={(_e, value) => {
-        props.onChange(value?.projectId);
-      }}
-      getOptionLabel={(option) => option.projectName}
-      renderInput={(params) => <TextField {...params} />}
-      loading={projects.isLoading}
-    />
-  );
-}
-
 function SaveOptionsButton(
   props: Readonly<{
-    form: ReturnType<typeof useForm<UpsertProjectObject>>;
-    onSubmit: (data: UpsertProjectObject) => void;
+    form: ReturnType<typeof useForm<UpsertMaintenanceProjectObject>>;
+    onSubmit: (data: UpsertMaintenanceProjectObject) => void;
   }>,
 ) {
   const tr = useTranslations();
@@ -144,14 +116,14 @@ function SaveOptionsButton(
   );
 }
 
-export function ProjectObjectForm(props: Readonly<Props>) {
+export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
   const tr = useTranslations();
   const notify = useNotifications();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(!props.projectObject);
 
-  const projectUpsert = trpc.investmentProject.upsert.useMutation({
+  const projectUpsert = trpc.maintenanceProject.upsert.useMutation({
     onSuccess: () => {
       notify({ severity: 'success', title: tr('projectObject.notifyProjectDateRangeUpdated') });
       form.trigger(['startDate', 'endDate']);
@@ -160,7 +132,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
       notify({ severity: 'error', title: tr('projectObject.notifyProjectDateRangeUpdateError') });
     },
   });
-  const { investmentProject } = trpc.useUtils();
+  const { maintenanceProject } = trpc.useUtils();
 
   async function handleProjectDateUpsert(
     projectId: string,
@@ -168,7 +140,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
     endDate?: string | null,
   ) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { geom, ...projectData } = await investmentProject.get.fetch({ projectId });
+    const { geom, ...projectData } = await maintenanceProject.get.fetch({ projectId });
 
     projectUpsert.mutate({
       project: {
@@ -193,12 +165,12 @@ export function ProjectObjectForm(props: Readonly<Props>) {
 
   const { projectObject } = trpc.useUtils();
   const formValidator = useMemo(() => {
-    const schemaValidation = zodResolver(upsertProjectObjectSchema);
+    const schemaValidation = zodResolver(upsertMaintenanceProjectObjectSchema);
 
     return async function formValidation(
-      values: UpsertProjectObject,
+      values: UpsertMaintenanceProjectObject,
       context: object,
-      options: ResolverOptions<UpsertProjectObject>,
+      options: ResolverOptions<UpsertMaintenanceProjectObject>,
     ) {
       const fields = options.names ?? [];
 
@@ -219,11 +191,11 @@ export function ProjectObjectForm(props: Readonly<Props>) {
     };
   }, []);
 
-  const form = useForm<UpsertProjectObject>({
+  const form = useForm<UpsertMaintenanceProjectObject>({
     mode: 'all',
     resolver: formValidator,
     context: {
-      requiredFields: getRequiredFields(newProjectObjectSchema),
+      requiredFields: getRequiredFields(newMaintenanceProjectObjectSchema),
     },
     defaultValues: props.projectObject ?? {
       projectId: props.projectId,
@@ -231,6 +203,8 @@ export function ProjectObjectForm(props: Readonly<Props>) {
       description: '',
       startDate: '',
       endDate: '',
+      contract: '',
+      poNumber: '',
       objectUserRoles: [],
     },
   });
@@ -245,7 +219,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
 
   const formProjectId = form.watch('projectId');
 
-  const projectObjectUpsert = trpc.projectObject.upsert.useMutation({
+  const projectObjectUpsert = trpc.maintenanceProjectObject.upsert.useMutation({
     onSuccess: (data) => {
       if (!props.projectObject && data.projectObjectId) {
         navigate(`/${props.projectType}/${data.projectId}/kohde/${data.projectObjectId}`);
@@ -283,11 +257,11 @@ export function ProjectObjectForm(props: Readonly<Props>) {
     }
   }, [form.formState.isSubmitSuccessful, form.reset]);
 
-  const onSubmit = (data: UpsertProjectObject) => {
+  const onSubmit = (data: UpsertMaintenanceProjectObject) => {
     projectObjectUpsert.mutate({ ...data, geom: props.geom });
   };
 
-  const saveAndReturn = (data: UpsertProjectObject) => {
+  const saveAndReturn = (data: UpsertMaintenanceProjectObject) => {
     projectObjectUpsert.mutate(
       { ...data, geom: props.geom },
       {
@@ -340,7 +314,8 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="objectName"
             label={tr('projectObject.nameLabel')}
-            tooltip={tr('projectObject.nameTooltip')}
+            helpTooltip={tr('projectObject.nameTooltip')}
+            errorTooltip={tr('projectObject.nameErrorTooltip')}
             component={(field) => (
               <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
             )}
@@ -349,63 +324,15 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="description"
             label={tr('projectObject.descriptionLabel')}
-            tooltip={tr('projectObject.descriptionTooltip')}
+            helpTooltip={tr('projectObject.descriptionTooltip')}
+            errorTooltip={tr('projectObject.descriptionErrorTooltip')}
             component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
-          />
-
-          {!props.projectId && (
-            <FormField
-              formField="projectId"
-              label={tr('projectObject.projectLabel')}
-              tooltip={tr('projectObject.projectTooltip')}
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              component={({ ref, ...field }) => {
-                return (
-                  <ProjectAutoComplete
-                    {...readonlyProps}
-                    {...field}
-                    onChange={(value) => {
-                      props.setProjectId?.(value ?? '');
-                      field.onChange(value);
-                      form.setValue('sapWBSId', null);
-                    }}
-                  />
-                );
-              }}
-            />
-          )}
-
-          <FormField
-            formField="suunnitteluttajaUser"
-            label={tr('projectObject.suunnitteluttajaUserLabel')}
-            tooltip={tr('projectObject.suunnitteluttajaUserTooltip')}
-            component={({ id, onChange, value }) => (
-              <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
-            )}
-          />
-
-          <FormField
-            formField="rakennuttajaUser"
-            label={tr('projectObject.rakennuttajaUserLabel')}
-            tooltip={tr('projectObject.rakennuttajaUserTooltip')}
-            component={({ id, onChange, value }) => (
-              <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
-            )}
-          />
-          <FormField
-            formField="objectStage"
-            label={tr('projectObject.objectStageLabel')}
-            tooltip={tr('projectObject.objectStageTooltip')}
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            component={({ ref, ...field }) => (
-              <CodeSelect {...field} codeListId="KohteenLaji" readOnly={!editing} />
-            )}
           />
 
           <FormField
             formField="lifecycleState"
             label={tr('projectObject.lifecycleStateLabel')}
-            tooltip={tr('projectObject.lifecycleStateTooltip')}
+            errorTooltip={tr('projectObject.lifecycleStateTooltip')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, ...field }) => (
               <CodeSelect {...field} codeListId="KohteenElinkaarentila" readOnly={!editing} />
@@ -413,25 +340,9 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           />
 
           <FormField
-            formField="objectType"
-            label={tr('projectObject.objectTypeLabel')}
-            tooltip={tr('projectObject.objectTypeTooltip')}
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            component={({ ref, ...field }) => (
-              <CodeSelect
-                {...field}
-                multiple
-                codeListId="KohdeTyyppi"
-                readOnly={!editing}
-                maxTags={3}
-              />
-            )}
-          />
-
-          <FormField
             formField="objectCategory"
             label={tr('projectObject.objectCategoryLabel')}
-            tooltip={tr('projectObject.objectCategoryTooltip')}
+            errorTooltip={tr('projectObject.objectCategoryTooltip')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, ...field }) => (
               <CodeSelect
@@ -446,7 +357,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="objectUsage"
             label={tr('projectObject.objectUsageLabel')}
-            tooltip={tr('projectObject.objectUsageTooltip')}
+            errorTooltip={tr('projectObject.objectUsageTooltip')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, ...field }) => (
               <CodeSelect
@@ -461,7 +372,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="startDate"
             label={tr('projectObject.startDateLabel')}
-            tooltip={tr('projectObject.startDateTooltip')}
+            errorTooltip={tr('projectObject.startDateTooltip')}
             component={({ onChange, ...field }) => (
               <FormDatePicker
                 maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
@@ -482,7 +393,7 @@ export function ProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="endDate"
             label={tr('projectObject.endDateLabel')}
-            tooltip={tr('projectObject.endDateTooltip')}
+            errorTooltip={tr('projectObject.endDateTooltip')}
             component={({ onChange, ...field }) => (
               <FormDatePicker
                 minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
@@ -499,11 +410,40 @@ export function ProjectObjectForm(props: Readonly<Props>) {
               />
             )}
           />
+          <FormField
+            formField="contract"
+            label="sopimus"
+            errorTooltip="sopimus"
+            component={(field) => (
+              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
+            )}
+          />
+          <FormField
+            formField="poNumber"
+            label="ostotilausnumero"
+            errorTooltip="ostotilausnumero"
+            component={(field) => (
+              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
+            )}
+          />
+          <FormField
+            formField="procurementMethod"
+            label="toteutustapa"
+            errorTooltip="toteutustapa"
+            component={({ ref, ...field }) => (
+              <CodeSelect
+                {...field}
+                multiple={false}
+                codeListId="KohteenToteutustapa"
+                readOnly={!editing}
+              />
+            )}
+          />
 
           <FormField
             formField="sapWBSId"
             label={tr('projectObject.sapWBSIdLabel')}
-            tooltip={tr('projectObject.sapWBSIdTooltip')}
+            errorTooltip={tr('projectObject.sapWBSIdTooltip')}
             component={(field) => (
               <SapWBSSelect projectId={formProjectId} readonlyProps={readonlyProps} field={field} />
             )}

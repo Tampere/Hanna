@@ -165,7 +165,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
             projectId: data.sapProjectId,
           })
         : true;
-    } catch (error) {
+    } catch {
       validOrEmptySAPId = false;
     }
     if (!validOrEmptySAPId) {
@@ -224,7 +224,8 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
           <FormField
             formField="projectName"
             label={tr('project.projectNameLabel')}
-            tooltip={tr('newProject.projectNameTooltip')}
+            errorTooltip={tr('newProject.projectNameTooltip')}
+            helpTooltip={tr('newProject.projectNameTooltip')}
             component={(field) => (
               <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
             )}
@@ -233,14 +234,15 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
           <FormField
             formField="description"
             label={tr('project.descriptionLabel')}
-            tooltip={tr('newProject.descriptionTooltip')}
+            errorTooltip={tr('newProject.descriptionTooltip')}
+            helpTooltip={tr('newProject.descriptionTooltip')}
             component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
           />
 
           <FormField
             formField="startDate"
             label={tr('project.startDateLabel')}
-            tooltip={tr('newProject.startDateTooltip')}
+            errorTooltip={tr('newProject.startDateTooltip')}
             component={(field) => (
               <FormDatePicker
                 maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
@@ -252,7 +254,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
           <FormField
             formField="endDate"
             label={tr('project.endDateLabel')}
-            tooltip={tr('newProject.endDateTooltip')}
+            errorTooltip={tr('newProject.endDateTooltip')}
             component={(field) => (
               <FormDatePicker
                 minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
@@ -265,7 +267,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
           <FormField
             formField="owner"
             label={tr('project.ownerLabel')}
-            tooltip={tr('newProject.ownerTooltip')}
+            errorTooltip={tr('newProject.ownerTooltip')}
             component={({ id, onChange, value }) => (
               <UserSelect
                 id={id}
@@ -296,7 +298,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
           <FormField
             formField="lifecycleState"
             label={tr('project.lifecycleStateLabel')}
-            tooltip={tr('newProject.lifecycleStateTooltip')}
+            errorTooltip={tr('newProject.lifecycleStateTooltip')}
             component={({ id, onChange, value }) => (
               <CodeSelect
                 id={id}
@@ -311,7 +313,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
           <FormField
             formField="committees"
             label={tr('project.committeeLabel')}
-            tooltip={tr('newProject.committeeTooltip')}
+            errorTooltip={tr('newProject.committeeTooltip')}
             component={({ id, onChange, value }) => (
               <CodeSelect
                 id={id}

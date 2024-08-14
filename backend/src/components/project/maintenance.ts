@@ -11,6 +11,7 @@ import {
 import { updateProjectGeometry } from '@backend/components/project/index.js';
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
+import { parseOptionalString } from '@backend/utils.js';
 
 import { hasErrors } from '@shared/formerror.js';
 import { projectIdSchema } from '@shared/schema/project/base.js';
@@ -37,7 +38,10 @@ const selectProjectFragment = sql.fragment`
       SELECT COALESCE(array_agg(user_id), '{}')
       FROM app.project_permission
       WHERE project_id = project.id AND can_write = true
-    ) AS "writeUsers"
+    ) AS "writeUsers",
+    project_maintenance.contract,
+    project_maintenance.decision,
+    project_maintenance.purchase_order_number AS "poNumber"
   FROM app.project
   LEFT JOIN app.project_maintenance ON project_maintenance.id = project.id
   WHERE deleted = false
@@ -81,13 +85,27 @@ export async function projectUpsert(
 
     const id = await baseProjectUpsert(tx, project, user, keepOwnerRights);
 
+    const data = {
+      id,
+      contract: parseOptionalString(project.contract),
+      decision: parseOptionalString(project.decision),
+      purchase_order_number: parseOptionalString(project.poNumber),
+    };
+    const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
+    const values = Object.values(data);
+
     const upsertResult = project.projectId
-      ? { projectId: id }
+      ? await tx.one(sql.type(projectIdSchema)`
+    UPDATE app.project_maintenance
+    SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
+    WHERE id = ${project.projectId}
+    RETURNING id AS "projectId"
+  `)
       : await tx.one(sql.type(projectIdSchema)`
-        INSERT INTO app.project_maintenance (id)
-        VALUES (${id})
-        RETURNING id AS "projectId"
-      `);
+    INSERT INTO app.project_maintenance (${sql.join(identifiers, sql.fragment`,`)})
+    VALUES (${sql.join(values, sql.fragment`,`)})
+    RETURNING id AS "projectId"
+  `);
 
     await tx.query(sql.untyped`
       DELETE FROM app.project_committee

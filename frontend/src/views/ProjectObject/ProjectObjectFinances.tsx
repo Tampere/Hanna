@@ -6,19 +6,21 @@ import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { getRange } from '@frontend/utils/array';
 
-import { DBProjectObject } from '@shared/schema/projectObject';
+import { CommonDbProjectObject } from '@shared/schema/projectObject/base';
 
 import { BudgetFields, BudgetTable } from '../Project/BudgetTable';
 
-interface Props {
-  projectObject: DBProjectObject;
+interface Props<TProjectObject extends CommonDbProjectObject> {
+  projectObject: TProjectObject;
   userCanEditFinances?: boolean;
   userIsEditor?: boolean;
   userCanWrite?: boolean;
   userIsAdmin?: boolean;
 }
 
-export function ProjectObjectFinances(props: Props) {
+export function ProjectObjectFinances<TProjectObject extends CommonDbProjectObject>(
+  props: Props<TProjectObject>,
+) {
   const { projectObject } = props;
   const budget = !projectObject.projectObjectId
     ? null
@@ -54,12 +56,13 @@ export function ProjectObjectFinances(props: Props) {
 
   function getWritableFields(): BudgetFields[] {
     if (props.userIsAdmin) {
-      return ['amount', 'forecast', 'kayttosuunnitelmanMuutos'];
+      return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
     } else if (props.userCanEditFinances) {
-      if (props.userIsEditor) return ['amount', 'kayttosuunnitelmanMuutos', 'forecast'];
-      return ['amount', 'kayttosuunnitelmanMuutos'];
+      if (props.userIsEditor)
+        return ['estimate', 'contractPrice', 'amount', 'kayttosuunnitelmanMuutos', 'forecast'];
+      return ['estimate', 'amount', 'contractPrice', 'kayttosuunnitelmanMuutos'];
     } else if (props.userIsEditor) {
-      return ['forecast'];
+      return ['estimate', 'contractPrice', 'forecast'];
     } else {
       return [];
     }
@@ -84,10 +87,20 @@ export function ProjectObjectFinances(props: Props) {
       budget={budget.data}
       actuals={yearlyActuals.data}
       actualsLoading={yearlyActuals.isFetching}
+      fields={[
+        'estimate',
+        'contractPrice',
+        'amount',
+        'forecast',
+        'kayttosuunnitelmanMuutos',
+        'actual',
+      ]}
       writableFields={getWritableFields()}
       onSave={async (yearBudgets) => {
         const payload = yearBudgets.map((yearBudget) => ({
           year: yearBudget.year,
+          estimate: yearBudget.budgetItems.estimate ?? null,
+          contractPrice: yearBudget.budgetItems.contractPrice ?? null,
           amount: yearBudget.budgetItems.amount,
           forecast: yearBudget.budgetItems?.forecast ?? null,
           kayttosuunnitelmanMuutos: yearBudget.budgetItems.kayttosuunnitelmanMuutos ?? null,
@@ -98,6 +111,7 @@ export function ProjectObjectFinances(props: Props) {
         });
         budget.refetch();
       }}
+      customTooltips={{ estimate: tr('budgetTable.projectObjectEstimateHelp') }}
     />
   );
 }

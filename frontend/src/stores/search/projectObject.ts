@@ -3,7 +3,7 @@ import { focusAtom } from 'jotai-optics';
 
 import { mapOptions } from '@frontend/components/Map/mapOptions';
 
-import { ProjectObjectSearch } from '@shared/schema/projectObject';
+import { ProjectObjectSearch } from '@shared/schema/projectObject/search';
 
 // Use the shared schema as base, but omit unused fields and mark the rest as required
 type ObjectSearchParams = Omit<Required<ProjectObjectSearch>, 'limit' | 'projectId'>;

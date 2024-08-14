@@ -139,9 +139,11 @@ export const relationsSchema = z.object({
 export const yearBudgetSchema = z.object({
   year: z.number(),
   budgetItems: z.object({
+    estimate: z.number().nullish(),
+    contractPrice: z.number().nullish(),
     amount: z.number().nullable(),
-    forecast: z.number().nullable().optional(),
-    kayttosuunnitelmanMuutos: z.number().nullable().optional(),
+    forecast: z.number().nullish(),
+    kayttosuunnitelmanMuutos: z.number().nullish(),
   }),
 });
 
@@ -152,7 +154,7 @@ export const budgetUpdateSchema = z.object({
   budgetItems: z.array(
     z.object({
       year: z.number(),
-      amount: z.number().nullable(),
+      estimate: z.number().nullable(),
     }),
   ),
 });

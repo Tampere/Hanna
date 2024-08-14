@@ -3,33 +3,34 @@ import { z } from 'zod';
 import { codeListIdSchema } from './code.js';
 import { nonEmptyString } from './common.js';
 import { dbProjectSchema, upsertProjectSchema } from './project/base.js';
-import { dbProjectObjectSchema, projectObjectUserRoleSchema } from './projectObject.js';
+import { projectObjectUserRoleSchema } from './projectObject/base.js';
+import { dbInvestmentProjectObjectSchema } from './projectObject/investment.js';
 
 export const projectObjectYears = z.object({ year: z.number() });
 
 export const workTableRowSchema = z.object({
   id: nonEmptyString,
-  objectName: dbProjectObjectSchema.shape.objectName,
-  lifecycleState: dbProjectObjectSchema.shape.lifecycleState,
+  objectName: dbInvestmentProjectObjectSchema.shape.objectName,
+  lifecycleState: dbInvestmentProjectObjectSchema.shape.lifecycleState,
   objectDateRange: z.object({
-    startDate: dbProjectObjectSchema.shape.startDate,
-    endDate: dbProjectObjectSchema.shape.endDate,
+    startDate: dbInvestmentProjectObjectSchema.shape.startDate,
+    endDate: dbInvestmentProjectObjectSchema.shape.endDate,
   }),
   projectDateRange: z.object({
     startDate: dbProjectSchema.shape.startDate,
     endDate: dbProjectSchema.shape.endDate,
   }),
   projectLink: z.object({
-    projectId: dbProjectObjectSchema.shape.projectId,
+    projectId: dbInvestmentProjectObjectSchema.shape.projectId,
     projectName: upsertProjectSchema.shape.projectName,
     projectIndex: z.number(),
   }),
-  objectType: dbProjectObjectSchema.shape.objectType,
-  objectCategory: dbProjectObjectSchema.shape.objectCategory,
-  objectUsage: dbProjectObjectSchema.shape.objectUsage,
+  objectType: dbInvestmentProjectObjectSchema.shape.objectType,
+  objectCategory: dbInvestmentProjectObjectSchema.shape.objectCategory,
+  objectUsage: dbInvestmentProjectObjectSchema.shape.objectUsage,
   operatives: z.object({
-    rakennuttajaUser: dbProjectObjectSchema.shape.rakennuttajaUser,
-    suunnitteluttajaUser: dbProjectObjectSchema.shape.suunnitteluttajaUser,
+    rakennuttajaUser: dbInvestmentProjectObjectSchema.shape.rakennuttajaUser,
+    suunnitteluttajaUser: dbInvestmentProjectObjectSchema.shape.suunnitteluttajaUser,
   }),
   budgetYear: z.number(),
   budget: z.number().nullable(),
@@ -40,7 +41,7 @@ export const workTableRowSchema = z.object({
     writeUsers: z.array(nonEmptyString),
     owner: nonEmptyString,
   }),
-  sapWbsId: dbProjectObjectSchema.shape.sapWBSId.optional(),
+  sapWbsId: dbInvestmentProjectObjectSchema.shape.sapWBSId.optional(),
   sapProjectId: dbProjectSchema.shape.sapProjectId.optional(),
   companyContacts: z.array(projectObjectUserRoleSchema),
   objectRoles: z.array(projectObjectUserRoleSchema),
@@ -53,13 +54,13 @@ const reportTemplate = z.enum(['print', 'basic', 'expences', 'roles']);
 export const workTableSearchSchema = z.object({
   projectName: z.string().optional(),
   projectObjectName: z.string().optional(),
-  objectStartDate: dbProjectObjectSchema.shape.startDate.optional().nullable(),
-  objectEndDate: dbProjectObjectSchema.shape.endDate.optional().nullable(),
-  objectType: dbProjectObjectSchema.shape.objectType.optional(),
-  objectCategory: dbProjectObjectSchema.shape.objectCategory.optional(),
-  objectUsage: dbProjectObjectSchema.shape.objectUsage.optional(),
-  lifecycleState: z.array(dbProjectObjectSchema.shape.lifecycleState).optional(),
-  objectStage: z.array(dbProjectObjectSchema.shape.objectStage).optional(),
+  objectStartDate: dbInvestmentProjectObjectSchema.shape.startDate.optional().nullable(),
+  objectEndDate: dbInvestmentProjectObjectSchema.shape.endDate.optional().nullable(),
+  objectType: dbInvestmentProjectObjectSchema.shape.objectType.optional(),
+  objectCategory: dbInvestmentProjectObjectSchema.shape.objectCategory.optional(),
+  objectUsage: dbInvestmentProjectObjectSchema.shape.objectUsage.optional(),
+  lifecycleState: z.array(dbInvestmentProjectObjectSchema.shape.lifecycleState).optional(),
+  objectStage: z.array(dbInvestmentProjectObjectSchema.shape.objectStage).optional(),
   objectParticipantUser: nonEmptyString.optional(),
   reportTemplate: reportTemplate.optional(),
 });
