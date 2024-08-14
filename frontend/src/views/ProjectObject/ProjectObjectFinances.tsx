@@ -111,6 +111,7 @@ export function ProjectObjectFinances<TProjectObject extends CommonDbProjectObje
         });
         budget.refetch();
       }}
+      customTooltips={{ estimate: tr('budgetTable.projectObjectEstimateHelp') }}
     />
   );
 }

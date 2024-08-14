@@ -244,7 +244,6 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
             formField="startDate"
             label={tr('project.startDateLabel')}
             errorTooltip={tr('newProject.startDateTooltip')}
-            helpTooltip={tr('newProject.startDateTooltip')}
             component={(field) => (
               <FormDatePicker
                 maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
@@ -257,7 +256,6 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
             formField="endDate"
             label={tr('project.endDateLabel')}
             errorTooltip={tr('newProject.endDateTooltip')}
-            helpTooltip={tr('newProject.endDateTooltip')}
             component={(field) => (
               <FormDatePicker
                 minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
@@ -271,7 +269,6 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
             formField="owner"
             label={tr('project.ownerLabel')}
             errorTooltip={tr('newProject.ownerTooltip')}
-            helpTooltip={tr('newProject.ownerTooltip')}
             component={({ id, onChange, value }) => (
               <UserSelect
                 id={id}
@@ -303,7 +300,6 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
             formField="lifecycleState"
             label={tr('project.lifecycleStateLabel')}
             errorTooltip={tr('newProject.lifecycleStateTooltip')}
-            helpTooltip={tr('newProject.lifecycleStateTooltip')}
             component={({ id, onChange, value }) => (
               <CodeSelect
                 id={id}
@@ -319,7 +315,6 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
             formField="committees"
             label={tr('project.committeeLabel')}
             errorTooltip={tr('newProject.committeeTooltip')}
-            helpTooltip={tr('newProject.committeeTooltip')}
             component={({ id, onChange, value }) => (
               <CodeSelect
                 id={id}
@@ -334,7 +329,6 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
           <FormField
             formField="contract"
             label={tr('maintenanceProject.contract')}
-            helpTooltip={tr('maintenanceProject.contractTooltip')}
             component={(field) => (
               <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
             )}
@@ -342,7 +336,6 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
           <FormField
             formField="decision"
             label={tr('maintenanceProject.decision')}
-            helpTooltip={tr('maintenanceProject.decisionTooltip')}
             component={(field) => (
               <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
             )}
@@ -350,7 +343,6 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
           <FormField
             formField="poNumber"
             label={tr('maintenanceProject.poNumber')}
-            helpTooltip={tr('maintenanceProject.poNumberTooltip')}
             component={(field) => (
               <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
             )}
@@ -359,7 +351,6 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
           <FormField
             formField="sapProjectId"
             label={tr('project.sapProjectIdLabel')}
-            helpTooltip={tr('newProject.sapProjectIdTooltip')}
             component={(field) => (
               <SapProjectIdField
                 {...readonlyProps}

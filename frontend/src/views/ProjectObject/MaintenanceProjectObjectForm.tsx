@@ -314,7 +314,8 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="objectName"
             label={tr('projectObject.nameLabel')}
-            errorTooltip={tr('projectObject.nameTooltip')}
+            helpTooltip={tr('projectObject.nameTooltip')}
+            errorTooltip={tr('projectObject.nameErrorTooltip')}
             component={(field) => (
               <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
             )}
@@ -323,7 +324,8 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="description"
             label={tr('projectObject.descriptionLabel')}
-            errorTooltip={tr('projectObject.descriptionTooltip')}
+            helpTooltip={tr('projectObject.descriptionTooltip')}
+            errorTooltip={tr('projectObject.descriptionErrorTooltip')}
             component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
           />
 

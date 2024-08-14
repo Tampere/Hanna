@@ -41,6 +41,7 @@ interface Props {
   writableFields?: BudgetFields[];
   fields?: BudgetFields[];
   enableTooltips?: boolean;
+  customTooltips?: Partial<Record<BudgetFields, string>>;
 }
 
 type BudgetFormValues = Record<string, YearBudget['budgetItems']>;
@@ -141,7 +142,14 @@ export function BudgetTable(props: Props) {
                     <TableCell>
                       <Box className="column-header">
                         <Typography variant="overline">{tr('budgetTable.estimate')}</Typography>
-                        {enableTooltips && <HelpTooltip title={tr('budgetTable.estimateHelp')} />}
+                        {enableTooltips && (
+                          <HelpTooltip
+                            title={
+                              props.customTooltips?.estimate ??
+                              tr('budgetTable.projectEstimateHelp')
+                            }
+                          />
+                        )}
                       </Box>{' '}
                     </TableCell>
                   )}
@@ -152,7 +160,12 @@ export function BudgetTable(props: Props) {
                           {tr('budgetTable.contractPrice')}
                         </Typography>
                         {enableTooltips && (
-                          <HelpTooltip title={tr('budgetTable.contractPriceHelp')} />
+                          <HelpTooltip
+                            title={
+                              props.customTooltips?.contractPrice ??
+                              tr('budgetTable.contractPriceHelp')
+                            }
+                          />
                         )}
                       </Box>{' '}
                     </TableCell>
@@ -161,7 +174,11 @@ export function BudgetTable(props: Props) {
                     <TableCell css={cellStyle}>
                       <Box className="column-header">
                         <Typography variant="overline"> {tr('budgetTable.budget')}</Typography>
-                        {enableTooltips && <HelpTooltip title={tr('budgetTable.budgetHelp')} />}
+                        {enableTooltips && (
+                          <HelpTooltip
+                            title={props.customTooltips?.amount ?? tr('budgetTable.budgetHelp')}
+                          />
+                        )}
                       </Box>
                     </TableCell>
                   )}
@@ -170,7 +187,11 @@ export function BudgetTable(props: Props) {
                       <Box className="column-header">
                         {props.actualsLoading && <CircularProgress size={10} sx={{ mr: 1 }} />}
                         <Typography variant="overline">{tr('budgetTable.actual')}</Typography>
-                        {enableTooltips && <HelpTooltip title={tr('budgetTable.actualHelp')} />}
+                        {enableTooltips && (
+                          <HelpTooltip
+                            title={props.customTooltips?.actual ?? tr('budgetTable.actualHelp')}
+                          />
+                        )}
                       </Box>
                     </TableCell>
                   )}
@@ -178,7 +199,11 @@ export function BudgetTable(props: Props) {
                     <TableCell css={cellStyle}>
                       <Box className="column-header">
                         <Typography variant="overline">{tr('budgetTable.forecast')}</Typography>
-                        {enableTooltips && <HelpTooltip title={tr('budgetTable.forecastHelp')} />}
+                        {enableTooltips && (
+                          <HelpTooltip
+                            title={props.customTooltips?.forecast ?? tr('budgetTable.forecastHelp')}
+                          />
+                        )}
                       </Box>
                     </TableCell>
                   )}
@@ -194,7 +219,12 @@ export function BudgetTable(props: Props) {
                           {tr('budgetTable.kayttosuunnitelmanMuutos')}
                         </Typography>
                         {enableTooltips && (
-                          <HelpTooltip title={tr('budgetTable.kayttosuunnitelmanMuutosHelp')} />
+                          <HelpTooltip
+                            title={
+                              props.customTooltips?.kayttosuunnitelmanMuutos ??
+                              tr('budgetTable.kayttosuunnitelmanMuutosHelp')
+                            }
+                          />
                         )}
                       </Box>
                     </TableCell>

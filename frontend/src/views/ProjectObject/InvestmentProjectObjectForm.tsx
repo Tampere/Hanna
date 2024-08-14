@@ -340,7 +340,8 @@ export function InvestmentProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="objectName"
             label={tr('projectObject.nameLabel')}
-            errorTooltip={tr('projectObject.nameTooltip')}
+            errorTooltip={tr('projectObject.nameErrorTooltip')}
+            helpTooltip={tr('projectObject.nameTooltip')}
             component={(field) => (
               <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
             )}
@@ -349,7 +350,8 @@ export function InvestmentProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="description"
             label={tr('projectObject.descriptionLabel')}
-            errorTooltip={tr('projectObject.descriptionTooltip')}
+            errorTooltip={tr('projectObject.descriptionErrorTooltip')}
+            helpTooltip={tr('projectObject.descriptionTooltip')}
             component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
           />
 
