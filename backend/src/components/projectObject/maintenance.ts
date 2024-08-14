@@ -1,10 +1,4 @@
 import { DatabaseTransactionConnection, ValueExpression } from 'slonik';
-import { nonEmptyString } from 'tre-hanna-shared/src/schema/common.js';
-import {
-  UpdateMaintenanceProjectObject,
-  UpsertMaintenanceProjectObject,
-  dbMaintenanceProjectObjectSchema,
-} from 'tre-hanna-shared/src/schema/projectObject/maintenance.js';
 import { z } from 'zod';
 
 import { sql } from '@backend/db.js';
@@ -12,6 +6,12 @@ import { logger } from '@backend/logging.js';
 import { parseOptionalString } from '@backend/utils.js';
 
 import { hasErrors } from '@shared/formerror.js';
+import { nonEmptyString } from '@shared/schema/common.js';
+import {
+  UpdateMaintenanceProjectObject,
+  UpsertMaintenanceProjectObject,
+  dbMaintenanceProjectObjectSchema,
+} from '@shared/schema/projectObject/maintenance.js';
 
 import { addAuditEvent } from '../audit.js';
 import { codeIdFragment } from '../code/index.js';

@@ -1,16 +1,17 @@
 import { DatabaseTransactionConnection, ValueExpression } from 'slonik';
-import { hasErrors } from 'tre-hanna-shared/src/formerror.js';
-import { nonEmptyString } from 'tre-hanna-shared/src/schema/common.js';
-import {
-  UpdateInvestmentProjectObject,
-  UpsertInvestmentProjectObject,
-  dbInvestmentProjectObjectSchema,
-} from 'tre-hanna-shared/src/schema/projectObject/investment.js';
 import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit.js';
 import { sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
+
+import { hasErrors } from '@shared/formerror.js';
+import { nonEmptyString } from '@shared/schema/common.js';
+import {
+  UpdateInvestmentProjectObject,
+  UpsertInvestmentProjectObject,
+  dbInvestmentProjectObjectSchema,
+} from '@shared/schema/projectObject/investment.js';
 
 import { codeIdFragment } from '../code/index.js';
 import {
