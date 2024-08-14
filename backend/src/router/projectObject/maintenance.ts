@@ -1,5 +1,4 @@
 import { TRPCError } from '@trpc/server';
-import { hasWritePermission, ownsProject } from 'tre-hanna-shared/src/schema/userPermissions.js';
 import { z } from 'zod';
 
 import { getPermissionContext as getProjectPermissionCtx } from '@backend/components/project/base.js';
@@ -12,6 +11,7 @@ import { getPool } from '@backend/db.js';
 import { TRPC } from '@backend/router/index.js';
 
 import { getProjectObjectParams } from '@shared/schema/projectObject/base.js';
+import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions.js';
 
 export const createMaintenanceProjectObjectRouter = (t: TRPC) => {
   return t.router({
