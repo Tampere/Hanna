@@ -153,9 +153,9 @@ export async function updateObjectRoles(
     DELETE FROM app.project_object_user_role
     WHERE project_object_id = ${projectObject.projectObjectId}
   `);
-
+  // FlatMap needs to be used for Slonik to stay up with active query promise
   await Promise.all(
-    projectObject.objectUserRoles.map(({ userIds, roleId, companyContactIds }) => [
+    projectObject.objectUserRoles.flatMap(({ userIds, roleId, companyContactIds }) => [
       ...userIds.map((userId) =>
         tx.any(sql.untyped`
       INSERT INTO app.project_object_user_role (user_id, project_object_id, role)
