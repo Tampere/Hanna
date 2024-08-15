@@ -20,6 +20,7 @@ import { listProjects, projectSearch } from '@backend/components/project/search.
 import { getProjectObjectsByProjectSearch } from '@backend/components/projectObject/search.js';
 import { startReportJob } from '@backend/components/taskQueue/reportQueue.js';
 import { getPool } from '@backend/db.js';
+import { logger } from '@backend/logging.js';
 import { TRPC } from '@backend/router/index.js';
 
 import { projectIdSchema, projectPermissionSchema } from '@shared/schema/project/base.js';
@@ -145,22 +146,6 @@ export const createProjectRouter = (t: TRPC) => {
       .mutation(async ({ input, ctx }) => {
         return await getPool().transaction(async (tx) => {
           return await updateProjectGeometry(tx, input, ctx.user);
-        });
-      }),
-
-    updateBudget: t.procedure
-      .input(budgetUpdateSchema)
-      .use(
-        withAccess(
-          (usr, ctx) =>
-            ownsProject(usr, ctx) ||
-            hasWritePermission(usr, ctx) ||
-            hasPermission(usr, 'financials.write'),
-        ),
-      )
-      .mutation(async ({ input, ctx }) => {
-        return await getPool().transaction(async (tx) => {
-          return await updateProjectBudget(tx, input.projectId, input.budgetItems, ctx.user.id);
         });
       }),
 

@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import { useEffect, useMemo } from 'react';
+import { ProjectType } from 'tre-hanna-shared/src/schema/project/type';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
@@ -12,29 +13,33 @@ import { DbMaintenanceProject } from '@shared/schema/project/maintenance';
 import { BudgetFields, BudgetTable } from './BudgetTable';
 
 interface Props {
-  project?: DbInvestmentProject | DbMaintenanceProject | null;
+  project:
+    | { type: Omit<ProjectType, 'detailpanProject'>; data?: DbInvestmentProject | null }
+    | { type: Omit<ProjectType, 'detailpanProject'>; data?: DbMaintenanceProject | null };
   editable?: boolean;
   writableFields?: BudgetFields[];
 }
 
 export function ProjectFinances(props: Props) {
   const { project, editable = false } = props;
-  const budget = !project
+  const budget = !project.data
     ? null
-    : trpc.project.getBudget.useQuery({ projectId: project.projectId });
+    : trpc.project.getBudget.useQuery({ projectId: project.data.projectId });
   const notify = useNotifications();
   const tr = useTranslations();
 
   const projectYears = useMemo(() => {
-    if (!project?.startDate || !project?.endDate) {
+    if (!project.data?.startDate || !project.data?.endDate) {
       return [];
     }
-    const startYear = dayjs(project.startDate).get('year');
-    const endYear = dayjs(project.endDate).get('year');
+    const startYear = dayjs(project.data.startDate).get('year');
+    const endYear = dayjs(project.data.endDate).get('year');
     return getRange(startYear, endYear);
-  }, [project?.startDate, project?.endDate]);
+  }, [project.data?.startDate, project.data?.endDate]);
 
-  const saveBudgetMutation = trpc.project.updateBudget.useMutation({
+  const saveBudgetMutation = trpc[
+    project.type === 'investmentProject' ? 'investmentProject' : 'maintenanceProject'
+  ].updateBudget.useMutation({
     onSuccess() {
       notify({
         severity: 'success',
@@ -52,18 +57,18 @@ export function ProjectFinances(props: Props) {
 
   const yearlyActuals = trpc.sap.getYearlyActualsByProjectId.useQuery(
     {
-      projectId: project?.projectId as string,
-      startYear: dayjs(project?.startDate).year(),
-      endYear: dayjs(project?.endDate).year(),
+      projectId: project.data?.projectId as string,
+      startYear: dayjs(project.data?.startDate).year(),
+      endYear: dayjs(project.data?.endDate).year(),
     },
-    { enabled: Boolean(project?.projectId) },
+    { enabled: Boolean(project.data?.projectId) },
   );
 
   useEffect(() => {
     yearlyActuals.refetch();
-  }, [project?.sapProjectId]);
+  }, [project.data?.sapProjectId]);
 
-  return !budget?.data || !project ? null : (
+  return !budget?.data || !project.data ? null : (
     <BudgetTable
       years={projectYears}
       budget={budget.data}
@@ -75,11 +80,12 @@ export function ProjectFinances(props: Props) {
           year: yearBudget.year,
           estimate: yearBudget.budgetItems.estimate ?? null,
         }));
-
-        await saveBudgetMutation.mutateAsync({
-          projectId: project.projectId,
-          budgetItems: payload,
-        });
+        if (project.data)
+          // for typescript to know that project.data is not null or undefined
+          await saveBudgetMutation.mutateAsync({
+            projectId: project.data.projectId as string,
+            budgetItems: payload,
+          });
         budget?.refetch();
       }}
     />

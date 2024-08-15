@@ -106,7 +106,7 @@ export function InvestmentProject() {
       (ownsProject(user, project.data) || hasWritePermission(user, project.data)),
   );
   const userCanModifyFinances = Boolean(
-    project.data && user && hasPermission(user, 'financials.write'),
+    project.data && user && hasPermission(user, 'investmentFinancials.write'),
   );
 
   const tabs = getTabs(routeParams.projectId).filter(
@@ -296,7 +296,7 @@ export function InvestmentProject() {
               {tabView === 'talous' && (
                 <ProjectFinances
                   editable={userCanModifyFinances}
-                  project={project.data}
+                  project={{ type: 'investmentProject', data: project.data }}
                   writableFields={['estimate']}
                 />
               )}

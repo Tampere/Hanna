@@ -6,12 +6,13 @@ import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { getRange } from '@frontend/utils/array';
 
+import { ProjectType } from '@shared/schema/project/type';
 import { CommonDbProjectObject } from '@shared/schema/projectObject/base';
 
 import { BudgetFields, BudgetTable } from '../Project/BudgetTable';
 
 interface Props<TProjectObject extends CommonDbProjectObject> {
-  projectObject: TProjectObject;
+  projectObject: { projectType: Omit<ProjectType, 'detailplanProject'>; data: TProjectObject };
   userCanEditFinances?: boolean;
   userIsEditor?: boolean;
   userCanWrite?: boolean;
@@ -22,23 +23,29 @@ export function ProjectObjectFinances<TProjectObject extends CommonDbProjectObje
   props: Props<TProjectObject>,
 ) {
   const { projectObject } = props;
-  const budget = !projectObject.projectObjectId
+  const budget = !projectObject.data.projectObjectId
     ? null
-    : trpc.projectObject.getBudget.useQuery({ projectObjectId: projectObject.projectObjectId });
+    : trpc.projectObject.getBudget.useQuery({
+        projectObjectId: projectObject.data.projectObjectId,
+      });
 
   const notify = useNotifications();
   const tr = useTranslations();
 
   const years = useMemo(() => {
-    if (!projectObject?.startDate || !projectObject?.endDate) {
+    if (!projectObject.data?.startDate || !projectObject.data?.endDate) {
       return [];
     }
-    const startYear = dayjs(projectObject.startDate).get('year');
-    const endYear = dayjs(projectObject.endDate).get('year');
+    const startYear = dayjs(projectObject.data.startDate).get('year');
+    const endYear = dayjs(projectObject.data.endDate).get('year');
     return getRange(startYear, endYear);
-  }, [projectObject?.startDate, projectObject?.endDate]);
+  }, [projectObject.data?.startDate, projectObject.data?.endDate]);
 
-  const saveBudgetMutation = trpc.projectObject.updateBudget.useMutation({
+  const saveBudgetMutation = trpc[
+    projectObject.projectType === 'investmentProject'
+      ? 'investmentProjectObject'
+      : 'maintenanceProjectObject'
+  ].updateBudget.useMutation({
     onSuccess() {
       notify({
         severity: 'success',
@@ -70,16 +77,16 @@ export function ProjectObjectFinances<TProjectObject extends CommonDbProjectObje
 
   const yearlyActuals = trpc.sap.getYearlyActualsByProjectObjectId.useQuery(
     {
-      projectObjectId: projectObject.projectObjectId,
-      startYear: dayjs(projectObject?.startDate).year(),
-      endYear: dayjs(projectObject?.endDate).year(),
+      projectObjectId: projectObject.data.projectObjectId,
+      startYear: dayjs(projectObject.data?.startDate).year(),
+      endYear: dayjs(projectObject.data?.endDate).year(),
     },
-    { enabled: Boolean(projectObject?.projectObjectId) },
+    { enabled: Boolean(projectObject.data?.projectObjectId) },
   );
 
   useEffect(() => {
     yearlyActuals.refetch();
-  }, [projectObject?.sapWBSId]);
+  }, [projectObject.data?.sapWBSId]);
 
   return !budget?.data ? null : (
     <BudgetTable
@@ -106,7 +113,7 @@ export function ProjectObjectFinances<TProjectObject extends CommonDbProjectObje
           kayttosuunnitelmanMuutos: yearBudget.budgetItems.kayttosuunnitelmanMuutos ?? null,
         }));
         await saveBudgetMutation.mutateAsync({
-          projectObjectId: projectObject.projectObjectId,
+          projectObjectId: projectObject.data.projectObjectId,
           budgetItems: payload,
         });
         budget.refetch();

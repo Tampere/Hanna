@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
-import { clearObjects } from '@utils/db.js';
+import { clearObjects, clearProjectPermissions, clearProjects } from '@utils/db.js';
 import { login } from '@utils/page.js';
-import { ADMIN_USER, DEV_USER, UserSessionObject } from '@utils/users.js';
+import { ADMIN_USER, DEV_USER, UserSessionObject, clearUserPermissions } from '@utils/users.js';
 
 import { User } from '@shared/schema/user.js';
 
@@ -33,8 +33,7 @@ test.describe('Common Project Object endpoints', () => {
   });
 
   test.beforeEach(async () => {
-    // There should be at least one user because this is executed after login
-    [user] = await devSession.client.user.getAll.query();
+    user = await devSession.client.user.self.query();
     investmentProject = await devSession.client.investmentProject.upsert.mutate({
       project: testInvestmentProject(user),
       keepOwnerRights: true,
@@ -49,9 +48,17 @@ test.describe('Common Project Object endpoints', () => {
     await clearObjects();
   });
 
-  test('Investment project object budget updates', async () => {
-    let user = await devSession.client.user.self.query();
+  test.afterAll(async () => {
+    const users = await adminSession.client.user.getAll.query();
+    await clearUserPermissions(
+      adminSession.client,
+      users.map((user) => user.id),
+    );
+    await clearProjectPermissions();
+    await clearProjects();
+  });
 
+  test('Investment project object budget updates', async () => {
     const investmentProject = await devSession.client.investmentProject.upsert.mutate({
       project: testInvestmentProject(user),
     });
@@ -80,7 +87,7 @@ test.describe('Common Project Object endpoints', () => {
         },
       ],
     };
-    await devSession.client.projectObject.updateBudget.mutate(budgetUpdate);
+    await devSession.client.investmentProjectObject.updateBudget.mutate(budgetUpdate);
 
     // Get updated budget
     const updatedBudget = await devSession.client.projectObject.getBudget.query({
@@ -121,7 +128,7 @@ test.describe('Common Project Object endpoints', () => {
         },
       ],
     };
-    await devSession.client.projectObject.updateBudget.mutate(partialBudgetUpdate);
+    await devSession.client.investmentProjectObject.updateBudget.mutate(partialBudgetUpdate);
 
     // Get updated budget
     const partialUpdatedBudget = await devSession.client.projectObject.getBudget.query({
@@ -203,8 +210,6 @@ test.describe('Common Project Object endpoints', () => {
   });
 
   test('Maintenance project object budget updates', async () => {
-    let user = await devSession.client.user.self.query();
-
     const maintenanceProject = await devSession.client.maintenanceProject.upsert.mutate({
       project: testMaintenanceProject(user),
     });
@@ -233,7 +238,7 @@ test.describe('Common Project Object endpoints', () => {
         },
       ],
     };
-    await devSession.client.projectObject.updateBudget.mutate(budgetUpdate);
+    await devSession.client.maintenanceProjectObject.updateBudget.mutate(budgetUpdate);
 
     // Get updated budget
     const updatedBudget = await devSession.client.projectObject.getBudget.query({
@@ -274,7 +279,7 @@ test.describe('Common Project Object endpoints', () => {
         },
       ],
     };
-    await devSession.client.projectObject.updateBudget.mutate(partialBudgetUpdate);
+    await devSession.client.maintenanceProjectObject.updateBudget.mutate(partialBudgetUpdate);
 
     // Get updated budget
     const partialUpdatedBudget = await devSession.client.projectObject.getBudget.query({
@@ -416,8 +421,12 @@ test.describe('Common Project Object endpoints', () => {
       ],
     };
 
-    await devSession.client.projectObject.updateBudget.mutate(investmentBudgetUpdateInput);
-    await devSession.client.projectObject.updateBudget.mutate(maintenanceBudgetUpdateInput);
+    await devSession.client.investmentProjectObject.updateBudget.mutate(
+      investmentBudgetUpdateInput,
+    );
+    await devSession.client.maintenanceProjectObject.updateBudget.mutate(
+      maintenanceBudgetUpdateInput,
+    );
 
     const investmentProjecObjectWithNewDates = {
       ...investmentProjectObject,

@@ -248,7 +248,7 @@ export const createTaskRouter = (t: TRPC) => {
 
     updateBudget: t.procedure
       .input(updateBudgetSchema.required())
-      .use(withAccess((usr) => hasPermission(usr, 'financials.write')))
+      .use(withAccess((usr) => hasPermission(usr, 'investmentFinancials.write')))
       .mutation(async ({ input, ctx }) => {
         return await getPool().transaction(async (tx) => {
           return await updateTaskBudget(tx, input.taskId, input.budgetItems, ctx.user.id);

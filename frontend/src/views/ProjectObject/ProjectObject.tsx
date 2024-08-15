@@ -215,7 +215,6 @@ export function ProjectObject(props: Props) {
 
   const isOwner = ownsProject(user, projectObject.data?.acl);
   const canWrite = hasWritePermission(user, projectObject.data?.acl);
-
   return (
     <Box
       css={css`
@@ -369,8 +368,19 @@ export function ProjectObject(props: Props) {
                 <ProjectObjectFinances
                   userIsAdmin={isAdmin(user.role)}
                   userIsEditor={isOwner || canWrite}
-                  userCanEditFinances={hasPermission(user, 'financials.write')}
-                  projectObject={projectObject.data}
+                  userCanEditFinances={hasPermission(
+                    user,
+                    props.projectType === 'investointihanke'
+                      ? 'investmentFinancials.write'
+                      : 'maintenanceFinancials.write',
+                  )}
+                  projectObject={{
+                    data: projectObject.data,
+                    projectType:
+                      props.projectType === 'investointihanke'
+                        ? 'investmentProject'
+                        : 'maintenaceProject',
+                  }}
                 />
               )}
               {searchParams.get('tab') === 'vaiheet' && (
@@ -378,7 +388,12 @@ export function ProjectObject(props: Props) {
                   isOwner={isOwner}
                   canWrite={canWrite}
                   projectObjectId={projectObjectId}
-                  canEditFinances={hasPermission(user, 'financials.write')}
+                  canEditFinances={hasPermission(
+                    user,
+                    props.projectType === 'investointihanke'
+                      ? 'investmentFinancials.write'
+                      : 'maintenanceFinancials.write',
+                  )}
                 />
               )}
             </Box>

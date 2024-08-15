@@ -62,7 +62,6 @@ export function CurrencyInput(props: Readonly<Props>) {
   const [value, setValue] = useState<string>(numericValueToText(props.value));
   const [editing, setEditing] = useState(props.editing ?? false);
   const { style = { width: 144 } } = props;
-
   useEffect(() => {
     setValue(numericValueToText(props.value));
   }, [props.value]);

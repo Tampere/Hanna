@@ -44,3 +44,8 @@ export async function clearGeneralNotifications() {
   return connection.query(`
     TRUNCATE TABLE app.general_notification CASCADE;`);
 }
+
+export async function clearProjectPermissions() {
+  return connection.query(`
+    DELETE FROM app.project_permission;`);
+}

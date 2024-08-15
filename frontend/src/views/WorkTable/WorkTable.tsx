@@ -383,7 +383,7 @@ export default function WorkTable() {
 
     if (isAdmin(auth.role)) {
       return ['budget', 'forecast', 'kayttosuunnitelmanMuutos'];
-    } else if (hasPermission(auth, 'financials.write')) {
+    } else if (hasPermission(auth, 'investmentFinancials.write')) {
       return ['budget', 'kayttosuunnitelmanMuutos'];
     } else if (hasPermission(auth, 'investmentProject.write' || ownsProject(auth, permissionCtx))) {
       return ['forecast'];

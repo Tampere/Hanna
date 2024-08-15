@@ -105,27 +105,6 @@ export const createProjectObjectRouter = (t: TRPC) => {
         });
       }),
 
-    updateBudget: t.procedure
-      .input(updateBudgetSchema.required())
-      .use(
-        withAccess(
-          (usr, ctx) =>
-            ownsProject(usr, ctx) ||
-            hasWritePermission(usr, ctx) ||
-            hasPermission(usr, 'financials.write'),
-        ),
-      )
-      .mutation(async ({ input, ctx }) => {
-        return await getPool().transaction(async (tx) => {
-          return await updateProjectObjectBudget(
-            tx,
-            input.projectObjectId,
-            input.budgetItems,
-            ctx.user.id,
-          );
-        });
-      }),
-
     delete: t.procedure
       .input(deleteProjectObjectSchema)
       .use(withAccess((usr, ctx) => ownsProject(usr, ctx) || hasWritePermission(usr, ctx)))
