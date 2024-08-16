@@ -70,12 +70,13 @@ const projectObjectSearchParentProject = dbProjectSchema
     startDate: true,
     projectName: true,
     projectType: true,
-    detailplanId: true,
   })
   .extend({ geom: z.string().nullish() });
 
 export const projectSearchResultSchema = z.object({
-  projects: z.array(projectObjectSearchParentProject),
+  projects: z.array(
+    projectObjectSearchParentProject.merge(dbProjectSchema.pick({ detailplanId: true })),
+  ),
   clusters: z.array(
     z.object({
       clusterProjectIds: z.array(z.string()),
