@@ -1,5 +1,6 @@
 import { Page, expect, test } from '@playwright/test';
 import { fillDatePickerValue, getDatePickerValue } from '@utils/date-picker.js';
+import { clearData } from '@utils/db.js';
 import { login } from '@utils/page.js';
 import { ADMIN_USER, DEV_USER, UserSessionObject } from '@utils/users.js';
 
@@ -116,6 +117,10 @@ test.describe('Projects', () => {
       },
     ]);
     devSession = await login(browser, DEV_USER);
+  });
+
+  test.afterAll(async () => {
+    await clearData();
   });
 
   test('Create a project', async () => {

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { clearProjectPermissions, clearProjects } from '@utils/db.js';
-import { login } from '@utils/page.js';
+import { clearData } from '@utils/db.js';
+import { login, refreshSession } from '@utils/page.js';
 import {
   ADMIN_USER,
   DEV_USER,
@@ -75,6 +75,10 @@ test.describe('Project endpoints', () => {
 
   test.beforeAll(async ({ browser }) => {
     adminSession = await login(browser, ADMIN_USER);
+    investmentFinancialsSession = await login(browser, TEST_USER);
+    maintenanceFinancialsSession = await login(browser, DEV_USER);
+    devSession = await login(browser, TEST_USER_2);
+
     await adminSession.client.userPermissions.setPermissions.mutate([
       {
         userId: TEST_USER,
@@ -88,7 +92,6 @@ test.describe('Project endpoints', () => {
         permissions: ['maintenanceProject.write', 'maintenanceFinancials.write'],
       },
     ]);
-
     await adminSession.client.userPermissions.setPermissions.mutate([
       {
         userId: TEST_USER_2,
@@ -101,10 +104,17 @@ test.describe('Project endpoints', () => {
         ],
       },
     ]);
-
-    investmentFinancialsSession = await login(browser, TEST_USER);
-    maintenanceFinancialsSession = await login(browser, DEV_USER);
-    devSession = await login(browser, TEST_USER_2);
+    investmentFinancialsSession = await refreshSession(
+      browser,
+      TEST_USER,
+      investmentFinancialsSession.page,
+    );
+    maintenanceFinancialsSession = await refreshSession(
+      browser,
+      DEV_USER,
+      maintenanceFinancialsSession.page,
+    );
+    devSession = await refreshSession(browser, TEST_USER_2, devSession.page);
   });
 
   test.afterAll(async () => {
@@ -113,8 +123,7 @@ test.describe('Project endpoints', () => {
       adminSession.client,
       users.map((user) => user.id),
     );
-    await clearProjectPermissions();
-    await clearProjects();
+    await clearData();
   });
 
   test('project validation', async () => {

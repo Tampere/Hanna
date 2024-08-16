@@ -30,6 +30,12 @@ class DatabaseConnection {
 }
 
 const connection = new DatabaseConnection();
+
+export async function clearData() {
+  await clearObjects();
+  await clearProjects();
+}
+
 export async function clearObjects() {
   return connection.query(`
     TRUNCATE TABLE app.project_object CASCADE;`);

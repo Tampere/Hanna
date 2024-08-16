@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { clearObjects, clearProjectPermissions, clearProjects } from '@utils/db.js';
-import { login } from '@utils/page.js';
+import { clearData, clearObjects } from '@utils/db.js';
+import { login, refreshSession } from '@utils/page.js';
 import { ADMIN_USER, DEV_USER, UserSessionObject, clearUserPermissions } from '@utils/users.js';
 
 import { User } from '@shared/schema/user.js';
@@ -23,13 +23,14 @@ let devSession: UserSessionObject;
 test.describe('Common Project Object endpoints', () => {
   test.beforeAll(async ({ browser }) => {
     adminSession = await login(browser, ADMIN_USER);
+    devSession = await login(browser, DEV_USER);
     adminSession.client.userPermissions.setPermissions.mutate([
       {
         userId: DEV_USER,
         permissions: ['investmentProject.write', 'maintenanceProject.write'],
       },
     ]);
-    devSession = await login(browser, DEV_USER);
+    devSession = await refreshSession(browser, DEV_USER, devSession.page);
   });
 
   test.beforeEach(async () => {
@@ -54,8 +55,7 @@ test.describe('Common Project Object endpoints', () => {
       adminSession.client,
       users.map((user) => user.id),
     );
-    await clearProjectPermissions();
-    await clearProjects();
+    await clearData();
   });
 
   test('Investment project object budget updates', async () => {

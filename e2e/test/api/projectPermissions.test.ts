@@ -1,6 +1,6 @@
 // TRPC api tests for permissions
 import { expect, test } from '@playwright/test';
-import { clearProjectPermissions } from '@utils/db.js';
+import { clearData } from '@utils/db.js';
 import { login, refreshSession } from '@utils/page.js';
 import {
   ADMIN_USER,
@@ -55,7 +55,7 @@ test.describe('permission testing', () => {
       adminSession.client,
       users.map((user) => user.id),
     );
-    await clearProjectPermissions();
+    await clearData();
   });
 
   test('without write permission, projects cannot be created', async () => {
