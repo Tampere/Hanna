@@ -100,6 +100,7 @@ export function GeneralNotificationForm({ notification, onUpsertSuccess }: Props
         }
       : formDefaultValues,
   });
+  form.watch('message');
 
   useEffect(() => {
     form.reset(notification ?? formDefaultValues);
