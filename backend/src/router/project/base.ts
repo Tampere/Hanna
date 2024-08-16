@@ -13,19 +13,16 @@ import {
   getProjectBudget,
   getRelatedProjects,
   removeProjectRelation,
-  updateProjectBudget,
   updateProjectGeometry,
 } from '@backend/components/project/index.js';
 import { listProjects, projectSearch } from '@backend/components/project/search.js';
 import { getProjectObjectsByProjectSearch } from '@backend/components/projectObject/search.js';
 import { startReportJob } from '@backend/components/taskQueue/reportQueue.js';
 import { getPool } from '@backend/db.js';
-import { logger } from '@backend/logging.js';
 import { TRPC } from '@backend/router/index.js';
 
 import { projectIdSchema, projectPermissionSchema } from '@shared/schema/project/base.js';
 import {
-  budgetUpdateSchema,
   projectListParamsSchema,
   projectSearchResultSchema,
   projectSearchSchema,
@@ -35,7 +32,6 @@ import {
 import { projectObjectSearchResultSchema } from '@shared/schema/projectObject/search.js';
 import {
   ProjectAccessChecker,
-  hasPermission,
   hasWritePermission,
   isProjectIdInput,
   ownsProject,
