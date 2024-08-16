@@ -225,7 +225,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
           <FormField
             formField="projectName"
             label={tr('project.projectNameLabel')}
-            errorTooltip={tr('newProject.projectNameTooltip')}
+            errorTooltip={tr('newProject.projectNameErrorTooltip')}
             helpTooltip={tr('newProject.projectNameTooltip')}
             component={(field) => (
               <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
@@ -235,7 +235,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
           <FormField
             formField="description"
             label={tr('project.descriptionLabel')}
-            errorTooltip={tr('newProject.descriptionTooltip')}
+            errorTooltip={tr('newProject.descriptionErrorTooltip')}
             helpTooltip={tr('newProject.descriptionTooltip')}
             component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
           />
