@@ -1,6 +1,5 @@
 import dayjs from 'dayjs';
 import { useEffect, useMemo } from 'react';
-import { ProjectType } from 'tre-hanna-shared/src/schema/project/type';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
@@ -9,6 +8,7 @@ import { getRange } from '@frontend/utils/array';
 
 import { DbInvestmentProject } from '@shared/schema/project/investment';
 import { DbMaintenanceProject } from '@shared/schema/project/maintenance';
+import { ProjectType } from '@shared/schema/project/type';
 
 import { BudgetFields, BudgetTable } from './BudgetTable';
 

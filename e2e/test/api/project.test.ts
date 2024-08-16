@@ -404,9 +404,22 @@ test.describe('Project endpoints', () => {
     await investmentFinancialsSession.client.investmentProject.updateBudget.mutate(
       budgetUpdateInput(investmentProject.projectId),
     );
+
     await maintenanceFinancialsSession.client.maintenanceProject.updateBudget.mutate(
       budgetUpdateInput(maintenanceProject.projectId),
     );
+
+    await expect(
+      maintenanceFinancialsSession.client.investmentProject.updateBudget.mutate(
+        budgetUpdateInput(investmentProject.projectId),
+      ),
+    ).rejects.toThrowError('error.insufficientPermissions');
+
+    await expect(
+      investmentFinancialsSession.client.maintenanceProject.updateBudget.mutate(
+        budgetUpdateInput(maintenanceProject.projectId),
+      ),
+    ).rejects.toThrowError('error.insufficientPermissions');
 
     const investmentUpdatedBudgetResult = await devSession.client.project.getBudget.query({
       projectId: investmentProject.projectId,
