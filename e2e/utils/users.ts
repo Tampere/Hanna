@@ -12,5 +12,7 @@ export type UserSessionObject = {
 };
 
 export const ADMIN_USER = 'admin@localhost';
+export const DEV_ADMIN_USER = 'dev_admin@localhost';
 export const DEV_USER = 'dev@localhost';
 export const TEST_USER = 'test@localhost';
+export const TEST_USER_2 = 'test2@localhost';

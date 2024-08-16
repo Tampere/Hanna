@@ -12,7 +12,7 @@ on:
     types: [released]
 
 env:
-  NODE_VERSION: 18
+  NODE_VERSION: 18.20.4
   IMAGE_NAME: ${{ secrets.REGISTRY_ADDRESS }}/hanna
   APP_VERSION: ${{ github.event_name == 'release' && github.event.release.name || format('build {0}', github.sha) }}
   VITE_FEATURE_SAP_REPORTS: 'true'

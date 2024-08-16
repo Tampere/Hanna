@@ -217,7 +217,12 @@ export function UserPermissionsPage() {
                   <TableCell align="center">
                     {tr('userPermissions.detailplanProject.write')}
                   </TableCell>
-                  <TableCell align="center">{tr('userPermissions.financials.write')}</TableCell>
+                  <TableCell align="center">
+                    {tr('userPermissions.investmentFinancials.write')}
+                  </TableCell>
+                  <TableCell align="center">
+                    {tr('userPermissions.maintenanceFinancials.write')}
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -260,9 +265,16 @@ export function UserPermissionsPage() {
                     </TableCell>
                     <TableCell align="center">
                       <Checkbox
-                        checked={hasPermission(user, 'financials.write')}
+                        checked={hasPermission(user, 'investmentFinancials.write')}
                         disabled={user.isAdmin}
-                        onClick={() => handlePermissionChange(user, 'financials.write')}
+                        onClick={() => handlePermissionChange(user, 'investmentFinancials.write')}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Checkbox
+                        checked={hasPermission(user, 'maintenanceFinancials.write')}
+                        disabled={user.isAdmin}
+                        onClick={() => handlePermissionChange(user, 'maintenanceFinancials.write')}
                       />
                     </TableCell>
                   </TableRow>

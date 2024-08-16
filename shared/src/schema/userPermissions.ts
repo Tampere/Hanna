@@ -28,7 +28,8 @@ export const ALL_PERMISSIONS = [
   'investmentProject.write',
   'detailplanProject.write',
   'maintenanceProject.write',
-  'financials.write',
+  'investmentFinancials.write',
+  'maintenanceFinancials.write',
 ] as const;
 
 const permissionSchema = z.enum(ALL_PERMISSIONS);

@@ -13,7 +13,6 @@ import {
   getProjectBudget,
   getRelatedProjects,
   removeProjectRelation,
-  updateProjectBudget,
   updateProjectGeometry,
 } from '@backend/components/project/index.js';
 import { listProjects, projectSearch } from '@backend/components/project/search.js';
@@ -24,7 +23,6 @@ import { TRPC } from '@backend/router/index.js';
 
 import { projectIdSchema, projectPermissionSchema } from '@shared/schema/project/base.js';
 import {
-  budgetUpdateSchema,
   projectListParamsSchema,
   projectSearchResultSchema,
   projectSearchSchema,
@@ -34,7 +32,6 @@ import {
 import { projectObjectSearchResultSchema } from '@shared/schema/projectObject/search.js';
 import {
   ProjectAccessChecker,
-  hasPermission,
   hasWritePermission,
   isProjectIdInput,
   ownsProject,
@@ -145,22 +142,6 @@ export const createProjectRouter = (t: TRPC) => {
       .mutation(async ({ input, ctx }) => {
         return await getPool().transaction(async (tx) => {
           return await updateProjectGeometry(tx, input, ctx.user);
-        });
-      }),
-
-    updateBudget: t.procedure
-      .input(budgetUpdateSchema)
-      .use(
-        withAccess(
-          (usr, ctx) =>
-            ownsProject(usr, ctx) ||
-            hasWritePermission(usr, ctx) ||
-            hasPermission(usr, 'financials.write'),
-        ),
-      )
-      .mutation(async ({ input, ctx }) => {
-        return await getPool().transaction(async (tx) => {
-          return await updateProjectBudget(tx, input.projectId, input.budgetItems, ctx.user.id);
         });
       }),
 

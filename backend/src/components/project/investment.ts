@@ -118,7 +118,6 @@ export async function projectUpsert(
         user,
       );
     }
-
     return getProject(upsertResult.projectId, tx);
   });
 }

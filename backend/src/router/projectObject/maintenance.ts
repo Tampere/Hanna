@@ -2,18 +2,23 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
 import { getPermissionContext as getProjectPermissionCtx } from '@backend/components/project/base.js';
-import { getPermissionContext } from '@backend/components/projectObject/index.js';
+import {
+  getPermissionContext,
+  updateProjectObjectBudget,
+} from '@backend/components/projectObject/index.js';
 import {
   getProjectObject,
   upsertProjectObject,
 } from '@backend/components/projectObject/maintenance.js';
 import { getPool } from '@backend/db.js';
 import { TRPC } from '@backend/router/index.js';
+import { createAccessMiddleware } from '@backend/router/projectObject/base.js';
 
-import { getProjectObjectParams } from '@shared/schema/projectObject/base.js';
-import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions.js';
+import { getProjectObjectParams, updateBudgetSchema } from '@shared/schema/projectObject/base.js';
+import { hasPermission, hasWritePermission, ownsProject } from '@shared/schema/userPermissions.js';
 
 export const createMaintenanceProjectObjectRouter = (t: TRPC) => {
+  const withAccess = createAccessMiddleware(t);
   return t.router({
     get: t.procedure.input(getProjectObjectParams).query(async ({ input }) => {
       return await getPool().transaction(async (tx) => {
@@ -39,5 +44,25 @@ export const createMaintenanceProjectObjectRouter = (t: TRPC) => {
         return upsertProjectObject(tx, input, ctx.user.id);
       });
     }),
+    updateBudget: t.procedure
+      .input(updateBudgetSchema.required())
+      .use(
+        withAccess(
+          (usr, ctx) =>
+            ownsProject(usr, ctx) ||
+            hasWritePermission(usr, ctx) ||
+            hasPermission(usr, 'maintenanceFinancials.write'),
+        ),
+      )
+      .mutation(async ({ input, ctx }) => {
+        return await getPool().transaction(async (tx) => {
+          return await updateProjectObjectBudget(
+            tx,
+            input.projectObjectId,
+            input.budgetItems,
+            ctx.user.id,
+          );
+        });
+      }),
   });
 };
