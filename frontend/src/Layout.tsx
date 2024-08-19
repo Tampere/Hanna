@@ -29,7 +29,6 @@ import {
   Tabs,
   ThemeProvider,
   Toolbar,
-  Tooltip,
   Typography,
   createTheme,
 } from '@mui/material';

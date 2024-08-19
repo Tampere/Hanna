@@ -22,7 +22,7 @@ export const fi = {
   'pages.generalNotificationTitle': 'Tiedotteet',
   'pages.generalNotificationTitleNew': 'Uusi',
   'pages.generalNewGeneralNotificationsTooltip':
-    'Uusi julkaistuja tiedotteita viimeisen kolmen vuorokauden ajalta.',
+    'Uusia julkaistuja tiedotteita viimeisen kolmen vuorokauden ajalta.',
   'pages.eForm': 'E-lomake',
   'pages.eFormLabel': 'Hankkeen perustamis- ja ostotilauspyyntö',
   'newProject.btnLabel': 'Luo uusi hanke',

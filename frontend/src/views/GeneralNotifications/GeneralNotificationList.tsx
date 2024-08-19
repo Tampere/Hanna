@@ -72,8 +72,8 @@ export function GeneralNotificationList({ notifications }: Props) {
   return (
     <Box
       css={css`
+        min-width: 65%;
         max-width: 800px;
-        max-height: 600px;
         overflow: auto;
         margin: 40px auto;
       `}
