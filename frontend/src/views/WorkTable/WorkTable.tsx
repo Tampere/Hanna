@@ -138,6 +138,11 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   & .MuiDataGrid-virtualScroller {
     min-height: 125px;
   }
+
+  & .kayttosuunnitelmanMuutos-header {
+    // TODO: figure out why column headerAlign doesn't work
+    text-align: right;
+  }
 `;
 
 type UpdateableFields = keyof Omit<WorkTableRow, 'id' | 'projectLink'>;
@@ -385,7 +390,7 @@ export default function WorkTable() {
       return ['budget', 'forecast', 'kayttosuunnitelmanMuutos'];
     } else if (hasPermission(auth, 'investmentFinancials.write')) {
       return ['budget', 'kayttosuunnitelmanMuutos'];
-    } else if (hasPermission(auth, 'investmentProject.write' || ownsProject(auth, permissionCtx))) {
+    } else if (hasPermission(auth, 'investmentProject.write') || ownsProject(auth, permissionCtx)) {
       return ['forecast'];
     } else {
       return [];
