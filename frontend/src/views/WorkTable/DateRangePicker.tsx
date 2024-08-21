@@ -1,4 +1,4 @@
-import { Box, Button, Paper, Popper, css } from '@mui/material';
+import { Box, Button, Paper, Popper, Typography, css } from '@mui/material';
 import { GridEditSingleSelectCellProps, useGridApiContext } from '@mui/x-data-grid';
 import { DateCalendar, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -56,12 +56,21 @@ export function DateRangeEdit(params: GridEditSingleSelectCellProps) {
         <span> {'\u2014'} </span>
         <i>{endDate.format('DD.MM.YYYY')}</i>
       </Box>
-      <Popper open={open} anchorEl={anchorElRef.current?.parentElement} placement={'bottom-start'}>
+      <Popper
+        css={css`
+          z-index: 201;
+        `}
+        open={open}
+        anchorEl={anchorElRef.current?.parentElement}
+        placement={'bottom-start'}
+      >
         {open && (
           <Paper
+            elevation={3}
             css={css`
               display: flex;
               flex-direction: column;
+              background-color: #fafafa;
             `}
           >
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang}>
@@ -71,41 +80,73 @@ export function DateRangeEdit(params: GridEditSingleSelectCellProps) {
                   flex-direction: row;
                 `}
               >
-                <DateCalendar
-                  view={startPickerView}
-                  views={['year', 'month', 'day']}
-                  onYearChange={() => setStartPickerView('month')}
-                  onMonthChange={() => setStartPickerView('day')}
-                  onViewChange={(newView) => setStartPickerView(newView)}
-                  slots={{ day: CustomDay as any }}
-                  slotProps={{
-                    day: {
-                      selectedDay: startDate,
-                      inRange: (d: Dayjs) => startDate && endDate && d > startDate && d < endDate,
-                      dateFormat,
-                    } as any,
-                  }}
-                  maxDate={endDate?.subtract(1, 'day')}
-                  onChange={(date) => setStartDate(date ?? startDate)}
-                  value={startDate}
-                />
-                <DateCalendar
-                  view={endPickerView}
-                  onYearChange={() => setEndPickerView('month')}
-                  onMonthChange={() => setEndPickerView('day')}
-                  onViewChange={(newView) => setEndPickerView(newView)}
-                  slots={{ day: CustomDay as any }}
-                  slotProps={{
-                    day: {
-                      selectedDay: endDate,
-                      inRange: (d: Dayjs) => startDate && endDate && d > startDate && d < endDate,
-                      dateFormat,
-                    } as any,
-                  }}
-                  minDate={startDate?.add(1, 'day')}
-                  onChange={(date) => setEndDate(date ?? endDate)}
-                  value={endDate}
-                />
+                <Box
+                  css={css`
+                    display: flex;
+                    flex-direction: column;
+                  `}
+                >
+                  <Typography
+                    variant="h6"
+                    component="p"
+                    css={css`
+                      padding: 0.5rem 0 0 1.5rem;
+                    `}
+                  >
+                    {tr('project.startDateLabel')}
+                  </Typography>
+                  <DateCalendar
+                    view={startPickerView}
+                    views={['year', 'month', 'day']}
+                    onYearChange={() => setStartPickerView('month')}
+                    onMonthChange={() => setStartPickerView('day')}
+                    onViewChange={(newView) => setStartPickerView(newView)}
+                    slots={{ day: CustomDay as any }}
+                    slotProps={{
+                      day: {
+                        selectedDay: startDate,
+                        inRange: (d: Dayjs) => startDate && endDate && d > startDate && d < endDate,
+                        dateFormat,
+                      } as any,
+                    }}
+                    maxDate={endDate?.subtract(1, 'day')}
+                    onChange={(date) => setStartDate(date ?? startDate)}
+                    value={startDate}
+                  />
+                </Box>
+                <Box
+                  css={css`
+                    display: flex;
+                    flex-direction: column;
+                  `}
+                >
+                  <Typography
+                    variant="h6"
+                    component="p"
+                    css={css`
+                      padding: 0.5rem 0 0 1.5rem;
+                    `}
+                  >
+                    {tr('project.endDateLabel')}
+                  </Typography>
+                  <DateCalendar
+                    view={endPickerView}
+                    onYearChange={() => setEndPickerView('month')}
+                    onMonthChange={() => setEndPickerView('day')}
+                    onViewChange={(newView) => setEndPickerView(newView)}
+                    slots={{ day: CustomDay as any }}
+                    slotProps={{
+                      day: {
+                        selectedDay: endDate,
+                        inRange: (d: Dayjs) => startDate && endDate && d > startDate && d < endDate,
+                        dateFormat,
+                      } as any,
+                    }}
+                    minDate={startDate?.add(1, 'day')}
+                    onChange={(date) => setEndDate(date ?? endDate)}
+                    value={endDate}
+                  />
+                </Box>
               </Box>
             </LocalizationProvider>
             <Box
