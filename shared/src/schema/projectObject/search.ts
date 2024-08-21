@@ -37,9 +37,9 @@ export const projectObjectSearchResultSchema = z.object({
         startDate: true,
         endDate: true,
         geom: true,
-        objectStage: true,
       })
       .extend({
+        objectStage: mergedProjectObjectDbSchema.shape.objectStage.nullish(),
         project: dbProjectSchema
           .pick({
             endDate: true,

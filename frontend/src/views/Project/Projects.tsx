@@ -1,11 +1,10 @@
 import { css } from '@emotion/react';
-import { Add, AddCircle, Download, NavigateNext } from '@mui/icons-material';
+import { Add, AddCircle, NavigateNext } from '@mui/icons-material';
 import {
   Box,
   Button,
   Card,
   CardActionArea,
-  Chip,
   ListItemIcon,
   ListItemText,
   Menu,
@@ -20,6 +19,7 @@ import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
+import { FileDownload } from '@frontend/components/icons/FileDownload';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
@@ -258,9 +258,54 @@ function SearchResults({ results, loading, activeProjectId }: SearchResultsProps
     }
   }, [activeProjectId]);
 
+  function getSearchResultTitle(withStyling = false) {
+    if (loading) return '';
+    if (results.length === 1) return tr('projectListing.searchResultsTitleSingle');
+    if (results.length > 500) {
+      if (withStyling) {
+        const title = tr('projectListing.searchResultsTitleExceeded').split('{0}');
+        return (
+          <>
+            {title[0]}
+            <b
+              css={css`
+                color: #525252;
+              `}
+            >
+              yli 500
+            </b>
+            {title[1]}
+          </>
+        );
+      }
+      return tr('projectListing.searchResultsTitleExceeded', 'yli 500');
+    }
+    if (results.length > 0) {
+      if (withStyling) {
+        const title = tr('projectListing.searchResultsTitle').split('{0}');
+        return (
+          <>
+            {title[0]}
+            <b
+              css={css`
+                color: #525252;
+              `}
+            >
+              {results.length}
+            </b>
+            {title[1]}
+          </>
+        );
+      }
+      return tr('projectListing.searchResultsTitle', results.length);
+    }
+
+    return tr('itemSearch.noResults');
+  }
+
   return (
     <Box
-      aria-label={tr('projectListing.searchResultsTitle')}
+      aria-label={getSearchResultTitle() as string}
       css={css`
         scrollbar-gutter: stable;
         box-sizing: border-box;
@@ -283,19 +328,26 @@ function SearchResults({ results, loading, activeProjectId }: SearchResultsProps
         `}
       >
         <Typography
-          variant="h5"
-          component="h1"
           css={css`
             flex-grow: 1;
           `}
         >
-          {tr('projectListing.searchResultsTitle')}
-          {!loading && (
-            <Chip label={results?.length ?? 0} sx={{ ml: 1 }} size="small" variant="outlined" />
-          )}
+          {!loading && getSearchResultTitle(true)}
         </Typography>
+
         <AsyncJobButton
-          endIcon={<Download />}
+          title={tr('projectSearch.generateReport')}
+          css={css`
+            & .MuiButtonBase-root {
+              padding-right: 0;
+              svg {
+                margin-left: auto;
+              }
+            }
+            & .MuiCircularProgress-root {
+              left: 8px;
+            }
+          `}
           disabled={results?.length < 1}
           onStart={async () => {
             return await project.startReportJob.fetch(projectSearchParams);
@@ -314,12 +366,12 @@ function SearchResults({ results, loading, activeProjectId }: SearchResultsProps
           }}
           pollingIntervalMs={1000}
         >
-          {tr('projectSearch.generateReport')}
+          <FileDownload />
         </AsyncJobButton>
       </Box>
       {loading ? (
         <ProjectCardSkeleton count={3} />
-      ) : results?.length > 0 ? (
+      ) : (
         results.map((result) => (
           <ProjectCard
             result={result}
@@ -327,12 +379,6 @@ function SearchResults({ results, loading, activeProjectId }: SearchResultsProps
             highlighted={result.projectId === activeProjectId}
           />
         ))
-      ) : (
-        !loading && (
-          <Box>
-            <p>{tr('itemSearch.noResults')}</p>
-          </Box>
-        )
       )}
     </Box>
   );
