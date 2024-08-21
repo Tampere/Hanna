@@ -76,7 +76,7 @@ export function ProjectObjectFormUserRoles({ value, readOnly, onChange }: Props)
         css={css`
           padding-top: 0.25rem;
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: 210px minmax(0, 1fr);
         `}
       >
         {value?.length === 0 && readOnly ? (
@@ -94,7 +94,7 @@ export function ProjectObjectFormUserRoles({ value, readOnly, onChange }: Props)
                     css={css`
                       grid-column: 1 / 2;
                       display: flex;
-                      padding: 0.5rem 0.25rem;
+                      padding: 0.75rem 0.25rem;
                       align-items: top;
                       border-bottom: ${displayBottomBorder && '1px solid lightgray'};
                       & .MuiAutocomplete-root {
@@ -107,6 +107,8 @@ export function ProjectObjectFormUserRoles({ value, readOnly, onChange }: Props)
                       <Typography
                         css={css`
                           font-weight: 500;
+                          font-size: 16px;
+                          line-height: 16px;
                           color: #777777;
                         `}
                         key={role.roleId}
@@ -128,7 +130,7 @@ export function ProjectObjectFormUserRoles({ value, readOnly, onChange }: Props)
                   <Box
                     css={css`
                       grid-column: 2 / 3;
-                      padding: 0.5rem 0.25rem;
+                      padding: 0.75rem 0;
                       display: flex;
                       border-bottom: ${displayBottomBorder && '1px solid lightgray'};
                       align-items: center;

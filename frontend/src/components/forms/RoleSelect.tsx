@@ -1,4 +1,5 @@
-import { Typography } from '@mui/material';
+import { CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
+import { Box, Checkbox, Typography, css } from '@mui/material';
 import { useMemo } from 'react';
 
 import { trpc } from '@frontend/client';
@@ -6,6 +7,85 @@ import { trpc } from '@frontend/client';
 import type { User } from '@shared/schema/user';
 
 import { MultiSelect } from './MultiSelect';
+
+function AssigneeSelectionLabel({
+  assigneeId,
+  roleOptions,
+}: {
+  assigneeId: string | null;
+  roleOptions: RoleAssignee[];
+}) {
+  const assignee = roleOptions.find((assignee) => assignee.id === assigneeId);
+  if (!assignee) {
+    return '';
+  }
+  return (
+    <Box
+      css={css`
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      `}
+    >
+      <span
+        css={css`
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        `}
+      >
+        {assignee.name}
+      </span>
+      <span
+        css={css`
+          font-size: 12px;
+          line-height: 12px;
+          color: #00000099;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        `}
+      >
+        {assignee.companyName}
+      </span>
+    </Box>
+  );
+}
+
+function ChipLabelElement({
+  assigneeId,
+  roleOptions,
+}: {
+  assigneeId: string | null;
+  roleOptions: RoleAssignee[];
+}) {
+  const assignee = roleOptions.find((assignee) => assignee.id === assigneeId);
+  if (!assignee) {
+    return '';
+  }
+  return (
+    <Typography
+      css={css`
+        font-size: 12px;
+        line-height: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+      `}
+    >
+      {assignee.name}
+      <br />
+      <span
+        css={css`
+          font-size: 10px;
+          color: #00000099;
+        `}
+      >
+        {assignee.companyName}
+      </span>
+    </Typography>
+  );
+}
 
 type Props = {
   id?: string;
@@ -26,14 +106,15 @@ type Props = {
     }
 );
 
-interface RoleAssignee extends User {
-  external?: boolean;
+interface RoleAssignee extends Omit<User, 'email'> {
+  email?: string;
+  companyName?: string;
 }
 
 export function RoleSelect(props: Props) {
   const { id, readOnly, onBlur, multiple, value, onChange, maxTags } = props;
   const users = trpc.user.getAllNonExt.useQuery();
-  const companyContacts = trpc.company.getAllContacts.useQuery();
+  const companyContacts = trpc.company.getAllContactsAndCompanies.useQuery();
 
   function getAssignees(assignees: { userIds: string[]; companyContactIds: string[] }) {
     return roleOptions.filter(
@@ -54,9 +135,8 @@ export function RoleSelect(props: Props) {
       ...userData,
       ...contactsData.map((contact) => ({
         id: contact.id,
-        email: contact.emailAddress,
+        companyName: contact.companyName,
         name: contact.contactName,
-        external: true,
       })),
     ] as RoleAssignee[];
   }, [users.data, companyContacts.data]);
@@ -74,17 +154,56 @@ export function RoleSelect(props: Props) {
     }
 
     return multiple ? (
-      <Typography>
-        {(selection as RoleAssignee[]).map((assignee: RoleAssignee, idx) => (
-          <span key={assignee.id}>
-            {assignee.name}
-            {(selection as RoleAssignee[]).length - 1 !== idx && ','}
-            &nbsp;
-          </span>
+      <ul
+        css={css`
+          list-style: none;
+          padding-inline-start: 10px;
+          margin: 0;
+          overflow: hidden;
+        `}
+      >
+        {(selection as RoleAssignee[]).map((assignee: RoleAssignee) => (
+          <li
+            title={`${assignee.name}${assignee.companyName ? `, ${assignee.companyName}` : ''}`}
+            css={css`
+              margin-bottom: 8px;
+            `}
+            key={assignee.id}
+          >
+            <span
+              css={css`
+                display: block;
+                font-size: 14px;
+                line-height: 14px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              `}
+            >
+              {assignee.name}
+            </span>
+            <span
+              css={css`
+                display: block;
+                font-size: 12px;
+                color: #00000099;
+                line-height: 12px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              `}
+            >
+              {assignee.companyName}
+            </span>
+          </li>
         ))}
-      </Typography>
+      </ul>
     ) : (
-      <Typography>{(selection as RoleAssignee)?.name}</Typography>
+      <Typography>
+        {(selection as RoleAssignee)?.name}
+        <br />
+        <span>{(selection as RoleAssignee)?.companyName}</span>
+      </Typography>
     );
   }
 
@@ -98,14 +217,34 @@ export function RoleSelect(props: Props) {
       value={selection as RoleAssignee[]}
       options={roleOptions}
       getOptionId={(assignee) => assignee.id}
-      getOptionLabel={(assignee) => `${assignee.name} ${assignee?.external ? '(ulkoinen)' : ''}`}
-      onChange={(selectedAssignees) =>
+      onChange={(selectedAssignees) => {
         onChange(
           selectedAssignees
-            .filter((assignee) => !assignee?.external)
+            .filter((assignee) => !assignee?.companyName)
             .map((assignee) => assignee.id),
-          selectedAssignees.filter((assignee) => assignee?.external).map((assignee) => assignee.id),
-        )
+          selectedAssignees
+            .filter((assignee) => assignee?.companyName)
+            .map((assignee) => assignee.id),
+        );
+      }}
+      renderOption={(props, id, { selected }) => (
+        <li {...props} style={{ hyphens: 'auto' }} key={id}>
+          {multiple && (
+            <Checkbox
+              icon={<CheckBoxOutlineBlank fontSize="small" />}
+              checkedIcon={<CheckBox fontSize="small" />}
+              sx={{ mr: 1 }}
+              checked={selected}
+            />
+          )}
+          <AssigneeSelectionLabel assigneeId={id} roleOptions={roleOptions} />
+        </li>
+      )}
+      optionLabelElement={(assigneeId) => (
+        <ChipLabelElement assigneeId={assigneeId} roleOptions={roleOptions} />
+      )}
+      getOptionLabel={(assignee) =>
+        `${assignee.name}${assignee.companyName ? `, ${assignee.companyName}` : ''}`
       }
       maxTags={maxTags}
       multiple
@@ -120,7 +259,25 @@ export function RoleSelect(props: Props) {
       value={selection as RoleAssignee}
       options={roleOptions}
       getOptionId={(assignee) => assignee.id}
-      getOptionLabel={(assignee) => assignee.name}
+      renderOption={(props, id, { selected }) => (
+        <li {...props} style={{ hyphens: 'auto' }} key={id}>
+          {multiple && (
+            <Checkbox
+              icon={<CheckBoxOutlineBlank fontSize="small" />}
+              checkedIcon={<CheckBox fontSize="small" />}
+              sx={{ mr: 1 }}
+              checked={selected}
+            />
+          )}
+          <AssigneeSelectionLabel assigneeId={id} roleOptions={roleOptions} />
+        </li>
+      )}
+      optionLabelElement={(assigneeId) => (
+        <ChipLabelElement assigneeId={assigneeId} roleOptions={roleOptions} />
+      )}
+      getOptionLabel={(assignee) =>
+        `${assignee.name}${assignee.companyName ? `, ${assignee.companyName}` : ''}`
+      }
       onChange={(assignee) => onChange(assignee?.id ?? null)}
       multiple={false}
     />

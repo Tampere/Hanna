@@ -1,6 +1,8 @@
+import { ReactJSXElement } from '@emotion/react/types/jsx-namespace';
 import { CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
 import {
   Autocomplete,
+  AutocompleteProps,
   Checkbox,
   Chip,
   CircularProgress,
@@ -20,7 +22,12 @@ export type Props<T> = {
   readOnly?: boolean;
   onBlur?: () => void;
   getOptionLabel?: (item: T) => string;
+  optionLabelElement?: (id: string | null) => ReactJSXElement;
   getOptionId?: (item: T) => string;
+  /**
+   * Overrides MUI AutoComplete's default renderOption function.
+   */
+  renderOption?: AutocompleteProps<string | null, boolean, boolean, false, 'div'>['renderOption'];
   multiple: boolean;
   disableClearable?: boolean;
 } & (
@@ -50,6 +57,8 @@ export function MultiSelect<T>({
   onBlur,
   getOptionLabel,
   getOptionId,
+  renderOption,
+  optionLabelElement,
   maxTags,
   disableClearable,
 }: Props<T>) {
@@ -168,33 +177,41 @@ export function MultiSelect<T>({
                 key={key}
                 css={css`
                   font-size: 12px;
-                  height: 18px;
+                  height: ${optionLabelElement ? 'fit-content' : '18px'};
+                  ${optionLabelElement &&
+                  `& .MuiChip-label {
+                    padding: 6px 8px;
+                  };
+                  `}
                   &.MuiAutocomplete-tag {
-                    max-width: 60%;
+                    max-width: 90%;
                   }
                 `}
                 {...props}
                 size="small"
                 title={getLabel(tag)}
-                label={getLabel(tag)}
-              ></Chip>
+                label={optionLabelElement?.(tag) ?? getLabel(tag)}
+              />
             );
           })
         ) : null;
       }}
-      renderOption={(props, id, { selected }) => (
-        <li {...props} style={{ hyphens: 'auto' }} key={id}>
-          {multiple && (
-            <Checkbox
-              icon={<CheckBoxOutlineBlank fontSize="small" />}
-              checkedIcon={<CheckBox fontSize="small" />}
-              sx={{ mr: 1 }}
-              checked={selected}
-            />
-          )}
-          {getLabel(id)}
-        </li>
-      )}
+      renderOption={
+        renderOption ??
+        ((props, id, { selected }) => (
+          <li {...props} style={{ hyphens: 'auto' }} key={id}>
+            {multiple && (
+              <Checkbox
+                icon={<CheckBoxOutlineBlank fontSize="small" />}
+                checkedIcon={<CheckBox fontSize="small" />}
+                sx={{ mr: 1 }}
+                checked={selected}
+              />
+            )}
+            {getLabel(id)}
+          </li>
+        ))
+      }
       renderInput={(params) => (
         <TextField
           {...params}

@@ -146,6 +146,10 @@ export const createCompanyRouter = (t: TRPC) =>
       WHERE deleted IS FALSE`);
     }),
 
+    getAllContactsAndCompanies: t.procedure.query(async () => {
+      return getAllContactsAndCompanies();
+    }),
+
     deleteContact: t.procedure.input(companyContactIdSchema).mutation(async ({ ctx, input }) => {
       await getPool().transaction(async (tx) => {
         await addAuditEvent(tx, {
