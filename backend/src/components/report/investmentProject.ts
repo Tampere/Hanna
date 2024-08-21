@@ -34,8 +34,8 @@ function projectReportFragment(searchParams: ProjectSearch) {
       project_object.object_name AS "projectObjectName",
       project_object.description AS "projectObjectDescription",
       (SELECT text_fi FROM app.code WHERE id = project_object.lifecycle_state) AS "projectObjectLifecycleState",
-      (SELECT email FROM app.user WHERE id = project_object.rakennuttaja_user) AS "projectObjectRakennuttaja",
-      (SELECT email FROM app.user WHERE id = project_object.suunnitteluttaja_user) AS "projectObjectSuunnitteluttaja",
+      (SELECT email FROM app.user WHERE id = poi.rakennuttaja_user) AS "projectObjectRakennuttaja",
+      (SELECT email FROM app.user WHERE id = poi.suunnitteluttaja_user) AS "projectObjectSuunnitteluttaja",
       project_object.created_at AS "projectObjectCreatedAt",
       project_object.start_date AS "projectObjectStartDate",
       project_object.end_date AS "projectObjectEndDate",
@@ -49,6 +49,7 @@ function projectReportFragment(searchParams: ProjectSearch) {
     FROM app.project_investment
     INNER JOIN app.project ON (project_investment.id = project.id AND project.deleted IS FALSE)
     LEFT JOIN app.project_object ON (project.id = project_object.project_id AND project_object.deleted IS FALSE)
+    LEFT JOIN app.project_object_investment poi ON project_object.id = poi.project_object_id
   `;
 }
 
