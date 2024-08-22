@@ -120,7 +120,10 @@ export function Legend({ vectorLayerKeys }: Props) {
         </List>
       </Box>
 
-      <Tooltip placement="top" title={isOpen ? 'Piilota karttaselitteet' : 'Näytä karttaselitteet'}>
+      <Tooltip
+        placement="top"
+        title={isOpen ? tr('map.legend.hideTooltip') : tr('map.legend.showTooltip')}
+      >
         <IconButton
           css={(theme) => toggleButtonStyle(theme, isOpen)}
           onClick={() => setIsOpen((prev) => !prev)}

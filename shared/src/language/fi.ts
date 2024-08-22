@@ -202,6 +202,8 @@ export const fi = {
   'map.fitScreen': 'Sovita näkymään',
   'map.resetZoom': 'Palauta zoomaus',
   'map.legend.title': 'Karttamerkintöjen selite',
+  'map.legend.showTooltip': 'Näytä karttaselite',
+  'map.legend.hideTooltip': 'Piilota karttaselite',
   'map.legend.projects': 'Hanke',
   'map.legend.projectObjects': 'Kohde',
   'map.legend.projectClusterResults': 'Hankerypäs',
