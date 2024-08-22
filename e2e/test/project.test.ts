@@ -216,7 +216,7 @@ test.describe('Projects', () => {
     await sleep(1000);
 
     let searchResults = await devSession.page
-      .locator("div[aria-label='Hakutulokset'] > a")
+      .locator("div[aria-label='Näytetään yksi hanke:'] > a")
       .allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectA.projectName)) &&
@@ -224,10 +224,10 @@ test.describe('Projects', () => {
     ).toBe(true);
 
     // Search for projectB - projectA should not be in results
-    await devSession.page.fill('label:has-text("Haku")', 'kuvaus');
+    await devSession.page.fill('label:has-text("Haku")', 'toisen');
     await sleep(1000);
     searchResults = await devSession.page
-      .locator("div[aria-label='Hakutulokset'] > a")
+      .locator("div[aria-label='Näytetään yksi hanke:'] > a")
       .allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectB.projectName)) &&
@@ -238,27 +238,29 @@ test.describe('Projects', () => {
     await devSession.page.fill('label:has-text("Haku")', 'hakutesti');
     await sleep(1000);
     searchResults = await devSession.page
-      .locator("div[aria-label='Hakutulokset'] > a")
+      .locator("div[aria-label='Näytetään 3 hanketta:'] > a")
       .allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectB.projectName)) &&
         searchResults.some((result) => result.includes(projectA.projectName)),
     ).toBe(true);
 
-    // Search for other projects (only prefixes should be matched - no other substrings!)
-    await devSession.page.fill('label:has-text("Haku")', 'akutesti');
+    // Search for projectC
+    await devSession.page.fill('label:has-text("Haku")', 'kolmas');
     await sleep(1000);
     searchResults = await devSession.page
-      .locator("div[aria-label='Hakutulokset'] > a")
+      .locator("div[aria-label='Näytetään yksi hanke:'] > a")
       .allTextContents();
     expect(
-      searchResults.some((result) => result.includes(projectB.projectName)) &&
-        searchResults.some(
-          (result) =>
-            result.includes(projectA.projectName) &&
-            searchResults.some((result) => result.includes(projectC.projectName)),
-        ),
+      searchResults.some((result) => result.includes(projectC.projectName)) &&
+        searchResults.every((result) => !result.includes(projectA.projectName)) &&
+        searchResults.every((result) => !result.includes(projectB.projectName)),
     ).toBe(true);
+
+    // Search for unexisting project
+    await devSession.page.fill('label:has-text("Haku")', 'ei löydy');
+    await sleep(1000);
+    await expect(devSession.page.locator('div[aria-label="Ei hakutuloksia."]')).toBeVisible();
 
     // search with elinkaaren tila filter
     await devSession.page.fill('label:has-text("Haku")', '');
@@ -269,7 +271,7 @@ test.describe('Projects', () => {
       .check();
     await sleep(500);
     searchResults = await devSession.page
-      .locator("div[aria-label='Hakutulokset'] > a")
+      .locator("div[aria-label='Näytetään 2 hanketta:'] > a")
       .allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectA.projectName)) &&
@@ -285,7 +287,7 @@ test.describe('Projects', () => {
     await sleep(500);
 
     searchResults = await devSession.page
-      .locator("div[aria-label='Hakutulokset'] > a")
+      .locator("div[aria-label='Näytetään yksi hanke:'] > a")
       .allTextContents();
     expect(
       searchResults.some((result) => result.includes(projectC.projectName)) &&

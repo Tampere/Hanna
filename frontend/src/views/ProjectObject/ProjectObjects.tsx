@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { NavigateNext } from '@mui/icons-material';
-import { Box, Card, CardActionArea, Chip, Skeleton, Typography } from '@mui/material';
+import { Box, Card, CardActionArea, Skeleton, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
 import { useEffect, useState } from 'react';
@@ -160,7 +160,7 @@ function ProjectObjectCard({
             {dayjs(result.endDate).format(tr('date.format'))}
           </Typography>
         </Box>
-        {objectStageCodes && (
+        {objectStageCodes && result?.objectStage && (
           <span
             css={css`
               margin-left: auto;
@@ -218,8 +218,8 @@ function SearchResults({ projectObjects, loading, activeProjectObjectId }: Searc
           if (mutation.type === 'childList') {
             const rowElement = document.getElementById(`projectObject-${newObjectHighlightId}`);
             if (rowElement) {
-              rowElement.scrollIntoView({ block: 'center' }),
-                setTimeout(() => setNewObjectHighlightId(null), 5000);
+              rowElement.scrollIntoView({ block: 'center' });
+              setTimeout(() => setNewObjectHighlightId(null), 5000);
               observer.disconnect();
             }
           }
@@ -232,9 +232,55 @@ function SearchResults({ projectObjects, loading, activeProjectObjectId }: Searc
     }
   }, [projectObjects, newObjectHighlightId]);
 
+  function getSearchResultTitle(withStyling = false) {
+    if (loading) return '';
+    if (projectObjects.length === 1)
+      return `${tr('projectObjectListing.searchResultsTitleSingle')}:`;
+    if (projectObjects.length > 500) {
+      if (withStyling) {
+        const title = tr('projectObjectListing.searchResultsTitleExceeded').split('{0}');
+        return (
+          <>
+            {title[0]}
+            <b
+              css={css`
+                color: #525252;
+              `}
+            >
+              yli 500
+            </b>
+            {title[1]}
+          </>
+        );
+      }
+      return tr('projectObjectListing.searchResultsTitleExceeded', 'yli 500');
+    }
+    if (projectObjects.length > 0) {
+      if (withStyling) {
+        const title = tr('projectObjectListing.searchResultsTitle').split('{0}');
+        return (
+          <>
+            {title[0]}
+            <b
+              css={css`
+                color: #525252;
+              `}
+            >
+              {projectObjects.length}
+            </b>
+            {title[1]}:
+          </>
+        );
+      }
+      return `${tr('projectObjectListing.searchResultsTitle', projectObjects.length)}:`;
+    }
+
+    return tr('itemSearch.noResults');
+  }
+
   return (
     <Box
-      aria-label={tr('projectListing.searchResultsTitle')}
+      aria-label={getSearchResultTitle() as string}
       css={css`
         scrollbar-gutter: stable;
         display: flex;
@@ -256,27 +302,17 @@ function SearchResults({ projectObjects, loading, activeProjectObjectId }: Searc
         `}
       >
         <Typography
-          variant="h5"
-          component="h1"
           css={css`
             flex-grow: 1;
           `}
         >
-          {tr('projectObjectListing.searchResultsTitle')}
-          {!loading && (
-            <Chip
-              label={projectObjects?.length ?? 0}
-              sx={{ ml: 1 }}
-              size="small"
-              variant="outlined"
-            />
-          )}
+          {!loading && getSearchResultTitle(true)}
         </Typography>
       </Box>
 
       {loading ? (
         <ProjectObjectCardSkeleton count={3} />
-      ) : projectObjects?.length > 0 ? (
+      ) : (
         projectObjects.map((result, index) => {
           const displayProjectName =
             index === 0 || result.project.projectId !== projectObjects[index - 1].project.projectId;
@@ -303,12 +339,6 @@ function SearchResults({ projectObjects, loading, activeProjectObjectId }: Searc
             </Box>
           );
         })
-      ) : (
-        !loading && (
-          <Box>
-            <p>{tr('itemSearch.noResults')}</p>
-          </Box>
-        )
       )}
     </Box>
   );

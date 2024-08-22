@@ -328,6 +328,7 @@ const financesField = (
     field: targetField,
     headerName: targetField,
     headerAlign: 'right',
+    headerClassName: `${targetField}-header`, // for some reason kayttoSuunnitelmanMuutos-header is not aligning right so let's use this
     flex: 1,
     minWidth: 128,
     renderCell: ({ value }: GridRenderCellParams) => {
@@ -394,7 +395,7 @@ export function getColumns({
       {
         headerName: 'Käyttösuunnitelman muutos',
         flex: 1,
-        minWidth: 188,
+        minWidth: 172,
         editable: !allYearsSelected,
       },
       {

@@ -4,7 +4,7 @@ import { z } from 'zod';
 import {
   getFilterFragment,
   investmentProjectFragment,
-  textToSearchTerms,
+  textToTsSearchTerms,
 } from '@backend/components/project/search.js';
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
@@ -34,8 +34,8 @@ function projectReportFragment(searchParams: ProjectSearch) {
       project_object.object_name AS "projectObjectName",
       project_object.description AS "projectObjectDescription",
       (SELECT text_fi FROM app.code WHERE id = project_object.lifecycle_state) AS "projectObjectLifecycleState",
-      (SELECT email FROM app.user WHERE id = project_object.rakennuttaja_user) AS "projectObjectRakennuttaja",
-      (SELECT email FROM app.user WHERE id = project_object.suunnitteluttaja_user) AS "projectObjectSuunnitteluttaja",
+      (SELECT email FROM app.user WHERE id = poi.rakennuttaja_user) AS "projectObjectRakennuttaja",
+      (SELECT email FROM app.user WHERE id = poi.suunnitteluttaja_user) AS "projectObjectSuunnitteluttaja",
       project_object.created_at AS "projectObjectCreatedAt",
       project_object.start_date AS "projectObjectStartDate",
       project_object.end_date AS "projectObjectEndDate",
@@ -44,11 +44,12 @@ function projectReportFragment(searchParams: ProjectSearch) {
       project_object.sap_wbs_id AS "projectObjectSAPWBSId",
       ts_rank(
         COALESCE(project.tsv, ''),
-        to_tsquery('simple', ${textToSearchTerms(searchParams.text)})
+        to_tsquery('simple', ${textToTsSearchTerms(searchParams.text)})
       ) AS tsrank
     FROM app.project_investment
     INNER JOIN app.project ON (project_investment.id = project.id AND project.deleted IS FALSE)
     LEFT JOIN app.project_object ON (project.id = project_object.project_id AND project_object.deleted IS FALSE)
+    LEFT JOIN app.project_object_investment poi ON project_object.id = poi.project_object_id
   `;
 }
 
@@ -135,7 +136,9 @@ export async function buildInvestmentProjectReportSheet(
         LEFT JOIN app.code c ON c.id = pou.object_usage
         GROUP BY project_object_id
       ) object_usages ON fp."projectObjectId" = object_usages.project_object_id
-    WHERE tsrank IS NULL OR tsrank > 0
+    WHERE tsrank IS NULL OR tsrank > 0.01 OR fp."projectName" LIKE '%' || ${
+      searchParams?.text ?? ''
+    } || '%'
     ORDER BY tsrank DESC, "projectStartDate" DESC
   `;
 

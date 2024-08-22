@@ -15,7 +15,7 @@ type TextToSearchTermsOpts = {
   minTermLength?: number;
 };
 
-export function textToSearchTerms(text: string | undefined, options?: TextToSearchTermsOpts) {
+export function textToTsSearchTerms(text: string | undefined, options?: TextToSearchTermsOpts) {
   const minTermLength = options?.minTermLength ?? 0;
   if (text?.length && text.length < minTermLength) return null;
   return (
@@ -216,7 +216,7 @@ export async function projectSearch(
         project.project_name,
         ts_rank(
           COALESCE(project.tsv, '') || COALESCE(project_detailplan.tsv, ''),
-          to_tsquery('simple', ${textToSearchTerms(input.text)})
+          to_tsquery('simple', ${textToTsSearchTerms(input.text)})
         ) AS tsrank
       FROM app.project
       LEFT JOIN app.project_detailplan ON project.id = project_detailplan.id
@@ -229,7 +229,7 @@ export async function projectSearch(
         similarity AS name_similarity
       FROM ranked_projects, similarity(${input?.text ?? ''}, ranked_projects.project_name)
       WHERE tsrank IS NULL
-        OR tsrank > 0
+        OR tsrank > 0.01
         OR ranked_projects.project_name LIKE '%' || ${input?.text ?? ''} || '%'
     ), investment_projects AS (
       ${investmentProjectFragment(input)}

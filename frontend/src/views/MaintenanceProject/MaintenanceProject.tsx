@@ -276,7 +276,7 @@ export function MaintenanceProject() {
                 <ProjectFinances
                   editable={userCanModifyFinances}
                   project={{ type: 'maintenanceProject', data: project.data }}
-                  writableFields={['estimate', 'forecast', 'kayttosuunnitelmanMuutos']}
+                  writableFields={['estimate']}
                 />
               )}
               {tabView === 'kohteet' && (

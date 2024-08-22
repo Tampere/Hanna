@@ -1,4 +1,4 @@
-import { Alert, Box, CircularProgress, Typography } from '@mui/material';
+import { Alert, Box, CircularProgress, Typography, css } from '@mui/material';
 
 import { trpc } from '@frontend/client';
 import { useTranslations } from '@frontend/stores/lang';
@@ -10,7 +10,14 @@ export function GeneralNotifications() {
   const tr = useTranslations();
 
   return (
-    <Box mt={2}>
+    <Box
+      css={css`
+        margin-top: 16px;
+        display: flex;
+        flex-direction: column;
+        max-height: 95%;
+      `}
+    >
       <Typography component="h1" variant="h4">
         {tr('pages.generalNotificationTitle')}
       </Typography>

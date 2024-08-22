@@ -67,7 +67,7 @@ export interface ProjectObjectData {
   objectName: string;
   startDate: string;
   endDate: string;
-  objectStage: string;
+  objectStage?: string | null;
   project: {
     projectId: string;
     projectName: string;

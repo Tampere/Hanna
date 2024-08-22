@@ -4,7 +4,7 @@ import { z } from 'zod';
 import {
   detailplanProjectFragment,
   getFilterFragment,
-  textToSearchTerms,
+  textToTsSearchTerms,
 } from '@backend/components/project/search.js';
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
@@ -34,7 +34,7 @@ function projectReportFragment(searchParams: ProjectSearch) {
       project_detailplan.initiative_date AS "detailplanProjectInitiativeDate",
       ts_rank(
         COALESCE(project.tsv, '') || COALESCE(project_detailplan.tsv, ''),
-        to_tsquery('simple', ${textToSearchTerms(searchParams.text)})
+        to_tsquery('simple', ${textToTsSearchTerms(searchParams.text)})
       ) AS tsrank
     FROM app.project_detailplan
     INNER JOIN app.project ON (project_detailplan.id = project.id AND project.deleted IS FALSE)
@@ -66,7 +66,9 @@ export async function buildDetailplanCatalogSheet(workbook: Workbook, searchPara
       INNER JOIN projects ON projects."projectId" = detailplan_projects.id
     )
     SELECT * FROM filtered_projects
-    WHERE tsrank IS NULL OR tsrank > 0
+    WHERE tsrank IS NULL OR tsrank > 0.01 OR filtered_projects."detailplanProjectName" LIKE '%' || ${
+      searchParams?.text ?? ''
+    } || '%'
     ORDER BY "detailplanProjectDetailplanId" ASC
   `;
 

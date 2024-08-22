@@ -76,6 +76,8 @@ export function WorkTableFilters(props: Props) {
   return (
     <div
       css={(theme: Theme) => css`
+        transition: 0.3s ease-out;
+        ${props.expanded ? `height: 140px; opacity: 1;` : `height: 0px; opacity: 0;`}
         .MuiFormLabel-root {
           font-size: 12px;
         }
