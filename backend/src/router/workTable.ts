@@ -1,7 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { FragmentSqlToken } from 'slonik';
 
-import { textToSearchTerms } from '@backend/components/project/search.js';
+import { textToTsSearchTerms } from '@backend/components/project/search.js';
 import {
   getProjectObjects,
   upsertProjectObject,
@@ -91,8 +91,8 @@ function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'prin
 }
 
 export async function workTableSearch(input: WorkTableSearch) {
-  const objectNameSearch = textToSearchTerms(input.projectObjectName, { minTermLength: 3 });
-  const projectNameSearch = textToSearchTerms(input.projectName, { minTermLength: 3 });
+  const objectNameSearch = textToTsSearchTerms(input.projectObjectName, { minTermLength: 3 });
+  const projectNameSearch = textToTsSearchTerms(input.projectName, { minTermLength: 3 });
   const objectNameSubstringSearch =
     input.projectObjectName && input.projectObjectName?.length >= 3 ? input.projectObjectName : '';
   const projectNameSubstringSearch =

@@ -260,7 +260,7 @@ function SearchResults({ results, loading, activeProjectId }: SearchResultsProps
 
   function getSearchResultTitle(withStyling = false) {
     if (loading) return '';
-    if (results.length === 1) return tr('projectListing.searchResultsTitleSingle');
+    if (results.length === 1) return `${tr('projectListing.searchResultsTitleSingle')}:`;
     if (results.length > 500) {
       if (withStyling) {
         const title = tr('projectListing.searchResultsTitleExceeded').split('{0}');
@@ -293,11 +293,11 @@ function SearchResults({ results, loading, activeProjectId }: SearchResultsProps
             >
               {results.length}
             </b>
-            {title[1]}
+            {title[1]}:
           </>
         );
       }
-      return tr('projectListing.searchResultsTitle', results.length);
+      return `${tr('projectListing.searchResultsTitle', results.length)}:`;
     }
 
     return tr('itemSearch.noResults');
@@ -336,7 +336,7 @@ function SearchResults({ results, loading, activeProjectId }: SearchResultsProps
         </Typography>
 
         <AsyncJobButton
-          title={tr('projectSearch.generateReport')}
+          title={results?.length >= 1 ? tr('projectSearch.generateReport') : ''}
           css={css`
             & .MuiButtonBase-root {
               padding-right: 0;
@@ -366,7 +366,7 @@ function SearchResults({ results, loading, activeProjectId }: SearchResultsProps
           }}
           pollingIntervalMs={1000}
         >
-          <FileDownload />
+          <FileDownload disabled={results?.length < 1} />
         </AsyncJobButton>
       </Box>
       {loading ? (

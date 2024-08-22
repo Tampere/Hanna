@@ -1,7 +1,7 @@
 import { DatabaseTransactionConnection, sql } from 'slonik';
 import { z } from 'zod';
 
-import { textToSearchTerms } from '@backend/components/project/search.js';
+import { textToTsSearchTerms } from '@backend/components/project/search.js';
 import { timePeriodFragment } from '@backend/components/projectObject/index.js';
 import { getPool } from '@backend/db.js';
 
@@ -131,7 +131,7 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
   const { map, limit = 500 } = input;
   const resultSchema = z.object({ result: projectObjectSearchResultSchema });
 
-  const objectNameSearch = textToSearchTerms(input.projectObjectName, { minTermLength: 1 });
+  const objectNameSearch = textToTsSearchTerms(input.projectObjectName, { minTermLength: 1 });
   const objectNameSubstringSearch =
     input.projectObjectName && input.projectObjectName?.length >= 1 ? input.projectObjectName : '';
 

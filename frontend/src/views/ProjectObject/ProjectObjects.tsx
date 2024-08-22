@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { NavigateNext } from '@mui/icons-material';
-import { Box, Card, CardActionArea, Chip, Skeleton, Typography } from '@mui/material';
+import { Box, Card, CardActionArea, Skeleton, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
 import { useEffect, useState } from 'react';
@@ -234,7 +234,8 @@ function SearchResults({ projectObjects, loading, activeProjectObjectId }: Searc
 
   function getSearchResultTitle(withStyling = false) {
     if (loading) return '';
-    if (projectObjects.length === 1) return tr('projectObjectListing.searchResultsTitleSingle');
+    if (projectObjects.length === 1)
+      return `${tr('projectObjectListing.searchResultsTitleSingle')}:`;
     if (projectObjects.length > 500) {
       if (withStyling) {
         const title = tr('projectObjectListing.searchResultsTitleExceeded').split('{0}');
@@ -267,11 +268,11 @@ function SearchResults({ projectObjects, loading, activeProjectObjectId }: Searc
             >
               {projectObjects.length}
             </b>
-            {title[1]}
+            {title[1]}:
           </>
         );
       }
-      return tr('projectObjectListing.searchResultsTitle', projectObjects.length);
+      return `${tr('projectObjectListing.searchResultsTitle', projectObjects.length)}:`;
     }
 
     return tr('itemSearch.noResults');
