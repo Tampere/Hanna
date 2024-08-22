@@ -40,14 +40,14 @@ const legendItems: Record<
 
 const toggleButtonStyle = (theme: Theme, isOpen: boolean) => css`
   z-index: 202;
-  background-color: ${isOpen ? theme.palette.primary.main : '#fff'};
+  background-color: ${isOpen ? theme.palette.primary.main : 'rgb(255, 255, 255, 0.8)'};
   color: ${theme.palette.primary.main};
   height: 42px;
   width: 42px;
   border: ${isOpen ? 'none' : '1px solid rgb(134, 167, 223)'};
   :hover {
     opacity: 0.9;
-    background-color: ${isOpen ? theme.palette.primary.dark : '#fff'};
+    background-color: ${isOpen ? theme.palette.primary.dark : 'rgb(255, 255, 255, 0.8)'};
     border: 1px solid ${theme.palette.primary.dark};
   }
   position: absolute;

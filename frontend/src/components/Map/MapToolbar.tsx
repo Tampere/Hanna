@@ -1,6 +1,5 @@
 import { css } from '@emotion/react';
 import {
-  Check,
   Clear,
   DeleteForeverTwoTone,
   EditTwoTone,
@@ -8,7 +7,6 @@ import {
   PentagonTwoTone,
   PlaceTwoTone,
   RoundedCornerTwoTone,
-  UndoTwoTone,
 } from '@mui/icons-material';
 import { Box, Divider, IconButton, Tooltip } from '@mui/material';
 import { useState } from 'react';
@@ -110,10 +108,6 @@ interface Props {
   toolsDisabled: Partial<Record<ToolType, boolean>>;
   toolsHidden?: ToolType[];
   onToolChange: (tool: ToolType | null) => void;
-  onSaveClick: () => void;
-  onUndoClick: () => void;
-  saveDisabled?: boolean;
-  undoDisabled?: boolean;
 }
 
 export function MapToolbar(props: Props) {
@@ -153,30 +147,6 @@ export function MapToolbar(props: Props) {
         );
       })}
       <Divider sx={{ mt: 2, mb: 2 }} />
-      <Tooltip placement="left" title={tr('mapEdit.undoTooltip')}>
-        <Box>
-          <IconButton
-            disabled={props.undoDisabled}
-            css={toolBtnStyle}
-            color="primary"
-            onClick={props.onUndoClick}
-          >
-            <UndoTwoTone />
-          </IconButton>
-        </Box>
-      </Tooltip>
-      <Tooltip placement="left" title={tr('mapEdit.saveTooltip')}>
-        <Box>
-          <IconButton
-            disabled={props.saveDisabled}
-            css={toolBtnStyle}
-            color="primary"
-            onClick={props.onSaveClick}
-          >
-            <Check />
-          </IconButton>
-        </Box>
-      </Tooltip>
     </Box>
   );
 }
