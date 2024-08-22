@@ -339,7 +339,6 @@ function SearchResults({ results, loading, activeProjectId }: SearchResultsProps
           title={results?.length >= 1 ? tr('projectSearch.generateReport') : ''}
           css={css`
             & .MuiButtonBase-root {
-              padding-right: 0;
               svg {
                 margin-left: auto;
               }
