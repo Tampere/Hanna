@@ -23,6 +23,7 @@ import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 
 import { LayerDrawer } from './LayerDrawer';
+import { Legend } from './Legend';
 import { Map, MapInteraction } from './Map';
 import { MapControls } from './MapControls';
 import { MapToolbar, ToolType } from './MapToolbar';
@@ -379,6 +380,13 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
           <LayerDrawer
             enabledItemVectorLayers={
               props.vectorLayers?.map((layer) => layer.getProperties().id) ?? []
+            }
+          />
+          <Legend
+            vectorLayerKeys={
+              props.vectorLayers
+                ?.map((layer) => layer.getProperties().id)
+                ?.filter((id) => ['projects', 'projectObjects'].includes(id)) ?? []
             }
           />
         </Map>

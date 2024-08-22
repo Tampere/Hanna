@@ -9,7 +9,7 @@ import Text from 'ol/style/Text';
 import { theme } from '@frontend/Layout';
 import projectObjectPoint from '@frontend/assets/projectObjectPoint.svg';
 
-const _PROJECT_FILL = 'rgb(173, 255, 47, 0.3)';
+const _PROJECT_FILL = 'rgb(0, 168, 0, 0.3)';
 const _PROJECT_STROKE = 'rgb(0, 168, 0)';
 const _PROJECT_STROKE_WIDTH = 3;
 
@@ -119,8 +119,8 @@ export const PROJECT_AREA_STYLE = [
   }),
 ];
 
-const _PROJ_OBJ_FILL = 'rgb(66, 111, 245, 0.4)';
-const _PROJ_OBJ_STROKE = 'rgb(66, 111, 245)';
+const _PROJ_OBJ_FILL = 'rgb(34, 67, 123, 0.3)';
+const _PROJ_OBJ_STROKE = 'rgb(34, 67, 123)';
 const _PROJ_OBJ_STROKE_WIDTH = 2;
 
 export const PROJECT_OBJECT_STYLE = [
@@ -144,7 +144,7 @@ export const PROJECT_OBJECT_STYLE = [
   }),
 ];
 
-const _PROJ_OBJ_DRAW_FILL = 'rgb(0, 0, 255, 0.4)';
+const _PROJ_OBJ_DRAW_FILL = 'rgb(34, 67, 123, 0.4)';
 const _PROJ_OBJ_DRAW_STROKE = 'rgb(255, 100, 0)';
 const _PROJ_OBJ_DRAW_STROKE_WIDTH = 2;
 
@@ -188,3 +188,10 @@ export function getStyleWithPointIcon(style: Style | Style[]): StyleFunction {
     ];
   };
 }
+
+export const colorPalette = {
+  projectFill: _PROJECT_FILL,
+  projectClusterFill: CLUSTER_FILL.project,
+  projectObjectFill: _PROJ_OBJ_FILL,
+  projectObjectClusterFill: CLUSTER_FILL.projectObject,
+};
