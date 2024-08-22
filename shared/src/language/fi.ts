@@ -230,8 +230,8 @@ export const fi = {
   'vectorLayer.title.projectObjects': 'Kohteet',
   'project.notifyGeometryUpdateTitle': 'Alue päivitetty',
   'project.notifyGeometryUpdateFailedTitle': 'Alueen päivitys epäonnistui.',
-  'mapEdit.undoTooltip': 'Peruuta muutokset',
-  'mapEdit.saveTooltip': 'Tallenna muutokset',
+  'mapEdit.undoTooltip': 'Peruuta alueen muutokset',
+  'mapEdit.saveTooltip': 'Tallenna alueen muutokset',
   'mapEdit.newFeatureTooltip': 'Luo alue',
   'mapEdit.newFeatureDisabledTooltip':
     'Alueen lisääminen ei ole sallittua, jos kartalla on piirrettyjä pisteitä.',

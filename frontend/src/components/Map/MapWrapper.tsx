@@ -22,6 +22,7 @@ import {
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 
+import { DrawConfirmButtons } from './DrawConfirmButtons';
 import { LayerDrawer } from './LayerDrawer';
 import { Legend } from './Legend';
 import { Map, MapInteraction } from './Map';
@@ -389,6 +390,29 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
                 ?.filter((id) => ['projects', 'projectObjects'].includes(id)) ?? []
             }
           />
+          {dirty && (
+            <DrawConfirmButtons
+              onSaveClick={() => {
+                selectionSource.clear();
+                setFeatureSelector(RESET);
+                setDirty(false);
+                props.drawOptions?.onFeaturesSaved?.(
+                  getGeoJSONFeaturesString(
+                    drawSource.getFeatures(),
+                    projection?.getCode() ?? mapOptions.projection.code,
+                  ),
+                );
+              }}
+              onUndoClick={() => {
+                setFeatureSelector((prev) => ({
+                  features: deleteSelectedFeatures(drawSource, selectionSource),
+                  pos: prev.pos,
+                }));
+                setDirty(false);
+                addFeaturesFromGeoJson(drawSource, props.drawOptions?.geoJson);
+              }}
+            />
+          )}
         </Map>
         {props.drawOptions?.editable && (
           <MapToolbar
@@ -406,27 +430,6 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
               deleteFeature: getSelectedDrawLayerFeatures(featureSelector.features).length === 0,
             }}
             onToolChange={(tool) => setSelectedTool(tool)}
-            onSaveClick={() => {
-              selectionSource.clear();
-              setFeatureSelector(RESET);
-              setDirty(false);
-              props.drawOptions?.onFeaturesSaved?.(
-                getGeoJSONFeaturesString(
-                  drawSource.getFeatures(),
-                  projection?.getCode() ?? mapOptions.projection.code,
-                ),
-              );
-            }}
-            saveDisabled={!dirty}
-            onUndoClick={() => {
-              setFeatureSelector((prev) => ({
-                features: deleteSelectedFeatures(drawSource, selectionSource),
-                pos: prev.pos,
-              }));
-              setDirty(false);
-              addFeaturesFromGeoJson(drawSource, props.drawOptions?.geoJson);
-            }}
-            undoDisabled={!dirty}
           />
         )}
         {infoBoxVisible && (
