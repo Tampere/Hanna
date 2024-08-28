@@ -66,7 +66,7 @@ export function SearchPage() {
         <Tabs value={tabView} TabIndicatorProps={{ sx: { height: '3px' } }}>
           {tabs.map((tab) => (
             <Tab
-              onClick={resetInfoBox}
+              onClick={() => resetInfoBox()}
               css={css`
                 &.MuiTab-root.Mui-selected {
                   color: ${tab.color};

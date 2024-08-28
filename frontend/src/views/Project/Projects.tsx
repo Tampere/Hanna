@@ -141,7 +141,7 @@ function ProjectCard({
 
   return (
     <CardActionArea
-      onClick={resetInfoBox}
+      onClick={() => resetInfoBox()}
       id={`project-${result.projectId}`}
       key={result.projectId}
       component={Link}

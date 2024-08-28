@@ -79,12 +79,14 @@ export async function projectUpsert(
   keepOwnerRights: boolean = false,
 ) {
   return await getPool().transaction(async (tx) => {
-    if (hasErrors(await baseProjectValidate(tx, project))) {
+    const detailplanProject = { ...project, coversMunicipality: false };
+
+    if (hasErrors(await baseProjectValidate(tx, detailplanProject))) {
       logger.error('projectUpsert: validation failed', { project });
       throw new Error('Invalid project data');
     }
 
-    const id = await baseProjectUpsert(tx, project, user, keepOwnerRights);
+    const id = await baseProjectUpsert(tx, detailplanProject, user, keepOwnerRights);
     await addAuditEvent(tx, {
       eventType: 'detailplanProject.upsertProject',
       eventData: project,
@@ -134,7 +136,8 @@ export async function validateUpsertProject(
   tx: DatabaseTransactionConnection | null,
 ) {
   const conn = tx ?? getPool();
-  return baseProjectValidate(conn, project);
+  const detailplanProject = { ...project, coversMunicipality: false };
+  return baseProjectValidate(conn, detailplanProject);
 }
 
 export async function getNextDetailplanId() {

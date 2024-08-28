@@ -12,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   ALL_VECTOR_ITEM_LAYERS,
+  ItemLayerState,
   VectorItemLayerKey,
   baseLayerIdAtom,
   featureSelectorAtom,
@@ -27,6 +28,7 @@ import { LayerDrawer } from './LayerDrawer';
 import { Legend } from './Legend';
 import { Map, MapInteraction } from './Map';
 import { MapControls } from './MapControls';
+import { MapInfoBoxButton } from './MapInfoBoxButton';
 import { MapToolbar, ToolType } from './MapToolbar';
 import { SelectionInfoBox } from './SelectionInfoBox';
 import {
@@ -62,6 +64,7 @@ export interface ProjectData {
   endDate: string;
   startDate: string;
   projectType: 'investmentProject' | 'detailplanProject' | 'maintenanceProject';
+  coversMunicipality: boolean;
 }
 
 export interface ProjectObjectData {
@@ -74,6 +77,7 @@ export interface ProjectObjectData {
     projectId: string;
     projectName: string;
     projectType?: ProjectData['projectType'];
+    coversMunicipality: boolean;
   };
 }
 
@@ -85,6 +89,7 @@ interface Props<TProject, TProjectObject> {
   fitExtent?: 'geoJson' | 'vectorLayers' | 'all';
   projects?: TProject[];
   projectObjects?: TProjectObject[];
+  /** Layers which contain features users can interact with by clicking a feature and opening a map info box. */
   interactiveLayers?: VectorItemLayerKey[];
 }
 
@@ -147,10 +152,9 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
   const [dirty, setDirty] = useState(false);
   useNavigationBlocker(dirty, 'map');
   const { setInfoBox, resetInfoBox, isVisible: infoBoxVisible } = useMapInfoBox();
-
+  const [wholeMunicipalityInfoBoxVisible, setWholeMunicipalityInfoBoxVisible] = useState(false);
   const [selectedTool, setSelectedTool] = useState<ToolType | null>(null);
   const [interactions, setInteractions] = useState<MapInteraction[] | null>(null);
-
   const selectionLayer = useMemo(() => createSelectionLayer(selectionSource), []);
 
   useEffect(() => {
@@ -202,6 +206,8 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
   useEffect(() => {
     if (props.drawOptions?.geoJson) {
       addFeaturesFromGeoJson(drawSource, props.drawOptions.geoJson);
+    } else if (drawSource.getFeatures().length > 0) {
+      drawSource.clear();
     }
   }, [props.drawOptions?.geoJson]);
 
@@ -227,6 +233,11 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
       }),
     [selectedTool],
   );
+
+  const projectsForWholeMunicipality = useMemo(() => {
+    if (props.projects) return props.projects.filter((project) => project.coversMunicipality);
+    return [];
+  }, [props.projects]);
 
   useEffect(() => {
     let extent = createEmpty();
@@ -313,6 +324,19 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
     if (props.projects || props.projectObjects) setInteractions([registerProjectSelectInteraction]);
   }, []);
 
+  function handleMapClickEvent() {
+    // This is just used to clear the whole municipality info box, use interactions for other events
+    setWholeMunicipalityInfoBoxVisible(false);
+    resetSelectInteractions();
+  }
+
+  const wholeMunicipalityInfoBoxButtonVisible = useMemo(() => {
+    return selectedItemLayers.some(
+      (layer: ItemLayerState) =>
+        layer.selected && ['projects', 'projectClusterResults'].includes(layer.id),
+    );
+  }, [selectedItemLayers]);
+
   return (
     <div
       ref={mapWrapperRef}
@@ -337,6 +361,8 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
           vectorLayers={vectorLayers}
           interactions={interactions}
           interactionLayers={[selectionLayer, drawLayer]}
+          {...(wholeMunicipalityInfoBoxButtonVisible &&
+            wholeMunicipalityInfoBoxVisible && { handleSingleClickEvent: handleMapClickEvent })}
         >
           {/* Styles for the OpenLayers ScaleLine -component */}
           <GlobalStyles
@@ -377,6 +403,19 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
             }}
             onFitScreen={() => setExtent(drawSource?.getExtent())}
           />
+          {wholeMunicipalityInfoBoxButtonVisible && (
+            <MapInfoBoxButton
+              onClick={() => {
+                resetInfoBox(false);
+                setWholeMunicipalityInfoBoxVisible(true);
+              }}
+              isOpen={wholeMunicipalityInfoBoxVisible}
+              setIsOpen={setWholeMunicipalityInfoBoxVisible}
+              projects={projectsForWholeMunicipality}
+              pos={[100, 100]}
+              handleCloseInfoBox={resetSelectInteractions}
+            />
+          )}
 
           <LayerDrawer
             enabledItemVectorLayers={

@@ -3,7 +3,7 @@ import { AccountTree, Euro, KeyTwoTone, ListAlt, Map, Undo } from '@mui/icons-ma
 import { Box, Breadcrumbs, Button, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import VectorSource from 'ol/source/Vector';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
@@ -12,11 +12,12 @@ import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { DRAW_LAYER_Z_INDEX, featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
+import { treMunicipalityGeometry } from '@frontend/components/Map/mapOptions';
 import { PROJECT_AREA_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
-import { getProjectObjectsLayer } from '@frontend/stores/map';
+import { getProjectMunicipalityLayer, getProjectObjectsLayer } from '@frontend/stores/map';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectList';
 
@@ -30,6 +31,7 @@ import {
 
 import { DeleteProjectDialog } from './DeleteProjectDialog';
 import { InvestmentProjectForm } from './InvestmentProjectForm';
+import { ProjectAreaSelectorForm } from './ProjectAreaSelectorForm';
 import { ProjectFinances } from './ProjectFinances';
 import { ProjectPermissions } from './ProjectPermissions';
 
@@ -43,6 +45,8 @@ const pageContentStyle = css`
 `;
 
 const mapContainerStyle = css`
+  display: flex;
+  flex-direction: column;
   min-height: 320px;
   flex: 1;
   position: relative;
@@ -95,11 +99,16 @@ export function InvestmentProject() {
   const navigate = useNavigate();
   const tabView = searchParams.get('tab') || 'default';
   const user = useAtomValue(asyncUserAtom);
+
   const projectId = routeParams?.projectId;
   const project = trpc.investmentProject.get.useQuery(
     { projectId },
     { enabled: Boolean(projectId), queryKey: ['investmentProject.get', { projectId }] },
   );
+  const [coversMunicipality, setCoversMunicipality] = useState(
+    project.data?.coversMunicipality ?? false,
+  );
+  const [formsEditing, setFormsEditing] = useState(!projectId);
   const userCanModify = Boolean(
     project.data &&
       user &&
@@ -142,6 +151,7 @@ export function InvestmentProject() {
 
   const projectObjectSource = useMemo(() => {
     const source = new VectorSource();
+
     if (projectObjects?.data) {
       for (const projObj of projectObjects.data) {
         if (projObj.geom) {
@@ -162,6 +172,29 @@ export function InvestmentProject() {
     layer.setZIndex(DRAW_LAYER_Z_INDEX + 1);
     return layer;
   }, [projectObjects.data]);
+
+  const municipalityGeometrySource = useMemo(() => {
+    const source = new VectorSource();
+    const features = featuresFromGeoJSON(treMunicipalityGeometry);
+    source.addFeature(features[0]);
+    return source;
+  }, []);
+
+  const municipalityGeometryLayer = useMemo(() => {
+    return getProjectMunicipalityLayer(municipalityGeometrySource);
+  }, [municipalityGeometrySource]);
+
+  useEffect(() => {
+    if (project.data) {
+      const { coversMunicipality } = project.data;
+      setCoversMunicipality(coversMunicipality);
+    }
+  }, [project.data]);
+
+  function mapIsEditable() {
+    if (coversMunicipality) return false;
+    return !projectId || userCanModify;
+  }
 
   if (projectId && project.isLoading) {
     return <Typography>{tr('loading')}</Typography>;
@@ -219,7 +252,14 @@ export function InvestmentProject() {
 
       <div css={pageContentStyle}>
         <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
-          <InvestmentProjectForm edit={!projectId} project={project.data} geom={geom} />
+          <InvestmentProjectForm
+            editing={formsEditing}
+            setEditing={setFormsEditing}
+            project={project.data}
+            geom={geom}
+            coversMunicipality={coversMunicipality}
+            setCoversMunicipality={setCoversMunicipality}
+          />
           {project.data && (
             <DeleteProjectDialog
               disabled={Boolean(user && !ownsProject(user, project.data))}
@@ -238,35 +278,51 @@ export function InvestmentProject() {
             overflow-y: auto;
           `}
         >
-          <Tabs
-            value={tabIndex}
-            indicatorColor="primary"
-            textColor="primary"
-            TabIndicatorProps={{ sx: { height: '5px' } }}
-          >
-            {tabs.map((tab) => (
-              <Tab
-                disabled={!project.data}
-                key={tab.tabView}
-                component={Link}
-                to={tab.url}
-                icon={tab.icon}
-                iconPosition="end"
-                label={tr(tab.label)}
-              />
-            ))}
-          </Tabs>
+          {tabs.length > 0 && (
+            <Tabs
+              value={tabIndex}
+              indicatorColor="primary"
+              textColor="primary"
+              TabIndicatorProps={{ sx: { height: '5px' } }}
+            >
+              {tabs.map((tab) => (
+                <Tab
+                  disabled={!project.data}
+                  key={tab.tabView}
+                  component={Link}
+                  to={tab.url}
+                  icon={tab.icon}
+                  iconPosition="end"
+                  label={tr(tab.label)}
+                />
+              ))}
+            </Tabs>
+          )}
 
           {tabView === 'default' && (
             <Box css={mapContainerStyle}>
+              {(!projectId || formsEditing) && (
+                <ProjectAreaSelectorForm
+                  forNewProject={Boolean(projectId)}
+                  checked={coversMunicipality}
+                  projectHasGeom={Boolean(geom || project.data?.geom)}
+                  onChange={async (isChecked) => {
+                    if (isChecked) {
+                      setGeom(null);
+                    }
+
+                    setCoversMunicipality(isChecked);
+                  }}
+                />
+              )}
               <MapWrapper
                 drawOptions={{
                   toolsHidden: ['newPointFeature'],
                   geoJson: project?.data?.geom ?? null,
                   drawStyle: PROJECT_AREA_STYLE,
-                  editable: !projectId || userCanModify,
+                  editable: mapIsEditable(),
                   onFeaturesSaved: (features) => {
-                    if (!project.data) {
+                    if (!project.data || coversMunicipality !== project.data.coversMunicipality) {
                       setGeom(features);
                     } else {
                       geometryUpdate.mutate({ projectId, features });
@@ -274,7 +330,10 @@ export function InvestmentProject() {
                   },
                 }}
                 fitExtent="geoJson"
-                vectorLayers={[projectObjectsLayer]}
+                vectorLayers={[
+                  ...(coversMunicipality ? [municipalityGeometryLayer] : []),
+                  projectObjectsLayer,
+                ]}
                 projectObjects={
                   projectObjects.data?.map((obj) => ({
                     ...obj,
@@ -283,6 +342,7 @@ export function InvestmentProject() {
                       projectId: projectId,
                       projectName: project.data?.projectName ?? '',
                       projectType: 'investmentProject',
+                      coversMunicipality: project.data?.coversMunicipality ?? false,
                     },
                   })) ?? []
                 }

@@ -27,6 +27,7 @@ import {
   includeWithoutGeomAtom,
   lifecycleStatesAtom,
   mapAtom,
+  onlyCoversMunicipalityAtom,
   ownersAtom,
   textAtom,
 } from '@frontend/stores/search/project';
@@ -87,6 +88,7 @@ export function SearchControls() {
   const [owners, setOwners] = useAtom(ownersAtom);
   const [filters, setFilters] = useAtom(filtersAtom);
   const [includeWithoutGeom, setIncludeWithoutGeom] = useAtom(includeWithoutGeomAtom);
+  const [onlyCoversMunicipality, setOnlyCoversMunicipality] = useAtom(onlyCoversMunicipalityAtom);
   const setMap = useSetAtom(mapAtom);
 
   useEffect(() => {
@@ -209,6 +211,23 @@ export function SearchControls() {
             />
           }
           label={tr('projectSearch.showOnlyItemsWithGeom')}
+          labelPlacement="end"
+        />
+        <FormControlLabel
+          css={css`
+            align-self: end;
+            margin-left: auto;
+          `}
+          control={
+            <Switch
+              checked={onlyCoversMunicipality}
+              onChange={(_, checked) => {
+                setOnlyCoversMunicipality(checked);
+              }}
+              color="primary"
+            />
+          }
+          label={tr('projectSearch.showOnlyItemsThatCoverMunicipality')}
           labelPlacement="end"
         />
       </div>

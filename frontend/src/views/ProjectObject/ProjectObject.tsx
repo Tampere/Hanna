@@ -353,6 +353,7 @@ export function ProjectObject(props: Props) {
                         projectId: projectId,
                         projectName: project.data?.projectName ?? '',
                         projectType: project.data?.projectType,
+                        coversMunicipality: project.data?.coversMunicipality ?? false,
                       },
                     })) ?? []
                 }

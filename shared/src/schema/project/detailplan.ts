@@ -4,23 +4,25 @@ import { codeId } from '../code.js';
 import { isoDateString, nonEmptyString } from '../common.js';
 import { projectIdSchema, upsertProjectSchema } from './base.js';
 
-export const detailplanProjectSchema = upsertProjectSchema.extend({
-  projectId: z.string().optional(),
-  diaryId: nonEmptyString,
-  diaryDate: isoDateString.nullish(),
-  subtype: codeId.nullish(),
-  planningZone: codeId.nullish(),
-  preparer: nonEmptyString,
-  technicalPlanner: z.string().nullish(),
-  district: nonEmptyString,
-  blockName: nonEmptyString,
-  addressText: nonEmptyString,
-  initiativeDate: isoDateString.nullish(),
-  applicantName: z.string().optional(),
-  applicantAddress: z.string().optional(),
-  applicantObjective: z.string().optional(),
-  additionalInfo: z.string().nullish(),
-});
+export const detailplanProjectSchema = upsertProjectSchema
+  .omit({ coversMunicipality: true })
+  .extend({
+    projectId: z.string().optional(),
+    diaryId: nonEmptyString,
+    diaryDate: isoDateString.nullish(),
+    subtype: codeId.nullish(),
+    planningZone: codeId.nullish(),
+    preparer: nonEmptyString,
+    technicalPlanner: z.string().nullish(),
+    district: nonEmptyString,
+    blockName: nonEmptyString,
+    addressText: nonEmptyString,
+    initiativeDate: isoDateString.nullish(),
+    applicantName: z.string().optional(),
+    applicantAddress: z.string().optional(),
+    applicantObjective: z.string().optional(),
+    additionalInfo: z.string().nullish(),
+  });
 
 export type DetailplanProject = z.infer<typeof detailplanProjectSchema>;
 

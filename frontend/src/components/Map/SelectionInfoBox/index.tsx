@@ -19,8 +19,12 @@ interface Props<TProject, TProjectObject> {
   pos: Pixel;
   projects?: TProject[];
   projectObjects?: TProjectObject[];
-  handleActiveFeatureChange: (projectId: string) => void;
+  handleActiveFeatureChange?: (projectId: string) => void;
   handleCloseInfoBox: () => void;
+  /**
+   * Override selected item ids. If not provided, uses the selected item ids from selected map features.
+   */
+  selectedItemIds?: string[];
 }
 
 export function SelectionInfoBox<
@@ -35,7 +39,7 @@ export function SelectionInfoBox<
   ...props
 }: Props<TProject, TProjectObject>) {
   const tr = useTranslations();
-  const selectedItemIds = useAtomValue(selectedItemIdsAtom);
+  const selectedItemIds = props.selectedItemIds ?? useAtomValue(selectedItemIdsAtom);
   const [activeItemId, setActiveItemId] = useAtom(activeItemIdAtom);
   const [projects, setProjects] = useState<TProject[]>([]);
   const [projectObjects, setProjectObjects] = useState<TProjectObject[]>([]);
@@ -52,7 +56,6 @@ export function SelectionInfoBox<
       );
     }
   }, [props.projects, selectedItemIds]);
-
   useEffect(() => {
     if (props.projectObjects)
       setProjectObjects(
@@ -90,12 +93,12 @@ export function SelectionInfoBox<
 
   function handleNext() {
     setActiveItemId(getItemId(allItems[activeItemIndex + 1]));
-    handleActiveFeatureChange(getItemId(allItems[activeItemIndex + 1]));
+    handleActiveFeatureChange?.(getItemId(allItems[activeItemIndex + 1]));
   }
 
   function handleBack() {
     setActiveItemId(getItemId(allItems[activeItemIndex - 1]));
-    handleActiveFeatureChange(getItemId(allItems[activeItemIndex - 1]));
+    handleActiveFeatureChange?.(getItemId(allItems[activeItemIndex - 1]));
   }
 
   function getActiveItemIndex() {

@@ -42,6 +42,7 @@ export const fi = {
   'projectSearch.projectType': 'Hanketyyppi',
   'projectSearch.geometry': 'Alue',
   'projectSearch.showOnlyItemsWithGeom': 'Vain sijaintitiedon sisältävät hankkeet',
+  'projectSearch.showOnlyItemsThatCoverMunicipality': 'Vain koko kunnan aluetta koskevat hankkeet',
   'projectSearch.generateReport': 'Lataa raportti',
   'projectSearch.reportFailed': 'Raportin luonti epäonnistui.',
   'projectObjectSearch.projectObjectSearchLabel': 'Kohteiden rajaus',
@@ -130,6 +131,11 @@ export const fi = {
   'projectForm.invalidSAPId': 'Tunnistamaton SAP-projektin ID',
   'projectForm.invalidSAPIdConfirmation':
     'Haluatko varmasti tallentaa tiedot tunnistamattomalla SAP-projektin ID:llä?',
+  'externalProjectFrom.label': 'Hankealue',
+  'externalProjectForm.coversMunicipalityLabel': 'Hanke koskee koko kunnan aluetta',
+  'externalProjectForm.confirmDialog.title': 'Hankealueen muuttaminen',
+  'externalProjectForm.confirmDialog.content':
+    'Hankealueen muuttaminen koko kuntaa koskevaksi poistaa olemassa olevat piirretyt alueet lomakkeen tallennuksen yhteydessä. Haluatko varmasti jatkaa?',
   'projectPermissions.editPermission': 'Muokkausoikeus',
   'projectRelations.parentRelations': 'Ylähankkeet',
   'projectRelations.childRelations': 'Alahankkeet',
@@ -606,6 +612,8 @@ export const fi = {
   'itemInfoBox.objectStage': 'Kohteen laji',
   'itemInfoBox.projectName': 'Hankkeen nimi',
   'itemInfoBox.toObject': 'Siirry kohteeseen',
+  'wholeMunicipalityMapInfoBoxButton.tooltip': 'Koko kunnan aluetta koskevat hankkeet',
+  'wholeMunicipalityMapInfoBoxButton.singleTooltip': 'Koko kunnan aluetta koskeva hanke',
   'email.subject': 'Aihe',
   send: 'Lähetä',
   clear: 'Tyhjennä',

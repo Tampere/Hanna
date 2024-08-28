@@ -29,6 +29,7 @@ interface Props {
   vectorLayers?: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>[];
   interactions?: MapInteraction[] | null;
   interactionLayers?: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>[];
+  handleSingleClickEvent?: () => void;
 }
 
 const { code, units, proj4String } = mapOptions.projection;
@@ -52,6 +53,7 @@ export function Map({
   vectorLayers,
   interactions,
   interactionLayers,
+  handleSingleClickEvent,
 }: Props) {
   const [projection] = useState(() => getMapProjection(code, mapOptions.projection.extent, units));
   const mapRef = useRef<HTMLDivElement>(null);
@@ -103,6 +105,13 @@ export function Map({
       onMoveEnd(moveZoom, viewBounds);
     });
   }, [olMap]);
+
+  useEffect(() => {
+    if (handleSingleClickEvent)
+      olMap.once('click', () => {
+        handleSingleClickEvent();
+      });
+  }, [handleSingleClickEvent]);
 
   /** Set Map's zoom based on changes from the Zoom -component */
   useEffect(() => {

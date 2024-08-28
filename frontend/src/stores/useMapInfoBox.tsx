@@ -31,8 +31,8 @@ export function useMapInfoBox() {
     /**
      * Reset the info box to initial state
      */
-    resetInfoBox() {
-      setActiveItemId(null);
+    resetInfoBox(withActiveItem = true) {
+      if (withActiveItem) setActiveItemId(null);
       setFeatureSelector(RESET);
       selectionSource.clear();
     },

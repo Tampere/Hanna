@@ -36,17 +36,21 @@ const newProjectFormStyle = css`
 `;
 
 interface MaintenanceProjectFormProps {
-  edit: boolean;
   project?: DbMaintenanceProject | null;
   geom: string | null;
+  coversMunicipality: boolean;
+  setCoversMunicipality: React.Dispatch<React.SetStateAction<boolean>>;
+  editing: boolean;
+  setEditing: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
+  const { coversMunicipality, setCoversMunicipality, editing, setEditing } = props;
   const tr = useTranslations();
   const notify = useNotifications();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [editing, setEditing] = useState(props.edit);
+
   const currentUser = useAtomValue(asyncUserAtom);
   const [ownerChangeDialogOpen, setOwnerChangeDialogOpen] = useState(false);
   const [keepOwnerRights, setKeepOwnerRights] = useState(false);
@@ -76,6 +80,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
       poNumber: '',
       lifecycleState: '01',
       sapProjectId: null,
+      coversMunicipality: false,
     }),
     [currentUser],
   );
@@ -112,6 +117,15 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
     defaultValues: props.project ?? formDefaultValues,
   });
 
+  const externalForm = useForm<{ coversMunicipality: boolean }>({
+    mode: 'all',
+    defaultValues: {
+      coversMunicipality: props.project?.coversMunicipality ?? false,
+    },
+    values: { coversMunicipality: coversMunicipality },
+    resetOptions: { keepDefaultValues: true },
+  });
+
   useNavigationBlocker(form.formState.isDirty, 'maintenanceForm');
   const ownerWatch = form.watch('owner');
 
@@ -138,6 +152,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
 
         setEditing(false);
         form.reset(data);
+        externalForm.reset({ coversMunicipality: data.coversMunicipality });
       }
       notify({
         severity: 'success',
@@ -175,10 +190,17 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
       return;
     }
     projectUpsert.mutate({
-      project: { ...data, geom: props.geom },
+      project: { ...data, geom: props.geom, coversMunicipality: coversMunicipality },
       keepOwnerRights,
     });
   };
+
+  function submitDisabled() {
+    if (externalForm.formState.isDirty) {
+      return !form.formState.isValid || form.formState.isSubmitting;
+    }
+    return !form.formState.isValid || !form.formState.isDirty || form.formState.isSubmitting;
+  }
 
   return (
     <>
@@ -212,6 +234,8 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
                 color="secondary"
                 onClick={() => {
                   form.reset();
+                  externalForm.reset();
+                  setCoversMunicipality(form.getValues('coversMunicipality'));
                   setEditing(!editing);
                 }}
                 endIcon={<Undo />}
@@ -388,9 +412,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
               type="submit"
               variant="contained"
               sx={{ mt: 2 }}
-              disabled={
-                !form.formState.isValid || !form.formState.isDirty || form.formState.isSubmitting
-              }
+              disabled={submitDisabled()}
               endIcon={form.formState.isSubmitting ? <HourglassFullTwoTone /> : <Save />}
             >
               {tr('projectForm.saveBtnLabel')}

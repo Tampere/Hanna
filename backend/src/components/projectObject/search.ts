@@ -39,6 +39,7 @@ function getProjectObjectSearchFragment({
         'startDate', project.start_date,
         'endDate', project.end_date,
         'projectName', project.project_name,
+        'coversMunicipality', project.covers_entire_municipality,
         'projectType', CASE WHEN (poi.project_object_id IS NULL) THEN 'maintenanceProject' ELSE 'investmentProject' END
         ${
           withProjectGeometry
@@ -194,7 +195,7 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
         ${sql.array(suunnitteluttajaUsers, 'text')} = '{}'::TEXT[] OR
         poi.suunnitteluttaja_user = ANY(${sql.array(suunnitteluttajaUsers, 'text')})
       )
-    GROUP BY po.id, project.project_name, project.geom, project.start_date, project.end_date, poi.project_object_id
+    GROUP BY po.id, project.project_name, project.geom, project.start_date, project.end_date, poi.project_object_id, project.covers_entire_municipality
     ${objectParticipantFragment(objectParticipantUser)}
     LIMIT ${limit}
   ), project_object_results AS (

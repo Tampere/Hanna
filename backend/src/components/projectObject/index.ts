@@ -74,7 +74,8 @@ export async function getProjectObjectsByProjectId(projectId: string) {
       description AS "description",
       (poi.object_stage).id AS "objectStage",
       start_date AS "startDate",
-      end_date AS "endDate"
+      end_date AS "endDate",
+      ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom
     FROM app.project_object
     LEFT JOIN app.project_object_investment poi ON project_object.id = poi.project_object_id
     WHERE deleted = false AND project_id = ${projectId}

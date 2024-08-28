@@ -11,6 +11,7 @@ export const testInvestmentProject = (user: User) => ({
   lifecycleState: '01',
   committees: ['01'],
   sapProjectId: null,
+  coversMunicipality: false,
 });
 
 export const testMaintenanceProject = (user: User) => ({
@@ -25,6 +26,7 @@ export const testMaintenanceProject = (user: User) => ({
   poNumber: '123456',
   committees: ['01'],
   sapProjectId: null,
+  coversMunicipality: false,
 });
 
 export const testProjectObject = (
