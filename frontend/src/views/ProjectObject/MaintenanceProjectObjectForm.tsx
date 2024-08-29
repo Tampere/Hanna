@@ -16,7 +16,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
-import { isTranslationKey } from 'tre-hanna-shared/src/language';
 
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
@@ -30,6 +29,7 @@ import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
 import { mergeErrors } from '@shared/formerror';
+import { isTranslationKey } from '@shared/language';
 import {
   UpsertMaintenanceProjectObject,
   newMaintenanceProjectObjectSchema,
