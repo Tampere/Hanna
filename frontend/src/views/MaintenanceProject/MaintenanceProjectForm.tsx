@@ -371,23 +371,17 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
           <FormField
             formField="contract"
             label={tr('maintenanceProject.contract')}
-            component={(field) => (
-              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
-            )}
+            component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
           />
           <FormField
             formField="decision"
             label={tr('maintenanceProject.decision')}
-            component={(field) => (
-              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
-            )}
+            component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
           />
           <FormField
             formField="poNumber"
             label={tr('maintenanceProject.poNumber')}
-            component={(field) => (
-              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
-            )}
+            component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
           />
 
           <FormField
