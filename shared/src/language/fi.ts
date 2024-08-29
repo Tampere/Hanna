@@ -336,6 +336,9 @@ export const fi = {
   'projectObject.noTasks': 'Kohteella ei ole vaiheita.',
   'projectObject.objectStageLabel': 'Kohteen laji',
   'projectObject.objectStageTooltip': 'Valitse kohteen laji.',
+  "maintenanceProjectObject.contract": "Sopimus",
+  "maintenanceProjectObject.poNumber": "Ostotilausnumero",
+  "maintenanceProjectObject.procurementMethod": "Toteutustapa",
   'projectObjectForm.infoNoGeom': 'Olet luomassa kohdetta ilman aluetta.',
   'projectObjectForm.infoProjectDateOutOfRange':
     'Päivitä hankkeen aikaväli vastaamaan kohteen aikaväliä tallentaaksesi lomakkeen.',

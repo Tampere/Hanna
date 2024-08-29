@@ -412,20 +412,18 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
           />
           <FormField
             formField="contract"
-            label="sopimus"
-            errorTooltip="sopimus"
+            label={tr('maintenanceProjectObject.contract')}
             component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
           />
           <FormField
             formField="poNumber"
-            label="ostotilausnumero"
+            label={tr('maintenanceProjectObject.poNumber')}
             errorTooltip="ostotilausnumero"
             component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
           />
           <FormField
             formField="procurementMethod"
-            label="toteutustapa"
-            errorTooltip="toteutustapa"
+            label={tr('maintenanceProjectObject.procurementMethod')}
             component={({ ref, ...field }) => (
               <CodeSelect
                 {...field}
