@@ -16,6 +16,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
+import { isTranslationKey } from 'tre-hanna-shared/src/language';
 
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField } from '@frontend/components/forms';
@@ -197,24 +198,36 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
     context: {
       requiredFields: getRequiredFields(newMaintenanceProjectObjectSchema),
     },
-    defaultValues: props.projectObject ?? {
-      projectId: props.projectId,
-      objectName: '',
-      description: '',
-      startDate: '',
-      endDate: '',
-      contract: '',
-      poNumber: '',
-      procurementMethod: '',
-      objectUserRoles: [],
-    },
+    defaultValues: props.projectObject
+      ? {
+          ...props.projectObject,
+          contract: props.projectObject?.contract ?? '',
+          poNumber: props.projectObject?.poNumber ?? '',
+          procurementMethod: props.projectObject?.procurementMethod ?? '',
+        }
+      : {
+          projectId: props.projectId,
+          objectName: '',
+          description: '',
+          startDate: '',
+          endDate: '',
+          contract: '',
+          poNumber: '',
+          procurementMethod: '',
+          objectUserRoles: [],
+        },
   });
 
   useNavigationBlocker(form.formState.isDirty, 'projectObjectForm');
 
   useEffect(() => {
     if (props.projectObject) {
-      form.reset(props.projectObject);
+      form.reset({
+        ...props.projectObject,
+        contract: props.projectObject?.contract ?? '',
+        poNumber: props.projectObject?.poNumber ?? '',
+        procurementMethod: props.projectObject?.procurementMethod ?? '',
+      });
     }
   }, [props.projectObject]);
 
@@ -272,6 +285,13 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
       },
     );
   };
+
+  function getDateFieldErrorMessage(hookFormMessage: string | null, fallBackMessage: string) {
+    if (hookFormMessage && isTranslationKey(hookFormMessage)) {
+      return tr(hookFormMessage);
+    }
+    return fallBackMessage;
+  }
 
   return (
     <>
@@ -373,7 +393,10 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="startDate"
             label={tr('projectObject.startDateLabel')}
-            errorTooltip={tr('projectObject.startDateTooltip')}
+            errorTooltip={getDateFieldErrorMessage(
+              form.formState.errors.startDate?.message ?? null,
+              tr('projectObject.startDateTooltip'),
+            )}
             component={({ onChange, ...field }) => (
               <FormDatePicker
                 maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
@@ -394,7 +417,10 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="endDate"
             label={tr('projectObject.endDateLabel')}
-            errorTooltip={tr('projectObject.endDateTooltip')}
+            errorTooltip={getDateFieldErrorMessage(
+              form.formState.errors.endDate?.message ?? null,
+              tr('projectObject.endDateTooltip'),
+            )}
             component={({ onChange, ...field }) => (
               <FormDatePicker
                 minDate={dayjs(form.getValues('startDate')).add(1, 'day')}

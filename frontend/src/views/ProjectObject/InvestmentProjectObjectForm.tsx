@@ -31,6 +31,7 @@ import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
 import { mergeErrors } from '@shared/formerror';
+import { isTranslationKey } from '@shared/language';
 import { ProjectListItem } from '@shared/schema/project';
 import {
   UpsertInvestmentProjectObject,
@@ -298,6 +299,13 @@ export function InvestmentProjectObjectForm(props: Readonly<Props>) {
     );
   };
 
+  function getDateFieldErrorMessage(hookFormMessage: string | null, fallBackMessage: string) {
+    if (hookFormMessage && isTranslationKey(hookFormMessage)) {
+      return tr(hookFormMessage);
+    }
+    return fallBackMessage;
+  }
+
   return (
     <>
       <FormProvider {...form}>
@@ -463,7 +471,10 @@ export function InvestmentProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="startDate"
             label={tr('projectObject.startDateLabel')}
-            errorTooltip={tr('projectObject.startDateTooltip')}
+            errorTooltip={getDateFieldErrorMessage(
+              form.formState.errors.startDate?.message ?? null,
+              tr('projectObject.startDateTooltip'),
+            )}
             component={({ onChange, ...field }) => (
               <FormDatePicker
                 maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
@@ -484,7 +495,10 @@ export function InvestmentProjectObjectForm(props: Readonly<Props>) {
           <FormField
             formField="endDate"
             label={tr('projectObject.endDateLabel')}
-            errorTooltip={tr('projectObject.endDateTooltip')}
+            errorTooltip={getDateFieldErrorMessage(
+              form.formState.errors.endDate?.message ?? null,
+              tr('projectObject.endDateTooltip'),
+            )}
             component={({ onChange, ...field }) => (
               <FormDatePicker
                 minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
