@@ -56,6 +56,7 @@ export interface DrawOptions {
   drawStyle: Style | Style[];
   toolsHidden?: ToolType[];
   editable: boolean;
+  coversMunicipality?: boolean;
 }
 
 export interface ProjectData {
@@ -91,6 +92,7 @@ interface Props<TProject, TProjectObject> {
   projectObjects?: TProjectObject[];
   /** Layers which contain features users can interact with by clicking a feature and opening a map info box. */
   interactiveLayers?: VectorItemLayerKey[];
+  drawSource?: VectorSource<Feature<Geometry>>;
 }
 
 export function MapWrapper<TProject extends ProjectData, TProjectObject extends ProjectObjectData>(
@@ -161,6 +163,8 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
     return () => resetInfoBox();
   }, []);
 
+  const drawSource = useMemo(() => props.drawSource ?? new VectorSource({ wrapX: false }), []);
+
   function resetSelectInteractions() {
     resetInfoBox();
     setInteractions([registerProjectSelectInteraction]);
@@ -201,14 +205,8 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
     [],
   );
 
-  const drawSource = useMemo(() => new VectorSource({ wrapX: false }), []);
-
   useEffect(() => {
-    if (props.drawOptions?.geoJson) {
-      addFeaturesFromGeoJson(drawSource, props.drawOptions.geoJson);
-    } else if (drawSource.getFeatures().length > 0) {
-      drawSource.clear();
-    }
+    if (props.drawOptions?.geoJson) addFeaturesFromGeoJson(drawSource, props.drawOptions.geoJson);
   }, [props.drawOptions?.geoJson]);
 
   function drawSourceHasGeometryOfType(geometryType: 'Point' | 'Polygon') {
@@ -319,6 +317,13 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
         break;
     }
   }, [selectedTool]);
+
+  useEffect(() => {
+    if (props.drawOptions?.coversMunicipality) {
+      drawSource.clear();
+      setInteractions(null);
+    }
+  }, [props.drawOptions?.coversMunicipality]);
 
   useEffect(() => {
     if (props.projects || props.projectObjects) setInteractions([registerProjectSelectInteraction]);

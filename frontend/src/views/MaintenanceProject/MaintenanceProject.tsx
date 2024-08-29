@@ -11,7 +11,11 @@ import { useSearchParams } from 'react-router-dom';
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
-import { DRAW_LAYER_Z_INDEX, featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
+import {
+  DRAW_LAYER_Z_INDEX,
+  addFeaturesFromGeoJson,
+  featuresFromGeoJSON,
+} from '@frontend/components/Map/mapInteractions';
 import { treMunicipalityGeometry } from '@frontend/components/Map/mapOptions';
 import { PROJECT_AREA_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
@@ -90,6 +94,7 @@ export function MaintenanceProject() {
   const navigate = useNavigate();
   const tabView = searchParams.get('tab') || 'default';
   const user = useAtomValue(asyncUserAtom);
+
   const projectId = routeParams?.projectId;
   const project = trpc.maintenanceProject.get.useQuery(
     { projectId },
@@ -174,6 +179,8 @@ export function MaintenanceProject() {
     return getProjectMunicipalityLayer(municipalityGeometrySource);
   }, [municipalityGeometrySource]);
 
+  const drawSource = useMemo(() => new VectorSource({ wrapX: false }), []);
+
   useEffect(() => {
     if (project.data) {
       const { coversMunicipality } = project.data;
@@ -250,6 +257,9 @@ export function MaintenanceProject() {
             geom={geom}
             coversMunicipality={coversMunicipality}
             setCoversMunicipality={setCoversMunicipality}
+            onCancel={() => {
+              addFeaturesFromGeoJson(drawSource, project?.data?.geom ?? null);
+            }}
           />
           {project.data && (
             <DeleteProjectDialog
@@ -308,6 +318,7 @@ export function MaintenanceProject() {
               )}
               <MapWrapper
                 drawOptions={{
+                  coversMunicipality: coversMunicipality,
                   toolsHidden: ['newPointFeature'],
                   geoJson: project?.data?.geom ?? null,
                   drawStyle: PROJECT_AREA_STYLE,

@@ -42,6 +42,7 @@ interface MaintenanceProjectFormProps {
   setCoversMunicipality: React.Dispatch<React.SetStateAction<boolean>>;
   editing: boolean;
   setEditing: React.Dispatch<React.SetStateAction<boolean>>;
+  onCancel?: () => void;
 }
 
 export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
@@ -253,6 +254,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
                   externalForm.reset();
                   setCoversMunicipality(form.getValues('coversMunicipality'));
                   setEditing(!editing);
+                  props.onCancel?.();
                 }}
                 endIcon={<Undo />}
               >

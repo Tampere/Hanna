@@ -11,7 +11,11 @@ import { useSearchParams } from 'react-router-dom';
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
-import { DRAW_LAYER_Z_INDEX, featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
+import {
+  DRAW_LAYER_Z_INDEX,
+  addFeaturesFromGeoJson,
+  featuresFromGeoJSON,
+} from '@frontend/components/Map/mapInteractions';
 import { treMunicipalityGeometry } from '@frontend/components/Map/mapOptions';
 import { PROJECT_AREA_STYLE } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
@@ -184,6 +188,8 @@ export function InvestmentProject() {
     return getProjectMunicipalityLayer(municipalityGeometrySource);
   }, [municipalityGeometrySource]);
 
+  const drawSource = useMemo(() => new VectorSource({ wrapX: false }), []);
+
   useEffect(() => {
     if (project.data) {
       const { coversMunicipality } = project.data;
@@ -259,6 +265,9 @@ export function InvestmentProject() {
             geom={geom}
             coversMunicipality={coversMunicipality}
             setCoversMunicipality={setCoversMunicipality}
+            onCancel={() => {
+              addFeaturesFromGeoJson(drawSource, project?.data?.geom ?? null);
+            }}
           />
           {project.data && (
             <DeleteProjectDialog
@@ -310,13 +319,13 @@ export function InvestmentProject() {
                     if (isChecked) {
                       setGeom(null);
                     }
-
                     setCoversMunicipality(isChecked);
                   }}
                 />
               )}
               <MapWrapper
                 drawOptions={{
+                  coversMunicipality: coversMunicipality,
                   toolsHidden: ['newPointFeature'],
                   geoJson: project?.data?.geom ?? null,
                   drawStyle: PROJECT_AREA_STYLE,

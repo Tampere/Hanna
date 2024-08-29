@@ -43,6 +43,7 @@ interface InvestmentProjectFormProps {
   setCoversMunicipality: React.Dispatch<React.SetStateAction<boolean>>;
   editing: boolean;
   setEditing: React.Dispatch<React.SetStateAction<boolean>>;
+  onCancel?: () => void;
 }
 
 export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
@@ -242,6 +243,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
                   externalForm.reset();
                   setCoversMunicipality(form.getValues('coversMunicipality'));
                   setEditing(!editing);
+                  props.onCancel?.();
                 }}
                 endIcon={<Undo />}
               >
