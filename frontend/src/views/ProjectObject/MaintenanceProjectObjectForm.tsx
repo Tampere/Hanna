@@ -205,6 +205,7 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
       endDate: '',
       contract: '',
       poNumber: '',
+      procurementMethod: '',
       objectUserRoles: [],
     },
   });
