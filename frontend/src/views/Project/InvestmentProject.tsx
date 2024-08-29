@@ -112,7 +112,9 @@ export function InvestmentProject() {
   const [coversMunicipality, setCoversMunicipality] = useState(
     project.data?.coversMunicipality ?? false,
   );
-  const [formsEditing, setFormsEditing] = useState(!projectId);
+
+  const [formsEditing, setFormsEditing] = useState(false);
+
   const userCanModify = Boolean(
     project.data &&
       user &&
@@ -196,6 +198,10 @@ export function InvestmentProject() {
       setCoversMunicipality(coversMunicipality);
     }
   }, [project.data]);
+
+  useEffect(() => {
+    setFormsEditing(!projectId);
+  }, [projectId]);
 
   function mapIsEditable() {
     if (coversMunicipality) return false;

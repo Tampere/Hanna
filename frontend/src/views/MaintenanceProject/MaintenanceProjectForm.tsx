@@ -189,7 +189,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
     if (form.formState.isSubmitSuccessful && !props.project && !displayInvalidSAPIdDialog) {
       form.reset();
     }
-  }, [form.formState.isSubmitSuccessful, form.reset]);
+  }, [form.formState.isSubmitSuccessful, form.reset, displayInvalidSAPIdDialog]);
 
   const onSubmit = async (data: MaintenanceProject | DbMaintenanceProject) => {
     let validOrEmptySAPId;
@@ -456,7 +456,12 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
         isOpen={displayInvalidSAPIdDialog}
         onConfirm={() => {
           const data = form.getValues();
-          projectUpsert.mutate({ project: { ...data, geom: props.geom }, keepOwnerRights });
+          const { coversMunicipality } = externalForm.getValues();
+          projectUpsert.mutate({
+            project: { ...data, geom: props.geom, coversMunicipality },
+            keepOwnerRights,
+          });
+
           setDisplayInvalidSAPIdDialog(false);
         }}
         onCancel={() => {
