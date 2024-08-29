@@ -88,7 +88,7 @@ function setLayerSelected(
 
 type NonClusterVectorItemLayers = Exclude<
   VectorItemLayerKey,
-  'projectClusterResults' | 'projectObjectClusterResults'
+  'projectClusterResults' | 'projectObjectClusterResults' | 'municipality'
 >;
 
 export function LayerDrawer({
@@ -118,6 +118,7 @@ export function LayerDrawer({
           'projectObjects',
           'projectClusterResults',
           'projectObjectClusterResults',
+          'municipality',
         ];
     }
 
@@ -144,7 +145,9 @@ export function LayerDrawer({
           </Typography>
           {vectorItemLayers.map(
             (layerState) =>
-              !['projectClusterResults', 'projectObjectClusterResults'].includes(layerState.id) && (
+              !['projectClusterResults', 'projectObjectClusterResults', 'municipality'].includes(
+                layerState.id,
+              ) && (
                 <MenuItem
                   sx={{ display: 'flex', justifyContent: 'space-between' }}
                   key={`vectorlayer-${layerState.id}`}

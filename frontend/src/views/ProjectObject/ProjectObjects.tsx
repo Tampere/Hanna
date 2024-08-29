@@ -105,7 +105,7 @@ function ProjectObjectCard({
 
   return (
     <CardActionArea
-      onClick={resetInfoBox}
+      onClick={() => resetInfoBox()}
       css={css`
         & .highlight-new {
           animation-name: fadeInOut;
@@ -372,7 +372,15 @@ function ProjectObjectResults() {
       <ProjectObjectResultsMap
         projectObjectsLoading={search.isLoading}
         projectObjectResults={search.data}
-        projects={search.data?.projectObjects?.map?.((projectObject) => projectObject.project)}
+        projects={search.data?.projectObjects?.reduce?.(
+          (projects, projectObject) => {
+            if (projects.some((project) => project.projectId === projectObject.project.projectId)) {
+              return projects;
+            }
+            return projects.concat(projectObject.project);
+          },
+          [] as ProjectObjectSearchResult['projectObjects'][number]['project'][],
+        )}
       />
     </div>
   );

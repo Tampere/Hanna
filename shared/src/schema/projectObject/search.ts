@@ -47,6 +47,7 @@ export const projectObjectSearchResultSchema = z.object({
             startDate: true,
             projectName: true,
             projectType: true,
+            coversMunicipality: true,
           })
           .extend({ geom: z.string().nullish() }),
       }),

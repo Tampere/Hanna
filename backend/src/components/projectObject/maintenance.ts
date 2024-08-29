@@ -61,7 +61,7 @@ const projectObjectFragment = sql.fragment`
      (SELECT COALESCE(json_agg("objectUserRoles"), '[]') FROM roles r WHERE r.project_object_id = project_object.id) AS "objectUserRoles",
      pom.contract,
      pom.purchase_order_number AS "poNumber",
-     pom.procurement_method AS "procurementMethod"
+     (pom.procurement_method).id AS "procurementMethod"
   FROM app.project_object_maintenance pom
   LEFT JOIN app.project_object ON project_object.id = pom.project_object_id
   LEFT JOIN geometry_dump ON geometry_dump."dumpProjectObjectId" = project_object.id

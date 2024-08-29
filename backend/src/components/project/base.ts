@@ -36,10 +36,16 @@ async function upsertBaseProject(
     owner: project.owner,
     sap_project_id: project.sapProjectId,
     updated_by: userId,
+    covers_entire_municipality: project.coversMunicipality,
   };
 
   const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
   const values = Object.values(data);
+
+  if (project.projectId && project.geom === null && data.covers_entire_municipality) {
+    await tx.one(sql.type(projectIdSchema)`
+    UPDATE app.project SET geom = null WHERE id = ${project.projectId} RETURNING id as "projectId"`);
+  }
 
   const upsertResult = project.projectId
     ? await tx.one(sql.type(projectIdSchema)`
@@ -88,6 +94,7 @@ export async function getProject(id: string) {
       startDate: z.string(),
       endDate: z.string(),
       projectType: projectTypeSchema,
+      coversMunicipality: z.boolean(),
     }),
   )`
     SELECT
@@ -97,6 +104,7 @@ export async function getProject(id: string) {
       ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
       start_date AS "startDate",
       end_date AS "endDate",
+      covers_entire_municipality AS "coversMunicipality",
       CASE
         WHEN project_investment.id IS NOT NULL THEN 'investmentProject'
         WHEN project_detailplan.id IS NOT NULL THEN 'detailplanProject'

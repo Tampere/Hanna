@@ -61,6 +61,7 @@ export const projectSearchSchema = z.object({
       .optional(),
   }),
   withProjectObjects: z.boolean().optional(),
+  onlyCoversMunicipality: z.boolean(),
 });
 
 const projectObjectSearchParentProject = dbProjectSchema
@@ -70,12 +71,15 @@ const projectObjectSearchParentProject = dbProjectSchema
     startDate: true,
     projectName: true,
     projectType: true,
+    coversMunicipality: true,
   })
   .extend({ geom: z.string().nullish() });
 
 export const projectSearchResultSchema = z.object({
   projects: z.array(
-    projectObjectSearchParentProject.merge(dbProjectSchema.pick({ detailplanId: true })),
+    projectObjectSearchParentProject.merge(
+      dbProjectSchema.pick({ detailplanId: true, coversMunicipality: true }),
+    ),
   ),
   clusters: z.array(
     z.object({

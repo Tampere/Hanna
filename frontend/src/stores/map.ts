@@ -10,6 +10,7 @@ import { getFeatureItemIds } from '@frontend/components/Map/mapFunctions';
 import {
   PROJECT_AREA_STYLE,
   PROJECT_OBJECT_STYLE,
+  WHOLE_MUNICIPALITY_PROJECT_AREA_STYLE,
   getStyleWithPointIcon,
 } from '@frontend/components/Map/styles';
 
@@ -39,6 +40,7 @@ export const ALL_VECTOR_ITEM_LAYERS = [
   'projectObjects',
   'projectClusterResults',
   'projectObjectClusterResults',
+  'municipality',
 ] as const;
 
 export type VectorItemLayerKey = (typeof ALL_VECTOR_ITEM_LAYERS)[number];
@@ -88,6 +90,7 @@ const defaultItemLayerState = [
   { id: 'projectClusterResults' as const, selected: true, opacity: 1 },
   { id: 'projectObjectClusterResults' as const, selected: true, opacity: 1 },
   { id: 'projectObjects' as const, selected: true, opacity: 1 },
+  { id: 'municipality' as const, selected: false, opacity: 1 },
 ];
 
 export function getProjectsLayer(source: VectorSource) {
@@ -96,6 +99,17 @@ export function getProjectsLayer(source: VectorSource) {
     style: PROJECT_AREA_STYLE,
     properties: {
       id: 'projects',
+      type: 'vector',
+    },
+  });
+}
+
+export function getProjectMunicipalityLayer(source: VectorSource) {
+  return new VectorLayer({
+    source,
+    style: WHOLE_MUNICIPALITY_PROJECT_AREA_STYLE,
+    properties: {
+      id: 'municipality',
       type: 'vector',
     },
   });

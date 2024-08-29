@@ -178,7 +178,7 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
         fields && (fields.includes('startDate') || fields.includes('endDate') || fields.length > 1);
 
       const serverErrors = isFormValidation
-        ? projectObject.upsertValidate.fetch(values).catch(() => null)
+        ? projectObject.upsertValidate.fetch({ ...values, geom: undefined }).catch(() => null)
         : null;
 
       const shapeErrors = schemaValidation(values, context, options);
@@ -205,6 +205,7 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
       endDate: '',
       contract: '',
       poNumber: '',
+      procurementMethod: '',
       objectUserRoles: [],
     },
   });
@@ -412,24 +413,18 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
           />
           <FormField
             formField="contract"
-            label="sopimus"
-            errorTooltip="sopimus"
-            component={(field) => (
-              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
-            )}
+            label={tr('maintenanceProjectObject.contract')}
+            component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
           />
           <FormField
             formField="poNumber"
-            label="ostotilausnumero"
+            label={tr('maintenanceProjectObject.poNumber')}
             errorTooltip="ostotilausnumero"
-            component={(field) => (
-              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
-            )}
+            component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
           />
           <FormField
             formField="procurementMethod"
-            label="toteutustapa"
-            errorTooltip="toteutustapa"
+            label={tr('maintenanceProjectObject.procurementMethod')}
             component={({ ref, ...field }) => (
               <CodeSelect
                 {...field}

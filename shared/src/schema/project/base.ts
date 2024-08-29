@@ -17,6 +17,8 @@ export const upsertProjectSchema = z.object({
   endDate: isoDateString,
   lifecycleState: codeId,
   sapProjectId: z.string().nullable(),
+  coversMunicipality: z.boolean(),
+  geom: z.string().nullish(),
 });
 
 export const dbProjectSchema = upsertProjectSchema.extend({

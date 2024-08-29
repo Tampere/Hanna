@@ -119,6 +119,23 @@ export const PROJECT_AREA_STYLE = [
   }),
 ];
 
+export const WHOLE_MUNICIPALITY_PROJECT_AREA_STYLE = [
+  new Style({
+    stroke: new Stroke({
+      color: _PROJECT_STROKE,
+      width: _PROJECT_STROKE_WIDTH,
+    }),
+    zIndex: 1,
+  }),
+  new Style({
+    stroke: new Stroke({
+      color: _DEFAULT_HIGHLIGHT_STROKE,
+      width: _PROJECT_STROKE_WIDTH + 4,
+    }),
+    zIndex: 0,
+  }),
+];
+
 const _PROJ_OBJ_FILL = 'rgb(34, 67, 123, 0.3)';
 const _PROJ_OBJ_STROKE = 'rgb(34, 67, 123)';
 const _PROJ_OBJ_STROKE_WIDTH = 2;

@@ -41,7 +41,8 @@ const selectProjectFragment = sql.fragment`
     ) AS "writeUsers",
     project_maintenance.contract,
     project_maintenance.decision,
-    project_maintenance.purchase_order_number AS "poNumber"
+    project_maintenance.purchase_order_number AS "poNumber",
+    project.covers_entire_municipality AS "coversMunicipality"
   FROM app.project
   LEFT JOIN app.project_maintenance ON project_maintenance.id = project.id
   WHERE deleted = false

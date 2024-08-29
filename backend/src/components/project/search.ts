@@ -64,11 +64,19 @@ function ownerFragment(input: ProjectSearch) {
   return sql.fragment`true`;
 }
 
+function onlyCoversMunicipalityFragment(input: ProjectSearch) {
+  if (input.onlyCoversMunicipality) {
+    return sql.fragment`project.covers_entire_municipality = true`;
+  }
+  return sql.fragment`true`;
+}
+
 export function getFilterFragment(input: ProjectSearch) {
   return sql.fragment`
       ${mapExtentFragment(input)}
       AND ${timePeriodFragment(input)}
       AND ${ownerFragment(input)}
+      AND ${onlyCoversMunicipalityFragment(input)}
       AND ${
         input.lifecycleStates && input.lifecycleStates?.length > 0
           ? sql.fragment`(project.lifecycle_state).id = ANY(${sql.array(
@@ -244,6 +252,7 @@ export async function projectSearch(
         app.project.start_date AS "startDate",
         app.project.end_date AS "endDate",
         app.project.project_name AS "projectName",
+        app.project.covers_entire_municipality AS "coversMunicipality",
         "tsrank",
         "name_similarity",
         "detailplanId",
@@ -266,7 +275,8 @@ export async function projectSearch(
         "projectName",
         "projectType",
         "detailplanId",
-        ${isClusterSearch ? sql.fragment`NULL` : sql.fragment`st_asgeojson(geom)`} AS geom
+        ${isClusterSearch ? sql.fragment`NULL` : sql.fragment`st_asgeojson(geom)`} AS geom,
+        "coversMunicipality"
       FROM projects
       ORDER BY GREATEST(name_similarity, tsrank)  DESC, "startDate" DESC
       LIMIT ${limit}

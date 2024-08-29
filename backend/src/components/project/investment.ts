@@ -34,7 +34,8 @@ const selectProjectFragment = sql.fragment`
       SELECT COALESCE(array_agg(user_id), '{}')
       FROM app.project_permission
       WHERE project_id = project.id AND can_write = true
-    ) AS "writeUsers"
+    ) AS "writeUsers",
+    project.covers_entire_municipality AS "coversMunicipality"
   FROM app.project
   LEFT JOIN app.project_investment ON project_investment.id = project.id
   WHERE deleted = false

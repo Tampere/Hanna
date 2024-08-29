@@ -36,17 +36,22 @@ const newProjectFormStyle = css`
 `;
 
 interface MaintenanceProjectFormProps {
-  edit: boolean;
   project?: DbMaintenanceProject | null;
   geom: string | null;
+  coversMunicipality: boolean;
+  setCoversMunicipality: React.Dispatch<React.SetStateAction<boolean>>;
+  editing: boolean;
+  setEditing: React.Dispatch<React.SetStateAction<boolean>>;
+  onCancel?: () => void;
 }
 
 export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
+  const { coversMunicipality, setCoversMunicipality, editing, setEditing } = props;
   const tr = useTranslations();
   const notify = useNotifications();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [editing, setEditing] = useState(props.edit);
+
   const currentUser = useAtomValue(asyncUserAtom);
   const [ownerChangeDialogOpen, setOwnerChangeDialogOpen] = useState(false);
   const [keepOwnerRights, setKeepOwnerRights] = useState(false);
@@ -76,6 +81,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
       poNumber: '',
       lifecycleState: '01',
       sapProjectId: null,
+      coversMunicipality: false,
     }),
     [currentUser],
   );
@@ -92,7 +98,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
       const fields = options.names ?? [];
       const isFormValidation = fields && fields.length > 1;
       const serverErrors = isFormValidation
-        ? maintenanceProject.upsertValidate.fetch(values).catch(() => null)
+        ? maintenanceProject.upsertValidate.fetch({ ...values, geom: undefined }).catch(() => null)
         : null;
       const shapeErrors = schemaValidation(values, context, options);
       const errors = await Promise.all([serverErrors, shapeErrors]);
@@ -109,14 +115,39 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
     context: {
       requiredFields: getRequiredFields(maintenanceProjectSchema),
     },
-    defaultValues: props.project ?? formDefaultValues,
+    defaultValues: props.project
+      ? {
+          ...props.project,
+          contract: props.project?.contract ?? '',
+          decision: props.project?.decision ?? '',
+          poNumber: props.project?.poNumber ?? '',
+        }
+      : formDefaultValues,
+  });
+
+  const externalForm = useForm<{ coversMunicipality: boolean }>({
+    mode: 'all',
+    defaultValues: {
+      coversMunicipality: props.project?.coversMunicipality ?? false,
+    },
+    values: { coversMunicipality: coversMunicipality },
+    resetOptions: { keepDefaultValues: true },
   });
 
   useNavigationBlocker(form.formState.isDirty, 'maintenanceForm');
   const ownerWatch = form.watch('owner');
 
   useEffect(() => {
-    form.reset(props.project ?? formDefaultValues);
+    form.reset(
+      props.project
+        ? {
+            ...props.project,
+            contract: props.project?.contract ?? '',
+            decision: props.project?.decision ?? '',
+            poNumber: props.project?.poNumber ?? '',
+          }
+        : formDefaultValues,
+    );
   }, [props.project]);
 
   const projectUpsert = trpc.maintenanceProject.upsert.useMutation({
@@ -138,6 +169,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
 
         setEditing(false);
         form.reset(data);
+        externalForm.reset({ coversMunicipality: data.coversMunicipality });
       }
       notify({
         severity: 'success',
@@ -175,10 +207,17 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
       return;
     }
     projectUpsert.mutate({
-      project: { ...data, geom: props.geom },
+      project: { ...data, geom: props.geom, coversMunicipality: coversMunicipality },
       keepOwnerRights,
     });
   };
+
+  function submitDisabled() {
+    if (externalForm.formState.isDirty) {
+      return !form.formState.isValid || form.formState.isSubmitting;
+    }
+    return !form.formState.isValid || !form.formState.isDirty || form.formState.isSubmitting;
+  }
 
   return (
     <>
@@ -212,7 +251,10 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
                 color="secondary"
                 onClick={() => {
                   form.reset();
+                  externalForm.reset();
+                  setCoversMunicipality(form.getValues('coversMunicipality'));
                   setEditing(!editing);
+                  props.onCancel?.();
                 }}
                 endIcon={<Undo />}
               >
@@ -329,23 +371,17 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
           <FormField
             formField="contract"
             label={tr('maintenanceProject.contract')}
-            component={(field) => (
-              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
-            )}
+            component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
           />
           <FormField
             formField="decision"
             label={tr('maintenanceProject.decision')}
-            component={(field) => (
-              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
-            )}
+            component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
           />
           <FormField
             formField="poNumber"
             label={tr('maintenanceProject.poNumber')}
-            component={(field) => (
-              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
-            )}
+            component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
           />
 
           <FormField
@@ -388,9 +424,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
               type="submit"
               variant="contained"
               sx={{ mt: 2 }}
-              disabled={
-                !form.formState.isValid || !form.formState.isDirty || form.formState.isSubmitting
-              }
+              disabled={submitDisabled()}
               endIcon={form.formState.isSubmitting ? <HourglassFullTwoTone /> : <Save />}
             >
               {tr('projectForm.saveBtnLabel')}

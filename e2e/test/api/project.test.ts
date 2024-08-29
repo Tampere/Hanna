@@ -65,6 +65,7 @@ const validProject = (userId: string, projectName = 'Test project') => ({
   lifecycleState: '01',
   committees: ['01'],
   sapProjectId: null,
+  coversMunicipality: false,
 });
 
 test.describe('Project endpoints', () => {
@@ -534,5 +535,49 @@ test.describe('Project endpoints', () => {
     expect(relations.parents).toBeNull();
     expect(relations.related).toBeNull();
     expect(relations.children).toBeNull();
+  });
+
+  test('add project for entire municipality', async () => {
+    const user = await devSession.client.user.self.query();
+    const baseProjectInput = {
+      ...validProject(user.id, 'Invalid project'),
+      coversMunicipality: true,
+    };
+
+    const investmentProject = await devSession.client.investmentProject.upsert.mutate({
+      project: baseProjectInput,
+    });
+    const maintenanceProject = await devSession.client.maintenanceProject.upsert.mutate({
+      project: baseProjectInput,
+    });
+
+    expect(investmentProject.coversMunicipality).toBe(true);
+    expect(maintenanceProject.coversMunicipality).toBe(true);
+
+    const geom = makePoint(326673.014866, 6823373.604181, 'EPSG:3067');
+
+    // Cannot update geom for project that covers entire municipality
+    await expect(
+      devSession.client.investmentProject.upsert.mutate({
+        project: { ...investmentProject, geom: JSON.stringify(geom) },
+      }),
+    ).rejects.toThrowError('Query violates a check integrity constraint.');
+    await expect(
+      devSession.client.maintenanceProject.upsert.mutate({
+        project: { ...maintenanceProject, geom: JSON.stringify(geom) },
+      }),
+    ).rejects.toThrowError('Query violates a check integrity constraint.');
+
+    // Can update geometry if coversMunicipality is false
+    await expect(
+      devSession.client.investmentProject.upsert.mutate({
+        project: { ...investmentProject, coversMunicipality: false, geom: JSON.stringify(geom) },
+      }),
+    ).resolves.not.toThrowError();
+    await expect(
+      devSession.client.maintenanceProject.upsert.mutate({
+        project: { ...maintenanceProject, coversMunicipality: false, geom: JSON.stringify(geom) },
+      }),
+    ).resolves.not.toThrowError();
   });
 });

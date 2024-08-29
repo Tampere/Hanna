@@ -22,6 +22,7 @@ export const projectSearchParamAtom = atom<SearchParams>({
   },
   includeWithoutGeom: true,
   filters: {} as const,
+  onlyCoversMunicipality: false,
 });
 
 export const textAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('text'));
@@ -45,3 +46,7 @@ export const detailplanProjectFiltersAtom = focusAtom(filtersAtom, (o) =>
 );
 
 export const mapAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('map'));
+
+export const onlyCoversMunicipalityAtom = focusAtom(projectSearchParamAtom, (o) =>
+  o.prop('onlyCoversMunicipality'),
+);
