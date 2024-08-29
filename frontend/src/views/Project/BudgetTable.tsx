@@ -153,6 +153,19 @@ export function BudgetTable(props: Props) {
                       </Box>{' '}
                     </TableCell>
                   )}
+
+                  {fields?.includes('amount') && (
+                    <TableCell css={cellStyle}>
+                      <Box className="column-header">
+                        <Typography variant="overline"> {tr('budgetTable.budget')}</Typography>
+                        {enableTooltips && (
+                          <HelpTooltip
+                            title={props.customTooltips?.amount ?? tr('budgetTable.budgetHelp')}
+                          />
+                        )}
+                      </Box>
+                    </TableCell>
+                  )}
                   {fields?.includes('contractPrice') && (
                     <TableCell>
                       <Box className="column-header">
@@ -168,18 +181,6 @@ export function BudgetTable(props: Props) {
                           />
                         )}
                       </Box>{' '}
-                    </TableCell>
-                  )}
-                  {fields?.includes('amount') && (
-                    <TableCell css={cellStyle}>
-                      <Box className="column-header">
-                        <Typography variant="overline"> {tr('budgetTable.budget')}</Typography>
-                        {enableTooltips && (
-                          <HelpTooltip
-                            title={props.customTooltips?.amount ?? tr('budgetTable.budgetHelp')}
-                          />
-                        )}
-                      </Box>
                     </TableCell>
                   )}
                   {fields?.includes('actual') && (
@@ -241,6 +242,7 @@ export function BudgetTable(props: Props) {
                       <TableCell>
                         <FormField
                           formField={`${String(year)}.estimate`}
+                          // eslint-disable-next-line @typescript-eslint/no-unused-vars
                           component={({ ref, onChange, ...field }) => (
                             <CurrencyInput
                               {...field}
@@ -250,29 +252,31 @@ export function BudgetTable(props: Props) {
                         />
                       </TableCell>
                     )}
+                    {fields?.includes('amount') && (
+                      <TableCell>
+                        <FormField
+                          formField={`${String(year)}.amount`}
+                          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                          component={({ ref, onChange, ...field }) => (
+                            <CurrencyInput
+                              {...field}
+                              onChange={writableFields?.includes('amount') ? onChange : undefined}
+                            />
+                          )}
+                        />
+                      </TableCell>
+                    )}
                     {fields?.includes('contractPrice') && (
                       <TableCell>
                         <FormField
                           formField={`${String(year)}.contractPrice`}
+                          // eslint-disable-next-line @typescript-eslint/no-unused-vars
                           component={({ ref, onChange, ...field }) => (
                             <CurrencyInput
                               {...field}
                               onChange={
                                 writableFields?.includes('contractPrice') ? onChange : undefined
                               }
-                            />
-                          )}
-                        />
-                      </TableCell>
-                    )}
-                    {fields?.includes('amount') && (
-                      <TableCell>
-                        <FormField
-                          formField={`${String(year)}.amount`}
-                          component={({ ref, onChange, ...field }) => (
-                            <CurrencyInput
-                              {...field}
-                              onChange={writableFields?.includes('amount') ? onChange : undefined}
                             />
                           )}
                         />
@@ -299,6 +303,7 @@ export function BudgetTable(props: Props) {
                       <TableCell>
                         <FormField
                           formField={`${String(year)}.forecast`}
+                          // eslint-disable-next-line @typescript-eslint/no-unused-vars
                           component={({ ref, onChange, ...field }) => (
                             <CurrencyInput
                               {...field}
@@ -314,6 +319,7 @@ export function BudgetTable(props: Props) {
                       <TableCell style={{ textAlign: 'right' }}>
                         <FormField
                           formField={`${String(year)}.kayttosuunnitelmanMuutos`}
+                          // eslint-disable-next-line @typescript-eslint/no-unused-vars
                           component={({ ref, onChange, ...field }) => (
                             <CurrencyInput
                               style={{ width: '100%', minWidth: 220 }}
@@ -348,18 +354,6 @@ export function BudgetTable(props: Props) {
                       />
                     </TableCell>
                   )}
-                  {fields?.includes('contractPrice') && (
-                    <TableCell>
-                      <CurrencyInput
-                        value={
-                          watch &&
-                          Object.values(watch).reduce((total, budgetItem) => {
-                            return (total || 0) + (budgetItem.contractPrice ?? 0);
-                          }, 0)
-                        }
-                      />
-                    </TableCell>
-                  )}
                   {fields?.includes('amount') && (
                     <TableCell>
                       <CurrencyInput
@@ -367,6 +361,18 @@ export function BudgetTable(props: Props) {
                           watch &&
                           Object.values(watch).reduce((total, budgetItem) => {
                             return (total || 0) + (budgetItem.amount ?? 0);
+                          }, 0)
+                        }
+                      />
+                    </TableCell>
+                  )}
+                  {fields?.includes('contractPrice') && (
+                    <TableCell>
+                      <CurrencyInput
+                        value={
+                          watch &&
+                          Object.values(watch).reduce((total, budgetItem) => {
+                            return (total || 0) + (budgetItem.contractPrice ?? 0);
                           }, 0)
                         }
                       />

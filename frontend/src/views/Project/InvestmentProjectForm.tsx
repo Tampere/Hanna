@@ -431,10 +431,12 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
         isOpen={displayInvalidSAPIdDialog}
         onConfirm={() => {
           const data = form.getValues();
+          const { coversMunicipality } = externalForm.getValues();
           projectUpsert.mutate({
-            project: { ...data, geom: props.geom, coversMunicipality: props.coversMunicipality },
+            project: { ...data, geom: props.geom, coversMunicipality },
             keepOwnerRights,
           });
+
           setDisplayInvalidSAPIdDialog(false);
         }}
         onCancel={() => {
