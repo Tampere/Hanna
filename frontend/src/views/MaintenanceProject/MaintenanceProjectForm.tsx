@@ -98,7 +98,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
       const fields = options.names ?? [];
       const isFormValidation = fields && fields.length > 1;
       const serverErrors = isFormValidation
-        ? maintenanceProject.upsertValidate.fetch(values).catch(() => null)
+        ? maintenanceProject.upsertValidate.fetch({ ...values, geom: undefined }).catch(() => null)
         : null;
       const shapeErrors = schemaValidation(values, context, options);
       const errors = await Promise.all([serverErrors, shapeErrors]);

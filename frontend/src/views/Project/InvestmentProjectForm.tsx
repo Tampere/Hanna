@@ -95,8 +95,9 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
     ) {
       const fields = options.names ?? [];
       const isFormValidation = fields && fields.length > 1;
+
       const serverErrors = isFormValidation
-        ? investmentProject.upsertValidate.fetch(values).catch(() => null)
+        ? investmentProject.upsertValidate.fetch({ ...values, geom: undefined }).catch(() => null)
         : null;
       const shapeErrors = schemaValidation(values, context, options);
       const errors = await Promise.all([serverErrors, shapeErrors]);

@@ -178,7 +178,7 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
         fields && (fields.includes('startDate') || fields.includes('endDate') || fields.length > 1);
 
       const serverErrors = isFormValidation
-        ? projectObject.upsertValidate.fetch(values).catch(() => null)
+        ? projectObject.upsertValidate.fetch({ ...values, geom: undefined }).catch(() => null)
         : null;
 
       const shapeErrors = schemaValidation(values, context, options);
