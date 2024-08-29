@@ -114,7 +114,14 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
     context: {
       requiredFields: getRequiredFields(maintenanceProjectSchema),
     },
-    defaultValues: props.project ?? formDefaultValues,
+    defaultValues: props.project
+      ? {
+          ...props.project,
+          contract: props.project?.contract ?? '',
+          decision: props.project?.decision ?? '',
+          poNumber: props.project?.poNumber ?? '',
+        }
+      : formDefaultValues,
   });
 
   const externalForm = useForm<{ coversMunicipality: boolean }>({
@@ -130,7 +137,16 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
   const ownerWatch = form.watch('owner');
 
   useEffect(() => {
-    form.reset(props.project ?? formDefaultValues);
+    form.reset(
+      props.project
+        ? {
+            ...props.project,
+            contract: props.project?.contract ?? '',
+            decision: props.project?.decision ?? '',
+            poNumber: props.project?.poNumber ?? '',
+          }
+        : formDefaultValues,
+    );
   }, [props.project]);
 
   const projectUpsert = trpc.maintenanceProject.upsert.useMutation({
