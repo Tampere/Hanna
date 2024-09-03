@@ -91,6 +91,7 @@ export const fi = {
   'maintenanceProject.decisionTooltip': 'Syötä päätöksen nimi.',
   'maintenanceProject.poNumber': 'Ostotilausnumero',
   'maintenanceProject.poNumberTooltip': 'Syötä ostotilausnumero.',
+  'maintenanceProject.ongoing': 'Käynnissä toistaiseksi',
   'newProject.projectNameTooltip':
     'Hankkeen nimi on yksilöllinen ja kuvaa alueellista kokonaisuutta. Kaava-aluetta kuvaavassa nimessä mainitaan kaavan numero. Uutta hanketta luotaessa on varmistettava, ettei hanketta ole jo perustettu.',
   'newProject.projectNameErrorTooltip': 'Syötä hankkeen nimi',
@@ -336,9 +337,9 @@ export const fi = {
   'projectObject.noTasks': 'Kohteella ei ole vaiheita.',
   'projectObject.objectStageLabel': 'Kohteen laji',
   'projectObject.objectStageTooltip': 'Valitse kohteen laji.',
-  "maintenanceProjectObject.contract": "Sopimus",
-  "maintenanceProjectObject.poNumber": "Ostotilausnumero",
-  "maintenanceProjectObject.procurementMethod": "Toteutustapa",
+  'maintenanceProjectObject.contract': 'Sopimus',
+  'maintenanceProjectObject.poNumber': 'Ostotilausnumero',
+  'maintenanceProjectObject.procurementMethod': 'Toteutustapa',
   'projectObjectForm.infoNoGeom': 'Olet luomassa kohdetta ilman aluetta.',
   'projectObjectForm.infoProjectDateOutOfRange':
     'Päivitä hankkeen aikaväli vastaamaan kohteen aikaväliä tallentaaksesi lomakkeen.',

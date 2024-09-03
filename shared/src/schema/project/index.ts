@@ -66,14 +66,16 @@ export const projectSearchSchema = z.object({
 
 const projectObjectSearchParentProject = dbProjectSchema
   .pick({
-    endDate: true,
     projectId: true,
     startDate: true,
     projectName: true,
     projectType: true,
     coversMunicipality: true,
   })
-  .extend({ geom: z.string().nullish() });
+  .extend({
+    geom: z.string().nullish(),
+    endDate: dbProjectSchema.shape.endDate.or(z.literal('infinity')),
+  });
 
 export const projectSearchResultSchema = z.object({
   projects: z.array(

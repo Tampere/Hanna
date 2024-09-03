@@ -10,6 +10,10 @@ import {
   useFormContext,
 } from 'react-hook-form';
 
+import { useTranslations } from '@frontend/stores/lang';
+
+import { isTranslationKey } from '@shared/language';
+
 import { HelpTooltip } from '../HelpTooltip';
 import { DatePicker } from './DatePicker';
 
@@ -153,6 +157,7 @@ export function FormDatePicker({ field, readOnly, minDate, maxDate }: FormDatePi
       name={field.name}
       value={field.value}
       onChange={(value) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         value === 'Invalid Date' ? field.onChange(null) : field.onChange(value);
       }}
       onClose={field.onBlur}
@@ -161,4 +166,12 @@ export function FormDatePicker({ field, readOnly, minDate, maxDate }: FormDatePi
       maxDate={maxDate}
     />
   );
+}
+
+export function getDateFieldErrorMessage(hookFormMessage: string | null, fallBackMessage: string) {
+  const tr = useTranslations();
+  if (hookFormMessage && isTranslationKey(hookFormMessage)) {
+    return tr(hookFormMessage);
+  }
+  return fallBackMessage;
 }

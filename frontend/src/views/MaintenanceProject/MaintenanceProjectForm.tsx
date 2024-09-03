@@ -11,8 +11,9 @@ import { useNavigate } from 'react-router';
 
 import { trpc } from '@frontend/client';
 import { ConfirmDialog } from '@frontend/components/dialogs/ConfirmDialog';
-import { FormDatePicker, FormField } from '@frontend/components/forms';
+import { FormDatePicker, FormField, getDateFieldErrorMessage } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
+import { FormCheckBox } from '@frontend/components/forms/FormCheckBox';
 import { SapProjectIdField } from '@frontend/components/forms/SapProjectIdField';
 import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
@@ -96,7 +97,8 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
       options: ResolverOptions<MaintenanceProject>,
     ) {
       const fields = options.names ?? [];
-      const isFormValidation = fields && fields.length > 1;
+      const isFormValidation =
+        fields && (fields.includes('startDate') || fields.includes('endDate') || fields.length > 1);
       const serverErrors = isFormValidation
         ? maintenanceProject.upsertValidate.fetch({ ...values, geom: undefined }).catch(() => null)
         : null;
@@ -136,6 +138,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
 
   useNavigationBlocker(form.formState.isDirty, 'maintenanceForm');
   const ownerWatch = form.watch('owner');
+  const endDateWatch = form.watch('endDate');
 
   useEffect(() => {
     form.reset(
@@ -285,7 +288,10 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
           <FormField
             formField="startDate"
             label={tr('project.startDateLabel')}
-            errorTooltip={tr('newProject.startDateTooltip')}
+            errorTooltip={getDateFieldErrorMessage(
+              form.formState.errors.startDate?.message ?? null,
+              tr('newProject.startDateTooltip'),
+            )}
             component={(field) => (
               <FormDatePicker
                 maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
@@ -297,13 +303,45 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
           <FormField
             formField="endDate"
             label={tr('project.endDateLabel')}
-            errorTooltip={tr('newProject.endDateTooltip')}
+            errorTooltip={getDateFieldErrorMessage(
+              form.formState.errors.startDate?.message ?? null,
+              tr('newProject.endDateTooltip'),
+            )}
             component={(field) => (
-              <FormDatePicker
-                minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
-                readOnly={!editing}
-                field={field}
-              />
+              <Box
+                css={css`
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  gap: 1rem;
+                  & .MuiFormControl-root {
+                    flex: 1 1 185px;
+                  }
+                `}
+              >
+                <FormDatePicker
+                  minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
+                  readOnly={!editing || endDateWatch === 'infinity'}
+                  field={field}
+                />
+                <FormCheckBox
+                  cssProp={css`
+                    flex: 1;
+                    margin-right: 0;
+                    justify-content: flex-end;
+                  `}
+                  disabled={!editing}
+                  onChange={() => {
+                    if (endDateWatch === 'infinity') {
+                      form.setValue('endDate', '');
+                    } else {
+                      field.onChange('infinity');
+                    }
+                  }}
+                  checked={endDateWatch === 'infinity'}
+                  label={tr('maintenanceProject.ongoing')}
+                />
+              </Box>
             )}
           />
 

@@ -19,7 +19,7 @@ import { useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
-import { FormDatePicker, FormField } from '@frontend/components/forms';
+import { FormDatePicker, FormField, getDateFieldErrorMessage } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { UserSelect } from '@frontend/components/forms/UserSelect';
@@ -298,13 +298,6 @@ export function InvestmentProjectObjectForm(props: Readonly<Props>) {
       },
     );
   };
-
-  function getDateFieldErrorMessage(hookFormMessage: string | null, fallBackMessage: string) {
-    if (hookFormMessage && isTranslationKey(hookFormMessage)) {
-      return tr(hookFormMessage);
-    }
-    return fallBackMessage;
-  }
 
   return (
     <>

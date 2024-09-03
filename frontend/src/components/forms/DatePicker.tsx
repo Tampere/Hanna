@@ -64,7 +64,7 @@ export function DatePicker(props: Props) {
         minDate={minDate}
         maxDate={maxDate}
         format={tr('date.format')}
-        value={!value ? null : dayjs(value, isoDateFormat)}
+        value={!value || value === 'infinity' ? null : dayjs(value, isoDateFormat)}
         onChange={(value) => onChange(value?.format(isoDateFormat) ?? null)}
         onAccept={(value) => onChange(value?.format(isoDateFormat) ?? null)}
         onClose={onClose}
