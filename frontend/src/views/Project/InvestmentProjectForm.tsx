@@ -208,7 +208,6 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
     }
     return !form.formState.isValid || !form.formState.isDirty || form.formState.isSubmitting;
   }
-
   return (
     <>
       <FormProvider {...form}>
@@ -293,7 +292,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
             formField="endDate"
             label={tr('project.endDateLabel')}
             errorTooltip={getDateFieldErrorMessage(
-              form.formState.errors.startDate?.message ?? null,
+              form.formState.errors.endDate?.message ?? null,
               tr('newProject.endDateTooltip'),
             )}
             component={(field) => (

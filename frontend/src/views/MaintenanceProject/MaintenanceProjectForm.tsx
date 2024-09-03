@@ -304,7 +304,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
             formField="endDate"
             label={tr('project.endDateLabel')}
             errorTooltip={getDateFieldErrorMessage(
-              form.formState.errors.startDate?.message ?? null,
+              form.formState.errors.endDate?.message ?? null,
               tr('newProject.endDateTooltip'),
             )}
             component={(field) => (
