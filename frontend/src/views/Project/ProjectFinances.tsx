@@ -33,7 +33,8 @@ export function ProjectFinances(props: Props) {
       return [];
     }
     const startYear = dayjs(project.data.startDate).get('year');
-    const endYear = dayjs(project.data.endDate).get('year');
+    const endYear =
+      project.data.endDate === 'infinity' ? startYear + 5 : dayjs(project.data.endDate).get('year');
     return getRange(startYear, endYear);
   }, [project.data?.startDate, project.data?.endDate]);
 
@@ -59,7 +60,10 @@ export function ProjectFinances(props: Props) {
     {
       projectId: project.data?.projectId as string,
       startYear: dayjs(project.data?.startDate).year(),
-      endYear: dayjs(project.data?.endDate).year(),
+      endYear:
+        project.data?.endDate === 'infinity'
+          ? dayjs(project.data?.startDate).year() + 5
+          : dayjs(project.data?.endDate).year(),
     },
     { enabled: Boolean(project.data?.projectId) },
   );

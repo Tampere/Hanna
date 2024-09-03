@@ -580,4 +580,27 @@ test.describe('Project endpoints', () => {
       }),
     ).resolves.not.toThrowError();
   });
+
+  test('Add ongoing maintenance project', async () => {
+    const user = await devSession.client.user.self.query();
+    const projectInput = validProject(user.id, 'Ongoing maintenance project');
+    projectInput.endDate = 'infinity';
+
+    const maintenanceProject = await devSession.client.maintenanceProject.upsert.mutate({
+      project: projectInput,
+    });
+
+    await expect(
+      devSession.client.investmentProject.upsert.mutate({
+        project: projectInput,
+      }),
+    ).rejects.toThrowError();
+    await expect(
+      devSession.client.detailplanProject.upsert.mutate({
+        project: projectInput,
+      }),
+    ).rejects.toThrowError();
+
+    expect(maintenanceProject.endDate).toBe('infinity');
+  });
 });

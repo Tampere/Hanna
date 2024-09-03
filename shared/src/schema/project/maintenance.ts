@@ -13,6 +13,7 @@ export const maintenanceProjectSchema = upsertProjectSchema.extend({
   contract: z.string().nullish(),
   decision: z.string().nullish(),
   poNumber: z.string().nullish(),
+  endDate: upsertProjectSchema.shape.endDate.or(z.literal('infinity')),
 });
 
 export type MaintenanceProject = z.infer<typeof maintenanceProjectSchema>;

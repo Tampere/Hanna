@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router';
 
 import { trpc } from '@frontend/client';
 import { ConfirmDialog } from '@frontend/components/dialogs/ConfirmDialog';
-import { FormDatePicker, FormField } from '@frontend/components/forms';
+import { FormDatePicker, FormField, getDateFieldErrorMessage } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { SapProjectIdField } from '@frontend/components/forms/SapProjectIdField';
 import { UserSelect } from '@frontend/components/forms/UserSelect';
@@ -94,7 +94,9 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
       options: ResolverOptions<InvestmentProject>,
     ) {
       const fields = options.names ?? [];
-      const isFormValidation = fields && fields.length > 1;
+
+      const isFormValidation =
+        fields && (fields.includes('startDate') || fields.includes('endDate') || fields.length > 1);
 
       const serverErrors = isFormValidation
         ? investmentProject.upsertValidate.fetch({ ...values, geom: undefined }).catch(() => null)
@@ -275,7 +277,10 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
           <FormField
             formField="startDate"
             label={tr('project.startDateLabel')}
-            errorTooltip={tr('newProject.startDateTooltip')}
+            errorTooltip={getDateFieldErrorMessage(
+              form.formState.errors.startDate?.message ?? null,
+              tr('newProject.startDateTooltip'),
+            )}
             component={(field) => (
               <FormDatePicker
                 maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
@@ -287,7 +292,10 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
           <FormField
             formField="endDate"
             label={tr('project.endDateLabel')}
-            errorTooltip={tr('newProject.endDateTooltip')}
+            errorTooltip={getDateFieldErrorMessage(
+              form.formState.errors.startDate?.message ?? null,
+              tr('newProject.endDateTooltip'),
+            )}
             component={(field) => (
               <FormDatePicker
                 minDate={dayjs(form.getValues('startDate')).add(1, 'day')}

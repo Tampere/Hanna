@@ -42,14 +42,16 @@ export const projectObjectSearchResultSchema = z.object({
         objectStage: mergedProjectObjectDbSchema.shape.objectStage.nullish(),
         project: dbProjectSchema
           .pick({
-            endDate: true,
             projectId: true,
             startDate: true,
             projectName: true,
             projectType: true,
             coversMunicipality: true,
           })
-          .extend({ geom: z.string().nullish() }),
+          .extend({
+            geom: z.string().nullish(),
+            endDate: dbProjectSchema.shape.endDate.or(z.literal('infinity')),
+          }),
       }),
   ),
   clusters: z.array(
