@@ -216,7 +216,6 @@ export default function WorkTable() {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const [highlightId, setHighlightId] = useState<string | null>(queryParams.get('highlight'));
-
   const participatedProjects = trpc.investmentProject.getParticipatedProjects.useQuery();
   const workTableData = trpc.workTable.search.useQuery(query);
   const updateObjects = trpc.workTable.update.useMutation({

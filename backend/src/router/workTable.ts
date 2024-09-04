@@ -107,6 +107,8 @@ export async function workTableSearch(input: WorkTableSearch) {
     lifecycleState = [],
     objectStage = [],
     objectParticipantUser = null,
+    rakennuttajaUser = [],
+    suunnitteluttajaUser = [],
   } = input;
 
   const query = sql.type(workTableRowSchema)`
@@ -156,6 +158,14 @@ export async function workTableSearch(input: WorkTableSearch) {
       AND (
         ${sql.array(objectStage, 'text')} = '{}'::TEXT[] OR
         (poi.object_stage).id = ANY(${sql.array(objectStage, 'text')})
+      )
+      AND (
+        ${sql.array(rakennuttajaUser, 'text')} = '{}'::TEXT[] OR
+        poi.rakennuttaja_user = ANY(${sql.array(rakennuttajaUser, 'text')})
+      )
+      AND (
+        ${sql.array(suunnitteluttajaUser, 'text')} = '{}'::TEXT[] OR
+        poi.suunnitteluttaja_user = ANY(${sql.array(suunnitteluttajaUser, 'text')})
       )
     GROUP BY project_object.id, poi.project_object_id, project.id
     ${
