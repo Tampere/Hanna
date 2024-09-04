@@ -145,5 +145,5 @@ export const templateColumns: Record<ReportTemplate, WorkTableColumn[]> = {
     'kayttosuunnitelmanMuutos',
     'companyContacts',
   ],
-  roles: ['projectLink', 'objectName', 'objectDateRange', 'objectRoles'],
+  roles: ['projectLink', 'objectName', 'objectDateRange', 'operatives', 'objectRoles'],
 } as const;
