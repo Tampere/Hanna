@@ -98,7 +98,9 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
     ) {
       const fields = options.names ?? [];
       const isFormValidation =
-        fields && (fields.includes('startDate') || fields.includes('endDate') || fields.length > 1);
+        fields &&
+        (Boolean(props.project && (fields.includes('startDate') || fields.includes('endDate'))) ||
+          fields.length > 1);
       const serverErrors = isFormValidation
         ? maintenanceProject.upsertValidate.fetch({ ...values, geom: undefined }).catch(() => null)
         : null;

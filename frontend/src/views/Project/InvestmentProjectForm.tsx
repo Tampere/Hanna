@@ -96,7 +96,9 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
       const fields = options.names ?? [];
 
       const isFormValidation =
-        fields && (fields.includes('startDate') || fields.includes('endDate') || fields.length > 1);
+        fields &&
+        (Boolean(props.project && (fields.includes('startDate') || fields.includes('endDate'))) ||
+          fields.length > 1);
 
       const serverErrors = isFormValidation
         ? investmentProject.upsertValidate.fetch({ ...values, geom: undefined }).catch(() => null)
