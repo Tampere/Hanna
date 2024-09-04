@@ -55,7 +55,7 @@ export function ProjectDetails<TProject extends ProjectData>({
       </Box>
     );
   }
-
+  console.log(projectDetails.data);
   return (
     <dl
       css={css`
@@ -84,7 +84,8 @@ export function ProjectDetails<TProject extends ProjectData>({
       <dt>{tr('itemInfoBox.dateRange')}: &nbsp;</dt>
       <dd>
         {dayjs(projectDetails.data.startDate).format(tr('date.format'))} –{' '}
-        {dayjs(projectDetails.data.endDate).format(tr('date.format'))}
+        {projectDetails.data.endDate !== 'infinity' &&
+          dayjs(projectDetails.data.endDate).format(tr('date.format'))}
       </dd>
       <dt>{tr('itemInfoBox.lifecycleState')}:</dt>
       <dd>{lifecycleStateCodes.get(projectDetails.data.lifecycleState)?.[lang]}</dd>
