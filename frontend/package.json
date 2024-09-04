@@ -51,7 +51,7 @@
     "vite-plugin-favicons-inject": "^2.2.0",
     "vite-plugin-markdown": "^2.2.0",
     "vite-plugin-svgr": "^4.2.0",
-    "vite-tsconfig-paths": "^4.3.2",
+    "vite-tsconfig-paths": "^5.0.1",
     "vitest": "^2.0.5"
   },
   "dependencies": {
