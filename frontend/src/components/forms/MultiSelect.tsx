@@ -160,11 +160,14 @@ export function MultiSelect<T>({
               }}
             >
               <ul style={{ listStyle: 'none', padding: 0 }}>
-                {value.map((id, index) => (
-                  <li key={index} style={{ margin: '0.5rem' }}>
-                    <Chip {...getTagProps({ index })} label={getLabel(id)} />
-                  </li>
-                ))}
+                {value.map((id, index) => {
+                  const { key, ...props } = getTagProps({ index });
+                  return (
+                    <li key={key} style={{ margin: '0.5rem' }}>
+                      <Chip {...props} label={getLabel(id)} />
+                    </li>
+                  );
+                })}
               </ul>
             </Popover>
           </>

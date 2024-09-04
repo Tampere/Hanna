@@ -63,6 +63,9 @@ export const workTableSearchSchema = z.object({
   objectStage: z.array(dbInvestmentProjectObjectSchema.shape.objectStage).optional(),
   objectParticipantUser: nonEmptyString.optional(),
   reportTemplate: reportTemplate.optional(),
+  rakennuttajaUser: z.array(nonEmptyString).optional(),
+  suunnitteluttajaUser: z.array(nonEmptyString).optional(),
+  company: z.array(nonEmptyString).optional(),
 });
 
 export type WorkTableSearch = z.infer<typeof workTableSearchSchema>;
@@ -142,5 +145,5 @@ export const templateColumns: Record<ReportTemplate, WorkTableColumn[]> = {
     'kayttosuunnitelmanMuutos',
     'companyContacts',
   ],
-  roles: ['projectLink', 'objectName', 'objectDateRange', 'objectRoles'],
+  roles: ['projectLink', 'objectName', 'objectDateRange', 'operatives', 'objectRoles'],
 } as const;

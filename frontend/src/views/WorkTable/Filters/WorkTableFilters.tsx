@@ -8,9 +8,12 @@ import React from 'react';
 
 import { CustomFormLabel } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
+import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 
 import { WorkTableSearch } from '@shared/schema/workTable';
+
+import { CompanySelect } from './CompanySelect';
 
 interface GridSpanProps {
   span: number;
@@ -77,7 +80,7 @@ export function WorkTableFilters(props: Props) {
     <div
       css={(theme: Theme) => css`
         transition: 0.3s ease-out;
-        ${props.expanded ? `height: 140px; opacity: 1;` : `height: 0px; opacity: 0;`}
+        ${props.expanded ? `height: 230px; opacity: 1;` : `height: 0px; opacity: 0;`}
         .MuiFormLabel-root {
           font-size: 12px;
         }
@@ -89,7 +92,7 @@ export function WorkTableFilters(props: Props) {
         ${props.expanded
           ? `display: grid;
         grid-template-columns: repeat(13, 1fr);
-        grid-template-rows: 1fr 1fr;
+        grid-template-rows: 1fr 1fr 1fr;
         gap: ${theme.spacing(2)};`
           : `display: flex;`}
       `}
@@ -209,6 +212,43 @@ export function WorkTableFilters(props: Props) {
               codeListId="KohteenElinkaarentila"
               value={searchParams.lifecycleState}
               onChange={(state) => setSearchParams({ ...searchParams, lifecycleState: state })}
+            />
+          </GridSpan>
+          <GridSpan row={3} span={3} wideScreenSpan={2}>
+            <CustomFormLabel
+              htmlFor="rakennuttaja"
+              label={tr('projectObject.rakennuttajaUserLabel')}
+            />
+            <UserSelect
+              id="rakennuttaja"
+              multiple
+              value={searchParams.rakennuttajaUser ?? []}
+              onChange={(state) => setSearchParams({ ...searchParams, rakennuttajaUser: state })}
+              maxTags={1}
+            />
+          </GridSpan>
+          <GridSpan row={3} span={3} wideScreenSpan={2}>
+            <CustomFormLabel
+              htmlFor="suunnitteluttaja"
+              label={tr('projectObject.suunnitteluttajaUserLabel')}
+            />
+            <UserSelect
+              id="suunnitteluttaja"
+              multiple
+              value={searchParams.suunnitteluttajaUser ?? []}
+              onChange={(state) =>
+                setSearchParams({ ...searchParams, suunnitteluttajaUser: state })
+              }
+              maxTags={1}
+            />
+          </GridSpan>
+          <GridSpan row={3} span={4} wideScreenSpan={3}>
+            <CustomFormLabel htmlFor="company" label={tr('workTable.search.company')} />
+            <CompanySelect
+              id="company"
+              value={searchParams.company ?? []}
+              onChange={(state) => setSearchParams({ ...searchParams, company: state })}
+              maxTags={1}
             />
           </GridSpan>
         </>
