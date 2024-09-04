@@ -70,7 +70,7 @@
     "fastify": "^4.28.1",
     "nodemailer": "^6.9.15",
     "openid-client": "^5.6.5",
-    "pg-boss": "^9.0.3",
+    "pg-boss": "^10.1.1",
     "pino": "^9.4.0",
     "postgres-migrations": "^5.3.0",
     "pug": "^3.0.3",
