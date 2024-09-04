@@ -563,6 +563,7 @@ export const fi = {
   'workTable.search.hide': 'Piilota hakusuodattimet',
   'workTable.search.chipLabelSingle': 'Yksi hakusuodatin valittu',
   'workTable.search.chipLabelMultiple': '{0} hakusuodatinta valittu',
+  'workTable.search.company': 'Yritys',
   'workTable.startDate': 'Hakuaikavälin alku',
   'workTable.endDate': 'Hakuaikavälin loppu',
   'workTable.yearSelect': 'Vuosi',

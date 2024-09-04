@@ -13,6 +13,8 @@ import { langAtom, useTranslations } from '@frontend/stores/lang';
 
 import { WorkTableSearch } from '@shared/schema/workTable';
 
+import { CompanySelect } from './CompanySelect';
+
 interface GridSpanProps {
   span: number;
   row: number;
@@ -78,7 +80,7 @@ export function WorkTableFilters(props: Props) {
     <div
       css={(theme: Theme) => css`
         transition: 0.3s ease-out;
-        ${props.expanded ? `height: 210px; opacity: 1;` : `height: 0px; opacity: 0;`}
+        ${props.expanded ? `height: 230px; opacity: 1;` : `height: 0px; opacity: 0;`}
         .MuiFormLabel-root {
           font-size: 12px;
         }
@@ -237,6 +239,15 @@ export function WorkTableFilters(props: Props) {
               onChange={(state) =>
                 setSearchParams({ ...searchParams, suunnitteluttajaUser: state })
               }
+              maxTags={1}
+            />
+          </GridSpan>
+          <GridSpan row={3} span={4} wideScreenSpan={3}>
+            <CustomFormLabel htmlFor="company" label={tr('workTable.search.company')} />
+            <CompanySelect
+              id="company"
+              value={searchParams.company ?? []}
+              onChange={(state) => setSearchParams({ ...searchParams, company: state })}
               maxTags={1}
             />
           </GridSpan>
