@@ -261,6 +261,8 @@ export const fi = {
   'budgetTable.year': 'Vuosi',
   'budgetTable.yearHelp':
     'Talousluvut osoitetaan vuosikohtaisina. Näkymässä tarjolla olevat vuodet johdetaan suoraan käyttäjän kirjaamasta toteutusvälistä (alku- ja loppupäivämäärä).',
+  'budgetTable.yearHelpOngoing':
+    'Toistaiseksi jatkuvan hankkeen talouslukuja on mahdollista raportoida viideksi vuodeksi eteenpäin.',
   'budgetTable.estimate': 'Kustannusarvio',
   'budgetTable.projectEstimateHelp':
     'Hankkeen suunniteltu kustannus, joka on ehdolla talousarvioon.',

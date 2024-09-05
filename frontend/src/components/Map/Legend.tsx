@@ -1,4 +1,4 @@
-import { useTheme } from '@emotion/react';
+import { SerializedStyles, useTheme } from '@emotion/react';
 import { ReactJSXElement } from '@emotion/react/types/jsx-namespace';
 import {
   Box,
@@ -12,7 +12,6 @@ import {
   Typography,
   css,
 } from '@mui/material';
-import { useState } from 'react';
 
 import { colorPalette } from '@frontend/components/Map/styles';
 import { Info } from '@frontend/components/icons/Info';
@@ -38,29 +37,14 @@ const legendItems: Record<
   projectObjects: { legendIcon: <LayerLegendIcon color={colorPalette.projectObjectClusterFill} /> },
 };
 
-const toggleButtonStyle = (theme: Theme, isOpen: boolean) => css`
-  z-index: 202;
-  background-color: ${isOpen ? theme.palette.primary.main : 'rgb(255, 255, 255, 0.8)'};
-  color: ${theme.palette.primary.main};
-  height: 42px;
-  width: 42px;
-  border: ${isOpen ? 'none' : '1px solid rgb(134, 167, 223)'};
-  :hover {
-    opacity: 0.9;
-    background-color: ${isOpen ? theme.palette.primary.dark : 'rgb(255, 255, 255, 0.8)'};
-    border: 1px solid ${theme.palette.primary.dark};
-  }
-  position: absolute;
-  bottom: 1rem;
-  left: 4.5rem;
-`;
-
 interface Props {
   vectorLayerKeys: Extract<VectorItemLayerKey, 'projects' | 'projectObjects'>[];
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  toggleButtonStyle?: (theme: Theme, isOpen: boolean) => SerializedStyles;
 }
 
-export function Legend({ vectorLayerKeys }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
+export function Legend({ vectorLayerKeys, isOpen, setIsOpen, toggleButtonStyle }: Props) {
   const tr = useTranslations();
   const theme = useTheme();
 
@@ -81,16 +65,20 @@ export function Legend({ vectorLayerKeys }: Props) {
 
           padding: 0.25rem 0.5rem calc(42px + 2rem) 1rem;
           background-color: white;
-          /*  border-right: 1px solid #c4c4c4;
-            border-bottom: 1px solid #c4c4c4;
-            border-top: 1px solid #c4c4c4; */
           box-shadow:
             0,
             0px 5px 8px 0px rgba(0, 0, 0, 0.14),
             0;
         `}
       >
-        <Typography variant="overline">{tr('map.legend.title')}</Typography>
+        <Typography
+          css={css`
+            white-space: nowrap;
+          `}
+          variant="overline"
+        >
+          {tr('map.legend.title')}
+        </Typography>
         <List
           css={css`
             & .MuiListItemIcon-root {
@@ -125,8 +113,9 @@ export function Legend({ vectorLayerKeys }: Props) {
         title={isOpen ? tr('map.legend.hideTooltip') : tr('map.legend.showTooltip')}
       >
         <IconButton
-          css={(theme) => toggleButtonStyle(theme, isOpen)}
-          onClick={() => setIsOpen((prev) => !prev)}
+          css={(theme) => toggleButtonStyle?.(theme, isOpen)}
+          onClick={() => setIsOpen(!isOpen)}
+          disableTouchRipple
         >
           {isOpen ? <Info fillColor="#fff" /> : <Info fillColor={theme.palette.primary.main} />}
         </IconButton>

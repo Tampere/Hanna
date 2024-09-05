@@ -439,7 +439,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
 
           {!props.project && (
             <>
-              {(!props.geom || props.geom === '[]') && (
+              {!coversMunicipality && (!props.geom || props.geom === '[]') && (
                 <Alert sx={{ mt: 1 }} severity="info">
                   {tr('newProject.infoNoGeom')}
                 </Alert>

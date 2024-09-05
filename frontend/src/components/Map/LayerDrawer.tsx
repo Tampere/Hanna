@@ -1,8 +1,8 @@
-import { css } from '@emotion/react';
+import { SerializedStyles, css } from '@emotion/react';
 import { Layers, ToggleOff, ToggleOn } from '@mui/icons-material';
 import { Box, Divider, IconButton, MenuItem, Theme, Tooltip, Typography } from '@mui/material';
 import { useAtom } from 'jotai';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import { useTranslations } from '@frontend/stores/lang';
@@ -17,24 +17,6 @@ import {
 } from '@frontend/stores/map';
 
 import { mapOptions } from './mapOptions';
-
-const drawerButtonContainerStyle = css`
-  position: absolute;
-  bottom: 1rem;
-  left: 1rem;
-`;
-
-const drawerButtonStyle = css`
-  z-index: 202;
-  background-color: rgba(256, 256, 256, 0.8);
-  color: #22437b;
-  border: 1px solid rgb(134, 167, 223);
-  :hover {
-    background-color: rgba(256, 256, 256, 0.9);
-    border: 1px solid rgb(0, 33, 89);
-    color: rgb(0, 33, 89);
-  }
-`;
 
 const containerStyles = css`
   width: 280px;
@@ -93,12 +75,17 @@ type NonClusterVectorItemLayers = Exclude<
 
 export function LayerDrawer({
   enabledItemVectorLayers,
+  isOpen,
+  setIsOpen,
+  toggleButtonStyle,
 }: {
   enabledItemVectorLayers: VectorItemLayerKey[];
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  toggleButtonStyle?: (theme: Theme, isOpen: boolean) => SerializedStyles;
 }) {
   const tr = useTranslations();
   const [baseLayerId, setBaseLayerId] = useAtom(baseLayerIdAtom);
-  const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const [vectorLayers, setVectorLayers] = useAtom(vectorLayersAtom);
   const [vectorItemLayers, setVectorItemLayers] = useAtom(vectorItemLayersAtom);
   const { pathname } = useLocation();
@@ -135,10 +122,7 @@ export function LayerDrawer({
 
   return (
     <>
-      <Box
-        css={containerStyles}
-        style={{ zIndex: drawerOpen ? 202 : 0, opacity: drawerOpen ? 0.95 : 0 }}
-      >
+      <Box css={containerStyles} style={{ zIndex: isOpen ? 202 : 0, opacity: isOpen ? 0.95 : 0 }}>
         <Box css={drawerStyles}>
           <Typography variant="overline" sx={{ padding: '8px' }}>
             {tr('map.layerdrawer.projectsAndObjects')}
@@ -222,17 +206,15 @@ export function LayerDrawer({
           ))}
         </Box>
       </Box>
-      <Box css={drawerButtonContainerStyle}>
-        <Tooltip title={drawerOpen ? tr('map.layerdrawer.close') : tr('map.layerdrawer.open')}>
-          <IconButton
-            css={drawerButtonStyle}
-            color="primary"
-            onClick={() => setDrawerOpen((drawerOpen) => !drawerOpen)}
-          >
-            <Layers />
-          </IconButton>
-        </Tooltip>
-      </Box>
+      <Tooltip title={isOpen ? tr('map.layerdrawer.close') : tr('map.layerdrawer.open')}>
+        <IconButton
+          css={(theme) => toggleButtonStyle?.(theme, isOpen)}
+          disableTouchRipple
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <Layers />
+        </IconButton>
+      </Tooltip>
     </>
   );
 }

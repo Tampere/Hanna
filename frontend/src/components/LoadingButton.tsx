@@ -1,9 +1,13 @@
 import { Button, ButtonProps, CircularProgress, Tooltip, css } from '@mui/material';
 
-export function LoadingButton({ loading, ...buttonProps }: ButtonProps & { loading: boolean }) {
+export function LoadingButton({
+  loading,
+  title,
+  ...buttonProps
+}: ButtonProps & { loading: boolean }) {
   return (
     <Tooltip
-      title={buttonProps.title}
+      title={title}
       className={buttonProps.className}
       css={css`
         width: fit-content;

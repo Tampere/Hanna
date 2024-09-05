@@ -92,6 +92,12 @@ export function ProjectFinances(props: Props) {
           });
         budget?.refetch();
       }}
+      customTooltips={{
+        year:
+          project.data.endDate === 'infinity'
+            ? tr('budgetTable.yearHelpOngoing')
+            : tr('budgetTable.yearHelp'),
+      }}
     />
   );
 }
