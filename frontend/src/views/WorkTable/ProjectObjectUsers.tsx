@@ -5,7 +5,7 @@ import {
   FormLabel,
   LinearProgress,
   Paper,
-  Popper,
+  Popover,
   TextField,
   Typography,
 } from '@mui/material';
@@ -62,10 +62,14 @@ export function ProjectObjectUserEdit({ value, onChange }: Props) {
     }
   }, [anchorElRef.current]);
 
+  function handleClose() {
+    setOpen(false);
+  }
+
   return (
     <Box ref={anchorElRef} position={'absolute'} sx={{ p: 1 }}>
       <ProjectObjectUsers value={value} />
-      <Popper open={open} anchorEl={anchorElRef.current?.parentElement} placement={'bottom-end'}>
+      <Popover open={open} anchorEl={anchorElRef.current?.parentElement} onClose={handleClose}>
         {open && users.isLoading && (
           <Paper sx={{ p: 1 }}>
             <Typography>
@@ -142,7 +146,7 @@ export function ProjectObjectUserEdit({ value, onChange }: Props) {
             </Paper>
           </>
         )}
-      </Popper>
+      </Popover>
     </Box>
   );
 }

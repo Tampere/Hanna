@@ -1,4 +1,4 @@
-import { Box, Button, Paper, Popper, Typography, css } from '@mui/material';
+import { Box, Button, Paper, Popover, Typography, css } from '@mui/material';
 import { GridEditSingleSelectCellProps, useGridApiContext } from '@mui/x-data-grid';
 import { DateCalendar, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -56,13 +56,12 @@ export function DateRangeEdit(params: GridEditSingleSelectCellProps) {
         <span> {'\u2014'} </span>
         <i>{endDate.format('DD.MM.YYYY')}</i>
       </Box>
-      <Popper
+      <Popover
         css={css`
           z-index: 201;
         `}
         open={open}
         anchorEl={anchorElRef.current?.parentElement}
-        placement={'bottom-start'}
       >
         {open && (
           <Paper
@@ -192,7 +191,7 @@ export function DateRangeEdit(params: GridEditSingleSelectCellProps) {
             </Box>
           </Paper>
         )}
-      </Popper>
+      </Popover>
     </Box>
   );
 }
