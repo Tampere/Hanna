@@ -26,6 +26,7 @@ import { YearBudget } from '@shared/schema/project';
 import { YearlyActuals } from '@shared/schema/sapActuals';
 
 export type BudgetFields =
+  | 'year'
   | 'estimate'
   | 'contractPrice'
   | 'amount'
@@ -134,7 +135,11 @@ export function BudgetTable(props: Props) {
                   <TableCell>
                     <Box className="column-header">
                       <Typography variant="overline">{tr('budgetTable.year')}</Typography>
-                      {enableTooltips && <HelpTooltip title={tr('budgetTable.yearHelp')} />}
+                      {enableTooltips && (
+                        <HelpTooltip
+                          title={props.customTooltips?.year ?? tr('budgetTable.yearHelp')}
+                        />
+                      )}
                     </Box>
                   </TableCell>
 
