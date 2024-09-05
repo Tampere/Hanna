@@ -1,4 +1,4 @@
-import { GlobalStyles } from '@mui/material';
+import { Drawer, GlobalStyles } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 import { RESET } from 'jotai/utils';
 import Feature from 'ol/Feature';
@@ -24,6 +24,7 @@ import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 
 import { DrawConfirmButtons } from './DrawConfirmButtons';
+import { DrawerContainer } from './DrawerContainer';
 import { LayerDrawer } from './LayerDrawer';
 import { Legend } from './Legend';
 import { Map, MapInteraction } from './Map';
@@ -422,7 +423,7 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
             />
           )}
 
-          <LayerDrawer
+          {/* <LayerDrawer
             enabledItemVectorLayers={
               props.vectorLayers?.map((layer) => layer.getProperties().id) ?? []
             }
@@ -433,7 +434,18 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
                 ?.map((layer) => layer.getProperties().id)
                 ?.filter((id) => ['projects', 'projectObjects'].includes(id)) ?? []
             }
+          /> */}
+          <DrawerContainer
+            layerDrawerEnabledLayers={
+              props.vectorLayers?.map((layer) => layer.getProperties().id) ?? []
+            }
+            legendVectorLayerKeys={
+              props.vectorLayers
+                ?.map((layer) => layer.getProperties().id)
+                ?.filter((id) => ['projects', 'projectObjects'].includes(id)) ?? []
+            }
           />
+
           {dirty && (
             <DrawConfirmButtons
               onSaveClick={() => {

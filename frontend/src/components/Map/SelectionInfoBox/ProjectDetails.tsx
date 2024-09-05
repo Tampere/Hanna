@@ -55,7 +55,7 @@ export function ProjectDetails<TProject extends ProjectData>({
       </Box>
     );
   }
-  console.log(projectDetails.data);
+
   return (
     <dl
       css={css`
