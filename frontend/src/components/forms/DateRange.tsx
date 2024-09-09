@@ -114,7 +114,13 @@ export function DateRange(props: Props) {
 
   return (
     <div>
-      <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+      <Box
+        css={css`
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+        `}
+      >
         <TextField
           name="startDate"
           hiddenLabel={props.readOnly}
@@ -138,6 +144,7 @@ export function DateRange(props: Props) {
           placeholder={tr('dateRange.endDate')}
         />
         <IconButton
+          size="small"
           aria-label="open-calendar"
           onClick={() => setOpen(true)}
           disabled={props.readOnly}

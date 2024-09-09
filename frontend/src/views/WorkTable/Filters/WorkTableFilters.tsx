@@ -79,16 +79,15 @@ export function WorkTableFilters(props: Props) {
   return (
     <div
       css={(theme: Theme) => css`
-        transition: 0.3s ease-out;
-        ${props.expanded ? `height: 230px; opacity: 1;` : `height: 0px; opacity: 0;`}
         .MuiFormLabel-root {
           font-size: 12px;
         }
         .MuiInputBase-input {
           font-size: 12px;
         }
-
         padding: ${theme.spacing(1)} 0;
+        transition: 0.3s ease-out;
+        ${props.expanded ? `height: 230px; opacity: 1;` : `height: 0px; opacity: 0;`}
         ${props.expanded
           ? `display: grid;
         grid-template-columns: repeat(13, 1fr);

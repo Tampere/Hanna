@@ -60,7 +60,7 @@ export function Toolbar() {
           onClick={() => setNewProjectMenuOpen(true)}
           disabled={!canCreateProject}
           variant="contained"
-          size="large"
+          size="medium"
           style={{ alignItems: 'flex-start' }}
           endIcon={<AddCircle />}
         >

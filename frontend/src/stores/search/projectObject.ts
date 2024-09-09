@@ -8,7 +8,7 @@ import { ProjectObjectSearch } from '@shared/schema/projectObject/search';
 // Use the shared schema as base, but omit unused fields and mark the rest as required
 type ObjectSearchParams = Omit<Required<ProjectObjectSearch>, 'limit' | 'projectId'>;
 
-export const projectObjectSearchParamAtom = atom<ObjectSearchParams>({
+const projectObjectSearchDefaultValues = {
   projectObjectName: '',
   projectName: '',
   dateRange: {
@@ -28,7 +28,11 @@ export const projectObjectSearchParamAtom = atom<ObjectSearchParams>({
   objectParticipantUser: null,
   rakennuttajaUsers: [],
   suunnitteluttajaUsers: [],
-});
+};
+
+export const projectObjectSearchParamAtom = atom<ObjectSearchParams>(
+  projectObjectSearchDefaultValues,
+);
 
 export const dateRangeAtom = focusAtom(projectObjectSearchParamAtom, (o) => o.prop('dateRange'));
 export const lifecycleStatesAtom = focusAtom(projectObjectSearchParamAtom, (o) =>
@@ -65,3 +69,33 @@ export const objectParticipantUserAtom = focusAtom(projectObjectSearchParamAtom,
 );
 
 export const mapAtom = focusAtom(projectObjectSearchParamAtom, (o) => o.prop('map'));
+
+export function calculateUsedSearchParamsCount(searchParams: ObjectSearchParams) {
+  return (Object.keys(searchParams) as (keyof ObjectSearchParams)[]).reduce((count, key) => {
+    if (key === 'map') {
+      return count;
+    }
+    if (
+      key === 'dateRange' &&
+      searchParams[key].startDate === projectObjectSearchDefaultValues.dateRange.startDate &&
+      searchParams[key].endDate === projectObjectSearchDefaultValues.dateRange.endDate
+    ) {
+      return count;
+    }
+
+    const keyValue = searchParams[key];
+    if (Array.isArray(keyValue) && keyValue.length === 0) {
+      return count;
+    }
+
+    if (keyValue === projectObjectSearchDefaultValues[key]) {
+      return count;
+    }
+
+    if (keyValue && typeof keyValue === 'object' && Object.keys(keyValue).length === 0) {
+      return count;
+    }
+
+    return count + 1;
+  }, 0);
+}
