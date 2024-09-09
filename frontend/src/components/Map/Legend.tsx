@@ -62,7 +62,6 @@ export function Legend({ vectorLayerKeys, isOpen, setIsOpen, toggleButtonStyle }
           position: absolute;
           bottom: 0;
           left: 0;
-
           padding: 0.25rem 0.5rem calc(42px + 2rem) 1rem;
           background-color: white;
           box-shadow:

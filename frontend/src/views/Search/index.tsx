@@ -84,10 +84,10 @@ export function SearchPage() {
         {tabView === 'hankkeet' && <Toolbar />}
         {tabView === 'kohteet' && (
           <Button
+            size="medium"
             css={css`
-              padding: 4px 16px;
-              margin-top: 2px;
-              margin-bottom: 2px;
+              max-height: 36.5px;
+              align-self: center;
               margin-left: auto;
             `}
             variant="contained"

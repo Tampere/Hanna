@@ -1,19 +1,19 @@
-import { Search, UnfoldLess, UnfoldMore } from '@mui/icons-material';
+import { ExpandLess, ExpandMore, Search, UnfoldLess, UnfoldMore } from '@mui/icons-material';
 import {
   Box,
   Button,
+  Chip,
   FormControl,
   FormControlLabel,
   FormLabel,
   InputAdornment,
-  Paper,
   Switch,
   TextField,
   css,
 } from '@mui/material';
 import dayjs from 'dayjs';
-import { useAtom, useSetAtom } from 'jotai';
-import { useEffect, useState } from 'react';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useEffect, useMemo, useState } from 'react';
 
 import { mapOptions } from '@frontend/components/Map/mapOptions';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
@@ -22,6 +22,7 @@ import { ProjectTypeSelect } from '@frontend/components/forms/ProjectTypeSelect'
 import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useTranslations } from '@frontend/stores/lang';
 import {
+  calculateUsedSearchParamsCount,
   dateRangeAtom,
   filtersAtom,
   includeWithoutGeomAtom,
@@ -29,6 +30,7 @@ import {
   mapAtom,
   onlyCoversMunicipalityAtom,
   ownersAtom,
+  projectSearchParamAtom,
   textAtom,
 } from '@frontend/stores/search/project';
 
@@ -82,6 +84,7 @@ export function SearchControls() {
   const tr = useTranslations();
 
   const [expanded, setExpanded] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const [text, setText] = useAtom(textAtom);
   const [dateRange, setDateRange] = useAtom(dateRangeAtom);
   const [lifecycleStates, setLifecycleStates] = useAtom(lifecycleStatesAtom);
@@ -89,7 +92,13 @@ export function SearchControls() {
   const [filters, setFilters] = useAtom(filtersAtom);
   const [includeWithoutGeom, setIncludeWithoutGeom] = useAtom(includeWithoutGeomAtom);
   const [onlyCoversMunicipality, setOnlyCoversMunicipality] = useAtom(onlyCoversMunicipalityAtom);
+  const allSearchParams = useAtomValue(projectSearchParamAtom);
   const setMap = useSetAtom(mapAtom);
+
+  const searchParamsCount = useMemo(
+    () => calculateUsedSearchParamsCount(allSearchParams),
+    [text, dateRange, lifecycleStates, owners, filters, includeWithoutGeom, onlyCoversMunicipality],
+  );
 
   useEffect(() => {
     return () => {
@@ -100,9 +109,10 @@ export function SearchControls() {
     };
   }, []);
 
+  const expandButtonVisible = isVisible && (filters.investmentProject || filters.detailplanProject);
+
   return (
-    <Paper
-      elevation={1}
+    <Box
       css={css`
         & .MuiFormLabel-root {
           font-size: 12px;
@@ -113,144 +123,215 @@ export function SearchControls() {
         & .MuiTypography-root {
           font-size: 12px;
         }
-        padding: 16px;
+        padding: ${isVisible ? '16px' : '0 16px '};
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: ${expanded ? '16px' : 'none'};
+        border-radius: 0;
+        border-bottom: 1px solid #c4c4c4;
       `}
     >
-      <div css={searchControlContainerStyle}>
-        <FormControl>
-          <FormLabel htmlFor="text-search">{tr('itemSearch.textSearchLabel')}</FormLabel>
-          <TextField
-            id="text-search"
+      <Box
+        css={css`
+          transition:
+            height 0.3s ease-out,
+            opacity 0.3s ease-out;
+          // Using media queries to get a smooth height transition animation between different screen sizes
+          @media (min-width: 1900px) {
+            height: ${expanded ? 180 : 80}px;
+            ${!isVisible && `height: 0; opacity: 0;`};
+          }
+          @media (1900px >= width >= 1400px) {
+            height: ${expanded ? 260 : 140}px;
+            ${!isVisible && `height: 0; opacity: 0;`};
+          }
+          @media (1400px >= width >= 1130px) {
+            height: ${expanded ? 300 : 140}px;
+            ${!isVisible && `height: 0; opacity: 0;`};
+          }
+          @media (max-width: 1130px) {
+            height: ${expanded ? 350 : 200}px;
+            ${!isVisible && `height: 0; opacity: 0;`};
+          }
+        `}
+      >
+        {isVisible && (
+          <Box>
+            <div css={searchControlContainerStyle}>
+              <FormControl>
+                <FormLabel htmlFor="text-search">{tr('itemSearch.textSearchLabel')}</FormLabel>
+                <TextField
+                  id="text-search"
+                  size="small"
+                  placeholder={tr('itemSearch.textSearchTip')}
+                  value={text}
+                  onChange={(event) => {
+                    setText(event.currentTarget.value);
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </FormControl>
+              <Box>
+                <FormControl>
+                  <FormLabel>{tr('itemSearch.dateRange')}</FormLabel>
+                  <DateRange
+                    value={dateRange}
+                    onChange={(period) => setDateRange(period)}
+                    quickSelections={makeCalendarQuickSelections(tr)}
+                  />
+                </FormControl>
+              </Box>
+              <FormControl>
+                <FormLabel htmlFor="lifecycle-state">{tr('project.lifecycleStateLabel')}</FormLabel>
+                <CodeSelect
+                  id="lifecycle-state"
+                  codeListId="HankkeenElinkaarentila"
+                  multiple
+                  value={lifecycleStates}
+                  onChange={setLifecycleStates}
+                  maxTags={1}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel htmlFor="project-type">{tr('projectSearch.projectType')}</FormLabel>
+                <ProjectTypeSelect
+                  id="project-type"
+                  value={Object.keys(filters) as Array<keyof typeof filters>}
+                  maxTags={1}
+                  onChange={(projectTypes) => {
+                    setFilters((filters) => {
+                      const prevFilters = { ...filters };
+                      const previousTypes = new Set(Object.keys(prevFilters)) as Set<
+                        keyof typeof prevFilters
+                      >;
+                      const newTypes = new Set(projectTypes);
+
+                      // Remove type filters that are no longer selected
+                      for (const type of previousTypes) {
+                        if (!newTypes.has(type)) {
+                          delete prevFilters[type];
+                        }
+                      }
+
+                      // Add new types
+                      for (const type of newTypes) {
+                        if (!previousTypes.has(type)) {
+                          prevFilters[type] = {};
+                        }
+                      }
+
+                      return { ...prevFilters };
+                    });
+                  }}
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel htmlFor="owner">{tr('project.ownerLabel')}</FormLabel>
+                <UserSelect id="owner" multiple value={owners} onChange={setOwners} maxTags={1} />
+              </FormControl>
+              <FormControlLabel
+                css={css`
+                  align-self: end;
+                  margin-left: auto;
+                `}
+                control={
+                  <Switch
+                    checked={!includeWithoutGeom}
+                    onChange={(_, checked) => {
+                      setIncludeWithoutGeom(!checked);
+                    }}
+                    color="primary"
+                  />
+                }
+                label={tr('projectSearch.showOnlyItemsWithGeom')}
+                labelPlacement="end"
+              />
+              <FormControlLabel
+                css={css`
+                  align-self: end;
+                  margin-left: auto;
+                `}
+                control={
+                  <Switch
+                    checked={onlyCoversMunicipality}
+                    onChange={(_, checked) => {
+                      setOnlyCoversMunicipality(checked);
+                    }}
+                    color="primary"
+                  />
+                }
+                label={tr('projectSearch.showOnlyItemsThatCoverMunicipality')}
+                labelPlacement="end"
+              />
+            </div>
+            {expanded && (
+              <>
+                {filters['investmentProject'] && <InvestmentProjectSearch />}
+                {filters['detailplanProject'] && <DetailplanProjectSearch />}
+              </>
+            )}
+          </Box>
+        )}
+      </Box>
+      <Box
+        css={css`
+          display: flex;
+          justify-content: flex-end;
+          transition: opacity 1s ease-out;
+          ${!isVisible && 'margin-bottom: 0.5rem;'}
+        `}
+      >
+        {expandButtonVisible && (
+          <Button
+            css={css`
+              margin-right: auto;
+            `}
             size="small"
-            placeholder={tr('itemSearch.textSearchTip')}
-            value={text}
-            onChange={(event) => {
-              setText(event.currentTarget.value);
+            startIcon={expanded ? <UnfoldLess /> : <UnfoldMore />}
+            onClick={() => {
+              setExpanded((previous) => !previous);
             }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </FormControl>
-        <Box sx={{ display: 'flex' }}>
-          <FormControl>
-            <FormLabel>{tr('itemSearch.dateRange')}</FormLabel>
-            <DateRange
-              value={dateRange}
-              onChange={(period) => setDateRange(period)}
-              quickSelections={makeCalendarQuickSelections(tr)}
-            />
-          </FormControl>
-        </Box>
-        <FormControl>
-          <FormLabel htmlFor="lifecycle-state">{tr('project.lifecycleStateLabel')}</FormLabel>
-          <CodeSelect
-            id="lifecycle-state"
-            codeListId="HankkeenElinkaarentila"
-            multiple
-            value={lifecycleStates}
-            onChange={setLifecycleStates}
-            maxTags={1}
-          />
-        </FormControl>
-        <FormControl>
-          <FormLabel htmlFor="project-type">{tr('projectSearch.projectType')}</FormLabel>
-          <ProjectTypeSelect
-            id="project-type"
-            value={Object.keys(filters) as Array<keyof typeof filters>}
-            maxTags={1}
-            onChange={(projectTypes) => {
-              setFilters((filters) => {
-                const previousTypes = new Set(Object.keys(filters)) as Set<keyof typeof filters>;
-                const newTypes = new Set(projectTypes);
+          >
+            {expanded ? tr('itemSearch.showLessBtnLabel') : tr('itemSearch.showMoreBtnLabel')}
+          </Button>
+        )}
 
-                // Remove type filters that are no longer selected
-                for (const type of previousTypes) {
-                  if (!newTypes.has(type)) {
-                    delete filters[type];
-                  }
-                }
-
-                // Add new types
-                for (const type of newTypes) {
-                  if (!previousTypes.has(type)) {
-                    filters[type] = {};
-                  }
-                }
-
-                return {
-                  ...filters,
-                };
-              });
-            }}
+        {!isVisible && searchParamsCount > 0 && (
+          <Chip
+            variant="outlined"
+            css={css`
+              font-size: 12px;
+              border-color: orange;
+            `}
+            label={
+              searchParamsCount === 1
+                ? tr('workTable.search.chipLabelSingle')
+                : tr('workTable.search.chipLabelMultiple', searchParamsCount)
+            }
           />
-        </FormControl>
-        <FormControl>
-          <FormLabel htmlFor="owner">{tr('project.ownerLabel')}</FormLabel>
-          <UserSelect id="owner" multiple value={owners} onChange={setOwners} maxTags={1} />
-        </FormControl>
-        <FormControlLabel
-          css={css`
-            align-self: end;
-            margin-left: auto;
-          `}
-          control={
-            <Switch
-              checked={!includeWithoutGeom}
-              onChange={(_, checked) => {
-                setIncludeWithoutGeom(!checked);
-              }}
-              color="primary"
-            />
-          }
-          label={tr('projectSearch.showOnlyItemsWithGeom')}
-          labelPlacement="end"
-        />
-        <FormControlLabel
-          css={css`
-            align-self: end;
-            margin-left: auto;
-          `}
-          control={
-            <Switch
-              checked={onlyCoversMunicipality}
-              onChange={(_, checked) => {
-                setOnlyCoversMunicipality(checked);
-              }}
-              color="primary"
-            />
-          }
-          label={tr('projectSearch.showOnlyItemsThatCoverMunicipality')}
-          labelPlacement="end"
-        />
-      </div>
-      {expanded && (
-        <>
-          {filters['investmentProject'] && <InvestmentProjectSearch />}
-          {filters['detailplanProject'] && <DetailplanProjectSearch />}
-        </>
-      )}
-      {(filters.investmentProject || filters.detailplanProject) && (
+        )}
         <Button
           size="small"
           css={css`
-            align-self: flex-end;
+            margin-left: 0.5rem;
+            grid-column: 13;
+            height: fit-content;
           `}
-          endIcon={expanded ? <UnfoldLess /> : <UnfoldMore />}
           onClick={() => {
-            setExpanded((previous) => !previous);
+            setIsVisible((prev) => !prev);
+            setExpanded(false);
           }}
+          endIcon={isVisible ? <ExpandLess /> : <ExpandMore />}
         >
-          {expanded ? tr('itemSearch.showLessBtnLabel') : tr('itemSearch.showMoreBtnLabel')}
+          {isVisible ? tr('workTable.search.hide') : tr('workTable.search.show')}
         </Button>
-      )}
-    </Paper>
+      </Box>
+    </Box>
   );
 }
