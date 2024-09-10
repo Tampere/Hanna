@@ -21,6 +21,7 @@ import { DateRange } from '@frontend/components/forms/DateRange';
 import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
+import { freezeMapHeightAtom } from '@frontend/stores/map';
 import {
   calculateUsedSearchParamsCount,
   dateRangeAtom,
@@ -96,6 +97,7 @@ export function SearchControls() {
   const [objectParticipantUser, setObjectParticipantUser] = useAtom(objectParticipantUserAtom);
   const [suunnitteluttajaUsers, setSuunnitteluttajaUsers] = useAtom(suunnitteluttajaUsersAtom);
   const [rakennuttajaUsers, setRakennuttajaUsers] = useAtom(rakennuttajaUsersAtom);
+  const setFreezeMapHeight = useSetAtom(freezeMapHeightAtom);
   const allSearchParams = useAtomValue(projectObjectSearchParamAtom);
   const currentUser = useAtomValue(asyncUserAtom);
   const setMap = useSetAtom(mapAtom);
@@ -110,6 +112,13 @@ export function SearchControls() {
   }, []);
 
   const searchParamsCount = calculateUsedSearchParamsCount(allSearchParams);
+
+  function handleFreezeMapHeight(timeout: number = 500) {
+    setFreezeMapHeight(true);
+    setTimeout(() => {
+      setFreezeMapHeight(false);
+    }, timeout);
+  }
 
   return (
     <Box
@@ -338,6 +347,7 @@ export function SearchControls() {
             height: fit-content;
           `}
           onClick={() => {
+            handleFreezeMapHeight(350);
             setIsVisible((prev) => !prev);
           }}
           endIcon={isVisible ? <ExpandLess /> : <ExpandMore />}

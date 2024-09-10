@@ -1,4 +1,4 @@
-import { Drawer, GlobalStyles } from '@mui/material';
+import { GlobalStyles } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 import { RESET } from 'jotai/utils';
 import Feature from 'ol/Feature';
@@ -16,6 +16,7 @@ import {
   VectorItemLayerKey,
   baseLayerIdAtom,
   featureSelectorAtom,
+  freezeMapHeightAtom,
   selectedItemLayersAtom,
   selectedWFSLayersAtom,
   selectionSourceAtom,
@@ -23,10 +24,9 @@ import {
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 
+import { ColorPatternSelect } from './ColorPatternSelect';
 import { DrawConfirmButtons } from './DrawConfirmButtons';
 import { DrawerContainer } from './DrawerContainer';
-import { LayerDrawer } from './LayerDrawer';
-import { Legend } from './Legend';
 import { Map, MapInteraction } from './Map';
 import { MapControls } from './MapControls';
 import { MapInfoBoxButton } from './MapInfoBoxButton';
@@ -94,6 +94,7 @@ interface Props<TProject, TProjectObject> {
   /** Layers which contain features users can interact with by clicking a feature and opening a map info box. */
   interactiveLayers?: VectorItemLayerKey[];
   drawSource?: VectorSource<Feature<Geometry>>;
+  withColorPatternSelect?: boolean;
 }
 
 export function MapWrapper<TProject extends ProjectData, TProjectObject extends ProjectObjectData>(
@@ -159,6 +160,7 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
   const [selectedTool, setSelectedTool] = useState<ToolType | null>(null);
   const [interactions, setInteractions] = useState<MapInteraction[] | null>(null);
   const selectionLayer = useMemo(() => createSelectionLayer(selectionSource), []);
+  const freezeMapHeight = useAtomValue(freezeMapHeightAtom);
 
   useEffect(() => {
     return () => resetInfoBox();
@@ -347,7 +349,11 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
     <div
       ref={mapWrapperRef}
       style={{
-        height: '100%',
+        height: freezeMapHeight
+          ? mapWrapperRef.current?.clientHeight
+            ? `${mapWrapperRef.current.clientHeight}px`
+            : '100%'
+          : '100%',
         position: 'relative',
         display: 'flex',
         flex: 1,
@@ -423,18 +429,8 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
             />
           )}
 
-          {/* <LayerDrawer
-            enabledItemVectorLayers={
-              props.vectorLayers?.map((layer) => layer.getProperties().id) ?? []
-            }
-          />
-          <Legend
-            vectorLayerKeys={
-              props.vectorLayers
-                ?.map((layer) => layer.getProperties().id)
-                ?.filter((id) => ['projects', 'projectObjects'].includes(id)) ?? []
-            }
-          /> */}
+          {props.withColorPatternSelect && <ColorPatternSelect />}
+
           <DrawerContainer
             layerDrawerEnabledLayers={
               props.vectorLayers?.map((layer) => layer.getProperties().id) ?? []

@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { Paper } from '@mui/material';
-import { useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { Feature } from 'ol';
 import { Geometry } from 'ol/geom';
 import VectorLayer from 'ol/layer/Vector';
@@ -13,8 +13,12 @@ import {
   addFeaturesFromGeoJson,
   featuresFromGeoJSON,
 } from '@frontend/components/Map/mapInteractions';
-import { clusterStyle } from '@frontend/components/Map/styles';
-import { getProjectObjectsLayer, getProjectsLayer } from '@frontend/stores/map';
+import { ProjectColorCodes, clusterStyle } from '@frontend/components/Map/styles';
+import {
+  getProjectObjectsLayer,
+  getProjectsLayer,
+  selectedFeatureColorCodeAtom,
+} from '@frontend/stores/map';
 import { mapAtom } from '@frontend/stores/search/project';
 import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 
@@ -23,8 +27,8 @@ import { ProjectObjectSearchResult } from '@shared/schema/projectObject/search';
 
 const resultMapContainerStyle = css`
   min-height: 320px;
-  flex: 1;
   position: relative;
+  overflow: hidden;
 `;
 
 interface Props {
@@ -46,15 +50,16 @@ function clusterGeoJSON(clusters?: ProjectSearchResult['clusters']) {
         id: cluster.clusterGeohash,
         clusterCount: cluster.clusterCount,
         clusterProjectIds: cluster.clusterProjectIds,
+        projectDistribution: cluster.projectDistribution,
       },
     })),
   };
 }
 
-function getClusterLayer(source: VectorSource) {
+function getClusterLayer(source: VectorSource, projectColorCodes?: ProjectColorCodes) {
   return new VectorLayer({
     source,
-    style: (feature) => clusterStyle(feature),
+    style: (feature, resolution) => clusterStyle(feature, resolution, 'project', projectColorCodes),
     properties: {
       id: 'projectClusterResults',
       type: 'vector',
@@ -77,6 +82,7 @@ function getProjectsGeoJSON(projects?: ProjectSearchResult['projects']) {
         geometry: geom,
         properties: {
           name: p.projectName,
+          projectType: p.projectType,
         },
       };
     }),
@@ -89,8 +95,16 @@ export function ResultsMap(props: Props) {
   const clusterSource = useMemo(() => new VectorSource({}), []);
   const projectSource = useMemo(() => new VectorSource({}), []);
   const projectObjectSource = useMemo(() => new VectorSource({}), []);
-  const clusterLayer = useMemo(() => getClusterLayer(clusterSource), [clusterSource]);
-  const projectLayer = useMemo(() => getProjectsLayer(projectSource), [projectSource]);
+  const selectedFeatureColorCode = useAtomValue(selectedFeatureColorCodeAtom);
+
+  const clusterLayer = useMemo(
+    () => getClusterLayer(clusterSource, selectedFeatureColorCode.projectColorCodes ?? undefined),
+    [clusterSource, selectedFeatureColorCode],
+  );
+  const projectLayer = useMemo(
+    () => getProjectsLayer(projectSource, selectedFeatureColorCode.projectColorCodes),
+    [projectSource, selectedFeatureColorCode],
+  );
   const projectObjectLayer = useMemo(
     () => getProjectObjectsLayer(projectObjectSource),
     [projectObjectSource],
@@ -159,6 +173,7 @@ export function ResultsMap(props: Props) {
         }}
         projects={props.results?.projects ?? []}
         projectObjects={props.results?.projectObjects ?? []}
+        withColorPatternSelect
       />
     </Paper>
   );

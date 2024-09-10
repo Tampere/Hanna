@@ -7,7 +7,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
-import { PROJECT_AREA_STYLE } from '@frontend/components/Map/styles';
+import { getProjectAreaStyle } from '@frontend/components/Map/styles';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { DeleteProjectDialog } from '@frontend/views/Project/DeleteProjectDialog';
@@ -210,7 +210,7 @@ export function DetailplanProject() {
               <MapWrapper
                 drawOptions={{
                   geoJson: project.data?.geom ?? null,
-                  drawStyle: PROJECT_AREA_STYLE,
+                  drawStyle: getProjectAreaStyle(undefined, undefined, false),
                   editable: false,
                 }}
                 fitExtent="geoJson"

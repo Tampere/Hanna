@@ -24,6 +24,7 @@ const resultMapContainerStyle = css`
   min-height: 320px;
   flex: 1;
   position: relative;
+  overflow: hidden;
 `;
 
 interface Props {
@@ -54,7 +55,7 @@ function clusterGeoJSON(clusters?: ProjectObjectSearchResult['clusters']) {
 function getClusterLayer(source: VectorSource) {
   return new VectorLayer({
     source,
-    style: (feature) => clusterStyle(feature, 'projectObject'),
+    style: (feature, resolution) => clusterStyle(feature, resolution, 'projectObject'),
     properties: {
       id: 'projectObjectClusterResults',
       type: 'vector',

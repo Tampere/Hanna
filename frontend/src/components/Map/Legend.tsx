@@ -12,11 +12,17 @@ import {
   Typography,
   css,
 } from '@mui/material';
+import { useAtomValue } from 'jotai';
+import { ProjectType, projectTypes } from 'tre-hanna-shared/src/schema/project/type';
 
 import { colorPalette } from '@frontend/components/Map/styles';
 import { Info } from '@frontend/components/icons/Info';
 import { useTranslations } from '@frontend/stores/lang';
-import { VectorItemLayerKey } from '@frontend/stores/map';
+import {
+  SelectedProjectColorCode,
+  VectorItemLayerKey,
+  selectedFeatureColorCodeAtom,
+} from '@frontend/stores/map';
 
 function LayerLegendIcon({ color }: { color: string }) {
   return (
@@ -29,24 +35,70 @@ function LayerLegendIcon({ color }: { color: string }) {
   );
 }
 
-const legendItems: Record<
-  Extract<VectorItemLayerKey, 'projects' | 'projectObjects'>,
+function getLegendItems(
+  selectedColorCodes?: SelectedProjectColorCode['projectColorCodes'],
+): Record<
+  Extract<VectorItemLayerKey, 'projects' | 'projectObjects'> | ProjectType,
   { legendIcon: ReactJSXElement }
-> = {
-  projects: { legendIcon: <LayerLegendIcon color={colorPalette.projectClusterFill} /> },
-  projectObjects: { legendIcon: <LayerLegendIcon color={colorPalette.projectObjectClusterFill} /> },
-};
+> {
+  return {
+    projects: { legendIcon: <LayerLegendIcon color={colorPalette.projectClusterFill} /> },
+    projectObjects: {
+      legendIcon: <LayerLegendIcon color={colorPalette.projectObjectClusterFill} />,
+    },
+    investmentProject: {
+      legendIcon: (
+        <LayerLegendIcon
+          color={selectedColorCodes?.investmentProject.stroke ?? colorPalette.projectClusterFill}
+        />
+      ),
+    },
+    maintenanceProject: {
+      legendIcon: (
+        <LayerLegendIcon
+          color={selectedColorCodes?.maintenanceProject.stroke ?? colorPalette.projectClusterFill}
+        />
+      ),
+    },
+    detailplanProject: {
+      legendIcon: (
+        <LayerLegendIcon
+          color={selectedColorCodes?.detailplanProject.stroke ?? colorPalette.projectClusterFill}
+        />
+      ),
+    },
+  };
+}
 
 interface Props {
   vectorLayerKeys: Extract<VectorItemLayerKey, 'projects' | 'projectObjects'>[];
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   toggleButtonStyle?: (theme: Theme, isOpen: boolean) => SerializedStyles;
+  colorPatternSelectorVisible?: boolean;
 }
 
-export function Legend({ vectorLayerKeys, isOpen, setIsOpen, toggleButtonStyle }: Props) {
+const listItemStyle = css`
+  padding: 0;
+  & .MuiTypography-root {
+    font-size: 12px;
+    line-height: 12px;
+  }
+  justify-content: flex-start;
+`;
+
+export function Legend({
+  vectorLayerKeys,
+  colorPatternSelectorVisible = false,
+  toggleButtonStyle,
+  isOpen,
+  setIsOpen,
+}: Props) {
   const tr = useTranslations();
   const theme = useTheme();
+  const selectedFeatureColorCode = useAtomValue(selectedFeatureColorCodeAtom);
+  const displayDefaultLegend =
+    !selectedFeatureColorCode.projectColorCodes || !colorPatternSelectorVisible;
 
   return (
     <>
@@ -88,22 +140,33 @@ export function Legend({ vectorLayerKeys, isOpen, setIsOpen, toggleButtonStyle }
           `}
           dense
         >
-          {vectorLayerKeys.map((layer) => (
-            <ListItem
-              key={layer}
-              css={css`
-                padding: 0;
-                & .MuiTypography-root {
-                  font-size: 12px;
-                  line-height: 12px;
-                }
-                justify-content: flex-start;
-              `}
-            >
-              <ListItemIcon>{legendItems[layer].legendIcon}</ListItemIcon>
-              <ListItemText primary={tr(`map.legend.${layer}`)} />
-            </ListItem>
-          ))}
+          {vectorLayerKeys.map((layer) =>
+            displayDefaultLegend ? (
+              <ListItem key={layer} css={listItemStyle}>
+                <ListItemIcon>{getLegendItems()[layer].legendIcon}</ListItemIcon>
+                <ListItemText primary={tr(`map.legend.${layer}`)} />
+              </ListItem>
+            ) : layer === 'projects' ? (
+              projectTypes.map((projectType) => (
+                <ListItem key={projectType} css={listItemStyle}>
+                  <ListItemIcon>
+                    {
+                      getLegendItems(selectedFeatureColorCode.projectColorCodes)[projectType]
+                        .legendIcon
+                    }
+                  </ListItemIcon>
+                  <ListItemText primary={tr(`map.legend.${projectType}`)} />
+                </ListItem>
+              ))
+            ) : (
+              <ListItem key={layer} css={listItemStyle}>
+                <ListItemIcon>
+                  {getLegendItems(selectedFeatureColorCode.projectColorCodes)[layer].legendIcon}
+                </ListItemIcon>
+                <ListItemText primary={tr(`map.legend.${layer}`)} />
+              </ListItem>
+            ),
+          )}
         </List>
       </Box>
 
