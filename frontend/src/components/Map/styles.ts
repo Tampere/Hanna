@@ -149,10 +149,11 @@ class DonutStyle extends RegularShape {
   private drawDonut(ctx: CanvasRenderingContext2D, options: DonutOptions[]) {
     const c = 0;
 
+    let previousEndAngle = 0;
     if (options.length > 1) {
-      options.forEach((option, i) => {
-        const anglePerSector = option.sectorPrecentage * (2 * Math.PI);
+      options.forEach((option) => {
         if (option.sectorPrecentage === 0) return;
+        const anglePerSector = option.sectorPrecentage * (2 * Math.PI);
         if (option.sectorPrecentage === 1) {
           this.drawCircle(ctx, c, c, this.radius, '#fff');
           this.drawCircle(ctx, c, c, this.radius - 1, option.color);
@@ -160,18 +161,17 @@ class DonutStyle extends RegularShape {
           return;
         }
 
-        const prevSectorEnd = i > 0 ? options[i - 1].sectorPrecentage * (2 * Math.PI) : 0;
-
         this.drawSlice(
           ctx,
           c,
           c,
           this.radius,
-          prevSectorEnd,
-          prevSectorEnd + anglePerSector,
+          previousEndAngle,
+          previousEndAngle + anglePerSector,
           '#fff',
           option.color,
         );
+        previousEndAngle += anglePerSector;
       });
     }
 
