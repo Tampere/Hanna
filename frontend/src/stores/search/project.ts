@@ -5,6 +5,8 @@ import { mapOptions } from '@frontend/components/Map/mapOptions';
 
 import { ProjectSearch } from '@shared/schema/project';
 
+import { objectTypeAtom } from './projectObject';
+
 // Use the shared schema as base, but omit unused fields and mark the rest as required
 type SearchParams = Omit<Required<ProjectSearch>, 'limit' | 'projectTypes' | 'withProjectObjects'>;
 
@@ -80,8 +82,14 @@ export function calculateUsedSearchParamsCount(searchParams: SearchParams): numb
       let subCount = 1;
       Object.values(searchParams.filters).forEach((value) => {
         if (value && typeof value === 'object' && Object.keys(value).length > 0) {
-          if (Object.values(value).some((val) => val.length > 0)) {
+          if (Array.isArray(value) && value.length > 0) {
             subCount++;
+          } else {
+            Object.values(value).forEach((subValue) => {
+              if (subValue.length > 0) {
+                subCount++;
+              }
+            });
           }
         }
       });

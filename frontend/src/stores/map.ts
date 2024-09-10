@@ -8,10 +8,12 @@ import VectorSource from 'ol/source/Vector';
 
 import { getFeatureItemIds } from '@frontend/components/Map/mapFunctions';
 import {
-  PROJECT_AREA_STYLE,
   PROJECT_OBJECT_STYLE,
+  ProjectColorCodes,
   WHOLE_MUNICIPALITY_PROJECT_AREA_STYLE,
+  getProjectAreaStyle,
   getStyleWithPointIcon,
+  projectColorCodes,
 } from '@frontend/components/Map/styles';
 
 export const baseLayerIdAtom = atom<string>('virastokartta');
@@ -93,10 +95,34 @@ const defaultItemLayerState = [
   { id: 'municipality' as const, selected: false, opacity: 1 },
 ];
 
-export function getProjectsLayer(source: VectorSource) {
+export const colorPatternSelections: SelectedProjectColorCode[] = [
+  {
+    title: 'Oletus',
+    projectColorCodes: null,
+  },
+  {
+    title: 'Hanketyypeittäin',
+    projectColorCodes: projectColorCodes,
+  },
+];
+
+export interface SelectedProjectColorCode {
+  title: 'Oletus' | 'Hanketyypeittäin';
+  projectColorCodes: ProjectColorCodes | null;
+}
+
+export const selectedFeatureColorCodeAtom = atom<SelectedProjectColorCode>({
+  title: 'Oletus',
+  projectColorCodes: null,
+});
+
+export function getProjectsLayer(
+  source: VectorSource,
+  projectColorCodes?: SelectedProjectColorCode['projectColorCodes'],
+) {
   return new VectorLayer({
     source,
-    style: PROJECT_AREA_STYLE,
+    style: (feature) => getProjectAreaStyle(feature, projectColorCodes),
     properties: {
       id: 'projects',
       type: 'vector',
@@ -147,3 +173,5 @@ export const selectedWFSLayersAtom = atom<LayerState[]>((get) =>
 export const selectedItemLayersAtom = atom<ItemLayerState[]>((get) =>
   get(vectorItemLayersAtom).filter((l) => l.selected),
 );
+
+export const freezeMapHeightAtom = atom<boolean>(false);

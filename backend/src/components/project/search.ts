@@ -109,7 +109,12 @@ function clusterResultsFragment(zoom: number | undefined) {
           jsonb_agg(id) AS "clusterProjectIds",
           substr(geohash, 1, ${zoomToGeohashLength(zoom)}) AS "clusterGeohash",
           count(*) AS "clusterCount",
-          ST_AsGeoJSON(ST_Centroid(ST_Collect(geom))) AS "clusterLocation"
+          ST_AsGeoJSON(ST_Centroid(ST_Collect(geom))) AS "clusterLocation",
+          jsonb_build_object(
+            'investmentProject', count(*) FILTER (WHERE ("projectType" = 'investmentProject')),
+      	    'maintenanceProject', count(*) FILTER (WHERE ("projectType" = 'maintenanceProject')),
+      	    'detailplanProject', count(*) FILTER (WHERE ("projectType" = 'detailplanProject'))
+      	  ) AS "projectDistribution"
         FROM projects
         WHERE geom IS NOT NULL
         GROUP BY "clusterGeohash"

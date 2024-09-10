@@ -17,7 +17,7 @@ import {
   featuresFromGeoJSON,
 } from '@frontend/components/Map/mapInteractions';
 import { treMunicipalityGeometry } from '@frontend/components/Map/mapOptions';
-import { PROJECT_AREA_STYLE } from '@frontend/components/Map/styles';
+import { getProjectAreaStyle } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
@@ -334,7 +334,7 @@ export function InvestmentProject() {
                   coversMunicipality: coversMunicipality,
                   toolsHidden: ['newPointFeature'],
                   geoJson: project?.data?.geom ?? null,
-                  drawStyle: PROJECT_AREA_STYLE,
+                  drawStyle: getProjectAreaStyle(undefined, undefined, false),
                   editable: mapIsEditable(),
                   onFeaturesSaved: (features) => {
                     if (!project.data || coversMunicipality !== project.data.coversMunicipality) {

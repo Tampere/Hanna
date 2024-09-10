@@ -21,6 +21,7 @@ import { DateRange } from '@frontend/components/forms/DateRange';
 import { ProjectTypeSelect } from '@frontend/components/forms/ProjectTypeSelect';
 import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useTranslations } from '@frontend/stores/lang';
+import { freezeMapHeightAtom } from '@frontend/stores/map';
 import {
   calculateUsedSearchParamsCount,
   dateRangeAtom,
@@ -92,6 +93,7 @@ export function SearchControls() {
   const [filters, setFilters] = useAtom(filtersAtom);
   const [includeWithoutGeom, setIncludeWithoutGeom] = useAtom(includeWithoutGeomAtom);
   const [onlyCoversMunicipality, setOnlyCoversMunicipality] = useAtom(onlyCoversMunicipalityAtom);
+  const setFreezeMapHeight = useSetAtom(freezeMapHeightAtom);
   const allSearchParams = useAtomValue(projectSearchParamAtom);
   const setMap = useSetAtom(mapAtom);
 
@@ -99,6 +101,13 @@ export function SearchControls() {
     () => calculateUsedSearchParamsCount(allSearchParams),
     [text, dateRange, lifecycleStates, owners, filters, includeWithoutGeom, onlyCoversMunicipality],
   );
+
+  function getExpandedHeight(baselineHeight: number) {
+    if (filters.investmentProject && filters.detailplanProject) {
+      return baselineHeight + 135;
+    }
+    return baselineHeight;
+  }
 
   useEffect(() => {
     return () => {
@@ -108,6 +117,19 @@ export function SearchControls() {
       }));
     };
   }, []);
+
+  useEffect(() => {
+    if (expanded) {
+      handleFreezeMapHeight(350);
+    }
+  }, [filters]);
+
+  function handleFreezeMapHeight(timeout: number = 500) {
+    setFreezeMapHeight(true);
+    setTimeout(() => {
+      setFreezeMapHeight(false);
+    }, timeout);
+  }
 
   const expandButtonVisible = isVisible && (filters.investmentProject || filters.detailplanProject);
 
@@ -138,19 +160,19 @@ export function SearchControls() {
             opacity 0.3s ease-out;
           // Using media queries to get a smooth height transition animation between different screen sizes
           @media (min-width: 1900px) {
-            height: ${expanded ? 180 : 80}px;
+            height: ${expanded ? getExpandedHeight(180) : 80}px;
             ${!isVisible && `height: 0; opacity: 0;`};
           }
           @media (1900px >= width >= 1400px) {
-            height: ${expanded ? 260 : 140}px;
+            height: ${expanded ? getExpandedHeight(260) : 140}px;
             ${!isVisible && `height: 0; opacity: 0;`};
           }
           @media (1400px >= width >= 1130px) {
-            height: ${expanded ? 300 : 140}px;
+            height: ${expanded ? getExpandedHeight(300) : 140}px;
             ${!isVisible && `height: 0; opacity: 0;`};
           }
           @media (max-width: 1130px) {
-            height: ${expanded ? 350 : 200}px;
+            height: ${expanded ? getExpandedHeight(350) : 200}px;
             ${!isVisible && `height: 0; opacity: 0;`};
           }
         `}
@@ -295,6 +317,7 @@ export function SearchControls() {
             size="small"
             startIcon={expanded ? <UnfoldLess /> : <UnfoldMore />}
             onClick={() => {
+              handleFreezeMapHeight(350);
               setExpanded((previous) => !previous);
             }}
           >
@@ -324,6 +347,7 @@ export function SearchControls() {
             height: fit-content;
           `}
           onClick={() => {
+            handleFreezeMapHeight(350);
             setIsVisible((prev) => !prev);
             setExpanded(false);
           }}

@@ -89,6 +89,7 @@ export const projectSearchResultSchema = z.object({
       clusterCount: z.number(),
       clusterLocation: z.string(),
       clusterGeohash: z.string(),
+      projectDistribution: z.record(projectTypeSchema, z.number()),
     }),
   ),
 });
