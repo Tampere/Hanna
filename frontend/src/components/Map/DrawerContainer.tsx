@@ -9,6 +9,7 @@ import { Legend } from './Legend';
 interface Props {
   layerDrawerEnabledLayers: VectorItemLayerKey[];
   legendVectorLayerKeys: Extract<VectorItemLayerKey, 'projects' | 'projectObjects'>[];
+  colorPatternSelectorVisible?: boolean;
 }
 
 const toggleButtonStyle = (theme: Theme, isOpen: boolean) => css`
@@ -64,6 +65,7 @@ export function DrawerContainer(props: Props) {
         }}
         vectorLayerKeys={props.legendVectorLayerKeys}
         toggleButtonStyle={toggleButtonStyle}
+        colorPatternSelectorVisible={props.colorPatternSelectorVisible ?? false}
       />
     </Box>
   );

@@ -134,7 +134,7 @@ export const fi = {
     'Haluatko varmasti tallentaa tiedot tunnistamattomalla SAP-projektin ID:llä?',
   'externalProjectFrom.label': 'Hankealue',
   'externalProjectForm.coversMunicipalityLabel': 'Hanke koskee koko kunnan aluetta',
-  'externalProjectForm.confirmDialog.title': 'Hankealueen muuttaminen',
+  'externalProjectForm.confirmDialog.title': 'Korvataanko nykyinen hankealue?',
   'externalProjectForm.confirmDialog.content':
     'Hankealueen muuttaminen koko kuntaa koskevaksi poistaa olemassa olevat piirretyt alueet lomakkeen tallennuksen yhteydessä. Haluatko varmasti jatkaa?',
   'projectPermissions.editPermission': 'Muokkausoikeus',

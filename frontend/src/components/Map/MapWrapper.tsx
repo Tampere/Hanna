@@ -440,6 +440,7 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
                 ?.map((layer) => layer.getProperties().id)
                 ?.filter((id) => ['projects', 'projectObjects'].includes(id)) ?? []
             }
+            colorPatternSelectorVisible={props.withColorPatternSelect}
           />
 
           {dirty && (
