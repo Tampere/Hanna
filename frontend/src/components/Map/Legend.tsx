@@ -99,7 +99,7 @@ export function Legend({
   const selectedFeatureColorCode = useAtomValue(selectedFeatureColorCodeAtom);
   const displayDefaultLegend =
     !selectedFeatureColorCode.projectColorCodes || !colorPatternSelectorVisible;
-  console.log(projectTypes);
+
   return (
     <>
       <Box
