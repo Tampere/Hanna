@@ -457,6 +457,22 @@ export const PROJECT_OBJECT_STYLE = [
   }),
 ];
 
+function getProjectObjectStyle(withText: boolean = true) {
+  const style = PROJECT_OBJECT_STYLE;
+  style[0].setText(
+    new Text({
+      text: projectAreaIndicators.projectObject,
+      textAlign: 'center',
+      font: '700 12px roboto',
+      stroke: new Stroke({ color: '#fff', width: 2 }),
+      overflow: false,
+      fill: new Fill({
+        color: _PROJ_OBJ_STROKE,
+      }),
+    }),
+  );
+}
+
 const _PROJ_OBJ_DRAW_FILL = 'rgb(34, 67, 123, 0.4)';
 const _PROJ_OBJ_DRAW_STROKE = 'rgb(255, 100, 0)';
 const _PROJ_OBJ_DRAW_STROKE_WIDTH = 2;
@@ -478,7 +494,14 @@ export const PROJ_OBJ_DRAW_STYLE = new Style({
 
 export function getStyleWithPointIcon(style: Style | Style[]): StyleFunction {
   return function (feature: FeatureLike, resolution: number) {
-    const styles = Array.isArray(style) ? style : [style];
+    let styles = Array.isArray(style) ? style : [style];
+    const featureType = feature.getGeometry()?.getType();
+    // Remove text from point features
+    if (featureType === 'MultiPoint' || featureType === 'Point') {
+      styles = styles.map((style) => style.clone());
+      styles.forEach((style) => style.getText()?.setText(undefined));
+    }
+
     return [
       ...styles,
       new Style({
