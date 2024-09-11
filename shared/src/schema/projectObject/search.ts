@@ -60,6 +60,7 @@ export const projectObjectSearchResultSchema = z.object({
       clusterCount: z.number(),
       clusterLocation: z.string(),
       clusterGeohash: z.string(),
+      clusterIndex: z.number(),
     }),
   ),
 });

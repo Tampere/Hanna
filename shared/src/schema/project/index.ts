@@ -86,6 +86,7 @@ export const projectSearchResultSchema = z.object({
   clusters: z.array(
     z.object({
       clusterProjectIds: z.array(z.string()),
+      clusterIndex: z.number(),
       clusterCount: z.number(),
       clusterLocation: z.string(),
       clusterGeohash: z.string(),

@@ -91,14 +91,81 @@ const CLUSTER_FILL = {
 };
 const CLUSTER_FONT = 'bold 14px sans-serif';
 
-const clusterIconStrings = {
-  project: projectClusterPoint.toString(),
-  selectedProject: projectClusterPointSelected.toString(),
-  projectObject: projectObjectClusterPoint.toString(),
-  selectedProjectObject: projectObjectClusterPointSelected.toString(),
-  investmentProject: investmentClusterPoint.toString(),
-  maintenanceProject: maintenanceClusterPoint.toString(),
-  detailplanProject: detailplanClusterPoint.toString(),
+const iconBackgroundStyle = new Style({
+  // To make every part of the icon clickable
+  image: new CircleStyle({
+    radius: 20.5, // Half of the icon width
+    fill: new Fill({
+      color: 'transparent',
+    }),
+  }),
+});
+
+const clusterIconStyles = {
+  // use same style instances instead of creating new ones for better performance
+  project: [
+    new Style({
+      image: new IconStyle({
+        opacity: 1,
+        src: projectClusterPoint.toString(),
+      }),
+    }),
+    iconBackgroundStyle,
+  ],
+  selectedProject: [
+    new Style({
+      image: new IconStyle({
+        opacity: 1,
+        src: projectClusterPointSelected.toString(),
+      }),
+    }),
+    iconBackgroundStyle,
+  ],
+  projectObject: [
+    new Style({
+      image: new IconStyle({
+        opacity: 1,
+        src: projectObjectClusterPoint.toString(),
+      }),
+    }),
+    iconBackgroundStyle,
+  ],
+  selectedProjectObject: [
+    new Style({
+      image: new IconStyle({
+        opacity: 1,
+        src: projectObjectClusterPointSelected.toString(),
+      }),
+    }),
+    iconBackgroundStyle,
+  ],
+  investmentProject: [
+    new Style({
+      image: new IconStyle({
+        opacity: 1,
+        src: investmentClusterPoint.toString(),
+      }),
+    }),
+    iconBackgroundStyle,
+  ],
+  maintenanceProject: [
+    new Style({
+      image: new IconStyle({
+        opacity: 1,
+        src: maintenanceClusterPoint.toString(),
+      }),
+    }),
+    iconBackgroundStyle,
+  ],
+  detailplanProject: [
+    new Style({
+      image: new IconStyle({
+        opacity: 1,
+        src: detailplanClusterPoint.toString(),
+      }),
+    }),
+    iconBackgroundStyle,
+  ],
 };
 
 interface DonutOptions {
@@ -204,6 +271,8 @@ export function clusterStyle(
 ) {
   const clusterCount = feature.get('clusterCount');
   const projectDistribution = feature.get('projectDistribution');
+  const clusterZindex = feature.get('clusterIndex') ?? 0;
+
   const projectTypesWithValues = (projectColorCodes &&
     projectDistribution &&
     Object.keys(projectDistribution).filter((key) => projectDistribution[key] > 0)) as
@@ -211,23 +280,7 @@ export function clusterStyle(
     | undefined;
 
   if (clusterCount === 1) {
-    return [
-      new Style({
-        image: new IconStyle({
-          opacity: 1,
-          src: clusterIconStrings[projectTypesWithValues?.[0] ?? itemType],
-        }),
-      }),
-      new Style({
-        // To make every part of the icon clickable
-        image: new CircleStyle({
-          radius: 20.5, // Half of the icon width
-          fill: new Fill({
-            color: 'transparent',
-          }),
-        }),
-      }),
-    ];
+    return clusterIconStyles[projectTypesWithValues?.[0] ?? itemType];
   }
 
   const donutOptions = projectColorCodes
@@ -270,6 +323,7 @@ export function clusterStyle(
           color: CLUSTER_STROKE,
         }),
       }),
+      zIndex: clusterZindex,
     }),
   ];
 }
@@ -283,26 +337,9 @@ function getSelectedClusterItemType(feature: FeatureLike) {
 
 export function selectionLayerStyle(feature: FeatureLike) {
   const clusterCount = feature.get('clusterCount');
-
   if (clusterCount === 1) {
     const itemType = getSelectedClusterItemType(feature);
-    return [
-      new Style({
-        image: new IconStyle({
-          opacity: 1,
-          src: clusterIconStrings[itemType],
-        }),
-      }),
-      new Style({
-        // To make every part of the icon clickable
-        image: new CircleStyle({
-          radius: 20.5, // Half of the icon width
-          fill: new Fill({
-            color: 'transparent',
-          }),
-        }),
-      }),
-    ];
+    return clusterIconStyles[itemType];
   }
   return new Style({
     fill: new Fill({

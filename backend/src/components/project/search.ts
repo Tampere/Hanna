@@ -106,6 +106,7 @@ function clusterResultsFragment(zoom: number | undefined) {
       SELECT COALESCE(jsonb_agg(clusters.*), '[]'::jsonb)
       FROM (
         SELECT
+          row_number() OVER () AS "clusterIndex",
           jsonb_agg(id) AS "clusterProjectIds",
           substr(geohash, 1, ${zoomToGeohashLength(zoom)}) AS "clusterGeohash",
           count(*) AS "clusterCount",

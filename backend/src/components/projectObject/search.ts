@@ -118,6 +118,7 @@ export function clusterResultsFragment(zoom: number | undefined) {
       SELECT jsonb_agg(clusters.*)
       FROM (
         SELECT
+          row_number() OVER () AS "clusterIndex",
           jsonb_agg("projectObjectId") AS "clusterProjectObjectIds",
           substr(geohash, 1, ${zoomToGeohashLength(zoom)}) AS "clusterGeohash",
           count(*) AS "clusterCount",
