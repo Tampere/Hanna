@@ -55,7 +55,7 @@ function clusterGeoJSON(clusters?: ProjectObjectSearchResult['clusters']) {
 function getClusterLayer(source: VectorSource) {
   return new VectorLayer({
     source,
-    style: (feature, resolution) => clusterStyle(feature, resolution, 'projectObject'),
+    style: (feature) => clusterStyle(feature, 'projectObject'),
     properties: {
       id: 'projectObjectClusterResults',
       type: 'vector',

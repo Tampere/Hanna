@@ -285,6 +285,7 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
     } else {
       setInteractions(null);
     }
+    setSelectedTool(null);
   }
 
   useEffect(() => {
@@ -322,10 +323,11 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
   }, [selectedTool]);
 
   useEffect(() => {
-    if (props.drawOptions?.coversMunicipality) {
-      drawSource.clear();
-      setInteractions(null);
+    drawSource.clear();
+    if (props.drawOptions?.coversMunicipality === false) {
+      addFeaturesFromGeoJson(drawSource, props.drawOptions?.geoJson);
     }
+    drawFinished();
   }, [props.drawOptions?.coversMunicipality]);
 
   useEffect(() => {
