@@ -1,6 +1,16 @@
 import { SvgIcon, css } from '@mui/material';
 
-export function TreBorderIcon({ text, fillColor }: { text: string; fillColor: string }) {
+export function TreBorderIcon({
+  text,
+  textColor,
+  fillColor,
+  strokeColor,
+}: {
+  text: string;
+  textColor: string;
+  fillColor: string;
+  strokeColor: string;
+}) {
   return (
     <SvgIcon
       css={css`
@@ -19,7 +29,7 @@ export function TreBorderIcon({ text, fillColor }: { text: string; fillColor: st
         style={{
           fill: fillColor ?? '#4BA226',
           fillOpacity: 1,
-          stroke: 'white',
+          stroke: strokeColor ?? 'white',
           strokeOpacity: 1,
         }}
         strokeWidth="2"
@@ -27,7 +37,7 @@ export function TreBorderIcon({ text, fillColor }: { text: string; fillColor: st
       <text
         css={css`
           font-weight: 700;
-          color: white;
+          color: ${textColor};
         `}
         x={'70px'}
         y={'70px'}
