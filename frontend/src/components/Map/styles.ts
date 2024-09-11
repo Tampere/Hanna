@@ -91,14 +91,81 @@ const CLUSTER_FILL = {
 };
 const CLUSTER_FONT = 'bold 14px sans-serif';
 
-const clusterIconStrings = {
-  project: projectClusterPoint.toString(),
-  selectedProject: projectClusterPointSelected.toString(),
-  projectObject: projectObjectClusterPoint.toString(),
-  selectedProjectObject: projectObjectClusterPointSelected.toString(),
-  investmentProject: investmentClusterPoint.toString(),
-  maintenanceProject: maintenanceClusterPoint.toString(),
-  detailplanProject: detailplanClusterPoint.toString(),
+const iconBackgroundStyle = new Style({
+  // To make every part of the icon clickable
+  image: new CircleStyle({
+    radius: 20.5, // Half of the icon width
+    fill: new Fill({
+      color: 'transparent',
+    }),
+  }),
+});
+
+const clusterIconStyles = {
+  // use same style instances instead of creating new ones for better performance
+  project: [
+    new Style({
+      image: new IconStyle({
+        opacity: 1,
+        src: projectClusterPoint.toString(),
+      }),
+    }),
+    iconBackgroundStyle,
+  ],
+  selectedProject: [
+    new Style({
+      image: new IconStyle({
+        opacity: 1,
+        src: projectClusterPointSelected.toString(),
+      }),
+    }),
+    iconBackgroundStyle,
+  ],
+  projectObject: [
+    new Style({
+      image: new IconStyle({
+        opacity: 1,
+        src: projectObjectClusterPoint.toString(),
+      }),
+    }),
+    iconBackgroundStyle,
+  ],
+  selectedProjectObject: [
+    new Style({
+      image: new IconStyle({
+        opacity: 1,
+        src: projectObjectClusterPointSelected.toString(),
+      }),
+    }),
+    iconBackgroundStyle,
+  ],
+  investmentProject: [
+    new Style({
+      image: new IconStyle({
+        opacity: 1,
+        src: investmentClusterPoint.toString(),
+      }),
+    }),
+    iconBackgroundStyle,
+  ],
+  maintenanceProject: [
+    new Style({
+      image: new IconStyle({
+        opacity: 1,
+        src: maintenanceClusterPoint.toString(),
+      }),
+    }),
+    iconBackgroundStyle,
+  ],
+  detailplanProject: [
+    new Style({
+      image: new IconStyle({
+        opacity: 1,
+        src: detailplanClusterPoint.toString(),
+      }),
+    }),
+    iconBackgroundStyle,
+  ],
 };
 
 interface DonutOptions {
@@ -204,6 +271,8 @@ export function clusterStyle(
 ) {
   const clusterCount = feature.get('clusterCount');
   const projectDistribution = feature.get('projectDistribution');
+  const clusterZindex = feature.get('clusterIndex') ?? 0;
+
   const projectTypesWithValues = (projectColorCodes &&
     projectDistribution &&
     Object.keys(projectDistribution).filter((key) => projectDistribution[key] > 0)) as
@@ -211,23 +280,7 @@ export function clusterStyle(
     | undefined;
 
   if (clusterCount === 1) {
-    return [
-      new Style({
-        image: new IconStyle({
-          opacity: 1,
-          src: clusterIconStrings[projectTypesWithValues?.[0] ?? itemType],
-        }),
-      }),
-      new Style({
-        // To make every part of the icon clickable
-        image: new CircleStyle({
-          radius: 20.5, // Half of the icon width
-          fill: new Fill({
-            color: 'transparent',
-          }),
-        }),
-      }),
-    ];
+    return clusterIconStyles[projectTypesWithValues?.[0] ?? itemType];
   }
 
   const donutOptions = projectColorCodes
@@ -270,6 +323,7 @@ export function clusterStyle(
           color: CLUSTER_STROKE,
         }),
       }),
+      zIndex: clusterZindex,
     }),
   ];
 }
@@ -283,26 +337,9 @@ function getSelectedClusterItemType(feature: FeatureLike) {
 
 export function selectionLayerStyle(feature: FeatureLike) {
   const clusterCount = feature.get('clusterCount');
-
   if (clusterCount === 1) {
     const itemType = getSelectedClusterItemType(feature);
-    return [
-      new Style({
-        image: new IconStyle({
-          opacity: 1,
-          src: clusterIconStrings[itemType],
-        }),
-      }),
-      new Style({
-        // To make every part of the icon clickable
-        image: new CircleStyle({
-          radius: 20.5, // Half of the icon width
-          fill: new Fill({
-            color: 'transparent',
-          }),
-        }),
-      }),
-    ];
+    return clusterIconStyles[itemType];
   }
   return new Style({
     fill: new Fill({
@@ -420,6 +457,22 @@ export const PROJECT_OBJECT_STYLE = [
   }),
 ];
 
+function getProjectObjectStyle(withText: boolean = true) {
+  const style = PROJECT_OBJECT_STYLE;
+  style[0].setText(
+    new Text({
+      text: projectAreaIndicators.projectObject,
+      textAlign: 'center',
+      font: '700 12px roboto',
+      stroke: new Stroke({ color: '#fff', width: 2 }),
+      overflow: false,
+      fill: new Fill({
+        color: _PROJ_OBJ_STROKE,
+      }),
+    }),
+  );
+}
+
 const _PROJ_OBJ_DRAW_FILL = 'rgb(34, 67, 123, 0.4)';
 const _PROJ_OBJ_DRAW_STROKE = 'rgb(255, 100, 0)';
 const _PROJ_OBJ_DRAW_STROKE_WIDTH = 2;
@@ -441,7 +494,14 @@ export const PROJ_OBJ_DRAW_STYLE = new Style({
 
 export function getStyleWithPointIcon(style: Style | Style[]): StyleFunction {
   return function (feature: FeatureLike, resolution: number) {
-    const styles = Array.isArray(style) ? style : [style];
+    let styles = Array.isArray(style) ? style : [style];
+    const featureType = feature.getGeometry()?.getType();
+    // Remove text from point features
+    if (featureType === 'MultiPoint' || featureType === 'Point') {
+      styles = styles.map((style) => style.clone());
+      styles.forEach((style) => style.getText()?.setText(undefined));
+    }
+
     return [
       ...styles,
       new Style({

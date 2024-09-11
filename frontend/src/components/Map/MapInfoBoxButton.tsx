@@ -67,7 +67,9 @@ export function MapInfoBoxButton<TProject extends ProjectData>({
           >
             <TreBorderIcon
               text={String(projects.length)}
+              textColor={isOpen ? 'black' : 'white'}
               fillColor={isOpen ? 'rgba(255, 255, 0, 0.9)' : '#4BA226'}
+              strokeColor={isOpen ? 'black' : 'white'}
             />
           </IconButton>
         </Tooltip>

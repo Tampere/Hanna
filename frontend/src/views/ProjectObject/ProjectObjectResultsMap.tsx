@@ -47,6 +47,7 @@ function clusterGeoJSON(clusters?: ProjectObjectSearchResult['clusters']) {
         id: cluster.clusterGeohash,
         clusterCount: cluster.clusterCount,
         clusterProjectObjectIds: cluster.clusterProjectObjectIds,
+        clusterIndex: cluster.clusterIndex,
       },
     })),
   };
