@@ -6,6 +6,7 @@ import { Geometry } from 'ol/geom';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { useEffect, useMemo } from 'react';
+import { ProjectType } from 'tre-hanna-shared/src/schema/project/type';
 
 import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { getProjectObjectGeoJSON } from '@frontend/components/Map/mapFunctions';
@@ -59,7 +60,7 @@ function clusterGeoJSON(clusters?: ProjectSearchResult['clusters']) {
 function getClusterLayer(source: VectorSource, projectColorCodes?: ProjectColorCodes) {
   return new VectorLayer({
     source,
-    style: (feature, resolution) => clusterStyle(feature, resolution, 'project', projectColorCodes),
+    style: (feature) => clusterStyle(feature, 'project', projectColorCodes),
     properties: {
       id: 'projectClusterResults',
       type: 'vector',

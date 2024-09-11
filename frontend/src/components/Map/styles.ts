@@ -9,6 +9,9 @@ import Text from 'ol/style/Text';
 import { ProjectType } from 'tre-hanna-shared/src/schema/project/type';
 
 import { theme } from '@frontend/Layout';
+import detailplanClusterPoint from '@frontend/assets/detailplanClusterPoint.svg';
+import investmentClusterPoint from '@frontend/assets/investmentClusterPoint.svg';
+import maintenanceClusterPoint from '@frontend/assets/maintenanceClusterPoint.svg';
 import projectClusterPoint from '@frontend/assets/projectClusterPoint.svg';
 import projectClusterPointSelected from '@frontend/assets/projectClusterPointSelected.svg';
 import projectObjectClusterPoint from '@frontend/assets/projectObjectClusterPoint.svg';
@@ -79,7 +82,13 @@ const SELECTION_COLOR = 'rgba(255, 255, 0, 0.9)';
 const CLUSTER_RADIUS = 16;
 const CLUSTER_STROKE = '#fff';
 const CLUSTER_STROKE_WIDTH = 2;
-const CLUSTER_FILL = { project: 'rgb(0, 168, 0)', projectObject: theme.palette.primary.main };
+const CLUSTER_FILL = {
+  project: 'rgb(0, 168, 0)',
+  projectObject: theme.palette.primary.main,
+  investmentProject: _INVESTMENT_STROKE,
+  maintenanceProject: _MAINTENANCE_STROKE,
+  detailplanProject: _DETAILPLAN_STROKE,
+};
 const CLUSTER_FONT = 'bold 14px sans-serif';
 
 const clusterIconStrings = {
@@ -87,6 +96,9 @@ const clusterIconStrings = {
   selectedProject: projectClusterPointSelected.toString(),
   projectObject: projectObjectClusterPoint.toString(),
   selectedProjectObject: projectObjectClusterPointSelected.toString(),
+  investmentProject: investmentClusterPoint.toString(),
+  maintenanceProject: maintenanceClusterPoint.toString(),
+  detailplanProject: detailplanClusterPoint.toString(),
 };
 
 interface DonutOptions {
@@ -149,7 +161,7 @@ class DonutStyle extends RegularShape {
   private drawDonut(ctx: CanvasRenderingContext2D, options: DonutOptions[]) {
     const c = 0;
 
-    let previousEndAngle = 0;
+    let previousEndAngle = -0.5 * Math.PI;
     if (options.length > 1) {
       options.forEach((option) => {
         if (option.sectorPrecentage === 0) return;
@@ -187,18 +199,23 @@ class DonutStyle extends RegularShape {
 
 export function clusterStyle(
   feature: FeatureLike,
-  resolution: number,
-  itemType: 'project' | 'projectObject' = 'project',
+  itemType: 'project' | 'projectObject',
   projectColorCodes?: ProjectColorCodes | null,
 ) {
   const clusterCount = feature.get('clusterCount');
+  const projectDistribution = feature.get('projectDistribution');
+  const projectTypesWithValues = (projectColorCodes &&
+    projectDistribution &&
+    Object.keys(projectDistribution).filter((key) => projectDistribution[key] > 0)) as
+    | ProjectType[]
+    | undefined;
 
   if (clusterCount === 1) {
     return [
       new Style({
         image: new IconStyle({
           opacity: 1,
-          src: clusterIconStrings[itemType],
+          src: clusterIconStrings[projectTypesWithValues?.[0] ?? itemType],
         }),
       }),
       new Style({
@@ -223,7 +240,7 @@ export function clusterStyle(
   return [
     new Style({
       image:
-        itemType === 'project'
+        itemType === 'project' && (projectTypesWithValues?.length ?? 0) > 1
           ? new DonutStyle({
               donutOptions,
               radius: CLUSTER_RADIUS,
@@ -242,7 +259,7 @@ export function clusterStyle(
                 width: CLUSTER_STROKE_WIDTH,
               }),
               fill: new Fill({
-                color: CLUSTER_FILL[itemType],
+                color: CLUSTER_FILL[projectTypesWithValues?.[0] ?? itemType],
               }),
             }),
       text: new Text({
