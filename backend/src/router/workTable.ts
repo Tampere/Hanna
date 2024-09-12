@@ -13,7 +13,7 @@ import { TRPC } from '@backend/router/index.js';
 
 import { UpsertInvestmentProjectObject } from '@shared/schema/projectObject/investment.js';
 import { User } from '@shared/schema/user.js';
-import { hasWritePermission, ownsProject } from '@shared/schema/userPermissions.js';
+import { hasPermission, hasWritePermission, ownsProject } from '@shared/schema/userPermissions.js';
 import {
   ReportTemplate,
   WorkTableColumn,
@@ -280,13 +280,22 @@ export const createWorkTableRouter = (t: TRPC) =>
       const projectObjects = await getProjectObjects(conn, ids);
       if (user.role !== 'Hanna.Admin') {
         projectObjects
-          .map((po) => po.permissionCtx)
-          .forEach((ctx) => {
+          .map((po) => ({ ctx: po.permissionCtx, projectObjectId: po.projectObjectId }))
+          .forEach(({ ctx, projectObjectId }) => {
             if (!ownsProject(user, ctx) && !hasWritePermission(user, ctx)) {
-              throw new TRPCError({
-                code: 'BAD_REQUEST',
-                message: 'error.insufficientPermissions',
-              });
+              const containsNonInvestmentFinancialField = Object.keys(input[projectObjectId]).some(
+                (key) => !['budgetYear', 'budget', 'kayttosuunnitelmanMuutos'].includes(key),
+              );
+              if (
+                !hasPermission(user, 'investmentFinancials.write') ||
+                (hasPermission(user, 'investmentFinancials.write') &&
+                  containsNonInvestmentFinancialField)
+              ) {
+                throw new TRPCError({
+                  code: 'BAD_REQUEST',
+                  message: 'error.insufficientPermissions',
+                });
+              }
             }
           });
       }
