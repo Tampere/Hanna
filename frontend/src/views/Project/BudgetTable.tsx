@@ -58,6 +58,7 @@ function budgetToFormValues<
       estimate: null,
       forecast: null,
       kayttosuunnitelmanMuutos: null,
+      contractPrice: null,
     };
   }
   return values;
@@ -97,7 +98,6 @@ export function BudgetTable(props: Props) {
   const tr = useTranslations();
   const form = useForm<BudgetFormValues>({ mode: 'all', defaultValues: {} });
   const watch = form.watch();
-
   useNavigationBlocker(form.formState.isDirty, 'budgetTable');
 
   /**
