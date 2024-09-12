@@ -1,5 +1,5 @@
 import { IconButton, Tooltip, css } from '@mui/material';
-import { useAtom, useSetAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 import { Pixel } from 'ol/pixel';
 import { useParams } from 'react-router';
 

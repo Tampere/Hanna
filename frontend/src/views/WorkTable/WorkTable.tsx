@@ -388,8 +388,10 @@ export default function WorkTable() {
     if (isAdmin(auth.role)) {
       return ['budget', 'forecast', 'kayttosuunnitelmanMuutos'];
     } else if (hasPermission(auth, 'investmentFinancials.write')) {
+      if (hasWritePermission(auth, permissionCtx) || ownsProject(auth, permissionCtx))
+        return ['forecast', 'budget', 'kayttosuunnitelmanMuutos'];
       return ['budget', 'kayttosuunnitelmanMuutos'];
-    } else if (hasPermission(auth, 'investmentProject.write') || ownsProject(auth, permissionCtx)) {
+    } else if (hasWritePermission(auth, permissionCtx) || ownsProject(auth, permissionCtx)) {
       return ['forecast'];
     } else {
       return [];
