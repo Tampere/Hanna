@@ -28,7 +28,6 @@ import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectLi
 import { User } from '@shared/schema/user';
 import {
   ProjectPermissionContext,
-  hasPermission,
   hasWritePermission,
   ownsProject,
 } from '@shared/schema/userPermissions';
@@ -119,9 +118,6 @@ export function InvestmentProject() {
     project.data &&
       user &&
       (ownsProject(user, project.data) || hasWritePermission(user, project.data)),
-  );
-  const userCanModifyFinances = Boolean(
-    project.data && user && hasPermission(user, 'investmentFinancials.write'),
   );
 
   const tabs = getTabs(routeParams.projectId).filter(
@@ -370,7 +366,7 @@ export function InvestmentProject() {
             <Box sx={{ m: 2, overflowY: 'auto' }}>
               {tabView === 'talous' && (
                 <ProjectFinances
-                  editable={userCanModifyFinances}
+                  editable={userCanModify}
                   project={{ type: 'investmentProject', data: project.data }}
                   writableFields={['estimate']}
                 />

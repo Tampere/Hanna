@@ -27,7 +27,12 @@ test.describe('Common Project Object endpoints', () => {
     adminSession.client.userPermissions.setPermissions.mutate([
       {
         userId: DEV_USER,
-        permissions: ['investmentProject.write', 'maintenanceProject.write'],
+        permissions: [
+          'investmentProject.write',
+          'maintenanceProject.write',
+          'investmentFinancials.write',
+          'maintenanceFinancials.write',
+        ],
       },
     ]);
     devSession = await refreshSession(browser, DEV_USER, devSession.page);

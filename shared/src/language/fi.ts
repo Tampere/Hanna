@@ -272,8 +272,8 @@ export const fi = {
   'budgetTable.contractPrice': 'Sopimushinta',
   'budgetTable.contractPriceHelp':
     'Kohteen toteuttamiseksi laaditun urakkasopimuksen kokonaishinta.',
-  'budgetTable.budget': 'Talousarvio',
-  'budgetTable.budgetHelp':
+  'budgetTable.amount': 'Talousarvio',
+  'budgetTable.amountHelp':
     'Talousarvio on valtuuston hyväksymä rahamäärä talousarviovuodelle ennen edellisen vuoden loppua. Kirjattava talousarvio on aina positiivinen luku, joka viittaa tulevaan kustannukseen. Talousarvion voi kirjata vain kohdetasolla. Oikeus kirjata talousarvioita on rajattu vain tietyille käyttäjille.',
   'budgetTable.actual': 'Toteuma',
   'budgetTable.actualHelp':

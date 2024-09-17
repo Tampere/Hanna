@@ -1,5 +1,6 @@
-import { z } from 'zod';
+import { ZodObject, z } from 'zod';
 
+import { BudgetUpdate } from './projectObject/base.js';
 import { User as CtxUser } from './user.js';
 
 const ADMIN_ROLE = 'Hanna.Admin' as const;
@@ -68,6 +69,7 @@ export type ProjectPermissionContext = z.infer<typeof permissionContextSchema>;
 export type ProjectAccessChecker = (
   user: CtxUser,
   permissionCtx: ProjectPermissionContext,
+  input?: unknown,
 ) => boolean;
 
 export const isProjectIdInput = (input: any): input is { projectId: string } => {
@@ -78,9 +80,15 @@ export const isProjectObjectIdInput = (input: any): input is { projectObjectId: 
   return input && typeof input.projectObjectId === 'string';
 };
 
+export const isBudgetItemsInput = (input: any): input is { budgetItems: any[] } => {
+  return input && typeof input.budgetItems === 'object' && Array.isArray(input.budgetItems);
+};
+
 export const isTaskIdInput = (input: any): input is { taskId: string } => {
   return input && typeof input.taskId === 'string';
 };
+
+export const userIsAdmin = (user: CtxUser): boolean => user.role === ADMIN_ROLE;
 
 export function ownsProject(user: CtxUser, permissionCtx?: ProjectPermissionContext): boolean {
   return (

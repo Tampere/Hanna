@@ -14,11 +14,22 @@ import { getPool } from '@backend/db.js';
 import { TRPC } from '@backend/router/index.js';
 import { createAccessMiddleware } from '@backend/router/projectObject/base.js';
 
-import { getProjectObjectParams, updateBudgetSchema } from '@shared/schema/projectObject/base.js';
-import { hasPermission, hasWritePermission, ownsProject } from '@shared/schema/userPermissions.js';
+import {
+  getProjectObjectParams,
+  updateBudgetFinancialWriterSchema,
+  updateBudgetOwnerWriterSchema,
+  updateBudgetSchema,
+} from '@shared/schema/projectObject/base.js';
+import {
+  hasPermission,
+  hasWritePermission,
+  ownsProject,
+  userIsAdmin,
+} from '@shared/schema/userPermissions.js';
 
 export const createMaintenanceProjectObjectRouter = (t: TRPC) => {
   const withAccess = createAccessMiddleware(t);
+
   return t.router({
     get: t.procedure.input(getProjectObjectParams).query(async ({ input }) => {
       return await getPool().transaction(async (tx) => {
@@ -48,10 +59,14 @@ export const createMaintenanceProjectObjectRouter = (t: TRPC) => {
       .input(updateBudgetSchema.required())
       .use(
         withAccess(
-          (usr, ctx) =>
-            ownsProject(usr, ctx) ||
-            hasWritePermission(usr, ctx) ||
-            hasPermission(usr, 'maintenanceFinancials.write'),
+          (usr, ctx, input) =>
+            userIsAdmin(usr) ||
+            ((ownsProject(usr, ctx) || hasWritePermission(usr, ctx)) &&
+              hasPermission(usr, 'maintenanceFinancials.write')) ||
+            ((ownsProject(usr, ctx) || hasWritePermission(usr, ctx)) &&
+              Boolean(updateBudgetOwnerWriterSchema.safeParse(input).success)) ||
+            (hasPermission(usr, 'maintenanceFinancials.write') &&
+              Boolean(updateBudgetFinancialWriterSchema.safeParse(input).success)),
         ),
       )
       .mutation(async ({ input, ctx }) => {

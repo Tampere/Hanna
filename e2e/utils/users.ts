@@ -16,3 +16,10 @@ export const DEV_ADMIN_USER = 'dev_admin@localhost';
 export const DEV_USER = 'dev@localhost';
 export const TEST_USER = 'test@localhost';
 export const TEST_USER_2 = 'test2@localhost';
+
+export type TestUserId =
+  | typeof ADMIN_USER
+  | typeof DEV_ADMIN_USER
+  | typeof DEV_USER
+  | typeof TEST_USER
+  | typeof TEST_USER_2;

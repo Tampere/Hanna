@@ -34,6 +34,6 @@ export async function logout(page: Page) {
 }
 
 export async function refreshSession(browser: Browser, username: string, page: Page) {
-  await logout(page);
+  page.close();
   return login(browser, username);
 }

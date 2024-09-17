@@ -166,7 +166,7 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
         }
         try {
           await req.login(user);
-        } catch (error) {
+        } catch {
           return res.redirect('/');
         }
 

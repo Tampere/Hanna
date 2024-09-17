@@ -13,7 +13,6 @@ import {
   css,
 } from '@mui/material';
 import { useAtomValue } from 'jotai';
-import { ProjectType, projectTypes } from 'tre-hanna-shared/src/schema/project/type';
 
 import { colorPalette } from '@frontend/components/Map/styles';
 import { Info } from '@frontend/components/icons/Info';
@@ -23,6 +22,8 @@ import {
   VectorItemLayerKey,
   selectedFeatureColorCodeAtom,
 } from '@frontend/stores/map';
+
+import { ProjectType, projectTypes } from '@shared/schema/project/type';
 
 function LayerLegendIcon({ color }: { color: string }) {
   return (

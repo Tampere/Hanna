@@ -369,7 +369,7 @@ export function ProjectObject(props: Props) {
                 <ProjectObjectFinances
                   userIsAdmin={isAdmin(user.role)}
                   userIsEditor={isOwner || canWrite}
-                  userCanEditFinances={hasPermission(
+                  userIsFinanceEditor={hasPermission(
                     user,
                     props.projectType === 'investointihanke'
                       ? 'investmentFinancials.write'
