@@ -162,10 +162,10 @@ export function BudgetTable(props: Props) {
                   {fields?.includes('amount') && (
                     <TableCell css={cellStyle}>
                       <Box className="column-header">
-                        <Typography variant="overline"> {tr('budgetTable.budget')}</Typography>
+                        <Typography variant="overline"> {tr('budgetTable.amount')}</Typography>
                         {enableTooltips && (
                           <HelpTooltip
-                            title={props.customTooltips?.amount ?? tr('budgetTable.budgetHelp')}
+                            title={props.customTooltips?.amount ?? tr('budgetTable.amountHelp')}
                           />
                         )}
                       </Box>

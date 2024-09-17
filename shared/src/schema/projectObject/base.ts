@@ -9,19 +9,48 @@ export const projectObjectUserRoleSchema = z.object({
   companyContactIds: z.array(nonEmptyString),
 });
 
+const baseBudgetItemSchema = z.object({
+  year: z.number(),
+  estimate: z.number().nullable(),
+  contractPrice: z.number().nullable(),
+  amount: z.number().nullable(),
+  forecast: z.number().nullable(),
+  kayttosuunnitelmanMuutos: z.number().nullable(),
+});
+
 export const updateBudgetSchema = z.object({
   projectObjectId: z.string().optional(),
-  budgetItems: z.array(
-    z.object({
-      year: z.number(),
-      estimate: z.number().nullable(),
-      contractPrice: z.number().nullable(),
-      amount: z.number().nullable(),
-      forecast: z.number().nullable(),
-      kayttosuunnitelmanMuutos: z.number().nullable(),
-    }),
-  ),
+  budgetItems: z.array(baseBudgetItemSchema),
 });
+
+export const updateBudgetFinancialWriterSchema = updateBudgetSchema
+  .pick({
+    projectObjectId: true,
+  })
+  .required()
+  .extend({
+    budgetItems: z.array(
+      baseBudgetItemSchema.extend({
+        estimate: z.null(),
+        contractPrice: z.null(),
+        forecast: z.null(),
+      }),
+    ),
+  });
+
+export const updateBudgetOwnerWriterSchema = updateBudgetSchema
+  .pick({
+    projectObjectId: true,
+  })
+  .required()
+  .extend({
+    budgetItems: z.array(
+      baseBudgetItemSchema.extend({
+        amount: z.null(),
+        kayttosuunnitelmanMuutos: z.null(),
+      }),
+    ),
+  });
 
 export const newProjectObjectSchema = z.object({
   // id here as well since zodResolver in the form hook does not send the id if not in this schema

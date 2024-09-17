@@ -13,7 +13,7 @@ import { BudgetFields, BudgetTable } from '../Project/BudgetTable';
 
 interface Props<TProjectObject extends CommonDbProjectObject> {
   projectObject: { projectType: Omit<ProjectType, 'detailplanProject'>; data: TProjectObject };
-  userCanEditFinances?: boolean;
+  userIsFinanceEditor?: boolean;
   userIsEditor?: boolean;
   userCanWrite?: boolean;
   userIsAdmin?: boolean;
@@ -64,7 +64,7 @@ export function ProjectObjectFinances<TProjectObject extends CommonDbProjectObje
   function getWritableFields(): BudgetFields[] {
     if (props.userIsAdmin) {
       return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
-    } else if (props.userCanEditFinances) {
+    } else if (props.userIsFinanceEditor) {
       if (props.userIsEditor)
         return ['estimate', 'contractPrice', 'amount', 'kayttosuunnitelmanMuutos', 'forecast'];
       return ['estimate', 'amount', 'contractPrice', 'kayttosuunnitelmanMuutos'];

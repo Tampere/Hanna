@@ -6,7 +6,6 @@ import RegularShape from 'ol/style/RegularShape';
 import Stroke from 'ol/style/Stroke';
 import Style, { StyleFunction } from 'ol/style/Style';
 import Text from 'ol/style/Text';
-import { ProjectType } from 'tre-hanna-shared/src/schema/project/type';
 
 import { theme } from '@frontend/Layout';
 import detailplanClusterPoint from '@frontend/assets/detailplanClusterPoint.svg';
@@ -18,6 +17,8 @@ import projectObjectClusterPoint from '@frontend/assets/projectObjectClusterPoin
 import projectObjectClusterPointSelected from '@frontend/assets/projectObjectClusterPointSelected.svg';
 import projectObjectPoint from '@frontend/assets/projectObjectPoint.svg';
 import { SelectedProjectColorCode } from '@frontend/stores/map';
+
+import { ProjectType } from '@shared/schema/project/type';
 
 const _PROJECT_FILL = 'rgb(0, 168, 0, 0.3)';
 const _PROJECT_STROKE = 'rgb(0, 168, 0)';

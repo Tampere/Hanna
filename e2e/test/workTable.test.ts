@@ -1,17 +1,14 @@
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { login } from '@utils/page.js';
 import { TEST_USER, UserSessionObject } from '@utils/users.js';
 
-test.describe('Work table with customized maximum row count', () => {
-  let userSession: UserSessionObject;
-  test.beforeAll(async ({ browser }) => {
-    userSession = await login(browser, TEST_USER);
-  });
+import { test } from '../utils/fixtures.js';
 
-  test('should render without errors', async () => {
-    await userSession.page.getByRole('tab', { name: 'Investointiohjelmointi' }).click();
-    const errorHeader = userSession.page.getByText('Unexpected Application Error!');
-    const header = userSession.page.getByTestId('worktable-title');
+test.describe('Work table with customized maximum row count', () => {
+  test('should render without errors', async ({ testSession }) => {
+    await testSession.session.page.getByRole('tab', { name: 'Investointiohjelmointi' }).click();
+    const errorHeader = testSession.session.page.getByText('Unexpected Application Error!');
+    const header = testSession.session.page.getByTestId('worktable-title');
 
     await expect(errorHeader).not.toBeVisible();
     await expect(header).toBeVisible();

@@ -161,10 +161,12 @@ export type YearBudget = z.infer<typeof yearBudgetSchema>;
 export const budgetUpdateSchema = z.object({
   projectId: z.string(),
   budgetItems: z.array(
-    z.object({
-      year: z.number(),
-      estimate: z.number().nullable(),
-    }),
+    z
+      .object({
+        year: z.number(),
+        estimate: z.number().nullable(),
+      })
+      .strict(),
   ),
 });
 

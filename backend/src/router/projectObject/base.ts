@@ -7,7 +7,6 @@ import {
   getPermissionContext,
   getProjectObjectBudget,
   getProjectObjectsByProjectId,
-  updateProjectObjectBudget,
   updateProjectObjectGeometry,
   validateUpsertProjectObject,
 } from '@backend/components/projectObject/index.js';
@@ -18,13 +17,11 @@ import { TRPC } from '@backend/router/index.js';
 import { nonEmptyString } from '@shared/schema/common.js';
 import {
   deleteProjectObjectSchema,
-  updateBudgetSchema,
   updateGeometrySchema,
 } from '@shared/schema/projectObject/base.js';
 import { projectObjectSearchSchema } from '@shared/schema/projectObject/search.js';
 import {
   ProjectAccessChecker,
-  hasPermission,
   hasWritePermission,
   isProjectObjectIdInput,
   ownsProject,
@@ -53,7 +50,7 @@ export const createAccessMiddleware = (t: TRPC) => (canAccess: ProjectAccessChec
       });
     }
     const permissionCtx = await getPermissionContext(input.projectObjectId);
-    if (!canAccess(ctx.user, permissionCtx)) {
+    if (!canAccess(ctx.user, permissionCtx, input)) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
         message: 'error.insufficientPermissions',

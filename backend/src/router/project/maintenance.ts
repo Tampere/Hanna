@@ -53,14 +53,7 @@ export const createMaintenanceProjectRouter = (t: TRPC) => {
       }),
     updateBudget: t.procedure
       .input(budgetUpdateSchema)
-      .use(
-        withAccess(
-          (usr, ctx) =>
-            ownsProject(usr, ctx) ||
-            hasWritePermission(usr, ctx) ||
-            hasPermission(usr, 'maintenanceFinancials.write'),
-        ),
-      )
+      .use(withAccess((usr, ctx) => ownsProject(usr, ctx) || hasWritePermission(usr, ctx)))
       .mutation(async ({ input, ctx }) => {
         return await getPool().transaction(async (tx) => {
           return await updateProjectBudget(tx, input.projectId, input.budgetItems, ctx.user.id);
