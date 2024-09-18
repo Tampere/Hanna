@@ -128,6 +128,17 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
         }
       : formDefaultValues,
   });
+  console.log(form.formState.errors);
+  function handleBudgetUpdateEvent() {
+    form.trigger('endDate');
+    document.removeEventListener('budgetUpdated', handleBudgetUpdateEvent);
+  }
+
+  useEffect(() => {
+    if (form.formState.errors.endDate?.message === 'project.error.budgetNotIncludedForOngoing') {
+      document.addEventListener('budgetUpdated', handleBudgetUpdateEvent);
+    }
+  }, [form.formState.errors.endDate]);
 
   const externalForm = useForm<{ coversMunicipality: boolean }>({
     mode: 'all',
@@ -308,6 +319,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
             errorTooltip={getDateFieldErrorMessage(
               form.formState.errors.endDate?.message ?? null,
               tr('newProject.endDateTooltip'),
+              [dayjs(form.getValues('startDate')).add(5, 'year').year().toString()],
             )}
             component={(field) => (
               <Box

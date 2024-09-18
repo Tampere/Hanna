@@ -116,6 +116,7 @@ export const fi = {
   'project.error.endDateBeforeStartDate': 'Loppuajankohdan oltava alkuajankohdan jälkeen.',
   'project.error.existingProjectObjectWBS': 'Hankkeen kohteilla on rakenneosia.',
   'project.error.budgetNotIncluded': 'Talousarvioita ajankohdan ulkopuolella.',
+  'project.error.budgetNotIncludedForOngoing': 'Talousarvioita määritelty vuoden {0} jälkeen.',
   'project.error.objectNotIncluded': 'Kohteita ajankohdan ulkopuolella.',
   'project.error.sapProjectNotFound': 'SAP-projektia ei löytynyt annetulla ID:llä.',
   'projectObject.error.budgetNotIncluded': 'Talousarvioita ajankohdan ulkopuolella.',

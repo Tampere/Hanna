@@ -357,6 +357,9 @@ export function MaintenanceProject() {
             <Box sx={{ m: 2, overflowY: 'auto' }}>
               {tabView === 'talous' && (
                 <ProjectFinances
+                  onSave={() => {
+                    document.dispatchEvent(new Event('budgetUpdated'));
+                  }}
                   editable={userCanModify}
                   project={{ type: 'maintenanceProject', data: project.data }}
                   writableFields={['estimate']}

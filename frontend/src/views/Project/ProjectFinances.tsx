@@ -18,6 +18,7 @@ interface Props {
     | { type: Omit<ProjectType, 'detailpanProject'>; data?: DbMaintenanceProject | null };
   editable?: boolean;
   writableFields?: BudgetFields[];
+  onSave?: () => void;
 }
 
 export function ProjectFinances(props: Props) {
@@ -91,6 +92,7 @@ export function ProjectFinances(props: Props) {
             budgetItems: payload,
           });
         budget?.refetch();
+        props.onSave?.();
       }}
       customTooltips={{
         year:

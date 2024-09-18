@@ -159,7 +159,12 @@ export async function validateUpsertProject(
       SELECT
         ${values?.projectId} as id,
         extract(year FROM ${values?.startDate}::date) <= min(b.year) AS "validBudgetStartDate",
-        extract(year FROM ${values?.endDate}::date) >= max(b.year) AS "validBudgetEndDate"
+        extract(year FROM ${values?.endDate}::date) >= max(b.year) AS "validBudgetEndDate",
+        CASE
+          WHEN ${values?.endDate} = 'infinity'
+          THEN extract(year FROM ${values?.startDate}::date) + 5 >= max(b.year)
+        ELSE true
+      END AS "validOngoingBudgetEndDate"
       FROM app.budget b
       WHERE b.project_id = ${values?.projectId} AND (estimate IS NOT NULL OR amount is NOT NULL OR forecast is NOT NULL OR kayttosuunnitelman_muutos is NOT NULL)
       GROUP BY b.project_id
@@ -175,6 +180,7 @@ export async function validateUpsertProject(
     SELECT
       br."validBudgetStartDate",
       br."validBudgetEndDate",
+      br."validOngoingBudgetEndDate",
       obr."validObjectStartDate",
       obr."validObjectEndDate"
     FROM object_range obr
@@ -191,6 +197,8 @@ export async function validateUpsertProject(
       validationErrors.errors['endDate'] = fieldError('project.error.objectNotIncluded');
     } else if (dateRange?.validBudgetEndDate === false) {
       validationErrors.errors['endDate'] = fieldError('project.error.budgetNotIncluded');
+    } else if (dateRange?.validOngoingBudgetEndDate === false) {
+      validationErrors.errors['endDate'] = fieldError('project.error.budgetNotIncludedForOngoing');
     }
   }
 
