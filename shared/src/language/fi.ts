@@ -413,6 +413,7 @@ export const fi = {
   'company.noResults': 'Ei lisättyjä yrityksiä',
   'company.name': 'Yrityksen nimi',
   'company.businessId': 'Y-tunnus',
+  'company.searchPlaceholder': 'Etsi yritystä (nimi, Y-tunnus)',
   'userPermissions.filterPlaceholder': 'Etsi käyttäjä hakusanalla',
   'userPermissions.userName': 'Käyttäjä',
   'userPermissions.investmentProject.write': 'Investointihankkeiden luonti',

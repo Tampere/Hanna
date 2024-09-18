@@ -68,6 +68,17 @@ export const createCompanyRouter = (t: TRPC) =>
       });
     }),
 
+    search: t.procedure.input(z.string()).query(async ({ input }) => {
+      const result = await getPool().any(sql.untyped`
+        ${selectCompanyFragment}
+          AND
+          (company_name ILIKE ${`%${input}%`}
+            OR
+          business_id ILIKE ${`%${input}%`})
+        `);
+      return z.array(companySchema).parse(result);
+    }),
+
     getAll: t.procedure.query(async () => {
       const result = await getPool().any(sql.untyped`
         ${selectCompanyFragment}

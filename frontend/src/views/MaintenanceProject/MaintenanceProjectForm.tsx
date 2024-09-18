@@ -128,7 +128,7 @@ export function MaintenanceProjectForm(props: MaintenanceProjectFormProps) {
         }
       : formDefaultValues,
   });
-  console.log(form.formState.errors);
+
   function handleBudgetUpdateEvent() {
     form.trigger('endDate');
     document.removeEventListener('budgetUpdated', handleBudgetUpdateEvent);
