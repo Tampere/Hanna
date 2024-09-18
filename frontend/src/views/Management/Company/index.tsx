@@ -1,17 +1,21 @@
-import { AddCircle } from '@mui/icons-material';
+import { AddCircle, SearchTwoTone } from '@mui/icons-material';
 import {
   Box,
   Button,
   CircularProgress,
   Dialog,
   DialogContent,
+  InputAdornment,
+  TextField,
   Typography,
   css,
 } from '@mui/material';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { useTranslations } from '@frontend/stores/lang';
+import { useDebounce } from '@frontend/utils/useDebounce';
 import { CompanyForm } from '@frontend/views/Management/Company/CompanyForm';
 import { CompanyTable } from '@frontend/views/Management/Company/CompanyTable';
 
@@ -27,7 +31,8 @@ type Props =
 
 export function CompanyPage(props: Props) {
   const tr = useTranslations();
-  const companies = trpc.company.getAll.useQuery();
+  const [query, setQuery] = useState('');
+  const companies = trpc.company.search.useQuery(useDebounce(query, 500));
   const loading = companies.isLoading;
   const noResults = companies.data && companies.data.length === 0;
 
@@ -71,7 +76,21 @@ export function CompanyPage(props: Props) {
           </Button>
         </Box>
       </Box>
-
+      <TextField
+        variant="outlined"
+        size="medium"
+        value={query}
+        fullWidth={true}
+        placeholder={tr('company.searchPlaceholder')}
+        onChange={(e) => setQuery(e.target.value)}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchTwoTone />
+            </InputAdornment>
+          ),
+        }}
+      />
       <Box
         css={css`
           overflow: auto;
