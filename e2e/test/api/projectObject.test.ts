@@ -639,4 +639,24 @@ test.describe('Maintenance Project Object endpoints', () => {
 
     expect(resp.projectObjectId).toBeTruthy();
   });
+
+  test('Add ongoing maintenance project object', async () => {
+    const user = await devSession.client.user.self.query();
+    const project = await devSession.client.maintenanceProject.upsert.mutate({
+      project: { ...testMaintenanceProject(user), endDate: 'infinity' },
+    });
+
+    const projectObject = testProjectObject(project.projectId, user, 'maintenance');
+    const resp = await devSession.client.maintenanceProjectObject.upsert.mutate({
+      ...projectObject,
+      projectId: project.projectId,
+      endDate: 'infinity',
+    });
+    const projObj = await devSession.client.maintenanceProjectObject.get.query({
+      projectId: project.projectId,
+      projectObjectId: resp.projectObjectId,
+    });
+
+    expect(projObj.endDate).toBe('infinity');
+  });
 });
