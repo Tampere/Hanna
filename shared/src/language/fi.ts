@@ -119,6 +119,8 @@ export const fi = {
   'project.error.objectNotIncluded': 'Kohteita ajankohdan ulkopuolella.',
   'project.error.sapProjectNotFound': 'SAP-projektia ei löytynyt annetulla ID:llä.',
   'projectObject.error.budgetNotIncluded': 'Talousarvioita ajankohdan ulkopuolella.',
+  'projectObject.error.budgetNotIncludedForOngoing':
+    'Talousarvioita määritelty vuoden {0} jälkeen.',
   'projectObject.error.projectNotIncluded': 'Hanke ajankohdan ulkopuolella.',
   'projectForm.saveBtnLabel': 'Tallenna',
   'projectForm.editBtnLabel': 'Muokkaa',
@@ -264,6 +266,8 @@ export const fi = {
     'Talousluvut osoitetaan vuosikohtaisina. Näkymässä tarjolla olevat vuodet johdetaan suoraan käyttäjän kirjaamasta toteutusvälistä (alku- ja loppupäivämäärä).',
   'budgetTable.yearHelpOngoing':
     'Toistaiseksi jatkuvan hankkeen talouslukuja on mahdollista raportoida viideksi vuodeksi eteenpäin.',
+  'budgetTable.yearHelpOngoingObject':
+    'Toistaiseksi jatkuvan kohteen talouslukuja on mahdollista raportoida viideksi vuodeksi eteenpäin.',
   'budgetTable.estimate': 'Kustannusarvio',
   'budgetTable.projectEstimateHelp':
     'Hankkeen suunniteltu kustannus, joka on ehdolla talousarvioon.',

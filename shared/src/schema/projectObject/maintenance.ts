@@ -7,6 +7,7 @@ export const newMaintenanceProjectObjectSchema = newProjectObjectSchema.extend({
   contract: z.string().nullish(),
   poNumber: z.string().nullish(),
   procurementMethod: codeId.nullish(),
+  endDate: newProjectObjectSchema.shape.endDate.or(z.literal('infinity')),
 });
 
 export const updateMaintenanceProjectObjectSchema = newMaintenanceProjectObjectSchema

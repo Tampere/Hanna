@@ -258,7 +258,8 @@ async function getWorkTableYearRange() {
     SELECT
       MIN(EXTRACT('year' from start_date)) AS min_year,
       MAX(EXTRACT('year' FROM end_date)) AS max_year
-    FROM app.project_object
+    FROM app.project_object po
+    INNER JOIN app.project_object_investment poi ON po.id = poi.project_object_id
     WHERE deleted = false
   )
   SELECT generate_series(min_year::int, max_year::int) AS year

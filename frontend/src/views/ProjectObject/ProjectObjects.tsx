@@ -157,7 +157,7 @@ function ProjectObjectCard({
           </Typography>
           <Typography sx={{ lineHeight: '120%' }} variant="overline">
             {dayjs(result.startDate).format(tr('date.format'))} –{' '}
-            {dayjs(result.endDate).format(tr('date.format'))}
+            {result.endDate !== 'infinity' && dayjs(result.endDate).format(tr('date.format'))}
           </Typography>
         </Box>
         {objectStageCodes && result?.objectStage && (

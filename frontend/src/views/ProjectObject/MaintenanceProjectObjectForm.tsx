@@ -20,6 +20,7 @@ import { Link } from 'react-router-dom';
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField, getDateFieldErrorMessage } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
+import { FormCheckBox } from '@frontend/components/forms/FormCheckBox';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
@@ -29,7 +30,6 @@ import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
 import { mergeErrors } from '@shared/formerror';
-import { isTranslationKey } from '@shared/language';
 import {
   UpsertMaintenanceProjectObject,
   newMaintenanceProjectObjectSchema,
@@ -220,6 +220,19 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
 
   useNavigationBlocker(form.formState.isDirty, 'projectObjectForm');
 
+  function handleBudgetUpdateEvent() {
+    form.trigger('endDate');
+    document.removeEventListener('budgetUpdated', handleBudgetUpdateEvent);
+  }
+
+  useEffect(() => {
+    if (
+      form.formState.errors.endDate?.message === 'projectObject.error.budgetNotIncludedForOngoing'
+    ) {
+      document.addEventListener('budgetUpdated', handleBudgetUpdateEvent);
+    }
+  }, [form.formState.errors.endDate]);
+
   useEffect(() => {
     if (props.projectObject) {
       form.reset({
@@ -232,6 +245,7 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
   }, [props.projectObject]);
 
   const formProjectId = form.watch('projectId');
+  const endDateWatch = form.watch('endDate');
 
   const projectObjectUpsert = trpc.maintenanceProjectObject.upsert.useMutation({
     onSuccess: (data) => {
@@ -413,21 +427,52 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
             errorTooltip={getDateFieldErrorMessage(
               form.formState.errors.endDate?.message ?? null,
               tr('projectObject.endDateTooltip'),
+              [dayjs(form.getValues('startDate')).add(5, 'year').year().toString()],
             )}
             component={({ onChange, ...field }) => (
-              <FormDatePicker
-                minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
-                readOnly={!editing}
-                field={{
-                  onChange: (e) => {
-                    onChange(e);
-                    const startDate = form.getValues('startDate');
-                    const endDate = form.getValues('endDate');
-                    if (startDate && dayjs(startDate).isBefore(endDate)) form.trigger('startDate');
-                  },
-                  ...field,
-                }}
-              />
+              <Box
+                css={css`
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  gap: 1rem;
+                  & .MuiFormControl-root {
+                    flex: 1 1 185px;
+                  }
+                `}
+              >
+                <FormDatePicker
+                  minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
+                  readOnly={!editing || endDateWatch === 'infinity'}
+                  field={{
+                    onChange: (e) => {
+                      onChange(e);
+                      const startDate = form.getValues('startDate');
+                      const endDate = form.getValues('endDate');
+                      if (startDate && dayjs(startDate).isBefore(endDate))
+                        form.trigger('startDate');
+                    },
+                    ...field,
+                  }}
+                />
+                <FormCheckBox
+                  cssProp={css`
+                    flex: 1;
+                    margin-right: 0;
+                    justify-content: flex-end;
+                  `}
+                  disabled={!editing}
+                  onChange={() => {
+                    if (endDateWatch === 'infinity') {
+                      form.setValue('endDate', '');
+                    } else {
+                      onChange('infinity');
+                    }
+                  }}
+                  checked={endDateWatch === 'infinity'}
+                  label={tr('maintenanceProject.ongoing')}
+                />
+              </Box>
             )}
           />
           <FormField

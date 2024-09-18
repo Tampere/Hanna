@@ -85,7 +85,8 @@ export function ProjectObjectList(props: Props) {
 
                   <Typography sx={{ lineHeight: '120%' }} variant="overline">
                     {dayjs(projObj.startDate).format(tr('date.format'))} —{' '}
-                    {dayjs(projObj.endDate).format(tr('date.format'))}
+                    {projObj.endDate !== 'infinity' &&
+                      dayjs(projObj.endDate).format(tr('date.format'))}
                   </Typography>
                   {props.projectType === 'investointihanke' && (
                     <span

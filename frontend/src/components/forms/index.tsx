@@ -168,10 +168,14 @@ export function FormDatePicker({ field, readOnly, minDate, maxDate }: FormDatePi
   );
 }
 
-export function getDateFieldErrorMessage(hookFormMessage: string | null, fallBackMessage: string) {
+export function getDateFieldErrorMessage(
+  hookFormMessage: string | null,
+  fallBackMessage: string,
+  args?: string[],
+) {
   const tr = useTranslations();
   if (hookFormMessage && isTranslationKey(hookFormMessage)) {
-    return tr(hookFormMessage);
+    return tr(hookFormMessage, args);
   }
   return fallBackMessage;
 }

@@ -5,8 +5,6 @@ import { mapOptions } from '@frontend/components/Map/mapOptions';
 
 import { ProjectSearch } from '@shared/schema/project';
 
-import { objectTypeAtom } from './projectObject';
-
 // Use the shared schema as base, but omit unused fields and mark the rest as required
 type SearchParams = Omit<Required<ProjectSearch>, 'limit' | 'projectTypes' | 'withProjectObjects'>;
 
