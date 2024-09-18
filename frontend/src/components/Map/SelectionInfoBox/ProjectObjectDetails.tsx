@@ -67,7 +67,8 @@ export function ProjectObjectDetails<TProjectObject extends ProjectObjectData>({
       <dt>{tr('itemInfoBox.dateRange')}:</dt>
       <dd>
         {dayjs(projectObject.startDate).format(tr('date.format'))} –{' '}
-        {dayjs(projectObject.endDate).format(tr('date.format'))}
+        {projectObject.endDate !== 'infinity' &&
+          dayjs(projectObject.endDate).format(tr('date.format'))}
       </dd>
       {projectObject.objectStage && (
         <>

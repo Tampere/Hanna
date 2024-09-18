@@ -367,6 +367,11 @@ export function ProjectObject(props: Props) {
             <Box sx={{ m: 2, overflowY: 'auto' }}>
               {searchParams.get('tab') === 'talous' && projectObject.data && (
                 <ProjectObjectFinances
+                  {...(props.projectType === 'kunnossapitohanke' && {
+                    onSave: () => {
+                      document.dispatchEvent(new Event('budgetUpdated'));
+                    },
+                  })}
                   userIsAdmin={isAdmin(user.role)}
                   userIsEditor={isOwner || canWrite}
                   userIsFinanceEditor={hasPermission(

@@ -531,4 +531,42 @@ test.describe('Project endpoints', () => {
 
     expect(maintenanceProject.endDate).toBe('infinity');
   });
+
+  /** Used to check that output validation doesn't fail if schema is changed */
+  test('search projects with different zoom levels', async () => {
+    const user = await devSession.client.user.self.query();
+    const projectInput = validProject(user.id, 'Search project');
+    const project = await devSession.client.investmentProject.upsert.mutate({
+      project: {
+        ...projectInput,
+        geom: JSON.stringify(makePoint(328425.0, 6822340.0, 'EPSG:3067')),
+      },
+    });
+
+    const searchResults1 = await devSession.client.project.search.query({
+      text: 'Search project',
+      filters: {},
+      onlyCoversMunicipality: false,
+      map: {
+        extent: [326982.38295933633, 6821409.303872364, 329869.22975973337, 6823289.2748374995],
+        zoom: 11,
+      },
+    });
+
+    const searchResults2 = await devSession.client.project.search.query({
+      text: 'Search project',
+      filters: {},
+      onlyCoversMunicipality: false,
+      map: {
+        extent: [328425.0, 6822340.0, 328425.0, 6822340.0],
+        zoom: 8,
+      },
+    });
+
+    expect(searchResults1.projects).toHaveLength(1);
+    expect(searchResults1.projects[0].projectId).toBe(project.projectId);
+
+    expect(searchResults2.projects).toHaveLength(1);
+    expect(searchResults2.projects[0].projectId).toBe(project.projectId);
+  });
 });

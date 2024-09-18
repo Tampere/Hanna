@@ -17,6 +17,7 @@ interface Props<TProjectObject extends CommonDbProjectObject> {
   userIsEditor?: boolean;
   userCanWrite?: boolean;
   userIsAdmin?: boolean;
+  onSave?: () => void;
 }
 
 export function ProjectObjectFinances<TProjectObject extends CommonDbProjectObject>(
@@ -37,7 +38,10 @@ export function ProjectObjectFinances<TProjectObject extends CommonDbProjectObje
       return [];
     }
     const startYear = dayjs(projectObject.data.startDate).get('year');
-    const endYear = dayjs(projectObject.data.endDate).get('year');
+    const endYear =
+      projectObject.data.endDate === 'infinity'
+        ? startYear + 5
+        : dayjs(projectObject.data.endDate).get('year');
     return getRange(startYear, endYear);
   }, [projectObject.data?.startDate, projectObject.data?.endDate]);
 
@@ -79,7 +83,10 @@ export function ProjectObjectFinances<TProjectObject extends CommonDbProjectObje
     {
       projectObjectId: projectObject.data.projectObjectId,
       startYear: dayjs(projectObject.data?.startDate).year(),
-      endYear: dayjs(projectObject.data?.endDate).year(),
+      endYear:
+        projectObject.data?.endDate === 'infinity'
+          ? dayjs(projectObject.data?.startDate).year() + 5
+          : dayjs(projectObject.data?.endDate).year(),
     },
     { enabled: Boolean(projectObject.data?.projectObjectId) },
   );
@@ -117,8 +124,15 @@ export function ProjectObjectFinances<TProjectObject extends CommonDbProjectObje
           budgetItems: payload,
         });
         budget.refetch();
+        props.onSave?.();
       }}
-      customTooltips={{ estimate: tr('budgetTable.projectObjectEstimateHelp') }}
+      customTooltips={{
+        estimate: tr('budgetTable.projectObjectEstimateHelp'),
+        year:
+          projectObject.data.endDate === 'infinity'
+            ? tr('budgetTable.yearHelpOngoingObject')
+            : tr('budgetTable.yearHelp'),
+      }}
     />
   );
 }
