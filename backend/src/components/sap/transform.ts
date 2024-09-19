@@ -54,8 +54,8 @@ function preprocessProjectInfo(payload: any) {
   }
 
   const data = {
-    ...item,
-    WBS: transformWBS(item.WBS),
+    ...item['0'],
+    WBS: transformWBS(item['0'].WBS),
   } as const;
 
   return incomingSapProjectSchema.parse(data);
