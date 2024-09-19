@@ -1,16 +1,9 @@
-import { expect, test } from '@playwright/test';
-import { login } from '@utils/page.js';
-import { DEV_USER, UserSessionObject } from '@utils/users.js';
+import { expect } from '@playwright/test';
+import { test } from '@utils/fixtures.js';
 
-test.describe('Project endpoints', () => {
-  let devSession: UserSessionObject;
-
-  test.beforeAll(async ({ browser }) => {
-    devSession = await login(browser, DEV_USER);
-  });
-
-  test('SAP project import without WBS', async () => {
-    const res = await devSession.client.sap.getSapProject.mutate({
+test.describe.only('Project endpoints', () => {
+  test('SAP project import without WBS', async ({ devSession }) => {
+    const res = await devSession.session.client.sap.getSapProject.mutate({
       projectId: 'A1111_00000',
     });
     // NOTE: Full set of fields checked in 2 WBS / 2 Activities test. This checks the empty
@@ -21,8 +14,8 @@ test.describe('Project endpoints', () => {
     });
   });
 
-  test('SAP project import with one WBS and one activity per WBS', async () => {
-    const res = await devSession.client.sap.getSapProject.mutate({
+  test('SAP project import with one WBS and one activity per WBS', async ({ devSession }) => {
+    const res = await devSession.session.client.sap.getSapProject.mutate({
       projectId: 'A1111_11000',
     });
 
@@ -44,8 +37,8 @@ test.describe('Project endpoints', () => {
     });
   });
 
-  test('SAP project import with two WBS and two activities per WBS', async () => {
-    const res = await devSession.client.sap.getSapProject.mutate({
+  test('SAP project import with two WBS and two activities per WBS', async ({ devSession }) => {
+    const res = await devSession.session.client.sap.getSapProject.mutate({
       projectId: 'A1111_22000',
     });
 
