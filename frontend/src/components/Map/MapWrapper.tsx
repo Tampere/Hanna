@@ -8,6 +8,7 @@ import VectorLayer from 'ol/layer/Vector';
 import { Projection } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
 import Style from 'ol/style/Style';
+import * as olUtil from 'ol/util';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
@@ -218,6 +219,10 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
       ?.some((feature) => feature.getGeometry()?.getType() === geometryType);
   }
 
+  /* function savedFeaturesSelected() {
+    return selectionSource.getFeatures().some((feature) => );
+  } */
+
   const drawLayer = useMemo(() => createDrawLayer(drawSource, props.drawOptions?.drawStyle), []);
 
   const registerDrawInteraction = useMemo(
@@ -288,10 +293,25 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
     setSelectedTool(null);
   }
 
+  function copySelectionToDrawSource() {
+    const drawFeatureIds = drawSource.getFeatures().map((feature) => olUtil.getUid(feature));
+    const selectionFeatures = selectionSource.getFeatures();
+    const featuresToCopy = selectionFeatures.filter(
+      (feature) => !drawFeatureIds.includes(olUtil.getUid(feature)),
+    );
+    drawSource.addFeatures(featuresToCopy);
+    selectionSource.clear();
+    drawFinished();
+    setDirty(true);
+  }
+
   useEffect(() => {
     switch (selectedTool) {
       case 'selectFeature':
         setInteractions([registerSelectInteraction]);
+        break;
+      case 'copyFromSelection':
+        copySelectionToDrawSource();
         break;
       case 'newFeature':
       case 'newPointFeature':
@@ -473,9 +493,14 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
         </Map>
         {props.drawOptions?.editable && (
           <MapToolbar
+            geometryExists={drawSource.getFeatures().length > 0}
             toolsHidden={props.drawOptions?.toolsHidden}
             toolsDisabled={{
               selectFeature: infoBoxVisible,
+              copyFromSelection:
+                featureSelector.features.every(
+                  (feature) => feature.getProperties().layer === 'drawLayer',
+                ) || infoBoxVisible,
               newFeature: drawSourceHasGeometryOfType('Point') || infoBoxVisible,
               newPointFeature: drawSourceHasGeometryOfType('Polygon') || infoBoxVisible,
               tracedFeature:

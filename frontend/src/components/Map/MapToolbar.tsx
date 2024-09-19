@@ -1,6 +1,7 @@
 import { css } from '@emotion/react';
 import {
   Clear,
+  CopyAllTwoTone,
   DeleteForeverTwoTone,
   EditTwoTone,
   PanToolAltTwoTone,
@@ -53,12 +54,13 @@ export type ToolType =
   | 'tracedFeature'
   | 'editFeature'
   | 'clearSelectedFeature'
-  | 'deleteFeature';
+  | 'deleteFeature'
+  | 'copyFromSelection';
 
 interface Tool {
   type: ToolType;
   icon: JSX.Element;
-  tooltip: TranslationKey;
+  tooltip: TranslationKey | Record<string, TranslationKey>;
   disabledTooltip?: TranslationKey;
   color?: 'primary' | 'secondary';
 }
@@ -80,6 +82,14 @@ const tools: readonly Tool[] = [
     type: 'selectFeature',
     icon: <PanToolAltTwoTone />,
     tooltip: 'mapEdit.selectFeatureTooltip',
+  },
+  {
+    type: 'copyFromSelection',
+    icon: <CopyAllTwoTone />,
+    tooltip: {
+      new: 'mapEdit.copyFromSelectionTooltip.new',
+      existing: 'mapEdit.copyFromSelectionTooltip.existing',
+    },
   },
   {
     type: 'tracedFeature',
@@ -108,6 +118,7 @@ interface Props {
   toolsDisabled: Partial<Record<ToolType, boolean>>;
   toolsHidden?: ToolType[];
   onToolChange: (tool: ToolType | null) => void;
+  geometryExists?: boolean;
 }
 
 export function MapToolbar(props: Props) {
@@ -115,7 +126,11 @@ export function MapToolbar(props: Props) {
   const [selectedTool, setSelectedTool] = useState<ToolType | null>(null);
 
   function handleToolClick(tool: ToolType | null) {
-    setSelectedTool(tool);
+    if (tool === 'copyFromSelection') {
+      setSelectedTool(null);
+    } else {
+      setSelectedTool(tool);
+    }
     props.onToolChange(tool);
   }
 
@@ -130,7 +145,9 @@ export function MapToolbar(props: Props) {
             title={
               tool.disabledTooltip && props.toolsDisabled[tool.type]
                 ? tr(tool.disabledTooltip)
-                : tr(tool.tooltip)
+                : typeof tool.tooltip === 'object'
+                  ? tr(tool.tooltip[props.geometryExists ? 'existing' : 'new'])
+                  : tr(tool.tooltip)
             }
           >
             <Box>

@@ -256,6 +256,8 @@ export const fi = {
   'mapEdit.editFeatureTooltip': 'Muokkaa valittuja alueita',
   'mapEdit.clearSelectedFeatureTooltip': 'Tyhjennä valinta',
   'mapEdit.removeFeatureTooltip': 'Poista valitut alueet',
+  'mapEdit.copyFromSelectionTooltip.new': 'Käytä hankealueena',
+  'mapEdit.copyFromSelectionTooltip.existing': 'Lisää hankealueeseen',
   'errorPage.error': 'Virhe',
   'errorPage.warning': 'Varoitus',
   'errorPage.navigateBack': 'Palaa takaisin',
