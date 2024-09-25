@@ -21,7 +21,7 @@ import { mapOptions } from './mapOptions';
 const containerStyles = css`
   width: 280px;
   position: absolute;
-  left: 0;
+  right: -2rem;
   top: 0;
   bottom: 0;
   display: flex;
@@ -29,9 +29,9 @@ const containerStyles = css`
   flex-direction: column;
   overflow-y: auto;
   transition: opacity 0.15s ease-in-out;
-  box-shadow: 2px 1px 4px #9c9c9c;
-  border-top-right-radius: 2px 2px;
-  border-bottom-right-radius: 2px 2px;
+  box-shadow: -2px 1px 4px #9c9c9c;
+  border-top-left-radius: 2px 2px;
+  border-bottom-left-radius: 2px 2px;
 `;
 
 const drawerStyles = css`
@@ -206,7 +206,10 @@ export function LayerDrawer({
           ))}
         </Box>
       </Box>
-      <Tooltip title={isOpen ? tr('map.layerdrawer.close') : tr('map.layerdrawer.open')}>
+      <Tooltip
+        placement="top"
+        title={isOpen ? tr('map.layerdrawer.close') : tr('map.layerdrawer.open')}
+      >
         <IconButton
           css={(theme) => toggleButtonStyle?.(theme, isOpen)}
           disableTouchRipple

@@ -1,21 +1,12 @@
 import { css } from '@emotion/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AddCircle, ArrowDropDown, ArrowDropUp, Edit, Save, Undo } from '@mui/icons-material';
-import {
-  Alert,
-  Box,
-  Button,
-  ButtonGroup,
-  ButtonGroupTypeMap,
-  Popover,
-  TextField,
-} from '@mui/material';
+import { Alert, Box, Button, TextField } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { forwardRef, useEffect, useImperativeHandle, useMemo } from 'react';
 import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
-import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { FormDatePicker, FormField, getDateFieldErrorMessage } from '@frontend/components/forms';
@@ -25,6 +16,7 @@ import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
+import { dirtyViewsAtom, projectEditingAtom } from '@frontend/stores/projectView';
 import { ProjectTypePath } from '@frontend/types';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
@@ -47,82 +39,34 @@ interface Props {
   projectId?: string;
   projectType: ProjectTypePath;
   projectObject?: UpsertMaintenanceProjectObject | null;
-  geom?: string | null;
   setProjectId?: (projectId: string) => void;
-  navigateTo?: string | null;
   userIsOwner?: boolean;
   userCanWrite?: boolean;
 }
 
-function SaveOptionsButton(
-  props: Readonly<{
-    form: ReturnType<typeof useForm<UpsertMaintenanceProjectObject>>;
-    onSubmit: (data: UpsertMaintenanceProjectObject) => void;
-  }>,
+export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProjectObjectForm(
+  props: Readonly<Props>,
+  ref,
 ) {
-  const tr = useTranslations();
-  const { form, onSubmit } = props;
-
-  const popperRef = useRef<
-    React.ElementRef<ButtonGroupTypeMap['defaultComponent']> & {
-      clientWidth: number;
-    }
-  >(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  return (
-    <ButtonGroup
-      disabled={!form.formState.isValid}
-      size="small"
-      color="primary"
-      variant="contained"
-      aria-label="outlined button group"
-      ref={popperRef}
-    >
-      <Button
-        onClick={async () => {
-          const valid = await form.trigger();
-          if (valid) {
-            const data = form.getValues();
-            form.reset(); // reset to set navigation blocker to non-blocking state
-            onSubmit(data);
-          }
-        }}
-      >
-        {tr('projectObjectForm.createAndReturnBtnLabel')}
-      </Button>
-      <Button onClick={() => setMenuOpen(!menuOpen)}>
-        {menuOpen ? <ArrowDropUp /> : <ArrowDropDown />}
-        <Popover
-          open={menuOpen}
-          anchorEl={popperRef.current}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-          onClose={() => setMenuOpen(false)}
-        >
-          <Button
-            /* NOTE: Popover component creates a new React root, which means that the submit button
-            is not part of the form in the React component tree, even though it might look like it
-            in the DOM.*/
-            form="projectObjectForm"
-            type="submit"
-            variant="text"
-            style={{ width: popperRef.current?.clientWidth }}
-          >
-            {tr('projectObjectForm.saveBtnLabel')}
-          </Button>
-        </Popover>
-      </Button>
-    </ButtonGroup>
-  );
-}
-
-export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
   const tr = useTranslations();
   const notify = useNotifications();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [editing, setEditing] = useState(!props.projectObject);
+  const setDirtyViews = useSetAtom(dirtyViewsAtom);
+  const editing = useAtomValue(projectEditingAtom);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      onSave: (geom: string) => {
+        form.handleSubmit((data) => onSubmit(data, geom))();
+      },
+      onCancel: () => {
+        form.reset();
+      },
+    }),
+    [],
+  );
 
   const projectUpsert = trpc.maintenanceProject.upsert.useMutation({
     onSuccess: () => {
@@ -262,7 +206,6 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
           ],
         });
 
-        setEditing(false);
         form.reset((currentData) => currentData);
       }
       notify({
@@ -285,60 +228,27 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
     }
   }, [form.formState.isSubmitSuccessful, form.reset]);
 
-  const onSubmit = (data: UpsertMaintenanceProjectObject) => {
-    projectObjectUpsert.mutate({ ...data, geom: props.geom });
-  };
+  useEffect(() => {
+    if (!props.projectObject) {
+      setDirtyViews((prev) => ({ ...prev, form: form.formState.isValid }));
+    } else {
+      setDirtyViews((prev) => ({
+        ...prev,
+        form: form.formState.isValid && form.formState.isDirty,
+      }));
+    }
+  }, [props.projectObject, form.formState.isValid, form.formState.isDirty]);
 
-  const saveAndReturn = (data: UpsertMaintenanceProjectObject) => {
-    projectObjectUpsert.mutate(
-      { ...data, geom: props.geom },
-      {
-        onSuccess: (data) => {
-          navigate(`${props.navigateTo}?highlight=${data.projectObjectId}`);
-        },
-      },
-    );
+  const onSubmit = (data: UpsertMaintenanceProjectObject, geom?: string) => {
+    projectObjectUpsert.mutate({ ...data, geom: geom ?? null });
   };
 
   return (
     <>
       <FormProvider {...form}>
         {!props.projectObject && <SectionTitle title={tr('newProjectObject.title')} />}
-        {props.projectObject && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <SectionTitle title={tr('projectObject.formTitle')} />
-            {!editing ? (
-              <Button
-                variant="contained"
-                disabled={!props.userIsOwner && !props.userCanWrite}
-                size="small"
-                onClick={() => setEditing(!editing)}
-                endIcon={<Edit />}
-              >
-                {tr('projectForm.editBtnLabel')}
-              </Button>
-            ) : (
-              <Button
-                variant="outlined"
-                size="small"
-                color="secondary"
-                onClick={() => {
-                  form.reset();
-                  setEditing(!editing);
-                }}
-                endIcon={<Undo />}
-              >
-                {tr('projectForm.undoBtnLabel')}
-              </Button>
-            )}
-          </Box>
-        )}
-        <form
-          id="projectObjectForm"
-          css={newProjectFormStyle}
-          onSubmit={form.handleSubmit(onSubmit)}
-          autoComplete="off"
-        >
+        {props.projectObject && <SectionTitle title={tr('projectObject.formTitle')} />}
+        <form id="projectObjectForm" css={newProjectFormStyle} autoComplete="off">
           <FormField
             formField="objectName"
             label={tr('projectObject.nameLabel')}
@@ -520,12 +430,6 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
               flex-direction: column;
             `}
           >
-            {!props.projectObject && (!props.geom || props.geom === '[]') && (
-              <Alert sx={{ mt: 1 }} severity="info">
-                {tr('projectObjectForm.infoNoGeom')}
-              </Alert>
-            )}
-
             {(form.formState.errors?.endDate?.message ===
               'projectObject.error.projectNotIncluded' ||
               form.formState.errors?.startDate?.message ===
@@ -560,51 +464,8 @@ export function MaintenanceProjectObjectForm(props: Readonly<Props>) {
               </Alert>
             )}
           </Box>
-
-          {!props.projectObject && props.navigateTo && (
-            <div
-              css={css`
-                margin-top: 16px;
-                display: flex;
-                justify-content: space-between;
-              `}
-            >
-              <Button component={Link} to={props.navigateTo} variant="outlined">
-                {tr('cancel')}
-              </Button>
-
-              <SaveOptionsButton form={form} onSubmit={saveAndReturn} />
-            </div>
-          )}
-
-          {!props.projectObject && !props.navigateTo && (
-            <Button
-              disabled={!form.formState.isValid}
-              type="submit"
-              sx={{ mt: 2 }}
-              variant="contained"
-              color="primary"
-              size="small"
-              endIcon={<AddCircle />}
-            >
-              {tr('projectObjectForm.createBtnLabel')}
-            </Button>
-          )}
-
-          {props.projectObject && editing && (
-            <Button
-              size="small"
-              type="submit"
-              variant="contained"
-              sx={{ mt: 2 }}
-              disabled={!form.formState.isValid || !form.formState.isDirty}
-              endIcon={<Save />}
-            >
-              {tr('projectObjectForm.saveBtnLabel')}
-            </Button>
-          )}
         </form>
       </FormProvider>
     </>
   );
-}
+});

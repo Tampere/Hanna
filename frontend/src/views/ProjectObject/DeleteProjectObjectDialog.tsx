@@ -1,3 +1,4 @@
+import { SerializedStyles } from '@emotion/react';
 import { Delete } from '@mui/icons-material';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { useState } from 'react';
@@ -13,6 +14,7 @@ interface Props {
   projectType: ProjectTypePath;
   projectObjectId: string;
   userCanModify?: boolean;
+  cssProp?: SerializedStyles;
 }
 
 export function DeleteProjectObjectDialog({
@@ -20,6 +22,7 @@ export function DeleteProjectObjectDialog({
   projectType,
   projectObjectId,
   userCanModify,
+  cssProp,
 }: Readonly<Props>) {
   const navigate = useNavigate();
   const notify = useNotifications();
@@ -54,11 +57,11 @@ export function DeleteProjectObjectDialog({
   return (
     <>
       <Button
+        {...(cssProp && { css: cssProp })}
         size="small"
         variant="contained"
         disabled={!userCanModify}
         sx={{
-          mt: 2,
           '&:hover': {
             backgroundColor: 'error.main',
           },

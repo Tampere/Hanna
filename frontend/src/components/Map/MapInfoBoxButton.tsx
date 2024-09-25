@@ -54,7 +54,7 @@ export function MapInfoBoxButton<TProject extends ProjectData>({
             css={(theme) => css`
               position: absolute;
               top: 1rem;
-              left: 3rem;
+              right: 2.5rem;
               padding: 0;
               z-index: 202;
               :hover .MuiSvgIcon-root .icon-path {

@@ -28,7 +28,7 @@ export function ColorPatternSelect() {
         height: 40px;
         position: absolute;
         top: 1rem;
-        right: 0.5rem;
+        left: 0.5rem;
         z-index: 202;
       `}
       onChange={handleChange}

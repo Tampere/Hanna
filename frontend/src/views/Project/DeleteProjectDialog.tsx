@@ -1,3 +1,4 @@
+import { SerializedStyles } from '@emotion/react';
 import { Delete } from '@mui/icons-material';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { useState } from 'react';
@@ -11,9 +12,10 @@ interface Props {
   projectId: string;
   message: string;
   disabled: boolean;
+  cssProp?: SerializedStyles;
 }
 
-export function DeleteProjectDialog({ projectId, message, disabled }: Readonly<Props>) {
+export function DeleteProjectDialog({ projectId, message, disabled, cssProp }: Readonly<Props>) {
   const navigate = useNavigate();
   const notify = useNotifications();
   const tr = useTranslations();
@@ -46,9 +48,14 @@ export function DeleteProjectDialog({ projectId, message, disabled }: Readonly<P
   return (
     <>
       <Button
+        {...(cssProp && { css: cssProp })}
+        sx={{
+          '&:hover': {
+            backgroundColor: 'error.main',
+          },
+        }}
         size="small"
         variant="contained"
-        sx={{ mt: 2 }}
         disabled={disabled}
         endIcon={<Delete />}
         onClick={() => setIsDialogOpen(true)}

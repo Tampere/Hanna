@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 import { test } from '@utils/fixtures.js';
 
-test.describe.only('Project endpoints', () => {
+test.describe('Project endpoints', () => {
   test('SAP project import without WBS', async ({ devSession }) => {
     const res = await devSession.session.client.sap.getSapProject.mutate({
       projectId: 'A1111_00000',

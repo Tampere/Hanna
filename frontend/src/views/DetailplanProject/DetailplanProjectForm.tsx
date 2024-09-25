@@ -1,11 +1,11 @@
 import { css } from '@emotion/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AddCircle, Edit, HourglassFullTwoTone, Save, Undo } from '@mui/icons-material';
-import { Box, Button, TextField, Typography } from '@mui/material';
+import { AddCircle } from '@mui/icons-material';
+import { Button, TextField, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { useAtomValue } from 'jotai';
-import { useEffect, useMemo, useState } from 'react';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
@@ -19,6 +19,7 @@ import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
+import { dirtyViewsAtom, projectEditingAtom } from '@frontend/stores/projectView';
 import { getRequiredFields } from '@frontend/utils/form';
 
 import { mergeErrors } from '@shared/formerror';
@@ -27,7 +28,7 @@ import {
   DetailplanProject,
   detailplanProjectSchema,
 } from '@shared/schema/project/detailplan';
-import { hasWritePermission, isAdmin, ownsProject } from '@shared/schema/userPermissions';
+import { isAdmin, ownsProject } from '@shared/schema/userPermissions';
 
 import { ProjectOwnerChangeDialog } from '../Project/ProjectOwnerChangeDialog';
 
@@ -47,17 +48,34 @@ const readonlyFieldProps = {
   InputProps: { readOnly: true },
 } as const;
 
-export function DetailplanProjectForm(props: Readonly<Props>) {
+export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
+  props: Readonly<Props>,
+  ref,
+) {
+  useImperativeHandle(
+    ref,
+    () => ({
+      onSave: () => {
+        form.handleSubmit(onSubmit)();
+      },
+      onCancel: () => {
+        form.reset();
+      },
+    }),
+    [],
+  );
+
   const tr = useTranslations();
   const notify = useNotifications();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [editing, setEditing] = useState(!props.project);
   const currentUser = useAtomValue(asyncUserAtom);
   const [nextDetailplanId, setNextDetailplanId] = useState<number | null>(null);
   const [ownerChangeDialogOpen, setOwnerChangeDialogOpen] = useState(false);
   const [keepOwnerRights, setKeepOwnerRights] = useState(false);
   const [displayInvalidSAPIdDialog, setDisplayInvalidSAPIdDialog] = useState(false);
+  const setDirtyViews = useSetAtom(dirtyViewsAtom);
+  const editing = useAtomValue(projectEditingAtom);
 
   const readonlyProps = useMemo(() => {
     if (editing) {
@@ -162,7 +180,6 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
             { input: { projectId: data.projectId } },
           ],
         });
-        setEditing(false);
         form.reset(data);
       }
       notify({
@@ -184,6 +201,17 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
       form.reset();
     }
   }, [form.formState.isSubmitSuccessful, form.reset]);
+
+  useEffect(() => {
+    if (!props.project) {
+      setDirtyViews((prev) => ({ ...prev, form: form.formState.isValid }));
+    } else {
+      setDirtyViews((prev) => ({
+        ...prev,
+        form: form.formState.isValid && form.formState.isDirty,
+      }));
+    }
+  }, [props.project, form.formState.isValid, form.formState.isDirty]);
 
   const ownerWatch = form.watch('owner');
 
@@ -212,41 +240,7 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
         {!props.project && (
           <Typography variant="overline">{tr('newDetailplanProject.formTitle')}</Typography>
         )}
-        {props.project && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="overline">{tr('projectForm.formTitle')}</Typography>
-            {!form.formState.isDirty && !editing ? (
-              <Button
-                variant="contained"
-                size="small"
-                disabled={
-                  !(
-                    !currentUser ||
-                    ownsProject(currentUser, props.project) ||
-                    hasWritePermission(currentUser, props.project)
-                  )
-                }
-                onClick={() => setEditing(!editing)}
-                endIcon={<Edit />}
-              >
-                {tr('projectForm.editBtnLabel')}
-              </Button>
-            ) : (
-              <Button
-                variant="outlined"
-                size="small"
-                color="secondary"
-                onClick={() => {
-                  form.reset();
-                  setEditing(!editing);
-                }}
-                endIcon={<Undo />}
-              >
-                {tr('projectForm.undoBtnLabel')}
-              </Button>
-            )}
-          </Box>
-        )}
+        {props.project && <Typography variant="overline">{tr('projectForm.formTitle')}</Typography>}
         <form css={newProjectFormStyle} onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
           <FormField<DetailplanProject>
             formField="projectName"
@@ -520,21 +514,6 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
               {tr('newProject.createBtnLabel')}
             </Button>
           )}
-
-          {props.project && editing && (
-            <Button
-              size="small"
-              type="submit"
-              variant="contained"
-              sx={{ mt: 2 }}
-              disabled={
-                !form.formState.isValid || !form.formState.isDirty || form.formState.isSubmitting
-              }
-              endIcon={form.formState.isSubmitting ? <HourglassFullTwoTone /> : <Save />}
-            >
-              {tr('projectForm.saveBtnLabel')}
-            </Button>
-          )}
         </form>
       </FormProvider>
       <ProjectOwnerChangeDialog
@@ -572,4 +551,4 @@ export function DetailplanProjectForm(props: Readonly<Props>) {
       />
     </>
   );
-}
+});
