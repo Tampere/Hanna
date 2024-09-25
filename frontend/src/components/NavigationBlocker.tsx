@@ -9,7 +9,7 @@ interface Props {
   status: BlockerStatus;
 }
 
-const splitViewForms = ['investmentForm', 'detailplanForm', 'projectObjectForm'];
+const splitViewForms = ['investmentForm', 'maintenanceForm', 'detailplanForm', 'projectObjectForm'];
 
 export function NavigationBlocker({ status }: Props) {
   const tr = useTranslations();

@@ -114,13 +114,10 @@ export function Legend({
           flex-direction: column;
           position: absolute;
           bottom: 0;
-          left: 0;
-          padding: 0.25rem 0.5rem calc(42px + 2rem) 1rem;
+          right: -2rem;
+          padding: 0.25rem 1rem calc(42px + 2rem) 1rem;
           background-color: white;
-          box-shadow:
-            0,
-            0px 5px 8px 0px rgba(0, 0, 0, 0.14),
-            0;
+          box-shadow: -5px 0px 8px 0px rgba(0, 0, 0, 0.14);
         `}
       >
         <Typography

@@ -70,7 +70,7 @@ async function createProject(
   await page.getByLabel('Lautakunta *', { exact: true }).click();
   await page.getByRole('option', { name: 'Yhdyskuntalautakunta' }).click();
 
-  await page.getByRole('button', { name: 'Lisää hanke' }).click();
+  await page.getByRole('button', { name: 'Tallenna' }).click();
 
   // URL should include the newly created project ID, parse it from the URL
   await expect(page).toHaveURL(/https:\/\/localhost:1443\/investointihanke\/[0-9a-f-]+/);
@@ -94,6 +94,7 @@ async function deleteProject(page: Page, projectId: string) {
   await page.goto(`https://localhost:1443/investointihanke/${projectId}`);
 
   // Delete the project
+  await page.getByRole('button', { name: 'Muokkaa hanketta' }).click();
   await page.getByRole('button', { name: 'Poista hanke' }).click();
   await page.getByRole('button', { name: 'Poista' }).click();
   await expect(page).toHaveURL('https://localhost:1443/kartta/hankkeet');

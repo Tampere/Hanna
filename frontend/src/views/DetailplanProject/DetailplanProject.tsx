@@ -1,8 +1,8 @@
-import { AccountTree, KeyTwoTone, Mail, Map, Undo } from '@mui/icons-material';
-import { Box, Breadcrumbs, Button, Chip, Paper, Tab, Tabs, Typography, css } from '@mui/material';
+import { AccountTree, KeyTwoTone, Mail, Map } from '@mui/icons-material';
+import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography, css } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { ReactElement } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
@@ -10,7 +10,7 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { getProjectAreaStyle } from '@frontend/components/Map/styles';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
-import { DeleteProjectDialog } from '@frontend/views/Project/DeleteProjectDialog';
+import { projectEditingAtom } from '@frontend/stores/projectView';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
 
 import { TranslationKey } from '@shared/language';
@@ -22,6 +22,7 @@ import {
 } from '@shared/schema/userPermissions';
 
 import { ProjectPermissions } from '../Project/ProjectPermissions';
+import { ProjectViewWrapper } from '../Project/ProjectViewWrapper';
 import { DetailplanProjectForm } from './DetailplanProjectForm';
 import { DetailplanProjectNotification } from './DetailplanProjectNotification';
 
@@ -86,10 +87,11 @@ function getTabs(projectId: string) {
 export function DetailplanProject() {
   const routeParams = useParams() as { projectId: string };
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+
   const tabView = searchParams.get('tab') || 'default';
   const projectId = routeParams?.projectId;
   const user = useAtomValue(asyncUserAtom);
+  const editing = useAtomValue(projectEditingAtom);
 
   const project = trpc.detailplanProject.get.useQuery(
     { projectId },
@@ -110,6 +112,10 @@ export function DetailplanProject() {
 
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
 
+  function handleFormCancel(formRef: React.RefObject<{ onCancel: () => void }>) {
+    formRef.current?.onCancel();
+  }
+
   if (projectId && project.isLoading) {
     return <Typography>{tr('loading')}</Typography>;
   }
@@ -126,119 +132,101 @@ export function DetailplanProject() {
   }
 
   return (
-    <Box
-      css={css`
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-      `}
-    >
-      <Box
-        css={css`
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 8px;
-        `}
-      >
-        <Breadcrumbs sx={{ mb: 1 }}>
-          {project.data ? (
-            <Chip label={project.data?.projectName} />
-          ) : (
-            <Chip variant="outlined" label={tr('newDetailplanProject.formTitle')} />
-          )}
-        </Breadcrumbs>
-
-        {!projectId && (
-          <Button
-            css={css`
-              margin: 0 0 0 auto;
-            `}
-            size="small"
-            startIcon={<Undo />}
-            variant="contained"
-            sx={{ mt: 2 }}
-            onClick={() => navigate(-1)}
-          >
-            {tr('cancel')}
-          </Button>
-        )}
-      </Box>
-
-      <div css={pageContentStyle}>
-        <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
-          <DetailplanProjectForm project={project.data} />
-          {project.data && (
-            <DeleteProjectDialog
-              disabled={Boolean(user && !ownsProject(user, project.data))}
-              projectId={project.data.projectId ?? ''}
-              message={tr('detailplanProject.deleteDialogMessage')}
-            />
-          )}
-        </Paper>
-
-        <Paper
-          variant="outlined"
+    <ProjectViewWrapper
+      permissionCtx={
+        project.data ? { owner: project.data?.owner, writeUsers: project.data?.writeUsers } : null
+      }
+      handleFormCancel={(formRef) => handleFormCancel(formRef)}
+      renderHeaderContent={() => (
+        <Box
           css={css`
             display: flex;
-            flex-direction: column;
-            height: 100%;
-            overflow-y: auto;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
           `}
         >
-          <Tabs
-            value={tabIndex}
-            indicatorColor="primary"
-            textColor="primary"
-            TabIndicatorProps={{ sx: { height: '5px' } }}
+          <Breadcrumbs sx={{ mb: 1 }}>
+            {project.data ? (
+              <Chip label={project.data?.projectName} />
+            ) : (
+              <Chip variant="outlined" label={tr('newDetailplanProject.formTitle')} />
+            )}
+          </Breadcrumbs>
+        </Box>
+      )}
+      renderMainContent={(tabRefs) => (
+        <div css={pageContentStyle}>
+          <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
+            <DetailplanProjectForm ref={tabRefs.form} project={project.data} />
+          </Paper>
+
+          <Paper
+            variant="outlined"
+            css={css`
+              display: flex;
+              flex-direction: column;
+              height: 100%;
+              overflow-y: auto;
+            `}
           >
-            {tabs.map((tab) => (
-              <Tab
-                disabled={!project.data}
-                key={tab.tabView}
-                component={Link}
-                to={tab.url}
-                icon={tab.icon}
-                iconPosition="end"
-                label={tr(tab.label)}
-              />
-            ))}
-          </Tabs>
-
-          {tabView === 'default' && (
-            <Box css={mapContainerStyle}>
-              <MapWrapper
-                drawOptions={{
-                  geoJson: project.data?.geom ?? null,
-                  drawStyle: getProjectAreaStyle(undefined, undefined, false),
-                  editable: false,
-                }}
-                fitExtent="geoJson"
-              />
-            </Box>
-          )}
-
-          {tabView !== 'default' && (
-            <Box sx={{ m: 2, overflowY: 'auto' }}>
-              {tabView === 'sidoshankkeet' && (
-                <ProjectRelations editable={userCanModify} projectId={routeParams.projectId} />
-              )}
-              {tabView === 'tiedotus' && (
-                <DetailplanProjectNotification
-                  enabled={Boolean(user && project.data && ownsProject(user, project.data))}
-                  projectId={routeParams.projectId}
+            <Tabs
+              value={tabIndex}
+              indicatorColor="primary"
+              textColor="primary"
+              TabIndicatorProps={{ sx: { height: '5px' } }}
+            >
+              {tabs.map((tab) => (
+                <Tab
+                  disabled={!project.data}
+                  key={tab.tabView}
+                  component={Link}
+                  to={tab.url}
+                  icon={tab.icon}
+                  iconPosition="end"
+                  label={tr(tab.label)}
                 />
-              )}
-              {tabView === 'luvitus' && (
-                <ProjectPermissions
-                  projectId={routeParams.projectId}
-                  ownerId={project.data?.owner}
+              ))}
+            </Tabs>
+
+            {tabView === 'default' && (
+              <Box css={mapContainerStyle}>
+                <MapWrapper
+                  ref={tabRefs.map}
+                  drawOptions={{
+                    geoJson: project.data?.geom ?? null,
+                    drawStyle: getProjectAreaStyle(undefined, undefined, false),
+                    editable: false,
+                  }}
+                  fitExtent="geoJson"
                 />
-              )}
-            </Box>
-          )}
-        </Paper>
-      </div>
-    </Box>
+              </Box>
+            )}
+
+            {tabView !== 'default' && (
+              <Box sx={{ m: 2, overflowY: 'auto' }}>
+                {tabView === 'sidoshankkeet' && (
+                  <ProjectRelations editable={userCanModify} projectId={routeParams.projectId} />
+                )}
+                {tabView === 'tiedotus' && (
+                  <DetailplanProjectNotification
+                    enabled={Boolean(user && project.data && ownsProject(user, project.data))}
+                    projectId={routeParams.projectId}
+                  />
+                )}
+                {tabView === 'luvitus' && (
+                  <ProjectPermissions
+                    ref={tabRefs.permissions}
+                    editing={editing}
+                    projectId={routeParams.projectId}
+                    ownerId={project.data?.owner}
+                  />
+                )}
+              </Box>
+            )}
+          </Paper>
+        </div>
+      )}
+    />
   );
 }

@@ -1,7 +1,5 @@
-import { Save, Undo } from '@mui/icons-material';
 import {
   Box,
-  Button,
   CircularProgress,
   Skeleton,
   Table,
@@ -13,7 +11,8 @@ import {
   Typography,
   css,
 } from '@mui/material';
-import { useEffect } from 'react';
+import { useSetAtom } from 'jotai';
+import { forwardRef, useEffect, useImperativeHandle } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { HelpTooltip } from '@frontend/components/HelpTooltip';
@@ -21,6 +20,7 @@ import { FormField } from '@frontend/components/forms';
 import { CurrencyInput, valueTextColor } from '@frontend/components/forms/CurrencyInput';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
+import { dirtyViewsAtom } from '@frontend/stores/projectView';
 
 import { YearBudget } from '@shared/schema/project';
 import { YearlyActuals } from '@shared/schema/sapActuals';
@@ -80,7 +80,7 @@ const cellStyle = css`
   text-align: right;
 `;
 
-export function BudgetTable(props: Props) {
+export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   const {
     years,
     budget,
@@ -95,10 +95,22 @@ export function BudgetTable(props: Props) {
     ...props,
   };
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      onSave: form.handleSubmit(onSubmit),
+      onCancel: form.reset,
+    }),
+    [],
+  );
+
   const tr = useTranslations();
   const form = useForm<BudgetFormValues>({ mode: 'all', defaultValues: {} });
+  const setDirtyViews = useSetAtom(dirtyViewsAtom);
   const watch = form.watch();
-  useNavigationBlocker(form.formState.isDirty, 'budgetTable');
+  useNavigationBlocker(form.formState.isDirty, 'budgetTable', () => {
+    setDirtyViews((prev) => ({ ...prev, finances: false }));
+  });
 
   /**
    * Convert budget from object into a simple array for the form
@@ -110,6 +122,15 @@ export function BudgetTable(props: Props) {
     // Fill in all the years within the project's range
     form.reset(budgetToFormValues([...budget], years));
   }, [budget, years]);
+
+  useEffect(() => {
+    setDirtyViews((prev) => {
+      return {
+        ...prev,
+        finances: form.formState.isDirty,
+      };
+    });
+  }, [form.formState.isDirty]);
 
   async function onSubmit(data: BudgetFormValues) {
     await onSave(formValuesToBudget(data, years));
@@ -430,38 +451,8 @@ export function BudgetTable(props: Props) {
               </TableBody>
             </Table>
           </TableContainer>
-          <Box
-            css={css`
-              display: flex;
-              justify-content: flex-start;
-              grid-gap: 8px;
-              margin-top: 16px;
-            `}
-          >
-            <Button
-              size="small"
-              type="reset"
-              variant="outlined"
-              sx={{ mt: 2, float: 'right' }}
-              disabled={!form.formState.isDirty}
-              onClick={() => form.reset()}
-              endIcon={<Undo />}
-            >
-              {tr('genericForm.cancelAll')}
-            </Button>
-            <Button
-              size="small"
-              type="submit"
-              variant="contained"
-              sx={{ mt: 2, float: 'right' }}
-              disabled={!form.formState.isDirty}
-              endIcon={<Save />}
-            >
-              {tr('projectForm.saveBtnLabel')}
-            </Button>
-          </Box>
         </form>
       </FormProvider>
     </>
   );
-}
+});

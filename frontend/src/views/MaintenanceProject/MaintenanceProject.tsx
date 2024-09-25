@@ -1,10 +1,10 @@
 import { css } from '@emotion/react';
-import { Euro, KeyTwoTone, ListAlt, Map, Undo } from '@mui/icons-material';
-import { Alert, Box, Breadcrumbs, Button, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
+import { Euro, KeyTwoTone, ListAlt, Map } from '@mui/icons-material';
+import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import VectorSource from 'ol/source/Vector';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
 
@@ -15,15 +15,19 @@ import {
   DRAW_LAYER_Z_INDEX,
   addFeaturesFromGeoJson,
   featuresFromGeoJSON,
+  getGeoJSONFeaturesString,
 } from '@frontend/components/Map/mapInteractions';
-import { treMunicipalityGeometry } from '@frontend/components/Map/mapOptions';
+import { mapOptions, treMunicipalityGeometry } from '@frontend/components/Map/mapOptions';
 import { getProjectAreaStyle } from '@frontend/components/Map/styles';
-import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
-import { getProjectMunicipalityLayer, getProjectObjectsLayer } from '@frontend/stores/map';
+import {
+  getProjectMunicipalityLayer,
+  getProjectObjectsLayer,
+  mapProjectionAtom,
+} from '@frontend/stores/map';
+import { projectEditingAtom } from '@frontend/stores/projectView';
 import { MaintenanceProjectForm } from '@frontend/views/MaintenanceProject/MaintenanceProjectForm';
-import { DeleteProjectDialog } from '@frontend/views/Project/DeleteProjectDialog';
 import { ProjectAreaSelectorForm } from '@frontend/views/Project/ProjectAreaSelectorForm';
 import { ProjectFinances } from '@frontend/views/Project/ProjectFinances';
 import { ProjectPermissions } from '@frontend/views/Project/ProjectPermissions';
@@ -35,6 +39,8 @@ import {
   hasWritePermission,
   ownsProject,
 } from '@shared/schema/userPermissions';
+
+import { ProjectViewWrapper } from '../Project/ProjectViewWrapper';
 
 const pageContentStyle = css`
   display: grid;
@@ -90,10 +96,11 @@ function getTabs(projectId: string) {
 export function MaintenanceProject() {
   const routeParams = useParams() as { projectId: string };
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const tabView = searchParams.get('tab') || 'default';
   const user = useAtomValue(asyncUserAtom);
+  const editing = useAtomValue(projectEditingAtom);
 
+  const mapProjection = useAtomValue(mapProjectionAtom);
   const projectId = routeParams?.projectId;
   const project = trpc.maintenanceProject.get.useQuery(
     { projectId },
@@ -102,7 +109,6 @@ export function MaintenanceProject() {
   const [coversMunicipality, setCoversMunicipality] = useState(
     project.data?.coversMunicipality ?? false,
   );
-  const [formsEditing, setFormsEditing] = useState(false);
 
   const userCanModify = Boolean(
     project.data &&
@@ -115,26 +121,7 @@ export function MaintenanceProject() {
   );
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
 
-  const [geom, setGeom] = useState<string | null>(null);
-
   const tr = useTranslations();
-  const notify = useNotifications();
-  const geometryUpdate = trpc.project.updateGeometry.useMutation({
-    onSuccess: () => {
-      project.refetch();
-      notify({
-        severity: 'success',
-        title: tr('project.notifyGeometryUpdateTitle'),
-        duration: 5000,
-      });
-    },
-    onError: () => {
-      notify({
-        severity: 'error',
-        title: tr('project.notifyGeometryUpdateFailedTitle'),
-      });
-    },
-  });
 
   const projectObjects = trpc.projectObject.getByProjectId.useQuery(
     { projectId },
@@ -185,13 +172,16 @@ export function MaintenanceProject() {
     }
   }, [project.data]);
 
-  useEffect(() => {
-    setFormsEditing(!projectId);
-  }, [projectId]);
-
   function mapIsEditable() {
     if (coversMunicipality) return false;
     return !projectId || userCanModify;
+  }
+
+  function handleFormCancel(formRef: React.RefObject<{ onCancel: () => void }>) {
+    if (formRef.current?.onCancel) {
+      formRef.current?.onCancel();
+      addFeaturesFromGeoJson(drawSource, project?.data?.geom ?? null);
+    }
   }
 
   if (projectId && project.isLoading) {
@@ -210,178 +200,155 @@ export function MaintenanceProject() {
   }
 
   return (
-    <Box
-      css={css`
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-      `}
-    >
-      <Box
-        css={css`
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 8px;
-        `}
-      >
-        <Breadcrumbs sx={{ mb: 1 }}>
-          {project.data ? (
-            <Chip label={project.data?.projectName} />
-          ) : (
-            <Chip variant="outlined" label={tr('newMaintenanceProject.formTitle')} />
-          )}
-        </Breadcrumbs>
-        <Alert severity="warning">{tr('maintenanceProject.disclaimer')}</Alert>
-        {!projectId && (
-          <Button
-            css={css`
-              margin: 0 0 0 auto;
-              min-width: fit-content;
-            `}
-            size="small"
-            startIcon={<Undo />}
-            variant="contained"
-            onClick={() => navigate(-1)}
-          >
-            {tr('cancel')}
-          </Button>
-        )}
-      </Box>
-
-      <div css={pageContentStyle}>
-        <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
-          <MaintenanceProjectForm
-            editing={formsEditing}
-            setEditing={setFormsEditing}
-            project={project.data}
-            geom={geom}
-            coversMunicipality={coversMunicipality}
-            setCoversMunicipality={setCoversMunicipality}
-            onCancel={() => {
-              addFeaturesFromGeoJson(drawSource, project?.data?.geom ?? null);
-            }}
-          />
-          {project.data && (
-            <DeleteProjectDialog
-              disabled={Boolean(user && !ownsProject(user, project.data))}
-              projectId={project.data.projectId}
-              message={tr('project.deleteDialogMessage')}
-            />
-          )}
-        </Paper>
-
-        <Paper
-          variant="outlined"
+    <ProjectViewWrapper
+      permissionCtx={
+        project.data ? { owner: project.data?.owner, writeUsers: project.data?.writeUsers } : null
+      }
+      handleFormCancel={(formRef) => handleFormCancel(formRef)}
+      renderHeaderContent={() => (
+        <Box
           css={css`
             display: flex;
-            flex-direction: column;
-            height: 100%;
-            overflow-y: auto;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
           `}
         >
-          {tabs.length > 0 && (
-            <Tabs
-              value={tabIndex}
-              indicatorColor="primary"
-              textColor="primary"
-              TabIndicatorProps={{ sx: { height: '5px' } }}
-            >
-              {tabs.map((tab) => (
-                <Tab
-                  disabled={!project.data}
-                  key={tab.tabView}
-                  component={Link}
-                  to={tab.url}
-                  icon={tab.icon}
-                  iconPosition="end"
-                  label={tr(tab.label)}
-                />
-              ))}
-            </Tabs>
-          )}
+          <Breadcrumbs sx={{ mb: 1 }}>
+            {project.data ? (
+              <Chip label={project.data?.projectName} />
+            ) : (
+              <Chip variant="outlined" label={tr('newMaintenanceProject.formTitle')} />
+            )}
+          </Breadcrumbs>
+        </Box>
+      )}
+      renderMainContent={(tabRefs) => (
+        <div css={pageContentStyle}>
+          <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
+            <MaintenanceProjectForm
+              ref={tabRefs.form}
+              project={project.data}
+              coversMunicipality={coversMunicipality}
+              setCoversMunicipality={setCoversMunicipality}
+              getDrawGeometry={() => {
+                return getGeoJSONFeaturesString(
+                  drawSource.getFeatures(),
+                  mapProjection?.getCode() ?? mapOptions.projection.code,
+                );
+              }}
+              onCancel={() => {
+                addFeaturesFromGeoJson(drawSource, project?.data?.geom ?? null);
+              }}
+            />
+          </Paper>
 
-          {tabView === 'default' && (
-            <Box css={mapContainerStyle}>
-              {(!projectId || formsEditing) && (
-                <ProjectAreaSelectorForm
-                  forNewProject={Boolean(projectId)}
-                  projectHasGeom={Boolean(geom || project.data?.geom)}
-                  checked={coversMunicipality}
-                  onChange={async (isChecked) => {
-                    if (isChecked) {
-                      setGeom(null);
-                    }
+          <Paper
+            variant="outlined"
+            css={css`
+              display: flex;
+              flex-direction: column;
+              height: 100%;
+              overflow-y: auto;
+            `}
+          >
+            {tabs.length > 0 && (
+              <Tabs
+                value={tabIndex}
+                indicatorColor="primary"
+                textColor="primary"
+                TabIndicatorProps={{ sx: { height: '5px' } }}
+              >
+                {tabs.map((tab) => (
+                  <Tab
+                    disabled={!project.data}
+                    key={tab.tabView}
+                    component={Link}
+                    to={tab.url}
+                    icon={tab.icon}
+                    iconPosition="end"
+                    label={tr(tab.label)}
+                  />
+                ))}
+              </Tabs>
+            )}
 
-                    setCoversMunicipality(isChecked);
+            {tabView === 'default' && (
+              <Box css={mapContainerStyle}>
+                {(!projectId || editing) && (
+                  <ProjectAreaSelectorForm
+                    forNewProject={Boolean(projectId)}
+                    projectHasGeom={Boolean(project.data?.geom)}
+                    checked={coversMunicipality}
+                    onChange={async (isChecked) => {
+                      setCoversMunicipality(isChecked);
+                    }}
+                  />
+                )}
+                <MapWrapper
+                  ref={tabRefs.map}
+                  drawOptions={{
+                    coversMunicipality: coversMunicipality,
+                    toolsHidden: ['newPointFeature'],
+                    geoJson: project?.data?.geom ?? null,
+                    drawStyle: getProjectAreaStyle(undefined, undefined, false),
+                    editable: editing && mapIsEditable(),
                   }}
+                  drawSource={drawSource}
+                  fitExtent="geoJson"
+                  vectorLayers={[
+                    ...(coversMunicipality ? [municipalityGeometryLayer] : []),
+                    projectObjectsLayer,
+                  ]}
+                  projectObjects={
+                    projectObjects.data?.map((obj) => ({
+                      ...obj,
+                      project: {
+                        projectId: projectId,
+                        projectName: project.data?.projectName ?? '',
+                        projectType: 'maintenanceProject',
+                        coversMunicipality: project.data?.coversMunicipality ?? false,
+                      },
+                    })) ?? []
+                  }
+                  interactiveLayers={['projectObjects']}
                 />
-              )}
-              <MapWrapper
-                drawOptions={{
-                  coversMunicipality: coversMunicipality,
-                  toolsHidden: ['newPointFeature'],
-                  geoJson: project?.data?.geom ?? null,
-                  drawStyle: getProjectAreaStyle(undefined, undefined, false),
-                  editable: mapIsEditable(),
-                  onFeaturesSaved: (features) => {
-                    if (!project.data || coversMunicipality !== project.data.coversMunicipality) {
-                      setGeom(features);
-                    } else {
-                      geometryUpdate.mutate({ projectId, features });
-                    }
-                  },
-                }}
-                fitExtent="geoJson"
-                vectorLayers={[
-                  ...(coversMunicipality ? [municipalityGeometryLayer] : []),
-                  projectObjectsLayer,
-                ]}
-                projectObjects={
-                  projectObjects.data?.map((obj) => ({
-                    ...obj,
-                    project: {
-                      projectId: projectId,
-                      projectName: project.data?.projectName ?? '',
-                      projectType: 'maintenanceProject',
-                      coversMunicipality: project.data?.coversMunicipality ?? false,
-                    },
-                  })) ?? []
-                }
-                interactiveLayers={['projectObjects']}
-              />
-            </Box>
-          )}
+              </Box>
+            )}
 
-          {tabView !== 'default' && (
-            <Box sx={{ m: 2, overflowY: 'auto' }}>
-              {tabView === 'talous' && (
-                <ProjectFinances
-                  onSave={() => {
-                    document.dispatchEvent(new Event('budgetUpdated'));
-                  }}
-                  editable={userCanModify}
-                  project={{ type: 'maintenanceProject', data: project.data }}
-                  writableFields={['estimate']}
-                />
-              )}
-              {tabView === 'kohteet' && (
-                <ProjectObjectList
-                  editable={userCanModify}
-                  projectId={projectId}
-                  projectType="kunnossapitohanke"
-                />
-              )}
-              {tabView === 'luvitus' && (
-                <ProjectPermissions
-                  projectId={routeParams.projectId}
-                  ownerId={project.data?.owner}
-                />
-              )}
-            </Box>
-          )}
-        </Paper>
-      </div>
-    </Box>
+            {tabView !== 'default' && (
+              <Box sx={{ m: 2, overflowY: 'auto' }}>
+                {tabView === 'talous' && (
+                  <ProjectFinances
+                    ref={tabRefs.finances}
+                    onSave={() => {
+                      document.dispatchEvent(new Event('budgetUpdated'));
+                    }}
+                    editable={userCanModify}
+                    project={{ type: 'maintenanceProject', data: project.data }}
+                    writableFields={['estimate']}
+                  />
+                )}
+                {tabView === 'kohteet' && (
+                  <ProjectObjectList
+                    editable={userCanModify}
+                    projectId={projectId}
+                    projectType="kunnossapitohanke"
+                  />
+                )}
+                {tabView === 'luvitus' && (
+                  <ProjectPermissions
+                    ref={tabRefs.permissions}
+                    editing={editing}
+                    projectId={routeParams.projectId}
+                    ownerId={project.data?.owner}
+                  />
+                )}
+              </Box>
+            )}
+          </Paper>
+        </div>
+      )}
+    />
   );
 }

@@ -6,7 +6,8 @@ import VectorLayer from 'ol/layer/Vector';
 import { Pixel } from 'ol/pixel';
 import VectorSource from 'ol/source/Vector';
 
-import { getFeatureItemIds } from '@frontend/components/Map/mapFunctions';
+import { getFeatureItemIds, getMapProjection } from '@frontend/components/Map/mapFunctions';
+import { mapOptions } from '@frontend/components/Map/mapOptions';
 import {
   PROJECT_OBJECT_STYLE,
   ProjectColorCodes,
@@ -29,6 +30,14 @@ const defaultFeatureSelectorState: FeatureSelector = {
 };
 
 export const featureSelectorAtom = atomWithReset<FeatureSelector>(defaultFeatureSelectorState);
+
+export const mapProjectionAtom = atom(
+  getMapProjection(
+    mapOptions.projection.code,
+    mapOptions.projection.extent,
+    mapOptions.projection.units,
+  ),
+);
 
 export type VectorLayerKey =
   | 'kaupunginosat'

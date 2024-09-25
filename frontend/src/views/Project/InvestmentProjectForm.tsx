@@ -1,11 +1,10 @@
 import { css } from '@emotion/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AddCircle, Edit, HourglassFullTwoTone, Save, Undo } from '@mui/icons-material';
-import { Alert, Box, Button, TextField, Typography } from '@mui/material';
+import { TextField, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { useAtomValue } from 'jotai';
-import { useEffect, useMemo, useState } from 'react';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
@@ -19,6 +18,7 @@ import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
+import { dirtyViewsAtom, projectEditingAtom } from '@frontend/stores/projectView';
 import { getRequiredFields } from '@frontend/utils/form';
 
 import { mergeErrors } from '@shared/formerror';
@@ -27,7 +27,7 @@ import {
   InvestmentProject,
   investmentProjectSchema,
 } from '@shared/schema/project/investment';
-import { hasWritePermission, isAdmin, ownsProject } from '@shared/schema/userPermissions';
+import { isAdmin, ownsProject } from '@shared/schema/userPermissions';
 
 import { ProjectOwnerChangeDialog } from './ProjectOwnerChangeDialog';
 
@@ -38,25 +38,45 @@ const newProjectFormStyle = css`
 
 interface InvestmentProjectFormProps {
   project?: DbInvestmentProject | null;
-  geom: string | null;
   coversMunicipality: boolean;
   setCoversMunicipality: React.Dispatch<React.SetStateAction<boolean>>;
-  editing: boolean;
-  setEditing: React.Dispatch<React.SetStateAction<boolean>>;
   onCancel?: () => void;
+  getDrawGeometry: () => string;
 }
 
-export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
-  const { coversMunicipality, setCoversMunicipality, editing, setEditing } = props;
+export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
+  props: InvestmentProjectFormProps,
+  ref,
+) {
+  const { coversMunicipality, setCoversMunicipality } = props;
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      onSave: (geom?: string) => {
+        form.handleSubmit((data) => onSubmit(data, geom))();
+      },
+      onCancel: () => {
+        form.reset();
+        externalForm.reset();
+        setCoversMunicipality(form.getValues('coversMunicipality'));
+      },
+    }),
+    [coversMunicipality],
+  );
+
   const tr = useTranslations();
   const notify = useNotifications();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const currentUser = useAtomValue(asyncUserAtom);
+  const setDirtyViews = useSetAtom(dirtyViewsAtom);
   const [ownerChangeDialogOpen, setOwnerChangeDialogOpen] = useState(false);
   const [keepOwnerRights, setKeepOwnerRights] = useState(false);
   const [displayInvalidSAPIdDialog, setDisplayInvalidSAPIdDialog] = useState(false);
+  const [editing, setEditing] = useAtom(projectEditingAtom);
+
   const { user, sap } = trpc.useUtils();
 
   const readonlyProps = useMemo(() => {
@@ -134,6 +154,22 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
   const ownerWatch = form.watch('owner');
 
   useEffect(() => {
+    if (!props.project) {
+      setDirtyViews((prev) => ({ ...prev, form: form.formState.isValid }));
+    } else {
+      setDirtyViews((prev) => ({
+        ...prev,
+        form: !submitDisabled(),
+      }));
+    }
+  }, [
+    props.project,
+    form.formState.isValid,
+    form.formState.isDirty,
+    externalForm.formState.isDirty,
+  ]);
+
+  useEffect(() => {
     form.reset(props.project ?? formDefaultValues);
   }, [props.project]);
 
@@ -154,7 +190,6 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
           ],
         });
 
-        setEditing(false);
         form.reset(data);
         externalForm.reset({ coversMunicipality: data.coversMunicipality });
       }
@@ -178,7 +213,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
     }
   }, [form.formState.isSubmitSuccessful, form.reset, displayInvalidSAPIdDialog]);
 
-  const onSubmit = async (data: InvestmentProject | DbInvestmentProject) => {
+  const onSubmit = async (data: InvestmentProject | DbInvestmentProject, geom?: string) => {
     let validOrEmptySAPId;
     try {
       validOrEmptySAPId = data.sapProjectId
@@ -197,7 +232,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
     projectUpsert.mutate({
       project: {
         ...data,
-        geom: props.geom,
+        geom: geom ?? null,
         coversMunicipality: coversMunicipality,
       },
       keepOwnerRights,
@@ -216,47 +251,8 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
         {!props.project && (
           <Typography variant="overline">{tr('newInvestmentProject.formTitle')}</Typography>
         )}
-        {props.project && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="overline">{tr('projectForm.formTitle')}</Typography>
-            {!form.formState.isDirty && !editing ? (
-              <Button
-                variant="contained"
-                size="small"
-                disabled={
-                  !(
-                    !currentUser ||
-                    ownsProject(currentUser, props.project) ||
-                    hasWritePermission(currentUser, props.project)
-                  )
-                }
-                onClick={() => {
-                  setEditing(!editing);
-                }}
-                endIcon={<Edit />}
-              >
-                {tr('projectForm.editBtnLabel')}
-              </Button>
-            ) : (
-              <Button
-                variant="outlined"
-                size="small"
-                color="secondary"
-                onClick={() => {
-                  form.reset();
-                  externalForm.reset();
-                  setCoversMunicipality(form.getValues('coversMunicipality'));
-                  setEditing(!editing);
-                  props.onCancel?.();
-                }}
-                endIcon={<Undo />}
-              >
-                {tr('projectForm.undoBtnLabel')}
-              </Button>
-            )}
-          </Box>
-        )}
-        <form css={newProjectFormStyle} onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
+        {props.project && <Typography variant="overline">{tr('projectForm.formTitle')}</Typography>}
+        <form css={newProjectFormStyle} autoComplete="off">
           <FormField
             formField="projectName"
             label={tr('project.projectNameLabel')}
@@ -380,40 +376,6 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
               />
             )}
           />
-
-          {!props.project && (
-            <>
-              {(!props.geom || props.geom === '[]') && (
-                <Alert sx={{ mt: 1 }} severity="info">
-                  {tr('newProject.infoNoGeom')}
-                </Alert>
-              )}
-              <Button
-                disabled={!form.formState.isValid}
-                type="submit"
-                sx={{ mt: 2 }}
-                variant="contained"
-                color="primary"
-                size="small"
-                endIcon={<AddCircle />}
-              >
-                {tr('newProject.createBtnLabel')}
-              </Button>
-            </>
-          )}
-
-          {props.project && editing && (
-            <Button
-              size="small"
-              type="submit"
-              variant="contained"
-              sx={{ mt: 2 }}
-              disabled={submitDisabled()}
-              endIcon={form.formState.isSubmitting ? <HourglassFullTwoTone /> : <Save />}
-            >
-              {tr('projectForm.saveBtnLabel')}
-            </Button>
-          )}
         </form>
       </FormProvider>
       <ProjectOwnerChangeDialog
@@ -442,7 +404,7 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
           const data = form.getValues();
           const { coversMunicipality } = externalForm.getValues();
           projectUpsert.mutate({
-            project: { ...data, geom: props.geom, coversMunicipality },
+            project: { ...data, geom: props.getDrawGeometry(), coversMunicipality },
             keepOwnerRights,
           });
 
@@ -451,8 +413,9 @@ export function InvestmentProjectForm(props: InvestmentProjectFormProps) {
         onCancel={() => {
           form.reset(undefined, { keepValues: true });
           setDisplayInvalidSAPIdDialog(false);
+          setEditing(true);
         }}
       />
     </>
   );
-}
+});

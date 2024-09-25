@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { useEffect, useMemo } from 'react';
+import { forwardRef, useEffect, useMemo } from 'react';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
@@ -20,9 +20,9 @@ interface Props<TProjectObject extends CommonDbProjectObject> {
   onSave?: () => void;
 }
 
-export function ProjectObjectFinances<TProjectObject extends CommonDbProjectObject>(
-  props: Props<TProjectObject>,
-) {
+export const ProjectObjectFinances = forwardRef(function ProjectObjectFinances<
+  TProjectObject extends CommonDbProjectObject,
+>(props: Props<TProjectObject>, ref: React.ForwardedRef<unknown>) {
   const { projectObject } = props;
   const budget = !projectObject.data.projectObjectId
     ? null
@@ -68,12 +68,13 @@ export function ProjectObjectFinances<TProjectObject extends CommonDbProjectObje
   function getWritableFields(): BudgetFields[] {
     if (props.userIsAdmin) {
       return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
-    } else if (props.userIsFinanceEditor) {
-      if (props.userIsEditor)
-        return ['estimate', 'contractPrice', 'amount', 'kayttosuunnitelmanMuutos', 'forecast'];
-      return ['estimate', 'amount', 'contractPrice', 'kayttosuunnitelmanMuutos'];
     } else if (props.userIsEditor) {
+      if (props.userIsFinanceEditor) {
+        return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
+      }
       return ['estimate', 'contractPrice', 'forecast'];
+    } else if (props.userIsFinanceEditor) {
+      return ['amount', 'kayttosuunnitelmanMuutos'];
     } else {
       return [];
     }
@@ -97,6 +98,7 @@ export function ProjectObjectFinances<TProjectObject extends CommonDbProjectObje
 
   return !budget?.data ? null : (
     <BudgetTable
+      ref={ref}
       years={years}
       budget={budget.data}
       actuals={yearlyActuals.data}
@@ -135,4 +137,4 @@ export function ProjectObjectFinances<TProjectObject extends CommonDbProjectObje
       }}
     />
   );
-}
+});

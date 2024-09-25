@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { useEffect, useMemo } from 'react';
+import { forwardRef, useEffect, useMemo } from 'react';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
@@ -21,8 +21,9 @@ interface Props {
   onSave?: () => void;
 }
 
-export function ProjectFinances(props: Props) {
+export const ProjectFinances = forwardRef(function ProjectFinances(props: Props, ref) {
   const { project, editable = false } = props;
+
   const budget = !project.data
     ? null
     : trpc.project.getBudget.useQuery({ projectId: project.data.projectId });
@@ -75,6 +76,7 @@ export function ProjectFinances(props: Props) {
 
   return !budget?.data || !project.data ? null : (
     <BudgetTable
+      ref={ref}
       years={projectYears}
       budget={budget.data}
       actuals={yearlyActuals.data}
@@ -91,8 +93,8 @@ export function ProjectFinances(props: Props) {
             projectId: project.data.projectId as string,
             budgetItems: payload,
           });
-        budget?.refetch();
         props.onSave?.();
+        budget?.refetch();
       }}
       customTooltips={{
         year:
@@ -102,4 +104,4 @@ export function ProjectFinances(props: Props) {
       }}
     />
   );
-}
+});

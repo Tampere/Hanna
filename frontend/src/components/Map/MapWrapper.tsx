@@ -9,7 +9,14 @@ import { Projection } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
 import Style from 'ol/style/Style';
 import * as olUtil from 'ol/util';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   ALL_VECTOR_ITEM_LAYERS,
@@ -18,27 +25,23 @@ import {
   baseLayerIdAtom,
   featureSelectorAtom,
   freezeMapHeightAtom,
+  mapProjectionAtom,
   selectedItemLayersAtom,
   selectedWFSLayersAtom,
   selectionSourceAtom,
 } from '@frontend/stores/map';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
+import { dirtyViewsAtom } from '@frontend/stores/projectView';
 import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 
 import { ColorPatternSelect } from './ColorPatternSelect';
-import { DrawConfirmButtons } from './DrawConfirmButtons';
 import { DrawerContainer } from './DrawerContainer';
 import { Map, MapInteraction } from './Map';
 import { MapControls } from './MapControls';
 import { MapInfoBoxButton } from './MapInfoBoxButton';
 import { MapToolbar, ToolType } from './MapToolbar';
 import { SelectionInfoBox } from './SelectionInfoBox';
-import {
-  createWFSLayer,
-  createWMTSLayer,
-  getFeatureItemIds,
-  getMapProjection,
-} from './mapFunctions';
+import { createWFSLayer, createWMTSLayer, getFeatureItemIds } from './mapFunctions';
 import {
   addFeaturesFromGeoJson,
   createDrawInteraction,
@@ -55,6 +58,10 @@ import { mapOptions } from './mapOptions';
 export interface DrawOptions {
   geoJson: string | object | null;
   onFeaturesSaved?: (features: string) => void;
+  onUndo?: (
+    drawSource: VectorSource<Feature<Geometry>>,
+    selectionSource: VectorSource<Feature<Geometry>>,
+  ) => void;
   drawStyle: Style | Style[];
   toolsHidden?: ToolType[];
   editable: boolean;
@@ -98,9 +105,10 @@ interface Props<TProject, TProjectObject> {
   withColorPatternSelect?: boolean;
 }
 
-export function MapWrapper<TProject extends ProjectData, TProjectObject extends ProjectObjectData>(
-  props: Props<TProject, TProjectObject>,
-) {
+export const MapWrapper = forwardRef(function MapWrapper<
+  TProject extends ProjectData,
+  TProjectObject extends ProjectObjectData,
+>(props: Props<TProject, TProjectObject>, ref: React.Ref<{ handleUndoDraw: () => void }>) {
   const [zoom, setZoom] = useState(mapOptions.tre.defaultZoom);
   const [viewExtent, setViewExtent] = useState<number[]>(mapOptions.tre.extent);
 
@@ -117,13 +125,8 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
 
   const [extent, setExtent] = useState<number[] | null>(null);
 
-  const [projection] = useState(() =>
-    getMapProjection(
-      mapOptions.projection.code,
-      mapOptions.projection.extent,
-      mapOptions.projection.units,
-    ),
-  );
+  const projection = useAtomValue(mapProjectionAtom);
+
   const [baseLayerId] = useAtom(baseLayerIdAtom);
   const selectedWFSLayers = useAtomValue(selectedWFSLayersAtom);
   const selectedItemLayers = useAtomValue(selectedItemLayersAtom);
@@ -154,20 +157,32 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
    * Interactions
    */
 
-  const [dirty, setDirty] = useState(false);
-  useNavigationBlocker(dirty, 'map');
   const { setInfoBox, resetInfoBox, isVisible: infoBoxVisible } = useMapInfoBox();
   const [wholeMunicipalityInfoBoxVisible, setWholeMunicipalityInfoBoxVisible] = useState(false);
   const [selectedTool, setSelectedTool] = useState<ToolType | null>(null);
   const [interactions, setInteractions] = useState<MapInteraction[] | null>(null);
   const selectionLayer = useMemo(() => createSelectionLayer(selectionSource), []);
   const freezeMapHeight = useAtomValue(freezeMapHeightAtom);
+  const [dirtyViews, setDirtyViews] = useAtom(dirtyViewsAtom);
+  useNavigationBlocker(dirtyViews.map, 'map');
 
   useEffect(() => {
-    return () => resetInfoBox();
+    return () => {
+      resetInfoBox();
+      setDirtyViews((prev) => ({ ...prev, map: false }));
+    };
   }, []);
 
   const drawSource = useMemo(() => props.drawSource ?? new VectorSource({ wrapX: false }), []);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      handleUndoDraw,
+      handleSave: handleDrawSave,
+    }),
+    [drawSource, selectionSource],
+  );
 
   function resetSelectInteractions() {
     resetInfoBox();
@@ -204,7 +219,9 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
     () =>
       createModifyInteraction({
         source: selectionSource,
-        onModifyEnd: () => setDirty(true),
+        onModifyEnd: () => {
+          setDirtyViews((prev) => ({ ...prev, map: true }));
+        },
       }),
     [],
   );
@@ -219,10 +236,6 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
       ?.some((feature) => feature.getGeometry()?.getType() === geometryType);
   }
 
-  /* function savedFeaturesSelected() {
-    return selectionSource.getFeatures().some((feature) => );
-  } */
-
   const drawLayer = useMemo(() => createDrawLayer(drawSource, props.drawOptions?.drawStyle), []);
 
   const registerDrawInteraction = useMemo(
@@ -233,7 +246,7 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
         trace: selectedTool === 'tracedFeature',
         traceSource: selectionSource,
         onDrawEnd: () => {
-          setDirty(true);
+          setDirtyViews((prev) => ({ ...prev, map: true }));
         },
         drawType: selectedTool === 'newPointFeature' ? 'Point' : 'Polygon',
       }),
@@ -302,7 +315,7 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
     drawSource.addFeatures(featuresToCopy);
     selectionSource.clear();
     drawFinished();
-    setDirty(true);
+    setDirtyViews((prev) => ({ ...prev, map: true }));
   }
 
   useEffect(() => {
@@ -329,7 +342,7 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
         drawFinished();
         break;
       case 'deleteFeature':
-        setDirty(true);
+        setDirtyViews((prev) => ({ ...prev, map: true }));
         setFeatureSelector((prev) => ({
           features: deleteSelectedFeatures(drawSource, selectionSource),
           pos: prev.pos,
@@ -368,6 +381,27 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
         layer.selected && ['projects', 'projectClusterResults'].includes(layer.id),
     );
   }, [selectedItemLayers]);
+
+  function handleUndoDraw() {
+    setFeatureSelector((prev) => ({
+      features: deleteSelectedFeatures(drawSource, selectionSource),
+      pos: prev.pos,
+    }));
+    setSelectedTool(null);
+    setDirtyViews((prev) => ({ ...prev, map: false }));
+    addFeaturesFromGeoJson(drawSource, props.drawOptions?.geoJson);
+  }
+
+  function handleDrawSave() {
+    selectionSource.clear();
+    setFeatureSelector(RESET);
+    setSelectedTool(null);
+    setDirtyViews((prev) => ({ ...prev, map: false }));
+    return getGeoJSONFeaturesString(
+      drawSource.getFeatures(),
+      projection?.getCode() ?? mapOptions.projection.code,
+    );
+  }
 
   return (
     <div
@@ -448,7 +482,7 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
               isOpen={wholeMunicipalityInfoBoxVisible}
               setIsOpen={setWholeMunicipalityInfoBoxVisible}
               projects={projectsForWholeMunicipality}
-              pos={[100, 100]}
+              pos={[375, 100]}
               handleCloseInfoBox={resetSelectInteractions}
             />
           )}
@@ -466,30 +500,6 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
             }
             colorPatternSelectorVisible={props.withColorPatternSelect}
           />
-
-          {dirty && (
-            <DrawConfirmButtons
-              onSaveClick={() => {
-                selectionSource.clear();
-                setFeatureSelector(RESET);
-                setDirty(false);
-                props.drawOptions?.onFeaturesSaved?.(
-                  getGeoJSONFeaturesString(
-                    drawSource.getFeatures(),
-                    projection?.getCode() ?? mapOptions.projection.code,
-                  ),
-                );
-              }}
-              onUndoClick={() => {
-                setFeatureSelector((prev) => ({
-                  features: deleteSelectedFeatures(drawSource, selectionSource),
-                  pos: prev.pos,
-                }));
-                setDirty(false);
-                addFeaturesFromGeoJson(drawSource, props.drawOptions?.geoJson);
-              }}
-            />
-          )}
         </Map>
         {props.drawOptions?.editable && (
           <MapToolbar
@@ -537,4 +547,4 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
       </>
     </div>
   );
-}
+});

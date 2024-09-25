@@ -38,7 +38,7 @@ export function MapControls(props: Props) {
       sx={{
         position: 'absolute',
         top: '1rem',
-        left: '1rem',
+        right: '1rem',
         zIndex: 200,
         display: 'flex',
         flexDirection: 'column',

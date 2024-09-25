@@ -25,9 +25,9 @@ const toolsContainerStyle = css`
   width: 48px;
   top: 0;
   bottom: 0;
-  right: 0;
+  left: 0;
   background: #eee;
-  border-left: 1px solid #aaa;
+  border-right: 1px solid #aaa;
   opacity: 1;
   z-index: 200;
 `;
@@ -140,7 +140,7 @@ export function MapToolbar(props: Props) {
         if (props.toolsHidden?.includes(tool.type)) return null;
         return (
           <Tooltip
-            placement="left"
+            placement="right"
             key={tool.type}
             title={
               tool.disabledTooltip && props.toolsDisabled[tool.type]

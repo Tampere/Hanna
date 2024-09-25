@@ -13,8 +13,12 @@ export interface BlockerStatus {
 
 export const blockerStatusAtom = atom<BlockerStatus>(defaultStatus);
 
-export function useNavigationBlocker(isDirty: boolean, identifier: string) {
+export function useNavigationBlocker(isDirty: boolean, identifier: string, callBack?: () => void) {
   const [, editBlockerStatus] = useAtom(blockerStatusAtom);
+
+  useEffect(() => {
+    return () => callBack?.();
+  }, []);
 
   useEffect(() => {
     if (typeof isDirty === 'boolean') {

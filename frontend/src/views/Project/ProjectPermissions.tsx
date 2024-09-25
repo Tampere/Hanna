@@ -1,9 +1,8 @@
 import { css } from '@emotion/react';
-import { SaveSharp, SearchTwoTone, Undo } from '@mui/icons-material';
+import { SearchTwoTone } from '@mui/icons-material';
 import {
   Alert,
   Box,
-  Button,
   Checkbox,
   CircularProgress,
   InputAdornment,
@@ -15,22 +14,28 @@ import {
   TableRow,
   TextField,
 } from '@mui/material';
+import { useSetAtom } from 'jotai';
 import diff from 'microdiff';
-import { useEffect, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
+import { dirtyViewsAtom } from '@frontend/stores/projectView';
 
 import { ProjectWritePermission } from '@shared/schema/project/base';
 
 interface Props {
   projectId: string;
+  editing: boolean;
   ownerId?: string;
 }
 
-export function ProjectPermissions({ projectId, ownerId }: Props) {
+export const ProjectPermissions = forwardRef(function ProjectPermissions(
+  { projectId, editing, ownerId }: Props,
+  ref,
+) {
   const notify = useNotifications();
   const tr = useTranslations();
 
@@ -44,13 +49,38 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
   const permissionsUpdate = trpc.project.updatePermissions.useMutation();
   const [searchterm, setSearchterm] = useState('');
   const [localUserPermissions, setLocalUserPermissions] = useState<ProjectWritePermission[]>([]);
+  const setDirtyViews = useSetAtom(dirtyViewsAtom);
+
   const isDirty =
     !isLoading && !isError && diff(userPermissions, localUserPermissions).length !== 0;
-  useNavigationBlocker(isDirty, 'projectPermissions');
+  useNavigationBlocker(isDirty, 'projectPermissions', () =>
+    setDirtyViews((prev) => ({ ...prev, permissions: false })),
+  );
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      onSave: handleUpdatePermissions,
+      onCancel: handleCancelChanges,
+    }),
+    [userPermissions, localUserPermissions],
+  );
+
+  useEffect(() => {
+    if (!isLoading && !isError)
+      setDirtyViews((prev) => ({
+        ...prev,
+        permissions: diff(userPermissions, localUserPermissions).length !== 0,
+      }));
+  }, [localUserPermissions]);
 
   useEffect(() => {
     if (userPermissions) setLocalUserPermissions([...userPermissions]);
   }, [userPermissions]);
+
+  function handleCancelChanges() {
+    setLocalUserPermissions([...(userPermissions ?? [])]);
+  }
 
   function handleUpdatePermissions() {
     if (!userPermissions) return;
@@ -78,7 +108,7 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
       onSuccess: () => {
         notify({
           severity: 'success',
-          title: tr('genericForm.notifySubmitSuccess'),
+          title: tr('projectPermissions.notifyPermissionsUpdated'),
           duration: 3000,
         });
         refetch();
@@ -95,16 +125,14 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
           display: flex;
           background-color: white;
           z-index: 200;
-          @media screen and (max-width: 1150px) {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-          }
           justify-content: space-between;
           align-items: center;
         `}
       >
         <TextField
+          css={css`
+            flex: 1;
+          `}
           variant="outlined"
           size="small"
           placeholder={tr('userPermissions.filterPlaceholder')}
@@ -118,49 +146,6 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
           }}
           onChange={(event) => setSearchterm(event.target.value)}
         />
-        <Box
-          css={css`
-            display: flex;
-            gap: 0.5rem;
-            @media screen and (width > 1150px) {
-              margin-left: auto;
-            }
-          `}
-        >
-          <Button
-            size="small"
-            type="reset"
-            color="secondary"
-            variant="outlined"
-            endIcon={<Undo />}
-            disabled={
-              isLoading ||
-              isError ||
-              localUserPermissions.length === 0 ||
-              diff(userPermissions, localUserPermissions).length === 0
-            }
-            onClick={() => setLocalUserPermissions([...(userPermissions ?? [])])}
-          >
-            {tr('genericForm.cancelAll')}
-          </Button>
-          <Button
-            css={css`
-              height: max-content;
-            `}
-            size="small"
-            variant="contained"
-            endIcon={<SaveSharp />}
-            disabled={
-              isLoading ||
-              isError ||
-              localUserPermissions.length === 0 ||
-              diff(userPermissions, localUserPermissions).length === 0
-            }
-            onClick={() => handleUpdatePermissions()}
-          >
-            {tr('genericForm.saveChanges')}
-          </Button>
-        </Box>
       </Box>
 
       <TableContainer
@@ -221,7 +206,7 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
                           )
                         }
                         checked={user.userId === ownerId || user.canWrite || user.isAdmin}
-                        disabled={user.userId === ownerId || user.isAdmin}
+                        disabled={!editing || user.userId === ownerId || user.isAdmin}
                       />
                     </TableCell>
                   </TableRow>
@@ -232,4 +217,4 @@ export function ProjectPermissions({ projectId, ownerId }: Props) {
       </TableContainer>
     </Box>
   );
-}
+});

@@ -39,6 +39,7 @@ export function DrawerContainer(props: Props) {
         position: absolute;
         top: 0;
         bottom: 0;
+        right: 2rem;
         display: flex;
         align-items: flex-end;
         gap: 1rem;
