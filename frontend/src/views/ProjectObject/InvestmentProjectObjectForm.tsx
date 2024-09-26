@@ -218,7 +218,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
         });
         queryClient.invalidateQueries({
           queryKey: [
-            ['projectObject', 'get'],
+            ['investmentProjectObject', 'get'],
             { input: { projectObjectId: data.projectObjectId } },
           ],
         });

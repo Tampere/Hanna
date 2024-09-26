@@ -216,7 +216,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
         });
         queryClient.invalidateQueries({
           queryKey: [
-            ['projectObject', 'get'],
+            ['maintenanceProjectObject', 'get'],
             { input: { projectObjectId: data.projectObjectId } },
           ],
         });
