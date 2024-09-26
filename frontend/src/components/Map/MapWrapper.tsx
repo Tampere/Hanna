@@ -31,7 +31,7 @@ import {
   selectionSourceAtom,
 } from '@frontend/stores/map';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
-import { dirtyViewsAtom } from '@frontend/stores/projectView';
+import { dirtyAndValidFieldsAtom } from '@frontend/stores/projectView';
 import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 
 import { ColorPatternSelect } from './ColorPatternSelect';
@@ -163,13 +163,13 @@ export const MapWrapper = forwardRef(function MapWrapper<
   const [interactions, setInteractions] = useState<MapInteraction[] | null>(null);
   const selectionLayer = useMemo(() => createSelectionLayer(selectionSource), []);
   const freezeMapHeight = useAtomValue(freezeMapHeightAtom);
-  const [dirtyViews, setDirtyViews] = useAtom(dirtyViewsAtom);
-  useNavigationBlocker(dirtyViews.map, 'map');
+  const [dirtyAndValidViews, setDirtyAndValidViews] = useAtom(dirtyAndValidFieldsAtom);
+  useNavigationBlocker(dirtyAndValidViews.map, 'map');
 
   useEffect(() => {
     return () => {
       resetInfoBox();
-      setDirtyViews((prev) => ({ ...prev, map: false }));
+      setDirtyAndValidViews((prev) => ({ ...prev, map: false }));
     };
   }, []);
 
@@ -220,7 +220,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
       createModifyInteraction({
         source: selectionSource,
         onModifyEnd: () => {
-          setDirtyViews((prev) => ({ ...prev, map: true }));
+          setDirtyAndValidViews((prev) => ({ ...prev, map: true }));
         },
       }),
     [],
@@ -246,7 +246,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
         trace: selectedTool === 'tracedFeature',
         traceSource: selectionSource,
         onDrawEnd: () => {
-          setDirtyViews((prev) => ({ ...prev, map: true }));
+          setDirtyAndValidViews((prev) => ({ ...prev, map: true }));
         },
         drawType: selectedTool === 'newPointFeature' ? 'Point' : 'Polygon',
       }),
@@ -315,7 +315,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
     drawSource.addFeatures(featuresToCopy);
     selectionSource.clear();
     drawFinished();
-    setDirtyViews((prev) => ({ ...prev, map: true }));
+    setDirtyAndValidViews((prev) => ({ ...prev, map: true }));
   }
 
   useEffect(() => {
@@ -342,7 +342,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
         drawFinished();
         break;
       case 'deleteFeature':
-        setDirtyViews((prev) => ({ ...prev, map: true }));
+        setDirtyAndValidViews((prev) => ({ ...prev, map: true }));
         setFeatureSelector((prev) => ({
           features: deleteSelectedFeatures(drawSource, selectionSource),
           pos: prev.pos,
@@ -388,7 +388,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
       pos: prev.pos,
     }));
     setSelectedTool(null);
-    setDirtyViews((prev) => ({ ...prev, map: false }));
+    setDirtyAndValidViews((prev) => ({ ...prev, map: false }));
     addFeaturesFromGeoJson(drawSource, props.drawOptions?.geoJson);
   }
 
@@ -396,7 +396,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
     selectionSource.clear();
     setFeatureSelector(RESET);
     setSelectedTool(null);
-    setDirtyViews((prev) => ({ ...prev, map: false }));
+    setDirtyAndValidViews((prev) => ({ ...prev, map: false }));
     return getGeoJSONFeaturesString(
       drawSource.getFeatures(),
       projection?.getCode() ?? mapOptions.projection.code,

@@ -20,7 +20,7 @@ import { FormField } from '@frontend/components/forms';
 import { CurrencyInput, valueTextColor } from '@frontend/components/forms/CurrencyInput';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
-import { dirtyViewsAtom } from '@frontend/stores/projectView';
+import { dirtyAndValidFieldsAtom } from '@frontend/stores/projectView';
 
 import { YearBudget } from '@shared/schema/project';
 import { YearlyActuals } from '@shared/schema/sapActuals';
@@ -106,10 +106,10 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
 
   const tr = useTranslations();
   const form = useForm<BudgetFormValues>({ mode: 'all', defaultValues: {} });
-  const setDirtyViews = useSetAtom(dirtyViewsAtom);
+  const setDirtyAndValidViews = useSetAtom(dirtyAndValidFieldsAtom);
   const watch = form.watch();
   useNavigationBlocker(form.formState.isDirty, 'budgetTable', () => {
-    setDirtyViews((prev) => ({ ...prev, finances: false }));
+    setDirtyAndValidViews((prev) => ({ ...prev, finances: false }));
   });
 
   /**
@@ -124,7 +124,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   }, [budget, years]);
 
   useEffect(() => {
-    setDirtyViews((prev) => {
+    setDirtyAndValidViews((prev) => {
       return {
         ...prev,
         finances: form.formState.isDirty,
