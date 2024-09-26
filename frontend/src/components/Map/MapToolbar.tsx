@@ -11,6 +11,7 @@ import {
 } from '@mui/icons-material';
 import { Box, Divider, IconButton, Tooltip } from '@mui/material';
 import { useState } from 'react';
+import { useParams } from 'react-router';
 
 import { useTranslations } from '@frontend/stores/lang';
 
@@ -60,7 +61,7 @@ export type ToolType =
 interface Tool {
   type: ToolType;
   icon: JSX.Element;
-  tooltip: TranslationKey | Record<string, TranslationKey>;
+  tooltip: TranslationKey | Record<string, Record<string, TranslationKey>>;
   disabledTooltip?: TranslationKey;
   color?: 'primary' | 'secondary';
 }
@@ -87,8 +88,14 @@ const tools: readonly Tool[] = [
     type: 'copyFromSelection',
     icon: <CopyAllTwoTone />,
     tooltip: {
-      new: 'mapEdit.copyFromSelectionTooltip.new',
-      existing: 'mapEdit.copyFromSelectionTooltip.existing',
+      new: {
+        project: 'mapEdit.copyFromSelectionTooltip.new.project',
+        projectObject: 'mapEdit.copyFromSelectionTooltip.new.projectObject',
+      },
+      existing: {
+        project: 'mapEdit.copyFromSelectionTooltip.existing.project',
+        projectObject: 'mapEdit.copyFromSelectionTooltip.existing.projectObject',
+      },
     },
   },
   {
@@ -124,6 +131,7 @@ interface Props {
 export function MapToolbar(props: Props) {
   const tr = useTranslations();
   const [selectedTool, setSelectedTool] = useState<ToolType | null>(null);
+  const { projectObjectId } = useParams() as { projectObjectId?: string };
 
   function handleToolClick(tool: ToolType | null) {
     if (tool === 'copyFromSelection') {
@@ -146,7 +154,11 @@ export function MapToolbar(props: Props) {
               tool.disabledTooltip && props.toolsDisabled[tool.type]
                 ? tr(tool.disabledTooltip)
                 : typeof tool.tooltip === 'object'
-                  ? tr(tool.tooltip[props.geometryExists ? 'existing' : 'new'])
+                  ? tr(
+                      tool.tooltip[props.geometryExists ? 'existing' : 'new'][
+                        projectObjectId ? 'projectObject' : 'project'
+                      ],
+                    )
                   : tr(tool.tooltip)
             }
           >

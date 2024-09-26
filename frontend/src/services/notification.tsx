@@ -1,7 +1,8 @@
 import { css } from '@emotion/react';
 import { Close } from '@mui/icons-material';
 import { Alert, AlertTitle, Box, IconButton, Stack } from '@mui/material';
-import { atom, useAtom, useSetAtom } from 'jotai';
+import { atom, useAtomValue, useSetAtom } from 'jotai';
+import { useEffect, useState } from 'react';
 
 const notificationContainerStyle = css`
   z-index: 2000;
@@ -19,7 +20,10 @@ const wrapperStyle = css`
   align-items: center;
 `;
 
-const alertStyle = css`
+const alertStyle = (isVisible: boolean) => css`
+  opacity: ${isVisible ? 1 : 0};
+  transform: translateY(${isVisible ? 0 : -100}%);
+  transition: 0.2s ease-in-out;
   margin-bottom: 8px;
   width: 392px;
   :hover {
@@ -33,48 +37,92 @@ interface Notification {
   title: string;
   message?: string;
   duration?: number;
+  transitionTime?: number;
 }
 
 const notificationsAtom = atom<Notification[]>([]);
 
+function NotificationAlert({ notification }: { notification: Notification }) {
+  const setNotifications = useSetAtom(notificationsAtom);
+  const [isVisible, setIsVisible] = useState(false);
+  const visibleDuration =
+    notification.duration && notification.transitionTime
+      ? notification.duration - notification.transitionTime
+      : null;
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsVisible(true);
+    }, 0);
+
+    if (visibleDuration) {
+      setTimeout(
+        () => {
+          setIsVisible(false);
+        },
+        Math.max(visibleDuration, 0),
+      );
+    }
+  }, []);
+
+  return (
+    <Alert
+      css={alertStyle(isVisible)}
+      severity={notification.severity}
+      action={
+        <IconButton
+          size="small"
+          onClick={() => {
+            setIsVisible(false);
+            setTimeout(() => {
+              setNotifications((ns) => ns.filter((n) => n.id !== notification.id));
+            }, 200);
+          }}
+        >
+          <Close />
+        </IconButton>
+      }
+    >
+      <AlertTitle>{notification.title}</AlertTitle>
+      {notification.message}
+    </Alert>
+  );
+}
+
 export function useNotifications() {
-  const setAtom = useSetAtom(notificationsAtom);
+  const setNotifications = useSetAtom(notificationsAtom);
   return function notify(notification: Notification) {
     const id = Math.random().toString(36).substring(7);
-    const newNotification = { ...notification, id };
-    setAtom((notifications) => [...notifications, newNotification]);
+    const newNotification = {
+      ...notification,
+      id,
+      transitionTime: notification.transitionTime ?? 500,
+    };
+
+    setNotifications((notifications) => {
+      // Don't stack notifications with the same title
+      const newIndex = notifications.findIndex((n) => n.title === newNotification.title);
+      if (newIndex !== -1) {
+        return notifications.toSpliced(newIndex, 1, newNotification);
+      }
+      return [...notifications, newNotification];
+    });
 
     if (notification.duration) {
       setTimeout(() => {
-        setAtom((notifications) => notifications.filter((n) => n.id !== id));
+        setNotifications((notifications) => notifications.filter((n) => n.id !== id));
       }, notification.duration);
     }
   };
 }
 
 export default function NotificationList() {
-  const [notifications, setNotifications] = useAtom(notificationsAtom);
-
+  const notifications = useAtomValue(notificationsAtom);
   return (
     <Stack css={notificationContainerStyle} spacing={2}>
       <Box css={wrapperStyle}>
         {notifications.map((notification: Notification) => (
-          <Alert
-            key={notification.id}
-            css={alertStyle}
-            severity={notification.severity}
-            action={
-              <IconButton
-                size="small"
-                onClick={() => setNotifications((ns) => ns.filter((n) => n.id !== notification.id))}
-              >
-                <Close />
-              </IconButton>
-            }
-          >
-            <AlertTitle>{notification.title}</AlertTitle>
-            {notification.message}
-          </Alert>
+          <NotificationAlert key={notification.id} notification={notification} />
         ))}
       </Box>
     </Stack>
