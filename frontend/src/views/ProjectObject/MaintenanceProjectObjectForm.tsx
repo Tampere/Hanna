@@ -22,6 +22,7 @@ import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
 import { mergeErrors } from '@shared/formerror';
+import { isTranslationKey } from '@shared/language';
 import {
   UpsertMaintenanceProjectObject,
   newMaintenanceProjectObjectSchema,
@@ -36,7 +37,7 @@ const newProjectFormStyle = css`
 `;
 
 interface Props {
-  projectId?: string;
+  projectId: string;
   projectType: ProjectTypePath;
   projectObject?: UpsertMaintenanceProjectObject | null;
   setProjectId?: (projectId: string) => void;
@@ -68,16 +69,30 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
     [],
   );
 
+  const { maintenanceProject } = trpc.useUtils();
+
   const projectUpsert = trpc.maintenanceProject.upsert.useMutation({
     onSuccess: () => {
       notify({ severity: 'success', title: tr('projectObject.notifyProjectDateRangeUpdated') });
       form.trigger(['startDate', 'endDate']);
     },
-    onError: () => {
-      notify({ severity: 'error', title: tr('projectObject.notifyProjectDateRangeUpdateError') });
+    onError: async (e) => {
+      const messageArray = e.message.split('"').filter((item) => isTranslationKey(item));
+      const project = await maintenanceProject.get.fetch({ projectId: props.projectId });
+      notify({
+        severity: 'error',
+        title: tr('projectObject.notifyProjectDateRangeUpdateError'),
+        message: messageArray
+          .map((item) => {
+            if (item === 'project.error.budgetNotIncludedForOngoing') {
+              return tr(item, dayjs(project.startDate).year() + 5).toString();
+            }
+            return tr(item);
+          })
+          .join('\n'),
+      });
     },
   });
-  const { maintenanceProject } = trpc.useUtils();
 
   async function handleProjectDateUpsert(
     projectId: string,

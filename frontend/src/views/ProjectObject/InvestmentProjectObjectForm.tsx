@@ -22,6 +22,7 @@ import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
 import { mergeErrors } from '@shared/formerror';
+import { isTranslationKey } from '@shared/language';
 import { ProjectListItem } from '@shared/schema/project';
 import {
   UpsertInvestmentProjectObject,
@@ -101,8 +102,14 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
       notify({ severity: 'success', title: tr('projectObject.notifyProjectDateRangeUpdated') });
       form.trigger(['startDate', 'endDate']);
     },
-    onError: () => {
-      notify({ severity: 'error', title: tr('projectObject.notifyProjectDateRangeUpdateError') });
+    onError: (e) => {
+      const messageArray = e.message.split('"').filter((item) => isTranslationKey(item));
+
+      notify({
+        severity: 'error',
+        title: tr('projectObject.notifyProjectDateRangeUpdateError'),
+        message: messageArray.map((item) => tr(item)).join('\n'),
+      });
     },
   });
   const { investmentProject } = trpc.useUtils();

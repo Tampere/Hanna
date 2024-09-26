@@ -18,6 +18,21 @@ export function fieldError(message: TranslationKey): FieldError {
   };
 }
 
+export function stringifyFieldErrors<T>(errorObject: FormErrors<T>) {
+  if (!errorObject?.errors) return '';
+  return JSON.stringify(
+    Object.values<
+      | FieldError
+      | {
+          type?: string;
+        }
+      | undefined
+    >(errorObject.errors)
+      .map((fieldError) => (fieldError && 'message' in fieldError ? fieldError.message : ''))
+      .join(', '),
+  );
+}
+
 export function mergeErrors<T>(errors: FormErrors<T>[]) {
   return errors.reduce(
     (errorsResult, errorObject) => {

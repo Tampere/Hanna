@@ -13,7 +13,7 @@ import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
 import { parseOptionalString } from '@backend/utils.js';
 
-import { hasErrors } from '@shared/formerror.js';
+import { hasErrors, stringifyFieldErrors } from '@shared/formerror.js';
 import { projectIdSchema } from '@shared/schema/project/base.js';
 import {
   MaintenanceProject,
@@ -73,9 +73,13 @@ export async function projectUpsert(
   keepOwnerRights: boolean = false,
 ) {
   return getPool().transaction(async (tx) => {
-    if (hasErrors(await validateUpsertProject(project, tx))) {
+    const validationResult = await validateUpsertProject(project, tx);
+    if (hasErrors(validationResult)) {
       logger.error('Invalid project', { project });
-      throw new Error('Invalid project');
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: `Invalid project: ${stringifyFieldErrors(validationResult)}`,
+      });
     }
 
     await addAuditEvent(tx, {
