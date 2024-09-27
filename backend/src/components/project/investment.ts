@@ -26,6 +26,7 @@ const selectProjectFragment = sql.fragment`
     owner,
     project.start_date AS "startDate",
     project.end_date AS "endDate",
+    (project_investment.target).id AS "target",
     geohash,
     ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
     (project.lifecycle_state).id AS "lifecycleState",
@@ -83,16 +84,24 @@ export async function projectUpsert(
 
     const id = await baseProjectUpsert(tx, project, user, keepOwnerRights);
 
+    const data = {
+      id,
+      target: codeIdFragment('HankkeenSitovuus', project.target),
+    };
+
+    const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
+    const values = Object.values(data);
+
     const upsertResult = project.projectId
       ? await tx.one(sql.type(projectIdSchema)`
         UPDATE app.project_investment
-        SET id = ${id}
+        SET (${sql.join(identifiers, sql.fragment`,`)}) = (${sql.join(values, sql.fragment`,`)})
         WHERE id = ${project.projectId}
         RETURNING id AS "projectId"
       `)
       : await tx.one(sql.type(projectIdSchema)`
-        INSERT INTO app.project_investment (id)
-        VALUES (${id})
+        INSERT INTO app.project_investment (${sql.join(identifiers, sql.fragment`,`)})
+        VALUES (${sql.join(values, sql.fragment`,`)})
         RETURNING id AS "projectId"
       `);
 

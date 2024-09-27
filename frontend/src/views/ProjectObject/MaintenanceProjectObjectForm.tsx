@@ -59,8 +59,8 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
   useImperativeHandle(
     ref,
     () => ({
-      onSave: (geom: string) => {
-        form.handleSubmit((data) => onSubmit(data, geom))();
+      onSave: async (geom: string) => {
+        await form.handleSubmit(async (data) => await onSubmit(data, geom))();
       },
       onCancel: () => {
         form.reset();
@@ -255,7 +255,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
   }, [props.projectObject, form.formState.isValid, form.formState.isDirty]);
 
   const onSubmit = (data: UpsertMaintenanceProjectObject, geom?: string) => {
-    projectObjectUpsert.mutate({ ...data, geom: geom ?? null });
+    return projectObjectUpsert.mutateAsync({ ...data, geom: geom ?? null });
   };
 
   return (

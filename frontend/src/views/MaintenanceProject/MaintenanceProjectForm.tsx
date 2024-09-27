@@ -53,8 +53,8 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
   useImperativeHandle(
     ref,
     () => ({
-      onSave: (geom?: string) => {
-        form.handleSubmit((data) => onSubmit(data, geom))();
+      onSave: async (geom?: string) => {
+        await form.handleSubmit(async (data) => await onSubmit(data, geom))();
       },
       onCancel: () => {
         form.reset();
@@ -228,6 +228,9 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
       });
     },
     onError: () => {
+      if (!editing) {
+        setEditing(true);
+      }
       notify({
         severity: 'error',
         title: tr('newProject.notifyUpsertFailed'),
@@ -256,7 +259,7 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
       setDisplayInvalidSAPIdDialog(true);
       return;
     }
-    projectUpsert.mutate({
+    return projectUpsert.mutateAsync({
       project: { ...data, geom: geom ?? null, coversMunicipality: coversMunicipality },
       keepOwnerRights,
     });
@@ -480,9 +483,9 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
           setDisplayInvalidSAPIdDialog(false);
         }}
         onCancel={() => {
+          setEditing(true);
           form.reset(undefined, { keepValues: true });
           setDisplayInvalidSAPIdDialog(false);
-          setEditing(true);
         }}
       />
     </>

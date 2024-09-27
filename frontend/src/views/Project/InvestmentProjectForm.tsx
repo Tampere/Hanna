@@ -53,8 +53,8 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
   useImperativeHandle(
     ref,
     () => ({
-      onSave: (geom?: string) => {
-        form.handleSubmit((data) => onSubmit(data, geom))();
+      onSave: async (geom?: string) => {
+        await form.handleSubmit(async (data) => await onSubmit(data, geom))();
       },
       onCancel: () => {
         form.reset();
@@ -98,6 +98,7 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
       startDate: '',
       endDate: '',
       lifecycleState: '01',
+      target: '01',
       sapProjectId: null,
       coversMunicipality: false,
     }),
@@ -200,6 +201,9 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
       });
     },
     onError: () => {
+      if (!editing) {
+        setEditing(true);
+      }
       notify({
         severity: 'error',
         title: tr('newProject.notifyUpsertFailed'),
@@ -229,7 +233,7 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
       return;
     }
 
-    projectUpsert.mutate({
+    return projectUpsert.mutateAsync({
       project: {
         ...data,
         geom: geom ?? null,
@@ -365,6 +369,20 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
           />
 
           <FormField
+            formField="target"
+            label={tr('project.target')}
+            errorTooltip={tr('newProject.targetTooltip')}
+            component={({ id, onChange, value }) => (
+              <CodeSelect
+                id={id}
+                value={value}
+                onChange={onChange}
+                readOnly={!editing}
+                codeListId="HankkeenSitovuus"
+              />
+            )}
+          />
+          <FormField
             formField="sapProjectId"
             label={tr('project.sapProjectIdLabel')}
             component={(field) => (
@@ -411,9 +429,9 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
           setDisplayInvalidSAPIdDialog(false);
         }}
         onCancel={() => {
+          setEditing(true);
           form.reset(undefined, { keepValues: true });
           setDisplayInvalidSAPIdDialog(false);
-          setEditing(true);
         }}
       />
     </>

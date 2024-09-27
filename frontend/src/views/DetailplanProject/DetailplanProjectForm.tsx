@@ -55,8 +55,8 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
   useImperativeHandle(
     ref,
     () => ({
-      onSave: () => {
-        form.handleSubmit(onSubmit)();
+      onSave: async () => {
+        await form.handleSubmit(async (data) => await onSubmit(data))();
       },
       onCancel: () => {
         form.reset();
@@ -230,8 +230,9 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
       setDisplayInvalidSAPIdDialog(true);
       return;
     }
-    projectUpsert.mutate({ project: data, keepOwnerRights });
+    const result = projectUpsert.mutateAsync({ project: data, keepOwnerRights });
     setKeepOwnerRights(false);
+    return result;
   };
 
   return (

@@ -85,8 +85,8 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
   useImperativeHandle(
     ref,
     () => ({
-      onSave: (geom: string) => {
-        form.handleSubmit((data) => onSubmit(data, geom))();
+      onSave: async (geom: string) => {
+        await form.handleSubmit(async (data) => await onSubmit(data, geom))();
       },
       saveAndReturn: (navigateTo: string, geom: string) =>
         form.handleSubmit((data) => saveAndReturn(data, navigateTo, geom))(),
@@ -246,7 +246,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
   }, [form.formState.isSubmitSuccessful, form.reset]);
 
   const onSubmit = (data: UpsertInvestmentProjectObject, geom?: string) => {
-    projectObjectUpsert.mutate({ ...data, geom: geom ?? null });
+    return projectObjectUpsert.mutateAsync({ ...data, geom: geom ?? null });
   };
 
   function saveAndReturn(data: UpsertInvestmentProjectObject, navigateTo: string, geom?: string) {
