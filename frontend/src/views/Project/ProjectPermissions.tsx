@@ -22,7 +22,7 @@ import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
-import { dirtyViewsAtom } from '@frontend/stores/projectView';
+import { dirtyAndValidFieldsAtom } from '@frontend/stores/projectView';
 
 import { ProjectWritePermission } from '@shared/schema/project/base';
 
@@ -49,12 +49,12 @@ export const ProjectPermissions = forwardRef(function ProjectPermissions(
   const permissionsUpdate = trpc.project.updatePermissions.useMutation();
   const [searchterm, setSearchterm] = useState('');
   const [localUserPermissions, setLocalUserPermissions] = useState<ProjectWritePermission[]>([]);
-  const setDirtyViews = useSetAtom(dirtyViewsAtom);
+  const setDirtyAndValidViews = useSetAtom(dirtyAndValidFieldsAtom);
 
   const isDirty =
     !isLoading && !isError && diff(userPermissions, localUserPermissions).length !== 0;
   useNavigationBlocker(isDirty, 'projectPermissions', () =>
-    setDirtyViews((prev) => ({ ...prev, permissions: false })),
+    setDirtyAndValidViews((prev) => ({ ...prev, permissions: false })),
   );
 
   useImperativeHandle(
@@ -68,7 +68,7 @@ export const ProjectPermissions = forwardRef(function ProjectPermissions(
 
   useEffect(() => {
     if (!isLoading && !isError)
-      setDirtyViews((prev) => ({
+      setDirtyAndValidViews((prev) => ({
         ...prev,
         permissions: diff(userPermissions, localUserPermissions).length !== 0,
       }));

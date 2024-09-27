@@ -16,7 +16,7 @@ import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
-import { dirtyViewsAtom, projectEditingAtom } from '@frontend/stores/projectView';
+import { dirtyAndValidFieldsAtom, projectEditingAtom } from '@frontend/stores/projectView';
 import { ProjectTypePath } from '@frontend/types';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
@@ -53,7 +53,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
   const notify = useNotifications();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const setDirtyViews = useSetAtom(dirtyViewsAtom);
+  const setDirtyAndValidViews = useSetAtom(dirtyAndValidFieldsAtom);
   const editing = useAtomValue(projectEditingAtom);
 
   useImperativeHandle(
@@ -245,9 +245,9 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
 
   useEffect(() => {
     if (!props.projectObject) {
-      setDirtyViews((prev) => ({ ...prev, form: form.formState.isValid }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: form.formState.isValid }));
     } else {
-      setDirtyViews((prev) => ({
+      setDirtyAndValidViews((prev) => ({
         ...prev,
         form: form.formState.isValid && form.formState.isDirty,
       }));

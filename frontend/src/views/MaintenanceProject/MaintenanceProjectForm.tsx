@@ -19,7 +19,7 @@ import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
-import { dirtyViewsAtom, projectEditingAtom } from '@frontend/stores/projectView';
+import { dirtyAndValidFieldsAtom, projectEditingAtom } from '@frontend/stores/projectView';
 import { getRequiredFields } from '@frontend/utils/form';
 import { ProjectOwnerChangeDialog } from '@frontend/views/Project/ProjectOwnerChangeDialog';
 
@@ -71,7 +71,7 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
   const navigate = useNavigate();
 
   const currentUser = useAtomValue(asyncUserAtom);
-  const setDirtyViews = useSetAtom(dirtyViewsAtom);
+  const setDirtyAndValidViews = useSetAtom(dirtyAndValidFieldsAtom);
   const [ownerChangeDialogOpen, setOwnerChangeDialogOpen] = useState(false);
   const [keepOwnerRights, setKeepOwnerRights] = useState(false);
   const [displayInvalidSAPIdDialog, setDisplayInvalidSAPIdDialog] = useState(false);
@@ -174,9 +174,9 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
 
   useEffect(() => {
     if (!props.project) {
-      setDirtyViews((prev) => ({ ...prev, form: form.formState.isValid }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: form.formState.isValid }));
     } else {
-      setDirtyViews((prev) => ({
+      setDirtyAndValidViews((prev) => ({
         ...prev,
         form: !submitDisabled(),
       }));

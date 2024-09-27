@@ -6,7 +6,11 @@ import { useLocation, useNavigate, useParams } from 'react-router';
 
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
-import { ModifiableField, dirtyViewsAtom, projectEditingAtom } from '@frontend/stores/projectView';
+import {
+  ModifiableField,
+  dirtyAndValidFieldsAtom,
+  projectEditingAtom,
+} from '@frontend/stores/projectView';
 import { ProjectTypePath } from '@frontend/types';
 
 import {
@@ -26,10 +30,10 @@ interface EditingFooterProps extends PropsWithChildren {
 }
 
 export function EditingFooter({ onSave, saveAndReturn, onCancel, children }: EditingFooterProps) {
-  const dirtyViews = useAtomValue(dirtyViewsAtom);
+  const dirtyAndValidViews = useAtomValue(dirtyAndValidFieldsAtom);
   const location = useLocation();
   const navigateTo = new URLSearchParams(location.search).get('from');
-  const isDirty = Object.values(dirtyViews).some((status) => Boolean(status));
+  const isReadyToSubmit = Object.values(dirtyAndValidViews).some((status) => Boolean(status));
   const tr = useTranslations();
   return (
     <Box
@@ -54,14 +58,17 @@ export function EditingFooter({ onSave, saveAndReturn, onCancel, children }: Edi
         {tr('reject')}
       </Button>
       {navigateTo && saveAndReturn ? (
-        <SaveOptionsButton disabled={!isDirty} saveAndReturn={() => saveAndReturn(navigateTo)}>
-          <Button disabled={!isDirty} size="small" variant="outlined" onClick={onSave}>
+        <SaveOptionsButton
+          disabled={!isReadyToSubmit}
+          saveAndReturn={() => saveAndReturn(navigateTo)}
+        >
+          <Button disabled={!isReadyToSubmit} size="small" variant="outlined" onClick={onSave}>
             {tr('save')}
           </Button>
         </SaveOptionsButton>
       ) : (
         <Button
-          disabled={!isDirty}
+          disabled={!isReadyToSubmit}
           size="small"
           variant="contained"
           color="primary"
@@ -116,9 +123,9 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
   const navigate = useNavigate();
 
   const [editing, setEditing] = useAtom(projectEditingAtom);
-  const dirtyViews = useAtomValue(dirtyViewsAtom);
+  const dirtyAndValidViews = useAtomValue(dirtyAndValidFieldsAtom);
   const user = useAtomValue(asyncUserAtom);
-  const footerVisible = editing || dirtyViews.finances;
+  const footerVisible = editing || dirtyAndValidViews.finances;
 
   const tabRefs: TabRefs = {
     form: useRef(null),
@@ -129,7 +136,7 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
 
   const viewSaveActions = {
     form: () => {
-      if (!dirtyViews.map) {
+      if (!dirtyAndValidViews.map) {
         tabRefs.form.current?.onSave();
       }
     },
@@ -142,11 +149,13 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
   };
 
   function onSave() {
-    (Object.entries(dirtyViews) as [ModifiableField, boolean][]).forEach(([view, isDirty]) => {
-      if (isDirty) {
-        viewSaveActions[view]?.();
-      }
-    });
+    (Object.entries(dirtyAndValidViews) as [ModifiableField, boolean][]).forEach(
+      ([view, isDirty]) => {
+        if (isDirty) {
+          viewSaveActions[view]?.();
+        }
+      },
+    );
 
     setEditing(false);
   }
@@ -159,11 +168,10 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
   };
 
   function onCancel() {
-    (Object.entries(dirtyViews) as [ModifiableField, boolean][]).forEach(([view, isDirty]) => {
-      if (isDirty) {
-        viewCancelActions[view]?.();
-      }
-    });
+    (Object.keys(dirtyAndValidViews) as ModifiableField[]).forEach(
+      (view) => viewCancelActions[view]?.(),
+    );
+
     if (isNewItem) {
       navigate(-1);
     }
@@ -254,7 +262,7 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
             onSave={onSave}
             saveAndReturn={(navigateTo) => {
               let geom: string | undefined;
-              if (dirtyViews.map) {
+              if (dirtyAndValidViews.map) {
                 geom = tabRefs.map.current?.handleSave();
               }
               tabRefs.form.current?.saveAndReturn?.(navigateTo, geom);

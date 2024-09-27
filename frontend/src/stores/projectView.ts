@@ -3,7 +3,7 @@ import { atomWithReset } from 'jotai/utils';
 
 export type ModifiableField = 'form' | 'map' | 'finances' | 'permissions';
 
-const defaultDirtyViews: Record<ModifiableField, boolean> = {
+const defaultDirtyAndValidViews: Record<ModifiableField, boolean> = {
   form: false,
   map: false,
   finances: false,
@@ -12,4 +12,4 @@ const defaultDirtyViews: Record<ModifiableField, boolean> = {
 
 export const projectEditingAtom = atom(false);
 
-export const dirtyViewsAtom = atomWithReset(defaultDirtyViews);
+export const dirtyAndValidFieldsAtom = atomWithReset(defaultDirtyAndValidViews);
