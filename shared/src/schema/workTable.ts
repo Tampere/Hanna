@@ -66,6 +66,7 @@ export const workTableSearchSchema = z.object({
   rakennuttajaUser: z.array(nonEmptyString).optional(),
   suunnitteluttajaUser: z.array(nonEmptyString).optional(),
   company: z.array(nonEmptyString).optional(),
+  projectTarget: z.array(nonEmptyString).optional(),
 });
 
 export type WorkTableSearch = z.infer<typeof workTableSearchSchema>;

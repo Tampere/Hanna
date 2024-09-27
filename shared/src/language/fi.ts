@@ -74,6 +74,7 @@ export const fi = {
   'project.financingTypeLabel': 'Rahoitusmalli',
   'project.committeeLabel': 'Lautakunta',
   'project.target': 'Sitovuus',
+  'project.targetLabel': 'Hankkeen sitovuus',
   'project.ownerLabel': 'Omistaja',
   'project.adminLabel': 'Pääkäyttäjä',
   'project.notFound': 'Hanketta ei löytynyt',

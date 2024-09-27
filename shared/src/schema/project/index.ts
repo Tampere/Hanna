@@ -45,6 +45,7 @@ export const projectSearchSchema = z.object({
     investmentProject: z
       .object({
         committees: z.array(z.string()).optional(),
+        targets: z.array(z.string()).optional(),
       })
       .optional(),
     maintenanceProject: z
