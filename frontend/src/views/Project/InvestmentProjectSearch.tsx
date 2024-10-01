@@ -15,6 +15,7 @@ export function InvestmentProjectSearch() {
       <Box
         css={css`
           display: grid;
+          gap: 1rem;
           grid-template-columns: repeat(3, 1fr);
         `}
       >
@@ -28,6 +29,16 @@ export function InvestmentProjectSearch() {
             multiple
             value={searchParams?.committees}
             onChange={(committees) => setSearchParams({ ...searchParams, committees })}
+          />
+        </FormGroup>
+        <FormGroup>
+          <FormLabel htmlFor="investment-project-target">{tr('project.targetLabel')}</FormLabel>
+          <CodeSelect
+            id="investment-project-target"
+            codeListId="HankkeenSitovuus"
+            multiple
+            value={searchParams?.targets}
+            onChange={(targets) => setSearchParams({ ...searchParams, targets })}
           />
         </FormGroup>
       </Box>

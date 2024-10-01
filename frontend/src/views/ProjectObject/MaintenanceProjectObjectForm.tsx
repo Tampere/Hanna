@@ -4,7 +4,7 @@ import { Alert, Box, Button, TextField } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { forwardRef, useEffect, useImperativeHandle, useMemo } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
@@ -55,12 +55,16 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
   const navigate = useNavigate();
   const setDirtyAndValidViews = useSetAtom(dirtyAndValidFieldsAtom);
   const editing = useAtomValue(projectEditingAtom);
+  const [newProjectObjectIds, setNewProjectObjectIds] = useState<{
+    projectObjectId: string;
+    projectId: string;
+  } | null>(null);
 
   useImperativeHandle(
     ref,
     () => ({
-      onSave: (geom: string) => {
-        form.handleSubmit((data) => onSubmit(data, geom))();
+      onSave: async (geom: string) => {
+        await handleSubmit(async (data) => await onSubmit(data, geom))();
       },
       onCancel: () => {
         form.reset();
@@ -177,24 +181,32 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
         },
   });
 
-  useNavigationBlocker(form.formState.isDirty, 'projectObjectForm');
+  const {
+    trigger,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { isDirty, isValid, isSubmitSuccessful, errors },
+    setValue,
+    getValues,
+  } = form;
+
+  const { isBlocking } = useNavigationBlocker(isDirty, 'projectObjectForm');
 
   function handleBudgetUpdateEvent() {
-    form.trigger('endDate');
+    trigger('endDate');
     document.removeEventListener('budgetUpdated', handleBudgetUpdateEvent);
   }
 
   useEffect(() => {
-    if (
-      form.formState.errors.endDate?.message === 'projectObject.error.budgetNotIncludedForOngoing'
-    ) {
+    if (errors.endDate?.message === 'projectObject.error.budgetNotIncludedForOngoing') {
       document.addEventListener('budgetUpdated', handleBudgetUpdateEvent);
     }
-  }, [form.formState.errors.endDate]);
+  }, [errors.endDate]);
 
   useEffect(() => {
     if (props.projectObject) {
-      form.reset({
+      reset({
         ...props.projectObject,
         contract: props.projectObject?.contract ?? '',
         poNumber: props.projectObject?.poNumber ?? '',
@@ -203,13 +215,31 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
     }
   }, [props.projectObject]);
 
-  const formProjectId = form.watch('projectId');
-  const endDateWatch = form.watch('endDate');
+  useEffect(() => {
+    if (newProjectObjectIds && !isBlocking) {
+      navigate(
+        `/${props.projectType}/${newProjectObjectIds?.projectId}/kohde/${newProjectObjectIds?.projectObjectId}`,
+      );
+      notify({
+        severity: 'success',
+        title: tr('newProjectObject.notifyUpsert'),
+        duration: 5000,
+      });
+    }
+  }, [newProjectObjectIds, isBlocking]);
+
+  const formProjectId = watch('projectId');
+  const endDateWatch = watch('endDate');
 
   const projectObjectUpsert = trpc.maintenanceProjectObject.upsert.useMutation({
     onSuccess: (data) => {
       if (!props.projectObject && data.projectObjectId) {
-        navigate(`/${props.projectType}/${data.projectId}/kohde/${data.projectObjectId}`);
+        setNewProjectObjectIds({
+          projectId: data.projectId,
+          projectObjectId: data.projectObjectId,
+        });
+        // Navigation to new project is handled in useEffect
+        return;
       } else {
         queryClient.invalidateQueries({
           queryKey: [['project', 'get'], { input: { projectId: data.projectId } }],
@@ -221,7 +251,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
           ],
         });
 
-        form.reset((currentData) => currentData);
+        reset((currentData) => currentData);
       }
       notify({
         severity: 'success',
@@ -238,24 +268,24 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
   });
 
   useEffect(() => {
-    if (form.formState.isSubmitSuccessful && !props.projectObject) {
-      form.reset();
+    if (isSubmitSuccessful && !props.projectObject) {
+      reset();
     }
-  }, [form.formState.isSubmitSuccessful, form.reset]);
+  }, [isSubmitSuccessful, reset]);
 
   useEffect(() => {
     if (!props.projectObject) {
-      setDirtyAndValidViews((prev) => ({ ...prev, form: form.formState.isValid }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: isValid }));
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,
-        form: form.formState.isValid && form.formState.isDirty,
+        form: isValid && isDirty,
       }));
     }
-  }, [props.projectObject, form.formState.isValid, form.formState.isDirty]);
+  }, [props.projectObject, isValid, isDirty]);
 
   const onSubmit = (data: UpsertMaintenanceProjectObject, geom?: string) => {
-    projectObjectUpsert.mutate({ ...data, geom: geom ?? null });
+    return projectObjectUpsert.mutateAsync({ ...data, geom: geom ?? null });
   };
 
   return (
@@ -326,19 +356,19 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
             formField="startDate"
             label={tr('projectObject.startDateLabel')}
             errorTooltip={getDateFieldErrorMessage(
-              form.formState.errors.startDate?.message ?? null,
+              errors.startDate?.message ?? null,
               tr('projectObject.startDateTooltip'),
             )}
             component={({ onChange, ...field }) => (
               <FormDatePicker
-                maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
+                maxDate={dayjs(getValues('endDate')).subtract(1, 'day')}
                 readOnly={!editing}
                 field={{
                   onChange: (e) => {
                     onChange(e);
-                    const startDate = form.getValues('startDate');
-                    const endDate = form.getValues('endDate');
-                    if (endDate && dayjs(startDate).isBefore(endDate)) form.trigger('endDate');
+                    const startDate = getValues('startDate');
+                    const endDate = getValues('endDate');
+                    if (endDate && dayjs(startDate).isBefore(endDate)) trigger('endDate');
                   },
                   ...field,
                 }}
@@ -350,9 +380,9 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
             formField="endDate"
             label={tr('projectObject.endDateLabel')}
             errorTooltip={getDateFieldErrorMessage(
-              form.formState.errors.endDate?.message ?? null,
+              errors.endDate?.message ?? null,
               tr('projectObject.endDateTooltip'),
-              [dayjs(form.getValues('startDate')).add(5, 'year').year().toString()],
+              [dayjs(getValues('startDate')).add(5, 'year').year().toString()],
             )}
             component={({ onChange, ...field }) => (
               <Box
@@ -367,15 +397,14 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
                 `}
               >
                 <FormDatePicker
-                  minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
+                  minDate={dayjs(getValues('startDate')).add(1, 'day')}
                   readOnly={!editing || endDateWatch === 'infinity'}
                   field={{
                     onChange: (e) => {
                       onChange(e);
-                      const startDate = form.getValues('startDate');
-                      const endDate = form.getValues('endDate');
-                      if (startDate && dayjs(startDate).isBefore(endDate))
-                        form.trigger('startDate');
+                      const startDate = getValues('startDate');
+                      const endDate = getValues('endDate');
+                      if (startDate && dayjs(startDate).isBefore(endDate)) trigger('startDate');
                     },
                     ...field,
                   }}
@@ -389,7 +418,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
                   disabled={!editing}
                   onChange={() => {
                     if (endDateWatch === 'infinity') {
-                      form.setValue('endDate', '');
+                      setValue('endDate', '');
                     } else {
                       onChange('infinity');
                     }
@@ -445,10 +474,8 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
               flex-direction: column;
             `}
           >
-            {(form.formState.errors?.endDate?.message ===
-              'projectObject.error.projectNotIncluded' ||
-              form.formState.errors?.startDate?.message ===
-                'projectObject.error.projectNotIncluded') && (
+            {(errors?.endDate?.message === 'projectObject.error.projectNotIncluded' ||
+              errors?.startDate?.message === 'projectObject.error.projectNotIncluded') && (
               <Alert
                 css={css`
                   margin-top: 1rem;
@@ -460,8 +487,8 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
                     color="inherit"
                     size="small"
                     onClick={async () => {
-                      const { startDate, endDate, projectId } = form.getValues();
-                      const formErrors = form.formState.errors;
+                      const { startDate, endDate, projectId } = getValues();
+                      const formErrors = errors;
                       if (projectId) {
                         await handleProjectDateUpsert(
                           projectId,

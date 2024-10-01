@@ -1,18 +1,24 @@
+import { useAtom } from 'jotai';
+import { useEffect } from 'react';
 import { useBlocker } from 'react-router-dom';
 
 import { useTranslations } from '@frontend/stores/lang';
-import { BlockerStatus } from '@frontend/stores/navigationBlocker';
+import { blockerStatusAtom } from '@frontend/stores/navigationBlocker';
 
 import { ConfirmDialog } from './dialogs/ConfirmDialog';
 
-interface Props {
-  status: BlockerStatus;
-}
-
 const splitViewForms = ['investmentForm', 'maintenanceForm', 'detailplanForm', 'projectObjectForm'];
 
-export function NavigationBlocker({ status }: Props) {
+export function NavigationBlocker() {
   const tr = useTranslations();
+
+  const [status, setStatus] = useAtom(blockerStatusAtom);
+
+  useEffect(() => {
+    if (status.updating) {
+      setStatus((prev) => ({ ...prev, updating: false }));
+    }
+  }, [status.dirtyComponents]);
 
   // Note: useBlocker is a singleton so use of multiple NavigationBlockers in the same view is not possible (https://github.com/remix-run/react-router/discussions/9978)
   const blocker = useBlocker(({ currentLocation, nextLocation }) => {

@@ -98,7 +98,7 @@ export function WorkTableFilters(props: Props) {
     >
       {props.expanded && (
         <>
-          <GridSpan row={1} span={4}>
+          <GridSpan row={1} span={3}>
             <CustomFormLabel
               label={tr('projectObject.nameLabelFull')}
               htmlFor="projectObjectNameField"
@@ -115,7 +115,7 @@ export function WorkTableFilters(props: Props) {
             />
           </GridSpan>
 
-          <GridSpan row={1} span={4}>
+          <GridSpan row={1} span={3}>
             <CustomFormLabel label={tr('project.projectNameLabel')} htmlFor="projectNameField" />
             <TextField
               {...textFieldProps}
@@ -126,12 +126,25 @@ export function WorkTableFilters(props: Props) {
               InputProps={{ ...searchInputProps }}
             />
           </GridSpan>
-          <GridSpan row={1} span={4}>
+          <GridSpan row={1} span={3}>
+            <CustomFormLabel label={tr('project.targetLabel')} htmlFor="projectTargetField" />
+            <CodeSelect
+              id="projectTargetField"
+              multiple
+              readOnly={props.readOnly}
+              maxTags={1}
+              codeListId="HankkeenSitovuus"
+              value={searchParams.projectTarget}
+              onChange={(target) => setSearchParams({ ...searchParams, projectTarget: target })}
+            />
+          </GridSpan>
+          <GridSpan row={1} span={3}>
             <CustomFormLabel
               label={tr('projectObject.objectStageLabel')}
               htmlFor="objectStageField"
             />
             <CodeSelect
+              id="objectStageField"
               multiple
               readOnly={props.readOnly}
               maxTags={1}

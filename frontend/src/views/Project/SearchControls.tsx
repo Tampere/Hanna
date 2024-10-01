@@ -110,6 +110,12 @@ export function SearchControls() {
   }
 
   useEffect(() => {
+    if (expanded && !filters.detailplanProject && !filters.investmentProject) {
+      setExpanded(false);
+    }
+  }, [filters.detailplanProject, filters.investmentProject]);
+
+  useEffect(() => {
     return () => {
       setMap((map) => ({
         ...map,

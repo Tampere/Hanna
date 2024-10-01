@@ -4,17 +4,19 @@ import { useEffect } from 'react';
 const defaultStatus = {
   currentComponent: null,
   dirtyComponents: [],
+  updating: false,
 };
 
 export interface BlockerStatus {
   currentComponent: string | null;
   dirtyComponents: string[];
+  updating: boolean;
 }
 
 export const blockerStatusAtom = atom<BlockerStatus>(defaultStatus);
 
 export function useNavigationBlocker(isDirty: boolean, identifier: string, callBack?: () => void) {
-  const [, editBlockerStatus] = useAtom(blockerStatusAtom);
+  const [blockerStatus, setBlockerStatus] = useAtom(blockerStatusAtom);
 
   useEffect(() => {
     return () => callBack?.();
@@ -22,17 +24,22 @@ export function useNavigationBlocker(isDirty: boolean, identifier: string, callB
 
   useEffect(() => {
     if (typeof isDirty === 'boolean') {
-      editBlockerStatus((prev) => ({
+      setBlockerStatus((prev) => ({
         currentComponent: identifier,
         dirtyComponents: isDirty ? [...prev.dirtyComponents, identifier] : prev.dirtyComponents,
+        updating: true,
       }));
     }
 
     return () => {
-      editBlockerStatus((prev) => ({
+      setBlockerStatus((prev) => ({
         ...defaultStatus,
         dirtyComponents: prev.dirtyComponents.filter((comp) => comp !== identifier),
       }));
     };
   }, [isDirty]);
+
+  return {
+    isBlocking: blockerStatus.dirtyComponents.includes(identifier) || blockerStatus.updating,
+  };
 }

@@ -143,6 +143,14 @@ export function investmentProjectFragment(input: ProjectSearch) {
                 )})`
               : sql.fragment`true`
           }
+          AND ${
+            filters?.targets && filters.targets.length > 0
+              ? sql.fragment`(project_investment.target).id = ANY(${sql.array(
+                  filters.targets,
+                  'text',
+                )})`
+              : sql.fragment`true`
+          }
         `
     }
   `;

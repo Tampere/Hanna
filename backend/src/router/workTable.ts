@@ -110,6 +110,7 @@ export async function workTableSearch(input: WorkTableSearch) {
     rakennuttajaUser = [],
     suunnitteluttajaUser = [],
     company = [],
+    projectTarget = [],
   } = input;
 
   const query = sql.type(workTableRowSchema)`
@@ -128,7 +129,7 @@ export async function workTableSearch(input: WorkTableSearch) {
     FROM app.project_object
     LEFT JOIN app.project_object_investment poi ON project_object.id = poi.project_object_id
     INNER JOIN app.project ON project.id = project_object.project_id
-    INNER JOIN app.project_investment ON project_investment.id = project.id
+    INNER JOIN app.project_investment pi ON pi.id = project.id
     LEFT JOIN app.project_object_user_role pour ON project_object.id = pour.project_object_id
 
     WHERE project_object.deleted = false
@@ -172,6 +173,10 @@ export async function workTableSearch(input: WorkTableSearch) {
         ${sql.array(company, 'text')} = '{}'::TEXT[] OR
         (SELECT array_agg(business_id) FROM app.project_object_user_role pour LEFT JOIN app.company_contact cc ON pour.company_contact_id = cc.id WHERE project_object.id = pour.project_object_id) &&
         ${sql.array(company, 'text')}
+      )
+      AND (
+        ${sql.array(projectTarget, 'text')} = '{}'::TEXT[] OR
+        (pi.target).id = ANY(${sql.array(projectTarget, 'text')})
       )
     GROUP BY project_object.id, poi.project_object_id, project.id
     ${

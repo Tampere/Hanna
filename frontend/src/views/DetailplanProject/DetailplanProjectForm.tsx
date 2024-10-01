@@ -1,7 +1,6 @@
 import { css } from '@emotion/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AddCircle } from '@mui/icons-material';
-import { Button, TextField, Typography } from '@mui/material';
+import { TextField, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue, useSetAtom } from 'jotai';
@@ -55,11 +54,11 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
   useImperativeHandle(
     ref,
     () => ({
-      onSave: () => {
-        form.handleSubmit(onSubmit)();
+      onSave: async () => {
+        await handleSubmit(async (data) => await onSubmit(data))();
       },
       onCancel: () => {
-        form.reset();
+        reset();
       },
     }),
     [],
@@ -75,6 +74,7 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
   const [keepOwnerRights, setKeepOwnerRights] = useState(false);
   const [displayInvalidSAPIdDialog, setDisplayInvalidSAPIdDialog] = useState(false);
   const setDirtyAndValidViews = useSetAtom(dirtyAndValidFieldsAtom);
+  const [newProjectId, setNewProjectId] = useState<string | null>(null);
   const editing = useAtomValue(projectEditingAtom);
 
   const readonlyProps = useMemo(() => {
@@ -146,10 +146,19 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
     defaultValues: props.project ?? formDefaultValues,
   });
 
-  useNavigationBlocker(form.formState.isDirty, 'detailplanForm');
+  const {
+    handleSubmit,
+    reset,
+    watch,
+    resetField,
+    formState: { isDirty, isValid, isSubmitSuccessful, errors },
+    getValues,
+  } = form;
+
+  const { isBlocking } = useNavigationBlocker(isDirty, 'detailplanForm');
 
   useEffect(() => {
-    form.reset(props.project ?? formDefaultValues);
+    reset(props.project ?? formDefaultValues);
 
     // Fetch the next available detailplan ID once when the form has been loaded
     if (!props.project) {
@@ -159,11 +168,24 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
     }
   }, [props.project]);
 
+  useEffect(() => {
+    if (newProjectId && !isBlocking) {
+      navigate(`/asemakaavahanke/${newProjectId}`);
+      notify({
+        severity: 'success',
+        title: tr('newDetailplanProject.notifyUpsert'),
+        duration: 5000,
+      });
+    }
+  }, [newProjectId, isBlocking]);
+
   const projectUpsert = trpc.detailplanProject.upsert.useMutation({
     onSuccess: (data) => {
       // Navigate to new url if we are creating a new project
       if (!props.project && data.projectId) {
-        navigate(`/asemakaavahanke/${data.projectId}`);
+        setNewProjectId(data.projectId);
+        // Navigation to new project is handled in useEffect
+        return;
       } else {
         queryClient.invalidateQueries({
           queryKey: [['detailplanProject', 'get'], { input: { projectId: data.projectId } }],
@@ -180,7 +202,7 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
             { input: { projectId: data.projectId } },
           ],
         });
-        form.reset(data);
+        reset(data);
       }
       notify({
         severity: 'success',
@@ -197,23 +219,23 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
   });
 
   useEffect(() => {
-    if (form.formState.isSubmitSuccessful && !props.project && !displayInvalidSAPIdDialog) {
-      form.reset();
+    if (isSubmitSuccessful && !props.project && !displayInvalidSAPIdDialog) {
+      reset();
     }
-  }, [form.formState.isSubmitSuccessful, form.reset]);
+  }, [isSubmitSuccessful, reset]);
 
   useEffect(() => {
     if (!props.project) {
-      setDirtyAndValidViews((prev) => ({ ...prev, form: form.formState.isValid }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: isValid }));
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,
-        form: form.formState.isValid && form.formState.isDirty,
+        form: isValid && isDirty,
       }));
     }
-  }, [props.project, form.formState.isValid, form.formState.isDirty]);
+  }, [props.project, isValid, isDirty]);
 
-  const ownerWatch = form.watch('owner');
+  const ownerWatch = watch('owner');
 
   const onSubmit = async (data: DetailplanProject | DbDetailplanProject) => {
     let validOrEmptySAPId;
@@ -230,7 +252,7 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
       setDisplayInvalidSAPIdDialog(true);
       return;
     }
-    projectUpsert.mutate({ project: data, keepOwnerRights });
+    await projectUpsert.mutateAsync({ project: data, keepOwnerRights });
     setKeepOwnerRights(false);
   };
 
@@ -241,7 +263,7 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
           <Typography variant="overline">{tr('newDetailplanProject.formTitle')}</Typography>
         )}
         {props.project && <Typography variant="overline">{tr('projectForm.formTitle')}</Typography>}
-        <form css={newProjectFormStyle} onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
+        <form css={newProjectFormStyle} autoComplete="off">
           <FormField<DetailplanProject>
             formField="projectName"
             label={tr('project.projectNameLabel')}
@@ -264,12 +286,12 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
             formField="startDate"
             label={tr('project.startDateLabel')}
             errorTooltip={getDateFieldErrorMessage(
-              form.formState.errors.startDate?.message ?? null,
+              errors.startDate?.message ?? null,
               tr('newProject.startDateTooltip'),
             )}
             component={(field) => (
               <FormDatePicker
-                maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
+                maxDate={dayjs(getValues('endDate')).subtract(1, 'day')}
                 readOnly={!editing}
                 field={field}
               />
@@ -279,12 +301,12 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
             formField="endDate"
             label={tr('project.endDateLabel')}
             errorTooltip={getDateFieldErrorMessage(
-              form.formState.errors.endDate?.message ?? null,
+              errors.endDate?.message ?? null,
               tr('newProject.endDateTooltip'),
             )}
             component={(field) => (
               <FormDatePicker
-                minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
+                minDate={dayjs(getValues('startDate')).add(1, 'day')}
                 readOnly={!editing}
                 field={field}
               />
@@ -500,20 +522,6 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
               />
             )}
           />
-
-          {!props.project && (
-            <Button
-              disabled={!form.formState.isValid}
-              type="submit"
-              sx={{ mt: 2 }}
-              variant="contained"
-              color="primary"
-              size="small"
-              endIcon={<AddCircle />}
-            >
-              {tr('newProject.createBtnLabel')}
-            </Button>
-          )}
         </form>
       </FormProvider>
       <ProjectOwnerChangeDialog
@@ -522,7 +530,7 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
         keepOwnerRights={keepOwnerRights}
         setKeepOwnerRights={setKeepOwnerRights}
         onCancel={() => {
-          form.resetField('owner');
+          resetField('owner');
           setKeepOwnerRights(false);
           setOwnerChangeDialogOpen(false);
         }}
@@ -539,13 +547,13 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
         confirmButtonLabel={tr('genericForm.save')}
         isOpen={displayInvalidSAPIdDialog}
         onConfirm={() => {
-          const data = form.getValues();
+          const data = getValues();
           projectUpsert.mutate({ project: data, keepOwnerRights });
 
           setDisplayInvalidSAPIdDialog(false);
         }}
         onCancel={() => {
-          form.reset(undefined, { keepValues: true });
+          reset(undefined, { keepValues: true });
           setDisplayInvalidSAPIdDialog(false);
         }}
       />

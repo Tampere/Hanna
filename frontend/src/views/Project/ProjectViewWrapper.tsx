@@ -84,13 +84,13 @@ export function EditingFooter({ onSave, saveAndReturn, onCancel, children }: Edi
 
 interface RefContent {
   form: {
-    onSave: (geom?: string) => void;
+    onSave: (geom?: string) => Promise<void>;
     saveAndReturn?: (navigateTo: string, geom?: string) => void;
     onCancel: () => void;
   };
   map: { handleUndoDraw: () => void; handleSave: () => string };
-  finances: { onSave: () => void; onCancel: () => void };
-  permissions: { onSave: () => void; onCancel: () => void };
+  finances: { onSave: () => Promise<void>; onCancel: () => void };
+  permissions: { onSave: () => Promise<void>; onCancel: () => void };
 }
 
 interface TabRefs {
@@ -135,27 +135,33 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
   };
 
   const viewSaveActions = {
-    form: () => {
+    form: async () => {
       if (!dirtyAndValidViews.map) {
-        tabRefs.form.current?.onSave();
+        await tabRefs.form.current?.onSave();
       }
     },
-    map: () => {
+    map: async () => {
       const geom = tabRefs.map.current?.handleSave();
-      tabRefs.form.current?.onSave(geom);
+      await tabRefs.form.current?.onSave(geom);
     },
     finances: tabRefs.finances.current?.onSave,
     permissions: tabRefs.permissions.current?.onSave,
   };
 
-  function onSave() {
-    (Object.entries(dirtyAndValidViews) as [ModifiableField, boolean][]).forEach(
-      ([view, isDirty]) => {
-        if (isDirty) {
-          viewSaveActions[view]?.();
-        }
-      },
-    );
+  async function onSave() {
+    try {
+      await Promise.all(
+        (Object.entries(dirtyAndValidViews) as [ModifiableField, boolean][]).map(
+          async ([view, isDirty]) => {
+            if (isDirty) {
+              await viewSaveActions[view]?.();
+            }
+          },
+        ),
+      );
+    } catch {
+      return;
+    }
 
     setEditing(false);
   }

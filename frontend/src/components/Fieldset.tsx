@@ -10,6 +10,7 @@ export function Fieldset({ legend, children }: Props) {
   return (
     <fieldset
       css={css`
+        margin-top: 8px;
         border: 1px solid #ccc;
         border-radius: 4px;
         padding: 8px 16px 20px 16px;

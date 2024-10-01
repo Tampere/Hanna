@@ -32,6 +32,7 @@ export const codeListIdSchema = z.enum([
   'YmpäristönsuojelunSyy',
   'KohdeKayttajaRooli',
   'KohteenToteutustapa',
+  'HankkeenSitovuus',
 ]);
 
 export const codeIdSchema = z.object({
