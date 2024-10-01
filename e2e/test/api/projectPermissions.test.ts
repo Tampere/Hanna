@@ -22,6 +22,7 @@ const validProject = (userId: string) => ({
   committees: ['01'],
   sapProjectId: null,
   coversMunicipality: false,
+  target: '01',
 });
 
 function findUserByEmail(users: readonly User[], email: string) {

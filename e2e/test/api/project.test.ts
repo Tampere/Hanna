@@ -34,6 +34,7 @@ const invalidDateProject = {
   lifecycleState: '01',
   committees: ['01'],
   sapProjectId: null,
+  target: '01',
 };
 
 const testProjectObject = (projectId: string, user: User) => ({
@@ -66,6 +67,7 @@ const validProject = (userId: string, projectName = 'Test project') => ({
   committees: ['01'],
   sapProjectId: null,
   coversMunicipality: false,
+  target: '01',
 });
 
 test.describe('Project endpoints', () => {
@@ -548,7 +550,7 @@ test.describe('Project endpoints', () => {
       filters: {},
       onlyCoversMunicipality: false,
       map: {
-        extent: [326982.38295933633, 6821409.303872364, 329869.22975973337, 6823289.2748374995],
+        extent: [326982.0, 6821409.0, 329869.0, 6823289.0],
         zoom: 11,
       },
     });

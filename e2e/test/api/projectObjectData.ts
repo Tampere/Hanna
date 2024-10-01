@@ -12,6 +12,7 @@ export const testInvestmentProject = (user: User) => ({
   committees: ['01'],
   sapProjectId: null,
   coversMunicipality: false,
+  target: '01',
 });
 
 export const testMaintenanceProject = (user: User) => ({
