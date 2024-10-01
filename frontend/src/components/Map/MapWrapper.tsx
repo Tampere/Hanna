@@ -103,6 +103,7 @@ interface Props<TProject, TProjectObject> {
   interactiveLayers?: VectorItemLayerKey[];
   drawSource?: VectorSource<Feature<Geometry>>;
   withColorPatternSelect?: boolean;
+  onGeometrySave?: (geometry: string) => Promise<void>;
 }
 
 export const MapWrapper = forwardRef(function MapWrapper<
@@ -179,7 +180,14 @@ export const MapWrapper = forwardRef(function MapWrapper<
     ref,
     () => ({
       handleUndoDraw,
-      handleSave: handleDrawSave,
+      handleSave: async () =>
+        await props.onGeometrySave?.(
+          getGeoJSONFeaturesString(
+            drawSource.getFeatures(),
+            projection?.getCode() ?? mapOptions.projection.code,
+          ),
+        ),
+      getGeometry: getGeometryForSave,
     }),
     [drawSource, selectionSource],
   );
@@ -263,7 +271,8 @@ export const MapWrapper = forwardRef(function MapWrapper<
     switch (props.fitExtent) {
       case 'geoJson':
         if (props?.drawOptions?.geoJson && drawSource) {
-          if (!dirtyAndValidViews.map) setExtent(drawSource.getExtent());
+          if (Object.values(dirtyAndValidViews).every((isValid) => !isValid))
+            setExtent(drawSource.getExtent());
         }
         break;
       case 'vectorLayers':
@@ -282,7 +291,8 @@ export const MapWrapper = forwardRef(function MapWrapper<
             (Array.isArray(props.drawOptions?.geoJson) && props.drawOptions.geoJson.length > 0)) &&
           drawSource
         ) {
-          if (!dirtyAndValidViews.map) setExtent(drawSource.getExtent());
+          if (Object.values(dirtyAndValidViews).every((isValid) => !isValid))
+            setExtent(drawSource.getExtent());
         } else {
           extent = vectorLayers?.reduce((extent, layer) => {
             const layerExtent = layer.getSource()?.getExtent();
@@ -392,7 +402,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
     addFeaturesFromGeoJson(drawSource, props.drawOptions?.geoJson);
   }
 
-  function handleDrawSave() {
+  function getGeometryForSave() {
     selectionSource.clear();
     setFeatureSelector(RESET);
     setSelectedTool(null);

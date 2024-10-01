@@ -20,6 +20,7 @@ import {
 } from '@frontend/components/Map/mapInteractions';
 import { mapOptions, treMunicipalityGeometry } from '@frontend/components/Map/mapOptions';
 import { getProjectAreaStyle } from '@frontend/components/Map/styles';
+import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import {
@@ -136,6 +137,24 @@ export function InvestmentProject() {
   const tabIndex = tabs.findIndex((tab) => tab.tabView === tabView);
 
   const tr = useTranslations();
+  const notify = useNotifications();
+
+  const geometryUpdate = trpc.project.updateGeometry.useMutation({
+    onSuccess: () => {
+      project.refetch();
+      notify({
+        severity: 'success',
+        title: tr('project.notifyGeometryUpdateTitle'),
+        duration: 5000,
+      });
+    },
+    onError: () => {
+      notify({
+        severity: 'error',
+        title: tr('project.notifyGeometryUpdateFailedTitle'),
+      });
+    },
+  });
 
   const projectObjects = trpc.projectObject.getByProjectId.useQuery(
     { projectId },
@@ -299,6 +318,9 @@ export function InvestmentProject() {
                 )}
                 <MapWrapper
                   ref={tabRefs.map}
+                  onGeometrySave={async (features) => {
+                    await geometryUpdate.mutateAsync({ projectId, features });
+                  }}
                   drawOptions={{
                     coversMunicipality: coversMunicipality,
                     toolsHidden: ['newPointFeature'],

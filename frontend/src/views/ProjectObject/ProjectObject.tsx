@@ -13,6 +13,7 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { getProjectObjectGeoJSON } from '@frontend/components/Map/mapFunctions';
 import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJ_OBJ_DRAW_STYLE } from '@frontend/components/Map/styles';
+import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { getProjectObjectsLayer, getProjectsLayer } from '@frontend/stores/map';
@@ -128,6 +129,25 @@ export function ProjectObject(props: Props) {
   const [projectId, setProjectId] = useState(routeParams.projectId);
 
   const tr = useTranslations();
+  const notify = useNotifications();
+
+  const geometryUpdate = trpc.projectObject.updateGeometry.useMutation({
+    onSuccess: () => {
+      projectObject.refetch();
+      projectObjectGeometries.refetch();
+      notify({
+        severity: 'success',
+        title: tr('projectObject.notifyGeometryUpdateTitle'),
+        duration: 5000,
+      });
+    },
+    onError: () => {
+      notify({
+        severity: 'error',
+        title: tr('projectObject.notifyGeometryUpdateFailedTitle'),
+      });
+    },
+  });
 
   const project = trpc.project.get.useQuery({ projectId }, { enabled: Boolean(projectId) });
   const projectObjectGeometries = trpc.projectObject.getGeometriesByProjectId.useQuery(
@@ -292,6 +312,9 @@ export function ProjectObject(props: Props) {
               <Box css={mapContainerStyle}>
                 <MapWrapper
                   ref={tabRefs.map}
+                  onGeometrySave={async (features) => {
+                    await geometryUpdate.mutateAsync({ projectObjectId, features });
+                  }}
                   drawOptions={{
                     geoJson: projectObject?.data?.geometryDump ?? null,
                     drawStyle: PROJ_OBJ_DRAW_STYLE,

@@ -1,7 +1,7 @@
 import { Close, Create, Save, Undo } from '@mui/icons-material';
-import { Alert, Box, Button, css } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, css } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
-import { PropsWithChildren, useEffect, useRef } from 'react';
+import { PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 
 import { asyncUserAtom } from '@frontend/stores/auth';
@@ -27,9 +27,16 @@ interface EditingFooterProps extends PropsWithChildren {
   onSave: () => void;
   onCancel: () => void;
   saveAndReturn?: (navigateTo: string) => void;
+  isSubmitting?: boolean;
 }
 
-export function EditingFooter({ onSave, saveAndReturn, onCancel, children }: EditingFooterProps) {
+export function EditingFooter({
+  onSave,
+  saveAndReturn,
+  onCancel,
+  isSubmitting,
+  children,
+}: EditingFooterProps) {
   const dirtyAndValidViews = useAtomValue(dirtyAndValidFieldsAtom);
   const location = useLocation();
   const navigateTo = new URLSearchParams(location.search).get('from');
@@ -49,6 +56,7 @@ export function EditingFooter({ onSave, saveAndReturn, onCancel, children }: Edi
     >
       {children}
       <Button
+        disabled={isSubmitting}
         size="small"
         variant="outlined"
         color="primary"
@@ -68,12 +76,12 @@ export function EditingFooter({ onSave, saveAndReturn, onCancel, children }: Edi
         </SaveOptionsButton>
       ) : (
         <Button
-          disabled={!isReadyToSubmit}
+          disabled={!isReadyToSubmit || isSubmitting}
           size="small"
           variant="contained"
           color="primary"
           onClick={onSave}
-          endIcon={<Save />}
+          endIcon={isSubmitting ? <CircularProgress size="1rem" /> : <Save />}
         >
           {tr('save')}
         </Button>
@@ -88,7 +96,7 @@ interface RefContent {
     saveAndReturn?: (navigateTo: string, geom?: string) => void;
     onCancel: () => void;
   };
-  map: { handleUndoDraw: () => void; handleSave: () => string };
+  map: { handleUndoDraw: () => void; handleSave: () => Promise<void>; getGeometry: () => string };
   finances: { onSave: () => Promise<void>; onCancel: () => void };
   permissions: { onSave: () => Promise<void>; onCancel: () => void };
 }
@@ -126,6 +134,7 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
   const dirtyAndValidViews = useAtomValue(dirtyAndValidFieldsAtom);
   const user = useAtomValue(asyncUserAtom);
   const footerVisible = editing || dirtyAndValidViews.finances;
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const tabRefs: TabRefs = {
     form: useRef(null),
@@ -141,14 +150,19 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
       }
     },
     map: async () => {
-      const geom = tabRefs.map.current?.handleSave();
-      await tabRefs.form.current?.onSave(geom);
+      if (dirtyAndValidViews.form) {
+        const geom = tabRefs.map.current?.getGeometry();
+        await tabRefs.form.current?.onSave(geom);
+      } else {
+        await tabRefs.map.current?.handleSave();
+      }
     },
     finances: tabRefs.finances.current?.onSave,
     permissions: tabRefs.permissions.current?.onSave,
   };
 
   async function onSave() {
+    setIsSubmitting(true);
     try {
       await Promise.all(
         (Object.entries(dirtyAndValidViews) as [ModifiableField, boolean][]).map(
@@ -160,9 +174,10 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
         ),
       );
     } catch {
+      setIsSubmitting(false);
       return;
     }
-
+    setIsSubmitting(false);
     setEditing(false);
   }
 
@@ -218,6 +233,7 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
             css={css`
               margin: 0 0 0 auto;
             `}
+            disabled={isSubmitting}
             size="small"
             startIcon={<Undo />}
             variant="contained"
@@ -229,7 +245,7 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
         ) : (
           <Button
             onClick={() => (editing ? onCancel() : setEditing(true))}
-            disabled={!isOwner && !canWrite}
+            disabled={(!isOwner && !canWrite) || isSubmitting}
             variant="contained"
             size="small"
             css={css`
@@ -265,11 +281,12 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
       >
         {footerVisible && (
           <EditingFooter
+            isSubmitting={isSubmitting}
             onSave={onSave}
             saveAndReturn={(navigateTo) => {
               let geom: string | undefined;
               if (dirtyAndValidViews.map) {
-                geom = tabRefs.map.current?.handleSave();
+                geom = tabRefs.map.current?.getGeometry();
               }
               tabRefs.form.current?.saveAndReturn?.(navigateTo, geom);
             }}
@@ -282,7 +299,7 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
                   cssProp={css`
                     margin-right: auto;
                   `}
-                  disabled={!isOwner}
+                  disabled={!isOwner || isSubmitting}
                   projectId={projectId}
                   message={tr('project.deleteDialogMessage')}
                 />
