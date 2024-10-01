@@ -54,12 +54,12 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
     ref,
     () => ({
       onSave: async (geom?: string) => {
-        await form.handleSubmit(async (data) => await onSubmit(data, geom))();
+        await handleSubmit(async (data) => await onSubmit(data, geom))();
       },
       onCancel: () => {
-        form.reset();
-        externalForm.reset();
-        setCoversMunicipality(form.getValues('coversMunicipality'));
+        reset();
+        resetExternal();
+        setCoversMunicipality(getValues('coversMunicipality'));
       },
     }),
     [coversMunicipality],
@@ -76,6 +76,7 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
   const [keepOwnerRights, setKeepOwnerRights] = useState(false);
   const [displayInvalidSAPIdDialog, setDisplayInvalidSAPIdDialog] = useState(false);
   const [editing, setEditing] = useAtom(projectEditingAtom);
+  const [newProjectId, setNewProjectId] = useState<string | null>(null);
   const { user, sap } = trpc.useUtils();
 
   const readonlyProps = useMemo(() => {
@@ -148,18 +149,33 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
       : formDefaultValues,
   });
 
+  const {
+    trigger,
+    handleSubmit,
+    reset,
+    watch,
+    resetField,
+    formState: { isDirty, isValid, isSubmitSuccessful, isSubmitting, errors },
+    setValue,
+    getValues,
+  } = form;
+
   function handleBudgetUpdateEvent() {
-    form.trigger('endDate');
+    trigger('endDate');
     document.removeEventListener('budgetUpdated', handleBudgetUpdateEvent);
   }
 
   useEffect(() => {
-    if (form.formState.errors.endDate?.message === 'project.error.budgetNotIncludedForOngoing') {
+    if (errors.endDate?.message === 'project.error.budgetNotIncludedForOngoing') {
       document.addEventListener('budgetUpdated', handleBudgetUpdateEvent);
     }
-  }, [form.formState.errors.endDate]);
+  }, [errors.endDate]);
 
-  const externalForm = useForm<{ coversMunicipality: boolean }>({
+  const {
+    formState: { isDirty: externalIsDirty },
+    getValues: externalGetValues,
+    reset: resetExternal,
+  } = useForm<{ coversMunicipality: boolean }>({
     mode: 'all',
     defaultValues: {
       coversMunicipality: props.project?.coversMunicipality ?? false,
@@ -168,28 +184,23 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
     resetOptions: { keepDefaultValues: true },
   });
 
-  useNavigationBlocker(form.formState.isDirty, 'maintenanceForm');
-  const ownerWatch = form.watch('owner');
-  const endDateWatch = form.watch('endDate');
+  const { isBlocking } = useNavigationBlocker(isDirty, 'maintenanceForm');
+  const ownerWatch = watch('owner');
+  const endDateWatch = watch('endDate');
 
   useEffect(() => {
     if (!props.project) {
-      setDirtyAndValidViews((prev) => ({ ...prev, form: form.formState.isValid }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: isValid }));
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,
         form: !submitDisabled(),
       }));
     }
-  }, [
-    props.project,
-    form.formState.isValid,
-    form.formState.isDirty,
-    externalForm.formState.isDirty,
-  ]);
+  }, [props.project, isValid, isDirty, externalIsDirty]);
 
   useEffect(() => {
-    form.reset(
+    reset(
       props.project
         ? {
             ...props.project,
@@ -201,11 +212,24 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
     );
   }, [props.project]);
 
+  useEffect(() => {
+    if (newProjectId && !isBlocking) {
+      navigate(`/kunnossapitohanke/${newProjectId}`);
+      notify({
+        severity: 'success',
+        title: tr('newProject.notifyUpsert'),
+        duration: 5000,
+      });
+    }
+  }, [newProjectId, isBlocking]);
+
   const projectUpsert = trpc.maintenanceProject.upsert.useMutation({
     onSuccess: async (data) => {
       // Navigate to new url if we are creating a new project
       if (!props.project && data.projectId) {
-        navigate(`/kunnossapitohanke/${data.projectId}`);
+        setNewProjectId(data.projectId);
+        // Navigation to new project is handled in useEffect
+        return;
       } else {
         await queryClient.invalidateQueries({
           queryKey: [['maintenanceProject', 'get'], { input: { projectId: data.projectId } }],
@@ -218,8 +242,8 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
           ],
         });
 
-        form.reset(data);
-        externalForm.reset({ coversMunicipality: data.coversMunicipality });
+        reset(data);
+        resetExternal({ coversMunicipality: data.coversMunicipality });
       }
       notify({
         severity: 'success',
@@ -239,10 +263,10 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
   });
 
   useEffect(() => {
-    if (form.formState.isSubmitSuccessful && !props.project && !displayInvalidSAPIdDialog) {
-      form.reset();
+    if (isSubmitSuccessful && !props.project && !displayInvalidSAPIdDialog) {
+      reset();
     }
-  }, [form.formState.isSubmitSuccessful, form.reset, displayInvalidSAPIdDialog]);
+  }, [isSubmitSuccessful, reset, displayInvalidSAPIdDialog]);
 
   const onSubmit = async (data: MaintenanceProject | DbMaintenanceProject, geom?: string) => {
     let validOrEmptySAPId;
@@ -259,17 +283,17 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
       setDisplayInvalidSAPIdDialog(true);
       return;
     }
-    return projectUpsert.mutateAsync({
+    await projectUpsert.mutateAsync({
       project: { ...data, geom: geom ?? null, coversMunicipality: coversMunicipality },
       keepOwnerRights,
     });
   };
 
   function submitDisabled() {
-    if (externalForm.formState.isDirty) {
-      return !form.formState.isValid || form.formState.isSubmitting;
+    if (externalIsDirty) {
+      return !isValid || isSubmitting;
     }
-    return !form.formState.isValid || !form.formState.isDirty || form.formState.isSubmitting;
+    return !isValid || !isDirty || isSubmitting;
   }
 
   return (
@@ -302,12 +326,12 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
             formField="startDate"
             label={tr('project.startDateLabel')}
             errorTooltip={getDateFieldErrorMessage(
-              form.formState.errors.startDate?.message ?? null,
+              errors.startDate?.message ?? null,
               tr('newProject.startDateTooltip'),
             )}
             component={(field) => (
               <FormDatePicker
-                maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
+                maxDate={dayjs(getValues('endDate')).subtract(1, 'day')}
                 readOnly={!editing}
                 field={field}
               />
@@ -317,9 +341,9 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
             formField="endDate"
             label={tr('project.endDateLabel')}
             errorTooltip={getDateFieldErrorMessage(
-              form.formState.errors.endDate?.message ?? null,
+              errors.endDate?.message ?? null,
               tr('newProject.endDateTooltip'),
-              [dayjs(form.getValues('startDate')).add(5, 'year').year().toString()],
+              [dayjs(getValues('startDate')).add(5, 'year').year().toString()],
             )}
             component={(field) => (
               <Box
@@ -334,7 +358,7 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
                 `}
               >
                 <FormDatePicker
-                  minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
+                  minDate={dayjs(getValues('startDate')).add(1, 'day')}
                   readOnly={!editing || endDateWatch === 'infinity'}
                   field={field}
                 />
@@ -347,7 +371,7 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
                   disabled={!editing}
                   onChange={() => {
                     if (endDateWatch === 'infinity') {
-                      form.setValue('endDate', '');
+                      setValue('endDate', '');
                     } else {
                       field.onChange('infinity');
                     }
@@ -456,7 +480,7 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
         keepOwnerRights={keepOwnerRights}
         setKeepOwnerRights={setKeepOwnerRights}
         onCancel={() => {
-          form.resetField('owner');
+          resetField('owner');
           setKeepOwnerRights(false);
           setOwnerChangeDialogOpen(false);
         }}
@@ -473,8 +497,8 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
         confirmButtonLabel={tr('genericForm.save')}
         isOpen={displayInvalidSAPIdDialog}
         onConfirm={() => {
-          const data = form.getValues();
-          const { coversMunicipality } = externalForm.getValues();
+          const data = getValues();
+          const { coversMunicipality } = externalGetValues();
           projectUpsert.mutate({
             project: { ...data, geom: props.getDrawGeometry(), coversMunicipality },
             keepOwnerRights,
@@ -484,7 +508,7 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
         }}
         onCancel={() => {
           setEditing(true);
-          form.reset(undefined, { keepValues: true });
+          reset(undefined, { keepValues: true });
           setDisplayInvalidSAPIdDialog(false);
         }}
       />

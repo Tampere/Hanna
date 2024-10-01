@@ -4,7 +4,7 @@ import { Alert, Autocomplete, Box, Button, TextField } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { forwardRef, useEffect, useImperativeHandle, useMemo } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
@@ -80,18 +80,22 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const setDirtyAndValidViews = useSetAtom(dirtyAndValidFieldsAtom);
+  const [newProjectObjectIds, setNewProjectObjectIds] = useState<{
+    projectObjectId: string;
+    projectId: string;
+  } | null>(null);
   const editing = useAtomValue(projectEditingAtom);
 
   useImperativeHandle(
     ref,
     () => ({
       onSave: async (geom: string) => {
-        await form.handleSubmit(async (data) => await onSubmit(data, geom))();
+        await handleSubmit(async (data) => await onSubmit(data, geom))();
       },
       saveAndReturn: (navigateTo: string, geom: string) =>
-        form.handleSubmit((data) => saveAndReturn(data, navigateTo, geom))(),
+        handleSubmit((data) => saveAndReturn(data, navigateTo, geom))(),
       onCancel: () => {
-        form.reset();
+        reset();
       },
     }),
     [],
@@ -100,7 +104,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
   const projectUpsert = trpc.investmentProject.upsert.useMutation({
     onSuccess: () => {
       notify({ severity: 'success', title: tr('projectObject.notifyProjectDateRangeUpdated') });
-      form.trigger(['startDate', 'endDate']);
+      trigger(['startDate', 'endDate']);
     },
     onError: (e) => {
       const messageArray = e.message.split('"').filter((item) => isTranslationKey(item));
@@ -187,31 +191,59 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
     },
   });
 
-  useNavigationBlocker(form.formState.isDirty, 'projectObjectForm');
+  const {
+    trigger,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { isDirty, isValid, isSubmitSuccessful, errors },
+    setValue,
+    getValues,
+  } = form;
+
+  const { isBlocking } = useNavigationBlocker(isDirty, 'projectObjectForm');
 
   useEffect(() => {
     if (props.projectObject) {
-      form.reset(props.projectObject);
+      reset(props.projectObject);
     }
   }, [props.projectObject]);
 
   useEffect(() => {
     if (!props.projectObject) {
-      setDirtyAndValidViews((prev) => ({ ...prev, form: form.formState.isValid }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: isValid }));
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,
-        form: form.formState.isValid && form.formState.isDirty,
+        form: isValid && isDirty,
       }));
     }
-  }, [props.projectObject, form.formState.isValid, form.formState.isDirty]);
+  }, [props.projectObject, isValid, isDirty]);
 
-  const formProjectId = form.watch('projectId');
+  useEffect(() => {
+    if (newProjectObjectIds && !isBlocking) {
+      navigate(
+        `/${props.projectType}/${newProjectObjectIds?.projectId}/kohde/${newProjectObjectIds?.projectObjectId}`,
+      );
+      notify({
+        severity: 'success',
+        title: tr('newProjectObject.notifyUpsert'),
+        duration: 5000,
+      });
+    }
+  }, [newProjectObjectIds, isBlocking]);
+
+  const formProjectId = watch('projectId');
 
   const projectObjectUpsert = trpc.investmentProjectObject.upsert.useMutation({
     onSuccess: (data) => {
       if (!props.projectObject && data.projectObjectId) {
-        navigate(`/${props.projectType}/${data.projectId}/kohde/${data.projectObjectId}`);
+        setNewProjectObjectIds({
+          projectId: data.projectId,
+          projectObjectId: data.projectObjectId,
+        });
+        // Navigation to new project is handled in useEffect
+        return;
       } else {
         queryClient.invalidateQueries({
           queryKey: [['project', 'get'], { input: { projectId: data.projectId } }],
@@ -223,7 +255,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
           ],
         });
 
-        form.reset((currentData) => currentData);
+        reset((currentData) => currentData);
       }
       notify({
         severity: 'success',
@@ -240,10 +272,10 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
   });
 
   useEffect(() => {
-    if (form.formState.isSubmitSuccessful && !props.projectObject) {
-      form.reset();
+    if (isSubmitSuccessful && !props.projectObject) {
+      reset();
     }
-  }, [form.formState.isSubmitSuccessful, form.reset]);
+  }, [isSubmitSuccessful, reset]);
 
   const onSubmit = (data: UpsertInvestmentProjectObject, geom?: string) => {
     return projectObjectUpsert.mutateAsync({ ...data, geom: geom ?? null });
@@ -298,7 +330,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
                     onChange={(value) => {
                       props.setProjectId?.(value ?? '');
                       field.onChange(value);
-                      form.setValue('sapWBSId', null);
+                      setValue('sapWBSId', null);
                     }}
                   />
                 );
@@ -393,19 +425,19 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
             formField="startDate"
             label={tr('projectObject.startDateLabel')}
             errorTooltip={getDateFieldErrorMessage(
-              form.formState.errors.startDate?.message ?? null,
+              errors.startDate?.message ?? null,
               tr('projectObject.startDateTooltip'),
             )}
             component={({ onChange, ...field }) => (
               <FormDatePicker
-                maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
+                maxDate={dayjs(getValues('endDate')).subtract(1, 'day')}
                 readOnly={!editing}
                 field={{
                   onChange: (e) => {
                     onChange(e);
-                    const startDate = form.getValues('startDate');
-                    const endDate = form.getValues('endDate');
-                    if (endDate && dayjs(startDate).isBefore(endDate)) form.trigger('endDate');
+                    const startDate = getValues('startDate');
+                    const endDate = getValues('endDate');
+                    if (endDate && dayjs(startDate).isBefore(endDate)) trigger('endDate');
                   },
                   ...field,
                 }}
@@ -417,19 +449,19 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
             formField="endDate"
             label={tr('projectObject.endDateLabel')}
             errorTooltip={getDateFieldErrorMessage(
-              form.formState.errors.endDate?.message ?? null,
+              errors.endDate?.message ?? null,
               tr('projectObject.endDateTooltip'),
             )}
             component={({ onChange, ...field }) => (
               <FormDatePicker
-                minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
+                minDate={dayjs(getValues('startDate')).add(1, 'day')}
                 readOnly={!editing}
                 field={{
                   onChange: (e) => {
                     onChange(e);
-                    const startDate = form.getValues('startDate');
-                    const endDate = form.getValues('endDate');
-                    if (startDate && dayjs(startDate).isBefore(endDate)) form.trigger('startDate');
+                    const startDate = getValues('startDate');
+                    const endDate = getValues('endDate');
+                    if (startDate && dayjs(startDate).isBefore(endDate)) trigger('startDate');
                   },
                   ...field,
                 }}
@@ -458,10 +490,8 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
               flex-direction: column;
             `}
           >
-            {(form.formState.errors?.endDate?.message ===
-              'projectObject.error.projectNotIncluded' ||
-              form.formState.errors?.startDate?.message ===
-                'projectObject.error.projectNotIncluded') && (
+            {(errors?.endDate?.message === 'projectObject.error.projectNotIncluded' ||
+              errors?.startDate?.message === 'projectObject.error.projectNotIncluded') && (
               <Alert
                 css={css`
                   margin-top: 1rem;
@@ -473,8 +503,8 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
                     color="inherit"
                     size="small"
                     onClick={async () => {
-                      const { startDate, endDate, projectId } = form.getValues();
-                      const formErrors = form.formState.errors;
+                      const { startDate, endDate, projectId } = getValues();
+                      const formErrors = errors;
                       if (projectId) {
                         await handleProjectDateUpsert(
                           projectId,

@@ -54,11 +54,11 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
     ref,
     () => ({
       onSave: async (geom?: string) => {
-        await form.handleSubmit(async (data) => await onSubmit(data, geom))();
+        await handleSubmit(async (data) => await onSubmit(data, geom))();
       },
       onCancel: () => {
-        form.reset();
-        externalForm.reset();
+        reset();
+        resetExternal();
         setCoversMunicipality(form.getValues('coversMunicipality'));
       },
     }),
@@ -76,6 +76,7 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
   const [keepOwnerRights, setKeepOwnerRights] = useState(false);
   const [displayInvalidSAPIdDialog, setDisplayInvalidSAPIdDialog] = useState(false);
   const [editing, setEditing] = useAtom(projectEditingAtom);
+  const [newProjectId, setNewProjectId] = useState<string | null>(null);
 
   const { user, sap } = trpc.useUtils();
 
@@ -107,7 +108,12 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
 
   const { investmentProject } = trpc.useUtils();
   const formValidator = useMemo(() => {
-    const schemaValidation = zodResolver(investmentProjectSchema);
+    const schemaValidation = zodResolver(
+      investmentProjectSchema.refine(
+        (project) => new Date(project.startDate) < new Date(project.endDate),
+        { message: tr('project.error.endDateBeforeStartDate') },
+      ),
+    );
 
     return async function formValidation(
       values: InvestmentProject,
@@ -126,6 +132,7 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
         : null;
       const shapeErrors = schemaValidation(values, context, options);
       const errors = await Promise.all([serverErrors, shapeErrors]);
+
       return {
         values,
         errors: mergeErrors(errors).errors,
@@ -142,7 +149,20 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
     defaultValues: props.project ?? formDefaultValues,
   });
 
-  const externalForm = useForm<{ coversMunicipality: boolean }>({
+  const {
+    handleSubmit,
+    reset,
+    watch,
+    resetField,
+    formState: { isDirty, isValid, isSubmitSuccessful, isSubmitting, errors },
+    getValues,
+  } = form;
+
+  const {
+    formState: { isDirty: externalIsDirty },
+    getValues: externalGetValues,
+    reset: resetExternal,
+  } = useForm<{ coversMunicipality: boolean }>({
     mode: 'all',
     defaultValues: {
       coversMunicipality: props.project?.coversMunicipality ?? false,
@@ -151,34 +171,42 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
     resetOptions: { keepDefaultValues: true },
   });
 
-  useNavigationBlocker(form.formState.isDirty, 'investmentForm');
-  const ownerWatch = form.watch('owner');
+  const { isBlocking } = useNavigationBlocker(isDirty || externalIsDirty, 'investmentForm');
+  const ownerWatch = watch('owner');
 
   useEffect(() => {
     if (!props.project) {
-      setDirtyAndValidViews((prev) => ({ ...prev, form: form.formState.isValid }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: isValid }));
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,
         form: !submitDisabled(),
       }));
     }
-  }, [
-    props.project,
-    form.formState.isValid,
-    form.formState.isDirty,
-    externalForm.formState.isDirty,
-  ]);
+  }, [isValid, isDirty, externalIsDirty]);
 
   useEffect(() => {
-    form.reset(props.project ?? formDefaultValues);
+    reset(props.project ?? formDefaultValues);
   }, [props.project]);
+
+  useEffect(() => {
+    if (newProjectId && !isBlocking) {
+      navigate(`/investointihanke/${newProjectId}`);
+      notify({
+        severity: 'success',
+        title: tr('newProject.notifyUpsert'),
+        duration: 5000,
+      });
+    }
+  }, [newProjectId, isBlocking]);
 
   const projectUpsert = trpc.investmentProject.upsert.useMutation({
     onSuccess: async (data) => {
       // Navigate to new url if we are creating a new project
       if (!props.project && data.projectId) {
-        navigate(`/investointihanke/${data.projectId}`);
+        setNewProjectId(data.projectId);
+        // Navigation to new project is handled in useEffect
+        return;
       } else {
         await queryClient.invalidateQueries({
           queryKey: [['investmentProject', 'get'], { input: { projectId: data.projectId } }],
@@ -191,8 +219,8 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
           ],
         });
 
-        form.reset(data);
-        externalForm.reset({ coversMunicipality: data.coversMunicipality });
+        reset(data);
+        resetExternal({ coversMunicipality: data.coversMunicipality });
       }
       notify({
         severity: 'success',
@@ -212,10 +240,10 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
   });
 
   useEffect(() => {
-    if (form.formState.isSubmitSuccessful && !props.project && !displayInvalidSAPIdDialog) {
-      form.reset();
+    if (isSubmitSuccessful && !props.project && !displayInvalidSAPIdDialog) {
+      reset();
     }
-  }, [form.formState.isSubmitSuccessful, form.reset, displayInvalidSAPIdDialog]);
+  }, [isSubmitSuccessful, reset, displayInvalidSAPIdDialog]);
 
   const onSubmit = async (data: InvestmentProject | DbInvestmentProject, geom?: string) => {
     let validOrEmptySAPId;
@@ -232,8 +260,7 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
       setDisplayInvalidSAPIdDialog(true);
       return;
     }
-
-    return projectUpsert.mutateAsync({
+    await projectUpsert.mutateAsync({
       project: {
         ...data,
         geom: geom ?? null,
@@ -244,10 +271,10 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
   };
 
   function submitDisabled() {
-    if (externalForm.formState.isDirty) {
-      return !form.formState.isValid || form.formState.isSubmitting;
+    if (externalIsDirty) {
+      return !isValid || isSubmitting;
     }
-    return !form.formState.isValid || !form.formState.isDirty || form.formState.isSubmitting;
+    return !isValid || !isDirty || isSubmitting;
   }
   return (
     <>
@@ -279,12 +306,12 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
             formField="startDate"
             label={tr('project.startDateLabel')}
             errorTooltip={getDateFieldErrorMessage(
-              form.formState.errors.startDate?.message ?? null,
+              errors.startDate?.message ?? null,
               tr('newProject.startDateTooltip'),
             )}
             component={(field) => (
               <FormDatePicker
-                maxDate={dayjs(form.getValues('endDate')).subtract(1, 'day')}
+                maxDate={dayjs(getValues('endDate')).subtract(1, 'day')}
                 readOnly={!editing}
                 field={field}
               />
@@ -294,12 +321,12 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
             formField="endDate"
             label={tr('project.endDateLabel')}
             errorTooltip={getDateFieldErrorMessage(
-              form.formState.errors.endDate?.message ?? null,
+              errors.endDate?.message ?? null,
               tr('newProject.endDateTooltip'),
             )}
             component={(field) => (
               <FormDatePicker
-                minDate={dayjs(form.getValues('startDate')).add(1, 'day')}
+                minDate={dayjs(getValues('startDate')).add(1, 'day')}
                 readOnly={!editing}
                 field={field}
               />
@@ -402,7 +429,7 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
         keepOwnerRights={keepOwnerRights}
         setKeepOwnerRights={setKeepOwnerRights}
         onCancel={() => {
-          form.resetField('owner');
+          resetField('owner');
           setKeepOwnerRights(false);
           setOwnerChangeDialogOpen(false);
         }}
@@ -419,8 +446,8 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
         confirmButtonLabel={tr('genericForm.save')}
         isOpen={displayInvalidSAPIdDialog}
         onConfirm={() => {
-          const data = form.getValues();
-          const { coversMunicipality } = externalForm.getValues();
+          const data = getValues();
+          const { coversMunicipality } = externalGetValues();
           projectUpsert.mutate({
             project: { ...data, geom: props.getDrawGeometry(), coversMunicipality },
             keepOwnerRights,
@@ -430,7 +457,7 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
         }}
         onCancel={() => {
           setEditing(true);
-          form.reset(undefined, { keepValues: true });
+          reset(undefined, { keepValues: true });
           setDisplayInvalidSAPIdDialog(false);
         }}
       />

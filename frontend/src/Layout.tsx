@@ -45,7 +45,6 @@ import { NavigationBlocker } from './components/NavigationBlocker';
 import { TooltipLinkTab } from './components/TooltipLinkTab';
 import NotificationList from './services/notification';
 import { asyncUserAtom, sessionExpiredAtom } from './stores/auth';
-import { blockerStatusAtom } from './stores/navigationBlocker';
 
 export const theme = createTheme(
   {
@@ -357,7 +356,6 @@ function AboutDialog({ open, handleClose }: { open: boolean; handleClose: () => 
 
 export function Layout() {
   const sessionExpired = useAtomValue(sessionExpiredAtom);
-  const blockerStatus = useAtomValue(blockerStatusAtom);
 
   const mainLayoutStyle = css`
     height: 100vh;
@@ -385,7 +383,7 @@ export function Layout() {
           <NotificationList />
           <Box css={mainContentStyle} id="mainContentContainer">
             <Outlet />
-            <NavigationBlocker status={blockerStatus} />
+            <NavigationBlocker />
           </Box>
           <SessionExpiredWarning />
         </ThemeProvider>
