@@ -85,6 +85,7 @@ export const createProjectRouter = (t: TRPC) => {
           projects: projectSearchResultSchema.shape.projects,
           clusters: projectSearchResultSchema.shape.clusters,
           projectObjects: projectObjectSearchResultSchema.shape.projectObjects.optional(),
+          projectTotalCount: projectSearchResultSchema.shape.projectTotalCount,
         }),
       )
       .query(async ({ input }) => {

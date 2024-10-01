@@ -151,7 +151,7 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
   const withGeometries = Boolean(map?.zoom && map.zoom > CLUSTER_ZOOM_BELOW);
 
   const dbResult = await getPool().one(sql.type(resultSchema)`
-    WITH search_results AS (
+    WITH total_results AS (
     ${getProjectObjectSearchFragment({
       withProjectGeometry: withGeometries,
       withRank: true,
@@ -198,8 +198,10 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
       )
     GROUP BY po.id, project.project_name, project.geom, project.start_date, project.end_date, poi.project_object_id, project.covers_entire_municipality
     ${objectParticipantFragment(objectParticipantUser)}
-    LIMIT ${limit}
-  ), project_object_results AS (
+
+  ),
+   search_results AS (select * from total_results LIMIT ${limit}),
+   project_object_results AS (
     SELECT
       "projectObjectId",
       "startDate",
@@ -217,6 +219,7 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
     FROM search_results
     ORDER BY "projectIndex"
   ) SELECT jsonb_build_object(
+      'totalCount', (SELECT count(*) FROM total_results),
       'projectObjects', (SELECT jsonb_agg(project_object_results.*) FROM project_object_results),
       'clusters', ${clusterResultsFragment(map?.zoom)}
     ) AS result

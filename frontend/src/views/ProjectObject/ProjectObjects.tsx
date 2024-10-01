@@ -183,11 +183,17 @@ function ProjectObjectCard({
 
 interface SearchResultsProps {
   projectObjects: ProjectObjectSearchResult['projectObjects'];
+  totalResults: number;
   loading?: boolean;
   activeProjectObjectId: string | null;
 }
 
-function SearchResults({ projectObjects, loading, activeProjectObjectId }: SearchResultsProps) {
+function SearchResults({
+  projectObjects,
+  totalResults,
+  loading,
+  activeProjectObjectId,
+}: SearchResultsProps) {
   const tr = useTranslations();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -236,7 +242,7 @@ function SearchResults({ projectObjects, loading, activeProjectObjectId }: Searc
     if (loading) return '';
     if (projectObjects.length === 1)
       return `${tr('projectObjectListing.searchResultsTitleSingle')}:`;
-    if (projectObjects.length > 500) {
+    if (projectObjects.length < totalResults) {
       if (withStyling) {
         const title = tr('projectObjectListing.searchResultsTitleExceeded').split('{0}');
         return (
@@ -247,13 +253,13 @@ function SearchResults({ projectObjects, loading, activeProjectObjectId }: Searc
                 color: #525252;
               `}
             >
-              yli 500
+              {`yli ${projectObjects.length}`}
             </b>
             {title[1]}
           </>
         );
       }
-      return tr('projectObjectListing.searchResultsTitleExceeded', 'yli 500');
+      return tr('projectObjectListing.searchResultsTitleExceeded', `yli ${projectObjects.length}`);
     }
     if (projectObjects.length > 0) {
       if (withStyling) {
@@ -367,6 +373,7 @@ function ProjectObjectResults() {
       <SearchResults
         loading={search.isLoading}
         projectObjects={search.data?.projectObjects ?? []}
+        totalResults={search.data?.totalCount ?? 0}
         activeProjectObjectId={activeItemId}
       />
       <ProjectObjectResultsMap
