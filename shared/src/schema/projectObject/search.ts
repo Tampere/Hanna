@@ -29,6 +29,7 @@ export const objectsByProjectSearchSchema = z.object({
 });
 
 export const projectObjectSearchResultSchema = z.object({
+  totalCount: z.number(),
   projectObjects: z.array(
     mergedProjectObjectDbSchema
       .pick({

@@ -296,6 +296,7 @@ export async function projectSearch(
       LIMIT ${limit}
     )
    SELECT jsonb_build_object(
+      'projectTotalCount', (SELECT count(*) FROM projects),
       'projects', COALESCE((SELECT jsonb_agg(limited.*) FROM limited), '[]'::jsonb),
       'clusters', ${clusterResultsFragment(map?.zoom)}
     ) AS result

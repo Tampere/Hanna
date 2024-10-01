@@ -94,6 +94,7 @@ export const projectSearchResultSchema = z.object({
       projectDistribution: z.record(projectTypeSchema, z.number()),
     }),
   ),
+  projectTotalCount: z.number(),
 });
 
 export type ProjectObjectSearchParentProject = z.infer<typeof projectObjectSearchParentProject>;

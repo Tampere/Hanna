@@ -239,9 +239,10 @@ interface SearchResultsProps {
   results: ProjectSearchResult['projects'];
   loading?: boolean;
   activeProjectId: string | null;
+  totalResults: number;
 }
 
-function SearchResults({ results, loading, activeProjectId }: SearchResultsProps) {
+function SearchResults({ results, totalResults, loading, activeProjectId }: SearchResultsProps) {
   const tr = useTranslations();
   const projectSearchParams = useAtomValue(projectSearchParamAtom);
   const { project } = trpc.useUtils();
@@ -261,7 +262,7 @@ function SearchResults({ results, loading, activeProjectId }: SearchResultsProps
   function getSearchResultTitle(withStyling = false) {
     if (loading) return '';
     if (results.length === 1) return `${tr('projectListing.searchResultsTitleSingle')}:`;
-    if (results.length > 500) {
+    if (results.length < totalResults) {
       if (withStyling) {
         const title = tr('projectListing.searchResultsTitleExceeded').split('{0}');
         return (
@@ -272,13 +273,13 @@ function SearchResults({ results, loading, activeProjectId }: SearchResultsProps
                 color: #525252;
               `}
             >
-              yli 500
+              {`yli ${results.length}`}
             </b>
             {title[1]}
           </>
         );
       }
-      return tr('projectListing.searchResultsTitleExceeded', 'yli 500');
+      return tr('projectListing.searchResultsTitleExceeded', `yli ${results.length}`);
     }
     if (results.length > 0) {
       if (withStyling) {
@@ -408,6 +409,7 @@ function ProjectResults() {
       <SearchResults
         loading={search.isLoading}
         results={search.data?.projects ?? []}
+        totalResults={search.data?.projectTotalCount ?? 0}
         activeProjectId={activeItemId}
       />
       <ResultsMap loading={search.isLoading} results={search.data} />
