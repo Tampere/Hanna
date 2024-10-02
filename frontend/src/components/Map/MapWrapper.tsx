@@ -180,13 +180,15 @@ export const MapWrapper = forwardRef(function MapWrapper<
     ref,
     () => ({
       handleUndoDraw,
-      handleSave: async () =>
+      handleSave: async () => {
         await props.onGeometrySave?.(
           getGeoJSONFeaturesString(
             drawSource.getFeatures(),
             projection?.getCode() ?? mapOptions.projection.code,
           ),
-        ),
+        );
+        setDirtyAndValidViews((prev) => ({ ...prev, map: false }));
+      },
       getGeometry: getGeometryForSave,
     }),
     [drawSource, selectionSource],
