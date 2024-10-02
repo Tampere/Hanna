@@ -126,7 +126,7 @@ export const fi = {
   'project.error.sapProjectNotFound': 'SAP-projektia ei löytynyt annetulla ID:llä.',
   'projectObject.error.budgetNotIncluded': 'Talouslukuja ajankohdan ulkopuolella.',
   'projectObject.error.budgetNotIncludedForOngoing': 'Talouslukuja määritelty vuoden {0} jälkeen.',
-  'projectObject.error.projectNotIncluded': 'Hanke ajankohdan ulkopuolella.',
+  'projectObject.error.projectNotIncluded': 'Kohteen aikaväli ei ole hankkeen aikavälin sisällä.',
   'projectForm.saveBtnLabel': 'Tallenna',
   'projectForm.editBtnLabel': 'Muokkaa',
   'projectForm.undoBtnLabel': 'Peruuta muutokset',
@@ -361,8 +361,14 @@ export const fi = {
   'maintenanceProjectObject.procurementMethod': 'Toteutustapa',
   'projectObjectForm.infoNoGeom': 'Olet luomassa kohdetta ilman aluetta.',
   'projectObjectForm.infoProjectDateOutOfRange':
-    'Päivitä hankkeen aikaväli vastaamaan kohteen aikaväliä tallentaaksesi lomakkeen.',
-  'projectObjectForm.updateProjectDateRangeLabel': 'Päivitä',
+    'Kohteen aikaväli ei ole hankkeen aikavälin sisällä, mikä ei ole sallittua.',
+  'projectObjectForm.infoOutOfRangeStartDate':
+    'Muutetaanko hankkeen alkupäiväksi kohteen alkupäivä?',
+  'projectObjectForm.infoOutOfRangeEndDate':
+    'Muutetaanko hankkeen loppupäiväksi kohteen loppupäivä?',
+  'projectObjectForm.infoOutOfRangeBoth':
+    'Muutetaanko hankkeen aikaväli vastaamaan kohteen aikaväliä?',
+  'projectObjectForm.updateProjectDateRangeLabel': 'Muuta',
   'projectObjectForm.createBtnLabel': 'Luo kohde',
   'projectObjectForm.createAndReturnBtnLabel': 'Tallenna ja palaa',
   'projectObjectForm.saveBtnLabel': 'Tallenna',

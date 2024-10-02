@@ -162,7 +162,9 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
         fields && (fields.includes('startDate') || fields.includes('endDate') || fields.length > 1);
 
       const serverErrors = isFormValidation
-        ? projectObject.upsertValidate.fetch({ ...values, geom: undefined }).catch(() => null)
+        ? projectObject.upsertValidate
+            .fetch({ ...values, geom: undefined, geometryDump: undefined })
+            .catch(() => null)
         : null;
 
       const shapeErrors = schemaValidation(values, context, options);
@@ -290,6 +292,20 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
         },
       },
     );
+  }
+
+  function getProjectDateAlertText() {
+    const errorMessage = 'projectObject.error.projectNotIncluded';
+    console.log(errors);
+    let text = tr('projectObjectForm.infoProjectDateOutOfRange');
+    if (errors.startDate?.message === errorMessage && errors.endDate?.message === errorMessage) {
+      text = `${text} ${tr('projectObjectForm.infoOutOfRangeBoth')}`;
+    } else if (errors.startDate?.message === errorMessage) {
+      text = `${text} ${tr('projectObjectForm.infoOutOfRangeStartDate')}`;
+    } else if (errors.endDate?.message === errorMessage) {
+      text = `${text} ${tr('projectObjectForm.infoOutOfRangeEndDate')}`;
+    }
+    return text;
   }
 
   return (
@@ -468,6 +484,36 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
               />
             )}
           />
+          {(errors?.endDate?.message === 'projectObject.error.projectNotIncluded' ||
+            errors?.startDate?.message === 'projectObject.error.projectNotIncluded') && (
+            <Alert
+              css={css`
+                align-items: center;
+              `}
+              severity="warning"
+              action={
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={async () => {
+                    const { startDate, endDate, projectId } = getValues();
+                    const formErrors = errors;
+                    if (projectId) {
+                      await handleProjectDateUpsert(
+                        projectId,
+                        formErrors?.startDate ? startDate : null,
+                        formErrors?.endDate ? endDate : null,
+                      );
+                    }
+                  }}
+                >
+                  {tr('projectObjectForm.updateProjectDateRangeLabel')}
+                </Button>
+              }
+            >
+              {getProjectDateAlertText()}
+            </Alert>
+          )}
 
           <FormField
             formField="sapWBSId"
@@ -489,39 +535,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
               display: flex;
               flex-direction: column;
             `}
-          >
-            {(errors?.endDate?.message === 'projectObject.error.projectNotIncluded' ||
-              errors?.startDate?.message === 'projectObject.error.projectNotIncluded') && (
-              <Alert
-                css={css`
-                  margin-top: 1rem;
-                  align-items: center;
-                `}
-                severity="warning"
-                action={
-                  <Button
-                    color="inherit"
-                    size="small"
-                    onClick={async () => {
-                      const { startDate, endDate, projectId } = getValues();
-                      const formErrors = errors;
-                      if (projectId) {
-                        await handleProjectDateUpsert(
-                          projectId,
-                          formErrors?.startDate ? startDate : null,
-                          formErrors?.endDate ? endDate : null,
-                        );
-                      }
-                    }}
-                  >
-                    {tr('projectObjectForm.updateProjectDateRangeLabel')}
-                  </Button>
-                }
-              >
-                {tr('projectObjectForm.infoProjectDateOutOfRange')}
-              </Alert>
-            )}
-          </Box>
+          ></Box>
         </form>
       </FormProvider>
     </>
