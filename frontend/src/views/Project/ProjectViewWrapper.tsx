@@ -179,7 +179,7 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
     try {
       await Promise.all(
         Object.entries(dirtyAndValidViews).map(async ([view, status]) => {
-          if (status.isValid) {
+          if (status.isValid || status.isDirtyAndValid) {
             await viewSaveActions[view as keyof DirtyAndValidFields]?.();
           }
         }),

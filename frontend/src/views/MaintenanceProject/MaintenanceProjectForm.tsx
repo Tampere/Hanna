@@ -205,7 +205,7 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,
-        form: { isDirty, isValid: !submitDisabled() },
+        form: { isDirty: isDirty || externalIsDirty, isValid: !submitDisabled() },
       }));
     }
   }, [props.project, isValid, isDirty, externalIsDirty]);
