@@ -189,7 +189,7 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,
-        form: { isDirty, isValid: !submitDisabled() },
+        form: { isDirty: isDirty || externalIsDirty, isValid: !submitDisabled() },
       }));
     }
   }, [isValid, isDirty, externalIsDirty]);
