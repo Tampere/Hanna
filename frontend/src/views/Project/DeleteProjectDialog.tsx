@@ -52,10 +52,12 @@ export function DeleteProjectDialog({ projectId, message, disabled, cssProp }: R
         sx={{
           '&:hover': {
             backgroundColor: 'error.main',
+            color: 'white',
+            borderColor: 'white',
           },
         }}
         size="small"
-        variant="contained"
+        variant="outlined"
         disabled={disabled}
         endIcon={<Delete />}
         onClick={() => setIsDialogOpen(true)}

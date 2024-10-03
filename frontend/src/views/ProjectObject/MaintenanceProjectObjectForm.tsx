@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
-import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
+import { FieldErrors, FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
 import { trpc } from '@frontend/client';
@@ -77,7 +77,11 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
 
   const projectUpsert = trpc.maintenanceProject.upsert.useMutation({
     onSuccess: () => {
-      notify({ severity: 'success', title: tr('projectObject.notifyProjectDateRangeUpdated') });
+      notify({
+        severity: 'success',
+        title: tr('projectObject.notifyProjectDateRangeUpdated'),
+        duration: 5000,
+      });
       form.trigger(['startDate', 'endDate']);
     },
     onError: async (e) => {
@@ -86,6 +90,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
       notify({
         severity: 'error',
         title: tr('projectObject.notifyProjectDateRangeUpdateError'),
+        duration: 5000,
         message: messageArray
           .map((item) => {
             if (item === 'project.error.budgetNotIncludedForOngoing') {
@@ -133,13 +138,19 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
 
     return async function formValidation(
       values: UpsertMaintenanceProjectObject,
-      context: object,
+      context: { getRequiredFields: typeof getRequiredFields; getErrors: () => FieldErrors },
       options: ResolverOptions<UpsertMaintenanceProjectObject>,
     ) {
       const fields = options.names ?? [];
 
-      const isFormValidation =
-        fields && (fields.includes('startDate') || fields.includes('endDate') || fields.length > 1);
+      const currentErrors = context.getErrors();
+      const needsDateValidation =
+        currentErrors.startDate ||
+        currentErrors.endDate ||
+        fields.includes('startDate') ||
+        fields.includes('endDate');
+
+      const isFormValidation = (fields && needsDateValidation) || fields.length > 1;
 
       const serverErrors = isFormValidation
         ? projectObject.upsertValidate
@@ -157,11 +168,16 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
     };
   }, []);
 
+  function getErrors() {
+    return form.formState.errors;
+  }
+
   const form = useForm<UpsertMaintenanceProjectObject>({
     mode: 'all',
     resolver: formValidator,
     context: {
       requiredFields: getRequiredFields(newMaintenanceProjectObjectSchema),
+      getErrors,
     },
     defaultValues: props.projectObject
       ? {
@@ -277,11 +293,11 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
 
   useEffect(() => {
     if (!props.projectObject) {
-      setDirtyAndValidViews((prev) => ({ ...prev, form: isValid }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: { isValid } }));
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,
-        form: isValid && isDirty,
+        form: { isValid, isDirty },
       }));
     }
   }, [props.projectObject, isValid, isDirty]);
@@ -292,7 +308,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
 
   function getProjectDateAlertText() {
     const errorMessage = 'projectObject.error.projectNotIncluded';
-    console.log(errors);
+
     let text = tr('projectObjectForm.infoProjectDateOutOfRange');
     if (errors.startDate?.message === errorMessage && errors.endDate?.message === errorMessage) {
       text = `${text} ${tr('projectObjectForm.infoOutOfRangeBoth')}`;

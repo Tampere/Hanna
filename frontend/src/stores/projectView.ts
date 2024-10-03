@@ -1,13 +1,20 @@
 import { atom } from 'jotai';
 import { atomWithReset } from 'jotai/utils';
 
-export type ModifiableField = 'form' | 'map' | 'finances' | 'permissions';
+export type ModifiableField = keyof DirtyAndValidFields;
 
-const defaultDirtyAndValidViews: Record<ModifiableField, boolean> = {
-  form: false,
-  map: false,
-  finances: false,
-  permissions: false,
+export interface DirtyAndValidFields {
+  form: { isDirty?: boolean; isValid: boolean };
+  map: { isDirtyAndValid: boolean };
+  finances: { isDirtyAndValid: boolean };
+  permissions: { isDirtyAndValid: boolean };
+}
+
+const defaultDirtyAndValidViews: DirtyAndValidFields = {
+  form: { isDirty: false, isValid: false },
+  map: { isDirtyAndValid: false },
+  finances: { isDirtyAndValid: false },
+  permissions: { isDirtyAndValid: false },
 };
 
 export const projectEditingAtom = atom(false);

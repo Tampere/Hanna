@@ -28,12 +28,11 @@ import { ProjectWritePermission } from '@shared/schema/project/base';
 
 interface Props {
   projectId: string;
-  editing: boolean;
   ownerId?: string;
 }
 
 export const ProjectPermissions = forwardRef(function ProjectPermissions(
-  { projectId, editing, ownerId }: Props,
+  { projectId, ownerId }: Props,
   ref,
 ) {
   const notify = useNotifications();
@@ -54,7 +53,7 @@ export const ProjectPermissions = forwardRef(function ProjectPermissions(
   const isDirty =
     !isLoading && !isError && diff(userPermissions, localUserPermissions).length !== 0;
   useNavigationBlocker(isDirty, 'projectPermissions', () =>
-    setDirtyAndValidViews((prev) => ({ ...prev, permissions: false })),
+    setDirtyAndValidViews((prev) => ({ ...prev, permissions: { isDirtyAndValid: false } })),
   );
 
   useImperativeHandle(
@@ -70,7 +69,7 @@ export const ProjectPermissions = forwardRef(function ProjectPermissions(
     if (!isLoading && !isError)
       setDirtyAndValidViews((prev) => ({
         ...prev,
-        permissions: diff(userPermissions, localUserPermissions).length !== 0,
+        permissions: { isDirtyAndValid: diff(userPermissions, localUserPermissions).length !== 0 },
       }));
   }, [localUserPermissions]);
 
@@ -206,7 +205,7 @@ export const ProjectPermissions = forwardRef(function ProjectPermissions(
                           )
                         }
                         checked={user.userId === ownerId || user.canWrite || user.isAdmin}
-                        disabled={!editing || user.userId === ownerId || user.isAdmin}
+                        disabled={user.userId === ownerId || user.isAdmin}
                       />
                     </TableCell>
                   </TableRow>

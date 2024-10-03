@@ -117,10 +117,16 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
       options: ResolverOptions<MaintenanceProject>,
     ) {
       const fields = options.names ?? [];
+      const currentErrors = context.getErrors();
+      const needsDateValidation =
+        currentErrors.startDate ||
+        currentErrors.endDate ||
+        fields.includes('startDate') ||
+        fields.includes('endDate');
+
       const isFormValidation =
-        fields &&
-        (Boolean(props.project && (fields.includes('startDate') || fields.includes('endDate'))) ||
-          fields.length > 1);
+        fields && (Boolean(props.project && needsDateValidation) || fields.length > 1);
+
       const serverErrors = isFormValidation
         ? maintenanceProject.upsertValidate.fetch({ ...values, geom: undefined }).catch(() => null)
         : null;
@@ -133,11 +139,16 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
     };
   }, []);
 
+  function getErrors() {
+    return form.formState.errors;
+  }
+
   const form = useForm<MaintenanceProject>({
     mode: 'all',
     resolver: formValidator,
     context: {
       requiredFields: getRequiredFields(maintenanceProjectSchema),
+      getErrors,
     },
     defaultValues: props.project
       ? {
@@ -190,11 +201,11 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
 
   useEffect(() => {
     if (!props.project) {
-      setDirtyAndValidViews((prev) => ({ ...prev, form: isValid }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: { isDirty: true, isValid: true } }));
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,
-        form: !submitDisabled(),
+        form: { isDirty, isValid: !submitDisabled() },
       }));
     }
   }, [props.project, isValid, isDirty, externalIsDirty]);

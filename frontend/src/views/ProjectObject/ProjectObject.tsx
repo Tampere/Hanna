@@ -193,6 +193,11 @@ export function ProjectObject(props: Props) {
     return getProjectsLayer(projectSource);
   }, [project.data]);
 
+  const vectorLayers = useMemo(
+    () => [projectLayer, projectObjectLayer],
+    [projectLayer, projectObjectLayer],
+  );
+
   function handleFormCancel(formRef: React.RefObject<{ onCancel: () => void }>) {
     if (formRef.current?.onCancel) {
       formRef.current?.onCancel();
@@ -289,7 +294,15 @@ export function ProjectObject(props: Props) {
               overflow-y: auto;
             `}
           >
+            (
             <Tabs
+              css={css`
+                min-height: ${editing ? 0 : 48}px;
+                height: ${editing ? 0 : 48}px;
+                transition:
+                  min-height 0.2s,
+                  height 0.2s;
+              `}
               value={tabIndex}
               indicatorColor="primary"
               textColor="primary"
@@ -307,7 +320,7 @@ export function ProjectObject(props: Props) {
                 />
               ))}
             </Tabs>
-
+            )
             {!searchParams.get('tab') && (
               <Box css={mapContainerStyle}>
                 <MapWrapper
@@ -320,7 +333,7 @@ export function ProjectObject(props: Props) {
                     drawStyle: PROJ_OBJ_DRAW_STYLE,
                     editable: editing && (!projectObjectId || isOwner || canWrite),
                   }}
-                  vectorLayers={[projectLayer, projectObjectLayer]}
+                  vectorLayers={vectorLayers}
                   fitExtent="all"
                   projectObjects={
                     projectObjects.data
@@ -340,7 +353,6 @@ export function ProjectObject(props: Props) {
                 />
               </Box>
             )}
-
             {searchParams.get('tab') && (
               <Box sx={{ m: 2, overflowY: 'auto' }}>
                 {searchParams.get('tab') === 'talous' && projectObject.data && (

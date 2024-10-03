@@ -109,7 +109,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   const setDirtyAndValidViews = useSetAtom(dirtyAndValidFieldsAtom);
   const watch = form.watch();
   useNavigationBlocker(form.formState.isDirty, 'budgetTable', () => {
-    setDirtyAndValidViews((prev) => ({ ...prev, finances: false }));
+    setDirtyAndValidViews((prev) => ({ ...prev, finances: { isDirtyAndValid: false } }));
   });
 
   /**
@@ -127,7 +127,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     setDirtyAndValidViews((prev) => {
       return {
         ...prev,
-        finances: form.formState.isDirty,
+        finances: { isDirtyAndValid: form.formState.isDirty },
       };
     });
   }, [form.formState.isDirty]);

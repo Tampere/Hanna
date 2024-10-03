@@ -226,11 +226,11 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
 
   useEffect(() => {
     if (!props.project) {
-      setDirtyAndValidViews((prev) => ({ ...prev, form: isValid }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: { isDirty: true, isValid: true } }));
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,
-        form: isValid && isDirty,
+        form: { isDirty, isValid },
       }));
     }
   }, [props.project, isValid, isDirty]);
