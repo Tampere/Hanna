@@ -133,6 +133,7 @@ export function DetailplanProject() {
 
   return (
     <ProjectViewWrapper
+      projectType="asemakaavahanke"
       permissionCtx={
         project.data ? { owner: project.data?.owner, writeUsers: project.data?.writeUsers } : null
       }
@@ -170,24 +171,33 @@ export function DetailplanProject() {
               overflow-y: auto;
             `}
           >
-            <Tabs
-              value={tabIndex}
-              indicatorColor="primary"
-              textColor="primary"
-              TabIndicatorProps={{ sx: { height: '5px' } }}
-            >
-              {tabs.map((tab) => (
-                <Tab
-                  disabled={!project.data}
-                  key={tab.tabView}
-                  component={Link}
-                  to={tab.url}
-                  icon={tab.icon}
-                  iconPosition="end"
-                  label={tr(tab.label)}
-                />
-              ))}
-            </Tabs>
+            {
+              <Tabs
+                css={css`
+                  min-height: ${editing ? 0 : 48}px;
+                  height: ${editing ? 0 : 48}px;
+                  transition:
+                    min-height 0.2s,
+                    height 0.2s;
+                `}
+                value={tabIndex}
+                indicatorColor="primary"
+                textColor="primary"
+                TabIndicatorProps={{ sx: { height: '5px' } }}
+              >
+                {tabs.map((tab) => (
+                  <Tab
+                    disabled={!project.data}
+                    key={tab.tabView}
+                    component={Link}
+                    to={tab.url}
+                    icon={tab.icon}
+                    iconPosition="end"
+                    label={tr(tab.label)}
+                  />
+                ))}
+              </Tabs>
+            }
 
             {tabView === 'default' && (
               <Box css={mapContainerStyle}>
@@ -217,7 +227,6 @@ export function DetailplanProject() {
                 {tabView === 'luvitus' && (
                   <ProjectPermissions
                     ref={tabRefs.permissions}
-                    editing={editing}
                     projectId={routeParams.projectId}
                     ownerId={project.data?.owner}
                   />

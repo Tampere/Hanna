@@ -287,6 +287,13 @@ export function InvestmentProject() {
           >
             {tabs.length > 0 && (
               <Tabs
+                css={css`
+                  min-height: ${editing ? 0 : 48}px;
+                  height: ${editing ? 0 : 48}px;
+                  transition:
+                    min-height 0.2s,
+                    height 0.2s;
+                `}
                 value={tabIndex}
                 indicatorColor="primary"
                 textColor="primary"
@@ -382,7 +389,6 @@ export function InvestmentProject() {
                   <ProjectPermissions
                     ref={tabRefs.permissions}
                     projectId={routeParams.projectId}
-                    editing={editing}
                     ownerId={project.data?.owner}
                   />
                 )}

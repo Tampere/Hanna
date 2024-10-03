@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
-import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
+import { FieldErrors, FormProvider, ResolverOptions, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
 import { trpc } from '@frontend/client';
@@ -103,7 +103,11 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
 
   const projectUpsert = trpc.investmentProject.upsert.useMutation({
     onSuccess: () => {
-      notify({ severity: 'success', title: tr('projectObject.notifyProjectDateRangeUpdated') });
+      notify({
+        severity: 'success',
+        title: tr('projectObject.notifyProjectDateRangeUpdated'),
+        duration: 5000,
+      });
       trigger(['startDate', 'endDate']);
     },
     onError: (e) => {
@@ -113,6 +117,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
         severity: 'error',
         title: tr('projectObject.notifyProjectDateRangeUpdateError'),
         message: messageArray.map((item) => tr(item)).join('\n'),
+        duration: 5000,
       });
     },
   });
@@ -153,16 +158,23 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
 
     return async function formValidation(
       values: UpsertInvestmentProjectObject,
-      context: object,
+      context: { getRequiredFields: typeof getRequiredFields; getErrors: () => FieldErrors },
       options: ResolverOptions<UpsertInvestmentProjectObject>,
     ) {
       const fields = options.names ?? [];
+      const currentErrors = context.getErrors();
+      const needsDateValidation =
+        currentErrors.startDate ||
+        currentErrors.endDate ||
+        fields.includes('startDate') ||
+        fields.includes('endDate');
 
-      const isFormValidation =
-        fields && (fields.includes('startDate') || fields.includes('endDate') || fields.length > 1);
+      const isFormValidation = (fields && needsDateValidation) || fields.length > 1;
 
       const serverErrors = isFormValidation
-        ? projectObject.upsertValidate.fetch({ ...values, geom: undefined }).catch(() => null)
+        ? projectObject.upsertValidate
+            .fetch({ ...values, geom: undefined, geometryDump: undefined })
+            .catch(() => null)
         : null;
 
       const shapeErrors = schemaValidation(values, context, options);
@@ -175,11 +187,16 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
     };
   }, []);
 
+  function getErrors() {
+    return form.formState.errors;
+  }
+
   const form = useForm<UpsertInvestmentProjectObject>({
     mode: 'all',
     resolver: formValidator,
     context: {
       requiredFields: getRequiredFields(newInvestmentProjectObjectSchema),
+      getErrors,
     },
     defaultValues: props.projectObject ?? {
       projectId: props.projectId,
@@ -211,11 +228,11 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
 
   useEffect(() => {
     if (!props.projectObject) {
-      setDirtyAndValidViews((prev) => ({ ...prev, form: isValid }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: { isValid } }));
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,
-        form: isValid && isDirty,
+        form: { isValid, isDirty },
       }));
     }
   }, [props.projectObject, isValid, isDirty]);
@@ -290,6 +307,20 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
         },
       },
     );
+  }
+
+  function getProjectDateAlertText() {
+    const errorMessage = 'projectObject.error.projectNotIncluded';
+
+    let text = tr('projectObjectForm.infoProjectDateOutOfRange');
+    if (errors.startDate?.message === errorMessage && errors.endDate?.message === errorMessage) {
+      text = `${text} ${tr('projectObjectForm.infoOutOfRangeBoth')}`;
+    } else if (errors.startDate?.message === errorMessage) {
+      text = `${text} ${tr('projectObjectForm.infoOutOfRangeStartDate')}`;
+    } else if (errors.endDate?.message === errorMessage) {
+      text = `${text} ${tr('projectObjectForm.infoOutOfRangeEndDate')}`;
+    }
+    return text;
   }
 
   return (
@@ -468,6 +499,36 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
               />
             )}
           />
+          {(errors?.endDate?.message === 'projectObject.error.projectNotIncluded' ||
+            errors?.startDate?.message === 'projectObject.error.projectNotIncluded') && (
+            <Alert
+              css={css`
+                align-items: center;
+              `}
+              severity="warning"
+              action={
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={async () => {
+                    const { startDate, endDate, projectId } = getValues();
+                    const formErrors = errors;
+                    if (projectId) {
+                      await handleProjectDateUpsert(
+                        projectId,
+                        formErrors?.startDate ? startDate : null,
+                        formErrors?.endDate ? endDate : null,
+                      );
+                    }
+                  }}
+                >
+                  {tr('projectObjectForm.updateProjectDateRangeLabel')}
+                </Button>
+              }
+            >
+              {getProjectDateAlertText()}
+            </Alert>
+          )}
 
           <FormField
             formField="sapWBSId"
@@ -489,39 +550,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
               display: flex;
               flex-direction: column;
             `}
-          >
-            {(errors?.endDate?.message === 'projectObject.error.projectNotIncluded' ||
-              errors?.startDate?.message === 'projectObject.error.projectNotIncluded') && (
-              <Alert
-                css={css`
-                  margin-top: 1rem;
-                  align-items: center;
-                `}
-                severity="warning"
-                action={
-                  <Button
-                    color="inherit"
-                    size="small"
-                    onClick={async () => {
-                      const { startDate, endDate, projectId } = getValues();
-                      const formErrors = errors;
-                      if (projectId) {
-                        await handleProjectDateUpsert(
-                          projectId,
-                          formErrors?.startDate ? startDate : null,
-                          formErrors?.endDate ? endDate : null,
-                        );
-                      }
-                    }}
-                  >
-                    {tr('projectObjectForm.updateProjectDateRangeLabel')}
-                  </Button>
-                }
-              >
-                {tr('projectObjectForm.infoProjectDateOutOfRange')}
-              </Alert>
-            )}
-          </Box>
+          ></Box>
         </form>
       </FormProvider>
     </>

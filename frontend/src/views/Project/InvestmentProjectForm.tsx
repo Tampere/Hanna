@@ -122,10 +122,14 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
     ) {
       const fields = options.names ?? [];
 
+      const currentErrors = context.getErrors();
+      const needsDateValidation =
+        currentErrors.startDate ||
+        currentErrors.endDate ||
+        fields.includes('startDate') ||
+        fields.includes('endDate');
       const isFormValidation =
-        fields &&
-        (Boolean(props.project && (fields.includes('startDate') || fields.includes('endDate'))) ||
-          fields.length > 1);
+        fields && (Boolean(props.project && needsDateValidation) || fields.length > 1);
 
       const serverErrors = isFormValidation
         ? investmentProject.upsertValidate.fetch({ ...values, geom: undefined }).catch(() => null)
@@ -140,11 +144,16 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
     };
   }, []);
 
+  function getErrors() {
+    return form.formState.errors;
+  }
+
   const form = useForm<InvestmentProject>({
     mode: 'all',
     resolver: formValidator,
     context: {
       requiredFields: getRequiredFields(investmentProjectSchema),
+      getErrors,
     },
     defaultValues: props.project ?? formDefaultValues,
   });
@@ -176,11 +185,11 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
 
   useEffect(() => {
     if (!props.project) {
-      setDirtyAndValidViews((prev) => ({ ...prev, form: isValid }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: { isDirty: true, isValid: true } }));
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,
-        form: !submitDisabled(),
+        form: { isDirty, isValid: !submitDisabled() },
       }));
     }
   }, [isValid, isDirty, externalIsDirty]);

@@ -3,10 +3,12 @@ import { Alert, Box, Button, CircularProgress, css } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 import { PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router';
+import { useSearchParams } from 'react-router-dom';
 
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import {
+  DirtyAndValidFields,
   ModifiableField,
   dirtyAndValidFieldsAtom,
   projectEditingAtom,
@@ -28,6 +30,7 @@ interface EditingFooterProps extends PropsWithChildren {
   onCancel: () => void;
   saveAndReturn?: (navigateTo: string) => void;
   isSubmitting?: boolean;
+  isNewItem: boolean;
 }
 
 export function EditingFooter({
@@ -36,11 +39,17 @@ export function EditingFooter({
   onCancel,
   isSubmitting,
   children,
+  isNewItem,
 }: EditingFooterProps) {
-  const dirtyAndValidViews = useAtomValue(dirtyAndValidFieldsAtom);
+  const { form, map, finances, permissions } = useAtomValue(dirtyAndValidFieldsAtom);
   const location = useLocation();
   const navigateTo = new URLSearchParams(location.search).get('from');
-  const isReadyToSubmit = Object.values(dirtyAndValidViews).some((status) => Boolean(status));
+
+  const isReadyToSubmit = isNewItem
+    ? form.isValid
+    : form.isDirty
+      ? form.isValid
+      : map.isDirtyAndValid || finances.isDirtyAndValid || permissions.isDirtyAndValid;
   const tr = useTranslations();
   return (
     <Box
@@ -112,7 +121,6 @@ interface Props {
   renderHeaderContent?: () => JSX.Element;
   renderMainContent?: (tabRefs: TabRefs) => JSX.Element;
   handleFormCancel?: (formRef: TabRefs['form']) => void;
-  geom?: string | null;
   permissionCtx: ProjectPermissionContext | null;
   type?: 'project' | 'projectObject';
   projectType?: ProjectTypePath;
@@ -129,11 +137,16 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
 
   const tr = useTranslations();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   const [editing, setEditing] = useAtom(projectEditingAtom);
   const dirtyAndValidViews = useAtomValue(dirtyAndValidFieldsAtom);
   const user = useAtomValue(asyncUserAtom);
-  const footerVisible = editing || dirtyAndValidViews.finances;
+  const footerVisible =
+    editing ||
+    dirtyAndValidViews.finances.isDirtyAndValid ||
+    dirtyAndValidViews.permissions.isDirtyAndValid;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const tabRefs: TabRefs = {
@@ -145,12 +158,12 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
 
   const viewSaveActions = {
     form: async () => {
-      if (!dirtyAndValidViews.map) {
+      if (!dirtyAndValidViews.map.isDirtyAndValid) {
         await tabRefs.form.current?.onSave();
       }
     },
     map: async () => {
-      if (dirtyAndValidViews.form) {
+      if (dirtyAndValidViews.form.isValid) {
         const geom = tabRefs.map.current?.getGeometry();
         await tabRefs.form.current?.onSave(geom);
       } else {
@@ -165,13 +178,11 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
     setIsSubmitting(true);
     try {
       await Promise.all(
-        (Object.entries(dirtyAndValidViews) as [ModifiableField, boolean][]).map(
-          async ([view, isDirty]) => {
-            if (isDirty) {
-              await viewSaveActions[view]?.();
-            }
-          },
-        ),
+        Object.entries(dirtyAndValidViews).map(async ([view, status]) => {
+          if (status.isValid) {
+            await viewSaveActions[view as keyof DirtyAndValidFields]?.();
+          }
+        }),
       );
     } catch {
       setIsSubmitting(false);
@@ -189,13 +200,15 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
   };
 
   function onCancel() {
+    if (isNewItem) {
+      // If navigating back from new item creation, mapwrapper sets editing to false
+      navigate(-1);
+      return;
+    }
+
     (Object.keys(dirtyAndValidViews) as ModifiableField[]).forEach(
       (view) => viewCancelActions[view]?.(),
     );
-
-    if (isNewItem) {
-      navigate(-1);
-    }
     setEditing(false);
   }
 
@@ -236,7 +249,7 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
             disabled={isSubmitting}
             size="small"
             startIcon={<Undo />}
-            variant="contained"
+            variant="outlined"
             sx={{ mt: 2 }}
             onClick={() => navigate(-1)}
           >
@@ -244,9 +257,24 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
           </Button>
         ) : (
           <Button
-            onClick={() => (editing ? onCancel() : setEditing(true))}
-            disabled={(!isOwner && !canWrite) || isSubmitting}
-            variant="contained"
+            onClick={() => {
+              if (editing) {
+                onCancel();
+                return;
+              }
+              if (searchParams.get('tab')) {
+                // Navigate back to default map tab if user starts editing
+                navigate(location.pathname);
+              }
+              setEditing(true);
+            }}
+            disabled={
+              (!isOwner && !canWrite) ||
+              isSubmitting ||
+              dirtyAndValidViews.finances.isDirtyAndValid ||
+              dirtyAndValidViews.permissions.isDirtyAndValid
+            }
+            variant={editing ? 'outlined' : 'contained'}
             size="small"
             css={css`
               margin-left: auto;
@@ -281,11 +309,12 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
       >
         {footerVisible && (
           <EditingFooter
+            isNewItem={isNewItem}
             isSubmitting={isSubmitting}
             onSave={onSave}
             saveAndReturn={(navigateTo) => {
               let geom: string | undefined;
-              if (dirtyAndValidViews.map) {
+              if (dirtyAndValidViews.map.isDirtyAndValid) {
                 geom = tabRefs.map.current?.getGeometry();
               }
               tabRefs.form.current?.saveAndReturn?.(navigateTo, geom);
@@ -317,26 +346,28 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
                   />
                 )
               ))}
-            {isNewItem && (!props.geom || props.geom === '[]') && (
-              <Alert
-                css={css`
-                  padding: 0px 16px;
-                  height: min-content;
-                  align-items: center;
-                  & .MuiAlert-message {
-                    padding: 4px 0;
-                  }
-                  & .MuiAlert-icon {
-                    padding: 4px 0;
-                  }
-                `}
-                severity="info"
-              >
-                {type === 'project'
-                  ? tr('newProject.infoNoGeom')
-                  : tr('projectObjectForm.infoNoGeom')}
-              </Alert>
-            )}
+            {isNewItem &&
+              props.projectType !== 'asemakaavahanke' &&
+              !dirtyAndValidViews.map.isDirtyAndValid && (
+                <Alert
+                  css={css`
+                    padding: 0px 16px;
+                    height: min-content;
+                    align-items: center;
+                    & .MuiAlert-message {
+                      padding: 4px 0;
+                    }
+                    & .MuiAlert-icon {
+                      padding: 4px 0;
+                    }
+                  `}
+                  severity="info"
+                >
+                  {type === 'project'
+                    ? tr('newProject.infoNoGeom')
+                    : tr('projectObjectForm.infoNoGeom')}
+                </Alert>
+              )}
           </EditingFooter>
         )}
       </Box>

@@ -273,6 +273,13 @@ export function MaintenanceProject() {
           >
             {tabs.length > 0 && (
               <Tabs
+                css={css`
+                  min-height: ${editing ? 0 : 48}px;
+                  height: ${editing ? 0 : 48}px;
+                  transition:
+                    min-height 0.2s,
+                    height 0.2s;
+                `}
                 value={tabIndex}
                 indicatorColor="primary"
                 textColor="primary"
@@ -361,7 +368,6 @@ export function MaintenanceProject() {
                 {tabView === 'luvitus' && (
                   <ProjectPermissions
                     ref={tabRefs.permissions}
-                    editing={editing}
                     projectId={routeParams.projectId}
                     ownerId={project.data?.owner}
                   />
