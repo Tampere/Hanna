@@ -302,16 +302,14 @@ function getPointerHoverInteraction(olMap: OLMap) {
   let hoveredFeature: Feature<Geometry> | null = null;
   const pointer = new PointerInteraction({
     handleMoveEvent: (event) => {
-      const featuresAtPixel = olMap.getFeaturesAtPixel(event.pixel);
-
-      olMap.forEachFeatureAtPixel(event.pixel, (featureLike, layer) => {
+      const result = olMap.forEachFeatureAtPixel(event.pixel, (featureLike, layer) => {
         hoveredFeature?.setStyle(undefined);
         hoveredFeature?.setProperties({ isHovered: false });
         hoveredFeature = highlightHoveredFeature(featureLike, layer);
         return true;
       });
 
-      if (featuresAtPixel.length > 0) {
+      if (result) {
         olMap.getViewport().style.cursor = 'pointer';
       } else {
         olMap.getViewport().style.cursor = '';
