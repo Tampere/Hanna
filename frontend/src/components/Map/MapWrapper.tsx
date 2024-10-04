@@ -58,10 +58,6 @@ import { mapOptions } from './mapOptions';
 export interface DrawOptions {
   geoJson: string | object | null;
   onFeaturesSaved?: (features: string) => void;
-  onUndo?: (
-    drawSource: VectorSource<Feature<Geometry>>,
-    selectionSource: VectorSource<Feature<Geometry>>,
-  ) => void;
   drawStyle: Style | Style[];
   toolsHidden?: ToolType[];
   editable: boolean;
@@ -183,6 +179,9 @@ export const MapWrapper = forwardRef(function MapWrapper<
     () => ({
       handleUndoDraw,
       handleSave: async () => {
+        selectionSource.clear();
+        setFeatureSelector(RESET);
+        setSelectedTool(null);
         await props.onGeometrySave?.(
           getGeoJSONFeaturesString(
             drawSource.getFeatures(),
@@ -193,7 +192,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
       },
       getGeometry: getGeometryForSave,
     }),
-    [drawSource, selectionSource],
+    [drawSource, selectionSource, handleUndoDraw, getGeometryForSave],
   );
 
   function resetSelectInteractions() {
@@ -432,6 +431,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
     <div
       ref={mapWrapperRef}
       style={{
+        transition: freezeMapHeight ? 'none' : ' height  0.4s',
         height: freezeMapHeight
           ? mapWrapperRef.current?.clientHeight
             ? `${mapWrapperRef.current.clientHeight}px`
@@ -463,7 +463,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
           <GlobalStyles
             styles={{
               '.ol-viewport': {
-                cursor: 'crosshair',
+                cursor: 'grab',
               },
               '.ol-scale-line-inner': {
                 marginBottom: '1rem',

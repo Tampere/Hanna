@@ -1,0 +1,23 @@
+<svg width="50" height="38" viewBox="0 0 50 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_5003_6267)">
+<g filter="url(#filter0_f_5003_6267)">
+<path d="M25.544 35.2731C25.724 35.4982 26.072 35.627 26.5 35.627C26.928 35.627 27.396 35.4982 27.786 35.2731L28.2119 35.0268L28.2268 35.0183C31.748 32.9827 35.7479 30.6713 39.1579 28.2952C42.6813 25.8409 45.8144 23.158 47.0543 20.499C49.5007 15.2527 45.4397 11 37.9837 11C30.5277 11 22.5007 15.2527 20.0543 20.499C18.8144 23.158 19.4453 25.8409 20.6799 28.2952C21.8739 30.6713 23.718 32.9827 25.3408 35.0183L25.3479 35.0268L25.544 35.2731Z" fill="url(#paint0_linear_5003_6267)" fill-opacity="0.16" style=""/>
+</g>
+<path d="M23.379 35.4971C23.664 35.8171 24.072 36.0001 24.5 36.0001C24.928 36.0001 25.336 35.8171 25.621 35.4971L25.932 35.1471L25.943 35.1351C28.515 32.2421 31.437 28.9571 33.739 25.5801C36.118 22.0921 38 18.2791 38 14.5C38 7.04402 31.956 1 24.5 1C17.044 1 11 7.04402 11 14.5C11 18.2791 12.882 22.0921 15.261 25.5801C17.563 28.9571 20.485 32.2421 23.057 35.1351L23.068 35.1471L23.379 35.4971Z" fill="#A8DAD3" stroke="white" style="fill:#A8DAD3;fill:color(display-p3 0.6588 0.8549 0.8275);fill-opacity:1;stroke:white;stroke-opacity:1;" stroke-linejoin="round"/>
+<path d="M24.5001 20.5001C27.794 20.5001 30.4641 17.8299 30.4641 14.536C30.4641 11.2422 27.794 8.57202 24.5001 8.57202C21.2063 8.57202 18.5361 11.2422 18.5361 14.536C18.5361 17.8299 21.2063 20.5001 24.5001 20.5001Z" fill="white" style="fill:white;fill-opacity:1;"/>
+</g>
+<defs>
+<filter id="filter0_f_5003_6267" x="18.1817" y="9.8" width="30.7846" height="27.027" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="0.6" result="effect1_foregroundBlur_5003_6267"/>
+</filter>
+<linearGradient id="paint0_linear_5003_6267" x1="37.9837" y1="11" x2="37.9837" y2="35.627" gradientUnits="userSpaceOnUse">
+<stop offset="0.12" stop-opacity="0" style="stop-color:none;stop-opacity:0;"/>
+<stop offset="1" style="stop-color:black;stop-opacity:1;"/>
+</linearGradient>
+<clipPath id="clip0_5003_6267">
+<rect width="50" height="38" fill="white" style="fill:white;fill-opacity:1;"/>
+</clipPath>
+</defs>
+</svg>

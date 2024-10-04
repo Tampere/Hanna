@@ -1,11 +1,17 @@
 import { Collection, Feature, Map as OLMap } from 'ol';
+import { FeatureLike } from 'ol/Feature';
+import { unByKey } from 'ol/Observable';
+import { EventsKey } from 'ol/events';
 import { click, primaryAction } from 'ol/events/condition';
 import OLGeoJSON, { GeoJSONFeature } from 'ol/format/GeoJSON';
 import { Geometry } from 'ol/geom';
 import { Draw, Modify, Select, Snap } from 'ol/interaction';
+import PointerInteraction from 'ol/interaction/Pointer';
 import { SelectEvent } from 'ol/interaction/Select';
 import Layer from 'ol/layer/Layer';
 import VectorLayer from 'ol/layer/Vector';
+import RenderFeature, { toFeature } from 'ol/render/Feature';
+import LayerRenderer from 'ol/renderer/Layer';
 import VectorSource from 'ol/source/Vector';
 import CircleStyle from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
@@ -14,9 +20,11 @@ import Style, { StyleLike } from 'ol/style/Style';
 import {
   DEFAULT_DRAW_STYLE,
   DEFAULT_POINT_STYLE,
+  getFeatureHighlightStyle,
   getStyleWithPointIcon,
   selectionLayerStyle,
 } from '@frontend/components/Map/styles';
+import { VectorItemLayerKey } from '@frontend/stores/map';
 
 interface DrawOptions {
   source: VectorSource<Feature<Geometry>>;
@@ -27,9 +35,18 @@ interface DrawOptions {
   drawType: 'Polygon' | 'Point';
 }
 
+let pointerEventKeys: EventsKey[] = [];
+
 export const DRAW_LAYER_Z_INDEX = 101;
 
 const defaultStyles = { Polygon: DEFAULT_DRAW_STYLE, Point: DEFAULT_POINT_STYLE };
+
+function setCrosshairCursor(map: OLMap) {
+  unByKey(pointerEventKeys);
+  pointerEventKeys = pointerEventKeys.filter((key) => Object.keys(key).length !== 0);
+
+  map.getViewport().style.cursor = 'crosshair';
+}
 
 export function createDrawLayer(source: VectorSource<Feature<Geometry>>, style?: Style | Style[]) {
   return new VectorLayer({
@@ -44,6 +61,7 @@ export function createDrawInteraction(opts: DrawOptions) {
   return function registerInteraction(map: OLMap) {
     let drawStyle: StyleLike = opts.drawStyle || defaultStyles[opts.drawType];
 
+    setCrosshairCursor(map);
     if (Array.isArray(drawStyle)) {
       drawStyle = drawStyle.map((styleObject) => styleObject.clone());
       if (opts.drawType === 'Polygon') {
@@ -135,6 +153,20 @@ export function createSelectInteraction(opts: SelectOptions) {
       layers: opts.filterLayers,
     });
 
+    pointerEventKeys.push(
+      map.on('pointerdrag', () => {
+        map.getViewport().style.cursor = 'grabbing';
+      }),
+    );
+    pointerEventKeys.push(
+      map.on('moveend', () => {
+        map.getViewport().style.cursor = '';
+      }),
+    );
+
+    const pointer = getPointerHoverInteraction(map);
+
+    pointer.set('type', 'customInteraction');
     select.set('type', 'customInteraction');
     select.on('select', (e) => {
       const selectedFeatures = e.target.getFeatures().getArray();
@@ -149,6 +181,7 @@ export function createSelectInteraction(opts: SelectOptions) {
       }
       opts.onSelectionChanged?.(selectedFeatures, e);
     });
+    map.addInteraction(pointer);
     map.addInteraction(select);
   };
 }
@@ -164,6 +197,7 @@ interface ModifyOptions {
 
 export function createModifyInteraction(opts: ModifyOptions) {
   return function registerInteraction(map: OLMap) {
+    setCrosshairCursor(map);
     const modify = new Modify({
       features: new Collection(getSelectedDrawLayerFeatures(opts.source.getFeatures())),
     });
@@ -238,4 +272,96 @@ export function addFeaturesFromGeoJson(
   for (const feature of features) {
     targetSource.addFeature(feature);
   }
+}
+
+export function highlightHoveredFeature(featureLike: FeatureLike, layer: Layer) {
+  const feature = featureLike instanceof RenderFeature ? toFeature(featureLike) : featureLike;
+  const vectorLayer = layer instanceof LayerRenderer ? layer.getLayer() : layer;
+  const layerId: VectorItemLayerKey = layer.getProperties().id;
+
+  const vectorStyleLike = vectorLayer.getStyle();
+  const layerStyle =
+    typeof vectorStyleLike === 'function' ? vectorStyleLike(feature) : vectorStyleLike;
+
+  feature.setProperties({ isHovered: true });
+
+  switch (layerId) {
+    case 'projects':
+      feature.setStyle(getFeatureHighlightStyle('projects', layerStyle));
+      break;
+    case 'projectObjects':
+      feature.setStyle(getFeatureHighlightStyle('projectObjects', layerStyle));
+      break;
+    default:
+      break;
+  }
+  return feature;
+}
+
+function getPointerHoverInteraction(olMap: OLMap) {
+  let hoveredFeature: Feature<Geometry> | null = null;
+  const pointer = new PointerInteraction({
+    handleMoveEvent: (event) => {
+      const featuresAtPixel = olMap.getFeaturesAtPixel(event.pixel);
+
+      olMap.forEachFeatureAtPixel(event.pixel, (featureLike, layer) => {
+        hoveredFeature?.setStyle(undefined);
+        hoveredFeature?.setProperties({ isHovered: false });
+        hoveredFeature = highlightHoveredFeature(featureLike, layer);
+        return true;
+      });
+
+      if (featuresAtPixel.length > 0) {
+        olMap.getViewport().style.cursor = 'pointer';
+      } else {
+        olMap.getViewport().style.cursor = '';
+        hoveredFeature?.setStyle(undefined);
+        hoveredFeature?.setProperties({ isHovered: false });
+        hoveredFeature = null;
+      }
+    },
+    handleDownEvent: () => {
+      hoveredFeature?.setStyle(undefined);
+      hoveredFeature?.setProperties({ isHovered: false });
+      return false;
+    },
+  });
+  return pointer;
+}
+
+export function registerHoverEffects(olMap: OLMap) {
+  let hoveredFeature: Feature<Geometry> | null = null;
+
+  olMap.on('pointerdrag', function () {
+    olMap.getViewport().style.cursor = 'grabbing';
+  });
+
+  olMap.on('pointermove', (event) => {
+    const featuresAtPixel = olMap.getFeaturesAtPixel(event.pixel);
+
+    olMap.forEachFeatureAtPixel(event.pixel, (featureLike, layer) => {
+      hoveredFeature?.setStyle(undefined);
+      hoveredFeature?.setProperties({ isHovered: false });
+      hoveredFeature = highlightHoveredFeature(featureLike, layer);
+      return true;
+    });
+
+    if (featuresAtPixel.length > 0) {
+      olMap.getViewport().style.cursor = 'pointer';
+    } else {
+      olMap.getViewport().style.cursor = '';
+      hoveredFeature?.setStyle(undefined);
+      hoveredFeature?.setProperties({ isHovered: false });
+      hoveredFeature = null;
+    }
+  });
+
+  olMap.on('click', () => {
+    hoveredFeature?.setStyle(undefined);
+    hoveredFeature?.setProperties({ isHovered: false });
+  });
+
+  olMap.on('moveend', () => {
+    olMap.getViewport().style.cursor = '';
+  });
 }
