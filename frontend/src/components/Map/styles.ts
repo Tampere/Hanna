@@ -9,14 +9,19 @@ import Text from 'ol/style/Text';
 
 import { theme } from '@frontend/Layout';
 import detailplanClusterPoint from '@frontend/assets/detailplanClusterPoint.svg';
+import detailplanClusterPointHovered from '@frontend/assets/detailplanClusterPointHover.svg';
 import investmentClusterPoint from '@frontend/assets/investmentClusterPoint.svg';
+import investmentClusterPointHovered from '@frontend/assets/investmentClusterPointHover.svg';
 import maintenanceClusterPoint from '@frontend/assets/maintenanceClusterPoint.svg';
+import maintenanceClusterPointHovered from '@frontend/assets/maintenanceClusterPointHover.svg';
 import projectClusterPoint from '@frontend/assets/projectClusterPoint.svg';
+import projectClusterPointHovered from '@frontend/assets/projectClusterPointHover.svg';
 import projectClusterPointSelected from '@frontend/assets/projectClusterPointSelected.svg';
 import projectObjectClusterPoint from '@frontend/assets/projectObjectClusterPoint.svg';
+import projectObjectClusterPointHovered from '@frontend/assets/projectObjectClusterPointHover.svg';
 import projectObjectClusterPointSelected from '@frontend/assets/projectObjectClusterPointSelected.svg';
 import projectObjectPoint from '@frontend/assets/projectObjectPoint.svg';
-import { SelectedProjectColorCode } from '@frontend/stores/map';
+import { SelectedProjectColorCode, VectorItemLayerKey } from '@frontend/stores/map';
 
 import { ProjectType } from '@shared/schema/project/type';
 
@@ -91,6 +96,13 @@ const CLUSTER_FILL = {
   detailplanProject: _DETAILPLAN_STROKE,
 };
 const CLUSTER_FONT = 'bold 14px sans-serif';
+const HOVERED_CLUSTER_FILL = {
+  project: '#B7DAA8',
+  projectObject: '#A9B5C9',
+  investmentProject: '#A9BCA1',
+  maintenanceProject: '#A8DAD3',
+  detailplanProject: '#D7D799',
+};
 
 const iconBackgroundStyle = new Style({
   // To make every part of the icon clickable
@@ -102,72 +114,50 @@ const iconBackgroundStyle = new Style({
   }),
 });
 
-const clusterIconStyles = {
-  // use same style instances instead of creating new ones for better performance
-  project: [
-    new Style({
-      image: new IconStyle({
-        opacity: 1,
-        src: projectClusterPoint.toString(),
-      }),
-    }),
-    iconBackgroundStyle,
-  ],
-  selectedProject: [
-    new Style({
-      image: new IconStyle({
-        opacity: 1,
-        src: projectClusterPointSelected.toString(),
-      }),
-    }),
-    iconBackgroundStyle,
-  ],
-  projectObject: [
-    new Style({
-      image: new IconStyle({
-        opacity: 1,
-        src: projectObjectClusterPoint.toString(),
-      }),
-    }),
-    iconBackgroundStyle,
-  ],
-  selectedProjectObject: [
-    new Style({
-      image: new IconStyle({
-        opacity: 1,
-        src: projectObjectClusterPointSelected.toString(),
-      }),
-    }),
-    iconBackgroundStyle,
-  ],
-  investmentProject: [
-    new Style({
-      image: new IconStyle({
-        opacity: 1,
-        src: investmentClusterPoint.toString(),
-      }),
-    }),
-    iconBackgroundStyle,
-  ],
-  maintenanceProject: [
-    new Style({
-      image: new IconStyle({
-        opacity: 1,
-        src: maintenanceClusterPoint.toString(),
-      }),
-    }),
-    iconBackgroundStyle,
-  ],
-  detailplanProject: [
-    new Style({
-      image: new IconStyle({
-        opacity: 1,
-        src: detailplanClusterPoint.toString(),
-      }),
-    }),
-    iconBackgroundStyle,
-  ],
+const iconSources = {
+  project: projectClusterPoint.toString(),
+  selectedProject: projectClusterPointSelected.toString(),
+  projectObject: projectObjectClusterPoint.toString(),
+  selectedProjectObject: projectObjectClusterPointSelected.toString(),
+  investmentProject: investmentClusterPoint.toString(),
+  maintenanceProject: maintenanceClusterPoint.toString(),
+  detailplanProject: detailplanClusterPoint.toString(),
 };
+
+const hoveredIconSources = {
+  project: projectClusterPointHovered.toString(),
+  selectedProject: projectClusterPointSelected.toString(),
+  projectObject: projectObjectClusterPointHovered.toString(),
+  selectedProjectObject: projectObjectClusterPointSelected.toString(),
+  investmentProject: investmentClusterPointHovered.toString(),
+  maintenanceProject: maintenanceClusterPointHovered.toString(),
+  detailplanProject: detailplanClusterPointHovered.toString(),
+};
+
+const clusterIconStylesCache: Record<keyof typeof iconSources, Style[]> = {} as Record<
+  keyof typeof iconSources,
+  Style[]
+>;
+
+const hoveredIconStylesCache: Record<keyof typeof iconSources, Style[]> = {} as Record<
+  keyof typeof iconSources,
+  Style[]
+>;
+
+function getClusterIconStyle(styleKey: keyof typeof iconSources, isHovered: boolean = false) {
+  if (isHovered ? !hoveredIconStylesCache[styleKey] : !clusterIconStylesCache[styleKey]) {
+    (isHovered ? hoveredIconStylesCache : clusterIconStylesCache)[styleKey] = [
+      new Style({
+        image: new IconStyle({
+          opacity: 1,
+          src: isHovered ? hoveredIconSources[styleKey] : iconSources[styleKey],
+        }),
+      }),
+      iconBackgroundStyle,
+    ];
+  }
+  return isHovered ? hoveredIconStylesCache[styleKey] : clusterIconStylesCache[styleKey];
+}
 
 interface DonutOptions {
   color: string;
@@ -273,6 +263,7 @@ export function clusterStyle(
   const clusterCount = feature.get('clusterCount');
   const projectDistribution = feature.get('projectDistribution');
   const clusterZindex = feature.get('clusterIndex') ?? 0;
+  const isHovered = Boolean(feature.get('isHovered'));
 
   const projectTypesWithValues = (projectColorCodes &&
     projectDistribution &&
@@ -281,7 +272,8 @@ export function clusterStyle(
     | undefined;
 
   if (clusterCount === 1) {
-    return clusterIconStyles[projectTypesWithValues?.[0] ?? itemType];
+    const styleKey = projectTypesWithValues?.[0] ?? itemType;
+    return getClusterIconStyle(styleKey, isHovered);
   }
 
   const donutOptions = projectColorCodes
@@ -303,7 +295,7 @@ export function clusterStyle(
                 width: CLUSTER_STROKE_WIDTH,
               }),
               fill: new Fill({
-                color: CLUSTER_FILL[itemType],
+                color: isHovered ? HOVERED_CLUSTER_FILL[itemType] : CLUSTER_FILL[itemType],
               }),
             })
           : new CircleStyle({
@@ -313,7 +305,9 @@ export function clusterStyle(
                 width: CLUSTER_STROKE_WIDTH,
               }),
               fill: new Fill({
-                color: CLUSTER_FILL[projectTypesWithValues?.[0] ?? itemType],
+                color: isHovered
+                  ? HOVERED_CLUSTER_FILL[projectTypesWithValues?.[0] ?? itemType]
+                  : CLUSTER_FILL[projectTypesWithValues?.[0] ?? itemType],
               }),
             }),
       text: new Text({
@@ -340,12 +334,17 @@ export function selectionLayerStyle(feature: FeatureLike) {
   const clusterCount = feature.get('clusterCount');
   if (clusterCount === 1) {
     const itemType = getSelectedClusterItemType(feature);
-    return clusterIconStyles[itemType];
+    return getClusterIconStyle(itemType);
   }
   return new Style({
     fill: new Fill({
       color: SELECTION_COLOR,
     }),
+    stroke: new Stroke({
+      color: SELECTION_COLOR,
+      width: 6,
+    }),
+
     image: new CircleStyle({
       radius: clusterCount ? CLUSTER_RADIUS : 6,
       fill: new Fill({
@@ -458,22 +457,6 @@ export const PROJECT_OBJECT_STYLE = [
   }),
 ];
 
-function getProjectObjectStyle(withText: boolean = true) {
-  const style = PROJECT_OBJECT_STYLE;
-  style[0].setText(
-    new Text({
-      text: projectAreaIndicators.projectObject,
-      textAlign: 'center',
-      font: '700 12px roboto',
-      stroke: new Stroke({ color: '#fff', width: 2 }),
-      overflow: false,
-      fill: new Fill({
-        color: _PROJ_OBJ_STROKE,
-      }),
-    }),
-  );
-}
-
 const _PROJ_OBJ_DRAW_FILL = 'rgb(34, 67, 123, 0.4)';
 const _PROJ_OBJ_DRAW_STROKE = 'rgb(255, 100, 0)';
 const _PROJ_OBJ_DRAW_STROKE_WIDTH = 2;
@@ -524,6 +507,36 @@ export function getStyleWithPointIcon(style: Style | Style[]): StyleFunction {
       }),
     ];
   };
+}
+
+const highlightBaseStyle = [
+  new Style({
+    stroke: new Stroke({
+      color: _DEFAULT_HIGHLIGHT_STROKE,
+      width: 2,
+    }),
+    zIndex: 9,
+  }),
+  new Style({
+    stroke: new Stroke({
+      color: 'rgba(255,255,255,0.01)',
+      width: 10,
+    }),
+    zIndex: 10,
+  }),
+];
+
+export function getFeatureHighlightStyle(layerId: VectorItemLayerKey, layerStyle: Style | Style[]) {
+  switch (layerId) {
+    case 'projects':
+    case 'projectObjects':
+      return Array.isArray(layerStyle)
+        ? layerStyle.concat(highlightBaseStyle)
+        : [layerStyle, ...highlightBaseStyle];
+
+    default:
+      return undefined;
+  }
 }
 
 export const colorPalette = {

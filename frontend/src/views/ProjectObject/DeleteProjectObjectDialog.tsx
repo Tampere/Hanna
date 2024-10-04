@@ -59,11 +59,13 @@ export function DeleteProjectObjectDialog({
       <Button
         {...(cssProp && { css: cssProp })}
         size="small"
-        variant="contained"
+        variant="outlined"
         disabled={!userCanModify}
         sx={{
           '&:hover': {
             backgroundColor: 'error.main',
+            color: 'white',
+            borderColor: 'white',
           },
         }}
         endIcon={<Delete />}

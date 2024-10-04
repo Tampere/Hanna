@@ -294,7 +294,6 @@ export function ProjectObject(props: Props) {
               overflow-y: auto;
             `}
           >
-            (
             <Tabs
               css={css`
                 min-height: ${editing ? 0 : 48}px;
@@ -320,7 +319,7 @@ export function ProjectObject(props: Props) {
                 />
               ))}
             </Tabs>
-            )
+
             {!searchParams.get('tab') && (
               <Box css={mapContainerStyle}>
                 <MapWrapper

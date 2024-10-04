@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { AccountTree, Euro, KeyTwoTone, ListAlt, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue } from 'jotai';
 import VectorSource from 'ol/source/Vector';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
@@ -14,7 +14,6 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import {
   DRAW_LAYER_Z_INDEX,
   addFeaturesFromGeoJson,
-  deleteSelectedFeatures,
   featuresFromGeoJSON,
   getGeoJSONFeaturesString,
 } from '@frontend/components/Map/mapInteractions';
@@ -24,11 +23,9 @@ import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import {
-  featureSelectorAtom,
   getProjectMunicipalityLayer,
   getProjectObjectsLayer,
   mapProjectionAtom,
-  selectionSourceAtom,
 } from '@frontend/stores/map';
 import { projectEditingAtom } from '@frontend/stores/projectView';
 import { ProjectRelations } from '@frontend/views/Project/ProjectRelations';
@@ -110,8 +107,6 @@ export function InvestmentProject() {
   const [searchParams] = useSearchParams();
   const tabView = searchParams.get('tab') || 'default';
   const user = useAtomValue(asyncUserAtom);
-  const setFeatureSelector = useSetAtom(featureSelectorAtom);
-  const selectionSource = useAtomValue(selectionSourceAtom);
   const mapProjection = useAtomValue(mapProjectionAtom);
   const editing = useAtomValue(projectEditingAtom);
 
@@ -334,13 +329,6 @@ export function InvestmentProject() {
                     geoJson: project?.data?.geom ?? null,
                     drawStyle: getProjectAreaStyle(undefined, undefined, false),
                     editable: editing && mapIsEditable(),
-                    onUndo: (drawSource) => {
-                      setFeatureSelector((prev) => ({
-                        features: deleteSelectedFeatures(drawSource, selectionSource),
-                        pos: prev.pos,
-                      }));
-                      addFeaturesFromGeoJson(drawSource, project?.data?.geom ?? null);
-                    },
                   }}
                   drawSource={drawSource}
                   fitExtent="geoJson"
