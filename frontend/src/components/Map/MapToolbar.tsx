@@ -4,6 +4,7 @@ import {
   CopyAllTwoTone,
   DeleteForeverTwoTone,
   EditTwoTone,
+  LayersClearOutlined,
   PanToolAltTwoTone,
   PentagonTwoTone,
   PlaceTwoTone,
@@ -56,6 +57,7 @@ export type ToolType =
   | 'editFeature'
   | 'clearSelectedFeature'
   | 'deleteFeature'
+  | 'deleteAllFeatures'
   | 'copyFromSelection';
 
 interface Tool {
@@ -119,6 +121,12 @@ const tools: readonly Tool[] = [
     color: 'secondary',
     tooltip: 'mapEdit.removeFeatureTooltip',
   },
+  {
+    type: 'deleteAllFeatures',
+    icon: <LayersClearOutlined />,
+    color: 'secondary',
+    tooltip: 'mapEdit.removeAllTooltip',
+  },
 ] as const;
 
 interface Props {
@@ -134,7 +142,7 @@ export function MapToolbar(props: Props) {
   const { projectObjectId } = useParams() as { projectObjectId?: string };
 
   function handleToolClick(tool: ToolType | null) {
-    if (tool === 'copyFromSelection') {
+    if (tool === 'copyFromSelection' || tool === 'deleteAllFeatures') {
       setSelectedTool(null);
     } else {
       setSelectedTool(tool);

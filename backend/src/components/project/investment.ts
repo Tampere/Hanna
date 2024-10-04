@@ -18,6 +18,7 @@ import { InvestmentProject, dbInvestmentProjectSchema } from '@shared/schema/pro
 import { User } from '@shared/schema/user.js';
 
 const selectProjectFragment = sql.fragment`
+WITH geometry_dump AS (SELECT p.id "dumpProjectId", (st_dump(p.geom)).geom FROM app.project p)
   SELECT
     project_investment.id AS "projectId",
     project.id AS "parentId",
@@ -28,7 +29,8 @@ const selectProjectFragment = sql.fragment`
     project.end_date AS "endDate",
     (project_investment.target).id AS "target",
     geohash,
-    ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
+    ST_AsGeoJSON(ST_CollectionExtract(project.geom)) AS geom,
+    COALESCE(jsonb_agg(ST_AsGeoJSON(geometry_dump.geom)) FILTER (WHERE geometry_dump.geom IS NOT null), '[]'::jsonb) as "geometryDump",
     (project.lifecycle_state).id AS "lifecycleState",
     sap_project_id AS "sapProjectId",
     (
@@ -39,7 +41,9 @@ const selectProjectFragment = sql.fragment`
     project.covers_entire_municipality AS "coversMunicipality"
   FROM app.project
   LEFT JOIN app.project_investment ON project_investment.id = project.id
+  LEFT JOIN geometry_dump ON geometry_dump."dumpProjectId" = project.id
   WHERE deleted = false
+  GROUP BY project.id, project_investment.id
 `;
 
 export async function getProject(id: string, tx?: DatabaseTransactionConnection) {
@@ -47,7 +51,7 @@ export async function getProject(id: string, tx?: DatabaseTransactionConnection)
 
   const project = await conn.maybeOne(sql.type(dbInvestmentProjectSchema)`
     ${selectProjectFragment}
-    AND project_investment.id = ${id}
+    HAVING project_investment.id = ${id}
   `);
 
   if (!project) throw new TRPCError({ code: 'NOT_FOUND' });

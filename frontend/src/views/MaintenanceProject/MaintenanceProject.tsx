@@ -184,6 +184,11 @@ export function MaintenanceProject() {
 
   const drawSource = useMemo(() => new VectorSource({ wrapX: false }), []);
 
+  const vectorLayers = useMemo(
+    () => [...(coversMunicipality ? [municipalityGeometryLayer] : []), projectObjectsLayer],
+    [projectObjectsLayer, coversMunicipality, municipalityGeometryLayer],
+  );
+
   useEffect(() => {
     if (project.data) {
       const { coversMunicipality } = project.data;
@@ -319,16 +324,13 @@ export function MaintenanceProject() {
                   drawOptions={{
                     coversMunicipality: coversMunicipality,
                     toolsHidden: ['newPointFeature'],
-                    geoJson: project?.data?.geom ?? null,
+                    geoJson: project?.data?.geometryDump ?? null,
                     drawStyle: getProjectAreaStyle(undefined, undefined, false),
                     editable: editing && mapIsEditable(),
                   }}
                   drawSource={drawSource}
                   fitExtent="geoJson"
-                  vectorLayers={[
-                    ...(coversMunicipality ? [municipalityGeometryLayer] : []),
-                    projectObjectsLayer,
-                  ]}
+                  vectorLayers={vectorLayers}
                   projectObjects={
                     projectObjects.data?.map((obj) => ({
                       ...obj,
