@@ -274,7 +274,11 @@ export const MapWrapper = forwardRef(function MapWrapper<
     switch (props.fitExtent) {
       case 'geoJson':
         if (props?.drawOptions?.geoJson && drawSource) {
-          if (Object.values(dirtyAndValidViews).every((isValid) => !isValid))
+          if (
+            Object.values(dirtyAndValidViews).every(
+              (status) => !status.isValid || !status.isDirtyAndValid,
+            )
+          )
             setExtent(drawSource.getExtent());
         }
         break;
@@ -294,7 +298,11 @@ export const MapWrapper = forwardRef(function MapWrapper<
             (Array.isArray(props.drawOptions?.geoJson) && props.drawOptions.geoJson.length > 0)) &&
           drawSource
         ) {
-          if (Object.values(dirtyAndValidViews).every((isValid) => !isValid))
+          if (
+            Object.values(dirtyAndValidViews).every(
+              (status) => !status.isValid || !status.isDirtyAndValid,
+            )
+          )
             setExtent(drawSource.getExtent());
         } else {
           extent = vectorLayers?.reduce((extent, layer) => {
