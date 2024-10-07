@@ -128,7 +128,9 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
         fields && (Boolean(props.project && needsDateValidation) || fields.length > 1);
 
       const serverErrors = isFormValidation
-        ? maintenanceProject.upsertValidate.fetch({ ...values, geom: undefined }).catch(() => null)
+        ? maintenanceProject.upsertValidate
+            .fetch({ ...values, geom: undefined, geometryDump: undefined })
+            .catch(() => null)
         : null;
       const shapeErrors = schemaValidation(values, context, options);
       const errors = await Promise.all([serverErrors, shapeErrors]);

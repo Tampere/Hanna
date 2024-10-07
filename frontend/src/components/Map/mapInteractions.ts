@@ -142,6 +142,7 @@ interface SelectOptions {
   multi?: boolean;
   delegateFeatureAdding?: boolean;
   filterLayers?: (layer: Layer) => boolean;
+  drawLayerHooverDisabled: boolean;
 }
 
 export function createSelectInteraction(opts: SelectOptions) {
@@ -164,7 +165,7 @@ export function createSelectInteraction(opts: SelectOptions) {
       }),
     );
 
-    const pointer = getPointerHoverInteraction(map);
+    const pointer = getPointerHoverInteraction(map, opts.drawLayerHooverDisabled);
 
     pointer.set('type', 'customInteraction');
     select.set('type', 'customInteraction');
@@ -290,6 +291,12 @@ export function highlightHoveredFeature(featureLike: FeatureLike, layer: Layer) 
       feature.setStyle(getFeatureHighlightStyle('projects', layerStyle));
       break;
     case 'projectObjects':
+      if (
+        feature.getGeometry()?.getType() === 'Point' ||
+        feature.getGeometry()?.getType() === 'MultiPoint'
+      ) {
+        break;
+      }
       feature.setStyle(getFeatureHighlightStyle('projectObjects', layerStyle));
       break;
     default:
@@ -298,20 +305,27 @@ export function highlightHoveredFeature(featureLike: FeatureLike, layer: Layer) 
   return feature;
 }
 
-function getPointerHoverInteraction(olMap: OLMap) {
+function getPointerHoverInteraction(olMap: OLMap, drawLayerDisabled: boolean) {
   let hoveredFeature: Feature<Geometry> | null = null;
   const pointer = new PointerInteraction({
     handleMoveEvent: (event) => {
-      const featuresAtPixel = olMap.getFeaturesAtPixel(event.pixel);
+      const result = olMap.forEachFeatureAtPixel(
+        event.pixel,
+        (featureLike, layer) => {
+          hoveredFeature?.setStyle(undefined);
+          hoveredFeature?.setProperties({ isHovered: false });
+          hoveredFeature = highlightHoveredFeature(featureLike, layer);
+          return true;
+        },
+        {
+          layerFilter: (layer) =>
+            Boolean(layer.getProperties().id) && drawLayerDisabled
+              ? layer.getProperties().id !== 'drawLayer'
+              : true,
+        },
+      );
 
-      olMap.forEachFeatureAtPixel(event.pixel, (featureLike, layer) => {
-        hoveredFeature?.setStyle(undefined);
-        hoveredFeature?.setProperties({ isHovered: false });
-        hoveredFeature = highlightHoveredFeature(featureLike, layer);
-        return true;
-      });
-
-      if (featuresAtPixel.length > 0) {
+      if (result) {
         olMap.getViewport().style.cursor = 'pointer';
       } else {
         olMap.getViewport().style.cursor = '';
@@ -327,41 +341,4 @@ function getPointerHoverInteraction(olMap: OLMap) {
     },
   });
   return pointer;
-}
-
-export function registerHoverEffects(olMap: OLMap) {
-  let hoveredFeature: Feature<Geometry> | null = null;
-
-  olMap.on('pointerdrag', function () {
-    olMap.getViewport().style.cursor = 'grabbing';
-  });
-
-  olMap.on('pointermove', (event) => {
-    const featuresAtPixel = olMap.getFeaturesAtPixel(event.pixel);
-
-    olMap.forEachFeatureAtPixel(event.pixel, (featureLike, layer) => {
-      hoveredFeature?.setStyle(undefined);
-      hoveredFeature?.setProperties({ isHovered: false });
-      hoveredFeature = highlightHoveredFeature(featureLike, layer);
-      return true;
-    });
-
-    if (featuresAtPixel.length > 0) {
-      olMap.getViewport().style.cursor = 'pointer';
-    } else {
-      olMap.getViewport().style.cursor = '';
-      hoveredFeature?.setStyle(undefined);
-      hoveredFeature?.setProperties({ isHovered: false });
-      hoveredFeature = null;
-    }
-  });
-
-  olMap.on('click', () => {
-    hoveredFeature?.setStyle(undefined);
-    hoveredFeature?.setProperties({ isHovered: false });
-  });
-
-  olMap.on('moveend', () => {
-    olMap.getViewport().style.cursor = '';
-  });
 }

@@ -1,6 +1,7 @@
 import { GlobalStyles } from '@mui/material';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
 import { RESET } from 'jotai/utils';
+import diff from 'microdiff';
 import Feature from 'ol/Feature';
 import { Extent, createEmpty, extend, isEmpty } from 'ol/extent';
 import { Geometry } from 'ol/geom';
@@ -17,6 +18,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useParams } from 'react-router';
 
 import {
   ALL_VECTOR_ITEM_LAYERS,
@@ -106,6 +108,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
   TProject extends ProjectData,
   TProjectObject extends ProjectObjectData,
 >(props: Props<TProject, TProjectObject>, ref: React.Ref<{ handleUndoDraw: () => void }>) {
+  const { projectObjectId } = useParams() as { projectObjectId?: string };
   const [zoom, setZoom] = useState(mapOptions.tre.defaultZoom);
   const [viewExtent, setViewExtent] = useState<number[]>(mapOptions.tre.extent);
 
@@ -161,7 +164,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
   const selectionLayer = useMemo(() => createSelectionLayer(selectionSource), []);
   const freezeMapHeight = useAtomValue(freezeMapHeightAtom);
   const [dirtyAndValidViews, setDirtyAndValidViews] = useAtom(dirtyAndValidFieldsAtom);
-  const setEditing = useSetAtom(projectEditingAtom);
+  const [editing, setEditing] = useAtom(projectEditingAtom);
   useNavigationBlocker(dirtyAndValidViews.map.isDirtyAndValid, 'map');
 
   useEffect(() => {
@@ -207,6 +210,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
         onSelectionChanged(features) {
           setFeatureSelector({ features: features, pos: [0, 0] });
         },
+        drawLayerHooverDisabled: false,
       }),
     [],
   );
@@ -223,6 +227,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
           return true;
         return false;
       },
+      drawLayerHooverDisabled: true,
     });
   }, []);
 
@@ -270,11 +275,26 @@ export const MapWrapper = forwardRef(function MapWrapper<
   }, [props.projects]);
 
   useEffect(() => {
+    if (projectObjectId) {
+      return;
+    }
+    if (editing) {
+      drawLayer.setZIndex(101);
+    } else {
+      drawLayer.setZIndex(0);
+    }
+  }, [editing, drawLayer, projectObjectId]);
+
+  useEffect(() => {
     let extent = createEmpty();
     switch (props.fitExtent) {
       case 'geoJson':
         if (props?.drawOptions?.geoJson && drawSource) {
-          if (Object.values(dirtyAndValidViews).every((isValid) => !isValid))
+          if (
+            Object.values(dirtyAndValidViews).every(
+              (status) => !status.isValid || !status.isDirtyAndValid,
+            )
+          )
             setExtent(drawSource.getExtent());
         }
         break;
@@ -294,7 +314,11 @@ export const MapWrapper = forwardRef(function MapWrapper<
             (Array.isArray(props.drawOptions?.geoJson) && props.drawOptions.geoJson.length > 0)) &&
           drawSource
         ) {
-          if (Object.values(dirtyAndValidViews).every((isValid) => !isValid))
+          if (
+            Object.values(dirtyAndValidViews).every(
+              (status) => !status.isValid || !status.isDirtyAndValid,
+            )
+          )
             setExtent(drawSource.getExtent());
         } else {
           extent = vectorLayers?.reduce((extent, layer) => {
@@ -331,11 +355,21 @@ export const MapWrapper = forwardRef(function MapWrapper<
     setDirtyAndValidViews((prev) => ({ ...prev, map: { isDirtyAndValid: true } }));
   }
 
-  function handleDeleteFeatures() {
-    setFeatureSelector((prev) => ({
-      features: deleteSelectedFeatures(drawSource, selectionSource),
-      pos: prev.pos,
-    }));
+  function handleDeleteFeatures(selectedOnly = true) {
+    if (selectedOnly) {
+      setFeatureSelector((prev) => ({
+        features: deleteSelectedFeatures(drawSource, selectionSource),
+        pos: prev.pos,
+      }));
+    } else {
+      drawSource.clear();
+      selectionSource.clear();
+      setFeatureSelector((prev) => ({
+        features: [],
+        pos: prev.pos,
+      }));
+    }
+
     setDirtyAndValidViews((prev) => ({
       ...prev,
       map: {
@@ -371,7 +405,9 @@ export const MapWrapper = forwardRef(function MapWrapper<
         break;
       case 'deleteFeature':
         handleDeleteFeatures();
-        drawFinished();
+        break;
+      case 'deleteAllFeatures':
+        handleDeleteFeatures(false);
         break;
       default:
         drawFinished();
@@ -545,6 +581,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
               editFeature: getSelectedDrawLayerFeatures(featureSelector.features).length === 0,
               clearSelectedFeature: featureSelector.features.length === 0 || infoBoxVisible,
               deleteFeature: getSelectedDrawLayerFeatures(featureSelector.features).length === 0,
+              deleteAllFeatures: drawSource.getFeatures().length === 0,
             }}
             onToolChange={(tool) => setSelectedTool(tool)}
           />

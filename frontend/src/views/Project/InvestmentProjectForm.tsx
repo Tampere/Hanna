@@ -132,7 +132,9 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
         fields && (Boolean(props.project && needsDateValidation) || fields.length > 1);
 
       const serverErrors = isFormValidation
-        ? investmentProject.upsertValidate.fetch({ ...values, geom: undefined }).catch(() => null)
+        ? investmentProject.upsertValidate
+            .fetch({ ...values, geom: undefined, geometryDump: undefined })
+            .catch(() => null)
         : null;
       const shapeErrors = schemaValidation(values, context, options);
       const errors = await Promise.all([serverErrors, shapeErrors]);

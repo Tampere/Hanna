@@ -517,6 +517,7 @@ const highlightBaseStyle = [
     }),
     zIndex: 9,
   }),
+
   new Style({
     stroke: new Stroke({
       color: 'rgba(255,255,255,0.01)',

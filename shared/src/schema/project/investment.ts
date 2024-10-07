@@ -19,6 +19,7 @@ export const dbInvestmentProjectSchema = investmentProjectSchema.extend({
   projectId: z.string(),
   parentId: z.string(),
   geom: z.string().nullable(),
+  geometryDump: z.array(z.string()).nullish(),
   writeUsers: z.array(z.string()),
 });
 
