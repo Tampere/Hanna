@@ -104,7 +104,6 @@ export function TaskDialog(props: Readonly<Props>) {
                   year: yearBudget.year ?? null,
                   amount: yearBudget.budgetItems.amount ?? null,
                 }));
-                console.log(payload);
                 await saveBudgetMutation.mutateAsync({
                   taskId: task.taskId,
                   budgetItems: payload,

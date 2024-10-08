@@ -299,20 +299,20 @@ export async function validateUpsertProjectObject(
     `);
   }
 
-  if (dateRange?.validProjectStartDate === false) {
-    validationErrors.errors['startDate'] = fieldError('projectObject.error.projectNotIncluded');
-  } else if (dateRange?.validBudgetStartDate === false) {
+  if (dateRange?.validBudgetStartDate === false) {
     validationErrors.errors['startDate'] = fieldError('projectObject.error.budgetNotIncluded');
+  } else if (dateRange?.validProjectStartDate === false) {
+    validationErrors.errors['startDate'] = fieldError('projectObject.error.projectNotIncluded');
   }
 
-  if (dateRange?.validProjectEndDate === false) {
-    validationErrors.errors['endDate'] = fieldError('projectObject.error.projectNotIncluded');
-  } else if (dateRange?.validBudgetEndDate === false) {
+  if (dateRange?.validBudgetEndDate === false) {
     validationErrors.errors['endDate'] = fieldError('projectObject.error.budgetNotIncluded');
   } else if (dateRange?.validOngoingBudgetEndDate === false) {
     validationErrors.errors['endDate'] = fieldError(
       'projectObject.error.budgetNotIncludedForOngoing',
     );
+  } else if (dateRange?.validProjectEndDate === false) {
+    validationErrors.errors['endDate'] = fieldError('projectObject.error.projectNotIncluded');
   }
 
   if (values?.startDate && values?.endDate) {
