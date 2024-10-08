@@ -91,6 +91,7 @@ export function TaskDialog(props: Readonly<Props>) {
           <SectionTitle title={tr('task.budget')} />
           {!budget?.data ? null : (
             <BudgetTable
+              forTask
               enableTooltips={false}
               years={years}
               fields={['amount']}
@@ -100,8 +101,8 @@ export function TaskDialog(props: Readonly<Props>) {
               actualsLoading={false}
               onSave={async (yearBudgets) => {
                 const payload = yearBudgets.map((yearBudget) => ({
-                  year: yearBudget.year,
-                  amount: yearBudget.budgetItems.amount,
+                  year: yearBudget.year ?? null,
+                  amount: yearBudget.budgetItems.amount ?? null,
                 }));
                 await saveBudgetMutation.mutateAsync({
                   taskId: task.taskId,

@@ -114,12 +114,8 @@ export const ProjectObjectFinances = forwardRef(function ProjectObjectFinances<
       writableFields={getWritableFields()}
       onSave={async (yearBudgets) => {
         const payload = yearBudgets.map((yearBudget) => ({
+          ...yearBudget.budgetItems,
           year: yearBudget.year,
-          estimate: yearBudget.budgetItems.estimate ?? null,
-          contractPrice: yearBudget.budgetItems.contractPrice ?? null,
-          amount: yearBudget.budgetItems.amount,
-          forecast: yearBudget.budgetItems?.forecast ?? null,
-          kayttosuunnitelmanMuutos: yearBudget.budgetItems.kayttosuunnitelmanMuutos ?? null,
         }));
         await saveBudgetMutation.mutateAsync({
           projectObjectId: projectObject.data.projectObjectId,

@@ -209,10 +209,9 @@ export async function updateProjectObjectBudget(
     eventData: { projectObjectId, budgetItems },
     eventUser: userId,
   });
-
   await Promise.all(
     budgetItems.map(async (item) => {
-      // filter falsy kvs in case of partial update
+      // filter falsy keys in case of partial update
       const data = Object.fromEntries(
         Object.entries({
           year: item.year,
@@ -222,7 +221,7 @@ export async function updateProjectObjectBudget(
           forecast: item.forecast,
           kayttosuunnitelman_muutos: item.kayttosuunnitelmanMuutos,
         }).filter(([, value]) => value !== undefined),
-      );
+      ) as Required<BudgetUpdate['budgetItems'][number]>;
 
       const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
       const values = Object.values(data);
@@ -300,20 +299,20 @@ export async function validateUpsertProjectObject(
     `);
   }
 
-  if (dateRange?.validProjectStartDate === false) {
-    validationErrors.errors['startDate'] = fieldError('projectObject.error.projectNotIncluded');
-  } else if (dateRange?.validBudgetStartDate === false) {
+  if (dateRange?.validBudgetStartDate === false) {
     validationErrors.errors['startDate'] = fieldError('projectObject.error.budgetNotIncluded');
+  } else if (dateRange?.validProjectStartDate === false) {
+    validationErrors.errors['startDate'] = fieldError('projectObject.error.projectNotIncluded');
   }
 
-  if (dateRange?.validProjectEndDate === false) {
-    validationErrors.errors['endDate'] = fieldError('projectObject.error.projectNotIncluded');
-  } else if (dateRange?.validBudgetEndDate === false) {
+  if (dateRange?.validBudgetEndDate === false) {
     validationErrors.errors['endDate'] = fieldError('projectObject.error.budgetNotIncluded');
   } else if (dateRange?.validOngoingBudgetEndDate === false) {
     validationErrors.errors['endDate'] = fieldError(
       'projectObject.error.budgetNotIncludedForOngoing',
     );
+  } else if (dateRange?.validProjectEndDate === false) {
+    validationErrors.errors['endDate'] = fieldError('projectObject.error.projectNotIncluded');
   }
 
   if (values?.startDate && values?.endDate) {

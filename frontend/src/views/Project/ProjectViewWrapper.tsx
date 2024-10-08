@@ -147,6 +147,7 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
     editing ||
     dirtyAndValidViews.finances.isDirtyAndValid ||
     dirtyAndValidViews.permissions.isDirtyAndValid;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const tabRefs: TabRefs = {
@@ -179,7 +180,9 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
     try {
       await Promise.all(
         Object.entries(dirtyAndValidViews).map(async ([view, status]) => {
-          if (status.isValid || status.isDirtyAndValid) {
+          if (view === 'form' && status.isDirty && status.isValid) {
+            await viewSaveActions[view as keyof DirtyAndValidFields]?.();
+          } else if (status.isDirtyAndValid) {
             await viewSaveActions[view as keyof DirtyAndValidFields]?.();
           }
         }),

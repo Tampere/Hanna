@@ -163,7 +163,6 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
   });
 
   const {
-    trigger,
     handleSubmit,
     reset,
     watch,
@@ -172,17 +171,6 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
     setValue,
     getValues,
   } = form;
-
-  function handleBudgetUpdateEvent() {
-    trigger('endDate');
-    document.removeEventListener('budgetUpdated', handleBudgetUpdateEvent);
-  }
-
-  useEffect(() => {
-    if (errors.endDate?.message === 'project.error.budgetNotIncludedForOngoing') {
-      document.addEventListener('budgetUpdated', handleBudgetUpdateEvent);
-    }
-  }, [errors.endDate]);
 
   const {
     formState: { isDirty: externalIsDirty },
@@ -323,7 +311,12 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
             errorTooltip={tr('newProject.projectNameErrorTooltip')}
             helpTooltip={tr('newProject.projectNameTooltip')}
             component={(field) => (
-              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
+              <TextField
+                {...readonlyProps}
+                {...field}
+                size="small"
+                autoFocus={!props.project && editing}
+              />
             )}
           />
 

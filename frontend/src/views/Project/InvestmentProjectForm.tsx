@@ -301,7 +301,12 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
             errorTooltip={tr('newProject.projectNameErrorTooltip')}
             helpTooltip={tr('newProject.projectNameTooltip')}
             component={(field) => (
-              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
+              <TextField
+                {...readonlyProps}
+                {...field}
+                size="small"
+                autoFocus={!props.project && editing}
+              />
             )}
           />
 

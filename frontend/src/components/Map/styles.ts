@@ -85,7 +85,7 @@ export const DEFAULT_DRAW_STYLE = makeDrawStyle(_DEFAULT_FILL, _DEFAULT_STROKE);
 export const DEFAULT_POINT_STYLE = makePointDrawStyle();
 const SELECTION_COLOR = 'rgba(255, 255, 0, 0.9)';
 
-const CLUSTER_RADIUS = 16;
+const CLUSTER_RADIUS = 24;
 const CLUSTER_STROKE = '#fff';
 const CLUSTER_STROKE_WIDTH = 2;
 const CLUSTER_FILL = {
@@ -95,7 +95,7 @@ const CLUSTER_FILL = {
   maintenanceProject: _MAINTENANCE_STROKE,
   detailplanProject: _DETAILPLAN_STROKE,
 };
-const CLUSTER_FONT = 'bold 14px sans-serif';
+const CLUSTER_FONT = 'bold 18px sans-serif';
 const HOVERED_CLUSTER_FILL = {
   project: '#B7DAA8',
   projectObject: '#A9B5C9',

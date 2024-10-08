@@ -2,9 +2,12 @@ import { clearProjectPermissions } from '@utils/db.js';
 import { expect } from 'playwright/test';
 import { test } from 'utils/fixtures.js';
 
-import { YearBudget } from '@shared/schema/project/index.js';
+import { ProjectYearBudget } from '@shared/schema/project/index.js';
 import { BudgetUpdate as ProjectBudgetUpdate } from '@shared/schema/project/index.js';
-import { YearBudget as ObjectYearBudget } from '@shared/schema/projectObject/base.js';
+import {
+  YearBudget as ObjectYearBudget,
+  updateBudgetFinancialWriterSchema,
+} from '@shared/schema/projectObject/base.js';
 import { BudgetUpdate as ProjectObjectBudgetUpdate } from '@shared/schema/projectObject/base.js';
 
 import {
@@ -13,7 +16,10 @@ import {
   testProjectObject,
 } from './projectObjectData.js';
 
-type BudgetFields = (keyof YearBudget['budgetItems'] | keyof ObjectYearBudget['budgetItems'])[];
+type BudgetFields = (
+  | keyof ProjectYearBudget['budgetItems']
+  | keyof ObjectYearBudget['budgetItems']
+)[];
 
 const allBudgetFields: BudgetFields = [
   'estimate',
@@ -41,21 +47,11 @@ function getProjectObjectBudgetUpdateInput(
   id: string,
   budgetFields: BudgetFields = allBudgetFields,
 ): ProjectObjectBudgetUpdate {
-  const baseBudgetItem = {
-    year: 2024,
-    estimate: null,
-    budget: null,
-    contractPrice: null,
-    amount: null,
-    forecast: null,
-    kayttosuunnitelmanMuutos: null,
-  };
-
   return {
     projectObjectId: id,
     budgetItems: [
       {
-        ...baseBudgetItem,
+        year: 2024,
         ...budgetFields.reduce((budgetItems, field) => ({ ...budgetItems, [field]: 10000 }), {}),
       },
     ],

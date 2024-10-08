@@ -1,5 +1,4 @@
 import dayjs from 'dayjs';
-import { useSetAtom } from 'jotai';
 import { forwardRef, useEffect, useMemo } from 'react';
 
 import { trpc } from '@frontend/client';
@@ -88,12 +87,14 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
           year: yearBudget.year,
           estimate: yearBudget.budgetItems.estimate ?? null,
         }));
-        if (project.data)
+
+        if (project.data) {
           // for typescript to know that project.data is not null or undefined
           await saveBudgetMutation.mutateAsync({
             projectId: project.data.projectId as string,
             budgetItems: payload,
           });
+        }
         props.onSave?.();
         budget?.refetch();
       }}
