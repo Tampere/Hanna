@@ -95,7 +95,7 @@ Hannan navigointipalkin oikeasta laidasta löytyy painike, joka ohjaa käyttäj�
 
 # Karttasivu
 
-![Hannan karttasivu](../../../public/images/karttasivu.png)<br/>
+![Hannan karttasivu](/images/karttasivu.png)<br/>
 
 Kartta on Hannan laskeutumissivu. Siellä käyttäjä voi tarkastella hankkeita, tai vaihtoehtoisesti niiden kohteita kartalla, tehdä hakuja, tarkastella niiden perustietoja sekä perustaa uusia hankkeita tai kohteita. Alla on kuvattu yllä näkyvään kuvaan numeroidut toiminnot tarkemmin.
 
@@ -112,7 +112,7 @@ Kartta on Hannan laskeutumissivu. Siellä käyttäjä voi tarkastella hankkeita,
 
 Käyttäjä voi klikata kartalla näkyviä hanke- ja kohdealueita, jolloin niille näytetään ponnahdusikkunassa perustiedot, ja josta käsin on mahdollista siirtyä hanke- tai kohdesivulle. Jos klikkaus kohdistuu useampaan hankkeeseen tai kohteeseen, niiden välillä voi selata nuolinäppäimillä. Karttavalinta korostetaan keltaisella. Toistaiseksi kaupungin rajapinnoilta haettavien aineistojen ominaisuustietoja ei pysty lukemaan Hannasta käsin.
 
-![karttavalinta](../../../public/images/karttavalinta.png)
+![karttavalinta](/images/karttavalinta.png)
 
 Kattavimmat tiedot ja muokkausmahdollisuus löytyvät hankkeiden ja kohteiden omilta sivuilta.
 
@@ -173,7 +173,7 @@ Pääkäyttäjille on luotu oma näkymänsä, joka ei ole tarjolla peruskäyttä
 
 Pääkäyttäjä ei voi poistaa toisen pääkäyttäjän oikeuksia, vaan ne luetaan aina Tampereen Microsoftin EntraID:stä. Lisätessään tai poistaessaan oikeuksia kohdekäyttäjien istunto päivitetään, ja muuttuneet käyttöoikeudet tulevat voimaan heti.
 
-![Pääkäyttäjän luvitusnäkymä](../../../public/images/paakayttajan_luvitusnakyma.png)<br/>
+![Pääkäyttäjän luvitusnäkymä](/images/paakayttajan_luvitusnakyma.png)<br/>
 _Pääkäyttäjän luvitusnäkymä näyttää tältä. Peruskäyttäjiltä kyseinen sivu puuttuu kokonaan. Muut pääkäyttäjät ilmenevät harmaina, eikä heidän oikeuksiaan pääse muokkaamaan._
 
 ## Lukuoikeus
@@ -247,7 +247,7 @@ Investoinnin ja kunnossapidon hankkeille ja kohteille voi halutessaan piirtää 
 10. **Karttatasovalikko:** Piirtämisen tukena voi hyödyntää karttatasovalikosta valittavissa olevia kaupungin rajapinta-aineistoja.
 11. **Tallenna- ja peruutapainike:** Jos käyttäjällä on tallentamattomia muutoksia, ilmestyy tallennus- ja peruutapainikkeet oikeaan alakulmaan.
 
-![Hankesivulta löytyvä karttanäkymä](../../../public/images/kartan_piirtotoiminnot.png)<br/>
+![Hankesivulta löytyvä karttanäkymä](/images/kartan_piirtotoiminnot.png)<br/>
 _Hankesivulta löytyvä karttanäkymä. Vasemmassa laidassa näkyvissä yllä kuvatut toiminnot._
 
 ## Hankkeiden liittyminen toisiinsa
@@ -260,7 +260,7 @@ Hankkeet ovat harvoin täysin itsenäisiä kokonaisuuksia, vaan ovat pikemminkin
 
 Voit osoittaa Hannan hankkeelle sidoshankkeen välilehdeltä "sidoshankkeet". Vaihtoehtoina ovat Hannassa perustetut hankkeet.
 
-![sidoshankkeet hankesivulla](../../../public/images/sidoshankkeet.png)<br/>
+![sidoshankkeet hankesivulla](/images/sidoshankkeet.png)<br/>
 _Kuvassa hankkeelle on osoitettu yksi alahanke._
 
 # Hanketyypit
@@ -387,7 +387,7 @@ Kohteelle voi lisäksi osoittaa toimijoita. Toimija koostuu henkilön ja roolin 
 
 Toimijoiden yksilöiminen kohteelle ei ole pakollista. Yhteen rooliin on mahdollista osoittaa useita henkilöitä. Henkilöt voivat olla sisäisiä tai ulkoisia henkilöitä, kuten esimerkiksi konsultteja. Sisäisten henkilöiden lista johdetaan Hannan tuntemista käyttäjistä, eli käyttäjistä, jotka ovat luvitettu Hannaan ja kirjautuneet sinne ainakin kerran. Ulkoisia henkilöitä voi hallita ja lisätä [hallintapaneelista](#yrityksien-ja-heidän-yhteyshenkilöiden-hallinta) käsin kuka tahansa.
 
-![Toimijat_kohteella](../../../public/images/toimijat_kohteella.png)
+![Toimijat_kohteella](/images/toimijat_kohteella.png)
 
 _Yllä olevassa kuvassa on esitetty kohteelle valitut toimijat. Valvojaksi on valittu useampi henkilö._
 
@@ -477,7 +477,7 @@ Kunnossapitohankkeen ja sen kohteiden taloussuunnittelu vastaa investointihankke
 
 # Investointiohjelmointinäkymä
 
-![Investointiohjelmointi](../../../public/images/investointiohjelmointi.png)
+![Investointiohjelmointi](/images/investointiohjelmointi.png)
 
 Investointiohjelmointinäkymä on tarkoitettu vuosikohtaisen investointiohjelman rakentamiseen, sen seuraamiseen ja hallinnointiin. Kyseinen näkymä muodostuu taulukosta, joka listaa **investointihankkeiden kohteita**. Näkymään voi siirtyä päänavigointipalkista käsin (1). Näkymä helpottaa suuren kohdejoukon hallinnoimista kerralla ja kokonaiskuvan muodostumista.
 
@@ -526,7 +526,7 @@ Muista, että SAP:sta haettavat tiedot on rajattu yrityksiin:
 - 1350 (KITIA)
 - 1540 (ELOSA)
 
-![SAP-raportit](../../../public/images/sap_raportit.png)
+![SAP-raportit](/images/sap_raportit.png)
 _SAP-raporttien sivu näyttää tältä. Sivun löytää Hannan päänavigointipalkista. Sivulta käsin käyttäjä voi vaihtaa eri taulukkojen välillä, joita on tällä hetkellä kaksi: ympäristökoodit ja puitesopimukset._
 
 ## Ympäristökoodit
@@ -587,7 +587,7 @@ Jos käyttäjä ei valitse vuotta, muodostetaan talousluvut (menot, tulot, toteu
 
 Hannan oikeasta ylälaidasta löytyvän hallintanäkymän kautta käyttäjät voivat luoda, muokata ja poistaa hankkeisiin liittyviä yrityksiä ja heidän yhteyshenkilöitään. Molemmille on oma välilehtensä.
 
-![hallinta_paneelin_sijainti](../../../public/images/hallintapaneelin_sijainti.png)<br/>
+![hallinta_paneelin_sijainti](/images/hallintapaneelin_sijainti.png)<br/>
 _Hallintapaneeliin pääsee käyttöliittymän sinisen yläpalkin oikeasta reunasta käsin._
 
 Yrityksille voi antaa seuraavat tiedot:
@@ -606,5 +606,5 @@ Yllä olevan listan Yrityksen nimi -arvo valitaan alasvetovalikosta niistä yrit
 
 Yrityksen yhteyshenkilön voi osoittaa investointi- ja kunnossapidon kohteella valitsemalla uuden toimijan.
 
-![yritysten_yhteyshenkilöt](../../../public/images/yritysten_yhteyshenkilot.png)<br/>
+![yritysten_yhteyshenkilöt](/images/yritysten_yhteyshenkilot.png)<br/>
 _Yritysten yhteyshenkilöt hallintapaneelissa. Huomioi myös Yritykset välilehti, jolta käsin voi muokata yritystietoja._
