@@ -1,5 +1,7 @@
+import { Save, Undo } from '@mui/icons-material';
 import {
   Box,
+  Button,
   CircularProgress,
   Skeleton,
   Table,
@@ -43,6 +45,7 @@ interface Props {
   fields?: BudgetFields[];
   enableTooltips?: boolean;
   customTooltips?: Partial<Record<BudgetFields, string>>;
+  forTask?: boolean;
 }
 
 type BudgetFormValues = Record<string, ProjectYearBudget['budgetItems']>;
@@ -150,6 +153,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   }, [budget, years]);
 
   useEffect(() => {
+    if (props.forTask) return;
     setDirtyAndValidViews((prev) => {
       return {
         ...prev,
@@ -159,7 +163,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   }, [isDirty]);
 
   async function onSubmit(data: BudgetFormValues) {
-    await onSave(formValuesToBudget(getDirtyValues(data), years));
+    await onSave(formValuesToBudget(props.forTask ? data : getDirtyValues(data), years));
     form.reset();
   }
 
@@ -483,6 +487,38 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
               </TableBody>
             </Table>
           </TableContainer>
+          {props.forTask && (
+            <Box
+              css={css`
+                display: flex;
+                justify-content: flex-start;
+                grid-gap: 8px;
+                margin-top: 16px;
+              `}
+            >
+              <Button
+                size="small"
+                type="reset"
+                variant="outlined"
+                sx={{ mt: 2, float: 'right' }}
+                disabled={!form.formState.isDirty}
+                onClick={() => form.reset()}
+                endIcon={<Undo />}
+              >
+                {tr('genericForm.cancelAll')}
+              </Button>
+              <Button
+                size="small"
+                type="submit"
+                variant="contained"
+                sx={{ mt: 2, float: 'right' }}
+                disabled={!form.formState.isDirty}
+                endIcon={<Save />}
+              >
+                {tr('projectForm.saveBtnLabel')}
+              </Button>
+            </Box>
+          )}
         </form>
       </FormProvider>
     </>
