@@ -30,7 +30,11 @@ export const updateBudgetFinancialWriterSchema = updateBudgetSchema
   .required()
   .extend({
     budgetItems: z.array(
-      baseBudgetItemSchema.pick({ amount: true, kayttosuunnitelmanMuutos: true }).partial(),
+      baseBudgetItemSchema
+        .partial()
+        .pick({ amount: true, kayttosuunnitelmanMuutos: true })
+        .extend({ year: z.number() })
+        .strict(),
     ),
   });
 
@@ -42,11 +46,13 @@ export const updateBudgetOwnerWriterSchema = updateBudgetSchema
   .extend({
     budgetItems: z.array(
       baseBudgetItemSchema
+        .partial()
         .omit({
           amount: true,
           kayttosuunnitelmanMuutos: true,
         })
-        .partial(),
+        .extend({ year: z.number() })
+        .strict(),
     ),
   });
 
