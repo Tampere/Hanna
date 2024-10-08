@@ -22,7 +22,7 @@ import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { dirtyAndValidFieldsAtom } from '@frontend/stores/projectView';
 
-import { YearBudget } from '@shared/schema/project';
+import { ProjectYearBudget } from '@shared/schema/project';
 import { YearlyActuals } from '@shared/schema/sapActuals';
 
 export type BudgetFields =
@@ -35,8 +35,8 @@ export type BudgetFields =
   | 'actual';
 interface Props {
   years: number[];
-  budget: readonly YearBudget[];
-  onSave: (budget: YearBudget[]) => Promise<void>;
+  budget: readonly ProjectYearBudget[];
+  onSave: (budget: ProjectYearBudget[]) => Promise<void>;
   actuals?: YearlyActuals | null;
   actualsLoading?: boolean;
   writableFields?: BudgetFields[];
@@ -45,10 +45,13 @@ interface Props {
   customTooltips?: Partial<Record<BudgetFields, string>>;
 }
 
-type BudgetFormValues = Record<string, YearBudget['budgetItems']>;
+type BudgetFormValues = Record<string, ProjectYearBudget['budgetItems']>;
 
 function budgetToFormValues<
-  TBudget extends { year: number; budgetItems: YearBudget['budgetItems'] } = YearBudget,
+  TBudget extends {
+    year: number;
+    budgetItems: ProjectYearBudget['budgetItems'];
+  } = ProjectYearBudget,
 >(budget: TBudget[], projectYears: number[]) {
   const values: BudgetFormValues = {};
   for (const year of projectYears) {
@@ -64,14 +67,17 @@ function budgetToFormValues<
   return values;
 }
 
-function formValuesToBudget(values: BudgetFormValues, projectYears: number[]): YearBudget[] {
-  const budget: YearBudget[] = [];
+function formValuesToBudget(values: BudgetFormValues, projectYears: number[]): ProjectYearBudget[] {
+  const budget: ProjectYearBudget[] = [];
   for (const year of projectYears) {
-    budget.push({
-      year,
-      budgetItems: values[year],
-    });
+    if (values[year]) {
+      budget.push({
+        year,
+        budgetItems: values[year],
+      });
+    }
   }
+
   return budget;
 }
 
@@ -95,22 +101,42 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     ...props,
   };
 
+  const tr = useTranslations();
+  const form = useForm<BudgetFormValues>({ mode: 'all', defaultValues: {} });
+  const { isDirty, dirtyFields } = form.formState;
+  const setDirtyAndValidViews = useSetAtom(dirtyAndValidFieldsAtom);
+  const watch = form.watch();
+  useNavigationBlocker(isDirty, 'budgetTable', () => {
+    setDirtyAndValidViews((prev) => ({ ...prev, finances: { isDirtyAndValid: false } }));
+  });
+
   useImperativeHandle(
     ref,
     () => ({
-      onSave: form.handleSubmit(onSubmit),
+      onSave: form.handleSubmit(async (data) => await onSubmit(data)),
       onCancel: form.reset,
     }),
-    [],
+    [dirtyFields, onSubmit],
   );
 
-  const tr = useTranslations();
-  const form = useForm<BudgetFormValues>({ mode: 'all', defaultValues: {} });
-  const setDirtyAndValidViews = useSetAtom(dirtyAndValidFieldsAtom);
-  const watch = form.watch();
-  useNavigationBlocker(form.formState.isDirty, 'budgetTable', () => {
-    setDirtyAndValidViews((prev) => ({ ...prev, finances: { isDirtyAndValid: false } }));
-  });
+  function getDirtyValues(data: BudgetFormValues): BudgetFormValues {
+    return Object.entries(dirtyFields).reduce<BudgetFormValues>(
+      (dirtyValues, [year, dirtyFieldObject]) => {
+        if (!dirtyFieldObject) {
+          return dirtyValues;
+        }
+        const objectEntries = Object.entries(data[year]).filter(
+          ([field]) => dirtyFieldObject[field as keyof typeof dirtyFieldObject],
+        ) as [BudgetFields, BudgetFormValues[string]][];
+
+        return {
+          ...dirtyValues,
+          [year]: Object.fromEntries<BudgetFormValues[string]>(objectEntries),
+        };
+      },
+      {},
+    );
+  }
 
   /**
    * Convert budget from object into a simple array for the form
@@ -127,13 +153,13 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     setDirtyAndValidViews((prev) => {
       return {
         ...prev,
-        finances: { isDirtyAndValid: form.formState.isDirty },
+        finances: { isDirtyAndValid: isDirty },
       };
     });
-  }, [form.formState.isDirty]);
+  }, [isDirty]);
 
   async function onSubmit(data: BudgetFormValues) {
-    await onSave(formValuesToBudget(data, years));
+    await onSave(formValuesToBudget(getDirtyValues(data), years));
     form.reset();
   }
 
@@ -271,6 +297,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                           // eslint-disable-next-line @typescript-eslint/no-unused-vars
                           component={({ ref, onChange, ...field }) => (
                             <CurrencyInput
+                              directlyHandleValueChange
                               {...field}
                               onChange={writableFields?.includes('estimate') ? onChange : undefined}
                             />
@@ -285,6 +312,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                           // eslint-disable-next-line @typescript-eslint/no-unused-vars
                           component={({ ref, onChange, ...field }) => (
                             <CurrencyInput
+                              directlyHandleValueChange
                               {...field}
                               onChange={writableFields?.includes('amount') ? onChange : undefined}
                             />
@@ -299,6 +327,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                           // eslint-disable-next-line @typescript-eslint/no-unused-vars
                           component={({ ref, onChange, ...field }) => (
                             <CurrencyInput
+                              directlyHandleValueChange
                               {...field}
                               onChange={
                                 writableFields?.includes('contractPrice') ? onChange : undefined
@@ -313,6 +342,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                       <TableCell>
                         {!props.actualsLoading ? (
                           <CurrencyInput
+                            directlyHandleValueChange
                             value={props.actuals?.find((data) => data.year === year)?.total ?? null}
                           />
                         ) : (
@@ -332,6 +362,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                           // eslint-disable-next-line @typescript-eslint/no-unused-vars
                           component={({ ref, onChange, ...field }) => (
                             <CurrencyInput
+                              directlyHandleValueChange
                               {...field}
                               allowNegative
                               getColor={valueTextColor}
@@ -348,6 +379,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                           // eslint-disable-next-line @typescript-eslint/no-unused-vars
                           component={({ ref, onChange, ...field }) => (
                             <CurrencyInput
+                              directlyHandleValueChange
                               style={{ width: '100%', minWidth: 220 }}
                               getColor={valueTextColor}
                               {...field}

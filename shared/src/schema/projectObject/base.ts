@@ -20,7 +20,7 @@ const baseBudgetItemSchema = z.object({
 
 export const updateBudgetSchema = z.object({
   projectObjectId: z.string().optional(),
-  budgetItems: z.array(baseBudgetItemSchema),
+  budgetItems: z.array(baseBudgetItemSchema.partial().extend({ year: z.number() })),
 });
 
 export const updateBudgetFinancialWriterSchema = updateBudgetSchema
@@ -30,11 +30,7 @@ export const updateBudgetFinancialWriterSchema = updateBudgetSchema
   .required()
   .extend({
     budgetItems: z.array(
-      baseBudgetItemSchema.extend({
-        estimate: z.null(),
-        contractPrice: z.null(),
-        forecast: z.null(),
-      }),
+      baseBudgetItemSchema.pick({ amount: true, kayttosuunnitelmanMuutos: true }).partial(),
     ),
   });
 
@@ -45,10 +41,12 @@ export const updateBudgetOwnerWriterSchema = updateBudgetSchema
   .required()
   .extend({
     budgetItems: z.array(
-      baseBudgetItemSchema.extend({
-        amount: z.null(),
-        kayttosuunnitelmanMuutos: z.null(),
-      }),
+      baseBudgetItemSchema
+        .omit({
+          amount: true,
+          kayttosuunnitelmanMuutos: true,
+        })
+        .partial(),
     ),
   });
 

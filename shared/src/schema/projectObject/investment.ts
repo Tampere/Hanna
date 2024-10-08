@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { codeId } from '../code.js';
 import { nonEmptyString } from '../common.js';
-import { commonDbProjectObjectSchema, newProjectObjectSchema, updateBudgetSchema } from './base.js';
+import { commonDbProjectObjectSchema, newProjectObjectSchema } from './base.js';
 
 export const newInvestmentProjectObjectSchema = newProjectObjectSchema.extend({
   objectStage: codeId,

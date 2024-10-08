@@ -211,17 +211,6 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
 
   const { isBlocking } = useNavigationBlocker(isDirty, 'projectObjectForm');
 
-  function handleBudgetUpdateEvent() {
-    trigger('endDate');
-    document.removeEventListener('budgetUpdated', handleBudgetUpdateEvent);
-  }
-
-  useEffect(() => {
-    if (errors.endDate?.message === 'projectObject.error.budgetNotIncludedForOngoing') {
-      document.addEventListener('budgetUpdated', handleBudgetUpdateEvent);
-    }
-  }, [errors.endDate]);
-
   useEffect(() => {
     if (props.projectObject) {
       reset({
@@ -293,7 +282,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
 
   useEffect(() => {
     if (!props.projectObject) {
-      setDirtyAndValidViews((prev) => ({ ...prev, form: { isValid } }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: { isDirty: true, isValid: true } }));
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,
@@ -332,7 +321,12 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
             helpTooltip={tr('projectObject.nameTooltip')}
             errorTooltip={tr('projectObject.nameErrorTooltip')}
             component={(field) => (
-              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
+              <TextField
+                {...readonlyProps}
+                {...field}
+                size="small"
+                autoFocus={!props.projectObject && editing}
+              />
             )}
           />
 

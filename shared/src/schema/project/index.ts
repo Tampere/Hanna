@@ -152,13 +152,13 @@ export const yearBudgetSchema = z.object({
   budgetItems: z.object({
     estimate: z.number().nullish(),
     contractPrice: z.number().nullish(),
-    amount: z.number().nullable(),
+    amount: z.number().nullish(),
     forecast: z.number().nullish(),
     kayttosuunnitelmanMuutos: z.number().nullish(),
   }),
 });
 
-export type YearBudget = z.infer<typeof yearBudgetSchema>;
+export type ProjectYearBudget = z.infer<typeof yearBudgetSchema>;
 
 export const budgetUpdateSchema = z.object({
   projectId: z.string(),

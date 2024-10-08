@@ -357,11 +357,6 @@ export function ProjectObject(props: Props) {
                 {searchParams.get('tab') === 'talous' && projectObject.data && (
                   <ProjectObjectFinances
                     ref={tabRefs.finances}
-                    {...(props.projectType === 'kunnossapitohanke' && {
-                      onSave: () => {
-                        document.dispatchEvent(new Event('budgetUpdated'));
-                      },
-                    })}
                     userIsAdmin={isAdmin(user.role)}
                     userIsEditor={isOwner || canWrite}
                     userIsFinanceEditor={hasPermission(

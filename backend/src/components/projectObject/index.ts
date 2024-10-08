@@ -209,10 +209,9 @@ export async function updateProjectObjectBudget(
     eventData: { projectObjectId, budgetItems },
     eventUser: userId,
   });
-
   await Promise.all(
     budgetItems.map(async (item) => {
-      // filter falsy kvs in case of partial update
+      // filter falsy keys in case of partial update
       const data = Object.fromEntries(
         Object.entries({
           year: item.year,
@@ -222,7 +221,7 @@ export async function updateProjectObjectBudget(
           forecast: item.forecast,
           kayttosuunnitelman_muutos: item.kayttosuunnitelmanMuutos,
         }).filter(([, value]) => value !== undefined),
-      );
+      ) as Required<BudgetUpdate['budgetItems'][number]>;
 
       const identifiers = Object.keys(data).map((key) => sql.identifier([key]));
       const values = Object.values(data);

@@ -14,6 +14,7 @@ interface Props {
   allowNegative?: boolean;
   className?: string;
   style?: React.CSSProperties;
+  directlyHandleValueChange?: boolean;
 }
 
 export function valueTextColor(value: number | null) {
@@ -62,7 +63,12 @@ export function CurrencyInput(props: Readonly<Props>) {
   const [value, setValue] = useState<string>(numericValueToText(props.value));
   const [editing, setEditing] = useState(props.editing ?? false);
   const { style = { width: 144 } } = props;
+
   useEffect(() => {
+    if (props.directlyHandleValueChange && editing) {
+      // props.value is changed on every keystroke, so the value update is delayed until blur event
+      return;
+    }
     setValue(numericValueToText(props.value));
   }, [props.value]);
 
@@ -109,6 +115,9 @@ export function CurrencyInput(props: Readonly<Props>) {
       decimalsLimit={0}
       allowNegativeValue={props.allowNegative ?? false}
       onValueChange={(val) => {
+        if (props.directlyHandleValueChange) {
+          props.onChange?.(textValueToNumeric(val));
+        }
         setValue(val ?? '');
       }}
       onKeyDown={(event) => {

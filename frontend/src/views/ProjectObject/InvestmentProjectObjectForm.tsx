@@ -228,7 +228,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
 
   useEffect(() => {
     if (!props.projectObject) {
-      setDirtyAndValidViews((prev) => ({ ...prev, form: { isValid } }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: { isDirty: true, isValid: true } }));
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,
@@ -335,7 +335,12 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
             errorTooltip={tr('projectObject.nameErrorTooltip')}
             helpTooltip={tr('projectObject.nameTooltip')}
             component={(field) => (
-              <TextField {...readonlyProps} {...field} size="small" autoFocus={editing} />
+              <TextField
+                {...readonlyProps}
+                {...field}
+                size="small"
+                autoFocus={!props.projectObject && editing}
+              />
             )}
           />
 
