@@ -36,7 +36,9 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
     }
     const startYear = dayjs(project.data.startDate).get('year');
     const endYear =
-      project.data.endDate === 'infinity' ? startYear + 5 : dayjs(project.data.endDate).get('year');
+      project.data.endDate === 'infinity'
+        ? dayjs().year() + 5
+        : dayjs(project.data.endDate).get('year');
     return getRange(startYear, endYear);
   }, [project.data?.startDate, project.data?.endDate]);
 
@@ -64,7 +66,7 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
       startYear: dayjs(project.data?.startDate).year(),
       endYear:
         project.data?.endDate === 'infinity'
-          ? dayjs(project.data?.startDate).year() + 5
+          ? dayjs().year() + 5
           : dayjs(project.data?.endDate).year(),
     },
     { enabled: Boolean(project.data?.projectId) },
