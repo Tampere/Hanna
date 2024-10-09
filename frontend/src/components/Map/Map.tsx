@@ -16,6 +16,7 @@ import { ReactNode, useEffect, useRef, useState } from 'react';
 import { getMapProjection, registerProjection } from '@frontend/components/Map/mapFunctions';
 
 import { mapOptions } from './mapOptions';
+import { VECTOR_LAYER_DEFAULT_Z_INDEX, WFS_LAYER_DEFAULT_Z_INDEX } from './styles';
 
 export type MapInteraction = (map: OLMap) => void;
 
@@ -155,7 +156,7 @@ export function Map({
       }
     });
     wfsLayers.forEach((layer) => {
-      layer.setZIndex(2);
+      layer.setZIndex(WFS_LAYER_DEFAULT_Z_INDEX);
       olMap.addLayer(layer);
     });
   }, [wfsLayers]);
@@ -169,7 +170,13 @@ export function Map({
       }
     });
     vectorLayers?.forEach((layer) => {
-      layer.setZIndex(1);
+      const layerId = layer.getProperties().id;
+      if (layerId === 'projectClusterResults' || layerId === 'projectObjectClusterResults') {
+        layer.setZIndex(WFS_LAYER_DEFAULT_Z_INDEX + 1);
+      } else {
+        layer.setZIndex(VECTOR_LAYER_DEFAULT_Z_INDEX);
+      }
+
       olMap.addLayer(layer);
     });
   }, [vectorLayers]);

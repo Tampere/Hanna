@@ -449,6 +449,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
     }));
     setSelectedTool(null);
     setDirtyAndValidViews((prev) => ({ ...prev, map: { isDirtyAndValid: false } }));
+    selectionSource.clear();
     addFeaturesFromGeoJson(drawSource, props.drawOptions?.geoJson);
   }
 

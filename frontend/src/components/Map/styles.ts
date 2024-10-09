@@ -36,6 +36,9 @@ const _MAINTENANCE_FILL = 'rgba(38, 162, 145, 0.3)';
 const _DETAILPLAN_STROKE = 'rgba(154, 154, 0, 1)';
 const _DETAILPLAN_FILL = 'rgba(154, 154, 0, 0.3)';
 
+export const VECTOR_LAYER_DEFAULT_Z_INDEX = 1;
+export const WFS_LAYER_DEFAULT_Z_INDEX = 2;
+
 export interface ProjectColorCodes {
   investmentProject: { stroke: string; fill: string };
   maintenanceProject: { stroke: string; fill: string };

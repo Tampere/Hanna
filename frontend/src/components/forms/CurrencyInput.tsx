@@ -101,6 +101,7 @@ export function CurrencyInput(props: Readonly<Props>) {
       intlConfig={{ locale: 'en-US' }}
       groupSeparator=" "
       decimalSeparator=","
+      maxLength={12}
       css={css`
         text-align: right;
         padding: 6px;
