@@ -304,9 +304,9 @@ export function highlightHoveredFeature(featureLike: FeatureLike, layer: Layer) 
   }
   return feature;
 }
+let hoveredFeature: Feature<Geometry> | null = null;
 
 function getPointerHoverInteraction(olMap: OLMap, drawLayerDisabled: boolean) {
-  let hoveredFeature: Feature<Geometry> | null = null;
   const pointer = new PointerInteraction({
     handleMoveEvent: (event) => {
       const result = olMap.forEachFeatureAtPixel(
