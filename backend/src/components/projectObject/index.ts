@@ -258,7 +258,7 @@ export async function validateUpsertProjectObject(
       extract(year FROM ${values?.endDate}::date) >= max(budget.year) AS "validBudgetEndDate",
       CASE
         WHEN ${values?.endDate} = 'infinity'
-        THEN extract(year FROM ${values?.startDate}::date) + 5 >= max(budget.year)
+        THEN extract(year FROM CURRENT_DATE) + 5 >= max(budget.year)
         ELSE true
       END AS "validOngoingBudgetEndDate"
     FROM app.budget

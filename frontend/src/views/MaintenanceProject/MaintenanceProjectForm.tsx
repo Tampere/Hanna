@@ -119,13 +119,11 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
       const fields = options.names ?? [];
       const currentErrors = context.getErrors();
       const needsDateValidation =
-        currentErrors.startDate ||
-        currentErrors.endDate ||
+        Boolean(props.project && (currentErrors.startDate || currentErrors.endDate)) ||
         fields.includes('startDate') ||
         fields.includes('endDate');
 
-      const isFormValidation =
-        fields && (Boolean(props.project && needsDateValidation) || fields.length > 1);
+      const isFormValidation = (fields && needsDateValidation) || fields.length > 1;
 
       const serverErrors = isFormValidation
         ? maintenanceProject.upsertValidate
@@ -191,7 +189,7 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
 
   useEffect(() => {
     if (!props.project) {
-      setDirtyAndValidViews((prev) => ({ ...prev, form: { isDirty: true, isValid: true } }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: { isDirty, isValid } }));
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,

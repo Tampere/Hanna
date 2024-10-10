@@ -163,9 +163,9 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
     ) {
       const fields = options.names ?? [];
       const currentErrors = context.getErrors();
+
       const needsDateValidation =
-        currentErrors.startDate ||
-        currentErrors.endDate ||
+        Boolean(currentErrors.startDate || currentErrors.endDate) ||
         fields.includes('startDate') ||
         fields.includes('endDate');
 
@@ -228,7 +228,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
 
   useEffect(() => {
     if (!props.projectObject) {
-      setDirtyAndValidViews((prev) => ({ ...prev, form: { isDirty: true, isValid: true } }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: { isDirty, isValid } }));
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,
@@ -464,19 +464,11 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
               errors.startDate?.message ?? null,
               tr('projectObject.startDateTooltip'),
             )}
-            component={({ onChange, ...field }) => (
+            component={(field) => (
               <FormDatePicker
                 maxDate={dayjs(getValues('endDate')).subtract(1, 'day')}
                 readOnly={!editing}
-                field={{
-                  onChange: (e) => {
-                    onChange(e);
-                    const startDate = getValues('startDate');
-                    const endDate = getValues('endDate');
-                    if (endDate && dayjs(startDate).isBefore(endDate)) trigger('endDate');
-                  },
-                  ...field,
-                }}
+                field={field}
               />
             )}
           />
@@ -488,19 +480,11 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
               errors.endDate?.message ?? null,
               tr('projectObject.endDateTooltip'),
             )}
-            component={({ onChange, ...field }) => (
+            component={(field) => (
               <FormDatePicker
                 minDate={dayjs(getValues('startDate')).add(1, 'day')}
                 readOnly={!editing}
-                field={{
-                  onChange: (e) => {
-                    onChange(e);
-                    const startDate = getValues('startDate');
-                    const endDate = getValues('endDate');
-                    if (startDate && dayjs(startDate).isBefore(endDate)) trigger('startDate');
-                  },
-                  ...field,
-                }}
+                field={field}
               />
             )}
           />
