@@ -162,7 +162,7 @@ export async function validateUpsertProject(
         extract(year FROM ${values?.endDate}::date) >= max(b.year) AS "validBudgetEndDate",
         CASE
           WHEN ${values?.endDate} = 'infinity'
-          THEN extract(year FROM ${values?.startDate}::date) + 5 >= max(b.year)
+          THEN extract(year FROM CURRENT_DATE) + 5 >= max(b.year)
         ELSE true
       END AS "validOngoingBudgetEndDate"
       FROM app.budget b
@@ -202,10 +202,12 @@ export async function validateUpsertProject(
     }
   }
 
-  // Check that project start date is not after end date
-  if (values.startDate >= values.endDate) {
-    validationErrors.errors['startDate'] = fieldError('project.error.endDateBeforeStartDate');
-    validationErrors.errors['endDate'] = fieldError('project.error.endDateBeforeStartDate');
+  if (values?.startDate && values?.endDate) {
+    // Check that project start date is not after end date
+    if (values.startDate >= values.endDate) {
+      validationErrors.errors['startDate'] = fieldError('project.error.endDateBeforeStartDate');
+      validationErrors.errors['endDate'] = fieldError('project.error.endDateBeforeStartDate');
+    }
   }
 
   // Check that SAP project ID is not changed if project has project objects

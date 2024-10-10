@@ -145,8 +145,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
 
       const currentErrors = context.getErrors();
       const needsDateValidation =
-        currentErrors.startDate ||
-        currentErrors.endDate ||
+        Boolean(currentErrors.startDate || currentErrors.endDate) ||
         fields.includes('startDate') ||
         fields.includes('endDate');
 
@@ -282,7 +281,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
 
   useEffect(() => {
     if (!props.projectObject) {
-      setDirtyAndValidViews((prev) => ({ ...prev, form: { isDirty: true, isValid: true } }));
+      setDirtyAndValidViews((prev) => ({ ...prev, form: { isDirty, isValid } }));
     } else {
       setDirtyAndValidViews((prev) => ({
         ...prev,
@@ -385,19 +384,11 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
               errors.startDate?.message ?? null,
               tr('projectObject.startDateTooltip'),
             )}
-            component={({ onChange, ...field }) => (
+            component={(field) => (
               <FormDatePicker
                 maxDate={dayjs(getValues('endDate')).subtract(1, 'day')}
                 readOnly={!editing}
-                field={{
-                  onChange: (e) => {
-                    onChange(e);
-                    const startDate = getValues('startDate');
-                    const endDate = getValues('endDate');
-                    if (endDate && dayjs(startDate).isBefore(endDate)) trigger('endDate');
-                  },
-                  ...field,
-                }}
+                field={field}
               />
             )}
           />
@@ -410,7 +401,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
               tr('projectObject.endDateTooltip'),
               [dayjs(getValues('startDate')).add(5, 'year').year().toString()],
             )}
-            component={({ onChange, ...field }) => (
+            component={(field) => (
               <Box
                 css={css`
                   display: flex;
@@ -425,15 +416,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
                 <FormDatePicker
                   minDate={dayjs(getValues('startDate')).add(1, 'day')}
                   readOnly={!editing || endDateWatch === 'infinity'}
-                  field={{
-                    onChange: (e) => {
-                      onChange(e);
-                      const startDate = getValues('startDate');
-                      const endDate = getValues('endDate');
-                      if (startDate && dayjs(startDate).isBefore(endDate)) trigger('startDate');
-                    },
-                    ...field,
-                  }}
+                  field={field}
                 />
                 <FormCheckBox
                   cssProp={css`
@@ -446,7 +429,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
                     if (endDateWatch === 'infinity') {
                       setValue('endDate', '');
                     } else {
-                      onChange('infinity');
+                      field.onChange('infinity');
                     }
                   }}
                   checked={endDateWatch === 'infinity'}
