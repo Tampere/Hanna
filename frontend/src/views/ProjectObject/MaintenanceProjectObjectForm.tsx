@@ -5,11 +5,16 @@ import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
-import { FieldErrors, FormProvider, ResolverOptions, useForm } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
 import { trpc } from '@frontend/client';
-import { FormDatePicker, FormField, getDateFieldErrorMessage } from '@frontend/components/forms';
+import {
+  FormDatePicker,
+  FormField,
+  getDateFieldErrorMessage,
+  getFormValidator,
+} from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { FormCheckBox } from '@frontend/components/forms/FormCheckBox';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
@@ -21,7 +26,6 @@ import { ProjectTypePath } from '@frontend/types';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
-import { mergeErrors } from '@shared/formerror';
 import { isTranslationKey } from '@shared/language';
 import {
   UpsertMaintenanceProjectObject,
@@ -86,7 +90,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
     },
     onError: async (e) => {
       const messageArray = e.message.split('"').filter((item) => isTranslationKey(item));
-      const project = await maintenanceProject.get.fetch({ projectId: props.projectId });
+
       notify({
         severity: 'error',
         title: tr('projectObject.notifyProjectDateRangeUpdateError'),
@@ -94,7 +98,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
         message: messageArray
           .map((item) => {
             if (item === 'project.error.budgetNotIncludedForOngoing') {
-              return tr(item, dayjs(project.startDate).year() + 5).toString();
+              return tr(item, (dayjs().year() + 5).toString());
             }
             return tr(item);
           })
@@ -135,48 +139,18 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
   const { projectObject } = trpc.useUtils();
   const formValidator = useMemo(() => {
     const schemaValidation = zodResolver(upsertMaintenanceProjectObjectSchema);
-
-    return async function formValidation(
-      values: UpsertMaintenanceProjectObject,
-      context: { getRequiredFields: typeof getRequiredFields; getErrors: () => FieldErrors },
-      options: ResolverOptions<UpsertMaintenanceProjectObject>,
-    ) {
-      const fields = options.names ?? [];
-
-      const currentErrors = context.getErrors();
-      const needsDateValidation =
-        Boolean(currentErrors.startDate || currentErrors.endDate) ||
-        fields.includes('startDate') ||
-        fields.includes('endDate');
-
-      const isFormValidation = (fields && needsDateValidation) || fields.length > 1;
-
-      const serverErrors = isFormValidation
-        ? projectObject.upsertValidate
-            .fetch({ ...values, geom: undefined, geometryDump: undefined })
-            .catch(() => null)
-        : null;
-
-      const shapeErrors = schemaValidation(values, context, options);
-      const errors = await Promise.all([serverErrors, shapeErrors]);
-
-      return {
-        values,
-        errors: mergeErrors(errors).errors,
-      };
-    };
+    return getFormValidator<UpsertMaintenanceProjectObject>(
+      schemaValidation,
+      projectObject.upsertValidate.fetch,
+    );
   }, []);
-
-  function getErrors() {
-    return form.formState.errors;
-  }
 
   const form = useForm<UpsertMaintenanceProjectObject>({
     mode: 'all',
     resolver: formValidator,
     context: {
       requiredFields: getRequiredFields(newMaintenanceProjectObjectSchema),
-      getErrors,
+      getErrors: () => form.formState.errors,
     },
     defaultValues: props.projectObject
       ? {
@@ -199,7 +173,6 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
   });
 
   const {
-    trigger,
     handleSubmit,
     reset,
     watch,
@@ -399,7 +372,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
             errorTooltip={getDateFieldErrorMessage(
               errors.endDate?.message ?? null,
               tr('projectObject.endDateTooltip'),
-              [dayjs(getValues('startDate')).add(5, 'year').year().toString()],
+              [dayjs().add(5, 'year').year().toString()],
             )}
             component={(field) => (
               <Box

@@ -5,12 +5,17 @@ import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
-import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
 import { trpc } from '@frontend/client';
 import { ConfirmDialog } from '@frontend/components/dialogs/ConfirmDialog';
-import { FormDatePicker, FormField, getDateFieldErrorMessage } from '@frontend/components/forms';
+import {
+  FormDatePicker,
+  FormField,
+  getDateFieldErrorMessage,
+  getFormValidator,
+} from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { SapProjectIdField } from '@frontend/components/forms/SapProjectIdField';
 import { UserSelect } from '@frontend/components/forms/UserSelect';
@@ -21,7 +26,6 @@ import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { dirtyAndValidFieldsAtom, projectEditingAtom } from '@frontend/stores/projectView';
 import { getRequiredFields } from '@frontend/utils/form';
 
-import { mergeErrors } from '@shared/formerror';
 import {
   DbDetailplanProject,
   DetailplanProject,
@@ -113,28 +117,10 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
   const { detailplanProject, user, sap } = trpc.useUtils();
   const formValidator = useMemo(() => {
     const schemaValidation = zodResolver(detailplanProjectSchema);
-
-    return async function formValidation(
-      values: DbDetailplanProject,
-      context: any,
-      options: ResolverOptions<DbDetailplanProject>,
-    ) {
-      const fields = options.names ?? [];
-
-      const needsDateValidation = fields.includes('startDate') || fields.includes('endDate');
-
-      const isFormValidation = (fields && needsDateValidation) || fields.length > 1;
-
-      const serverErrors = isFormValidation
-        ? detailplanProject.upsertValidate.fetch(values).catch(() => null)
-        : null;
-      const shapeErrors = schemaValidation(values, context, options);
-      const errors = await Promise.all([serverErrors, shapeErrors]);
-      return {
-        values,
-        errors: mergeErrors(errors).errors,
-      };
-    };
+    return getFormValidator<DbDetailplanProject>(
+      schemaValidation,
+      detailplanProject.upsertValidate.fetch,
+    );
   }, []);
 
   const form = useForm<DbDetailplanProject>({
@@ -142,6 +128,7 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
     resolver: formValidator,
     context: {
       requiredFields: getRequiredFields(detailplanProjectSchema),
+      getErrors: () => form.formState.errors,
     },
     defaultValues: props.project ?? formDefaultValues,
   });

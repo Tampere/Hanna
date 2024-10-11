@@ -5,12 +5,17 @@ import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
-import { FormProvider, ResolverOptions, useForm } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
 import { trpc } from '@frontend/client';
 import { ConfirmDialog } from '@frontend/components/dialogs/ConfirmDialog';
-import { FormDatePicker, FormField, getDateFieldErrorMessage } from '@frontend/components/forms';
+import {
+  FormDatePicker,
+  FormField,
+  getDateFieldErrorMessage,
+  getFormValidator,
+} from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { FormCheckBox } from '@frontend/components/forms/FormCheckBox';
 import { SapProjectIdField } from '@frontend/components/forms/SapProjectIdField';
@@ -23,7 +28,6 @@ import { dirtyAndValidFieldsAtom, projectEditingAtom } from '@frontend/stores/pr
 import { getRequiredFields } from '@frontend/utils/form';
 import { ProjectOwnerChangeDialog } from '@frontend/views/Project/ProjectOwnerChangeDialog';
 
-import { mergeErrors } from '@shared/formerror';
 import {
   DbMaintenanceProject,
   MaintenanceProject,
@@ -110,45 +114,18 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
   const { maintenanceProject } = trpc.useUtils();
   const formValidator = useMemo(() => {
     const schemaValidation = zodResolver(maintenanceProjectSchema);
-
-    return async function formValidation(
-      values: MaintenanceProject,
-      context: any,
-      options: ResolverOptions<MaintenanceProject>,
-    ) {
-      const fields = options.names ?? [];
-      const currentErrors = context.getErrors();
-      const needsDateValidation =
-        Boolean(props.project && (currentErrors.startDate || currentErrors.endDate)) ||
-        fields.includes('startDate') ||
-        fields.includes('endDate');
-
-      const isFormValidation = (fields && needsDateValidation) || fields.length > 1;
-
-      const serverErrors = isFormValidation
-        ? maintenanceProject.upsertValidate
-            .fetch({ ...values, geom: undefined, geometryDump: undefined })
-            .catch(() => null)
-        : null;
-      const shapeErrors = schemaValidation(values, context, options);
-      const errors = await Promise.all([serverErrors, shapeErrors]);
-      return {
-        values,
-        errors: mergeErrors(errors).errors,
-      };
-    };
+    return getFormValidator<MaintenanceProject>(
+      schemaValidation,
+      maintenanceProject.upsertValidate.fetch,
+    );
   }, []);
-
-  function getErrors() {
-    return form.formState.errors;
-  }
 
   const form = useForm<MaintenanceProject>({
     mode: 'all',
     resolver: formValidator,
     context: {
       requiredFields: getRequiredFields(maintenanceProjectSchema),
-      getErrors,
+      getErrors: () => form.formState.errors,
     },
     defaultValues: props.project
       ? {
