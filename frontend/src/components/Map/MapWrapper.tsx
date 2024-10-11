@@ -1,7 +1,6 @@
 import { GlobalStyles } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 import { RESET } from 'jotai/utils';
-import diff from 'microdiff';
 import Feature from 'ol/Feature';
 import { Extent, createEmpty, extend, isEmpty } from 'ol/extent';
 import { Geometry } from 'ol/geom';
@@ -544,7 +543,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
               isOpen={wholeMunicipalityInfoBoxVisible}
               setIsOpen={setWholeMunicipalityInfoBoxVisible}
               projects={projectsForWholeMunicipality}
-              pos={[375, 100]}
+              pos={[100, 100]}
               handleCloseInfoBox={resetSelectInteractions}
             />
           )}

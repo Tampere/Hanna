@@ -17,6 +17,7 @@ interface Props<TProject, TProjectObject> {
   parentWidth: number;
   parentHeight: number;
   pos: Pixel;
+  posXFromRight?: boolean;
   projects?: TProject[];
   projectObjects?: TProjectObject[];
   handleActiveFeatureChange?: (projectId: string) => void;
@@ -36,6 +37,7 @@ export function SelectionInfoBox<
   pos,
   handleActiveFeatureChange,
   handleCloseInfoBox,
+  posXFromRight = false,
   ...props
 }: Props<TProject, TProjectObject>) {
   const tr = useTranslations();
@@ -144,7 +146,7 @@ export function SelectionInfoBox<
       0px 1px 14px 0px rgba(0, 0, 0, 0.12);
     position: absolute;
     top: ${pos[1]}px;
-    left: ${pos[0]}px;
+    ${posXFromRight ? `right: ${pos[0]}px;` : `left: ${pos[0]}px;`}
     transform: translate(
       ${parentWidth && pos[0] > parentWidth / 2 ? '-100%' : '0'},
       ${parentHeight && pos[1] > parentHeight / 2 ? '-100%' : '0'}
