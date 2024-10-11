@@ -1,4 +1,5 @@
 import { css } from '@emotion/react';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { FormControl, FormLabel, Typography } from '@mui/material';
 import { Dayjs } from 'dayjs';
 import React, { PropsWithChildren, useMemo } from 'react';
@@ -6,12 +7,18 @@ import {
   Controller,
   ControllerRenderProps,
   FieldError,
+  FieldErrors,
+  FieldName,
   FieldValues,
+  ResolverOptions,
   useFormContext,
 } from 'react-hook-form';
+import { ZodObject, ZodType, objectUtil } from 'zod';
 
 import { useTranslations } from '@frontend/stores/lang';
+import { getRequiredFields } from '@frontend/utils/form';
 
+import { FormErrors, mergeErrors } from '@shared/formerror';
 import { isTranslationKey } from '@shared/language';
 
 import { HelpTooltip } from '../HelpTooltip';
@@ -178,4 +185,47 @@ export function getDateFieldErrorMessage(
     return tr(hookFormMessage, args);
   }
   return fallBackMessage;
+}
+
+export function getFormValidator<T extends FieldValues>(
+  schemaValidation: ReturnType<typeof zodResolver>,
+  getServerErrors: (values: T) => Promise<FormErrors<T>>,
+) {
+  return async function formValidation(
+    values: T,
+    context: {
+      getRequiredFields: typeof getRequiredFields;
+      getErrors: () => FieldErrors;
+    },
+    options: ResolverOptions<T>,
+  ) {
+    const fields = options.names ?? [];
+    const currentErrors = context.getErrors();
+
+    const needsDateValidation =
+      fields.includes('startDate' as FieldName<T>) || fields.includes('endDate' as FieldName<T>);
+    const isFormValidation = (fields && needsDateValidation) || fields.length > 1;
+
+    const currentDateErrors =
+      !isFormValidation && (currentErrors.startDate || currentErrors.endDate)
+        ? {
+            errors: {
+              ...(currentErrors.starDate && { startDate: currentErrors.startDate }),
+              ...(currentErrors.endDate && { startDate: currentErrors.endDate }),
+            },
+          }
+        : null;
+
+    const serverErrors = isFormValidation
+      ? getServerErrors({ ...values, geom: undefined, geometryDump: undefined }).catch(() => null)
+      : null;
+    const shapeErrors = schemaValidation(values, context, options);
+    const errors = await Promise.all([serverErrors, shapeErrors, currentDateErrors]);
+    // TODO fix typing here to drop the mapping below
+    const formattedErrors: FormErrors<T>[] = errors.map((error) => error as FormErrors<T>);
+    return {
+      values,
+      errors: mergeErrors(formattedErrors).errors,
+    };
+  };
 }

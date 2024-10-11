@@ -5,11 +5,16 @@ import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
-import { FieldErrors, FormProvider, ResolverOptions, useForm } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 
 import { trpc } from '@frontend/client';
-import { FormDatePicker, FormField, getDateFieldErrorMessage } from '@frontend/components/forms';
+import {
+  FormDatePicker,
+  FormField,
+  getDateFieldErrorMessage,
+  getFormValidator,
+} from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { UserSelect } from '@frontend/components/forms/UserSelect';
@@ -21,7 +26,6 @@ import { ProjectTypePath } from '@frontend/types';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
-import { mergeErrors } from '@shared/formerror';
 import { isTranslationKey } from '@shared/language';
 import { ProjectListItem } from '@shared/schema/project';
 import {
@@ -155,48 +159,18 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
   const { projectObject } = trpc.useUtils();
   const formValidator = useMemo(() => {
     const schemaValidation = zodResolver(upsertInvestmentProjectObjectSchema);
-
-    return async function formValidation(
-      values: UpsertInvestmentProjectObject,
-      context: { getRequiredFields: typeof getRequiredFields; getErrors: () => FieldErrors },
-      options: ResolverOptions<UpsertInvestmentProjectObject>,
-    ) {
-      const fields = options.names ?? [];
-      const currentErrors = context.getErrors();
-
-      const needsDateValidation =
-        Boolean(currentErrors.startDate || currentErrors.endDate) ||
-        fields.includes('startDate') ||
-        fields.includes('endDate');
-
-      const isFormValidation = (fields && needsDateValidation) || fields.length > 1;
-
-      const serverErrors = isFormValidation
-        ? projectObject.upsertValidate
-            .fetch({ ...values, geom: undefined, geometryDump: undefined })
-            .catch(() => null)
-        : null;
-
-      const shapeErrors = schemaValidation(values, context, options);
-      const errors = await Promise.all([serverErrors, shapeErrors]);
-
-      return {
-        values,
-        errors: mergeErrors(errors).errors,
-      };
-    };
+    return getFormValidator<UpsertInvestmentProjectObject>(
+      schemaValidation,
+      projectObject.upsertValidate.fetch,
+    );
   }, []);
-
-  function getErrors() {
-    return form.formState.errors;
-  }
 
   const form = useForm<UpsertInvestmentProjectObject>({
     mode: 'all',
     resolver: formValidator,
     context: {
       requiredFields: getRequiredFields(newInvestmentProjectObjectSchema),
-      getErrors,
+      getErrors: () => form.formState.errors,
     },
     defaultValues: props.projectObject ?? {
       projectId: props.projectId,
