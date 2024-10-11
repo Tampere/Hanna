@@ -209,11 +209,12 @@ const fieldProjectLink = {
               title={params.value.projectName}
               css={css`
                 color: green;
-                text-align: right;
                 max-width: 220px;
+                max-height: 40px;
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
                 overflow: hidden;
-                white-space: nowrap;
-                text-overflow: ellipsis;
               `}
             >
               {params.value.projectName}
