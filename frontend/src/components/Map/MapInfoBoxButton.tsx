@@ -81,6 +81,7 @@ export function MapInfoBoxButton<TProject extends ProjectData>({
           parentHeight={0}
           parentWidth={0}
           pos={pos}
+          posXFromRight
           handleCloseInfoBox={() => {
             setIsOpen(false);
             handleCloseInfoBox();
