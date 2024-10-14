@@ -212,6 +212,8 @@ const fieldProjectLink = {
                 max-width: 220px;
                 max-height: 40px;
                 display: -webkit-box;
+                padding-right: 8px;
+                text-align: right;
                 -webkit-box-orient: vertical;
                 -webkit-line-clamp: 2;
                 overflow: hidden;
