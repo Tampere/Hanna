@@ -4,7 +4,6 @@ import { DatabaseTransactionConnection } from 'slonik';
 import { addAuditEvent } from '@backend/components/audit.js';
 import { codeIdFragment } from '@backend/components/code/index.js';
 import { getPool, sql } from '@backend/db.js';
-import { logger } from '@backend/logging.js';
 
 import { dbProjectObjectGeometrySchema } from '@shared//schema/projectObject/index.js';
 import {
