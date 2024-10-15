@@ -19,6 +19,11 @@ import { buildSheet } from './index.js';
 type ReportColumnKey = Partial<Suffix<TranslationKey, 'report.columns.'>>;
 
 function projectReportFragment(searchParams: ProjectSearch) {
+  const roleSelectFragment = sql.fragment`
+    SELECT email
+    FROM app.USER, app.project_object_user_role pour
+    WHERE id = pour.user_id AND pour.project_object_id = project_object.id`;
+
   return sql.fragment`
     SELECT
       project.project_name AS "projectName",
@@ -34,8 +39,8 @@ function projectReportFragment(searchParams: ProjectSearch) {
       project_object.object_name AS "projectObjectName",
       project_object.description AS "projectObjectDescription",
       (SELECT text_fi FROM app.code WHERE id = project_object.lifecycle_state) AS "projectObjectLifecycleState",
-      (SELECT email FROM app.user WHERE id = poi.rakennuttaja_user) AS "projectObjectRakennuttaja",
-      (SELECT email FROM app.user WHERE id = poi.suunnitteluttaja_user) AS "projectObjectSuunnitteluttaja",
+      (${roleSelectFragment} AND pour.role = ('InvestointiKohdeKayttajaRooli', '01')::app.code_id) AS "projectObjectRakennuttaja",
+      (${roleSelectFragment} AND pour.role = ('InvestointiKohdeKayttajaRooli', '02')::app.code_id) AS "projectObjectSuunnitteluttaja",
       project_object.created_at AS "projectObjectCreatedAt",
       project_object.start_date AS "projectObjectStartDate",
       project_object.end_date AS "projectObjectEndDate",
@@ -49,7 +54,6 @@ function projectReportFragment(searchParams: ProjectSearch) {
     FROM app.project_investment
     INNER JOIN app.project ON (project_investment.id = project.id AND project.deleted IS FALSE)
     LEFT JOIN app.project_object ON (project.id = project_object.project_id AND project_object.deleted IS FALSE)
-    LEFT JOIN app.project_object_investment poi ON project_object.id = poi.project_object_id
   `;
 }
 

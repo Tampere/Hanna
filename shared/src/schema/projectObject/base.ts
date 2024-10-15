@@ -1,10 +1,11 @@
 import { z } from 'zod';
 
-import { codeId } from '../code.js';
+import { codeId, codeListIdSchema } from '../code.js';
 import { isoDateString, nonEmptyString } from '../common.js';
 
 export const projectObjectUserRoleSchema = z.object({
   roleId: codeId,
+  roleType: codeListIdSchema.extract(['KohdeKayttajaRooli', 'InvestointiKohdeKayttajaRooli']),
   userIds: z.array(nonEmptyString),
   companyContactIds: z.array(nonEmptyString),
 });

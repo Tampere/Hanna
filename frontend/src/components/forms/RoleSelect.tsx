@@ -91,6 +91,7 @@ type Props = {
   id?: string;
   readOnly?: boolean;
   onBlur?: () => void;
+  includeExternalUsers?: boolean;
 } & (
   | {
       multiple: true;
@@ -112,9 +113,20 @@ interface RoleAssignee extends Omit<User, 'email'> {
 }
 
 export function RoleSelect(props: Props) {
-  const { id, readOnly, onBlur, multiple, value, onChange, maxTags } = props;
+  const {
+    id,
+    readOnly,
+    onBlur,
+    multiple,
+    value,
+    onChange,
+    maxTags,
+    includeExternalUsers = true,
+  } = props;
   const users = trpc.user.getAllNonExt.useQuery();
-  const companyContacts = trpc.company.getAllContactsAndCompanies.useQuery();
+  const companyContacts = includeExternalUsers
+    ? trpc.company.getAllContactsAndCompanies.useQuery()
+    : { data: [], isLoading: false };
 
   function getAssignees(assignees: { userIds: string[]; companyContactIds: string[] }) {
     return roleOptions.filter(
@@ -148,9 +160,26 @@ export function RoleSelect(props: Props) {
     return multiple ? getAssignees(value) : getAssignee(value);
   }, [multiple, value, users.data, companyContacts.data]);
 
+  const assigneeStyle = css`
+    display: block;
+    font-size: 14px;
+    line-height: 24px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  `;
+
   if (readOnly) {
     if (!selection) {
-      return '-';
+      return (
+        <Typography
+          css={css`
+            padding-left: 10px;
+          `}
+        >
+          -
+        </Typography>
+      );
     }
 
     return multiple ? (
@@ -165,41 +194,37 @@ export function RoleSelect(props: Props) {
         {(selection as RoleAssignee[]).map((assignee: RoleAssignee) => (
           <li
             title={`${assignee.name}${assignee.companyName ? `, ${assignee.companyName}` : ''}`}
-            css={css`
-              margin-bottom: 8px;
-            `}
             key={assignee.id}
           >
-            <span
-              css={css`
-                display: block;
-                font-size: 14px;
-                line-height: 14px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-              `}
-            >
-              {assignee.name}
-            </span>
-            <span
-              css={css`
-                display: block;
-                font-size: 12px;
-                color: #00000099;
-                line-height: 12px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-              `}
-            >
-              {assignee.companyName}
-            </span>
+            <span css={assigneeStyle}>{assignee.name}</span>
+            {assignee.companyName && (
+              <span
+                css={css`
+                  display: block;
+                  font-size: 12px;
+                  color: #00000099;
+                  line-height: 12px;
+                  margin-top: -4px;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                `}
+              >
+                {assignee.companyName}
+              </span>
+            )}
           </li>
         ))}
       </ul>
     ) : (
-      <Typography>
+      <Typography
+        css={css`
+          ${assigneeStyle}
+          ${css`
+            padding-left: 10px;
+          `}
+        `}
+      >
         {(selection as RoleAssignee)?.name}
         <br />
         <span>{(selection as RoleAssignee)?.companyName}</span>
@@ -251,7 +276,6 @@ export function RoleSelect(props: Props) {
     />
   ) : (
     <MultiSelect
-      disableClearable={true}
       id={id}
       readOnly={readOnly}
       onBlur={onBlur}

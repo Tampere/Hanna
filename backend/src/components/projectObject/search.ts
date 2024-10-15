@@ -95,7 +95,7 @@ export function mapExtentFragment(input: ProjectObjectSearch) {
 
 export function objectParticipantFragment(objectParticipantUser: string | null) {
   if (objectParticipantUser) {
-    return sql.fragment`HAVING rakennuttaja_user = ${objectParticipantUser} OR suunnitteluttaja_user = ${objectParticipantUser} OR ${objectParticipantUser} = ANY(array_agg(pour.user_id))`;
+    return sql.fragment`HAVING ${objectParticipantUser} = ANY(array_agg(pour.user_id))`;
   }
   return sql.fragment``;
 }
@@ -190,11 +190,18 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
       )
       AND (
         ${sql.array(rakennuttajaUsers, 'text')} = '{}'::TEXT[] OR
-        poi.rakennuttaja_user = ANY(${sql.array(rakennuttajaUsers, 'text')})
+        (pour.role = ('InvestointiKohdeKayttajaRooli', '01')::app.code_id AND pour.user_id = ANY(${sql.array(
+          rakennuttajaUsers,
+          'text',
+        )}))
+
       )
       AND (
         ${sql.array(suunnitteluttajaUsers, 'text')} = '{}'::TEXT[] OR
-        poi.suunnitteluttaja_user = ANY(${sql.array(suunnitteluttajaUsers, 'text')})
+        (pour.role = ('InvestointiKohdeKayttajaRooli', '02')::app.code_id AND pour.user_id = ANY(${sql.array(
+          suunnitteluttajaUsers,
+          'text',
+        )}))
       )
     GROUP BY po.id, project.project_name, project.geom, project.start_date, project.end_date, poi.project_object_id, project.covers_entire_municipality
     ${objectParticipantFragment(objectParticipantUser)}

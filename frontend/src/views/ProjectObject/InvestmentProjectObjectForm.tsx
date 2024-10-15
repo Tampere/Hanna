@@ -17,7 +17,6 @@ import {
 } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
-import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
@@ -349,23 +348,6 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
           )}
 
           <FormField
-            formField="suunnitteluttajaUser"
-            label={tr('projectObject.suunnitteluttajaUserLabel')}
-            errorTooltip={tr('projectObject.suunnitteluttajaUserTooltip')}
-            component={({ id, onChange, value }) => (
-              <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
-            )}
-          />
-
-          <FormField
-            formField="rakennuttajaUser"
-            label={tr('projectObject.rakennuttajaUserLabel')}
-            errorTooltip={tr('projectObject.rakennuttajaUserTooltip')}
-            component={({ id, onChange, value }) => (
-              <UserSelect id={id} value={value} onChange={onChange} readOnly={!editing} />
-            )}
-          />
-          <FormField
             formField="objectStage"
             label={tr('projectObject.objectStageLabel')}
             errorTooltip={tr('projectObject.objectStageTooltip')}
@@ -505,7 +487,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
             formField="objectUserRoles"
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, ...field }) => (
-              <ProjectObjectFormUserRoles {...field} readOnly={!editing} />
+              <ProjectObjectFormUserRoles {...field} readOnly={!editing} forInvestment />
             )}
           />
           <Box
