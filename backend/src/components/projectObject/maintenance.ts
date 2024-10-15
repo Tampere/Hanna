@@ -28,12 +28,13 @@ const projectObjectFragment = sql.fragment`
   WITH roles AS (
     SELECT json_build_object(
           'roleId', (role).id,
+          'roleType', (role).code_list_id,
           'userIds', COALESCE(json_agg(user_id) FILTER (WHERE user_id IS NOT NULL), '[]'),
           'companyContactIds', COALESCE(json_agg(company_contact_id) FILTER (WHERE company_contact_id IS NOT NULL), '[]')
         ) AS "objectUserRoles", project_object.id AS project_object_id
       FROM app.project_object_user_role, app.project_object
       WHERE project_object.id = project_object_user_role.project_object_id
-	    GROUP BY (role).id, project_object.id
+	    GROUP BY (role).code_list_id, (role).id, project_object.id
   ), geometry_dump AS (SELECT po.id "dumpProjectObjectId", (st_dump(po.geom)).geom FROM app.project_object po)
   SELECT
      project_id AS "projectId",

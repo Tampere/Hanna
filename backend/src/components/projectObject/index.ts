@@ -156,14 +156,14 @@ export async function updateObjectRoles(
   `);
   // FlatMap needs to be used for Slonik to stay up with active query promise
   await Promise.all(
-    projectObject.objectUserRoles.flatMap(({ userIds, roleId, companyContactIds }) => [
+    projectObject.objectUserRoles.flatMap(({ userIds, roleId, companyContactIds, roleType }) => [
       ...userIds.map((userId) =>
         tx.any(sql.untyped`
       INSERT INTO app.project_object_user_role (user_id, project_object_id, role)
       VALUES (
         ${userId},
         ${projectObject.projectObjectId},
-        ${codeIdFragment('KohdeKayttajaRooli', roleId)}
+        ${codeIdFragment(roleType, roleId)}
       );
     `),
       ),
@@ -173,7 +173,7 @@ export async function updateObjectRoles(
       VALUES (
         ${contactId},
         ${projectObject.projectObjectId},
-        ${codeIdFragment('KohdeKayttajaRooli', roleId)}
+        ${codeIdFragment(roleType, roleId)}
       );
     `),
       ),

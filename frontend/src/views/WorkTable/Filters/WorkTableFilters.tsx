@@ -234,8 +234,8 @@ export function WorkTableFilters(props: Props) {
             <UserSelect
               id="rakennuttaja"
               multiple
-              value={searchParams.rakennuttajaUser ?? []}
-              onChange={(state) => setSearchParams({ ...searchParams, rakennuttajaUser: state })}
+              value={searchParams.rakennuttajaUsers ?? []}
+              onChange={(state) => setSearchParams({ ...searchParams, rakennuttajaUsers: state })}
               maxTags={1}
             />
           </GridSpan>
@@ -247,9 +247,9 @@ export function WorkTableFilters(props: Props) {
             <UserSelect
               id="suunnitteluttaja"
               multiple
-              value={searchParams.suunnitteluttajaUser ?? []}
+              value={searchParams.suunnitteluttajaUsers ?? []}
               onChange={(state) =>
-                setSearchParams({ ...searchParams, suunnitteluttajaUser: state })
+                setSearchParams({ ...searchParams, suunnitteluttajaUsers: state })
               }
               maxTags={1}
             />

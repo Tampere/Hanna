@@ -31,6 +31,7 @@ export const codeListIdSchema = z.enum([
   'Kumppani',
   'YmpäristönsuojelunSyy',
   'KohdeKayttajaRooli',
+  'InvestointiKohdeKayttajaRooli',
   'KohteenToteutustapa',
   'HankkeenSitovuus',
 ]);

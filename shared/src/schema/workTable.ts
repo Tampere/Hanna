@@ -29,8 +29,8 @@ export const workTableRowSchema = z.object({
   objectCategory: dbInvestmentProjectObjectSchema.shape.objectCategory,
   objectUsage: dbInvestmentProjectObjectSchema.shape.objectUsage,
   operatives: z.object({
-    rakennuttajaUser: dbInvestmentProjectObjectSchema.shape.rakennuttajaUser,
-    suunnitteluttajaUser: dbInvestmentProjectObjectSchema.shape.suunnitteluttajaUser,
+    rakennuttajaUser: nonEmptyString.nullable(),
+    suunnitteluttajaUser: nonEmptyString.nullable(),
   }),
   budgetYear: z.number(),
   budget: z.number().nullable(),
@@ -63,8 +63,8 @@ export const workTableSearchSchema = z.object({
   objectStage: z.array(dbInvestmentProjectObjectSchema.shape.objectStage).optional(),
   objectParticipantUser: nonEmptyString.optional(),
   reportTemplate: reportTemplate.optional(),
-  rakennuttajaUser: z.array(nonEmptyString).optional(),
-  suunnitteluttajaUser: z.array(nonEmptyString).optional(),
+  rakennuttajaUsers: z.array(nonEmptyString).optional(),
+  suunnitteluttajaUsers: z.array(nonEmptyString).optional(),
   company: z.array(nonEmptyString).optional(),
   projectTarget: z.array(nonEmptyString).optional(),
 });

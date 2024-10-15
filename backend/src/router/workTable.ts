@@ -47,8 +47,20 @@ function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'prin
     objectCategory: sql.fragment`(SELECT array_agg((object_category).id) FROM app.project_object_category WHERE search_results.id = project_object_category.project_object_id) AS "objectCategory"`,
     objectUsage: sql.fragment`(SELECT array_agg((object_usage).id) FROM app.project_object_usage WHERE search_results.id = project_object_usage.project_object_id) AS "objectUsage"`,
     operatives: sql.fragment`jsonb_build_object(
-        'rakennuttajaUser', rakennuttaja_user,
-        'suunnitteluttajaUser', suunnitteluttaja_user
+        'rakennuttajaUser', (
+          SELECT ("objectUserRoles"->>'userIds')::json->>0 -- Only one user can be assigned to this role, enforced only at frontend
+          FROM po_roles
+          WHERE "objectUserRoles"->>'roleId' = '01'
+            AND "objectUserRoles"->>'roleType' = 'InvestointiKohdeKayttajaRooli'
+            AND po_roles.project_object_id = search_results.id
+          ),
+        'suunnitteluttajaUser', (
+          SELECT ("objectUserRoles"->>'userIds')::json->>0 -- Only one user can be assigned to this role, enforced only at frontend
+          FROM po_roles
+          WHERE "objectUserRoles"->>'roleId' = '02'
+            AND "objectUserRoles"->>'roleType' = 'InvestointiKohdeKayttajaRooli'
+            AND po_roles.project_object_id = search_results.id
+        )
     ) AS "operatives"`,
     actual: sql.fragment`po_actual.total AS "actual"`,
     budget: sql.fragment`po_budget.budget AS "budget"`,
@@ -63,7 +75,9 @@ function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'prin
         (
         SELECT array_agg(po_roles."objectUserRoles")
         FROM po_roles
-        WHERE po_roles."objectUserRoles"->>'roleId' = '06' AND po_roles.project_object_id = search_results.id
+        WHERE po_roles."objectUserRoles"->>'roleId' = '06'
+          AND po_roles.project_object_id = search_results.id
+          AND po_roles."roleType" = 'KohdeKayttajaRooli'
         ), '{}'::json[]
       ) AS "companyContacts"`,
     objectRoles: sql.fragment`
@@ -73,6 +87,7 @@ function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'prin
         SELECT array_agg(po_roles."objectUserRoles")
         FROM po_roles
         WHERE po_roles.project_object_id = search_results.id
+          AND po_roles."roleType" = 'KohdeKayttajaRooli'
         ), '{}'::json[]
       ) AS "objectRoles"`,
   };
@@ -107,8 +122,8 @@ export async function workTableSearch(input: WorkTableSearch) {
     lifecycleState = [],
     objectStage = [],
     objectParticipantUser = null,
-    rakennuttajaUser = [],
-    suunnitteluttajaUser = [],
+    rakennuttajaUsers = [],
+    suunnitteluttajaUsers = [],
     company = [],
     projectTarget = [],
   } = input;
@@ -118,8 +133,6 @@ export async function workTableSearch(input: WorkTableSearch) {
     SELECT
       project_object.*,
       poi.object_stage,
-      poi.rakennuttaja_user,
-      poi.suunnitteluttaja_user,
       project.id AS "projectId",
       project.project_name,
       dense_rank() OVER (ORDER BY project.project_name)::int4 AS "projectIndex",
@@ -161,13 +174,20 @@ export async function workTableSearch(input: WorkTableSearch) {
         ${sql.array(objectStage, 'text')} = '{}'::TEXT[] OR
         (poi.object_stage).id = ANY(${sql.array(objectStage, 'text')})
       )
-      AND (
-        ${sql.array(rakennuttajaUser, 'text')} = '{}'::TEXT[] OR
-        poi.rakennuttaja_user = ANY(${sql.array(rakennuttajaUser, 'text')})
+       AND (
+        ${sql.array(rakennuttajaUsers, 'text')} = '{}'::TEXT[] OR
+        (pour.role = ('InvestointiKohdeKayttajaRooli', '01')::app.code_id AND pour.user_id = ANY(${sql.array(
+          rakennuttajaUsers,
+          'text',
+        )}))
+
       )
       AND (
-        ${sql.array(suunnitteluttajaUser, 'text')} = '{}'::TEXT[] OR
-        poi.suunnitteluttaja_user = ANY(${sql.array(suunnitteluttajaUser, 'text')})
+        ${sql.array(suunnitteluttajaUsers, 'text')} = '{}'::TEXT[] OR
+        (pour.role = ('InvestointiKohdeKayttajaRooli', '02')::app.code_id AND pour.user_id = ANY(${sql.array(
+          suunnitteluttajaUsers,
+          'text',
+        )}))
       )
       AND (
         ${sql.array(company, 'text')} = '{}'::TEXT[] OR
@@ -181,7 +201,7 @@ export async function workTableSearch(input: WorkTableSearch) {
     GROUP BY project_object.id, poi.project_object_id, project.id
     ${
       objectParticipantUser
-        ? sql.fragment`HAVING poi.rakennuttaja_user = ${objectParticipantUser} OR poi.suunnitteluttaja_user = ${objectParticipantUser} OR ${objectParticipantUser} = ANY(array_agg(pour.user_id))`
+        ? sql.fragment`HAVING ${objectParticipantUser} = ANY(array_agg(pour.user_id))`
         : sql.fragment``
     }
   ), po_budget AS (
@@ -210,12 +230,13 @@ export async function workTableSearch(input: WorkTableSearch) {
     project_object_id,
     json_build_object(
           'roleId', (role).id,
+          'roleType', (role).code_list_id,
           'userIds', COALESCE(json_agg(user_id) FILTER (WHERE user_id IS NOT NULL), '[]'),
           'companyContactIds', COALESCE(json_agg(company_contact_id) FILTER (WHERE company_contact_id IS NOT NULL), '[]')
         )  AS "objectUserRoles"
       FROM app.project_object_user_role, search_results
       WHERE search_results.id = project_object_user_role.project_object_id
-	    GROUP BY (role).id, search_results.id, project_object_id
+	    GROUP BY (role).code_list_id, (role).id, search_results.id, project_object_id
   )
   SELECT
     ${getWorkTableSearchSelectFragment(input.reportTemplate)}
@@ -235,8 +256,24 @@ async function workTableUpdate(input: WorkTableUpdate, user: User) {
       ...poUpdate,
       startDate: projectObject.objectDateRange?.startDate,
       endDate: projectObject.objectDateRange?.endDate,
-      rakennuttajaUser: projectObject.operatives?.rakennuttajaUser,
-      suunnitteluttajaUser: projectObject.operatives?.suunnitteluttajaUser,
+      objectUserRoles: [
+        {
+          roleType: 'InvestointiKohdeKayttajaRooli',
+          roleId: '01',
+          userIds: projectObject.operatives?.rakennuttajaUser
+            ? [projectObject.operatives.rakennuttajaUser]
+            : [],
+          companyContactIds: [],
+        },
+        {
+          roleType: 'InvestointiKohdeKayttajaRooli',
+          roleId: '02',
+          userIds: projectObject.operatives?.suunnitteluttajaUser
+            ? [projectObject.operatives.suunnitteluttajaUser]
+            : [],
+          companyContactIds: [],
+        },
+      ],
       projectObjectId,
       budgetUpdate: {
         budgetItems: [

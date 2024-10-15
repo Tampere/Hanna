@@ -14,11 +14,11 @@ import { useEffect, useRef, useState } from 'react';
 import { trpc } from '@frontend/client';
 import { useTranslations } from '@frontend/stores/lang';
 
-import type { UpsertInvestmentProjectObject } from '@shared/schema/projectObject/investment';
+import { ProjectObjectUserRole } from '@shared/schema/projectObject/base';
 
 interface Value {
-  rakennuttajaUser: UpsertInvestmentProjectObject['rakennuttajaUser'];
-  suunnitteluttajaUser: UpsertInvestmentProjectObject['suunnitteluttajaUser'];
+  rakennuttajaUser: ProjectObjectUserRole['userIds'][number];
+  suunnitteluttajaUser: ProjectObjectUserRole['userIds'][number];
 }
 
 interface Props {
