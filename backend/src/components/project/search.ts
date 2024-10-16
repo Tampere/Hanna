@@ -94,7 +94,7 @@ function zoomToGeohashLength(zoom: number) {
   } else if (zoom < 10) {
     return 6;
   } else {
-    return 8;
+    return 7;
   }
 }
 

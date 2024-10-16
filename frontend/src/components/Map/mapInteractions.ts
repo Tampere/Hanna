@@ -11,7 +11,6 @@ import { SelectEvent } from 'ol/interaction/Select';
 import Layer from 'ol/layer/Layer';
 import VectorLayer from 'ol/layer/Vector';
 import RenderFeature, { toFeature } from 'ol/render/Feature';
-import LayerRenderer from 'ol/renderer/Layer';
 import VectorSource from 'ol/source/Vector';
 import CircleStyle from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
@@ -20,11 +19,9 @@ import Style, { StyleLike } from 'ol/style/Style';
 import {
   DEFAULT_DRAW_STYLE,
   DEFAULT_POINT_STYLE,
-  getFeatureHighlightStyle,
   getStyleWithPointIcon,
   selectionLayerStyle,
 } from '@frontend/components/Map/styles';
-import { VectorItemLayerKey } from '@frontend/stores/map';
 
 interface DrawOptions {
   source: VectorSource<Feature<Geometry>>;
@@ -275,33 +272,10 @@ export function addFeaturesFromGeoJson(
   }
 }
 
-export function highlightHoveredFeature(featureLike: FeatureLike, layer: Layer) {
+export function highlightHoveredFeature(featureLike: FeatureLike) {
   const feature = featureLike instanceof RenderFeature ? toFeature(featureLike) : featureLike;
-  const vectorLayer = layer instanceof LayerRenderer ? layer.getLayer() : layer;
-  const layerId: VectorItemLayerKey = layer.getProperties().id;
-
-  const vectorStyleLike = vectorLayer.getStyle();
-  const layerStyle =
-    typeof vectorStyleLike === 'function' ? vectorStyleLike(feature) : vectorStyleLike;
-
   feature.setProperties({ isHovered: true });
 
-  switch (layerId) {
-    case 'projects':
-      feature.setStyle(getFeatureHighlightStyle('projects', layerStyle));
-      break;
-    case 'projectObjects':
-      if (
-        feature.getGeometry()?.getType() === 'Point' ||
-        feature.getGeometry()?.getType() === 'MultiPoint'
-      ) {
-        break;
-      }
-      feature.setStyle(getFeatureHighlightStyle('projectObjects', layerStyle));
-      break;
-    default:
-      break;
-  }
   return feature;
 }
 let hoveredFeature: Feature<Geometry> | null = null;
@@ -311,10 +285,9 @@ function getPointerHoverInteraction(olMap: OLMap, drawLayerDisabled: boolean) {
     handleMoveEvent: (event) => {
       const result = olMap.forEachFeatureAtPixel(
         event.pixel,
-        (featureLike, layer) => {
-          hoveredFeature?.setStyle(undefined);
+        (featureLike) => {
           hoveredFeature?.setProperties({ isHovered: false });
-          hoveredFeature = highlightHoveredFeature(featureLike, layer);
+          hoveredFeature = highlightHoveredFeature(featureLike);
           return true;
         },
         {
@@ -329,13 +302,11 @@ function getPointerHoverInteraction(olMap: OLMap, drawLayerDisabled: boolean) {
         olMap.getViewport().style.cursor = 'pointer';
       } else {
         olMap.getViewport().style.cursor = '';
-        hoveredFeature?.setStyle(undefined);
         hoveredFeature?.setProperties({ isHovered: false });
         hoveredFeature = null;
       }
     },
     handleDownEvent: () => {
-      hoveredFeature?.setStyle(undefined);
       hoveredFeature?.setProperties({ isHovered: false });
       return false;
     },

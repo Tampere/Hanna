@@ -4,7 +4,7 @@ import Fill from 'ol/style/Fill';
 import IconStyle from 'ol/style/Icon';
 import RegularShape from 'ol/style/RegularShape';
 import Stroke from 'ol/style/Stroke';
-import Style, { StyleFunction } from 'ol/style/Style';
+import Style, { StyleFunction, StyleLike } from 'ol/style/Style';
 import Text from 'ol/style/Text';
 
 import { theme } from '@frontend/Layout';
@@ -21,7 +21,7 @@ import projectObjectClusterPoint from '@frontend/assets/projectObjectClusterPoin
 import projectObjectClusterPointHovered from '@frontend/assets/projectObjectClusterPointHover.svg';
 import projectObjectClusterPointSelected from '@frontend/assets/projectObjectClusterPointSelected.svg';
 import projectObjectPoint from '@frontend/assets/projectObjectPoint.svg';
-import { SelectedProjectColorCode, VectorItemLayerKey } from '@frontend/stores/map';
+import { SelectedProjectColorCode } from '@frontend/stores/map';
 
 import { ProjectType } from '@shared/schema/project/type';
 
@@ -372,6 +372,7 @@ export function getProjectAreaStyle(
   withLabels = true,
 ) {
   const projectType = feature?.get('projectType') as ProjectType;
+  const isHovered = Boolean(feature && feature.get('isHovered'));
 
   return [
     new Style({
@@ -405,6 +406,7 @@ export function getProjectAreaStyle(
       }),
       zIndex: 0,
     }),
+    ...(isHovered ? highlightBaseStyle : []),
   ];
 }
 
@@ -429,36 +431,41 @@ const _PROJ_OBJ_FILL = 'rgb(34, 67, 123, 0.3)';
 const _PROJ_OBJ_STROKE = 'rgb(34, 67, 123)';
 const _PROJ_OBJ_STROKE_WIDTH = 2;
 
-export const PROJECT_OBJECT_STYLE = [
-  new Style({
-    fill: new Fill({
-      color: _PROJ_OBJ_FILL,
-    }),
-    stroke: new Stroke({
-      color: _PROJ_OBJ_STROKE,
-      width: _PROJ_OBJ_STROKE_WIDTH,
-    }),
-    text: new Text({
-      text: projectAreaIndicators.projectObject,
-      textAlign: 'center',
-      font: '700 12px roboto',
-      stroke: new Stroke({ color: '#fff', width: 2 }),
-      overflow: false,
-      fill: new Fill({
-        color: _PROJ_OBJ_STROKE,
-      }),
-    }),
-    zIndex: 1,
-  }),
-  new Style({
-    stroke: new Stroke({
-      color: _DEFAULT_HIGHLIGHT_STROKE,
-      width: _PROJECT_STROKE_WIDTH + 4,
-    }),
+export const projectObjectStyle = (feature?: FeatureLike) => {
+  const isHovered = Boolean(feature && feature.get('isHovered'));
 
-    zIndex: 0,
-  }),
-];
+  return [
+    new Style({
+      fill: new Fill({
+        color: _PROJ_OBJ_FILL,
+      }),
+      stroke: new Stroke({
+        color: _PROJ_OBJ_STROKE,
+        width: _PROJ_OBJ_STROKE_WIDTH,
+      }),
+      text: new Text({
+        text: projectAreaIndicators.projectObject,
+        textAlign: 'center',
+        font: '700 12px roboto',
+        stroke: new Stroke({ color: '#fff', width: 2 }),
+        overflow: false,
+        fill: new Fill({
+          color: _PROJ_OBJ_STROKE,
+        }),
+      }),
+      zIndex: 1,
+    }),
+    new Style({
+      stroke: new Stroke({
+        color: _DEFAULT_HIGHLIGHT_STROKE,
+        width: _PROJECT_STROKE_WIDTH + 4,
+      }),
+
+      zIndex: 0,
+    }),
+    ...(isHovered ? highlightBaseStyle : []),
+  ];
+};
 
 const _PROJ_OBJ_DRAW_FILL = 'rgb(34, 67, 123, 0.4)';
 const _PROJ_OBJ_DRAW_STROKE = 'rgb(255, 100, 0)';
@@ -479,8 +486,11 @@ export const PROJ_OBJ_DRAW_STYLE = new Style({
   }),
 });
 
-export function getStyleWithPointIcon(style: Style | Style[]): StyleFunction {
+export function getStyleWithPointIcon(styleLike: StyleLike): StyleFunction {
   return function (feature: FeatureLike, resolution: number) {
+    const style = typeof styleLike === 'function' ? styleLike(feature, resolution) : styleLike;
+    if (!style) return;
+
     let styles = Array.isArray(style) ? style : [style];
     const featureType = feature.getGeometry()?.getType();
     // Remove text from point features
@@ -529,19 +539,6 @@ const highlightBaseStyle = [
     zIndex: 10,
   }),
 ];
-
-export function getFeatureHighlightStyle(layerId: VectorItemLayerKey, layerStyle: Style | Style[]) {
-  switch (layerId) {
-    case 'projects':
-    case 'projectObjects':
-      return Array.isArray(layerStyle)
-        ? layerStyle.concat(highlightBaseStyle)
-        : [layerStyle, ...highlightBaseStyle];
-
-    default:
-      return undefined;
-  }
-}
 
 export const colorPalette = {
   projectFill: _PROJECT_FILL,
