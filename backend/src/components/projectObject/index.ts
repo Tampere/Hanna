@@ -43,7 +43,7 @@ export function getProjectObjectGeometryDumpFragment(
   geometries AS
   	(SELECT
       po.id,
-      ST_AsGeoJSON(ST_Union(d.geom)) AS geom,
+      ST_AsGeoJSON(ST_Union(ST_MakeValid(d.geom, 'method=structure'))) AS geom, --MakeValid is used to fix self intersecting geometries
       COALESCE(jsonb_agg(ST_AsGeoJSON(d.geom)) FILTER (WHERE d.geom IS NOT NULL), '[]'::jsonb) as geometry_dump
   	FROM ${sql.identifier(projectObjectTable)} po
   	LEFT JOIN dump d ON d.id = po.id
