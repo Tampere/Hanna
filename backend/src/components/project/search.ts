@@ -9,6 +9,8 @@ import {
   projectSearchResultSchema,
 } from '@shared/schema/project/index.js';
 
+import { getProjectGeometryDumpFragment } from './base.js';
+
 const CLUSTER_ZOOM_BELOW = 10;
 
 type TextToSearchTermsOpts = {
@@ -281,17 +283,21 @@ export async function projectSearch(
       ) AS filtered_projects
       INNER JOIN all_projects ON all_projects.id = filtered_projects.id
       INNER JOIN app.project ON app.project.id = filtered_projects.id
-    ), limited AS (
+    ), geometries AS (
+      ${getProjectGeometryDumpFragment(['projects'])}
+    ),
+    limited AS (
       SELECT
-        id AS "projectId",
+        projects.id AS "projectId",
         "startDate",
         "endDate",
         "projectName",
         "projectType",
         "detailplanId",
-        ${isClusterSearch ? sql.fragment`NULL` : sql.fragment`st_asgeojson(geom)`} AS geom,
+        ${isClusterSearch ? sql.fragment`NULL` : sql.fragment`(geometries.geom)`} AS geom,
         "coversMunicipality"
       FROM projects
+      LEFT JOIN geometries ON geometries.id = projects.id
       ORDER BY GREATEST(name_similarity, tsrank)  DESC, "startDate" DESC
       LIMIT ${limit}
     )

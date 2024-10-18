@@ -15,6 +15,7 @@
     "baseUrl": ".",
     "outDir": "build",
     "sourceMap": true,
+    "types": ["vite/client"], // for png image imports
     "paths": {
       "@frontend/*": ["src/*"],
       "@shared/*": ["node_modules/tre-hanna-shared/src/*"]

@@ -2,7 +2,10 @@ import { DatabaseTransactionConnection, sql } from 'slonik';
 import { z } from 'zod';
 
 import { textToTsSearchTerms } from '@backend/components/project/search.js';
-import { timePeriodFragment } from '@backend/components/projectObject/index.js';
+import {
+  getProjectObjectGeometryDumpFragment,
+  timePeriodFragment,
+} from '@backend/components/projectObject/index.js';
 import { getPool } from '@backend/db.js';
 
 import {
@@ -11,6 +14,8 @@ import {
   projectObjectSearchResultSchema,
 } from '@shared/schema/projectObject/search.js';
 
+import { getProjectGeometryDumpFragment } from '../project/base.js';
+
 const CLUSTER_ZOOM_BELOW = 10;
 
 function getProjectObjectSearchFragment({
@@ -18,42 +23,52 @@ function getProjectObjectSearchFragment({
   withRank,
   includeDeleted,
   withGeoHash,
-  withProjectGeometry,
+  withGeometries,
 }: {
   projectIds?: string[];
   withRank?: boolean;
   includeDeleted?: boolean;
   withGeoHash?: boolean;
-  withProjectGeometry?: boolean;
+  withGeometries?: boolean;
 } = {}) {
+  const filterFragment = sql.fragment`${
+    includeDeleted ? sql.fragment`` : sql.fragment`WHERE po.deleted = false`
+  }
+  ${
+    projectIds
+      ? includeDeleted
+        ? sql.fragment`WHERE po.project_id = ANY(${sql.array(projectIds, 'uuid')})`
+        : sql.fragment`AND po.project_id = ANY(${sql.array(projectIds, 'uuid')})`
+      : sql.fragment``
+  }`;
+
   return sql.fragment`
+  ${
+    withGeometries
+      ? sql.fragment`
+    WITH object_dump AS (${getProjectObjectGeometryDumpFragment()}),
+    project_dump AS (${getProjectGeometryDumpFragment()})
+   `
+      : sql.fragment``
+  }
     SELECT
       po.id AS "projectObjectId",
       po.start_date AS "startDate",
       po.end_date AS "endDate",
       po.object_name AS "objectName",
       (object_stage).id AS "objectStage",
-      ST_AsGeoJSON(ST_CollectionExtract(po.geom)) AS geom,
       jsonb_build_object(
-        'projectId', po.project_id,
-        'startDate', project.start_date,
-        'endDate', project.end_date,
+        'projectId', project.id,
         'projectName', project.project_name,
         'coversMunicipality', project.covers_entire_municipality,
-        'projectType', CASE WHEN (poi.project_object_id IS NULL) THEN 'maintenanceProject' ELSE 'investmentProject' END
-        ${
-          withProjectGeometry
-            ? sql.fragment`,'geom', ST_AsGeoJSON(ST_CollectionExtract(project.geom))`
-            : sql.fragment``
-        }
-      ) as project
+        'startDate', project.start_date,
+        'endDate', project.end_date,
+        'projectType', (CASE WHEN (poi.project_object_id IS NULL) THEN 'maintenanceProject' ELSE 'investmentProject' END),
+        'geom', ${withGeometries ? sql.fragment`project_dump.geom` : sql.fragment`null`}
+      ) as project,
+      po.geom as "rawGeom"
+      ${withGeometries ? sql.fragment`, object_dump.geom` : sql.fragment``}
       ${withGeoHash ? sql.fragment`, po.geohash` : sql.fragment``}
-      ${
-        withProjectGeometry
-          ? sql.fragment`, ST_AsGeoJSON(ST_CollectionExtract(project.geom)) AS "projectGeom"`
-          : sql.fragment``
-      }
-
       ${
         withRank
           ? sql.fragment`, dense_rank() OVER (ORDER BY project.project_name)::int4 AS "projectIndex"`
@@ -63,14 +78,14 @@ function getProjectObjectSearchFragment({
     LEFT JOIN app.project_object_investment poi ON po.id = poi.project_object_id
     LEFT JOIN app.project_object_maintenance pom ON po.id = pom.project_object_id
     INNER JOIN app.project ON po.project_id = project.id
-    ${includeDeleted ? sql.fragment`` : sql.fragment`WHERE po.deleted = false`}
     ${
-      projectIds
-        ? includeDeleted
-          ? sql.fragment`WHERE po.project_id = ANY(${sql.array(projectIds, 'uuid')})`
-          : sql.fragment`AND po.project_id = ANY(${sql.array(projectIds, 'uuid')})`
+      withGeometries
+        ? sql.fragment`
+        LEFT JOIN object_dump ON po.id = object_dump.id
+        LEFT JOIN project_dump ON project.id = project_dump.id`
         : sql.fragment``
     }
+    ${filterFragment}
     `;
 }
 
@@ -122,7 +137,7 @@ export function clusterResultsFragment(zoom: number | undefined) {
           jsonb_agg("projectObjectId") AS "clusterProjectObjectIds",
           substr(geohash, 1, ${zoomToGeohashLength(zoom)}) AS "clusterGeohash",
           count(*) AS "clusterCount",
-          ST_AsGeoJSON(ST_Centroid(ST_Collect(geom))) AS "clusterLocation"
+          ST_AsGeoJSON(ST_Centroid(ST_Collect(ST_AsGeoJSON(ST_CollectionExtract("rawGeom"))))) AS "clusterLocation"
         FROM search_results
         GROUP BY "clusterGeohash"
     ) clusters)
@@ -153,10 +168,10 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
   const dbResult = await getPool().one(sql.type(resultSchema)`
     WITH total_results AS (
     ${getProjectObjectSearchFragment({
-      withProjectGeometry: withGeometries,
       withRank: true,
       includeDeleted: true,
       withGeoHash: true,
+      withGeometries,
     })}
     LEFT JOIN app.project_object_user_role pour ON po.id = pour.project_object_id
       WHERE po.deleted = false
@@ -203,26 +218,19 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
           'text',
         )}))
       )
-    GROUP BY po.id, project.project_name, project.geom, project.start_date, project.end_date, poi.project_object_id, project.covers_entire_municipality
     ${objectParticipantFragment(objectParticipantUser)}
 
   ),
    search_results AS (select * from total_results LIMIT ${limit}),
    project_object_results AS (
     SELECT
-      "projectObjectId",
+      search_results."projectObjectId",
       "startDate",
       "endDate",
       "objectName",
       "objectStage",
       project
-      ${
-        withGeometries
-          ? sql.fragment`, geom,
-      "projectGeom"`
-          : sql.fragment``
-      }
-
+      ${withGeometries ? sql.fragment`, search_results.geom` : sql.fragment``}
     FROM search_results
     ORDER BY "projectIndex"
   ) SELECT jsonb_build_object(
@@ -241,9 +249,9 @@ export async function getProjectObjectsByProjectSearch(
 ) {
   const { map, projectIds } = input;
   const conn = tx ?? getPool();
-  const isClusterSearch = map?.zoom && map.zoom < CLUSTER_ZOOM_BELOW;
+  const isClusterSearch = Boolean(map?.zoom && map.zoom < CLUSTER_ZOOM_BELOW);
   if (isClusterSearch) return null;
   return conn.any(sql.type(projectObjectSearchResultSchema.pick({ projectObjects: true }))`
-    ${getProjectObjectSearchFragment({ projectIds })}
+    ${getProjectObjectSearchFragment({ projectIds, withGeometries: !isClusterSearch })}
   `);
 }

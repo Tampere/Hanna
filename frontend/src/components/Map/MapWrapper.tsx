@@ -17,7 +17,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useParams } from 'react-router';
+import { useLocation, useParams } from 'react-router';
 
 import {
   ALL_VECTOR_ITEM_LAYERS,
@@ -63,6 +63,7 @@ export interface DrawOptions {
   toolsHidden?: ToolType[];
   editable: boolean;
   coversMunicipality?: boolean;
+  drawItemType: 'project' | 'projectObject';
 }
 
 export interface ProjectData {
@@ -110,6 +111,12 @@ export const MapWrapper = forwardRef(function MapWrapper<
   const { projectObjectId } = useParams() as { projectObjectId?: string };
   const [zoom, setZoom] = useState(mapOptions.tre.defaultZoom);
   const [viewExtent, setViewExtent] = useState<number[]>(mapOptions.tre.extent);
+  const [mapGeometryInitialized, setMapGeometryInitialized] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (mapGeometryInitialized) setMapGeometryInitialized(false);
+  }, [location]);
 
   const mapWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -242,7 +249,10 @@ export const MapWrapper = forwardRef(function MapWrapper<
   );
 
   useEffect(() => {
-    if (props.drawOptions?.geoJson) addFeaturesFromGeoJson(drawSource, props.drawOptions.geoJson);
+    if (props.drawOptions?.geoJson) {
+      addFeaturesFromGeoJson(drawSource, props.drawOptions.geoJson, { editing });
+      if (!mapGeometryInitialized) setMapGeometryInitialized(true);
+    }
   }, [props.drawOptions?.geoJson]);
 
   function drawSourceHasGeometryOfType(geometryType: 'Point' | 'Polygon') {
@@ -251,7 +261,11 @@ export const MapWrapper = forwardRef(function MapWrapper<
       ?.some((feature) => feature.getGeometry()?.getType() === geometryType);
   }
 
-  const drawLayer = useMemo(() => createDrawLayer(drawSource, props.drawOptions?.drawStyle), []);
+  const drawLayer = useMemo(
+    () =>
+      createDrawLayer(drawSource, props.drawOptions?.drawStyle, props.drawOptions?.drawItemType),
+    [],
+  );
 
   const registerDrawInteraction = useMemo(
     () =>
@@ -274,9 +288,16 @@ export const MapWrapper = forwardRef(function MapWrapper<
   }, [props.projects]);
 
   useEffect(() => {
+    if (props.drawOptions?.geoJson)
+      // GeoJson is not loading
+      drawSource.getFeatures().forEach((feature) => {
+        feature.setProperties({ editing });
+      });
+
     if (projectObjectId) {
       return;
     }
+
     if (editing) {
       drawLayer.setZIndex(101);
     } else {
@@ -285,10 +306,13 @@ export const MapWrapper = forwardRef(function MapWrapper<
   }, [editing, drawLayer, projectObjectId]);
 
   useEffect(() => {
+    if (!mapGeometryInitialized) {
+      return;
+    }
     let extent = createEmpty();
     switch (props.fitExtent) {
       case 'geoJson':
-        if (props?.drawOptions?.geoJson && drawSource) {
+        if (drawSource && drawSource.getFeatures().length > 0) {
           if (
             Object.values(dirtyAndValidViews).every(
               (status) => !status.isValid || !status.isDirtyAndValid,
@@ -308,11 +332,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
         }
         break;
       case 'all':
-        if (
-          ((props.drawOptions?.geoJson && !Array.isArray(props.drawOptions.geoJson)) ||
-            (Array.isArray(props.drawOptions?.geoJson) && props.drawOptions.geoJson.length > 0)) &&
-          drawSource
-        ) {
+        if (drawSource.getFeatures().length > 0) {
           if (
             Object.values(dirtyAndValidViews).every(
               (status) => !status.isValid || !status.isDirtyAndValid,
@@ -331,7 +351,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
           }
         }
     }
-  }, [props.drawOptions?.geoJson, vectorLayers, props.fitExtent]);
+  }, [mapGeometryInitialized]);
 
   function drawFinished() {
     if (props.projects || props.projectObjects) {
@@ -418,8 +438,9 @@ export const MapWrapper = forwardRef(function MapWrapper<
     if (props.drawOptions?.coversMunicipality === undefined) return;
 
     drawSource.clear();
+
     if (props.drawOptions?.coversMunicipality === false) {
-      addFeaturesFromGeoJson(drawSource, props.drawOptions?.geoJson);
+      addFeaturesFromGeoJson(drawSource, props.drawOptions.geoJson, { editing });
     }
     drawFinished();
   }, [props.drawOptions?.coversMunicipality]);
@@ -449,7 +470,7 @@ export const MapWrapper = forwardRef(function MapWrapper<
     setSelectedTool(null);
     setDirtyAndValidViews((prev) => ({ ...prev, map: { isDirtyAndValid: false } }));
     selectionSource.clear();
-    addFeaturesFromGeoJson(drawSource, props.drawOptions?.geoJson);
+    addFeaturesFromGeoJson(drawSource, props.drawOptions?.geoJson, { editing });
   }
 
   function getGeometryForSave() {

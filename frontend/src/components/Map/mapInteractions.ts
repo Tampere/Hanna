@@ -1,4 +1,4 @@
-import { Collection, Feature, Map as OLMap } from 'ol';
+import { Collection, Feature, Map as OLMap, getUid } from 'ol';
 import { FeatureLike } from 'ol/Feature';
 import { unByKey } from 'ol/Observable';
 import { EventsKey } from 'ol/events';
@@ -45,12 +45,16 @@ function setCrosshairCursor(map: OLMap) {
   map.getViewport().style.cursor = 'crosshair';
 }
 
-export function createDrawLayer(source: VectorSource<Feature<Geometry>>, style?: Style | Style[]) {
+export function createDrawLayer(
+  source: VectorSource<Feature<Geometry>>,
+  style?: Style | Style[],
+  itemType?: 'project' | 'projectObject',
+) {
   return new VectorLayer({
     source,
     zIndex: DRAW_LAYER_Z_INDEX,
     properties: { id: 'drawLayer' },
-    style: style ? getStyleWithPointIcon(style) : DEFAULT_DRAW_STYLE,
+    style: style ? getStyleWithPointIcon(style, itemType) : DEFAULT_DRAW_STYLE,
   });
 }
 
@@ -104,7 +108,9 @@ export function createDrawInteraction(opts: DrawOptions) {
       document.addEventListener('contextmenu', mouseContextMenuAbort);
     });
 
-    draw.on('drawend', () => {
+    draw.on('drawend', (event) => {
+      // To apply correct styles
+      event.feature.setProperties({ editing: true });
       // remove listeners
       document.removeEventListener('keydown', escKeyAbort);
       document.removeEventListener('contextmenu', mouseContextMenuAbort);
@@ -264,16 +270,26 @@ export function getSelectedDrawLayerFeatures(features: Feature<Geometry>[]) {
 export function addFeaturesFromGeoJson(
   targetSource: VectorSource<Feature<Geometry>>,
   geoJson?: string | object | null,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  featureProperties?: Record<string, any>,
 ) {
   targetSource.clear();
   const features = geoJson ? featuresFromGeoJSON(geoJson) : [];
   for (const feature of features) {
+    feature.setProperties(featureProperties ?? {});
     targetSource.addFeature(feature);
   }
 }
 
-export function highlightHoveredFeature(featureLike: FeatureLike) {
+export function highlightHoveredFeature(
+  featureLike: FeatureLike,
+  hoveredFeature: Feature<Geometry> | null,
+) {
   const feature = featureLike instanceof RenderFeature ? toFeature(featureLike) : featureLike;
+  if (hoveredFeature && getUid(hoveredFeature) === getUid(feature)) {
+    return hoveredFeature;
+  }
+  hoveredFeature?.setProperties({ isHovered: false });
   feature.setProperties({ isHovered: true });
 
   return feature;
@@ -286,14 +302,13 @@ function getPointerHoverInteraction(olMap: OLMap, drawLayerDisabled: boolean) {
       const result = olMap.forEachFeatureAtPixel(
         event.pixel,
         (featureLike) => {
-          hoveredFeature?.setProperties({ isHovered: false });
-          hoveredFeature = highlightHoveredFeature(featureLike);
+          hoveredFeature = highlightHoveredFeature(featureLike, hoveredFeature);
           return true;
         },
         {
           layerFilter: (layer) =>
             Boolean(layer.getProperties().id) && drawLayerDisabled
-              ? layer.getProperties().id !== 'drawLayer'
+              ? !['drawLayer', 'municipality'].includes(layer.getProperties().id)
               : true,
         },
       );

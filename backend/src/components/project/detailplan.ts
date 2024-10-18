@@ -7,6 +7,7 @@ import { codeIdFragment } from '@backend/components/code/index.js';
 import {
   baseProjectUpsert,
   validateUpsertProject as baseProjectValidate,
+  getProjectGeometryDumpFragment,
 } from '@backend/components/project/base.js';
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
@@ -16,7 +17,8 @@ import { projectIdSchema } from '@shared/schema/project/base.js';
 import { DetailplanProject, dbDetailplanSchema } from '@shared/schema/project/detailplan.js';
 import { User } from '@shared/schema/user.js';
 
-const selectProjectFragment = sql.fragment`
+const getSelectedProjectFragment = (id: string) => sql.fragment`
+WITH dump AS (${getProjectGeometryDumpFragment()})
   SELECT
     project.id AS "projectId",
     project_name AS "projectName",
@@ -25,7 +27,7 @@ const selectProjectFragment = sql.fragment`
     project.end_date AS "endDate",
     owner,
     created_at AS "createdAt",
-    ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
+    dump.geom,
     (project.lifecycle_state).id AS "lifecycleState",
     sap_project_id AS "sapProjectId",
     diary_id AS "diaryId",
@@ -50,15 +52,15 @@ const selectProjectFragment = sql.fragment`
     ) AS "writeUsers"
   FROM app.project
   LEFT JOIN app.project_detailplan ON project_detailplan.id = project.id
-  WHERE deleted = false
+  LEFT JOIN dump ON dump.id = project_detailplan.id
+  WHERE deleted = false and project_detailplan.id = ${id}
 `;
 
 export async function getProject(id: string, tx?: DatabaseTransactionConnection) {
   const conn = tx ?? getPool();
 
   const project = await conn.maybeOne(sql.type(dbDetailplanSchema)`
-    ${selectProjectFragment}
-    AND project_detailplan.id = ${id}
+    ${getSelectedProjectFragment(id)}
   `);
 
   if (!project) {

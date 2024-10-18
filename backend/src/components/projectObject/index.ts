@@ -30,6 +30,28 @@ import {
   permissionContextSchema,
 } from '@shared/schema/userPermissions.js';
 
+/** @param projectObjectTableIdentifier represents table that needs to hold columns id and geom */
+export function getProjectObjectGeometryDumpFragment(
+  projectObjectTable: string[] = ['app', 'project_object'],
+  geometryColumn: string = 'geom',
+) {
+  return sql.fragment`
+   WITH dump AS
+  	(SELECT id, (ST_Dump(${sql.identifier([geometryColumn])})).geom FROM ${sql.identifier(
+      projectObjectTable,
+    )}),
+  geometries AS
+  	(SELECT
+      po.id,
+      ST_AsGeoJSON(ST_Union(d.geom)) AS geom,
+      COALESCE(jsonb_agg(ST_AsGeoJSON(d.geom)) FILTER (WHERE d.geom IS NOT NULL), '[]'::jsonb) as geometry_dump
+  	FROM ${sql.identifier(projectObjectTable)} po
+  	LEFT JOIN dump d ON d.id = po.id
+  	GROUP BY po.id)
+  SELECT id, geom, geometry_dump FROM geometries
+  `;
+}
+
 export function timePeriodFragment(input: ProjectObjectSearch) {
   const startDate = input.dateRange?.startDate ?? null;
   const endDate = input.dateRange?.endDate ?? null;
@@ -67,17 +89,19 @@ export async function deleteProjectObject(projectObjectId: string, user: User) {
 
 export async function getProjectObjectsByProjectId(projectId: string) {
   return getPool().any(sql.type(commonDbProjectObjectSchema.extend({ objectStage: codeId }))`
+    WITH dump AS (${getProjectObjectGeometryDumpFragment()})
     SELECT
       project_id AS "projectId",
-      id AS "projectObjectId",
+      project_object.id AS "projectObjectId",
       object_name AS "objectName",
       description AS "description",
       (poi.object_stage).id AS "objectStage",
       start_date AS "startDate",
       end_date AS "endDate",
-      ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom
+      dump.geom
     FROM app.project_object
     LEFT JOIN app.project_object_investment poi ON project_object.id = poi.project_object_id
+    LEFT JOIN dump ON dump.id = project_object.id
     WHERE deleted = false AND project_id = ${projectId}
   `);
 }

@@ -1,4 +1,5 @@
 import { FeatureLike } from 'ol/Feature';
+import { MultiPolygon, Polygon } from 'ol/geom';
 import CircleStyle, { Options } from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
 import IconStyle from 'ol/style/Icon';
@@ -8,24 +9,24 @@ import Style, { StyleFunction, StyleLike } from 'ol/style/Style';
 import Text from 'ol/style/Text';
 
 import { theme } from '@frontend/Layout';
-import detailplanClusterPoint from '@frontend/assets/detailplanClusterPoint.svg';
-import detailplanClusterPointHovered from '@frontend/assets/detailplanClusterPointHover.svg';
-import investmentClusterPoint from '@frontend/assets/investmentClusterPoint.svg';
-import investmentClusterPointHovered from '@frontend/assets/investmentClusterPointHover.svg';
-import maintenanceClusterPoint from '@frontend/assets/maintenanceClusterPoint.svg';
-import maintenanceClusterPointHovered from '@frontend/assets/maintenanceClusterPointHover.svg';
-import projectClusterPoint from '@frontend/assets/projectClusterPoint.svg';
-import projectClusterPointHovered from '@frontend/assets/projectClusterPointHover.svg';
-import projectClusterPointSelected from '@frontend/assets/projectClusterPointSelected.svg';
-import projectObjectClusterPoint from '@frontend/assets/projectObjectClusterPoint.svg';
-import projectObjectClusterPointHovered from '@frontend/assets/projectObjectClusterPointHover.svg';
-import projectObjectClusterPointSelected from '@frontend/assets/projectObjectClusterPointSelected.svg';
+import detailplanClusterPointHover from '@frontend/assets/detailPlanClusterPointHover.png';
+import detailplanClusterPoint from '@frontend/assets/detailplanClusterPoint.png';
+import investmentClusterPoint from '@frontend/assets/investmentClusterPoint.png';
+import investmentClusterPointHover from '@frontend/assets/investmentClusterPointHover.png';
+import maintenanceClusterPoint from '@frontend/assets/maintenanceClusterPoint.png';
+import maintenanceClusterPointHover from '@frontend/assets/maintenanceClusterPointHover.png';
+import projectClusterPoint from '@frontend/assets/projectClusterPoint.png';
+import projectClusterPointHover from '@frontend/assets/projectClusterPointHover.png';
+import projectClusterPointSelected from '@frontend/assets/projectClusterPointSelected.png';
+import projectObjectClusterPoint from '@frontend/assets/projectObjectClusterPoint.png';
+import projectObjectClusterPointHover from '@frontend/assets/projectObjectClusterPointHover.png';
+import projectObjectClusterPointSelected from '@frontend/assets/projectObjectClusterPointSelected.png';
 import projectObjectPoint from '@frontend/assets/projectObjectPoint.svg';
 import { SelectedProjectColorCode } from '@frontend/stores/map';
 
 import { ProjectType } from '@shared/schema/project/type';
 
-const _PROJECT_FILL = 'rgb(0, 168, 0, 0.3)';
+const _PROJECT_FILL = 'rgba(75, 162, 38, 0.15)';
 const _PROJECT_STROKE = 'rgb(0, 168, 0)';
 const _PROJECT_STROKE_WIDTH = 3;
 
@@ -38,7 +39,7 @@ const _DETAILPLAN_FILL = 'rgba(154, 154, 0, 0.3)';
 
 export const VECTOR_LAYER_DEFAULT_Z_INDEX = 1;
 export const WFS_LAYER_DEFAULT_Z_INDEX = 2;
-
+console.log(detailplanClusterPoint);
 export interface ProjectColorCodes {
   investmentProject: { stroke: string; fill: string };
   maintenanceProject: { stroke: string; fill: string };
@@ -118,23 +119,23 @@ const iconBackgroundStyle = new Style({
 });
 
 const iconSources = {
-  project: projectClusterPoint.toString(),
-  selectedProject: projectClusterPointSelected.toString(),
-  projectObject: projectObjectClusterPoint.toString(),
-  selectedProjectObject: projectObjectClusterPointSelected.toString(),
-  investmentProject: investmentClusterPoint.toString(),
-  maintenanceProject: maintenanceClusterPoint.toString(),
-  detailplanProject: detailplanClusterPoint.toString(),
+  project: projectClusterPoint,
+  selectedProject: projectClusterPointSelected,
+  projectObject: projectObjectClusterPoint,
+  selectedProjectObject: projectObjectClusterPointSelected,
+  investmentProject: investmentClusterPoint,
+  maintenanceProject: maintenanceClusterPoint,
+  detailplanProject: detailplanClusterPoint,
 };
 
 const hoveredIconSources = {
-  project: projectClusterPointHovered.toString(),
-  selectedProject: projectClusterPointSelected.toString(),
-  projectObject: projectObjectClusterPointHovered.toString(),
-  selectedProjectObject: projectObjectClusterPointSelected.toString(),
-  investmentProject: investmentClusterPointHovered.toString(),
-  maintenanceProject: maintenanceClusterPointHovered.toString(),
-  detailplanProject: detailplanClusterPointHovered.toString(),
+  project: projectClusterPointHover,
+  selectedProject: projectClusterPointSelected,
+  projectObject: projectObjectClusterPointHover,
+  selectedProjectObject: projectObjectClusterPointSelected,
+  investmentProject: investmentClusterPointHover,
+  maintenanceProject: maintenanceClusterPointHover,
+  detailplanProject: detailplanClusterPointHover,
 };
 
 const clusterIconStylesCache: Record<keyof typeof iconSources, Style[]> = {} as Record<
@@ -366,10 +367,37 @@ export function selectionLayerStyle(feature: FeatureLike) {
   });
 }
 
-export function getProjectAreaStyle(
+function getGeometryCenterIconStyle(itemType: 'project' | 'projectObject', feature?: FeatureLike) {
+  const geom = feature?.getGeometry();
+  const iconStyle = getClusterIconStyle(itemType, false).map((style) => style.clone());
+  iconStyle[0].setZIndex(10);
+
+  switch (geom?.getType()) {
+    case 'Polygon':
+      iconStyle[0].setGeometry((geom as Polygon).getInteriorPoint());
+      return iconStyle;
+    case 'MultiPolygon':
+      iconStyle[0].setGeometry((geom as MultiPolygon).getInteriorPoints());
+      return iconStyle;
+    default:
+      return null;
+  }
+}
+
+function getGeometryHighlightStyleWithIcon(
+  itemType: 'project' | 'projectObject',
+  feature?: FeatureLike,
+) {
+  const iconStyle = getGeometryCenterIconStyle(itemType, feature);
+
+  return [...highlightBaseStyle, ...(iconStyle ? iconStyle : [])];
+}
+
+export function projectAreaStyle(
   feature?: FeatureLike,
   projectColorCodes?: SelectedProjectColorCode['projectColorCodes'],
   withLabels = true,
+  isActive?: boolean,
 ) {
   const projectType = feature?.get('projectType') as ProjectType;
   const isHovered = Boolean(feature && feature.get('isHovered'));
@@ -406,7 +434,11 @@ export function getProjectAreaStyle(
       }),
       zIndex: 0,
     }),
-    ...(isHovered ? highlightBaseStyle : []),
+    ...(isHovered
+      ? isActive
+        ? getGeometryHighlightStyleWithIcon('project', feature)
+        : highlightBaseStyle
+      : []),
   ];
 }
 
@@ -427,20 +459,22 @@ export const WHOLE_MUNICIPALITY_PROJECT_AREA_STYLE = [
   }),
 ];
 
-const _PROJ_OBJ_FILL = 'rgb(34, 67, 123, 0.3)';
-const _PROJ_OBJ_STROKE = 'rgb(34, 67, 123)';
+const _PROJ_OBJ_FILL = 'rgba(41, 69, 120, 0.4)';
+const _PROJ_OBJ_STROKE = 'rgba(41, 69, 120, 1)';
+const _PROJ_OBJ_INACTIVE_FILL = 'rgba(41, 69, 120, 0.15)';
+const _PROJ_OBJ_INACTIVE_STROKE = 'rgba(126, 151, 197, 1)';
 const _PROJ_OBJ_STROKE_WIDTH = 2;
 
-export const projectObjectStyle = (feature?: FeatureLike) => {
+export const projectObjectAreaStyle = (feature?: FeatureLike, isFaded?: boolean) => {
   const isHovered = Boolean(feature && feature.get('isHovered'));
 
   return [
     new Style({
       fill: new Fill({
-        color: _PROJ_OBJ_FILL,
+        color: isFaded ? _PROJ_OBJ_INACTIVE_FILL : _PROJ_OBJ_FILL,
       }),
       stroke: new Stroke({
-        color: _PROJ_OBJ_STROKE,
+        color: isFaded ? _PROJ_OBJ_INACTIVE_STROKE : _PROJ_OBJ_STROKE,
         width: _PROJ_OBJ_STROKE_WIDTH,
       }),
       text: new Text({
@@ -455,20 +489,24 @@ export const projectObjectStyle = (feature?: FeatureLike) => {
       }),
       zIndex: 1,
     }),
-    new Style({
-      stroke: new Stroke({
-        color: _DEFAULT_HIGHLIGHT_STROKE,
-        width: _PROJECT_STROKE_WIDTH + 4,
-      }),
+    ...(!isFaded
+      ? [
+          new Style({
+            stroke: new Stroke({
+              color: _DEFAULT_HIGHLIGHT_STROKE,
+              width: _PROJECT_STROKE_WIDTH + 4,
+            }),
 
-      zIndex: 0,
-    }),
+            zIndex: 0,
+          }),
+        ]
+      : []),
     ...(isHovered ? highlightBaseStyle : []),
   ];
 };
 
-const _PROJ_OBJ_DRAW_FILL = 'rgb(34, 67, 123, 0.4)';
-const _PROJ_OBJ_DRAW_STROKE = 'rgb(255, 100, 0)';
+const _PROJ_OBJ_DRAW_FILL = _PROJ_OBJ_FILL;
+const _PROJ_OBJ_DRAW_STROKE = _PROJ_OBJ_STROKE;
 const _PROJ_OBJ_DRAW_STROKE_WIDTH = 2;
 
 function getObjectIconScale(zoom: number) {
@@ -482,15 +520,18 @@ export const PROJ_OBJ_DRAW_STYLE = new Style({
   stroke: new Stroke({
     color: _PROJ_OBJ_DRAW_STROKE,
     width: _PROJ_OBJ_DRAW_STROKE_WIDTH,
-    lineDash: [4],
   }),
 });
 
-export function getStyleWithPointIcon(styleLike: StyleLike): StyleFunction {
+export function getStyleWithPointIcon(
+  styleLike: StyleLike,
+  itemType?: 'project' | 'projectObject',
+): StyleFunction {
   return function (feature: FeatureLike, resolution: number) {
     const style = typeof styleLike === 'function' ? styleLike(feature, resolution) : styleLike;
     if (!style) return;
 
+    const editing = feature.get('editing');
     let styles = Array.isArray(style) ? style : [style];
     const featureType = feature.getGeometry()?.getType();
     // Remove text from point features
@@ -501,6 +542,7 @@ export function getStyleWithPointIcon(styleLike: StyleLike): StyleFunction {
 
     return [
       ...styles,
+      ...(!editing && itemType ? getGeometryCenterIconStyle(itemType, feature) ?? [] : []),
       new Style({
         image: new IconStyle({
           opacity: 1,

@@ -7,6 +7,7 @@ import { codeIdFragment } from '@backend/components/code/index.js';
 import {
   baseProjectUpsert,
   validateUpsertProject as baseProjectValidate,
+  getProjectGeometryDumpFragment,
 } from '@backend/components/project/base.js';
 import { updateProjectGeometry } from '@backend/components/project/index.js';
 import { getPool, sql } from '@backend/db.js';
@@ -21,8 +22,8 @@ import {
 } from '@shared/schema/project/maintenance.js';
 import { User } from '@shared/schema/user.js';
 
-const selectProjectFragment = sql.fragment`
-WITH geometry_dump AS (SELECT p.id "dumpProjectId", (st_dump(p.geom)).geom FROM app.project p)
+const getSelectedProjectFragment = (id: string) => sql.fragment`
+WITH dump AS (${getProjectGeometryDumpFragment()})
   SELECT
     project_maintenance.id AS "projectId",
     project.id AS "parentId",
@@ -32,8 +33,8 @@ WITH geometry_dump AS (SELECT p.id "dumpProjectId", (st_dump(p.geom)).geom FROM 
     project.start_date AS "startDate",
     project.end_date AS "endDate",
     geohash,
-    ST_AsGeoJSON(ST_CollectionExtract(project.geom)) AS geom,
-    COALESCE(jsonb_agg(ST_AsGeoJSON(geometry_dump.geom)) FILTER (WHERE geometry_dump.geom IS NOT null), '[]'::jsonb) as "geometryDump",
+    dump.geom,
+    dump.geometry_dump AS "geometryDump",
     (project.lifecycle_state).id AS "lifecycleState",
     sap_project_id AS "sapProjectId",
     (
@@ -47,22 +48,15 @@ WITH geometry_dump AS (SELECT p.id "dumpProjectId", (st_dump(p.geom)).geom FROM 
     project.covers_entire_municipality AS "coversMunicipality"
   FROM app.project
   LEFT JOIN app.project_maintenance ON project_maintenance.id = project.id
-  LEFT JOIN geometry_dump ON geometry_dump."dumpProjectId" = project.id
-  WHERE deleted = false
-  GROUP BY
-    project.id,
-    project_maintenance.id,
-    project_maintenance.contract,
-    project_maintenance.decision,
-    project_maintenance.purchase_order_number
+  LEFT JOIN dump ON dump.id = project.id
+  WHERE deleted = false AND project_maintenance.id = ${id}
 `;
 
 export async function getProject(id: string, tx?: DatabaseTransactionConnection) {
   const conn = tx ?? getPool();
 
   const project = await conn.maybeOne(sql.type(dbMaintenanceProjectSchema)`
-    ${selectProjectFragment}
-    HAVING project_maintenance.id = ${id}
+    ${getSelectedProjectFragment(id)}
   `);
 
   if (!project) throw new TRPCError({ code: 'NOT_FOUND' });
