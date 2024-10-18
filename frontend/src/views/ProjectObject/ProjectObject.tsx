@@ -186,7 +186,7 @@ export function ProjectObject(props: Props) {
   }, [projectObjectGeometries.data, projectObjectId]);
 
   const projectObjectLayer = useMemo(() => {
-    return getProjectObjectsLayer(projectObjectSource, 0.4);
+    return getProjectObjectsLayer(projectObjectSource, true);
   }, [projectObjectGeometries.data, projectObjectId]);
 
   const projectLayer = useMemo(() => {
@@ -328,9 +328,13 @@ export function ProjectObject(props: Props) {
                     await geometryUpdate.mutateAsync({ projectObjectId, features });
                   }}
                   drawOptions={{
-                    geoJson: projectObject?.data?.geometryDump ?? null,
+                    geoJson: projectObject.isFetching
+                      ? null
+                      : (editing ? projectObject.data?.geometryDump : projectObject.data?.geom) ??
+                        null,
                     drawStyle: PROJ_OBJ_DRAW_STYLE,
                     editable: editing && (!projectObjectId || isOwner || canWrite),
+                    drawItemType: 'projectObject',
                   }}
                   vectorLayers={vectorLayers}
                   fitExtent="all"

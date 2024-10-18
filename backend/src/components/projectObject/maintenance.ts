@@ -16,6 +16,7 @@ import {
 import { addAuditEvent } from '../audit.js';
 import { codeIdFragment } from '../code/index.js';
 import {
+  getProjectObjectGeometryDumpFragment,
   updateObjectCategories,
   updateObjectRoles,
   updateObjectUsages,
@@ -24,7 +25,7 @@ import {
   validateUpsertProjectObject,
 } from './index.js';
 
-const projectObjectFragment = sql.fragment`
+const getProjectObjectFragment = (id: string) => sql.fragment`
   WITH roles AS (
     SELECT json_build_object(
           'roleId', (role).id,
@@ -35,18 +36,18 @@ const projectObjectFragment = sql.fragment`
       FROM app.project_object_user_role, app.project_object
       WHERE project_object.id = project_object_user_role.project_object_id
 	    GROUP BY (role).code_list_id, (role).id, project_object.id
-  ), geometry_dump AS (SELECT po.id "dumpProjectObjectId", (st_dump(po.geom)).geom FROM app.project_object po)
+  ), dump AS (${getProjectObjectGeometryDumpFragment()})
   SELECT
      project_id AS "projectId",
-     id AS "projectObjectId",
+     project_object.id AS "projectObjectId",
      object_name AS "objectName",
      description AS "description",
      (lifecycle_state).id AS "lifecycleState",
      start_date AS "startDate",
      end_date AS "endDate",
      sap_wbs_id AS "sapWBSId",
-     ST_AsGeoJSON(ST_CollectionExtract(project_object.geom)) AS geom,
-     COALESCE(jsonb_agg(ST_AsGeoJSON(geometry_dump.geom)) FILTER (WHERE geometry_dump.geom IS NOT null), '[]'::jsonb) as "geometryDump",
+     dump.geom,
+     dump.geometry_dump AS "geometryDump",
      (SELECT json_agg((object_category).id)
       FROM app.project_object_category
       WHERE project_object.id = project_object_category.project_object_id) AS "objectCategory",
@@ -65,9 +66,8 @@ const projectObjectFragment = sql.fragment`
      (pom.procurement_method).id AS "procurementMethod"
   FROM app.project_object_maintenance pom
   LEFT JOIN app.project_object ON project_object.id = pom.project_object_id
-  LEFT JOIN geometry_dump ON geometry_dump."dumpProjectObjectId" = project_object.id
-  WHERE deleted = false
-  GROUP BY pom.project_object_id, project_object.id
+  LEFT JOIN dump ON dump.id = project_object.id
+  WHERE deleted = false AND pom.project_object_id = ${id}
 `;
 
 /**
@@ -79,8 +79,8 @@ const projectObjectFragment = sql.fragment`
 
 export async function getProjectObject(tx: DatabaseTransactionConnection, projectObjectId: string) {
   return tx.one(sql.type(dbMaintenanceProjectObjectSchema)`
-      ${projectObjectFragment}
-      HAVING id = ${projectObjectId}
+      ${getProjectObjectFragment(projectObjectId)}
+
     `);
 }
 

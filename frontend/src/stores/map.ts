@@ -9,12 +9,12 @@ import VectorSource from 'ol/source/Vector';
 import { getFeatureItemIds, getMapProjection } from '@frontend/components/Map/mapFunctions';
 import { mapOptions } from '@frontend/components/Map/mapOptions';
 import {
-  PROJECT_OBJECT_STYLE,
   ProjectColorCodes,
   WHOLE_MUNICIPALITY_PROJECT_AREA_STYLE,
-  getProjectAreaStyle,
   getStyleWithPointIcon,
+  projectAreaStyle,
   projectColorCodes,
+  projectObjectAreaStyle,
 } from '@frontend/components/Map/styles';
 
 export const baseLayerIdAtom = atom<string>('virastokartta');
@@ -131,7 +131,7 @@ export function getProjectsLayer(
 ) {
   return new VectorLayer({
     source,
-    style: (feature) => getProjectAreaStyle(feature, projectColorCodes),
+    style: (feature) => projectAreaStyle(feature, projectColorCodes),
     properties: {
       id: 'projects',
       type: 'vector',
@@ -150,11 +150,10 @@ export function getProjectMunicipalityLayer(source: VectorSource) {
   });
 }
 
-export function getProjectObjectsLayer(source: VectorSource, opacity?: number) {
+export function getProjectObjectsLayer(source: VectorSource, isFaded: boolean = false) {
   return new VectorLayer({
     source,
-    opacity: opacity ?? 1,
-    style: getStyleWithPointIcon(PROJECT_OBJECT_STYLE),
+    style: getStyleWithPointIcon((feature) => projectObjectAreaStyle(feature, isFaded)),
     properties: {
       id: 'projectObjects',
       type: 'vector',

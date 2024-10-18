@@ -22,6 +22,28 @@ import {
 
 import { codeIdFragment } from '../code/index.js';
 
+/** @param projectTableIdentifier represents table that needs to hold columns id and geom */
+export function getProjectGeometryDumpFragment(
+  projectTableIdentifier: string[] = ['app', 'project'],
+  geometryColumn: string = 'geom',
+) {
+  return sql.fragment`
+   WITH dump AS
+  	(SELECT id, (ST_Dump(${sql.identifier([geometryColumn])})).geom FROM ${sql.identifier(
+      projectTableIdentifier,
+    )}),
+  geometries AS
+  	(SELECT
+      p.id,
+      ST_AsGeoJSON(ST_Union(d.geom)) AS geom,
+      COALESCE(jsonb_agg(ST_AsGeoJSON(d.geom)) FILTER (WHERE d.geom IS NOT NULL), '[]'::jsonb) as geometry_dump
+  	FROM ${sql.identifier(projectTableIdentifier)} p
+  	LEFT JOIN dump d ON d.id = p.id
+  	GROUP BY p.id)
+  SELECT id, geom, geometry_dump FROM geometries
+  `;
+}
+
 async function upsertBaseProject(
   tx: DatabaseTransactionConnection,
   project: UpsertProject,
@@ -97,11 +119,14 @@ export async function getProject(id: string) {
       coversMunicipality: z.boolean(),
     }),
   )`
+    WITH dump AS (
+      ${getProjectGeometryDumpFragment()}
+      )
     SELECT
       app.project.id AS "projectId",
       description,
       project_name AS "projectName",
-      ST_AsGeoJSON(ST_CollectionExtract(geom)) AS geom,
+      dump.geom,
       start_date AS "startDate",
       end_date AS "endDate",
       covers_entire_municipality AS "coversMunicipality",
@@ -114,6 +139,7 @@ export async function getProject(id: string) {
     LEFT JOIN app.project_investment ON project_investment.id = app.project.id
     LEFT JOIN app.project_detailplan ON project_detailplan.id = app.project.id
     LEFT JOIN app.project_maintenance ON project_maintenance.id = app.project.id
+    LEFT JOIN dump ON dump.id = app.project.id
     WHERE app.project.id = ${id}
       AND deleted = false
   `);

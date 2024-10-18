@@ -24,7 +24,6 @@ export function ProjectAreaSelectorForm({
   return (
     <Box
       css={css`
-        transition: 0.5s ease-out;
         ${forNewProject ? 'border-top: 1px solid #c4c4c4;' : ''}
         padding: 0.5rem;
         display: flex;

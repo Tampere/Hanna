@@ -18,7 +18,7 @@ import {
   getGeoJSONFeaturesString,
 } from '@frontend/components/Map/mapInteractions';
 import { mapOptions, treMunicipalityGeometry } from '@frontend/components/Map/mapOptions';
-import { getProjectAreaStyle } from '@frontend/components/Map/styles';
+import { projectAreaStyle } from '@frontend/components/Map/styles';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
@@ -276,46 +276,49 @@ export function MaintenanceProject() {
               overflow-y: auto;
             `}
           >
-            {tabs.length > 0 && (
-              <Tabs
-                css={css`
-                  min-height: ${editing ? 0 : 48}px;
-                  height: ${editing ? 0 : 48}px;
-                  transition:
-                    min-height 0.2s,
-                    height 0.2s;
-                `}
-                value={tabIndex}
-                indicatorColor="primary"
-                textColor="primary"
-                TabIndicatorProps={{ sx: { height: '5px' } }}
-              >
-                {tabs.map((tab) => (
-                  <Tab
-                    disabled={!project.data}
-                    key={tab.tabView}
-                    component={Link}
-                    to={tab.url}
-                    icon={tab.icon}
-                    iconPosition="end"
-                    label={tr(tab.label)}
-                  />
-                ))}
-              </Tabs>
-            )}
+            <Box
+              css={css`
+                min-height: ${editing ? 60 : 48}px;
+                height: ${editing ? 60 : 48}px;
+                transition:
+                  min-height 0.2s 0.1s,
+                  height 0.2s 0.1s;
+              `}
+            >
+              {tabView === 'default' && (!projectId || editing) && (
+                <ProjectAreaSelectorForm
+                  forNewProject={Boolean(projectId)}
+                  projectHasGeom={Boolean(project.data?.geom)}
+                  checked={coversMunicipality}
+                  onChange={async (isChecked) => {
+                    setCoversMunicipality(isChecked);
+                  }}
+                />
+              )}
+              {tabs.length > 0 && !editing && (
+                <Tabs
+                  value={tabIndex}
+                  indicatorColor="primary"
+                  textColor="primary"
+                  TabIndicatorProps={{ sx: { height: '5px' } }}
+                >
+                  {tabs.map((tab) => (
+                    <Tab
+                      disabled={!project.data}
+                      key={tab.tabView}
+                      component={Link}
+                      to={tab.url}
+                      icon={tab.icon}
+                      iconPosition="end"
+                      label={tr(tab.label)}
+                    />
+                  ))}
+                </Tabs>
+              )}
+            </Box>
 
             {tabView === 'default' && (
               <Box css={mapContainerStyle}>
-                {(!projectId || editing) && (
-                  <ProjectAreaSelectorForm
-                    forNewProject={Boolean(projectId)}
-                    projectHasGeom={Boolean(project.data?.geom)}
-                    checked={coversMunicipality}
-                    onChange={async (isChecked) => {
-                      setCoversMunicipality(isChecked);
-                    }}
-                  />
-                )}
                 <MapWrapper
                   ref={tabRefs.map}
                   onGeometrySave={async (features) => {
@@ -324,9 +327,12 @@ export function MaintenanceProject() {
                   drawOptions={{
                     coversMunicipality: coversMunicipality,
                     toolsHidden: ['newPointFeature'],
-                    geoJson: project?.data?.geometryDump ?? null,
-                    drawStyle: getProjectAreaStyle(undefined, undefined, false),
+                    geoJson: project.isFetching
+                      ? null
+                      : (editing ? project?.data?.geometryDump : project?.data?.geom) ?? null,
+                    drawStyle: projectAreaStyle(undefined, undefined, false),
                     editable: editing && mapIsEditable(),
+                    drawItemType: 'project',
                   }}
                   drawSource={drawSource}
                   fitExtent="geoJson"

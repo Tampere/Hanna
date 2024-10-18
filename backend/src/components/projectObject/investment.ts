@@ -15,6 +15,7 @@ import {
 
 import { codeIdFragment } from '../code/index.js';
 import {
+  getProjectObjectGeometryDumpFragment,
   updateObjectCategories,
   updateObjectRoles,
   updateObjectUsages,
@@ -23,7 +24,7 @@ import {
   validateUpsertProjectObject,
 } from './index.js';
 
-const projectObjectFragment = sql.fragment`
+const getProjectObjectFragment = (ids: string | string[]) => sql.fragment`
   WITH roles AS (
     SELECT json_build_object(
           'roleId', (role).id,
@@ -34,10 +35,10 @@ const projectObjectFragment = sql.fragment`
       FROM app.project_object_user_role, app.project_object
       WHERE project_object.id = project_object_user_role.project_object_id
 	    GROUP BY (role).code_list_id, (role).id, project_object.id
-  ), geometry_dump AS (SELECT po.id "dumpProjectObjectId", (st_dump(po.geom)).geom FROM app.project_object po)
+  ), dump AS (${getProjectObjectGeometryDumpFragment()})
   SELECT
      project_id AS "projectId",
-     id AS "projectObjectId",
+     project_object.id AS "projectObjectId",
      object_name AS "objectName",
      description AS "description",
      (lifecycle_state).id AS "lifecycleState",
@@ -45,8 +46,8 @@ const projectObjectFragment = sql.fragment`
      start_date AS "startDate",
      end_date AS "endDate",
      sap_wbs_id AS "sapWBSId",
-     ST_AsGeoJSON(ST_CollectionExtract(project_object.geom)) AS geom,
-     COALESCE(jsonb_agg(ST_AsGeoJSON(geometry_dump.geom)) FILTER (WHERE geometry_dump.geom IS NOT null), '[]'::jsonb) as "geometryDump",
+     dump.geom,
+     dump.geometry_dump AS "geometryDump",
      (SELECT json_agg((object_type).id)
       FROM app.project_object_type
       WHERE project_object.id = project_object_type.project_object_id) AS "objectType",
@@ -59,15 +60,19 @@ const projectObjectFragment = sql.fragment`
     (
       SELECT json_build_object(
         'writeUsers', (SELECT array_agg(user_id) FROM app.project_permission WHERE project_id = project_object.project_id AND can_write = true),
-        'owner', (SELECT owner FROM app.project WHERE id = project_object.project_id)
+        'owner', (SELECT owner FROM app.project WHERE project.id = project_object.project_id)
       )
     ) AS "permissionCtx",
      (SELECT COALESCE(json_agg("objectUserRoles"), '[]') FROM roles r WHERE r.project_object_id = project_object.id) AS "objectUserRoles"
   FROM app.project_object_investment poi
   LEFT JOIN app.project_object ON project_object.id = poi.project_object_id
-  LEFT JOIN geometry_dump ON geometry_dump."dumpProjectObjectId" = project_object.id
-  WHERE deleted = false
-  GROUP BY poi.project_object_id, project_object.id
+  LEFT JOIN dump ON dump.id = project_object.id
+  WHERE deleted = false AND ${
+    Array.isArray(ids)
+      ? sql.fragment`poi.project_object_id = ANY(${sql.array(ids, 'uuid')})`
+      : sql.fragment`poi.project_object_id = ${ids}`
+  }
+
 `;
 
 async function updateObjectTypes(
@@ -102,8 +107,7 @@ async function updateObjectTypes(
 
 export async function getProjectObject(tx: DatabaseTransactionConnection, projectObjectId: string) {
   return tx.one(sql.type(dbInvestmentProjectObjectSchema)`
-      ${projectObjectFragment}
-      HAVING id = ${projectObjectId}
+      ${getProjectObjectFragment(projectObjectId)}
     `);
 }
 
@@ -119,8 +123,7 @@ export async function getProjectObjects(
   projectObjectIds: string[],
 ) {
   return tx.many(sql.type(dbInvestmentProjectObjectSchema)`
-      ${projectObjectFragment}
-      HAVING id = ANY(${sql.array(projectObjectIds, 'uuid')})
+      ${getProjectObjectFragment(projectObjectIds)}
     `);
 }
 
