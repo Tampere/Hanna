@@ -1,6 +1,7 @@
 import { css } from '@emotion/react';
-import { AccountTree, Euro, KeyTwoTone, ListAlt, Map } from '@mui/icons-material';
+import { AccountTree, BarChart, Euro, KeyTwoTone, ListAlt, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
+import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
 import VectorSource from 'ol/source/Vector';
 import { useEffect, useMemo, useState } from 'react';
@@ -19,6 +20,7 @@ import {
 } from '@frontend/components/Map/mapInteractions';
 import { mapOptions, treMunicipalityGeometry } from '@frontend/components/Map/mapOptions';
 import { projectAreaStyle } from '@frontend/components/Map/styles';
+import { TooltipLinkTab } from '@frontend/components/TooltipLinkTab';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
@@ -41,6 +43,7 @@ import {
 import { InvestmentProjectForm } from './InvestmentProjectForm';
 import { ProjectAreaSelectorForm } from './ProjectAreaSelectorForm';
 import { ProjectFinances } from './ProjectFinances';
+import { ProjectFinancesCharts } from './ProjectFinancesCharts';
 import { ProjectPermissions } from './ProjectPermissions';
 import { ProjectViewWrapper } from './ProjectViewWrapper';
 
@@ -75,6 +78,13 @@ function getTabs(projectId: string) {
       url: `/investointihanke/${projectId}?tab=talous`,
       label: 'project.financeTabLabel',
       icon: <Euro fontSize="small" />,
+      hasAccess: () => true,
+    },
+    {
+      tabView: 'kuluseuranta',
+      url: `/investointihanke/${projectId}?tab=kuluseuranta`,
+      label: 'project.chartTabLabel',
+      icon: <BarChart fontSize="small" />,
       hasAccess: () => true,
     },
     {
@@ -309,17 +319,33 @@ export function InvestmentProject() {
                   textColor="primary"
                   TabIndicatorProps={{ sx: { height: '5px' } }}
                 >
-                  {tabs.map((tab) => (
-                    <Tab
-                      disabled={!project.data}
-                      key={tab.tabView}
-                      component={Link}
-                      to={tab.url}
-                      icon={tab.icon}
-                      iconPosition="end"
-                      label={tr(tab.label)}
-                    />
-                  ))}
+                  {tabs.map((tab) => {
+                    if (tab.tabView === 'kuluseuranta' && !project.data?.sapProjectId) {
+                      return (
+                        <TooltipLinkTab
+                          title={tr('project.chartTabLabelDisabled')}
+                          disabled={true}
+                          key={tab.tabView}
+                          to={tab.url}
+                          component={Link}
+                          icon={tab.icon}
+                          iconPosition="end"
+                          label={tr(tab.label)}
+                        />
+                      );
+                    }
+                    return (
+                      <Tab
+                        disabled={!project.data}
+                        key={tab.tabView}
+                        component={Link}
+                        to={tab.url}
+                        icon={tab.icon}
+                        iconPosition="end"
+                        label={tr(tab.label)}
+                      />
+                    );
+                  })}
                 </Tabs>
               )}
             </Box>
@@ -369,6 +395,13 @@ export function InvestmentProject() {
                     editable={userCanModify}
                     project={{ type: 'investmentProject', data: project.data }}
                     writableFields={['estimate']}
+                  />
+                )}
+                {tabView === 'kuluseuranta' && (
+                  <ProjectFinancesCharts
+                    projectId={projectId}
+                    startYear={dayjs(project.data?.startDate).year()}
+                    endYear={dayjs(project.data?.endDate).year()}
                   />
                 )}
                 {tabView === 'kohteet' && (

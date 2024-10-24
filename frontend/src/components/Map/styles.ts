@@ -39,7 +39,7 @@ const _DETAILPLAN_FILL = 'rgba(154, 154, 0, 0.3)';
 
 export const VECTOR_LAYER_DEFAULT_Z_INDEX = 1;
 export const WFS_LAYER_DEFAULT_Z_INDEX = 2;
-console.log(detailplanClusterPoint);
+
 export interface ProjectColorCodes {
   investmentProject: { stroke: string; fill: string };
   maintenanceProject: { stroke: string; fill: string };

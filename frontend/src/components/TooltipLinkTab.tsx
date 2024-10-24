@@ -7,9 +7,13 @@ interface Props extends TabProps<typeof Link> {
 
 export function TooltipLinkTab(props: Props) {
   const { title, ...tabProps } = props;
+
+  // Span used to get tooltip working even without disabled Tab
   return (
     <Tooltip title={title}>
-      <Tab component={Link} {...tabProps} />
+      <span>
+        <Tab component={Link} {...tabProps} />
+      </span>
     </Tooltip>
   );
 }

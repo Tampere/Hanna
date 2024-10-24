@@ -61,6 +61,7 @@
     "@hookform/resolvers": "^3.9.0",
     "@mui/icons-material": "^5.16.7",
     "@mui/material": "^5.16.7",
+    "@mui/x-charts": "^7.21.0",
     "@mui/x-data-grid": "^7.19.0",
     "@mui/x-date-pickers": "^7.19.0",
     "@tanstack/react-query": "^4.36.1",
