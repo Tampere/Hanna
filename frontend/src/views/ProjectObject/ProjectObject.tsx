@@ -1,6 +1,7 @@
 import { css } from '@emotion/react';
 import { Assignment, Euro, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
+import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
 import VectorSource from 'ol/source/Vector';
 import { ReactElement, useMemo, useState } from 'react';
@@ -13,6 +14,7 @@ import { MapWrapper } from '@frontend/components/Map/MapWrapper';
 import { getProjectObjectGeoJSON } from '@frontend/components/Map/mapFunctions';
 import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJ_OBJ_DRAW_STYLE } from '@frontend/components/Map/styles';
+import { TooltipLinkTab } from '@frontend/components/TooltipLinkTab';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
@@ -33,8 +35,9 @@ import { ProjectViewWrapper } from '../Project/ProjectViewWrapper';
 import { InvestmentProjectObjectForm } from './InvestmentProjectObjectForm';
 import { MaintenanceProjectObjectForm } from './MaintenanceProjectObjectForm';
 import { ProjectObjectFinances } from './ProjectObjectFinances';
+import { ProjectObjectFinancesCharts } from './ProjectObjectFinancesCharts';
 
-type TabView = 'default' | 'talous' | 'vaiheet';
+type TabView = 'default' | 'talous' | 'kuluseuranta' | 'vaiheet';
 
 interface Tab {
   tabView: TabView;
@@ -68,6 +71,12 @@ function projectObjectTabs(
       tabView: 'talous',
       url: `/${projectType}/${projectId}/kohde/${projectObjectId}?tab=talous`,
       label: 'project.financeTabLabel',
+      icon: <Euro fontSize="small" />,
+    },
+    {
+      tabView: 'kuluseuranta',
+      url: `/${projectType}/${projectId}/kohde/${projectObjectId}?tab=kuluseuranta`,
+      label: 'project.chartTabLabel',
       icon: <Euro fontSize="small" />,
     },
     {
@@ -307,17 +316,33 @@ export function ProjectObject(props: Props) {
               textColor="primary"
               TabIndicatorProps={{ sx: { height: '5px' } }}
             >
-              {tabs.map((tab) => (
-                <Tab
-                  disabled={!projectObject.data}
-                  key={tab.tabView}
-                  component={Link}
-                  to={tab.url}
-                  label={tr(tab.label)}
-                  icon={tab.icon}
-                  iconPosition="end"
-                />
-              ))}
+              {tabs.map((tab) => {
+                if (tab.tabView === 'kuluseuranta' && !projectObject.data?.sapWBSId) {
+                  return (
+                    <TooltipLinkTab
+                      title={tr('projectObject.chartTabLabelDisabled')}
+                      disabled={true}
+                      key={tab.tabView}
+                      to={tab.url}
+                      component={Link}
+                      icon={tab.icon}
+                      iconPosition="end"
+                      label={tr(tab.label)}
+                    />
+                  );
+                }
+                return (
+                  <Tab
+                    disabled={!projectObject.data}
+                    key={tab.tabView}
+                    component={Link}
+                    to={tab.url}
+                    label={tr(tab.label)}
+                    icon={tab.icon}
+                    iconPosition="end"
+                  />
+                );
+              })}
             </Tabs>
 
             {!searchParams.get('tab') && (
@@ -376,6 +401,13 @@ export function ProjectObject(props: Props) {
                           ? 'investmentProject'
                           : 'maintenaceProject',
                     }}
+                  />
+                )}
+                {searchParams.get('tab') === 'kuluseuranta' && (
+                  <ProjectObjectFinancesCharts
+                    projectObjectId={projectObjectId}
+                    startYear={dayjs(projectObject.data?.startDate).year()}
+                    endYear={dayjs(projectObject.data?.endDate).year()}
                   />
                 )}
                 {searchParams.get('tab') === 'vaiheet' && (
