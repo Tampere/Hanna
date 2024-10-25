@@ -6,6 +6,7 @@ import { theme } from '@frontend/Layout';
 import { trpc } from '@frontend/client';
 import { ChartHeader } from '@frontend/components/Charts/ChartHeader';
 import { FinancesBarChart } from '@frontend/components/Charts/FinancesBarChart';
+import { getYAxisScale } from '@frontend/components/Charts/utils';
 import { useTranslations } from '@frontend/stores/lang';
 import { getRange } from '@frontend/utils/array';
 
@@ -53,11 +54,6 @@ export function ProjectFinancesCharts(props: Props) {
     Math.min(dayjs().year(), props.endYear),
     Math.max(...(dataYears ?? [])),
   );
-
-  function getYDimensionValue(num: number) {
-    const exponent = Math.floor(Math.log10(Math.abs(num)));
-    return Math.ceil(num / 10 ** exponent) * 10 ** exponent;
-  }
 
   const extremeAmountValues = useMemo(() => {
     if (!monthlyActuals.data) {
@@ -122,16 +118,18 @@ export function ProjectFinancesCharts(props: Props) {
               amount={amount}
             />
             <FinancesBarChart
-              amount={amount ? amount / 100 : null}
+              totalAmount={amount ? amount / 100 : null}
               barData={data}
               dataLabels={getRange(1, 12).map((i) => tr(labels[i - 1]))}
               colors={[chartColors[idx % 2 == 0 ? 0 : 1]]}
-              yAxisDimensions={{
-                min: data.some((num) => num < 0)
-                  ? getYDimensionValue((extremeAmountValues?.min ?? 0) / 100)
-                  : 0,
-                max: getYDimensionValue((extremeAmountValues?.max ?? 0) / 100),
-              }}
+              yAxisScale={getYAxisScale(
+                extremeAmountValues
+                  ? {
+                      max: extremeAmountValues.max / 100,
+                      min: data.some((d) => d < 0) ? extremeAmountValues.min / 100 : 0,
+                    }
+                  : { max: 0, min: 0 },
+              )}
             />
           </Box>
         );
