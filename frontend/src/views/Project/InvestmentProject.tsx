@@ -320,10 +320,18 @@ export function InvestmentProject() {
                   TabIndicatorProps={{ sx: { height: '5px' } }}
                 >
                   {tabs.map((tab) => {
-                    if (tab.tabView === 'kuluseuranta' && !project.data?.sapProjectId) {
+                    const projectInFuture = dayjs(project.data?.startDate).year() > dayjs().year();
+                    if (
+                      tab.tabView === 'kuluseuranta' &&
+                      (!project.data?.sapProjectId || projectInFuture)
+                    ) {
                       return (
                         <TooltipLinkTab
-                          title={tr('project.chartTabLabelDisabled')}
+                          title={
+                            projectInFuture
+                              ? tr('project.chartTabLabelNotStarted')
+                              : tr('project.chartTabLabelDisabled')
+                          }
                           disabled={true}
                           key={tab.tabView}
                           to={tab.url}

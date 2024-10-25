@@ -317,10 +317,19 @@ export function ProjectObject(props: Props) {
               TabIndicatorProps={{ sx: { height: '5px' } }}
             >
               {tabs.map((tab) => {
-                if (tab.tabView === 'kuluseuranta' && !projectObject.data?.sapWBSId) {
+                const projectObjectInFuture =
+                  dayjs(projectObject.data?.startDate).year() > dayjs().year();
+                if (
+                  tab.tabView === 'kuluseuranta' &&
+                  (!projectObject.data?.sapWBSId || projectObjectInFuture)
+                ) {
                   return (
                     <TooltipLinkTab
-                      title={tr('projectObject.chartTabLabelDisabled')}
+                      title={
+                        projectObjectInFuture
+                          ? tr('projectObject.chartTablLabelNotStarted')
+                          : tr('projectObject.chartTabLabelDisabled')
+                      }
                       disabled={true}
                       key={tab.tabView}
                       to={tab.url}

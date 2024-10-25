@@ -210,29 +210,28 @@ export const createSapRouter = (t: TRPC) =>
         );
       }),
 
-    getMonthlyActualsByProjectObjectId:
-      t.procedure
-        .input(
-          z.object({
-            projectObjectId: z.string(),
-            startYear: z.number().int(),
-            endYear: z.number().int(),
-          }),
-        )
-        .query(async ({ input }) => {
-          const result = await refreshProjectObjectSapActuals(
-            { start: input.startYear, end: input.endYear },
-            input.projectObjectId,
-          );
+    getMonthlyActualsByProjectObjectId: t.procedure
+      .input(
+        z.object({
+          projectObjectId: z.string(),
+          startYear: z.number().int(),
+          endYear: z.number().int(),
+        }),
+      )
+      .query(async ({ input }) => {
+        const result = await refreshProjectObjectSapActuals(
+          { start: input.startYear, end: input.endYear },
+          input.projectObjectId,
+        );
 
-          if (!result) {
-            return null;
-          }
+        if (!result) {
+          return null;
+        }
 
-          const returnSchema = z.object({
-            result: z.array(z.object({ year: z.number(), month: z.number(), total: z.number() })),
-          });
-          const dbResult = await getPool().maybeOne(sql.type(returnSchema)`
+        const returnSchema = z.object({
+          result: z.array(z.object({ year: z.number(), month: z.number(), total: z.number() })),
+        });
+        const dbResult = await getPool().maybeOne(sql.type(returnSchema)`
           WITH monthly_totals AS (
             SELECT
               fiscal_year,
@@ -255,7 +254,8 @@ export const createSapRouter = (t: TRPC) =>
           FROM monthly_totals;
           `);
 
-          return dbResult?.result?.reduce(
+        return (
+          dbResult?.result?.reduce(
             (valuesByYear, val) => {
               if (!valuesByYear[val.year]) {
                 valuesByYear[val.year] = [];
@@ -266,8 +266,9 @@ export const createSapRouter = (t: TRPC) =>
               return valuesByYear;
             },
             {} as Record<string, Record<string, number>[]>,
-          );
-        }) ?? {},
+          ) ?? {}
+        );
+      }),
 
     doesSapProjectIdExist: t.procedure
       .input(z.object({ projectId: z.string() }))

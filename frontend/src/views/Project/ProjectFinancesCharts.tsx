@@ -55,7 +55,7 @@ export function ProjectFinancesCharts(props: Props) {
   );
 
   function getYDimensionValue(num: number) {
-    const exponent = Math.round(Math.log10(num));
+    const exponent = Math.floor(Math.log10(Math.abs(num)));
     return Math.ceil(num / 10 ** exponent) * 10 ** exponent;
   }
 
@@ -64,9 +64,10 @@ export function ProjectFinancesCharts(props: Props) {
       return null;
     }
     const values = Object.values(monthlyActuals.data);
+    const actuals = values.flatMap((yearActuals) => yearActuals.map((actual) => actual.total));
     return {
-      max: Math.max(...values.flatMap((yearActuals) => yearActuals.map((actual) => actual.total))),
-      min: Math.min(...values.flatMap((yearActuals) => yearActuals.map((actual) => actual.total))),
+      max: Math.max(...actuals),
+      min: Math.min(...actuals),
     };
   }, [monthlyActuals.data]);
 
@@ -77,7 +78,7 @@ export function ProjectFinancesCharts(props: Props) {
         flex-direction: column;
       `}
     >
-      {getRange(props.startYear, displayedEndYear).map((year, idx) => {
+      {getRange(props.startYear, displayedEndYear, true).map((year, idx) => {
         if (monthlyActuals.isLoading) {
           return (
             <Skeleton
@@ -126,7 +127,9 @@ export function ProjectFinancesCharts(props: Props) {
               dataLabels={getRange(1, 12).map((i) => tr(labels[i - 1]))}
               colors={[chartColors[idx % 2 == 0 ? 0 : 1]]}
               yAxisDimensions={{
-                min: getYDimensionValue((extremeAmountValues?.min ?? 0) / 100),
+                min: data.some((num) => num < 0)
+                  ? getYDimensionValue((extremeAmountValues?.min ?? 0) / 100)
+                  : 0,
                 max: getYDimensionValue((extremeAmountValues?.max ?? 0) / 100),
               }}
             />
