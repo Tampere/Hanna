@@ -388,7 +388,12 @@ async function maybeCacheSapActuals(projectId: string, actuals: SAPActual[]) {
   return actuals;
 }
 
-export async function getSapActuals(sapProjectId: string, fromYear: number, toYear = fromYear) {
+export async function getSapActuals(
+  sapProjectId: string,
+  fromYear: number,
+  toYear = fromYear,
+  sapWBSId?: string,
+) {
   if (!env.enabledFeatures.sapActuals) {
     logger.info('SAP actuals are disabled.');
     return [];
@@ -410,6 +415,7 @@ export async function getSapActuals(sapProjectId: string, fromYear: number, toYe
     const [startDate, endDate] = iso8601DateYearRange(fromYear, toYear);
     const wsResult = await wsClient.SI_ZPS_WS_GET_ACTUALSAsync({
       I_PSPID: sapProjectId,
+      ...(sapWBSId && { I_POSID: sapWBSId }),
       I_BUDAT_BEGDA: startDate,
       I_BUDAT_ENDDA: endDate,
     });

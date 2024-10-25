@@ -38,7 +38,9 @@ export async function refreshProjectObjectSapActuals(
   }
 
   await Promise.all(
-    yearRange(years.start, endYear).map((year) => getSapActuals(result.sapWBSId, year)),
+    yearRange(years.start, endYear).map((year) =>
+      getSapActuals(result.sapProjectId, year, year, result.sapWBSId),
+    ),
   );
   return { wbsId: result.sapWBSId, endYear };
 }
