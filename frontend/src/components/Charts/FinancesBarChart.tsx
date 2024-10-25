@@ -41,14 +41,14 @@ interface Props {
   colors: string[];
   dataLabels: string[];
   barData: number[];
-  amount: number | null;
-  yAxisDimensions?: { min: number; max: number };
+  totalAmount: number | null;
+  yAxisScale?: { min: number; max: number };
 }
 
-export function FinancesBarChart({ colors, barData, dataLabels, amount, yAxisDimensions }: Props) {
+export function FinancesBarChart({ colors, barData, dataLabels, totalAmount, yAxisScale }: Props) {
   const tr = useTranslations();
 
-  const refValue = amount && amount > 0 && amount / dataLabels.length;
+  const refValue = totalAmount && totalAmount > 0 && totalAmount / dataLabels.length;
 
   function formatAmount(amount: number) {
     if (amount >= 1 * 10 ** 6) {
@@ -57,11 +57,10 @@ export function FinancesBarChart({ colors, barData, dataLabels, amount, yAxisDim
     return new Intl.NumberFormat('fi-FI').format(amount);
   }
 
-  const minDimension =
-    yAxisDimensions?.min && yAxisDimensions.min < 0
-      ? Math.min(yAxisDimensions.min, (yAxisDimensions.max / 2) * -1)
-      : 0;
-  const maxDimension = yAxisDimensions?.max ?? Math.max(200000, Math.max(...barData));
+  function getTickInterval() {
+    if (!yAxisScale) return 'auto';
+    return [0, yAxisScale.min / 2, yAxisScale.min, yAxisScale.max / 2, yAxisScale.max];
+  }
 
   return (
     <ResponsiveChartContainer
@@ -95,8 +94,7 @@ export function FinancesBarChart({ colors, barData, dataLabels, amount, yAxisDim
           data: dataLabels,
           scaleType: 'linear',
           id: 'y-axis-id',
-          min: minDimension,
-          max: maxDimension,
+          ...(yAxisScale && { min: yAxisScale.min, max: yAxisScale.max }),
         },
       ]}
     >
@@ -154,13 +152,9 @@ export function FinancesBarChart({ colors, barData, dataLabels, amount, yAxisDim
           },
         }}
         tickSize={4}
-        tickInterval={
-          minDimension < 0
-            ? [minDimension, minDimension / 2, 0, maxDimension / 2, maxDimension]
-            : [0, maxDimension / 2, maxDimension]
-        }
+        tickInterval={getTickInterval()}
       />
-      {minDimension < 0 && <OriginAxis />}
+      {yAxisScale && yAxisScale.min < 0 && yAxisScale.max > 0 && <OriginAxis />}
     </ResponsiveChartContainer>
   );
 }
