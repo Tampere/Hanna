@@ -2,20 +2,23 @@ import { expect } from '@playwright/test';
 import { test } from '@utils/fixtures.js';
 
 test.describe('Project endpoints', () => {
-  test('SAP project import without WBS', async ({ devSession }) => {
-    const res = await devSession.session.client.sap.getSapProject.mutate({
-      projectId: 'A1111_00000',
+  test.afterAll(async ({ resetCachedSessions }) => {
+    await resetCachedSessions();
+  }),
+    test('SAP project import without WBS', async ({ devSession }) => {
+      const res = await devSession.client.sap.getSapProject.mutate({
+        projectId: 'A1111_00000',
+      });
+      // NOTE: Full set of fields checked in 2 WBS / 2 Activities test. This checks the empty
+      // WBS case for correct structure
+      expect(res).toMatchObject({
+        sapProjectId: 'A1111_00000',
+        wbs: [],
+      });
     });
-    // NOTE: Full set of fields checked in 2 WBS / 2 Activities test. This checks the empty
-    // WBS case for correct structure
-    expect(res).toMatchObject({
-      sapProjectId: 'A1111_00000',
-      wbs: [],
-    });
-  });
 
   test('SAP project import with one WBS and one activity per WBS', async ({ devSession }) => {
-    const res = await devSession.session.client.sap.getSapProject.mutate({
+    const res = await devSession.client.sap.getSapProject.mutate({
       projectId: 'A1111_11000',
     });
 
@@ -38,7 +41,7 @@ test.describe('Project endpoints', () => {
   });
 
   test('SAP project import with two WBS and two activities per WBS', async ({ devSession }) => {
-    const res = await devSession.session.client.sap.getSapProject.mutate({
+    const res = await devSession.client.sap.getSapProject.mutate({
       projectId: 'A1111_22000',
     });
 

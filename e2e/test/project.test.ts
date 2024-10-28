@@ -1,11 +1,10 @@
-import { Page, expect, test } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 import { fillDatePickerValue, getDatePickerValue } from '@utils/date-picker.js';
 import { clearData } from '@utils/db.js';
-import { login } from '@utils/page.js';
-import { ADMIN_USER, DEV_USER, UserSessionObject } from '@utils/users.js';
+import { DEV_USER, UserSessionObject } from '@utils/users.js';
+import { test } from 'utils/fixtures.js';
 
 import type { InvestmentProject } from '@shared/schema/project/investment.js';
-import { sleep } from '@shared/utils.js';
 
 const keskustoriGeom = {
   type: 'Polygon',
@@ -106,25 +105,16 @@ async function deleteProject(page: Page, projectId: string) {
 }
 
 test.describe('Projects', () => {
-  let adminSession: UserSessionObject;
-  let devSession: UserSessionObject;
-
-  test.beforeAll(async ({ browser }) => {
-    adminSession = await login(browser, ADMIN_USER);
-    adminSession.client.userPermissions.setPermissions.mutate([
-      {
-        userId: DEV_USER,
-        permissions: ['investmentProject.write'],
-      },
-    ]);
-    devSession = await login(browser, DEV_USER);
+  test.beforeAll(async ({ modifyPermissions }) => {
+    await modifyPermissions(DEV_USER, ['investmentProject.write']);
   });
 
-  test.afterAll(async () => {
+  test.afterAll(async ({ resetCachedSessions }) => {
+    await resetCachedSessions();
     await clearData();
   });
 
-  test('Create a project', async () => {
+  test('Create a project', async ({ workerDevSession }) => {
     let project: InvestmentProject = {
       projectName: `Testihanke ${Date.now()}`,
       description: 'Testikuvaus',
@@ -132,35 +122,38 @@ test.describe('Projects', () => {
       endDate: '28.2.2023',
     };
 
-    project = { ...project, ...(await createProject(devSession.page, project, devSession.client)) };
+    project = {
+      ...project,
+      ...(await createProject(workerDevSession.page, project, workerDevSession.client)),
+    };
 
     // Click on the new project button to go back to the project page
-    await devSession.page.locator(`text=${project.projectName}`).click();
-    await expect(devSession.page).toHaveURL(
+    await workerDevSession.page.locator(`text=${project.projectName}`).click();
+    await expect(workerDevSession.page).toHaveURL(
       `https://localhost:1443/investointihanke/${project.projectId}`,
     );
 
     // Check that all fields still have the same values
-    await expect(devSession.page.locator('input[name="projectName"]')).toHaveValue(
+    await expect(workerDevSession.page.locator('input[name="projectName"]')).toHaveValue(
       project.projectName,
     );
-    await expect(devSession.page.locator('textarea[name="description"]')).toHaveValue(
+    await expect(workerDevSession.page.locator('textarea[name="description"]')).toHaveValue(
       project.description,
     );
 
-    expect(await getDatePickerValue(devSession.page.locator('input[name="startDate"]'))).toBe(
+    expect(await getDatePickerValue(workerDevSession.page.locator('input[name="startDate"]'))).toBe(
       project.startDate,
     );
-    expect(await getDatePickerValue(devSession.page.locator('input[name="endDate"]'))).toBe(
+    expect(await getDatePickerValue(workerDevSession.page.locator('input[name="endDate"]'))).toBe(
       project.endDate,
     );
 
-    await deleteProject(devSession.page, project.projectId);
+    await deleteProject(workerDevSession.page, project.projectId);
   });
 
-  test('Delete project', async () => {
+  test('Delete project', async ({ workerDevSession }) => {
     const project = await createProject(
-      devSession.page,
+      workerDevSession.page,
       {
         projectName: 'Tuhottava hanke',
         description: 'Testikuvaus',
@@ -168,15 +161,15 @@ test.describe('Projects', () => {
         // TODO 31st days don't work via keyboard input: https://github.com/mui/mui-x/issues/8485
         endDate: '30.12.2022',
       },
-      devSession.client,
+      workerDevSession.client,
     );
 
-    await deleteProject(devSession.page, project.projectId);
+    await deleteProject(workerDevSession.page, project.projectId);
   });
 
-  test('Project search', async () => {
+  test('Project search', async ({ workerDevSession }) => {
     const projectA = await createProject(
-      devSession.page,
+      workerDevSession.page,
       {
         projectName: `Hakutesti ${Date.now()}`,
         description: 'Myös kuvauksen teksti otetaan haussa huomioon',
@@ -184,23 +177,23 @@ test.describe('Projects', () => {
         endDate: '28.2.2023',
         lifecycleState: '01',
       },
-      devSession.client,
+      workerDevSession.client,
     );
 
     const projectB = await createProject(
-      devSession.page,
+      workerDevSession.page,
       {
         projectName: `Toinen hakutesti ${Date.now()}`,
         description: 'Tässä on toisen testihankkeen kuvaus',
-        startDate: '1.1.2001',
+        startDate: '1.1.2002',
         endDate: '31.12.2099',
         lifecycleState: '01',
       },
-      devSession.client,
+      workerDevSession.client,
     );
 
     const projectC = await createProject(
-      devSession.page,
+      workerDevSession.page,
       {
         projectName: `Kolmas hakutesti ${Date.now()}`,
         description: 'Tässä on kolmannen testihankkeen kuvaus',
@@ -208,97 +201,86 @@ test.describe('Projects', () => {
         endDate: '31.12.2099',
         lifecycleState: '02',
       },
-      devSession.client,
+      workerDevSession.client,
     );
 
     // Search for projectA - projectB should not be in results
-    await devSession.page.fill('label:has-text("Haku")', 'huomio');
-    // Delay required because of debouncing
-    await sleep(1000);
-
-    let searchResults = await devSession.page
-      .locator("div[aria-label='Näytetään yksi hanke:'] > a")
-      .allTextContents();
-    expect(
-      searchResults.some((result) => result.includes(projectA.projectName)) &&
-        searchResults.every((result) => !result.includes(projectB.projectName)),
-    ).toBe(true);
+    await workerDevSession.page.fill('label:has-text("Haku")', 'huomio');
+    await expect(
+      workerDevSession.page.locator("div[aria-label='Näytetään yksi hanke:'] > a"),
+    ).toContainText(projectA.projectName);
+    await expect(
+      workerDevSession.page.locator("div[aria-label='Näytetään yksi hanke:'] > a"),
+    ).not.toContainText(projectB.projectName);
 
     // Search for projectB - projectA should not be in results
-    await devSession.page.fill('label:has-text("Haku")', 'toisen');
-    await sleep(1000);
-    searchResults = await devSession.page
-      .locator("div[aria-label='Näytetään yksi hanke:'] > a")
-      .allTextContents();
-    expect(
-      searchResults.some((result) => result.includes(projectB.projectName)) &&
-        searchResults.every((result) => !result.includes(projectA.projectName)),
-    ).toBe(true);
+    await workerDevSession.page.fill('label:has-text("Haku")', 'toisen');
+    await expect(
+      workerDevSession.page.locator("div[aria-label='Näytetään yksi hanke:'] > a"),
+    ).toContainText(projectB.projectName);
+    await expect(
+      workerDevSession.page.locator("div[aria-label='Näytetään yksi hanke:'] > a"),
+    ).not.toContainText(projectA.projectName);
 
-    // Search for both projects
-    await devSession.page.fill('label:has-text("Haku")', 'hakutesti');
-    await sleep(1000);
-    searchResults = await devSession.page
-      .locator("div[aria-label='Näytetään 3 hanketta:'] > a")
-      .allTextContents();
-    expect(
-      searchResults.some((result) => result.includes(projectB.projectName)) &&
-        searchResults.some((result) => result.includes(projectA.projectName)),
-    ).toBe(true);
+    // Search for all projects
+    await workerDevSession.page.fill('label:has-text("Haku")', 'hakutesti');
+    await expect(
+      workerDevSession.page.locator("div[aria-label='Näytetään 3 hanketta:'] > a"),
+    ).toContainText([projectA.projectName, projectB.projectName, projectC.projectName]);
 
     // Search for projectC
-    await devSession.page.fill('label:has-text("Haku")', 'kolmas');
-    await sleep(1000);
-    searchResults = await devSession.page
-      .locator("div[aria-label='Näytetään yksi hanke:'] > a")
-      .allTextContents();
-    expect(
-      searchResults.some((result) => result.includes(projectC.projectName)) &&
-        searchResults.every((result) => !result.includes(projectA.projectName)) &&
-        searchResults.every((result) => !result.includes(projectB.projectName)),
-    ).toBe(true);
+    await workerDevSession.page.fill('label:has-text("Haku")', 'kolmas');
+    await expect(
+      workerDevSession.page.locator("div[aria-label='Näytetään yksi hanke:'] > a"),
+    ).toContainText(projectC.projectName);
+    await expect(
+      workerDevSession.page.locator("div[aria-label='Näytetään yksi hanke:'] > a"),
+    ).not.toContainText(projectA.projectName);
+    await expect(
+      workerDevSession.page.locator("div[aria-label='Näytetään yksi hanke:'] > a"),
+    ).not.toContainText(projectB.projectName);
 
     // Search for unexisting project
-    await devSession.page.fill('label:has-text("Haku")', 'ei löydy');
-    await sleep(1000);
-    await expect(devSession.page.locator('div[aria-label="Ei hakutuloksia."]')).toBeVisible();
+    await workerDevSession.page.fill('label:has-text("Haku")', 'ei löydy');
+    await expect(workerDevSession.page.locator('div[aria-label="Ei hakutuloksia."]')).toBeVisible();
 
     // search with elinkaaren tila filter
-    await devSession.page.fill('label:has-text("Haku")', '');
-    await devSession.page.getByLabel('Elinkaaren tila').press('ArrowDown');
-    await devSession.page
+    await workerDevSession.page.fill('label:has-text("Haku")', '');
+    await workerDevSession.page.getByLabel('Elinkaaren tila').press('ArrowDown');
+    await workerDevSession.page
       .getByRole('option', { name: 'Aloittamatta' })
       .getByRole('checkbox')
       .check();
-    await sleep(500);
-    searchResults = await devSession.page
-      .locator("div[aria-label='Näytetään 2 hanketta:'] > a")
-      .allTextContents();
-    expect(
-      searchResults.some((result) => result.includes(projectA.projectName)) &&
-        searchResults.some((result) => result.includes(projectB.projectName)) &&
-        searchResults.every((result) => !result.includes(projectC.projectName)),
-    ).toBe(true);
 
-    await devSession.page
+    await expect(
+      workerDevSession.page.locator("div[aria-label='Näytetään 2 hanketta:'] > a"),
+    ).toContainText([projectA.projectName, projectB.projectName]);
+    await expect(
+      workerDevSession.page.locator("div[aria-label='Näytetään 2 hanketta:'] > a"),
+    ).not.toContainText([projectC.projectName]);
+
+    await workerDevSession.page
       .getByRole('option', { name: 'Aloittamatta' })
       .getByRole('checkbox')
       .uncheck();
-    await devSession.page.getByRole('option', { name: 'Käynnissä' }).getByRole('checkbox').check();
-    await sleep(500);
+    await workerDevSession.page
+      .getByRole('option', { name: 'Käynnissä' })
+      .getByRole('checkbox')
+      .check();
 
-    searchResults = await devSession.page
-      .locator("div[aria-label='Näytetään yksi hanke:'] > a")
-      .allTextContents();
-    expect(
-      searchResults.some((result) => result.includes(projectC.projectName)) &&
-        searchResults.every((result) => !result.includes(projectA.projectName)) &&
-        searchResults.every((result) => !result.includes(projectB.projectName)),
-    ).toBe(true);
+    await expect(
+      workerDevSession.page.locator("div[aria-label='Näytetään yksi hanke:'] > a"),
+    ).toContainText(projectC.projectName);
+    await expect(
+      workerDevSession.page.locator("div[aria-label='Näytetään yksi hanke:'] > a"),
+    ).not.toContainText(projectA.projectName);
+    await expect(
+      workerDevSession.page.locator("div[aria-label='Näytetään yksi hanke:'] > a"),
+    ).not.toContainText(projectB.projectName);
 
     // Clean up the test case
-    await deleteProject(devSession.page, projectA.projectId);
-    await deleteProject(devSession.page, projectB.projectId);
-    await deleteProject(devSession.page, projectC.projectId);
+    await deleteProject(workerDevSession.page, projectA.projectId);
+    await deleteProject(workerDevSession.page, projectB.projectId);
+    await deleteProject(workerDevSession.page, projectC.projectId);
   });
 });

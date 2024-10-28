@@ -4,7 +4,7 @@ import { expect } from 'playwright/test';
 import { createTRPCClient } from './trpc.js';
 
 export async function login(browser: Browser, username: string) {
-  const context = await browser.newContext();
+  const context = await browser.newContext({ ignoreHTTPSErrors: true });
   const page = await context.newPage();
 
   page.on('response', (response) => {
@@ -33,7 +33,7 @@ export async function logout(page: Page) {
   await expect(page.locator('h1')).toContainText('Sign-out Success');
 }
 
-export async function refreshSession(browser: Browser, username: string, page: Page) {
-  page.close();
+export async function getNewSession(browser: Browser, username: string, page: Page) {
+  await page.close();
   return login(browser, username);
 }
