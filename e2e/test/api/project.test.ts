@@ -1,14 +1,8 @@
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { clearData } from '@utils/db.js';
-import { login, refreshSession } from '@utils/page.js';
-import {
-  ADMIN_USER,
-  DEV_USER,
-  TEST_USER,
-  TEST_USER_2,
-  UserSessionObject,
-  clearUserPermissions,
-} from '@utils/users.js';
+import { test } from '@utils/fixtures.js';
+import { getNewSession, login } from '@utils/page.js';
+import { DEV_USER, TEST_USER, TEST_USER_2, UserSessionObject } from '@utils/users.js';
 
 import { User } from '@shared/schema/user.js';
 
@@ -46,8 +40,6 @@ const testProjectObject = (projectId: string, user: User) => ({
   objectType: ['01'],
   objectCategory: ['01'],
   objectUsage: ['01'],
-  suunnitteluttajaUser: user.id,
-  rakennuttajaUser: user.id,
   startDate: '2021-01-01',
   endDate: '2022-01-01',
   sapWBSId: null,
@@ -71,30 +63,19 @@ const validProject = (userId: string, projectName = 'Test project') => ({
 });
 
 test.describe('Project endpoints', () => {
-  let adminSession: UserSessionObject;
+  // TODO use session fixtures
   let devSession: UserSessionObject;
   let investmentFinancialsSession: UserSessionObject;
   let maintenanceFinancialsSession: UserSessionObject;
 
-  test.beforeAll(async ({ browser }) => {
-    adminSession = await login(browser, ADMIN_USER);
+  test.beforeAll(async ({ browser, modifyPermissions, adminSession }) => {
     investmentFinancialsSession = await login(browser, TEST_USER);
     maintenanceFinancialsSession = await login(browser, DEV_USER);
     devSession = await login(browser, TEST_USER_2);
 
-    await adminSession.client.userPermissions.setPermissions.mutate([
-      {
-        userId: TEST_USER,
-        permissions: ['investmentProject.write', 'investmentFinancials.write'],
-      },
-    ]);
+    await modifyPermissions(TEST_USER, ['investmentProject.write', 'investmentFinancials.write']);
+    await modifyPermissions(DEV_USER, ['maintenanceProject.write', 'maintenanceFinancials.write']);
 
-    await adminSession.client.userPermissions.setPermissions.mutate([
-      {
-        userId: DEV_USER,
-        permissions: ['maintenanceProject.write', 'maintenanceFinancials.write'],
-      },
-    ]);
     await adminSession.client.userPermissions.setPermissions.mutate([
       {
         userId: TEST_USER_2,
@@ -107,25 +88,21 @@ test.describe('Project endpoints', () => {
         ],
       },
     ]);
-    investmentFinancialsSession = await refreshSession(
+    investmentFinancialsSession = await getNewSession(
       browser,
       TEST_USER,
       investmentFinancialsSession.page,
     );
-    maintenanceFinancialsSession = await refreshSession(
+    maintenanceFinancialsSession = await getNewSession(
       browser,
       DEV_USER,
       maintenanceFinancialsSession.page,
     );
-    devSession = await refreshSession(browser, TEST_USER_2, devSession.page);
+    devSession = await getNewSession(browser, TEST_USER_2, devSession.page);
   });
 
-  test.afterAll(async () => {
-    const users = await adminSession.client.user.getAll.query();
-    await clearUserPermissions(
-      adminSession.client,
-      users.map((user) => user.id),
-    );
+  test.afterAll(async ({ resetCachedSessions }) => {
+    await resetCachedSessions();
     await clearData();
   });
 
