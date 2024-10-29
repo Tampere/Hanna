@@ -219,7 +219,7 @@
        :PSPID (:PSPID project)
        :POSID (:POSID wbs)
        :AUFNR (-> wbs :NETWORK :AUFNR)
-       :VORNR ""
+       :VORNR (rand-nth ["1010" "2020" "3030" "4040" "5050" nil])
        :OBJ_TXT (rand-nth ["Selvitys" "Valmistelu" "Aloitus" "Ehdotus"])
        :OBART (:OBART transaction)
        :TWAER "EUR"

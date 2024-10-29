@@ -17,7 +17,6 @@ import { createMaintenanceProjectObjectRouter } from '@backend/router/projectObj
 import { createSapRouter } from '@backend/router/sap.js';
 import { createSapReportRouter } from '@backend/router/sapReport.js';
 import { createSessionRouter } from '@backend/router/session.js';
-import { createTaskRouter } from '@backend/router/task.js';
 import { createUserRouter } from '@backend/router/user.js';
 import { createUserPermissionsRouter } from '@backend/router/userPermissions.js';
 import { createWorkTableRouter } from '@backend/router/workTable.js';
@@ -54,7 +53,6 @@ export const appRouter = t.router({
   sap: createSapRouter(t),
   sapReport: createSapReportRouter(t),
   session: createSessionRouter(t),
-  task: createTaskRouter(t),
   user: createUserRouter(t),
   userPermissions: createUserPermissionsRouter(t),
   company: createCompanyRouter(t),

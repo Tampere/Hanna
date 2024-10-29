@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import {
+  refreshAllProjectObjectSapActuals,
   refreshProjectObjectSapActuals,
   refreshProjectSapActuals,
 } from '@backend/components/sap/actuals.js';
@@ -14,6 +15,7 @@ import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
 
 import { yearlyActualsSchema } from '@shared/schema/sapActuals.js';
+import { SapTask, sapTaskSchema } from '@shared/schema/task.js';
 
 import { TRPC } from './index.js';
 
@@ -268,6 +270,50 @@ export const createSapRouter = (t: TRPC) =>
             {} as Record<string, Record<string, number>[]>,
           ) ?? {}
         );
+      }),
+
+    getWbsActualsByNetworkActivity: t.procedure
+      .input(z.object({ projectObjectId: z.string() }))
+      .query(async ({ input }) => {
+        const result = await refreshAllProjectObjectSapActuals(input.projectObjectId);
+        if (!result) {
+          return null;
+        }
+
+        const dbResult = await getPool().maybeOne(sql.type(
+          z.object({ result: z.array(sapTaskSchema) }),
+        )`
+           WITH activity_totals AS (
+            SELECT
+            	sai.activity_id,
+            	sa.short_description,
+              sum(sai.value_in_currency_subunit) AS total,
+              wbs_id,
+              sai.network_id
+            FROM app.sap_actuals_item sai
+            LEFT JOIN app.sap_wbs w ON w.wbs_id = sai.wbs_element_id
+            LEFT JOIN app.sap_activity sa
+            	ON sa.network_id = sai.network_id
+            		AND sa.wbs_internal_id = w.wbs_internal_id
+            		AND sa.activity_number = sai.activity_id
+            WHERE wbs_element_id = ${result.wbsId}
+              AND (document_type IS NULL OR document_type <> 'AA')
+              AND object_type = 'NV' -- Tells that actual is for network activity, not WBS
+            GROUP BY wbs_id, sai.network_id, sai.activity_id, sa.short_description
+          )
+          SELECT jsonb_agg(
+              jsonb_build_object(
+                  'activityId', activity_totals.activity_id,
+                  'description', activity_totals.short_description,
+                  'total', activity_totals.total,
+                  'wbsId', activity_totals.wbs_id,
+                  'networkId', activity_totals.network_id
+              )
+          ) AS result
+          FROM activity_totals;
+          `);
+
+        return dbResult?.result ?? ([] as SapTask[]);
       }),
 
     doesSapProjectIdExist: t.procedure
