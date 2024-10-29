@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { getPool, sql } from '@backend/db.js';
 
-import { getSapActuals } from './dataImport.js';
+import { getAllSapActualsForWbs, getSapActuals } from './dataImport.js';
 import { yearRange } from './utils.js';
 
 export async function refreshProjectSapActuals(
@@ -43,6 +43,18 @@ export async function refreshProjectObjectSapActuals(
     ),
   );
   return { wbsId: result.sapWBSId, endYear };
+}
+
+export async function refreshAllProjectObjectSapActuals(projectObjectId: string) {
+  const result = await getProjectObjectSapIds(projectObjectId);
+
+  if (!result?.sapWBSId || !result?.sapProjectId) {
+    return null;
+  }
+
+  await getAllSapActualsForWbs(result.sapProjectId, result.sapWBSId);
+
+  return { wbsId: result.sapWBSId, sapProjectId: result.sapProjectId };
 }
 
 async function getProjectObjectSapIds(projectObjectId: string) {

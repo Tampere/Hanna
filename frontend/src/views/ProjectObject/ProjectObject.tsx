@@ -21,7 +21,7 @@ import { useTranslations } from '@frontend/stores/lang';
 import { getProjectObjectsLayer, getProjectsLayer } from '@frontend/stores/map';
 import { projectEditingAtom } from '@frontend/stores/projectView';
 import { ProjectTypePath } from '@frontend/types';
-import Tasks from '@frontend/views/Task/Tasks';
+import { TaskList } from '@frontend/views/Task/TaskList';
 
 import { TranslationKey } from '@shared/language';
 import {
@@ -319,6 +319,21 @@ export function ProjectObject(props: Props) {
               {tabs.map((tab) => {
                 const projectObjectInFuture =
                   dayjs(projectObject.data?.startDate).year() > dayjs().year();
+                if (tab.tabView === 'vaiheet' && !projectObject.data?.sapWBSId) {
+                  return (
+                    <TooltipLinkTab
+                      title={tr('projectObject.tabLabelDisabledNoWbs')}
+                      disabled={true}
+                      key={tab.tabView}
+                      to={tab.url}
+                      component={Link}
+                      icon={tab.icon}
+                      iconPosition="end"
+                      label={tr(tab.label)}
+                    />
+                  );
+                }
+
                 if (
                   tab.tabView === 'kuluseuranta' &&
                   (!projectObject.data?.sapWBSId || projectObjectInFuture)
@@ -327,8 +342,8 @@ export function ProjectObject(props: Props) {
                     <TooltipLinkTab
                       title={
                         projectObjectInFuture
-                          ? tr('projectObject.chartTablLabelNotStarted')
-                          : tr('projectObject.chartTabLabelDisabled')
+                          ? tr('projectObject.tabLabelNotStarted')
+                          : tr('projectObject.tabLabelDisabledNoWbs')
                       }
                       disabled={true}
                       key={tab.tabView}
@@ -420,17 +435,7 @@ export function ProjectObject(props: Props) {
                   />
                 )}
                 {searchParams.get('tab') === 'vaiheet' && (
-                  <Tasks
-                    isOwner={isOwner}
-                    canWrite={canWrite}
-                    projectObjectId={projectObjectId}
-                    canEditFinances={hasPermission(
-                      user,
-                      props.projectType === 'investointihanke'
-                        ? 'investmentFinancials.write'
-                        : 'maintenanceFinancials.write',
-                    )}
-                  />
+                  <TaskList projectObjectId={projectObjectId} />
                 )}
               </Box>
             )}

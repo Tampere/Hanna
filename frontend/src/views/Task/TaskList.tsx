@@ -1,5 +1,7 @@
 import {
+  Alert,
   Box,
+  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -22,76 +24,76 @@ interface Props {
   caneEditFinances?: boolean;
 }
 
-const stickyColumnStyle = css`
-  position: sticky;
-  left: 0;
-  background: #fff;
-`;
-
-export function TaskList({
-  projectObjectId,
-  isOwner = false,
-  canWrite = false,
-  caneEditFinances = false,
-}: Props) {
+export function TaskList({ projectObjectId }: Props) {
   const tr = useTranslations();
 
-  /** Fetch tasks on component mount */
-  const projectObjectTasks = trpc.task.getByProjectObjectId.useQuery(
-    { projectObjectId },
-    {
-      enabled: Boolean(projectObjectId),
-      queryKey: ['task.getByProjectObjectId', { projectObjectId }],
-    },
-  );
+  const activities = trpc.sap.getWbsActualsByNetworkActivity.useQuery({
+    projectObjectId,
+  });
 
   return (
     <Box>
-      {projectObjectTasks.data?.length === 0 ? (
-        <span>{tr('projectObject.noTasks')}</span>
-      ) : (
-        <TableContainer>
-          <Table
-            size="small"
-            css={css`
-              white-space: nowrap;
-            `}
-          >
-            <TableHead>
-              <TableRow>
-                <TableCell css={stickyColumnStyle}>
-                  <Typography variant="overline">{tr('taskForm.taskNameLabel')}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="overline">{tr('taskForm.lifecycleStateLabel')}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="overline">{tr('taskForm.taskTypeLabel')}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="overline">{tr('taskForm.startDateLabel')}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="overline">{tr('taskForm.endDateLabel')}</Typography>
-                </TableCell>
-                {/* TODO aggregate columns for financial data */}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {projectObjectTasks.data?.map((task) => (
+      <TableContainer>
+        <Table
+          size="small"
+          css={css`
+            white-space: nowrap;
+          `}
+        >
+          <TableHead>
+            <TableRow>
+              <TableCell
+                css={css`
+                  width: 50%;
+                `}
+              >
+                <Typography variant="overline">{tr('task.taskTypeLabel')}</Typography>
+              </TableCell>
+              <TableCell>
+                <Typography variant="overline">{tr('task.actuals')}</Typography>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {activities.data ? (
+              activities.data.map((activity) => (
                 <TaskRow
-                  key={task.taskId}
-                  task={task}
+                  key={activity.activityId}
+                  task={activity}
                   projectObjectId={projectObjectId}
-                  isOwner={isOwner}
-                  canWrite={canWrite}
-                  canEditFinances={caneEditFinances}
                 />
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={4}
+                  css={css`
+                    border-bottom: none;
+                    text-align: center;
+                    padding: 8px;
+                  `}
+                >
+                  {activities.isLoading ? (
+                    <CircularProgress />
+                  ) : activities.isError ? (
+                    <Alert
+                      css={css`
+                        display: flex;
+                        justify-content: center;
+                      `}
+                      severity="error"
+                    >
+                      {tr('task.error')}
+                    </Alert>
+                  ) : (
+                    <Typography>{tr('projectObject.noTasks')}</Typography>
+                  )}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Box>
   );
 }
