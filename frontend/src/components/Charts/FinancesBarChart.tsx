@@ -66,7 +66,7 @@ export function FinancesBarChart({ colors, barData, dataLabels, totalAmount, yAx
     <ResponsiveChartContainer
       height={220}
       css={css`
-        padding: 5px; // Dirty trick to display ticklabels
+        padding: 7px; // Dirty trick to display ticklabels
         & .MuiLineElement-root {
           stroke-dasharray: 6;
           stroke-width: 1;

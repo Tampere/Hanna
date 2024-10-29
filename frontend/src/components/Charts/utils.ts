@@ -12,10 +12,9 @@ export function getYAxisScale(values: { max: number; min: number }) {
   const maxDatasetYValue = getYAxisScaleValue(values.max);
   const minDatasetYValue = getYAxisScaleValue(values.min);
 
-  const minMargin = Math.abs(minDatasetYValue) > Math.abs(maxDatasetYValue) ? 5000 : 0; // Margin between bar labels and the x-axis
-
   return {
     max: maxDatasetYValue > 0 ? Math.max(Math.abs(minDatasetYValue) / 2, maxDatasetYValue) : 0,
-    min: minDatasetYValue < 0 ? Math.min(maxDatasetYValue / -2, minDatasetYValue) - minMargin : 0,
+    min:
+      minDatasetYValue < 0 ? Math.min(Math.abs(maxDatasetYValue) / -2, minDatasetYValue * 1.5) : 0,
   };
 }
