@@ -249,7 +249,9 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
         {!props.project && (
           <Typography variant="overline">{tr('newDetailplanProject.formTitle')}</Typography>
         )}
-        {props.project && <Typography variant="overline">{tr('projectForm.formTitle')}</Typography>}
+        {props.project && (
+          <Typography variant="overline">{tr('projectForm.detailplanFormTitle')}</Typography>
+        )}
         <form css={newProjectFormStyle} autoComplete="off">
           <FormField<DetailplanProject>
             formField="projectName"
