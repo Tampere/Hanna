@@ -1,7 +1,9 @@
+import { Close, InfoOutlined } from '@mui/icons-material';
 import {
   Alert,
   Box,
   CircularProgress,
+  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -10,9 +12,12 @@ import {
   TableRow,
   Typography,
   css,
+  tooltipClasses,
 } from '@mui/material';
+import { useState } from 'react';
 
 import { trpc } from '@frontend/client';
+import { HelpTooltip } from '@frontend/components/HelpTooltip';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { TaskRow } from './TaskRow';
@@ -25,14 +30,24 @@ interface Props {
 }
 
 export function TaskList({ projectObjectId }: Props) {
+  const [infoBoxOpen, setInfoBoxOpen] = useState(false);
   const tr = useTranslations();
 
   const activities = trpc.sap.getWbsActualsByNetworkActivity.useQuery({
     projectObjectId,
   });
 
+  if (activities.data && activities.data.length === 0) {
+    return <Typography>{tr('projectObject.noTasks')}</Typography>;
+  }
+
   return (
-    <Box>
+    <Box
+      css={css`
+        display: flex;
+        flex-direction: row;
+      `}
+    >
       <TableContainer>
         <Table
           size="small"
@@ -55,7 +70,7 @@ export function TaskList({ projectObjectId }: Props) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {activities.data ? (
+            {activities.data && activities.data?.length > 0 ? (
               activities.data.map((activity) => (
                 <TaskRow
                   key={activity.activityId}
@@ -75,18 +90,18 @@ export function TaskList({ projectObjectId }: Props) {
                 >
                   {activities.isLoading ? (
                     <CircularProgress />
-                  ) : activities.isError ? (
-                    <Alert
-                      css={css`
-                        display: flex;
-                        justify-content: center;
-                      `}
-                      severity="error"
-                    >
-                      {tr('task.error')}
-                    </Alert>
                   ) : (
-                    <Typography>{tr('projectObject.noTasks')}</Typography>
+                    activities.isError && (
+                      <Alert
+                        css={css`
+                          display: flex;
+                          justify-content: center;
+                        `}
+                        severity="error"
+                      >
+                        {tr('task.error')}
+                      </Alert>
+                    )
                   )}
                 </TableCell>
               </TableRow>
@@ -94,6 +109,16 @@ export function TaskList({ projectObjectId }: Props) {
           </TableBody>
         </Table>
       </TableContainer>
+      <HelpTooltip
+        componentProps={{
+          tooltip: { style: { backgroundColor: 'transparent', minWidth: '500px' } },
+        }}
+        cssProp={css`
+          margin-bottom: auto;
+        `}
+        title={<Alert severity="info"> {tr('task.additionalInfo')}</Alert>}
+        placement="left"
+      />
     </Box>
   );
 }

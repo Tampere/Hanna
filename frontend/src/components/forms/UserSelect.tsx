@@ -48,7 +48,7 @@ export function UserSelect(props: Props) {
       loading={users.isLoading}
       value={selection as User[]}
       options={users.data ?? []}
-      getOptionId={(user) => user.id}
+      getOptionId={(user) => user?.id} // Todo figure out why sometimes user is undefined
       getOptionLabel={(user) => user.name}
       onChange={(selectedUsers) => onChange(selectedUsers.map((user) => user.id))}
       maxTags={maxTags}
@@ -62,7 +62,7 @@ export function UserSelect(props: Props) {
       loading={users.isLoading}
       value={selection as User}
       options={users.data ?? []}
-      getOptionId={(user) => user.id}
+      getOptionId={(user) => user?.id}
       getOptionLabel={(user) => user.name}
       onChange={(user) => onChange(user?.id ?? null)}
       multiple={false}
