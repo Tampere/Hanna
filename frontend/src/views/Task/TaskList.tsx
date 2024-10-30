@@ -31,6 +31,10 @@ export function TaskList({ projectObjectId }: Props) {
     projectObjectId,
   });
 
+  if (activities.data && activities.data.length === 0) {
+    return <Typography>{tr('projectObject.noTasks')}</Typography>;
+  }
+
   return (
     <Box>
       <TableContainer>
@@ -55,7 +59,7 @@ export function TaskList({ projectObjectId }: Props) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {activities.data ? (
+            {activities.data && activities.data?.length > 0 ? (
               activities.data.map((activity) => (
                 <TaskRow
                   key={activity.activityId}
@@ -75,18 +79,18 @@ export function TaskList({ projectObjectId }: Props) {
                 >
                   {activities.isLoading ? (
                     <CircularProgress />
-                  ) : activities.isError ? (
-                    <Alert
-                      css={css`
-                        display: flex;
-                        justify-content: center;
-                      `}
-                      severity="error"
-                    >
-                      {tr('task.error')}
-                    </Alert>
                   ) : (
-                    <Typography>{tr('projectObject.noTasks')}</Typography>
+                    activities.isError && (
+                      <Alert
+                        css={css`
+                          display: flex;
+                          justify-content: center;
+                        `}
+                        severity="error"
+                      >
+                        {tr('task.error')}
+                      </Alert>
+                    )
                   )}
                 </TableCell>
               </TableRow>

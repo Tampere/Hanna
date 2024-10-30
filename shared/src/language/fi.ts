@@ -359,7 +359,7 @@ export const fi = {
   'projectObject.notifyGeometryUpdateFailedTitle': 'Virhe tallentaessa kohteen sijaintia',
   'projectObject.notifyProjectDateRangeUpdated': 'Hankkeen aikaväli päivitetty.',
   'projectObject.notifyProjectDateRangeUpdateError': 'Virhe päivitettäessä hankkeen aikaväliä.',
-  'projectObject.noTasks': 'Kohteella ei ole vaiheita.',
+  'projectObject.noTasks': 'Rakenneosan tunnuksella ei löydy vaiheita.',
   'projectObject.objectStageLabel': 'Kohteen laji',
   'projectObject.objectStageTooltip': 'Valitse kohteen laji.',
   'maintenanceProjectObject.contract': 'Sopimus',
