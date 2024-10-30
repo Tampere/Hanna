@@ -39,7 +39,13 @@ export function ChartHeader({
         {year}
       </Typography>
       {totalInCurrencySubunit ? (
-        <Typography>
+        <Typography
+          css={css`
+            color: ${totalInCurrencySubunit && amount && amount < totalInCurrencySubunit
+              ? '#e46c29'
+              : 'none'};
+          `}
+        >
           <span
             css={css`
               color: #525252;
@@ -64,13 +70,7 @@ export function ChartHeader({
       )}
       {amount ? (
         <>
-          <Typography
-            css={css`
-              color: ${totalInCurrencySubunit && amount < totalInCurrencySubunit
-                ? '#e46c29'
-                : 'none'};
-            `}
-          >
+          <Typography>
             <span
               css={css`
                 color: #525252;
