@@ -21,7 +21,7 @@ import projectClusterPointSelected from '@frontend/assets/projectClusterPointSel
 import projectObjectClusterPoint from '@frontend/assets/projectObjectClusterPoint.png';
 import projectObjectClusterPointHover from '@frontend/assets/projectObjectClusterPointHover.png';
 import projectObjectClusterPointSelected from '@frontend/assets/projectObjectClusterPointSelected.png';
-import projectObjectPoint from '@frontend/assets/projectObjectPoint.svg';
+import projectObjectPointSmall from '@frontend/assets/projectObjectPointSmall.png';
 import { SelectedProjectColorCode } from '@frontend/stores/map';
 
 import { ProjectType } from '@shared/schema/project/type';
@@ -60,6 +60,10 @@ const projectAreaIndicators = {
   projectObject: 'K',
 };
 
+function getStyleFromStyleLike(styleLike: StyleLike, feature: FeatureLike, resolution: number) {
+  return typeof styleLike === 'function' ? styleLike(feature, resolution) : styleLike;
+}
+
 export function makeDrawStyle(fillColor: string, strokeColor: string) {
   return new Style({
     fill: new Fill({
@@ -74,10 +78,15 @@ export function makeDrawStyle(fillColor: string, strokeColor: string) {
 
 export function makePointDrawStyle() {
   return new Style({
-    image: new IconStyle({
-      opacity: 1,
-      src: projectObjectPoint.toString(),
-      scale: 0.8,
+    image: new CircleStyle({
+      radius: 6,
+      fill: new Fill({
+        color: _PROJECT_STROKE,
+      }),
+      stroke: new Stroke({
+        color: '#fff',
+        width: 2,
+      }),
     }),
   });
 }
@@ -107,16 +116,6 @@ const HOVERED_CLUSTER_FILL = {
   maintenanceProject: '#A8DAD3',
   detailplanProject: '#D7D799',
 };
-
-const iconBackgroundStyle = new Style({
-  // To make every part of the icon clickable
-  image: new CircleStyle({
-    radius: 20.5, // Half of the icon width
-    fill: new Fill({
-      color: 'transparent',
-    }),
-  }),
-});
 
 const iconSources = {
   project: projectClusterPoint,
@@ -155,9 +154,9 @@ function getClusterIconStyle(styleKey: keyof typeof iconSources, isHovered: bool
         image: new IconStyle({
           opacity: 1,
           src: isHovered ? hoveredIconSources[styleKey] : iconSources[styleKey],
+          anchor: [0.5, 1],
         }),
       }),
-      iconBackgroundStyle,
     ];
   }
   return isHovered ? hoveredIconStylesCache[styleKey] : clusterIconStylesCache[styleKey];
@@ -335,6 +334,20 @@ function getSelectedClusterItemType(feature: FeatureLike) {
 }
 
 export function selectionLayerStyle(feature: FeatureLike) {
+  const geom = feature.getGeometry();
+
+  if (
+    (geom?.getType() === 'Point' || geom?.getType() === 'MultiPoint') &&
+    ['projectObjects', 'drawLayer'].includes(feature.get('layer'))
+  ) {
+    return new Style({
+      image: new IconStyle({
+        opacity: 1,
+        src: projectObjectClusterPointSelected.toString(),
+        anchor: [0.5, 1],
+      }),
+    });
+  }
   const clusterCount = feature.get('clusterCount');
   if (clusterCount === 1) {
     const itemType = getSelectedClusterItemType(feature);
@@ -348,7 +361,6 @@ export function selectionLayerStyle(feature: FeatureLike) {
       color: SELECTION_COLOR,
       width: 6,
     }),
-
     image: new CircleStyle({
       radius: clusterCount ? CLUSTER_RADIUS : 6,
       fill: new Fill({
@@ -509,10 +521,6 @@ const _PROJ_OBJ_DRAW_FILL = _PROJ_OBJ_FILL;
 const _PROJ_OBJ_DRAW_STROKE = _PROJ_OBJ_STROKE;
 const _PROJ_OBJ_DRAW_STROKE_WIDTH = 2;
 
-function getObjectIconScale(zoom: number) {
-  return Math.max(0.5, Math.min(0.8, 1 / zoom));
-}
-
 export const PROJ_OBJ_DRAW_STYLE = new Style({
   fill: new Fill({
     color: _PROJ_OBJ_DRAW_FILL,
@@ -523,15 +531,12 @@ export const PROJ_OBJ_DRAW_STYLE = new Style({
   }),
 });
 
-export function getStyleWithPointIcon(
-  styleLike: StyleLike,
-  itemType?: 'project' | 'projectObject',
-): StyleFunction {
+export function getStyleWithPointIcon(styleLike: StyleLike, isFaded: boolean): StyleFunction {
   return function (feature: FeatureLike, resolution: number) {
-    const style = typeof styleLike === 'function' ? styleLike(feature, resolution) : styleLike;
+    const style = getStyleFromStyleLike(styleLike, feature, resolution);
     if (!style) return;
 
-    const editing = feature.get('editing');
+    const isHovered = feature.get('isHovered');
     let styles = Array.isArray(style) ? style : [style];
     const featureType = feature.getGeometry()?.getType();
     // Remove text from point features
@@ -542,25 +547,34 @@ export function getStyleWithPointIcon(
 
     return [
       ...styles,
-      ...(!editing && itemType ? getGeometryCenterIconStyle(itemType, feature) ?? [] : []),
+      // Point geometries available only for projectObjects for now
       new Style({
         image: new IconStyle({
           opacity: 1,
-          src: projectObjectPoint.toString(),
-          scale: getObjectIconScale(resolution),
-        }),
-      }),
-      new Style({
-        // To make every part of the icon clickable
-        image: new CircleStyle({
-          radius: 20.5, // Half of the icon width
-          scale: getObjectIconScale(resolution),
-          fill: new Fill({
-            color: 'transparent',
-          }),
+          src: isHovered
+            ? projectObjectClusterPointHover.toString()
+            : isFaded
+              ? projectObjectPointSmall.toString()
+              : projectObjectClusterPoint.toString(),
+          anchor: [0.5, 1],
         }),
       }),
     ];
+  };
+}
+
+export function getStyleWithGeomCenterIcon(
+  styleLike: StyleLike,
+  itemType: 'project' | 'projectObject',
+) {
+  return function (feature: FeatureLike, resolution: number) {
+    const style = getStyleFromStyleLike(styleLike, feature, resolution);
+    if (!style) return;
+
+    const editing = feature.get('editing');
+    const styles = Array.isArray(style) ? style : [style];
+
+    return [...styles, ...(editing ? [] : getGeometryCenterIconStyle(itemType, feature) ?? [])];
   };
 }
 

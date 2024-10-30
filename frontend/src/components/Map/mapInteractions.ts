@@ -19,6 +19,7 @@ import Style, { StyleLike } from 'ol/style/Style';
 import {
   DEFAULT_DRAW_STYLE,
   DEFAULT_POINT_STYLE,
+  getStyleWithGeomCenterIcon,
   getStyleWithPointIcon,
   selectionLayerStyle,
 } from '@frontend/components/Map/styles';
@@ -54,7 +55,10 @@ export function createDrawLayer(
     source,
     zIndex: DRAW_LAYER_Z_INDEX,
     properties: { id: 'drawLayer' },
-    style: style ? getStyleWithPointIcon(style, itemType) : DEFAULT_DRAW_STYLE,
+    style:
+      style && itemType
+        ? getStyleWithGeomCenterIcon(getStyleWithPointIcon(style, false), itemType)
+        : DEFAULT_DRAW_STYLE,
   });
 }
 
@@ -87,7 +91,7 @@ export function createDrawInteraction(opts: DrawOptions) {
       }
     }
     if (opts.drawType === 'Point') {
-      drawStyle = getStyleWithPointIcon(drawStyle);
+      drawStyle = getStyleWithPointIcon(drawStyle, false);
     }
 
     const draw = new Draw({

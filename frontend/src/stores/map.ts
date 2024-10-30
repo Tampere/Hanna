@@ -153,7 +153,7 @@ export function getProjectMunicipalityLayer(source: VectorSource) {
 export function getProjectObjectsLayer(source: VectorSource, isFaded: boolean = false) {
   return new VectorLayer({
     source,
-    style: getStyleWithPointIcon((feature) => projectObjectAreaStyle(feature, isFaded)),
+    style: getStyleWithPointIcon((feature) => projectObjectAreaStyle(feature, isFaded), isFaded),
     properties: {
       id: 'projectObjects',
       type: 'vector',
