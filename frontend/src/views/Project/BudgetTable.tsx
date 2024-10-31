@@ -166,7 +166,15 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   return !budget ? null : (
     <>
       <FormProvider {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
+        <form
+          css={css`
+            & .MuiFormControl-root {
+              margin: 0;
+            }
+          `}
+          onSubmit={form.handleSubmit(onSubmit)}
+          autoComplete="off"
+        >
           <TableContainer>
             <Table size="small">
               <TableHead
@@ -341,10 +349,18 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                     {fields?.includes('actual') && (
                       <TableCell>
                         {!props.actualsLoading ? (
-                          <CurrencyInput
-                            directlyHandleValueChange
-                            value={props.actuals?.find((data) => data.year === year)?.total ?? null}
-                          />
+                          <Box
+                            css={css`
+                              margin: 8px 4px;
+                            `}
+                          >
+                            <CurrencyInput
+                              directlyHandleValueChange
+                              value={
+                                props.actuals?.find((data) => data.year === year)?.total ?? null
+                              }
+                            />
+                          </Box>
                         ) : (
                           <Skeleton
                             variant="rectangular"
