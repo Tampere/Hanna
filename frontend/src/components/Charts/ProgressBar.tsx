@@ -16,10 +16,10 @@ export function ProgressBar({ fillPrecentage }: Props) {
     <div
       css={css`
         ${baseStyle}
-        margin: 0 1rem;
-        min-width: 200px;
+        margin: 0 1rem 0 auto;
+        width: min(40em, 40%);
+        flex: none;
         display: flex;
-        flex: 1;
         background-color: #fff;
         gap: 2px;
       `}
