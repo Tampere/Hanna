@@ -12,9 +12,10 @@ export function getYAxisScale(values: { max: number; min: number }) {
   const maxDatasetYValue = getYAxisScaleValue(values.max);
   const minDatasetYValue = getYAxisScaleValue(values.min);
 
+  const maxAbsoluteValue = Math.max(Math.abs(maxDatasetYValue), Math.abs(minDatasetYValue * 1.5));
+
   return {
-    max: maxDatasetYValue > 0 ? Math.max(Math.abs(minDatasetYValue) / 2, maxDatasetYValue) : 0,
-    min:
-      minDatasetYValue < 0 ? Math.min(Math.abs(maxDatasetYValue) / -2, minDatasetYValue * 1.5) : 0,
+    max: maxDatasetYValue > 0 ? maxAbsoluteValue : 0,
+    min: minDatasetYValue < 0 ? maxAbsoluteValue * -1 : 0,
   };
 }

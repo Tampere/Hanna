@@ -521,15 +521,25 @@ const _PROJ_OBJ_DRAW_FILL = _PROJ_OBJ_FILL;
 const _PROJ_OBJ_DRAW_STROKE = _PROJ_OBJ_STROKE;
 const _PROJ_OBJ_DRAW_STROKE_WIDTH = 2;
 
-export const PROJ_OBJ_DRAW_STYLE = new Style({
-  fill: new Fill({
-    color: _PROJ_OBJ_DRAW_FILL,
+export const PROJ_OBJ_DRAW_STYLE = [
+  new Style({
+    fill: new Fill({
+      color: _PROJ_OBJ_DRAW_FILL,
+    }),
+    stroke: new Stroke({
+      color: _PROJ_OBJ_DRAW_STROKE,
+      width: _PROJ_OBJ_DRAW_STROKE_WIDTH,
+    }),
+    zIndex: 1,
   }),
-  stroke: new Stroke({
-    color: _PROJ_OBJ_DRAW_STROKE,
-    width: _PROJ_OBJ_DRAW_STROKE_WIDTH,
+  new Style({
+    stroke: new Stroke({
+      color: _DEFAULT_HIGHLIGHT_STROKE,
+      width: _PROJECT_STROKE_WIDTH + 4,
+    }),
+    zIndex: 0,
   }),
-});
+];
 
 export function getStyleWithPointIcon(styleLike: StyleLike, isFaded: boolean): StyleFunction {
   return function (feature: FeatureLike, resolution: number) {

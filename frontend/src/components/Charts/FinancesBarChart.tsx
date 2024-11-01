@@ -2,14 +2,17 @@ import { css } from '@mui/material';
 import {
   BarLabel,
   BarPlot,
+  ChartsLegend,
   ChartsReferenceLine,
   ChartsXAxis,
   ChartsYAxis,
+  DefaultChartsLegend,
   ResponsiveChartContainer,
   useDrawingArea,
   useYScale,
 } from '@mui/x-charts';
 import { ScaleLinear } from 'd3-scale';
+import { translate } from 'ol/transform';
 
 import { useTranslations } from '@frontend/stores/lang';
 
@@ -59,12 +62,27 @@ export function FinancesBarChart({ colors, barData, dataLabels, totalAmount, yAx
 
   function getTickInterval() {
     if (!yAxisScale) return 'auto';
-    return [0, yAxisScale.min / 2, yAxisScale.min, yAxisScale.max / 2, yAxisScale.max];
+
+    if (yAxisScale.min == 0) {
+      return [0, yAxisScale.max / 2, yAxisScale.max];
+    }
+    if (yAxisScale.max == 0) {
+      return [0, yAxisScale.min / 2, yAxisScale.min];
+    }
+
+    const interval = Math.max(Math.abs(yAxisScale.max), Math.abs(yAxisScale.min)) / 2;
+    return [
+      0,
+      yAxisScale.min,
+      yAxisScale.min + interval,
+      yAxisScale.max - interval,
+      yAxisScale.max,
+    ];
   }
 
   return (
     <ResponsiveChartContainer
-      height={220}
+      height={240}
       css={css`
         padding: 7px; // Dirty trick to display ticklabels
         & .MuiLineElement-root {
@@ -126,13 +144,35 @@ export function FinancesBarChart({ colors, barData, dataLabels, totalAmount, yAx
         }}
       />
       {refValue && (
-        <ChartsReferenceLine
-          y={refValue}
-          label={tr('financesChart.averageLineLabel')}
-          labelAlign="end"
-          lineStyle={{ stroke: '#4BA226', strokeWidth: 1, strokeDasharray: '6' }}
-          labelStyle={{ fontSize: 12, fill: labelColor }}
-        />
+        <>
+          <ChartsReferenceLine
+            y={refValue}
+            labelAlign="end"
+            lineStyle={{ stroke: '#4BA226', strokeWidth: 1, strokeDasharray: '6' }}
+          />
+          <ChartsLegend
+            slots={{
+              legend: () => {
+                const { width } = useDrawingArea();
+
+                return (
+                  <g transform={`translate(${width - 160}, 40)`}>
+                    <line
+                      x1="50"
+                      y1="-3"
+                      x2="80"
+                      y2="-3"
+                      style={{ stroke: '#4BA226', strokeWidth: 1, strokeDasharray: '6' }}
+                    />
+                    <text x={90} style={{ fontSize: 12, fill: labelColor }}>
+                      {tr('financesChart.averageLineLabel')}
+                    </text>
+                  </g>
+                );
+              },
+            }}
+          />
+        </>
       )}
       <ChartsXAxis position="bottom" axisId="x-axis-id" tickPlacement="middle" tickSize={4} />
       <ChartsYAxis

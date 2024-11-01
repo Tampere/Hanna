@@ -12,10 +12,18 @@ interface Props {
 
 export function TaskRow(props: Readonly<Props>) {
   const tr = useTranslations();
+
+  function getActivityDescription() {
+    if (!props.task.activityId && !props.task.description) {
+      return tr('task.noActivityDescription');
+    }
+    return `${props.task.activityId ?? ''} ${props.task.description ?? ''}`;
+  }
+
   return (
     <>
       <TableRow>
-        <TableCell>{props.task.description ?? tr('task.noActivityDescription')}</TableCell>
+        <TableCell>{getActivityDescription()}</TableCell>
         <TableCell>{formatCurrency(props.task.total)}</TableCell>
       </TableRow>
     </>

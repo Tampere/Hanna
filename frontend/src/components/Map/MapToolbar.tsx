@@ -12,7 +12,7 @@ import {
 } from '@mui/icons-material';
 import { Box, Divider, IconButton, Tooltip } from '@mui/material';
 import { useState } from 'react';
-import { useParams } from 'react-router';
+import { useLocation, useParams } from 'react-router';
 
 import { useTranslations } from '@frontend/stores/lang';
 
@@ -140,6 +140,8 @@ export function MapToolbar(props: Props) {
   const tr = useTranslations();
   const [selectedTool, setSelectedTool] = useState<ToolType | null>(null);
   const { projectObjectId } = useParams() as { projectObjectId?: string };
+  const { pathname } = useLocation();
+  const isProjectObjectView = projectObjectId || pathname.includes('uusi-kohde');
 
   function handleToolClick(tool: ToolType | null) {
     if (tool === 'copyFromSelection' || tool === 'deleteAllFeatures') {
@@ -164,7 +166,7 @@ export function MapToolbar(props: Props) {
                 : typeof tool.tooltip === 'object'
                   ? tr(
                       tool.tooltip[props.geometryExists ? 'existing' : 'new'][
-                        projectObjectId ? 'projectObject' : 'project'
+                        isProjectObjectView ? 'projectObject' : 'project'
                       ],
                     )
                   : tr(tool.tooltip)

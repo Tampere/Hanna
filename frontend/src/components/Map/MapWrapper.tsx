@@ -365,9 +365,12 @@ export const MapWrapper = forwardRef(function MapWrapper<
   function copySelectionToDrawSource() {
     const drawFeatureIds = drawSource.getFeatures().map((feature) => olUtil.getUid(feature));
     const selectionFeatures = selectionSource.getFeatures();
-    const featuresToCopy = selectionFeatures.filter(
-      (feature) => !drawFeatureIds.includes(olUtil.getUid(feature)),
-    );
+    const featuresToCopy = selectionFeatures
+      .filter((feature) => !drawFeatureIds.includes(olUtil.getUid(feature)))
+      .map((feature) => {
+        feature.setProperties({ editing: true });
+        return feature;
+      });
     drawSource.addFeatures(featuresToCopy);
     selectionSource.clear();
     drawFinished();

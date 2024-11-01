@@ -43,6 +43,7 @@ export function ProjectFinancesCharts(props: Props) {
     startYear: props.startYear,
     endYear: props.endYear,
   });
+
   const budget = trpc.project.getBudget.useQuery(
     { projectId: props.projectId },
     { enabled: Boolean(monthlyActuals.data) },
