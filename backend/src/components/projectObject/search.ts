@@ -108,14 +108,41 @@ export function mapExtentFragment(input: ProjectObjectSearch) {
   `;
 }
 
-export function objectParticipantFragment(objectParticipantUser: string | null) {
-  if (objectParticipantUser) {
-    return sql.fragment`HAVING ${objectParticipantUser} = ANY(array_agg(pour.user_id)
-      FILTER (
-        WHERE role <> ('InvestointiKohdeKayttajaRooli', '01')::app.code_id
-        AND role <> ('InvestointiKohdeKayttajaRooli', '02')::app.code_id))`;
+function getObjectRoleFilterFragment(
+  objectParticipantUser: string | null,
+  rakennuttajaUsers: string[],
+  suunnitteluttajaUsers: string[],
+) {
+  function objectParticipantFragment(objectParticipantUser: string | null) {
+    // Object participants includes all roles except suunnitteluttaja and rakennuttaja
+    if (objectParticipantUser) {
+      return sql.fragment`
+      ((pour.role).code_list_id = 'KohdeKayttajaRooli' AND pour.user_id = ${objectParticipantUser})`;
+    }
+    return sql.fragment`true`;
   }
-  return sql.fragment``;
+
+  if (rakennuttajaUsers.length > 0 && suunnitteluttajaUsers.length > 0) {
+    return sql.fragment`((pour.role = ('InvestointiKohdeKayttajaRooli', '01')::app.code_id AND pour.user_id = ANY(${sql.array(
+      rakennuttajaUsers,
+      'text',
+    )})) OR (pour.role = ('InvestointiKohdeKayttajaRooli', '02')::app.code_id AND pour.user_id = ANY(${sql.array(
+      suunnitteluttajaUsers,
+      'text',
+    )})) OR ${objectParticipantFragment(objectParticipantUser)})`;
+  } else if (rakennuttajaUsers.length > 0) {
+    return sql.fragment`((pour.role = ('InvestointiKohdeKayttajaRooli', '01')::app.code_id AND pour.user_id = ANY(${sql.array(
+      rakennuttajaUsers,
+      'text',
+    )})) OR ${objectParticipantFragment(objectParticipantUser)})`;
+  } else if (suunnitteluttajaUsers.length > 0) {
+    return sql.fragment`((pour.role = ('InvestointiKohdeKayttajaRooli', '02')::app.code_id AND pour.user_id = ANY(${sql.array(
+      suunnitteluttajaUsers,
+      'text',
+    )})) OR ${objectParticipantFragment(objectParticipantUser)})`;
+  } else {
+    return objectParticipantFragment(objectParticipantUser);
+  }
 }
 
 function zoomToGeohashLength(zoom: number) {
@@ -168,30 +195,6 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
 
   const withGeometries = Boolean(map?.zoom && map.zoom > CLUSTER_ZOOM_BELOW);
 
-  function getSpecialRoleFilterFragment() {
-    if (rakennuttajaUsers.length > 0 && suunnitteluttajaUsers.length > 0) {
-      return sql.fragment`(pour.role = ('InvestointiKohdeKayttajaRooli', '01')::app.code_id AND pour.user_id = ANY(${sql.array(
-        rakennuttajaUsers,
-        'text',
-      )})) OR (pour.role = ('InvestointiKohdeKayttajaRooli', '02')::app.code_id AND pour.user_id = ANY(${sql.array(
-        suunnitteluttajaUsers,
-        'text',
-      )}))`;
-    } else if (rakennuttajaUsers.length > 0) {
-      return sql.fragment`(pour.role = ('InvestointiKohdeKayttajaRooli', '01')::app.code_id AND pour.user_id = ANY(${sql.array(
-        rakennuttajaUsers,
-        'text',
-      )}))`;
-    } else if (suunnitteluttajaUsers.length > 0) {
-      return sql.fragment`(pour.role = ('InvestointiKohdeKayttajaRooli', '02')::app.code_id AND pour.user_id = ANY(${sql.array(
-        suunnitteluttajaUsers,
-        'text',
-      )}))`;
-    } else {
-      return sql.fragment`true`;
-    }
-  }
-
   const dbResult = await getPool().one(sql.type(resultSchema)`
     WITH total_results AS (
     ${getProjectObjectSearchFragment({
@@ -230,10 +233,14 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
         ${sql.array(objectStages, 'text')} = '{}'::TEXT[] OR
         (poi.object_stage).id = ANY(${sql.array(objectStages, 'text')})
       )
-      AND (${getSpecialRoleFilterFragment()})
+      AND ${getObjectRoleFilterFragment(
+        objectParticipantUser,
+        rakennuttajaUsers,
+        suunnitteluttajaUsers,
+      )}
 
     GROUP BY po.id, poi.project_object_id, project.id, poi.object_stage
-    ${objectParticipantFragment(objectParticipantUser)}
+
 
   ),
    search_results AS (select * from total_results LIMIT ${limit}),
