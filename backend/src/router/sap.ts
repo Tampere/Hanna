@@ -97,6 +97,7 @@ export const createSapRouter = (t: TRPC) =>
                 WHERE id = ${input.projectId}
             ) AND fiscal_year >= ${input.startYear}
               AND fiscal_year <= ${endYear}
+              AND document_type <> 'AA'
             GROUP BY fiscal_year
           )
           SELECT jsonb_agg(
@@ -137,6 +138,7 @@ export const createSapRouter = (t: TRPC) =>
             WHERE wbs_element_id = ${result.wbsId}
               AND fiscal_year >= ${input.startYear}
               AND fiscal_year <= ${result.endYear}
+              AND document_type <> 'AA'
             GROUP BY fiscal_year
           )
           SELECT jsonb_agg(
@@ -182,7 +184,7 @@ export const createSapRouter = (t: TRPC) =>
           WHERE sap_project_id = ${result.sapProjectId}
             AND fiscal_year >= ${input.startYear}
             AND fiscal_year <= ${result.endYear}
-            AND (document_type IS NULL OR document_type <> 'AA')
+            AND document_type <> 'AA'
           GROUP BY fiscal_year, fiscal_month
           ORDER BY fiscal_year, fiscal_month
         )
@@ -243,7 +245,7 @@ export const createSapRouter = (t: TRPC) =>
             WHERE wbs_element_id = ${result.wbsId}
               AND fiscal_year >= ${input.startYear}
               AND fiscal_year <= ${result.endYear}
-              AND (document_type IS NULL OR document_type <> 'AA')
+              AND document_type <> 'AA'
             GROUP BY fiscal_year, fiscal_month
           )
           SELECT jsonb_agg(
@@ -297,7 +299,7 @@ export const createSapRouter = (t: TRPC) =>
             		AND sa.wbs_internal_id = w.wbs_internal_id
             		AND sa.activity_number = sai.activity_id
             WHERE wbs_element_id = ${result.wbsId}
-              AND (document_type IS NULL OR document_type <> 'AA')
+              AND document_type <> 'AA'
               AND object_type = 'NV' -- Tells that actual is for network activity, not WBS
             GROUP BY wbs_id, sai.network_id, sai.activity_id, sa.short_description
           )
