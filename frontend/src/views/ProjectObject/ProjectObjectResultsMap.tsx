@@ -7,7 +7,7 @@ import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { useEffect, useMemo } from 'react';
 
-import { MapWrapper } from '@frontend/components/Map/MapWrapper';
+import { SearchResultsMap } from '@frontend/components/Map/SearchResultsMap';
 import {
   addFeaturesFromGeoJson,
   featuresFromGeoJSON,
@@ -167,8 +167,7 @@ export function ProjectObjectResultsMap(props: Props) {
 
   return (
     <Paper css={resultMapContainerStyle} elevation={1}>
-      <MapWrapper
-        loading={props.projectObjectsLoading}
+      <SearchResultsMap
         vectorLayers={[projectLayer, projectObjectLayer, clusterLayer]}
         onMoveEnd={(zoom, extent) => {
           setMap({ zoom: Math.floor(zoom), extent });

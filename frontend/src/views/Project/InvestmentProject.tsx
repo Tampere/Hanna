@@ -11,7 +11,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
-import { MapWrapper } from '@frontend/components/Map/MapWrapper';
+import { DrawMap } from '@frontend/components/Map/DrawMap';
 import {
   DRAW_LAYER_Z_INDEX,
   addFeaturesFromGeoJson,
@@ -54,14 +54,6 @@ const pageContentStyle = css`
   flex: 1;
   overflow: hidden;
   padding: 0 16px;
-`;
-
-const mapContainerStyle = css`
-  display: flex;
-  flex-direction: column;
-  min-height: 320px;
-  flex: 1;
-  position: relative;
 `;
 
 function getTabs(projectId: string) {
@@ -359,40 +351,39 @@ export function InvestmentProject() {
             </Box>
 
             {tabView === 'default' && (
-              <Box css={mapContainerStyle}>
-                <MapWrapper
-                  ref={tabRefs.map}
-                  onGeometrySave={async (features) => {
-                    await geometryUpdate.mutateAsync({ projectId, features });
-                  }}
-                  drawOptions={{
-                    coversMunicipality: coversMunicipality,
-                    toolsHidden: ['newPointFeature'],
-                    geoJson: project.isFetching
-                      ? null
-                      : (editing ? project?.data?.geometryDump : project?.data?.geom) ?? null,
-                    drawStyle: projectAreaStyle(undefined, undefined, false),
-                    editable: editing && mapIsEditable(),
-                    drawItemType: 'project',
-                  }}
-                  drawSource={drawSource}
-                  fitExtent="geoJson"
-                  vectorLayers={vectorLayers}
-                  projectObjects={
-                    projectObjects.data?.map((obj) => ({
-                      ...obj,
-                      objectStage: obj.objectStage ?? '',
-                      project: {
-                        projectId: projectId,
-                        projectName: project.data?.projectName ?? '',
-                        projectType: 'investmentProject',
-                        coversMunicipality: project.data?.coversMunicipality ?? false,
-                      },
-                    })) ?? []
-                  }
-                  interactiveLayers={['projectObjects']}
-                />
-              </Box>
+              <DrawMap
+                ref={tabRefs.map}
+                onGeometrySave={async (features) => {
+                  return geometryUpdate.mutateAsync({ projectId, features });
+                }}
+                fitExtent="geoJson"
+                vectorLayers={vectorLayers}
+                drawOptions={{
+                  coversMunicipality: coversMunicipality,
+                  toolsHidden: ['newPointFeature'],
+                  drawGeom: {
+                    isLoading: Boolean(projectId) && project.isLoading,
+                    isFetching: project.isFetching,
+                    geoJson: (editing ? project?.data?.geometryDump : project?.data?.geom) ?? null,
+                  },
+                  drawStyle: projectAreaStyle(undefined, undefined, false),
+                  editable: editing && mapIsEditable(),
+                  drawItemType: 'project',
+                }}
+                projectObjects={
+                  projectObjects.data?.map((obj) => ({
+                    ...obj,
+                    objectStage: obj.objectStage ?? '',
+                    project: {
+                      projectId: projectId,
+                      projectName: project.data?.projectName ?? '',
+                      projectType: 'investmentProject',
+                      coversMunicipality: project.data?.coversMunicipality ?? false,
+                    },
+                  })) ?? []
+                }
+                drawSource={drawSource}
+              />
             )}
 
             {tabView !== 'default' && (

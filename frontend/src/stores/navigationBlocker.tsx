@@ -15,11 +15,15 @@ export interface BlockerStatus {
 
 export const blockerStatusAtom = atom<BlockerStatus>(defaultStatus);
 
-export function useNavigationBlocker(isDirty: boolean, identifier: string, callBack?: () => void) {
+export function useNavigationBlocker(
+  isDirty: boolean,
+  identifier: string,
+  unmountCallBack?: () => void,
+) {
   const [blockerStatus, setBlockerStatus] = useAtom(blockerStatusAtom);
 
   useEffect(() => {
-    return () => callBack?.();
+    return () => unmountCallBack?.();
   }, []);
 
   useEffect(() => {

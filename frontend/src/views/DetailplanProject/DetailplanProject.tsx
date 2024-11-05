@@ -6,7 +6,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
-import { MapWrapper } from '@frontend/components/Map/MapWrapper';
+import { DrawMap } from '@frontend/components/Map/DrawMap';
 import { projectAreaStyle } from '@frontend/components/Map/styles';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
@@ -42,12 +42,6 @@ const pageContentStyle = css`
   height: 100%;
   flex: 1;
   overflow: hidden;
-`;
-
-const mapContainerStyle = css`
-  min-height: 320px;
-  flex: 1;
-  position: relative;
 `;
 
 function getTabs(projectId: string) {
@@ -200,18 +194,19 @@ export function DetailplanProject() {
             }
 
             {tabView === 'default' && (
-              <Box css={mapContainerStyle}>
-                <MapWrapper
-                  ref={tabRefs.map}
-                  drawOptions={{
-                    drawItemType: 'project',
-                    geoJson: project.isFetching ? null : project.data?.geom ?? null,
-                    drawStyle: projectAreaStyle(undefined, undefined, false),
-                    editable: false,
-                  }}
-                  fitExtent="geoJson"
-                />
-              </Box>
+              <DrawMap
+                drawOptions={{
+                  drawItemType: 'project',
+                  drawGeom: {
+                    isLoading: Boolean(projectId) && project.isLoading,
+                    isFetching: project.isFetching,
+                    geoJson: project.data?.geom ?? null,
+                  },
+                  drawStyle: projectAreaStyle(undefined, undefined, false),
+                  editable: false,
+                }}
+                fitExtent="geoJson"
+              />
             )}
 
             {tabView !== 'default' && (
