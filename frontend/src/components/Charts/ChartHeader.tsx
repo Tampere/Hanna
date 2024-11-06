@@ -24,7 +24,7 @@ export function ChartHeader({
     <Box
       css={css`
         display: flex;
-        gap: 3rem;
+        gap: 2.5rem;
         align-items: center;
       `}
     >
@@ -38,38 +38,46 @@ export function ChartHeader({
       >
         {year}
       </Typography>
-      {totalInCurrencySubunit ? (
-        <Typography
-          css={css`
-            color: ${totalInCurrencySubunit && amount && amount < totalInCurrencySubunit
-              ? '#e46c29'
-              : 'none'};
-          `}
-        >
-          <span
+      <Box
+        css={css`
+          display: grid;
+          flex: 1;
+          max-width: 42%;
+          grid: auto / minmax(180px, 240px) minmax(180px, 240px);
+          gap: 0.25rem;
+        `}
+      >
+        {totalInCurrencySubunit ? (
+          <Typography
             css={css`
-              color: #525252;
-              padding-right: 0.25rem;
+              color: ${totalInCurrencySubunit && amount && amount < totalInCurrencySubunit
+                ? '#e46c29'
+                : 'none'};
             `}
           >
-            {tr('financesChart.totalLabel')}:
-          </span>{' '}
-          {formatCurrency(totalInCurrencySubunit)}
-        </Typography>
-      ) : totalsError ? (
-        <Alert severity="error">{tr('financesChart.totalsErrorLabel')}</Alert>
-      ) : (
-        <Typography
-          css={css`
-            color: #888888;
-            font-style: italic;
-          `}
-        >
-          {tr('financesChart.noTotalLabel')}
-        </Typography>
-      )}
-      {amount ? (
-        <>
+            <span
+              css={css`
+                color: #525252;
+                padding-right: 0.25rem;
+              `}
+            >
+              {tr('financesChart.totalLabel')}:
+            </span>{' '}
+            {formatCurrency(totalInCurrencySubunit)}
+          </Typography>
+        ) : totalsError ? (
+          <Alert severity="error">{tr('financesChart.totalsErrorLabel')}</Alert>
+        ) : (
+          <Typography
+            css={css`
+              color: #888888;
+              font-style: italic;
+            `}
+          >
+            {tr('financesChart.noTotalLabel')}
+          </Typography>
+        )}
+        {amount ? (
           <Typography>
             <span
               css={css`
@@ -81,23 +89,25 @@ export function ChartHeader({
             </span>{' '}
             {amount && formatCurrency(amount)}
           </Typography>
-          <ProgressBar
-            fillPrecentage={
-              amount > 0 && totalInCurrencySubunit && totalInCurrencySubunit > 0
-                ? (totalInCurrencySubunit / amount) * 100
-                : 0
-            }
-          />
-        </>
-      ) : (
-        <Typography
-          css={css`
-            color: #888888;
-            font-style: italic;
-          `}
-        >
-          {tr('financesChart.noAmountLabel')}
-        </Typography>
+        ) : (
+          <Typography
+            css={css`
+              color: #888888;
+              font-style: italic;
+            `}
+          >
+            {tr('financesChart.noAmountLabel')}
+          </Typography>
+        )}
+      </Box>
+      {amount && (
+        <ProgressBar
+          fillPrecentage={
+            amount > 0 && totalInCurrencySubunit && totalInCurrencySubunit > 0
+              ? (totalInCurrencySubunit / amount) * 100
+              : 0
+          }
+        />
       )}
     </Box>
   );
