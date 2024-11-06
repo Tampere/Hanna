@@ -12,6 +12,8 @@ import { getRange } from '@frontend/utils/array';
 
 import { TranslationKey } from '@shared/language';
 
+const DATA_LABEL_COUNT = 12;
+
 interface Props {
   projectObjectId: string;
   endYear: number;
@@ -118,14 +120,17 @@ export function ProjectObjectFinancesCharts(props: Props) {
               amount={amount}
             />
             <FinancesBarChart
-              totalAmount={amount ? amount / 100 : null}
+              referenceLineValue={amount ? amount / 100 / DATA_LABEL_COUNT : null}
               barData={data}
-              dataLabels={getRange(1, 12).map((i) => tr(labels[i - 1]))}
+              dataLabels={getRange(1, DATA_LABEL_COUNT).map((i) => tr(labels[i - 1]))}
               colors={[chartColors[idx % 2 == 0 ? 0 : 1]]}
               yAxisScale={getYAxisScale(
                 extremeAmountValues
                   ? {
-                      max: extremeAmountValues.max / 100,
+                      max:
+                        (amount
+                          ? Math.max(extremeAmountValues.max, amount / DATA_LABEL_COUNT)
+                          : extremeAmountValues.max) / 100,
                       min: data.some((d) => d < 0) ? extremeAmountValues.min / 100 : 0,
                     }
                   : { max: 0, min: 0 },

@@ -6,13 +6,11 @@ import {
   ChartsReferenceLine,
   ChartsXAxis,
   ChartsYAxis,
-  DefaultChartsLegend,
   ResponsiveChartContainer,
   useDrawingArea,
   useYScale,
 } from '@mui/x-charts';
 import { ScaleLinear } from 'd3-scale';
-import { translate } from 'ol/transform';
 
 import { useTranslations } from '@frontend/stores/lang';
 
@@ -35,7 +33,7 @@ function OriginAxis() {
         fill: none;
         pointer-events: none;
       `}
-      d={`M ${left} ${yAxisScale(yOrigin)} l ${width} 0`}
+      d={`M ${left} ${yOrigin} l ${width} 0`}
     />
   );
 }
@@ -44,14 +42,18 @@ interface Props {
   colors: string[];
   dataLabels: string[];
   barData: number[];
-  totalAmount: number | null;
+  referenceLineValue: number | null;
   yAxisScale?: { min: number; max: number };
 }
 
-export function FinancesBarChart({ colors, barData, dataLabels, totalAmount, yAxisScale }: Props) {
+export function FinancesBarChart({
+  colors,
+  barData,
+  referenceLineValue,
+  dataLabels,
+  yAxisScale,
+}: Props) {
   const tr = useTranslations();
-
-  const refValue = totalAmount && totalAmount > 0 && totalAmount / dataLabels.length;
 
   function formatAmount(amount: number) {
     if (amount >= 1 * 10 ** 6) {
@@ -143,10 +145,10 @@ export function FinancesBarChart({ colors, barData, dataLabels, totalAmount, yAx
             : '';
         }}
       />
-      {refValue && (
+      {referenceLineValue && (
         <>
           <ChartsReferenceLine
-            y={refValue}
+            y={referenceLineValue}
             labelAlign="end"
             lineStyle={{ stroke: '#4BA226', strokeWidth: 1, strokeDasharray: '6' }}
           />
@@ -156,7 +158,7 @@ export function FinancesBarChart({ colors, barData, dataLabels, totalAmount, yAx
                 const { width } = useDrawingArea();
 
                 return (
-                  <g transform={`translate(${width - 160}, 40)`}>
+                  <g transform={`translate(${width - 160}, 35)`}>
                     <line
                       x1="50"
                       y1="-3"
@@ -194,7 +196,7 @@ export function FinancesBarChart({ colors, barData, dataLabels, totalAmount, yAx
         tickSize={4}
         tickInterval={getTickInterval()}
       />
-      {yAxisScale && yAxisScale.min < 0 && yAxisScale.max > 0 && <OriginAxis />}
+      {yAxisScale && yAxisScale.min < 0 && yAxisScale.max >= 0 && <OriginAxis />}
     </ResponsiveChartContainer>
   );
 }
