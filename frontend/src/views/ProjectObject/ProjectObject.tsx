@@ -4,13 +4,13 @@ import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/mater
 import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
 import VectorSource from 'ol/source/Vector';
-import { ReactElement, useMemo, useState } from 'react';
-import { useParams } from 'react-router';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { useLocation, useParams } from 'react-router';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
-import { MapWrapper } from '@frontend/components/Map/MapWrapper';
+import { DrawMap } from '@frontend/components/Map/DrawMap';
 import { getProjectObjectGeoJSON } from '@frontend/components/Map/mapFunctions';
 import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJ_OBJ_DRAW_STYLE } from '@frontend/components/Map/styles';
@@ -88,12 +88,6 @@ function projectObjectTabs(
   ];
 }
 
-const mapContainerStyle = css`
-  min-height: 320px;
-  flex: 1;
-  position: relative;
-`;
-
 interface Props {
   projectType: Exclude<ProjectTypePath, 'asemakaavahanke'>;
 }
@@ -107,6 +101,7 @@ export function ProjectObject(props: Props) {
 
   const projectObjectId = routeParams?.projectObjectId;
   const [searchParams] = useSearchParams();
+  const { pathname } = useLocation();
 
   const tabView = searchParams.get('tab') || 'default';
   const tabs = projectObjectTabs(routeParams.projectId, props.projectType, projectObjectId);
@@ -163,6 +158,10 @@ export function ProjectObject(props: Props) {
     { projectId },
     { enabled: Boolean(projectId) },
   );
+
+  useEffect(() => {
+    projectObjectGeometries.refetch();
+  }, [pathname]);
 
   // Create vectorlayer of the project geometry
   const projectSource = useMemo(() => {
@@ -370,40 +369,41 @@ export function ProjectObject(props: Props) {
             </Tabs>
 
             {!searchParams.get('tab') && (
-              <Box css={mapContainerStyle}>
-                <MapWrapper
-                  ref={tabRefs.map}
-                  onGeometrySave={async (features) => {
-                    await geometryUpdate.mutateAsync({ projectObjectId, features });
-                  }}
-                  drawOptions={{
-                    geoJson: projectObject.isFetching
-                      ? null
-                      : (editing ? projectObject.data?.geometryDump : projectObject.data?.geom) ??
-                        null,
-                    drawStyle: PROJ_OBJ_DRAW_STYLE,
-                    editable: editing && (!projectObjectId || isOwner || canWrite),
-                    drawItemType: 'projectObject',
-                  }}
-                  vectorLayers={vectorLayers}
-                  fitExtent="all"
-                  projectObjects={
-                    projectObjects.data
-                      ?.filter((obj) => obj.projectObjectId !== projectObjectId)
-                      .map((obj) => ({
-                        ...obj,
-                        project: {
-                          projectId: projectId,
-                          projectName: project.data?.projectName ?? '',
-                          projectType: project.data?.projectType,
-                          coversMunicipality: project.data?.coversMunicipality ?? false,
-                        },
-                      })) ?? []
-                  }
-                  interactiveLayers={['projectObjects', 'projects']}
-                  projects={project.data ? [project.data] : []}
-                />
-              </Box>
+              <DrawMap
+                ref={tabRefs.map}
+                onGeometrySave={async (features) => {
+                  return geometryUpdate.mutateAsync({ projectObjectId, features });
+                }}
+                drawOptions={{
+                  drawGeom: {
+                    isLoading: Boolean(projectObjectId) && projectObject.isLoading,
+                    isFetching: projectObject.isFetching,
+                    geoJson:
+                      (editing ? projectObject.data?.geometryDump : projectObject.data?.geom) ??
+                      null,
+                  },
+                  drawStyle: PROJ_OBJ_DRAW_STYLE,
+                  editable: editing && (!projectObjectId || isOwner || canWrite),
+                  drawItemType: 'projectObject',
+                }}
+                vectorLayers={vectorLayers}
+                fitExtent="all"
+                projectObjects={
+                  projectObjects.data
+                    ?.filter((obj) => obj.projectObjectId !== projectObjectId)
+                    .map((obj) => ({
+                      ...obj,
+                      project: {
+                        projectId: projectId,
+                        projectName: project.data?.projectName ?? '',
+                        projectType: project.data?.projectType,
+                        coversMunicipality: project.data?.coversMunicipality ?? false,
+                      },
+                    })) ?? []
+                }
+                interactiveLayers={['projectObjects', 'projects']}
+                projects={project.data ? [project.data] : []}
+              />
             )}
             {searchParams.get('tab') && (
               <Box sx={{ m: 2, overflowY: 'auto' }}>

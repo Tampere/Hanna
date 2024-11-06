@@ -1,7 +1,6 @@
 import { css } from '@emotion/react';
 import { Add, Remove, ZoomInMap, ZoomOutMap } from '@mui/icons-material';
 import { Box, Tooltip } from '@mui/material';
-import { useLocation } from 'react-router-dom';
 
 import { useTranslations } from '@frontend/stores/lang';
 
@@ -22,13 +21,10 @@ interface Props {
   defaultZoom: number;
   zoomStep: number;
   onZoomChanged: (zoom: number) => void;
-  onFitScreen: () => void;
+  onFitScreen?: () => void;
 }
 
-const searchViewPaths = ['/kartta/hankkeet', '/kartta/kohteet'];
-
 export function MapControls(props: Props) {
-  const { pathname } = useLocation();
   const tr = useTranslations();
   const { zoom, zoomStep, onZoomChanged, onFitScreen } = props;
   const toolTipOpts = { enterDelay: 1000, enterNextDelay: 1000, placement: 'right' as const };
@@ -45,7 +41,7 @@ export function MapControls(props: Props) {
         gap: '6px',
       }}
     >
-      {!searchViewPaths.includes(pathname) && (
+      {onFitScreen && (
         <Box css={zoomButtomStyle} onClick={onFitScreen}>
           <Tooltip {...toolTipOpts} title={tr('map.fitScreen')}>
             <ZoomInMap />

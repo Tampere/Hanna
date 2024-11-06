@@ -7,6 +7,7 @@ import {
   timePeriodFragment,
 } from '@backend/components/projectObject/index.js';
 import { getPool } from '@backend/db.js';
+import { logger } from '@backend/logging.js';
 
 import {
   ObjectsByProjectSearch,
@@ -117,31 +118,30 @@ function getObjectRoleFilterFragment(
     // Object participants includes all roles except suunnitteluttaja and rakennuttaja
     if (objectParticipantUser) {
       return sql.fragment`
-      ((pour.role).code_list_id = 'KohdeKayttajaRooli' AND pour.user_id = ${objectParticipantUser})`;
+      ((pour_participant.role).code_list_id = 'KohdeKayttajaRooli' AND pour_participant.user_id = ${objectParticipantUser})`;
     }
-    return sql.fragment`true`;
   }
 
   if (rakennuttajaUsers.length > 0 && suunnitteluttajaUsers.length > 0) {
-    return sql.fragment`((pour.role = ('InvestointiKohdeKayttajaRooli', '01')::app.code_id AND pour.user_id = ANY(${sql.array(
+    return sql.fragment`((pour_rakennuttaja.role = ('InvestointiKohdeKayttajaRooli', '01')::app.code_id AND pour_rakennuttaja.user_id = ANY(${sql.array(
       rakennuttajaUsers,
       'text',
-    )})) OR (pour.role = ('InvestointiKohdeKayttajaRooli', '02')::app.code_id AND pour.user_id = ANY(${sql.array(
+    )})) AND (pour_suunnitteluttaja.role = ('InvestointiKohdeKayttajaRooli', '02')::app.code_id AND pour_suunnitteluttaja.user_id = ANY(${sql.array(
       suunnitteluttajaUsers,
       'text',
-    )})) OR ${objectParticipantFragment(objectParticipantUser)})`;
+    )})) AND ${objectParticipantFragment(objectParticipantUser) ?? sql.fragment`true`})`;
   } else if (rakennuttajaUsers.length > 0) {
-    return sql.fragment`((pour.role = ('InvestointiKohdeKayttajaRooli', '01')::app.code_id AND pour.user_id = ANY(${sql.array(
+    return sql.fragment`((pour_rakennuttaja.role = ('InvestointiKohdeKayttajaRooli', '01')::app.code_id AND pour_rakennuttaja.user_id = ANY(${sql.array(
       rakennuttajaUsers,
       'text',
-    )})) OR ${objectParticipantFragment(objectParticipantUser)})`;
+    )})) AND ${objectParticipantFragment(objectParticipantUser) ?? sql.fragment`true`})`;
   } else if (suunnitteluttajaUsers.length > 0) {
-    return sql.fragment`((pour.role = ('InvestointiKohdeKayttajaRooli', '02')::app.code_id AND pour.user_id = ANY(${sql.array(
+    return sql.fragment`((pour_suunnitteluttaja.role = ('InvestointiKohdeKayttajaRooli', '02')::app.code_id AND pour_suunnitteluttaja.user_id = ANY(${sql.array(
       suunnitteluttajaUsers,
       'text',
-    )})) OR ${objectParticipantFragment(objectParticipantUser)})`;
+    )})) AND ${objectParticipantFragment(objectParticipantUser) ?? sql.fragment`true`})`;
   } else {
-    return objectParticipantFragment(objectParticipantUser);
+    return objectParticipantFragment(objectParticipantUser) ?? sql.fragment`true`;
   }
 }
 
@@ -203,7 +203,9 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
       withGeoHash: true,
       withGeometries,
     })}
-    LEFT JOIN app.project_object_user_role pour ON po.id = pour.project_object_id
+    LEFT JOIN app.project_object_user_role pour_rakennuttaja ON po.id = pour_rakennuttaja.project_object_id
+    LEFT JOIN app.project_object_user_role pour_suunnitteluttaja ON po.id = pour_suunnitteluttaja.project_object_id
+    LEFT JOIN app.project_object_user_role pour_participant ON po.id = pour_participant.project_object_id
       WHERE po.deleted = false
       -- search date range intersection
       AND ${timePeriodFragment(input)}
@@ -238,10 +240,9 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
         rakennuttajaUsers,
         suunnitteluttajaUsers,
       )}
-
-    GROUP BY po.id, poi.project_object_id, project.id, poi.object_stage
-
-
+    GROUP BY po.id, poi.project_object_id, project.id, poi.object_stage ${
+      withGeometries ? sql.fragment`, project_dump.geom, object_dump.geom` : sql.fragment``
+    }
   ),
    search_results AS (select * from total_results LIMIT ${limit}),
    project_object_results AS (
