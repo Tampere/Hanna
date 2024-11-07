@@ -414,7 +414,6 @@ Kuluseurannan välilehdeltä käyttäjät voivat tarkastella hankkeen toteumaa p
 
 _Yllä olevassa kuvassa on nähtävissä kuluseurannan välilehti, ja siinä toteumaa kolmelle vuodelle. Kahdella niistä on lisäksi kirjattu talousarvio, jonka pohjalta Hanna esittää hankkeen/kohteen toteuman ja talousarvion suhteen vaakapalkkina oikeassa ylälaidassa. Oranssi väri viittaa siihen, että toteuma on jo ylittänyt talousarvion._
 
-
 ## Kunnossapitohanke
 
 ### Yleistä kunnossapitohankkeesta
