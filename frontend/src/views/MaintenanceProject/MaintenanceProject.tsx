@@ -44,16 +44,8 @@ import {
 } from '@shared/schema/userPermissions';
 
 import { ProjectFinancesCharts } from '../Project/ProjectFinancesCharts';
+import { ProjectViewMainContentWrapper } from '../Project/ProjectViewMainContentWrapper';
 import { ProjectViewWrapper } from '../Project/ProjectViewWrapper';
-
-const pageContentStyle = css`
-  display: grid;
-  grid-template-columns: minmax(384px, 1fr) minmax(512px, 2fr);
-  gap: 16px;
-  height: 100%;
-  flex: 1;
-  overflow: hidden;
-`;
 
 function getTabs(projectId: string) {
   return [
@@ -250,8 +242,8 @@ export function MaintenanceProject() {
         </Box>
       )}
       renderMainContent={(tabRefs) => (
-        <div css={pageContentStyle}>
-          <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
+        <ProjectViewMainContentWrapper
+          renderForm={() => (
             <MaintenanceProjectForm
               ref={tabRefs.form}
               project={project.data}
@@ -267,8 +259,8 @@ export function MaintenanceProject() {
                 addFeaturesFromGeoJson(drawSource, project?.data?.geom ?? null);
               }}
             />
-          </Paper>
-
+          )}
+        >
           <Paper
             variant="outlined"
             css={css`
@@ -420,7 +412,7 @@ export function MaintenanceProject() {
               </Box>
             )}
           </Paper>
-        </div>
+        </ProjectViewMainContentWrapper>
       )}
     />
   );
