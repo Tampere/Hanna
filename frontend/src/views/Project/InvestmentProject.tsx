@@ -45,16 +45,8 @@ import { ProjectAreaSelectorForm } from './ProjectAreaSelectorForm';
 import { ProjectFinances } from './ProjectFinances';
 import { ProjectFinancesCharts } from './ProjectFinancesCharts';
 import { ProjectPermissions } from './ProjectPermissions';
+import { ProjectViewMainContentWrapper } from './ProjectViewMainContentWrapper';
 import { ProjectViewWrapper } from './ProjectViewWrapper';
-
-const pageContentStyle = css`
-  display: grid;
-  grid-template-columns: minmax(384px, 1fr) minmax(512px, 2fr);
-  gap: 16px;
-  flex: 1;
-  overflow: hidden;
-  padding: 0 16px;
-`;
 
 function getTabs(projectId: string) {
   return [
@@ -259,8 +251,8 @@ export function InvestmentProject() {
         </Box>
       )}
       renderMainContent={(tabRefs) => (
-        <div css={pageContentStyle}>
-          <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
+        <ProjectViewMainContentWrapper
+          renderForm={() => (
             <InvestmentProjectForm
               ref={tabRefs.form}
               project={project.data}
@@ -276,8 +268,8 @@ export function InvestmentProject() {
                 addFeaturesFromGeoJson(drawSource, project?.data?.geom ?? null);
               }}
             />
-          </Paper>
-
+          )}
+        >
           <Paper
             variant="outlined"
             css={css`
@@ -423,7 +415,7 @@ export function InvestmentProject() {
               </Box>
             )}
           </Paper>
-        </div>
+        </ProjectViewMainContentWrapper>
       )}
     />
   );

@@ -6,7 +6,6 @@ import VectorLayer from 'ol/layer/Vector';
 import { Projection } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
 import { ComponentProps, useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation } from 'react-router';
 
 import {
   ItemLayerState,
@@ -78,12 +77,6 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
 ) {
   const [zoom, setZoom] = useState(mapOptions.tre.defaultZoom);
   const [viewExtent, setViewExtent] = useState<number[]>(mapOptions.tre.extent);
-  const [mapGeometryInitialized, setMapGeometryInitialized] = useState(false);
-  const location = useLocation();
-
-  useEffect(() => {
-    if (mapGeometryInitialized) setMapGeometryInitialized(false);
-  }, [location]);
 
   const mapWrapperRef = useRef<HTMLDivElement>(null);
 

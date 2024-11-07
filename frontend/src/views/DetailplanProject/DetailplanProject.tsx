@@ -22,6 +22,7 @@ import {
 } from '@shared/schema/userPermissions';
 
 import { ProjectPermissions } from '../Project/ProjectPermissions';
+import { ProjectViewMainContentWrapper } from '../Project/ProjectViewMainContentWrapper';
 import { ProjectViewWrapper } from '../Project/ProjectViewWrapper';
 import { DetailplanProjectForm } from './DetailplanProjectForm';
 import { DetailplanProjectNotification } from './DetailplanProjectNotification';
@@ -151,11 +152,9 @@ export function DetailplanProject() {
         </Box>
       )}
       renderMainContent={(tabRefs) => (
-        <div css={pageContentStyle}>
-          <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
-            <DetailplanProjectForm ref={tabRefs.form} project={project.data} />
-          </Paper>
-
+        <ProjectViewMainContentWrapper
+          renderForm={() => <DetailplanProjectForm ref={tabRefs.form} project={project.data} />}
+        >
           <Paper
             variant="outlined"
             css={css`
@@ -230,7 +229,7 @@ export function DetailplanProject() {
               </Box>
             )}
           </Paper>
-        </div>
+        </ProjectViewMainContentWrapper>
       )}
     />
   );

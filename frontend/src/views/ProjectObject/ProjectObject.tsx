@@ -31,6 +31,7 @@ import {
   ownsProject,
 } from '@shared/schema/userPermissions';
 
+import { ProjectViewMainContentWrapper } from '../Project/ProjectViewMainContentWrapper';
 import { ProjectViewWrapper } from '../Project/ProjectViewWrapper';
 import { InvestmentProjectObjectForm } from './InvestmentProjectObjectForm';
 import { MaintenanceProjectObjectForm } from './MaintenanceProjectObjectForm';
@@ -45,15 +46,6 @@ interface Tab {
   label: TranslationKey;
   icon: ReactElement;
 }
-
-const pageContentStyle = css`
-  display: grid;
-  grid-template-columns: minmax(540px, 1fr) minmax(512px, 2fr);
-  gap: 16px;
-  height: 100%;
-  flex: 1;
-  overflow: hidden;
-`;
 
 function projectObjectTabs(
   projectId: string,
@@ -267,32 +259,38 @@ export function ProjectObject(props: Props) {
         </Box>
       )}
       renderMainContent={(tabRefs) => (
-        <div css={pageContentStyle}>
-          <Paper sx={{ p: 3, height: '100%', overflowY: 'auto' }} variant="outlined">
-            {props.projectType === 'investointihanke' && (
-              <InvestmentProjectObjectForm
-                ref={tabRefs.form}
-                userIsOwner={isOwner}
-                userCanWrite={canWrite}
-                projectId={routeParams.projectId}
-                projectType={props.projectType}
-                projectObject={projectObject.data}
-                setProjectId={setProjectId}
-              />
-            )}
-            {props.projectType === 'kunnossapitohanke' && (
-              <MaintenanceProjectObjectForm
-                ref={tabRefs.form}
-                userIsOwner={isOwner}
-                userCanWrite={canWrite}
-                projectId={routeParams.projectId}
-                projectType={props.projectType}
-                projectObject={projectObject.data}
-                setProjectId={setProjectId}
-              />
-            )}
-          </Paper>
-
+        <ProjectViewMainContentWrapper
+          formWidth={540}
+          renderForm={() => {
+            if (props.projectType === 'investointihanke') {
+              return (
+                <InvestmentProjectObjectForm
+                  ref={tabRefs.form}
+                  userIsOwner={isOwner}
+                  userCanWrite={canWrite}
+                  projectId={routeParams.projectId}
+                  projectType={props.projectType}
+                  projectObject={projectObject.data}
+                  setProjectId={setProjectId}
+                />
+              );
+            } else if (props.projectType === 'kunnossapitohanke') {
+              return (
+                <MaintenanceProjectObjectForm
+                  ref={tabRefs.form}
+                  userIsOwner={isOwner}
+                  userCanWrite={canWrite}
+                  projectId={routeParams.projectId}
+                  projectType={props.projectType}
+                  projectObject={projectObject.data}
+                  setProjectId={setProjectId}
+                />
+              );
+            } else {
+              return null;
+            }
+          }}
+        >
           <Paper
             variant="outlined"
             css={css`
@@ -440,7 +438,7 @@ export function ProjectObject(props: Props) {
               </Box>
             )}
           </Paper>
-        </div>
+        </ProjectViewMainContentWrapper>
       )}
     />
   );
