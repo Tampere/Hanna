@@ -161,7 +161,7 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
           wfsLayers={WFSLayers}
           vectorLayers={props.activeVectorLayers ?? []}
           interactions={props.interactions ?? []}
-          interactionLayers={props?.interactionLayers ?? []}
+          interactionLayers={props.interactionLayers ?? []}
           {...(wholeMunicipalityInfoBoxButtonVisible &&
             wholeMunicipalityInfoBoxVisible && { handleSingleClickEvent: handleMapClickEvent })}
         >

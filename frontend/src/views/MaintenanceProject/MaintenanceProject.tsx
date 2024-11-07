@@ -13,7 +13,7 @@ import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { DrawMap } from '@frontend/components/Map/DrawMap';
 import {
-  DRAW_LAYER_Z_INDEX,
+  //DRAW_LAYER_Z_INDEX,
   addFeaturesFromGeoJson,
   featuresFromGeoJSON,
   getGeoJSONFeaturesString,

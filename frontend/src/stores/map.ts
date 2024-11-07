@@ -9,6 +9,8 @@ import VectorSource from 'ol/source/Vector';
 import { getFeatureItemIds, getMapProjection } from '@frontend/components/Map/mapFunctions';
 import { mapOptions } from '@frontend/components/Map/mapOptions';
 import {
+  PROJECT_LAYER_Z_INDEX,
+  PROJECT_OBJECT_LAYER_Z_INDEX,
   ProjectColorCodes,
   WHOLE_MUNICIPALITY_PROJECT_AREA_STYLE,
   getStyleWithPointIcon,
@@ -132,6 +134,7 @@ export function getProjectsLayer(
   return new VectorLayer({
     source,
     style: (feature) => projectAreaStyle(feature, projectColorCodes),
+    zIndex: PROJECT_LAYER_Z_INDEX,
     properties: {
       id: 'projects',
       type: 'vector',
@@ -154,6 +157,7 @@ export function getProjectObjectsLayer(source: VectorSource, isFaded: boolean = 
   return new VectorLayer({
     source,
     style: getStyleWithPointIcon((feature) => projectObjectAreaStyle(feature, isFaded), isFaded),
+    zIndex: PROJECT_OBJECT_LAYER_Z_INDEX,
     properties: {
       id: 'projectObjects',
       type: 'vector',

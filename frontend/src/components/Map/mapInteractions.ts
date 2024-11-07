@@ -19,6 +19,8 @@ import Style, { StyleLike } from 'ol/style/Style';
 import {
   DEFAULT_DRAW_STYLE,
   DEFAULT_POINT_STYLE,
+  DRAW_LAYER_Z_INDEX,
+  SELECTION_LAYER_Z_INDEX,
   getStyleWithGeomCenterIcon,
   getStyleWithPointIcon,
   selectionLayerStyle,
@@ -34,8 +36,6 @@ interface DrawOptions {
 }
 
 let pointerEventKeys: EventsKey[] = [];
-
-export const DRAW_LAYER_Z_INDEX = 101;
 
 const defaultStyles = { Polygon: DEFAULT_DRAW_STYLE, Point: DEFAULT_POINT_STYLE };
 
@@ -138,7 +138,7 @@ export function createSelectionLayer(source: VectorSource<Feature<Geometry>>) {
   return new VectorLayer({
     source,
     properties: { id: 'selectionLayer' },
-    zIndex: DRAW_LAYER_Z_INDEX + 1,
+    zIndex: SELECTION_LAYER_Z_INDEX,
     style: selectionLayerStyle,
   });
 }

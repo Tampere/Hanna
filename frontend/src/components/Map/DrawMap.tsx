@@ -218,11 +218,6 @@ export const DrawMap = forwardRef(function DrawMap(
 
     if (drawOptions?.drawGeom.geoJson) {
       addFeaturesFromGeoJson(drawSource, drawOptions.drawGeom.geoJson, { editing });
-      if (editing) {
-        drawLayer.setZIndex(101);
-      } else {
-        drawLayer.setZIndex(0);
-      }
     }
 
     if (!extent) {
