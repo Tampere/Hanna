@@ -250,7 +250,7 @@ export const DrawMap = forwardRef(function DrawMap(
       }
     }
     // GeoJSON can change without fetching if editing status is changed
-  }, [drawOptions.drawGeom.geoJson, drawOptions.drawGeom.isFetching]);
+  }, [drawOptions.drawGeom.geoJson, drawOptions.drawGeom.isFetching, vectorLayers]);
 
   useEffect(() => {
     switch (selectedTool) {
@@ -373,7 +373,14 @@ export const DrawMap = forwardRef(function DrawMap(
     setExtent(drawSource.getExtent());
   }
 
-  if (drawOptions.drawGeom.isLoading || (!editing && !extent && drawOptions.drawGeom.geoJson)) {
+  const featuresAvailable =
+    props.drawOptions.drawGeom.geoJson ||
+    vectorLayers.some((layer) => {
+      const features = layer.getSource()?.getFeatures();
+      return features && features.length > 0;
+    });
+
+  if (drawOptions.drawGeom.isLoading || (!editing && !extent && featuresAvailable)) {
     return <Skeleton variant="rectangular" height="100%" />;
   }
 
