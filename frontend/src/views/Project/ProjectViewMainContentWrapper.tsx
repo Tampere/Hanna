@@ -36,10 +36,6 @@ export function ProjectViewMainContentWrapper(props: Props) {
         flex: 1;
         overflow: hidden;
         padding: 0 16px;
-        form {
-          transition: opacity 0.5s;
-          opacity: ${formVisible ? 1 : 0};
-        }
       `}
     >
       <Paper
@@ -53,6 +49,10 @@ export function ProjectViewMainContentWrapper(props: Props) {
           width: ${props.formWidth ?? 400}px;
           transition: transform ease-out 0.3s;
           overflow-y: ${formVisible ? 'auto' : 'hidden'};
+          form {
+            transition: opacity 0.5s;
+            opacity: ${formVisible ? 1 : 0};
+          }
         `}
         variant="outlined"
       >
