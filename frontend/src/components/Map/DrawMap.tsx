@@ -212,7 +212,7 @@ export const DrawMap = forwardRef(function DrawMap(
   }, [props.drawOptions?.coversMunicipality]);
 
   useEffect(() => {
-    if (drawOptions.drawGeom.isFetching) {
+    if (drawOptions.drawGeom.isFetching || props.drawOptions?.coversMunicipality) {
       return;
     }
 
