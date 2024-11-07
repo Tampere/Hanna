@@ -186,11 +186,11 @@ Pääkäyttäjät sekä heidän yksilöimänsä käyttäjät voivat perustaa Han
 
 ## Oikeus muokata hankkeen tietoja
 
-Hankkeiden muokkausoikeus on hankkeen omistajalla, hänen osoittamillaan muilla peruskäyttäjillä sekä Hannan pääkäyttäjillä. Hankkeen muokkausoikeudet eivät oikeuta muokkaamaan hankkeen käyttöoikeuksia, vaan niiden muokkaaminen on rajattu yksinään hankkeen omistajalle (sekä pääkäyttäjille). Muokkausoikeudet periytyvät myös hankkeen kohteille ja vaiheille, ja se koskettaa myös niiden luontia ja poistamista. Talousarvioiden ja käyttösuunnitelman muutoksen muokkaamiseen tarvitaan kuitenkin lisäksi erillinen oikeus pääkäyttäjältä. Omistaja hallinnoi hankkeen muokkausoikeutta hankesivulta löytyvältä luvitusvälilehdeltä.
+Hankkeiden muokkausoikeus on hankkeen omistajalla, hänen osoittamillaan muilla peruskäyttäjillä sekä Hannan pääkäyttäjillä. Hankkeen muokkausoikeudet eivät oikeuta muokkaamaan hankkeen käyttöoikeuksia, vaan niiden muokkaaminen on rajattu yksinään hankkeen omistajalle (sekä pääkäyttäjille). Muokkausoikeudet periytyvät myös hankkeen kohteille, ja se koskettaa myös niiden luontia ja poistamista. Talousarvioiden ja käyttösuunnitelman muutoksen muokkaamiseen tarvitaan kuitenkin lisäksi erillinen oikeus pääkäyttäjältä. Omistaja hallinnoi hankkeen muokkausoikeutta hankesivulta löytyvältä luvitusvälilehdeltä.
 
 ## Oikeus poistaa hanke
 
-Vain hankkeen omistaja ja pääkäyttäjä voivat poistaa hankkeen. Huomioi, että hankkeen poistaminen tarkoittaa myös sen kohteiden ja vaiheiden poistamista.
+Vain hankkeen omistaja ja pääkäyttäjä voivat poistaa hankkeen. Huomioi, että hankkeen poistaminen tarkoittaa myös sen kohteiden poistamista.
 
 ## Hankkeen omistajan vaihtaminen
 
@@ -326,7 +326,7 @@ Välilehdellä näytetään myös tiedotushistoria. Siitä selviää, kuinka mon
 
 ### Yleistä investointihankkeesta
 
-Investointihanke on hanke, jolla kasvatetaan Tampereen kaupungin omaisuuden arvoa. Siihen käytetty raha on investointirahaa (vrt. käyttötalous), ja käytettävissä olevan rahan määrää ohjaavat eri lautakuntien vuosisuunnitelmat. Investointihankkeita on monenlaisia, minkä myötä tämän hanketyypin on tarkoitus olla yleiskäyttöinen. Investointihankkeen rakenne sisältää lisäksi investointikohteet ja niiden vaiheet. Myös kehitysohjelmat hyödyntävät investointihanketta (ks. sitovuuskenttä).
+Investointihanke on hanke, jolla kasvatetaan Tampereen kaupungin omaisuuden arvoa. Siihen käytetty raha on investointirahaa (vrt. käyttötalous), ja käytettävissä olevan rahan määrää ohjaavat eri lautakuntien vuosisuunnitelmat. Investointihankkeita on monenlaisia, minkä myötä tämän hanketyypin on tarkoitus olla yleiskäyttöinen. Investointihanke sisältää joukon investointikohteita. Myös kehitysohjelmat hyödyntävät investointihanketta (ks. sitovuuskenttä).
 
 Investointihankkeita ovat esimerkiksi:
 
