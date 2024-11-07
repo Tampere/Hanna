@@ -3,7 +3,6 @@ import { Paper } from '@mui/material';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { Feature } from 'ol';
 import { Geometry } from 'ol/geom';
-import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { useEffect, useMemo } from 'react';
 
@@ -13,8 +12,8 @@ import {
   addFeaturesFromGeoJson,
   featuresFromGeoJSON,
 } from '@frontend/components/Map/mapInteractions';
-import { ProjectColorCodes, clusterStyle } from '@frontend/components/Map/styles';
 import {
+  getClusterLayer,
   getProjectObjectsLayer,
   getProjectsLayer,
   selectedFeatureColorCodeAtom,
@@ -57,17 +56,6 @@ function clusterGeoJSON(clusters?: ProjectSearchResult['clusters']) {
   };
 }
 
-function getClusterLayer(source: VectorSource, projectColorCodes?: ProjectColorCodes) {
-  return new VectorLayer({
-    source,
-    style: (feature) => clusterStyle(feature, 'project', projectColorCodes),
-    properties: {
-      id: 'projectClusterResults',
-      type: 'vector',
-    },
-  });
-}
-
 function getProjectsGeoJSON(projects?: ProjectSearchResult['projects']) {
   if (!projects || projects.length === 0) {
     return null;
@@ -99,7 +87,12 @@ export function ResultsMap(props: Props) {
   const selectedFeatureColorCode = useAtomValue(selectedFeatureColorCodeAtom);
 
   const clusterLayer = useMemo(
-    () => getClusterLayer(clusterSource, selectedFeatureColorCode.projectColorCodes ?? undefined),
+    () =>
+      getClusterLayer(
+        clusterSource,
+        'project',
+        selectedFeatureColorCode.projectColorCodes ?? undefined,
+      ),
     [clusterSource, selectedFeatureColorCode],
   );
   const projectLayer = useMemo(

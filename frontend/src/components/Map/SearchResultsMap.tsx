@@ -15,7 +15,7 @@ import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 
 import { MapInteraction } from './Map';
 import { BaseMapWrapperProps, MapWrapper } from './MapWrapper';
-import { createSelectInteraction, createSelectionLayer } from './mapInteractions';
+import { createSelectInteraction, getSelectionLayer } from './mapInteractions';
 
 interface Props extends BaseMapWrapperProps {
   interactiveLayers?: VectorItemLayerKey[];
@@ -33,7 +33,7 @@ export function SearchResultsMap(props: Props) {
 
   /** Layers */
 
-  const selectionLayer = useMemo(() => createSelectionLayer(selectionSource), []);
+  const selectionLayer = useMemo(() => getSelectionLayer(selectionSource), []);
 
   const vectorLayers = useMemo(() => {
     if (!selectedItemLayers || !propVectorLayers) return [];

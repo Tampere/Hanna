@@ -28,15 +28,21 @@ import { BaseMapWrapperProps, MapWrapper } from './MapWrapper';
 import {
   addFeaturesFromGeoJson,
   createDrawInteraction,
-  createDrawLayer,
   createModifyInteraction,
   createSelectInteraction,
-  createSelectionLayer,
   deleteSelectedFeatures,
+  getDrawLayer,
   getGeoJSONFeaturesString,
+  getGeometryIconLayer,
   getSelectedDrawLayerFeatures,
+  getSelectionLayer,
 } from './mapInteractions';
 import { mapOptions } from './mapOptions';
+import {
+  PROJECT_LAYER_Z_INDEX,
+  PROJECT_OBJECT_LAYER_Z_INDEX,
+  WFS_LAYER_DEFAULT_Z_INDEX,
+} from './styles';
 
 export interface DrawOptions {
   drawGeom: { isLoading: boolean; isFetching: boolean; geoJson: string | object | null };
@@ -89,6 +95,7 @@ export const DrawMap = forwardRef(function DrawMap(
 
   const selectionSource = useAtomValue(selectionSourceAtom);
   const drawSource = useMemo(() => propDrawSource ?? new VectorSource({ wrapX: false }), []);
+  const geometryCenterIconSource = useMemo(() => new VectorSource({ wrapX: false }), []);
 
   useImperativeHandle(
     ref,
@@ -115,18 +122,25 @@ export const DrawMap = forwardRef(function DrawMap(
 
   /** Layers */
 
-  const selectionLayer = useMemo(() => createSelectionLayer(selectionSource), []);
+  const selectionLayer = useMemo(() => getSelectionLayer(selectionSource), []);
 
   const drawLayer = useMemo(
-    () => createDrawLayer(drawSource, drawOptions?.drawStyle, drawOptions?.drawItemType),
+    () => getDrawLayer(drawSource, drawOptions.drawStyle, drawOptions.drawItemType),
+    [],
+  );
+
+  const geometryCenterIconLayer = useMemo(
+    () => getGeometryIconLayer(geometryCenterIconSource, drawOptions.drawItemType),
     [],
   );
 
   const vectorLayers = useMemo(() => {
     if (!selectedItemLayers || !propVectorLayers) return [];
-    return propVectorLayers.filter(
-      (layer) => selectedItemLayers.findIndex((l) => l.id === layer.getProperties().id) !== -1,
-    );
+    return propVectorLayers
+      .filter(
+        (layer) => selectedItemLayers.findIndex((l) => l.id === layer.getProperties().id) !== -1,
+      )
+      .concat(geometryCenterIconLayer);
   }, [selectedItemLayers, propVectorLayers]);
 
   /** Interactions */
@@ -207,6 +221,9 @@ export const DrawMap = forwardRef(function DrawMap(
 
     if (props.drawOptions?.coversMunicipality === false) {
       addFeaturesFromGeoJson(drawSource, props.drawOptions.drawGeom.geoJson, { editing });
+      addFeaturesFromGeoJson(geometryCenterIconSource, props.drawOptions.drawGeom.geoJson, {
+        editing,
+      });
     }
     drawFinished();
   }, [props.drawOptions?.coversMunicipality]);
@@ -218,6 +235,9 @@ export const DrawMap = forwardRef(function DrawMap(
 
     if (drawOptions?.drawGeom.geoJson) {
       addFeaturesFromGeoJson(drawSource, drawOptions.drawGeom.geoJson, { editing });
+      addFeaturesFromGeoJson(geometryCenterIconSource, props.drawOptions.drawGeom.geoJson, {
+        editing,
+      });
     }
 
     if (!extent) {
@@ -246,6 +266,18 @@ export const DrawMap = forwardRef(function DrawMap(
     }
     // GeoJSON can change without fetching if editing status is changed
   }, [drawOptions.drawGeom.geoJson, drawOptions.drawGeom.isFetching, vectorLayers]);
+
+  useEffect(() => {
+    if (editing) {
+      drawLayer.setZIndex(WFS_LAYER_DEFAULT_Z_INDEX - 1);
+    } else {
+      drawLayer.setZIndex(
+        drawOptions.drawItemType === 'project'
+          ? PROJECT_LAYER_Z_INDEX
+          : PROJECT_OBJECT_LAYER_Z_INDEX,
+      );
+    }
+  }, [editing]);
 
   useEffect(() => {
     switch (selectedTool) {
@@ -298,6 +330,9 @@ export const DrawMap = forwardRef(function DrawMap(
     setDirtyAndValidViews((prev) => ({ ...prev, map: { isDirtyAndValid: false } }));
     selectionSource.clear();
     addFeaturesFromGeoJson(drawSource, drawOptions.drawGeom.geoJson, { editing });
+    addFeaturesFromGeoJson(geometryCenterIconSource, props.drawOptions.drawGeom.geoJson, {
+      editing,
+    });
   }
 
   function getGeometryForSave() {
@@ -329,6 +364,7 @@ export const DrawMap = forwardRef(function DrawMap(
         return feature;
       });
     drawSource.addFeatures(featuresToCopy);
+    geometryCenterIconSource.addFeatures(featuresToCopy);
     selectionSource.clear();
     drawFinished();
     setDirtyAndValidViews((prev) => ({ ...prev, map: { isDirtyAndValid: true } }));

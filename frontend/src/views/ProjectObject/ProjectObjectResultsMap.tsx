@@ -3,7 +3,6 @@ import { Paper } from '@mui/material';
 import { useSetAtom } from 'jotai';
 import { Feature } from 'ol';
 import { Geometry } from 'ol/geom';
-import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import { useEffect, useMemo } from 'react';
 
@@ -12,8 +11,7 @@ import {
   addFeaturesFromGeoJson,
   featuresFromGeoJSON,
 } from '@frontend/components/Map/mapInteractions';
-import { clusterStyle } from '@frontend/components/Map/styles';
-import { getProjectObjectsLayer, getProjectsLayer } from '@frontend/stores/map';
+import { getClusterLayer, getProjectObjectsLayer, getProjectsLayer } from '@frontend/stores/map';
 import { mapAtom } from '@frontend/stores/search/projectObject';
 import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 
@@ -51,17 +49,6 @@ function clusterGeoJSON(clusters?: ProjectObjectSearchResult['clusters']) {
       },
     })),
   };
-}
-
-function getClusterLayer(source: VectorSource) {
-  return new VectorLayer({
-    source,
-    style: (feature) => clusterStyle(feature, 'projectObject'),
-    properties: {
-      id: 'projectObjectClusterResults',
-      type: 'vector',
-    },
-  });
 }
 
 function getProjectsGeoJSON(projectObjects?: ProjectObjectSearchResult['projectObjects']) {
@@ -112,7 +99,10 @@ export function ProjectObjectResultsMap(props: Props) {
   const clusterSource = useMemo(() => new VectorSource({}), []);
   const projectSource = useMemo(() => new VectorSource({}), []);
   const projectObjectSource = useMemo(() => new VectorSource({}), []);
-  const clusterLayer = useMemo(() => getClusterLayer(clusterSource), [clusterSource]);
+  const clusterLayer = useMemo(
+    () => getClusterLayer(clusterSource, 'projectObject'),
+    [clusterSource],
+  );
   const projectLayer = useMemo(() => getProjectsLayer(projectSource), [projectSource]);
   const projectObjectLayer = useMemo(
     () => getProjectObjectsLayer(projectObjectSource),

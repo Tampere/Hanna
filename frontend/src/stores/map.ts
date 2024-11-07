@@ -9,10 +9,12 @@ import VectorSource from 'ol/source/Vector';
 import { getFeatureItemIds, getMapProjection } from '@frontend/components/Map/mapFunctions';
 import { mapOptions } from '@frontend/components/Map/mapOptions';
 import {
+  CLUSTER_LAYER_Z_INDEX,
   PROJECT_LAYER_Z_INDEX,
   PROJECT_OBJECT_LAYER_Z_INDEX,
   ProjectColorCodes,
   WHOLE_MUNICIPALITY_PROJECT_AREA_STYLE,
+  clusterStyle,
   getStyleWithPointIcon,
   projectAreaStyle,
   projectColorCodes,
@@ -160,6 +162,27 @@ export function getProjectObjectsLayer(source: VectorSource, isFaded: boolean = 
     zIndex: PROJECT_OBJECT_LAYER_Z_INDEX,
     properties: {
       id: 'projectObjects',
+      type: 'vector',
+    },
+  });
+}
+
+export function getClusterLayer(
+  source: VectorSource,
+  type: 'project' | 'projectObject',
+  projectColorCodes?: ProjectColorCodes,
+) {
+  const idsByType = {
+    project: 'projectClusterResults',
+    projectObject: 'projectObjectClusterResults',
+  };
+
+  return new VectorLayer({
+    source,
+    style: (feature) => clusterStyle(feature, type, projectColorCodes),
+    zIndex: CLUSTER_LAYER_Z_INDEX,
+    properties: {
+      id: idsByType[type],
       type: 'vector',
     },
   });
