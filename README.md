@@ -6,30 +6,25 @@ Minimum implementation is planned to be finished by 2023 and the software with f
 
 ## Development
 
-- Steps required when running for the first time
-  - `cp backend/.template.env backend/.env`
-  - See the `.template.env` file to check if you need to replace or fill some initial values
+### Initial project setup
 
-When `backend/.env` is properly set, start the development by running:
+_Steps required when running for the first time_
+
+- `cp backend/.template.env backend/.env`
+- See the `.template.env` file to check if you need to replace or fill some initial values
+- Note that georaster proxy envs are needed in order to display map background layers
+- Ensure that the node version is the same as required by the project (see package.json)
+- When `backend/.env` is properly set, ensure that docker is up and running and start the development by running the following command in the root of the project:
+
+  ```sh
+  $ npm run dev-build
+  ```
+
+- The command above installs project dependencies, builds and starts docker containers and runs database migrations.
+
+### Running DB migrations
 
 ```sh
-$ docker compose up -d
-```
-
-Project contains workspace settings and `.devcontainer` configurations to VSCode users which has some extensions preconfigured such as:
-
-- sqlfluff for SQL file formatting and linting
-- ESLint for linting TypeScript
-- Prettier for code formatting and import organization
-- SonarLint for additional linting rules for TypeScript, HTML etc.
-- SQLLit for inline SQL highlighting
-- EditorConfig
-
-```sh
-$ code frontend && code backend
-
-# Running the DB migrations:
-
 # Using the docker compose exec:
 $ docker compose exec backend npm run db-migrate
 
