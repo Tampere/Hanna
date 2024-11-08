@@ -352,7 +352,6 @@ export function MaintenanceProject() {
                   drawItemType: 'project',
                 }}
                 drawSource={drawSource}
-                fitExtent="geoJson"
                 vectorLayers={vectorLayers}
                 projectObjects={
                   projectObjects.data?.map((obj) => ({

@@ -252,16 +252,21 @@ export function getProjectObjectGeoJSON<T extends Record<string, any>>(
 
   return {
     type: 'FeatureCollection',
-    features: projectObjects.map((p) => {
-      const geom = p.geom && typeof p.geom === 'string' ? JSON.parse(p.geom) : null;
-      return {
-        type: 'Feature',
-        id: p.projectObjectId,
-        geometry: geom,
-        properties: {
-          name: p.objectName,
-        },
-      };
-    }),
+    features: projectObjects
+      .map((p) => {
+        const geom = p.geom && typeof p.geom === 'string' ? JSON.parse(p.geom) : null;
+        if (!geom) {
+          return null;
+        }
+        return {
+          type: 'Feature',
+          id: p.projectObjectId,
+          geometry: geom,
+          properties: {
+            name: p.objectName,
+          },
+        };
+      })
+      .filter(Boolean),
   };
 }

@@ -39,11 +39,7 @@ import {
   getSelectionLayer,
 } from './mapInteractions';
 import { mapOptions } from './mapOptions';
-import {
-  PROJECT_LAYER_Z_INDEX,
-  PROJECT_OBJECT_LAYER_Z_INDEX,
-  WFS_LAYER_DEFAULT_Z_INDEX,
-} from './styles';
+import { PROJECT_LAYER_Z_INDEX, WFS_LAYER_DEFAULT_Z_INDEX } from './styles';
 
 export interface DrawOptions {
   drawGeom: { isLoading: boolean; isFetching: boolean; geoJson: string | object | null };
@@ -62,7 +58,6 @@ interface Props extends BaseMapWrapperProps {
   onGeometrySave?: (
     geometry: string,
   ) => Promise<{ projectId: string; geom: string } | { projectObjectId: string; geom: string }>;
-  fitExtent: 'geoJson' | 'all';
 }
 
 export const DrawMap = forwardRef(function DrawMap(
@@ -75,7 +70,6 @@ export const DrawMap = forwardRef(function DrawMap(
     vectorLayers: propVectorLayers,
     drawSource: propDrawSource,
     onGeometrySave,
-    fitExtent,
     ...wrapperProps
   } = props;
 
@@ -243,40 +237,31 @@ export const DrawMap = forwardRef(function DrawMap(
 
     if (!extent) {
       let newExtent = createEmpty();
-      switch (fitExtent) {
-        case 'geoJson':
-          if (drawSource && drawSource.getFeatures().length > 0) {
-            setExtent(drawSource.getExtent());
-          }
-          break;
-        case 'all':
-          if (drawSource.getFeatures().length > 0) {
-            setExtent(drawSource.getExtent());
-          } else {
-            newExtent = vectorLayers?.reduce((extent, layer) => {
-              const layerExtent = layer.getSource()?.getExtent();
-              if (!layerExtent) return extent;
-              return extend(extent, layerExtent);
-            }, createEmpty()) as Extent;
 
-            if (!isEmpty(newExtent)) {
-              setExtent(newExtent);
-            }
-          }
+      if (drawSource.getFeatures().length > 0) {
+        setExtent(drawSource.getExtent());
+      } else {
+        newExtent = vectorLayers?.reduce((extent, layer) => {
+          const layerExtent = layer.getSource()?.getExtent();
+          if (!layerExtent) return extent;
+          return extend(extent, layerExtent);
+        }, createEmpty()) as Extent;
+
+        if (!isEmpty(newExtent)) {
+          setExtent(newExtent);
+        }
       }
     }
     // GeoJSON can change without fetching if editing status is changed
   }, [drawOptions.drawGeom.geoJson, drawOptions.drawGeom.isFetching, vectorLayers]);
 
   useEffect(() => {
-    if (editing) {
-      drawLayer.setZIndex(WFS_LAYER_DEFAULT_Z_INDEX - 1);
-    } else {
-      drawLayer.setZIndex(
-        drawOptions.drawItemType === 'project'
-          ? PROJECT_LAYER_Z_INDEX
-          : PROJECT_OBJECT_LAYER_Z_INDEX,
-      );
+    if (drawOptions.drawItemType === 'project') {
+      if (editing) {
+        drawLayer.setZIndex(WFS_LAYER_DEFAULT_Z_INDEX - 1);
+      } else {
+        drawLayer.setZIndex(PROJECT_LAYER_Z_INDEX);
+      }
     }
   }, [editing]);
 
@@ -438,9 +423,7 @@ export const DrawMap = forwardRef(function DrawMap(
       />
       <NoGeomInfoBox
         drawItemType={props.drawOptions.drawItemType}
-        isVisible={
-          !editing && !props.drawOptions.drawGeom.geoJson && !props.drawOptions.coversMunicipality
-        }
+        isVisible={!props.drawOptions.drawGeom.geoJson && !props.drawOptions.coversMunicipality}
       />
       {drawOptions.editable && (
         <MapToolbar

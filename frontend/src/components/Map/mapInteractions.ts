@@ -22,7 +22,6 @@ import {
   DRAW_LAYER_Z_INDEX,
   GEOMETRY_ICON_LAYER_Z_INDEX,
   PROJECT_LAYER_Z_INDEX,
-  PROJECT_OBJECT_LAYER_Z_INDEX,
   SELECTION_LAYER_Z_INDEX,
   getDrawViewGeometryCenterIconStyle,
   getStyleWithPointIcon,
@@ -56,7 +55,7 @@ export function getDrawLayer(
 ) {
   const itemTypeZIndex = {
     project: PROJECT_LAYER_Z_INDEX,
-    projectObject: PROJECT_OBJECT_LAYER_Z_INDEX,
+    projectObject: DRAW_LAYER_Z_INDEX,
   };
   return new VectorLayer({
     source,
