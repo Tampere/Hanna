@@ -19,7 +19,12 @@ import Style, { StyleLike } from 'ol/style/Style';
 import {
   DEFAULT_DRAW_STYLE,
   DEFAULT_POINT_STYLE,
-  getStyleWithGeomCenterIcon,
+  DRAW_LAYER_Z_INDEX,
+  GEOMETRY_ICON_LAYER_Z_INDEX,
+  PROJECT_LAYER_Z_INDEX,
+  PROJECT_OBJECT_LAYER_Z_INDEX,
+  SELECTION_LAYER_Z_INDEX,
+  getDrawViewGeometryCenterIconStyle,
   getStyleWithPointIcon,
   selectionLayerStyle,
 } from '@frontend/components/Map/styles';
@@ -35,8 +40,6 @@ interface DrawOptions {
 
 let pointerEventKeys: EventsKey[] = [];
 
-export const DRAW_LAYER_Z_INDEX = 101;
-
 const defaultStyles = { Polygon: DEFAULT_DRAW_STYLE, Point: DEFAULT_POINT_STYLE };
 
 function setCrosshairCursor(map: OLMap) {
@@ -46,19 +49,32 @@ function setCrosshairCursor(map: OLMap) {
   map.getViewport().style.cursor = 'crosshair';
 }
 
-export function createDrawLayer(
+export function getDrawLayer(
   source: VectorSource<Feature<Geometry>>,
-  style?: Style | Style[],
-  itemType?: 'project' | 'projectObject',
+  style: Style | Style[],
+  itemType: 'project' | 'projectObject',
+) {
+  const itemTypeZIndex = {
+    project: PROJECT_LAYER_Z_INDEX,
+    projectObject: PROJECT_OBJECT_LAYER_Z_INDEX,
+  };
+  return new VectorLayer({
+    source,
+    zIndex: itemTypeZIndex[itemType],
+    properties: { id: 'drawLayer' },
+    style: getStyleWithPointIcon(style, false),
+  });
+}
+
+export function getGeometryIconLayer(
+  source: VectorSource<Feature<Geometry>>,
+  itemType: 'project' | 'projectObject',
 ) {
   return new VectorLayer({
     source,
-    zIndex: DRAW_LAYER_Z_INDEX,
-    properties: { id: 'drawLayer' },
-    style:
-      style && itemType
-        ? getStyleWithGeomCenterIcon(getStyleWithPointIcon(style, false), itemType)
-        : DEFAULT_DRAW_STYLE,
+    properties: { id: 'geometryIconLayer', type: 'vector' },
+    zIndex: GEOMETRY_ICON_LAYER_Z_INDEX,
+    style: getDrawViewGeometryCenterIconStyle(itemType),
   });
 }
 
@@ -134,11 +150,11 @@ export function createDrawInteraction(opts: DrawOptions) {
  * Selection tool
  */
 
-export function createSelectionLayer(source: VectorSource<Feature<Geometry>>) {
+export function getSelectionLayer(source: VectorSource<Feature<Geometry>>) {
   return new VectorLayer({
     source,
     properties: { id: 'selectionLayer' },
-    zIndex: DRAW_LAYER_Z_INDEX + 1,
+    zIndex: SELECTION_LAYER_Z_INDEX,
     style: selectionLayerStyle,
   });
 }

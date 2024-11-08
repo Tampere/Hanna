@@ -9,8 +9,12 @@ import VectorSource from 'ol/source/Vector';
 import { getFeatureItemIds, getMapProjection } from '@frontend/components/Map/mapFunctions';
 import { mapOptions } from '@frontend/components/Map/mapOptions';
 import {
+  CLUSTER_LAYER_Z_INDEX,
+  PROJECT_LAYER_Z_INDEX,
+  PROJECT_OBJECT_LAYER_Z_INDEX,
   ProjectColorCodes,
   WHOLE_MUNICIPALITY_PROJECT_AREA_STYLE,
+  clusterStyle,
   getStyleWithPointIcon,
   projectAreaStyle,
   projectColorCodes,
@@ -132,6 +136,7 @@ export function getProjectsLayer(
   return new VectorLayer({
     source,
     style: (feature) => projectAreaStyle(feature, projectColorCodes),
+    zIndex: PROJECT_LAYER_Z_INDEX,
     properties: {
       id: 'projects',
       type: 'vector',
@@ -154,8 +159,30 @@ export function getProjectObjectsLayer(source: VectorSource, isFaded: boolean = 
   return new VectorLayer({
     source,
     style: getStyleWithPointIcon((feature) => projectObjectAreaStyle(feature, isFaded), isFaded),
+    zIndex: PROJECT_OBJECT_LAYER_Z_INDEX,
     properties: {
       id: 'projectObjects',
+      type: 'vector',
+    },
+  });
+}
+
+export function getClusterLayer(
+  source: VectorSource,
+  type: 'project' | 'projectObject',
+  projectColorCodes?: ProjectColorCodes,
+) {
+  const idsByType = {
+    project: 'projectClusterResults',
+    projectObject: 'projectObjectClusterResults',
+  };
+
+  return new VectorLayer({
+    source,
+    style: (feature) => clusterStyle(feature, type, projectColorCodes),
+    zIndex: CLUSTER_LAYER_Z_INDEX,
+    properties: {
+      id: idsByType[type],
       type: 'vector',
     },
   });
@@ -183,3 +210,5 @@ export const selectedItemLayersAtom = atom<ItemLayerState[]>((get) =>
 );
 
 export const freezeMapHeightAtom = atom<boolean>(false);
+
+export const noGeomInfoBoxAtom = atom<boolean>(false);

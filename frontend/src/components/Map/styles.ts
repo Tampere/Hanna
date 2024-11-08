@@ -38,7 +38,13 @@ const _DETAILPLAN_STROKE = 'rgba(154, 154, 0, 1)';
 const _DETAILPLAN_FILL = 'rgba(154, 154, 0, 0.3)';
 
 export const VECTOR_LAYER_DEFAULT_Z_INDEX = 1;
-export const WFS_LAYER_DEFAULT_Z_INDEX = 2;
+export const PROJECT_LAYER_Z_INDEX = 1;
+export const PROJECT_OBJECT_LAYER_Z_INDEX = 2;
+export const DRAW_LAYER_Z_INDEX = 3;
+export const WFS_LAYER_DEFAULT_Z_INDEX = 4;
+export const CLUSTER_LAYER_Z_INDEX = 5;
+export const GEOMETRY_ICON_LAYER_Z_INDEX = 6;
+export const SELECTION_LAYER_Z_INDEX = 7;
 
 export interface ProjectColorCodes {
   investmentProject: { stroke: string; fill: string };
@@ -392,7 +398,7 @@ function getGeometryCenterIconStyle(itemType: 'project' | 'projectObject', featu
       iconStyle[0].setGeometry((geom as MultiPolygon).getInteriorPoints());
       return iconStyle;
     default:
-      return null;
+      return;
   }
 }
 
@@ -559,6 +565,7 @@ export function getStyleWithPointIcon(styleLike: StyleLike, isFaded: boolean): S
       ...styles,
       // Point geometries available only for projectObjects for now
       new Style({
+        zIndex: 10,
         image: new IconStyle({
           opacity: 1,
           src: isHovered
@@ -573,18 +580,14 @@ export function getStyleWithPointIcon(styleLike: StyleLike, isFaded: boolean): S
   };
 }
 
-export function getStyleWithGeomCenterIcon(
-  styleLike: StyleLike,
+export function getDrawViewGeometryCenterIconStyle(
   itemType: 'project' | 'projectObject',
-) {
-  return function (feature: FeatureLike, resolution: number) {
-    const style = getStyleFromStyleLike(styleLike, feature, resolution);
-    if (!style) return;
-
+): StyleFunction {
+  return function (feature: FeatureLike) {
     const editing = feature.get('editing');
-    const styles = Array.isArray(style) ? style : [style];
-
-    return [...styles, ...(editing ? [] : getGeometryCenterIconStyle(itemType, feature) ?? [])];
+    if (!editing) {
+      return getGeometryCenterIconStyle(itemType, feature);
+    }
   };
 }
 

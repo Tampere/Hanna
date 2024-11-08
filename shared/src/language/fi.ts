@@ -231,6 +231,8 @@ export const fi = {
   'map.legend.investmentProject': 'Investointihanke',
   'map.legend.maintenanceProject': 'Kunnossapitohanke',
   'map.legend.detailplanProject': 'Asemakaavahanke',
+  'map.noProjectGeometry': 'Tällä hankkeella ei ole aluerajausta.',
+  'map.noProjectObjectGeometry': 'Tähän kohteeseen ei liity sijaintitietoa.',
   'about.title': 'Tietoja palvelusta',
   version: 'Versio',
   'profile.logout': 'Kirjaudu ulos',

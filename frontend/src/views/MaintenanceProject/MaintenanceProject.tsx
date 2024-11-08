@@ -13,13 +13,12 @@ import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { DrawMap } from '@frontend/components/Map/DrawMap';
 import {
-  DRAW_LAYER_Z_INDEX,
   addFeaturesFromGeoJson,
   featuresFromGeoJSON,
   getGeoJSONFeaturesString,
 } from '@frontend/components/Map/mapInteractions';
 import { mapOptions, treMunicipalityGeometry } from '@frontend/components/Map/mapOptions';
-import { projectAreaStyle } from '@frontend/components/Map/styles';
+import { DRAW_LAYER_Z_INDEX, projectAreaStyle } from '@frontend/components/Map/styles';
 import { TooltipLinkTab } from '@frontend/components/TooltipLinkTab';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
@@ -159,11 +158,10 @@ export function MaintenanceProject() {
     return source;
   }, [projectObjects.data]);
 
-  const projectObjectsLayer = useMemo(() => {
-    const layer = getProjectObjectsLayer(projectObjectSource);
-    layer.setZIndex(DRAW_LAYER_Z_INDEX + 1);
-    return layer;
-  }, [projectObjects.data]);
+  const projectObjectsLayer = useMemo(
+    () => getProjectObjectsLayer(projectObjectSource),
+    [projectObjects.data],
+  );
 
   const municipalityGeometrySource = useMemo(() => {
     const source = new VectorSource();

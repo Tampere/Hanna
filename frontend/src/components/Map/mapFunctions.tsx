@@ -26,6 +26,8 @@ import proj4 from 'proj4';
 import { WFSLayer } from '@frontend/components/Map/mapOptions';
 import { AtLeast } from '@frontend/stores/misc';
 
+import { WFS_LAYER_DEFAULT_Z_INDEX } from './styles';
+
 /**
  * Default map projection is EPSG:3857 Web Mercator. Uncommon projections,
  * e.g. EPSG:3067 used in Finland, have to be separately added to OpenLayers via
@@ -166,6 +168,7 @@ export function createVectorSource(url: string) {
 export function createWFSLayer(layer: WFSLayer) {
   return new VectorImageLayer({
     source: createVectorSource(layer.url),
+    zIndex: WFS_LAYER_DEFAULT_Z_INDEX,
     style: (feature) =>
       new Style({
         fill: new Fill({

@@ -25,18 +25,25 @@ import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 import { MapInteraction } from './Map';
 import { MapToolbar, ToolType } from './MapToolbar';
 import { BaseMapWrapperProps, MapWrapper } from './MapWrapper';
+import { NoGeomInfoBox } from './NoGeomInfoBox';
 import {
   addFeaturesFromGeoJson,
   createDrawInteraction,
-  createDrawLayer,
   createModifyInteraction,
   createSelectInteraction,
-  createSelectionLayer,
   deleteSelectedFeatures,
+  getDrawLayer,
   getGeoJSONFeaturesString,
+  getGeometryIconLayer,
   getSelectedDrawLayerFeatures,
+  getSelectionLayer,
 } from './mapInteractions';
 import { mapOptions } from './mapOptions';
+import {
+  PROJECT_LAYER_Z_INDEX,
+  PROJECT_OBJECT_LAYER_Z_INDEX,
+  WFS_LAYER_DEFAULT_Z_INDEX,
+} from './styles';
 
 export interface DrawOptions {
   drawGeom: { isLoading: boolean; isFetching: boolean; geoJson: string | object | null };
@@ -89,6 +96,7 @@ export const DrawMap = forwardRef(function DrawMap(
 
   const selectionSource = useAtomValue(selectionSourceAtom);
   const drawSource = useMemo(() => propDrawSource ?? new VectorSource({ wrapX: false }), []);
+  const geometryCenterIconSource = useMemo(() => new VectorSource({ wrapX: false }), []);
 
   useImperativeHandle(
     ref,
@@ -115,18 +123,25 @@ export const DrawMap = forwardRef(function DrawMap(
 
   /** Layers */
 
-  const selectionLayer = useMemo(() => createSelectionLayer(selectionSource), []);
+  const selectionLayer = useMemo(() => getSelectionLayer(selectionSource), []);
 
   const drawLayer = useMemo(
-    () => createDrawLayer(drawSource, drawOptions?.drawStyle, drawOptions?.drawItemType),
+    () => getDrawLayer(drawSource, drawOptions.drawStyle, drawOptions.drawItemType),
+    [],
+  );
+
+  const geometryCenterIconLayer = useMemo(
+    () => getGeometryIconLayer(geometryCenterIconSource, drawOptions.drawItemType),
     [],
   );
 
   const vectorLayers = useMemo(() => {
     if (!selectedItemLayers || !propVectorLayers) return [];
-    return propVectorLayers.filter(
-      (layer) => selectedItemLayers.findIndex((l) => l.id === layer.getProperties().id) !== -1,
-    );
+    return propVectorLayers
+      .filter(
+        (layer) => selectedItemLayers.findIndex((l) => l.id === layer.getProperties().id) !== -1,
+      )
+      .concat(geometryCenterIconLayer);
   }, [selectedItemLayers, propVectorLayers]);
 
   /** Interactions */
@@ -207,22 +222,23 @@ export const DrawMap = forwardRef(function DrawMap(
 
     if (props.drawOptions?.coversMunicipality === false) {
       addFeaturesFromGeoJson(drawSource, props.drawOptions.drawGeom.geoJson, { editing });
+      addFeaturesFromGeoJson(geometryCenterIconSource, props.drawOptions.drawGeom.geoJson, {
+        editing,
+      });
     }
     drawFinished();
   }, [props.drawOptions?.coversMunicipality]);
 
   useEffect(() => {
-    if (drawOptions.drawGeom.isFetching) {
+    if (drawOptions.drawGeom.isFetching || props.drawOptions?.coversMunicipality) {
       return;
     }
 
     if (drawOptions?.drawGeom.geoJson) {
       addFeaturesFromGeoJson(drawSource, drawOptions.drawGeom.geoJson, { editing });
-      if (editing) {
-        drawLayer.setZIndex(101);
-      } else {
-        drawLayer.setZIndex(0);
-      }
+      addFeaturesFromGeoJson(geometryCenterIconSource, props.drawOptions.drawGeom.geoJson, {
+        editing,
+      });
     }
 
     if (!extent) {
@@ -250,7 +266,19 @@ export const DrawMap = forwardRef(function DrawMap(
       }
     }
     // GeoJSON can change without fetching if editing status is changed
-  }, [drawOptions.drawGeom.geoJson, drawOptions.drawGeom.isFetching]);
+  }, [drawOptions.drawGeom.geoJson, drawOptions.drawGeom.isFetching, vectorLayers]);
+
+  useEffect(() => {
+    if (editing) {
+      drawLayer.setZIndex(WFS_LAYER_DEFAULT_Z_INDEX - 1);
+    } else {
+      drawLayer.setZIndex(
+        drawOptions.drawItemType === 'project'
+          ? PROJECT_LAYER_Z_INDEX
+          : PROJECT_OBJECT_LAYER_Z_INDEX,
+      );
+    }
+  }, [editing]);
 
   useEffect(() => {
     switch (selectedTool) {
@@ -303,6 +331,9 @@ export const DrawMap = forwardRef(function DrawMap(
     setDirtyAndValidViews((prev) => ({ ...prev, map: { isDirtyAndValid: false } }));
     selectionSource.clear();
     addFeaturesFromGeoJson(drawSource, drawOptions.drawGeom.geoJson, { editing });
+    addFeaturesFromGeoJson(geometryCenterIconSource, props.drawOptions.drawGeom.geoJson, {
+      editing,
+    });
   }
 
   function getGeometryForSave() {
@@ -334,6 +365,7 @@ export const DrawMap = forwardRef(function DrawMap(
         return feature;
       });
     drawSource.addFeatures(featuresToCopy);
+    geometryCenterIconSource.addFeatures(featuresToCopy);
     selectionSource.clear();
     drawFinished();
     setDirtyAndValidViews((prev) => ({ ...prev, map: { isDirtyAndValid: true } }));
@@ -373,7 +405,14 @@ export const DrawMap = forwardRef(function DrawMap(
     setExtent(drawSource.getExtent());
   }
 
-  if (drawOptions.drawGeom.isLoading || (!editing && !extent && drawOptions.drawGeom.geoJson)) {
+  const featuresAvailable =
+    props.drawOptions.drawGeom.geoJson ||
+    vectorLayers.some((layer) => {
+      const features = layer.getSource()?.getFeatures();
+      return features && features.length > 0;
+    });
+
+  if (drawOptions.drawGeom.isLoading || (!editing && !extent && featuresAvailable)) {
     return <Skeleton variant="rectangular" height="100%" />;
   }
 
@@ -397,7 +436,12 @@ export const DrawMap = forwardRef(function DrawMap(
         interactionLayers={[selectionLayer, drawLayer]}
         resetSelectInteractions={resetSelectInteractions}
       />
-
+      <NoGeomInfoBox
+        drawItemType={props.drawOptions.drawItemType}
+        isVisible={
+          !editing && !props.drawOptions.drawGeom.geoJson && !props.drawOptions.coversMunicipality
+        }
+      />
       {drawOptions.editable && (
         <MapToolbar
           geometryExists={drawSource.getFeatures().length > 0}
