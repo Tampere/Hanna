@@ -172,6 +172,7 @@ export function ProjectObject(props: Props) {
 
   const projectObjectSource = useMemo(() => {
     const source = new VectorSource();
+
     if (projectObjectGeometries?.data) {
       const geometriesWithoutActiveObject = projectObjectGeometries.data.filter(
         (obj) => obj.projectObjectId !== projectObjectId,
@@ -385,7 +386,6 @@ export function ProjectObject(props: Props) {
                   drawItemType: 'projectObject',
                 }}
                 vectorLayers={vectorLayers}
-                fitExtent="all"
                 projectObjects={
                   projectObjects.data
                     ?.filter((obj) => obj.projectObjectId !== projectObjectId)

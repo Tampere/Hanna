@@ -195,7 +195,6 @@ export function DetailplanProject() {
                   drawStyle: projectAreaStyle(undefined, undefined, false),
                   editable: false,
                 }}
-                fitExtent="geoJson"
               />
             )}
 

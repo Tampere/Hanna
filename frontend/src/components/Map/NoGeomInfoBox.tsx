@@ -1,9 +1,11 @@
 import { Close } from '@mui/icons-material';
 import { Box, IconButton, Typography, css } from '@mui/material';
-import { useAtom } from 'jotai';
+import { useAtomValue } from 'jotai';
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router';
 
 import { useTranslations } from '@frontend/stores/lang';
-import { noGeomInfoBoxAtom } from '@frontend/stores/map';
+import { projectEditingAtom } from '@frontend/stores/projectView';
 
 interface Props {
   drawItemType: 'project' | 'projectObject';
@@ -11,10 +13,24 @@ interface Props {
 }
 
 export function NoGeomInfoBox(props: Props) {
-  const [available, setAvailable] = useAtom(noGeomInfoBoxAtom);
+  const { projectId, projectObjectId } = useParams() as {
+    projectId: string;
+    projectObjectId?: string;
+  };
+  const isNewItem =
+    (props.drawItemType === 'project' && !projectId) ||
+    (props.drawItemType === 'projectObject' && !projectObjectId);
+
+  const [isVisible, setIsVisible] = useState(props.isVisible && !isNewItem);
+  const editing = useAtomValue(projectEditingAtom);
+
   const tr = useTranslations();
 
-  if (!available || !props.isVisible) {
+  useEffect(() => {
+    if (editing && isVisible) setIsVisible(false);
+  }, [editing]);
+
+  if (editing || !isVisible) {
     return null;
   }
 
@@ -22,7 +38,7 @@ export function NoGeomInfoBox(props: Props) {
     <Box
       css={css`
         --container-width: 420px;
-        background-color: #ffffff99;
+        background-color: #ffffffbf;
         position: absolute;
         left: calc(50% - var(--container-width) / 2);
         top: calc(50% - var(--container-width) / 2);
@@ -35,7 +51,7 @@ export function NoGeomInfoBox(props: Props) {
           font-weight: 500;
           font-size: 36px;
           text-align: center;
-          color: #848484;
+          color: #6f6f6f;
           line-height: 34px;
         `}
       >
@@ -44,7 +60,7 @@ export function NoGeomInfoBox(props: Props) {
           : tr('map.noProjectObjectGeometry')}
       </Typography>
       <IconButton
-        onClick={() => setAvailable(false)}
+        onClick={() => setIsVisible(false)}
         css={css`
           position: absolute;
           top: 2px;

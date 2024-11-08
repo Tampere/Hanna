@@ -170,7 +170,6 @@ export function InvestmentProject() {
 
   const projectObjectsLayer = useMemo(() => {
     const layer = getProjectObjectsLayer(projectObjectSource);
-    //layer.setZIndex(DRAW_LAYER_Z_INDEX + 1);
     return layer;
   }, [projectObjects.data]);
 
@@ -348,7 +347,6 @@ export function InvestmentProject() {
                 onGeometrySave={async (features) => {
                   return geometryUpdate.mutateAsync({ projectId, features });
                 }}
-                fitExtent="geoJson"
                 vectorLayers={vectorLayers}
                 drawOptions={{
                   coversMunicipality: coversMunicipality,
