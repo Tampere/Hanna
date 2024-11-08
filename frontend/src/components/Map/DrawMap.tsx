@@ -52,6 +52,7 @@ export interface DrawOptions {
 }
 
 interface Props extends BaseMapWrapperProps {
+  initialMapDataLoading: boolean;
   drawOptions: DrawOptions;
   interactiveLayers?: VectorItemLayerKey[];
   drawSource?: VectorSource<Feature<Geometry>>;
@@ -70,6 +71,7 @@ export const DrawMap = forwardRef(function DrawMap(
     vectorLayers: propVectorLayers,
     drawSource: propDrawSource,
     onGeometrySave,
+    initialMapDataLoading,
     ...wrapperProps
   } = props;
 
@@ -390,14 +392,19 @@ export const DrawMap = forwardRef(function DrawMap(
     setExtent(drawSource.getExtent());
   }
 
-  const featuresAvailable =
+  const focusableFeatures =
     props.drawOptions.drawGeom.geoJson ||
-    vectorLayers.some((layer) => {
-      const features = layer.getSource()?.getFeatures();
-      return features && features.length > 0;
-    });
+    (!props.drawOptions.coversMunicipality &&
+      vectorLayers.some((layer) => {
+        const features = layer.getSource()?.getFeatures();
+        return features && features.length > 0;
+      }));
 
-  if (drawOptions.drawGeom.isLoading || (!editing && !extent && featuresAvailable)) {
+  if (
+    initialMapDataLoading ||
+    drawOptions.drawGeom.isLoading ||
+    (!editing && !extent && focusableFeatures)
+  ) {
     return <Skeleton variant="rectangular" height="100%" />;
   }
 
@@ -423,7 +430,11 @@ export const DrawMap = forwardRef(function DrawMap(
       />
       <NoGeomInfoBox
         drawItemType={props.drawOptions.drawItemType}
-        isVisible={!props.drawOptions.drawGeom.geoJson && !props.drawOptions.coversMunicipality}
+        isVisible={
+          !props.drawOptions.drawGeom.isLoading &&
+          !props.drawOptions.drawGeom.geoJson &&
+          !props.drawOptions.coversMunicipality
+        }
       />
       {drawOptions.editable && (
         <MapToolbar

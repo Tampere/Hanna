@@ -185,6 +185,7 @@ export function DetailplanProject() {
 
             {tabView === 'default' && (
               <DrawMap
+                initialMapDataLoading={Boolean(projectId) && project.isLoading}
                 drawOptions={{
                   drawItemType: 'project',
                   drawGeom: {

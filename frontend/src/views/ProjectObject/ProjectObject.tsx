@@ -373,7 +373,11 @@ export function ProjectObject(props: Props) {
                 onGeometrySave={async (features) => {
                   return geometryUpdate.mutateAsync({ projectObjectId, features });
                 }}
+                initialMapDataLoading={
+                  Boolean(projectId) && (project.isLoading || projectObjects.isLoading)
+                }
                 drawOptions={{
+                  coversMunicipality: false,
                   drawGeom: {
                     isLoading: Boolean(projectObjectId) && projectObject.isLoading,
                     isFetching: projectObject.isFetching,
