@@ -38,11 +38,13 @@ export function NoGeomInfoBox(props: Props) {
     <Box
       css={css`
         --container-width: 420px;
+        --container-height: 165px;
         background-color: #ffffffbf;
         position: absolute;
         left: calc(50% - var(--container-width) / 2);
-        top: calc(50% - var(--container-width) / 2);
+        top: calc(50% - var(--container-height) / 2);
         width: var(--container-width);
+        height: var(--container-height);
         padding: 3em 2em;
       `}
     >
