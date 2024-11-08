@@ -18,7 +18,7 @@ import {
   getGeoJSONFeaturesString,
 } from '@frontend/components/Map/mapInteractions';
 import { mapOptions, treMunicipalityGeometry } from '@frontend/components/Map/mapOptions';
-import { DRAW_LAYER_Z_INDEX, projectAreaStyle } from '@frontend/components/Map/styles';
+import { projectAreaStyle } from '@frontend/components/Map/styles';
 import { TooltipLinkTab } from '@frontend/components/TooltipLinkTab';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';

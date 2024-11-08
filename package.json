@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "dev-build": "scripts/clean_start_dev_environment.sh -d"
+  },
   "devDependencies": {
     "@prettier/plugin-xml": "^3.2.2",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
