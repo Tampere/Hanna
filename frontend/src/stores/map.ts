@@ -210,3 +210,5 @@ export const selectedItemLayersAtom = atom<ItemLayerState[]>((get) =>
 );
 
 export const freezeMapHeightAtom = atom<boolean>(false);
+
+export const noGeomInfoBoxAtom = atom<boolean>(false);

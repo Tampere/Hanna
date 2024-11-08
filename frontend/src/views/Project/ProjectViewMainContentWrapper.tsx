@@ -1,8 +1,10 @@
 import { Paper, css } from '@mui/material';
+import { useSetAtom } from 'jotai';
 import { PropsWithChildren, useEffect, useRef, useState } from 'react';
 
 import { ExpandButton } from '@frontend/components/ExpandButton';
 import { useTranslations } from '@frontend/stores/lang';
+import { noGeomInfoBoxAtom } from '@frontend/stores/map';
 
 interface Props extends PropsWithChildren {
   renderForm: () => JSX.Element | null;
@@ -11,6 +13,7 @@ interface Props extends PropsWithChildren {
 
 export function ProjectViewMainContentWrapper(props: Props) {
   const [formVisible, setFormVisible] = useState(true);
+  const setNoGeomInfoBoxAvailable = useSetAtom(noGeomInfoBoxAtom);
   const tr = useTranslations();
 
   const formWrapperRef = useRef<HTMLDivElement>(null);
@@ -20,6 +23,10 @@ export function ProjectViewMainContentWrapper(props: Props) {
       formWrapperRef.current?.scrollTo(0, 0);
     }
   }, [formVisible]);
+
+  useEffect(() => {
+    setNoGeomInfoBoxAvailable(true);
+  }, []);
 
   const shiftOnHide = ((props.formWidth ?? 400) - 30) * -1;
 

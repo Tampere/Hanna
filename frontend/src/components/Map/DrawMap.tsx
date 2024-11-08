@@ -25,6 +25,7 @@ import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 import { MapInteraction } from './Map';
 import { MapToolbar, ToolType } from './MapToolbar';
 import { BaseMapWrapperProps, MapWrapper } from './MapWrapper';
+import { NoGeomInfoBox } from './NoGeomInfoBox';
 import {
   addFeaturesFromGeoJson,
   createDrawInteraction,
@@ -435,7 +436,12 @@ export const DrawMap = forwardRef(function DrawMap(
         interactionLayers={[selectionLayer, drawLayer]}
         resetSelectInteractions={resetSelectInteractions}
       />
-
+      <NoGeomInfoBox
+        drawItemType={props.drawOptions.drawItemType}
+        isVisible={
+          !editing && !props.drawOptions.drawGeom.geoJson && !props.drawOptions.coversMunicipality
+        }
+      />
       {drawOptions.editable && (
         <MapToolbar
           geometryExists={drawSource.getFeatures().length > 0}
