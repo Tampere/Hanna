@@ -50,8 +50,8 @@ export function Toolbar() {
   const canCreateProject =
     auth &&
     (hasPermission(auth, 'investmentProject.write') ||
-      hasPermission(auth, 'detailplanProject.write'));
-
+      hasPermission(auth, 'detailplanProject.write') ||
+      hasPermission(auth, 'maintenanceProject.write'));
   return (
     <Box css={toolbarContainerStyle} className="toolbar-container">
       <div>
