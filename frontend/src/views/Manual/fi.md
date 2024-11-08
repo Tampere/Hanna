@@ -186,11 +186,11 @@ Pääkäyttäjät sekä heidän yksilöimänsä käyttäjät voivat perustaa Han
 
 ## Oikeus muokata hankkeen tietoja
 
-Hankkeiden muokkausoikeus on hankkeen omistajalla, hänen osoittamillaan muilla peruskäyttäjillä sekä Hannan pääkäyttäjillä. Hankkeen muokkausoikeudet eivät oikeuta muokkaamaan hankkeen käyttöoikeuksia, vaan niiden muokkaaminen on rajattu yksinään hankkeen omistajalle (sekä pääkäyttäjille). Muokkausoikeudet periytyvät myös hankkeen kohteille ja vaiheille, ja se koskettaa myös niiden luontia ja poistamista. Talousarvioiden ja käyttösuunnitelman muutoksen muokkaamiseen tarvitaan kuitenkin lisäksi erillinen oikeus pääkäyttäjältä. Omistaja hallinnoi hankkeen muokkausoikeutta hankesivulta löytyvältä luvitusvälilehdeltä.
+Hankkeiden muokkausoikeus on hankkeen omistajalla, hänen osoittamillaan muilla peruskäyttäjillä sekä Hannan pääkäyttäjillä. Hankkeen muokkausoikeudet eivät oikeuta muokkaamaan hankkeen käyttöoikeuksia, vaan niiden muokkaaminen on rajattu yksinään hankkeen omistajalle (sekä pääkäyttäjille). Muokkausoikeudet periytyvät myös hankkeen kohteille, ja se koskettaa myös niiden luontia ja poistamista. Talousarvioiden ja käyttösuunnitelman muutoksen muokkaamiseen tarvitaan kuitenkin lisäksi erillinen oikeus pääkäyttäjältä. Omistaja hallinnoi hankkeen muokkausoikeutta hankesivulta löytyvältä luvitusvälilehdeltä.
 
 ## Oikeus poistaa hanke
 
-Vain hankkeen omistaja ja pääkäyttäjä voivat poistaa hankkeen. Huomioi, että hankkeen poistaminen tarkoittaa myös sen kohteiden ja vaiheiden poistamista.
+Vain hankkeen omistaja ja pääkäyttäjä voivat poistaa hankkeen. Huomioi, että hankkeen poistaminen tarkoittaa myös sen kohteiden poistamista.
 
 ## Hankkeen omistajan vaihtaminen
 
@@ -235,20 +235,20 @@ Investointihankkeiden poistamisen osalta on tärkeää huomioida se, että samal
 
 Investoinnin ja kunnossapidon hankkeille ja kohteille voi halutessaan piirtää aluerajauksen. Aluerajauksen saa piirrettyä karttaikkunan vasemmasta laidasta löytyviä toimintoja hyödyntämällä. Toiminnot ja niiden merkitykset ovat listattu alle. Painikkeet ilmestyvät näkyviin vasta, kun olet laittanut muokkaustilan päälle oikeasta yläkulmasta.
 
-1. **Luo piste:** Klikkaa haluamaasi kohtaan kartalla lisätäksesi pisteen. Muista tallentaa muutoksesi lopuksi. Pisteen voi antaa vain kohteelle.
-2. **Luo alue:** Jokainen hiiren vasemman painallus luo aluerajaukseen yhden solmupisteen. Käyttäjän tulee luoda vähintään kolme solmupistettä. Voit viimeistellä piirtämäsi alueen luomalla viimeisen solmupisteen kaksoispainalluksella, jolloin alue ilmestyy kartalle. Muista tallentaa muutoksesi lopuksi.
-3. **Valitse alue tai piste:** Painikkeen avulla voit valita yhden tai useamman piirtämäsi alueen, pisteen tai rajapinnalta haetun Tampereen paikkatietokohteen. Valinta korostetaan keltaisella. Pitämällä vaihtopainiketta (shift) pohjassa, voit valita samalla useamman alueen tai pisteen.
-4. **Käytä kohdealueena:** Voit valita aiemmin luoduista hanke-, kohde- tai kaupungin rajapinnan geometrioista haluamasi ja kopioida niiden geometrian hankkeelle tai kohteelle.
-5. **Jäljitä valittuja alueita:** Jos käyttäjällä on aktiivinen valinta päällä, voi hän tämän toiminnon valitsemalla piirtää pitkin valitsemansa kohteen ulkorajaa. Toiminnon tarkoitus on helpottaa aluerajauksen piirtoa tilanteessa, jossa hankkeen tai kohteen aluerajaus vastaa kokonaan tai osittain esimerkiksi kiinteistöä. Valittuasi toiminnon vie hiiren kursori valitun kohteen ulkoreunan lähelle, jolloin se kiinnittyy siihen. Painamalla ensimmäisen kerran tulee luoduksi ensimmäinen solmupiste, jonka jälkeen voit seurata hiirellä kohteen ulkoreunaa, kunnes pääset haluttuun kohtaan tai kierrettyä koko kohteen. Lopeta jäljitys painamalla uusi solmupiste, jonka jälkeen voit joko tallentaa alueen tai jatkaa piirto jäljitetyn alueen ulkopuolella.
-6. **Tyhjennä valinta:** Tyhjentää käyttäjän valintatyökalulla valitsemat alueet.
-7. **Muokkaa valittuja alueita:** Tällä painikkeella käyttäjä voi muokata valitun alueen solmupisteitä. Tarttumalla hiirellä halutusta kohtaa valitun alueen ulkoreunaa ja päästämällä irti halutussa kohtaa alueen muotoa voi muokata. Toistaiseksi ei ole mahdollista poistaa jo olemassaolevia solmupisteitä, vaan ainoastaan luoda uusia.
-8. **Poista valitut alueet:** Painamalla tätä painiketta käyttäjän valitsema alue poistetaan. Muista tallentaa lopuksi muutokset toisesta painikkeesta.
+1. **Luo alue:** Jokainen hiiren vasemman painallus luo aluerajaukseen yhden solmupisteen. Käyttäjän tulee luoda vähintään kolme solmupistettä. Voit viimeistellä piirtämäsi alueen luomalla viimeisen solmupisteen kaksoispainalluksella, jolloin alue ilmestyy kartalle. Muista tallentaa muutoksesi lopuksi. Kohteille voi osoittaa myös pistemuotoisen geometrian. 
+2. **Valitse alue tai piste:** Painikkeen avulla voit valita yhden tai useamman piirtämäsi alueen, pisteen tai rajapinnalta haetun Tampereen paikkatietokohteen. Valinta korostetaan keltaisella. Pitämällä vaihtopainiketta (shift) pohjassa, voit valita samalla useamman alueen tai pisteen.
+3. **Käytä kohdealueena:** Voit valita aiemmin luoduista hanke-, kohde- tai kaupungin rajapinnan geometrioista haluamasi ja kopioida niiden geometrian hankkeelle tai kohteelle.
+4. **Jäljitä valittuja alueita:** Jos käyttäjällä on aktiivinen valinta päällä, voi hän tämän toiminnon valitsemalla piirtää pitkin valitsemansa kohteen ulkorajaa. Toiminnon tarkoitus on helpottaa aluerajauksen piirtoa tilanteessa, jossa hankkeen tai kohteen aluerajaus vastaa kokonaan tai osittain esimerkiksi kiinteistöä. Valittuasi toiminnon vie hiiren kursori valitun kohteen ulkoreunan lähelle, jolloin se kiinnittyy siihen. Painamalla ensimmäisen kerran tulee luoduksi ensimmäinen solmupiste, jonka jälkeen voit seurata hiirellä kohteen ulkoreunaa, kunnes pääset haluttuun kohtaan tai kierrettyä koko kohteen. Lopeta jäljitys painamalla uusi solmupiste, jonka jälkeen voit joko tallentaa alueen tai jatkaa piirto jäljitetyn alueen ulkopuolella.
+5. **Tyhjennä valinta:** Tyhjentää käyttäjän valintatyökalulla valitsemat alueet.
+6. **Muokkaa valittuja alueita:** Tällä painikkeella käyttäjä voi muokata valitun alueen solmupisteitä. Tarttumalla hiirellä halutusta kohtaa valitun alueen ulkoreunaa ja päästämällä irti halutussa kohtaa alueen muotoa voi muokata. Toistaiseksi ei ole mahdollista poistaa jo olemassaolevia solmupisteitä, vaan ainoastaan luoda uusia.
+7. **Poista valitut alueet:** Painamalla tätä painiketta käyttäjän valitsema alue poistetaan. Muista tallentaa lopuksi muutokset toisesta painikkeesta.
+8. **Poista kaikki alueet:** Painamalla tätä painiketta kaikki käyttäjän luomat alueet poistetaan. Muista tallentaa lopuksi muutokset toisesta painikkeesta.
 9. **Hanke koskee koko kunnan aluetta:** Tarkemman hankealueen piirtämisen sijasta voit valita hankealueeksi suoraan koko kunnan alueen.
 10. **Karttatasovalikko:** Piirtämisen tukena voi hyödyntää karttatasovalikosta valittavissa olevia kaupungin rajapinta-aineistoja.
 11. **Tallenna- ja peruutapainike:** Jos käyttäjällä on tallentamattomia muutoksia, ilmestyy tallennus- ja peruutapainikkeet oikeaan alakulmaan.
 
-![Hankesivulta löytyvä karttanäkymä](/images/kartan_piirtotoiminnot.png)<br/>
-_Hankesivulta löytyvä karttanäkymä. Vasemmassa laidassa näkyvissä yllä kuvatut toiminnot._
+![Hankkeen karttanäkymä ja sieltä löytyvät piirtotoiminnot](/images/kartan_piirtotoiminnot.png)<br/>
+_Hankesivulta löytyvä karttanäkymä. Vasemmassa laidassa näkyvissä yllä kuvatut toiminnot. Huomioi, että kohteen karttatoiminnot saattava erota pienesti._
 
 ## Hankkeiden liittyminen toisiinsa
 
@@ -326,7 +326,7 @@ Välilehdellä näytetään myös tiedotushistoria. Siitä selviää, kuinka mon
 
 ### Yleistä investointihankkeesta
 
-Investointihanke on hanke, jolla kasvatetaan Tampereen kaupungin omaisuuden arvoa. Siihen käytetty raha on investointirahaa (vrt. käyttötalous), ja käytettävissä olevan rahan määrää ohjaavat eri lautakuntien vuosisuunnitelmat. Investointihankkeita on monenlaisia, minkä myötä tämän hanketyypin on tarkoitus olla yleiskäyttöinen. Investointihankkeen rakenne sisältää lisäksi investointikohteet ja niiden vaiheet. Myös kehitysohjelmat hyödyntävät investointihanketta (ks. sitovuuskenttä).
+Investointihanke on hanke, jolla kasvatetaan Tampereen kaupungin omaisuuden arvoa. Siihen käytetty raha on investointirahaa (vrt. käyttötalous), ja käytettävissä olevan rahan määrää ohjaavat eri lautakuntien vuosisuunnitelmat. Investointihankkeita on monenlaisia, minkä myötä tämän hanketyypin on tarkoitus olla yleiskäyttöinen. Investointihanke sisältää joukon investointikohteita. Myös kehitysohjelmat hyödyntävät investointihanketta (ks. sitovuuskenttä).
 
 Investointihankkeita ovat esimerkiksi:
 
@@ -364,8 +364,6 @@ Kohteen toteutusväli ei saa sijaita hankkeen toteutusvälin ulkopuolella. Jos k
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
 | Nimi                           | Kohteelle annettu nimi. Nimi ei saa olla sama hankkeen kanssa.                                                                                                                                                                                                                                                        | Kyllä            |
 | Kuvaus                         | Vapaamuotoinen sanallinen kuvaus kohteesta.                                                                                                                                                                                                                                                                           | Kyllä            |
-| Suunnitteluttaja               | Kohteen pääsuunnittelija. Valinta kohdistuu Tampereen sisäisiin henkilöihin.                                                                                                                                                                                                                                          | Ei               |
-| Rakennuttaja                   | Kohteen päärakennuttaja. Valinta kohdistuu Tampereen sisäisiin henkilöihin.                                                                                                                                                                                                                                           | Ei               |
 | Kohteen laji                   | Yksilöi, onko kohteessa kyse suunnitelusta vai rakentamisesta. Arvo valitaan alasvetovalikosta.                                                                                                                                                                                                                       | Kyllä            |
 | Alkuajankohta                  | Ajankohta jolloin kohteen toteutus alkaa.                                                                                                                                                                                                                                                                             | Kyllä            |
 | Loppuajankohta                 | Ajankohta jolloin kohteen toteutus päättyy.                                                                                                                                                                                                                                                                           | Kyllä            |
@@ -377,8 +375,10 @@ Kohteen toteutusväli ei saa sijaita hankkeen toteutusvälin ulkopuolella. Jos k
 
 #### Investointikohteen toimijat
 
-Kohteelle voi lisäksi osoittaa toimijoita. Toimija koostuu henkilön ja roolin yhdistelmästä (esimerkiksi Iiro Iironen - urakoitsijan edustaja). Toistaiseksi tarjolla on seuraavat roolit. Roolilistaa täydennetään tarpeen mukaan.
+Kohteelle voi lisäksi osoittaa toimijoita. Toimija koostuu henkilön ja roolin yhdistelmästä (esimerkiksi Iiro Iironen - urakoitsijan edustaja). Toistaiseksi tarjolla on seuraavat roolit. Roolilistaa täydennetään tarpeen mukaan. Rooleista "suunnitteluttaja" ja "rakennuttaja" ovat aina esillä ja tarjolla, mutta niiden kirjaaminen ei ole pakollista.
 
+- Suunnitteluttaja
+- Rakennuttaja
 - Turvallisuuskoordinaattori
 - Vastaava työnjohtaja
 - Valvoja
@@ -393,16 +393,7 @@ _Yllä olevassa kuvassa on esitetty kohteelle valitut toimijat. Valvojaksi on va
 
 #### Vaiheet
 
-Vaihe on kohteeseen kohdistuva työvaihe, josta syntyy jokin konkreettinen tulos ja samalla kustannus. Vaiheella ei ole hankkeesta ja kohteesta poiketen omaa sijaintia. Vaiheen tuloksena voi olla esimerkiksi uusi tai korjattu rakennus tai muu rakennelma, asiakirja, mittaustulos tai ylläpidon toimi. Vaiheen määrityksessä auttaa pitkä koodisto, jonka arvot vastaavat SAP-järjestelmän löytyvää koodistoa. Alla olevassa taulukossa on kuvattu vaiheen tietosisältö.
-
-| Tietokenttä     | Kuvaus                                                                                                                                                                                                                                                                                                                                                                                            | Pakollinen tieto |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| Nimi            | Vaiheelle annettu nimi. Nimen täytyy olla uniikki. Nimi ei saa olla sama hankkeen tai kohteen kanssa.                                                                                                                                                                                                                                                                                             | Kyllä            |
-| Kuvaus          | Vapaamuotoinen sanallinen kuvaus vaiheesta.                                                                                                                                                                                                                                                                                                                                                       | Kyllä            |
-| Elinkaaren tila | Vaiheella on arvona kerrallaan aina vain yksi seuraavista elinkaaritiloista: Aloittamatta, Käynnissä, Valmis, Odottaa. Tehtävä saa perustamisen hetkellä elinkaaritilakseen automaattisesti Aloittamatta. Hankkeen, kohteiden ja tehtävien välinen elinkaaritilojen hallinta perustuu toistaiseksi manuaaliseen kirjaamiseen.                                                                     | Kyllä            |
-| Vaihe           | Vaiheen koodi osoittaa tarkemmin, millaisesta toimennpiteestä on kyse. Se osoitetaan laajasta koodistosta, josta löytyy suunnitteluun (2-alkuiset), rakentamiseen (3-alkuiset) ja ylläpitoon (4-alkuiset) liittyviä toimenpiteitä. Toistaiseksi Hannassa ei ole rajoitettu vaiheen tyyppivalintaa hankkeen tai kohteen tyypin mukaan. Vaihekoodit vastaavat SAP -järjestelmästä löytyviä koodeja. | Kyllä            |
-| Alkuajankohta   | Ajankohta jolloin vaiheen toteutus alkaa.                                                                                                                                                                                                                                                                                                                                                         | Kyllä            |
-| Loppuajankohta  | Ajankohta jolloin vaiheen toteutus päättyy.                                                                                                                                                                                                                                                                                                                                                       | Kyllä            |
+Vaihe on kohteeseen kohdistuva työvaihe, josta syntyy jokin konkreettinen tulos ja samalla kustannus. Vaiheet haetaan SAP:sta olettaen, että Hannan kohteelle on kirjattu soveltuva SAP-rakenneosan tunniste. Vaiheella ei ole sijaintia. Vaiheen tuloksena voi olla esimerkiksi uusi tai korjattu rakennus tai muu rakennelma, asiakirja, mittaustulos tai ylläpitotoimi. Alla olevassa taulukossa on kuvattu vaiheen tietosisältö. Vaiheille listataan tiedoksi niiden nelinumeroinen tyyppikoodi, sen sanallinen selite sekä toteuma. Jos selitettä ei ole tarjolla, esitetään vain tyyppikoodi. Toteuman suhteen on tärkeää huomioida se, että SAP:n tositteen voi osoittaa myös suoraan rakenneosalle, mikä tarkoittaa sitä, että Hannan kohteella näytettävä toteuma ei aina vastaa sen vaiheiden yhteenlaskettua toteumaa.
 
 ### Taloussuunnittelu ja -seuranta investointihankkeella
 
@@ -413,9 +404,15 @@ Talousosioon kirjattujen lukujen katsotaan kohdistuvan aina hankkeelle kirjattuu
 - **Kustannusarvio:** Kustannusarvio on hankkeelle arvioitu kustannus, joka on ehdolla talousarvioon. Arvion voi täyttää sekä hanke- että kohdetasolla. Kustannusarviot hankkeen ja sen kohteiden välillä eivät ole yhdistetty toisiinsa.
 - **Talousarvio:** Talousarvio on käyttäjän arvio ja päättäjille esitettävä kustannus kohteen toteuttamisesta. Talousarvion voi kirjata vain kohteelle, joista käsin ne summataan tiedoksi hanketasolle.
 - **Sopimushinta:** Sopimushinta on summa, joka on sovittu kohteen urakkasopimuksessa rakentajan, suunnittelijan tai vastaavan kanssa. Sopimushinnan voi kirjata vain kohteelle, joista käsin ne summataan tiedoksi hanketasolle.
-- **Toteuma:** Hankkeille ja sen osille, joille on ilmoitettu sopiva SAP-tunniste esitetään toteuma, joka kustannuksien ja tulojen summa. Toteuma ilmoitetaan vuositasolla, kuten muutkin luvut. Toteuman näkeminen mahdollistaa hankkeiden taloudellisen seurannan sekä reagoinnin mahdollisiin poikkeamiin, kuten budjetin ylityksiin. Toteumaa ei voi muokata Hannasta käsin. Toteuma haetaan suoraan SAP:iin kirjatuista tositteista summaamalla niiden luvut vuosikohtaisesti.
+- **Toteuma:** Hankkeille ja sen osille, joille on ilmoitettu sopiva SAP-tunniste esitetään toteuma, joka kustannuksien ja tulojen summa. Toteuma ilmoitetaan vuositasolla, kuten muutkin luvut. Toteuman näkeminen mahdollistaa hankkeiden taloudellisen seurannan sekä reagoinnin mahdollisiin poikkeamiin, kuten budjetin ylityksiin. Toteumaa ei voi muokata Hannasta käsin. Toteuma haetaan suoraan SAP:iin kirjatuista tositteista summaamalla niiden luvut vuosikohtaisesti.Tositteista ei huomioida käyttöomaisuuskirjauksia (laji: AA), eikä niitä, joiden tositelaji on tyhjä.
 - **Ennuste**: Ennusteella viitataan kohteen tuntevan käyttäjän arvioon siitä, miten talousarvio kestää tarkastelun toteumaa vasten. Ennusteen kirjaaminen on tapa viestiä budjetin (talousarvion) alittumisesta tai ylittymisestä. Budjetin ylitys kirjataan positiivisena, eli esimerkiksi sadan tuhannen euron ylitys kirjataan arvona 100 000. Budjetin alitus kirjataan taas negatiivisena numerona, esimerkiksi -100 000. Hannan käyttöliittymä värittää budjetin ylitykset punaisella värillä ja alitukset sinisellä värillä. Ennustetta voi muokata vain kohdetasolla, mistä käsin luvut summataan tiedoksi hankkeelle.
 - **Käyttösuunnitelman muutos:** Mikäli kohteen todellinen toteuma uhkaa kasvaa merkittävästi ennakoidusta, voi sille osoittaa lisää varoja käyttösuunnitelman muutoksen (KSM) muodossa. KSM on aina positiivinen luku. Sen voi kohdetasolla, mistä käsin luvut summataan tiedoksi hankkeelle.
+
+Kuluseurannan välilehdeltä käyttäjät voivat tarkastella hankkeen toteumaa pylväsdiagrammina. Toteuma on eritelty kuukausittain. Kuluseurannan välilehti ei ole valittavissa, mikäli hanke ei ole vielä alkanut ja/tai sille ei ole osoitettu soveltuvaa SAP-projektin tunnistetta. Vastaava välilehti on saatavilla myös hankkeen kohteille olettaen, että niille on osoitettu vielä SAP-rakenneosan tunniste. Toteumaa verrataan talousarviota vasten, jos käyttäjä on sellaisen kirjannut. 
+
+![Kuluseurannan välilehti](/images/kuluseuranta.png)
+
+_Yllä olevassa kuvassa on nähtävissä kuluseurannan välilehti, ja siinä toteumaa kolmelle vuodelle. Kahdella niistä on lisäksi kirjattu talousarvio, jonka pohjalta Hanna esittää hankkeen/kohteen toteuman ja talousarvion suhteen vaakapalkkina oikeassa ylälaidassa. Oranssi väri viittaa siihen, että toteuma on jo ylittänyt talousarvion._
 
 ## Kunnossapitohanke
 
@@ -525,6 +522,10 @@ Muista, että SAP:sta haettavat tiedot on rajattu yrityksiin:
 - 1110 (KAPA)
 - 1350 (KITIA)
 - 1540 (ELOSA)
+
+Haettavista tositteista taas on rajattu pois seuraavat:
+- Käyttöomaisuuskirjaukset (laji: AA)
+- Lajiltaan tyhjät tositteet
 
 ![SAP-raportit](/images/sap_raportit.png)
 _SAP-raporttien sivu näyttää tältä. Sivun löytää Hannan päänavigointipalkista. Sivulta käsin käyttäjä voi vaihtaa eri taulukkojen välillä, joita on tällä hetkellä kaksi: ympäristökoodit ja puitesopimukset._
