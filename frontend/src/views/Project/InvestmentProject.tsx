@@ -13,7 +13,6 @@ import { trpc } from '@frontend/client';
 import { ErrorPage } from '@frontend/components/ErrorPage';
 import { DrawMap } from '@frontend/components/Map/DrawMap';
 import {
-  //DRAW_LAYER_Z_INDEX,
   addFeaturesFromGeoJson,
   featuresFromGeoJSON,
   getGeoJSONFeaturesString,
@@ -347,6 +346,9 @@ export function InvestmentProject() {
                 onGeometrySave={async (features) => {
                   return geometryUpdate.mutateAsync({ projectId, features });
                 }}
+                initialMapDataLoading={
+                  Boolean(projectId) && (project.isLoading || projectObjects.isLoading)
+                }
                 vectorLayers={vectorLayers}
                 drawOptions={{
                   coversMunicipality: coversMunicipality,

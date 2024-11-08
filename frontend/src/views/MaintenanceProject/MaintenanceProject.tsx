@@ -339,6 +339,9 @@ export function MaintenanceProject() {
                 onGeometrySave={async (features) => {
                   return geometryUpdate.mutateAsync({ projectId, features });
                 }}
+                initialMapDataLoading={
+                  Boolean(projectId) && (project.isLoading || projectObjects.isLoading)
+                }
                 drawOptions={{
                   coversMunicipality: coversMunicipality,
                   toolsHidden: ['newPointFeature'],
