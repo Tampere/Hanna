@@ -17,6 +17,7 @@ export function NoGeomInfoBox(props: Props) {
     projectId: string;
     projectObjectId?: string;
   };
+
   const isNewItem =
     (props.drawItemType === 'project' && !projectId) ||
     (props.drawItemType === 'projectObject' && !projectObjectId);
@@ -27,8 +28,8 @@ export function NoGeomInfoBox(props: Props) {
   const tr = useTranslations();
 
   useEffect(() => {
-    if (editing && isVisible) setIsVisible(false);
-  }, [editing]);
+    if ((editing || !props.isVisible) && isVisible) setIsVisible(false);
+  }, [editing, props.isVisible]);
 
   if (editing || !isVisible) {
     return null;
