@@ -137,12 +137,13 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
     <div
       ref={mapWrapperRef}
       style={{
-        transition: freezeMapHeight ? 'none' : ' height  0.4s',
+        transition: 'opacity 0.3s',
         height: freezeMapHeight
           ? mapWrapperRef.current?.clientHeight
             ? `${mapWrapperRef.current.clientHeight}px`
             : '100%'
           : '100%',
+        opacity: freezeMapHeight ? 0 : 1,
         position: 'relative',
         display: 'flex',
         flex: 1,
