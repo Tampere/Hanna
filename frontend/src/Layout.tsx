@@ -183,7 +183,9 @@ function Navbar() {
             {recentGeneralNotifications?.data && recentGeneralNotifications.data.count > 0 ? (
               <TooltipLinkTab
                 title={tr('pages.generalNewGeneralNotificationsTooltip')}
-                style={{ marginLeft: 'auto' }}
+                cssProp={css`
+                  margin-left: auto;
+                `}
                 to="/tiedotteet"
                 icon={<Campaign />}
                 iconPosition="start"

@@ -341,11 +341,9 @@ function getSelectedClusterItemType(feature: FeatureLike) {
 
 export function selectionLayerStyle(feature: FeatureLike) {
   const geom = feature.getGeometry();
+  const clusterCount = feature.get('clusterCount');
 
-  if (
-    (geom?.getType() === 'Point' || geom?.getType() === 'MultiPoint') &&
-    ['projectObjects', 'drawLayer'].includes(feature.get('layer'))
-  ) {
+  if ((geom?.getType() === 'Point' || geom?.getType() === 'MultiPoint') && !clusterCount) {
     return new Style({
       image: new IconStyle({
         opacity: 1,
@@ -354,7 +352,7 @@ export function selectionLayerStyle(feature: FeatureLike) {
       }),
     });
   }
-  const clusterCount = feature.get('clusterCount');
+
   if (clusterCount === 1) {
     const itemType = getSelectedClusterItemType(feature);
     return getClusterIconStyle(itemType);
