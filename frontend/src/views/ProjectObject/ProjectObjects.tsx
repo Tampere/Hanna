@@ -366,6 +366,7 @@ function ProjectObjectResults() {
   const search = trpc.projectObject.search.useQuery({
     ...projectObjectSearchParams,
     map: useDebounce(projectObjectSearchParams.map, 400),
+    projectObjectName: useDebounce(projectObjectSearchParams.projectObjectName, 250),
   });
 
   return (
