@@ -326,7 +326,7 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
             errorTooltip={getDateFieldErrorMessage(
               errors.endDate?.message ?? null,
               tr('newProject.endDateTooltip'),
-              [dayjs(getValues('startDate')).add(5, 'year').year().toString()],
+              [(dayjs().year() + 5).toString()],
             )}
             component={(field) => (
               <Box
