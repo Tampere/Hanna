@@ -1,12 +1,12 @@
 import dayjs from 'dayjs';
 import { forwardRef, useEffect, useMemo } from 'react';
-import { ProjectYearBudget } from 'tre-hanna-shared/src/schema/project';
 
 import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { getRange } from '@frontend/utils/array';
 
+import { ProjectYearBudget } from '@shared/schema/project';
 import { DbInvestmentProject } from '@shared/schema/project/investment';
 import { DbMaintenanceProject } from '@shared/schema/project/maintenance';
 import { ProjectType } from '@shared/schema/project/type';

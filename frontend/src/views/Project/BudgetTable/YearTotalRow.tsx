@@ -1,7 +1,8 @@
 import { Skeleton, TableCell, TableRow, css } from '@mui/material';
-import { ProjectYearBudget } from 'tre-hanna-shared/src/schema/project';
 
 import { CurrencyInput } from '@frontend/components/forms/CurrencyInput';
+
+import { ProjectYearBudget } from '@shared/schema/project';
 
 import { BudgetField, BudgetFormValues } from '.';
 
