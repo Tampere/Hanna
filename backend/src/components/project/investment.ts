@@ -1,6 +1,5 @@
 import { TRPCError } from '@trpc/server';
 import { DatabaseTransactionConnection } from 'slonik';
-import { codeIdSchema } from 'tre-hanna-shared/src/schema/code.js';
 import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit.js';
@@ -18,6 +17,7 @@ import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
 
 import { hasErrors, stringifyFieldErrors } from '@shared/formerror.js';
+import { codeIdSchema } from '@shared/schema/code.js';
 import { projectIdSchema } from '@shared/schema/project/base.js';
 import { InvestmentProject, dbInvestmentProjectSchema } from '@shared/schema/project/investment.js';
 import { User } from '@shared/schema/user.js';

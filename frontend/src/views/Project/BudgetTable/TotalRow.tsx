@@ -1,9 +1,9 @@
 import { Skeleton, TableCell, TableRow, Typography, css } from '@mui/material';
-import { ProjectYearBudget } from 'tre-hanna-shared/src/schema/project';
 
 import { CurrencyInput, valueTextColor } from '@frontend/components/forms/CurrencyInput';
 import { useTranslations } from '@frontend/stores/lang';
 
+import { ProjectYearBudget } from '@shared/schema/project';
 import { YearlyActuals } from '@shared/schema/sapActuals';
 
 import { BudgetField, BudgetFormValues, TABLE_CELL_CONTENT_CLASS } from '.';
