@@ -20,6 +20,7 @@ import {
   updateObjectRoles,
   updateObjectUsages,
   updateProjectObjectBudget,
+  updateProjectObjectCommittees,
   updateProjectObjectGeometry,
   validateUpsertProjectObject,
 } from './index.js';
@@ -43,6 +44,7 @@ const getProjectObjectFragment = (ids: string | string[]) => sql.fragment`
      description AS "description",
      (lifecycle_state).id AS "lifecycleState",
      (poi.object_stage).id AS "objectStage",
+     (SELECT (committee_type).id FROM app.project_object_committee poc WHERE project_object.id = poc.project_object_id) AS committee,
      start_date AS "startDate",
      end_date AS "endDate",
      sap_wbs_id AS "sapWBSId",
@@ -262,6 +264,13 @@ export async function upsertProjectObject(
       userId,
     );
   }
+
+  await updateProjectObjectCommittees(
+    upsertResult.projectId,
+    upsertResult.projectObjectId,
+    projectObject.committee,
+    tx,
+  );
   await updateObjectTypes(tx, { ...projectObject, projectObjectId: upsertResult.projectObjectId });
   await updateObjectCategories(tx, {
     ...projectObject,

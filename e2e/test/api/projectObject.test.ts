@@ -50,7 +50,11 @@ test.describe('Common Project Object endpoints', () => {
       project: testInvestmentProject(workerDevSession.user),
     });
 
-    const projectObject = testProjectObject(investmentProject.projectId, workerDevSession.user);
+    const projectObject = testProjectObject(
+      investmentProject.projectId,
+      investmentProject.committees,
+      workerDevSession.user,
+    );
 
     const resp = await workerDevSession.client.investmentProjectObject.upsert.mutate(projectObject);
     expect(resp.projectObjectId).toBeTruthy();
@@ -71,6 +75,7 @@ test.describe('Common Project Object endpoints', () => {
           amount: 10000,
           forecast: 2500,
           kayttosuunnitelmanMuutos: 5000,
+          committee: investmentProject.committees[0],
         },
       ],
     };
@@ -80,9 +85,11 @@ test.describe('Common Project Object endpoints', () => {
     const updatedBudget = await workerDevSession.client.projectObject.getBudget.query({
       projectObjectId: resp.projectObjectId,
     });
+
     expect(updatedBudget).toStrictEqual([
       {
         year: 2021,
+        committee: investmentProject.committees[0],
         budgetItems: {
           estimate: 10000,
           contractPrice: 10000,
@@ -96,6 +103,7 @@ test.describe('Common Project Object endpoints', () => {
     // add budget for another year and update existing
     const partialBudgetUpdate = {
       projectObjectId: resp.projectObjectId,
+
       budgetItems: [
         {
           year: 2021,
@@ -104,6 +112,7 @@ test.describe('Common Project Object endpoints', () => {
           amount: 12500,
           forecast: -1000,
           kayttosuunnitelmanMuutos: 5000,
+          committee: investmentProject.committees[0],
         },
         {
           year: 2022,
@@ -112,6 +121,7 @@ test.describe('Common Project Object endpoints', () => {
           amount: 7500,
           forecast: -2500,
           kayttosuunnitelmanMuutos: 0,
+          committee: investmentProject.committees[0],
         },
       ],
     };
@@ -125,6 +135,7 @@ test.describe('Common Project Object endpoints', () => {
     expect(partialUpdatedBudget).toStrictEqual([
       {
         year: 2021,
+        committee: investmentProject.committees[0],
         budgetItems: {
           estimate: 10000,
           contractPrice: 10000,
@@ -135,6 +146,7 @@ test.describe('Common Project Object endpoints', () => {
       },
       {
         year: 2022,
+        committee: investmentProject.committees[0],
         budgetItems: {
           estimate: 10000,
           contractPrice: 10000,
@@ -145,7 +157,11 @@ test.describe('Common Project Object endpoints', () => {
       },
     ]);
 
-    const projectObject2 = testProjectObject(investmentProject.projectId, workerDevSession.user);
+    const projectObject2 = testProjectObject(
+      investmentProject.projectId,
+      investmentProject.committees,
+      workerDevSession.user,
+    );
     const resp2 = await workerDevSession.client.investmentProjectObject.upsert.mutate({
       ...projectObject2,
       budgetUpdate: {
@@ -157,6 +173,7 @@ test.describe('Common Project Object endpoints', () => {
             amount: 7500,
             forecast: 2000,
             kayttosuunnitelmanMuutos: 1000,
+            committee: projectObject2.committee,
           },
           {
             year: 2022,
@@ -165,6 +182,7 @@ test.describe('Common Project Object endpoints', () => {
             amount: 5000,
             forecast: -1000,
             kayttosuunnitelmanMuutos: 1000,
+            committee: projectObject2.committee,
           },
         ],
       },
@@ -174,9 +192,11 @@ test.describe('Common Project Object endpoints', () => {
     const projectBudget = await workerDevSession.client.project.getBudget.query({
       projectId: investmentProject.projectId,
     });
+
     expect(projectBudget).toStrictEqual([
       {
         year: 2021,
+        committee: investmentProject.committees[0],
         budgetItems: {
           estimate: null,
           amount: 20000, // Sum of project object amounts
@@ -186,6 +206,7 @@ test.describe('Common Project Object endpoints', () => {
       },
       {
         year: 2022,
+        committee: investmentProject.committees[0],
         budgetItems: {
           estimate: null,
           amount: 12500, // Sum of project object amounts
@@ -203,6 +224,7 @@ test.describe('Common Project Object endpoints', () => {
 
     const projectObject = testProjectObject(
       maintenanceProject.projectId,
+      [null],
       workerDevSession.user,
       'maintenance',
     );
@@ -227,6 +249,7 @@ test.describe('Common Project Object endpoints', () => {
           amount: 10000,
           forecast: 2500,
           kayttosuunnitelmanMuutos: 5000,
+          committee: null,
         },
       ],
     };
@@ -239,6 +262,7 @@ test.describe('Common Project Object endpoints', () => {
     expect(updatedBudget).toStrictEqual([
       {
         year: 2021,
+        committee: null,
         budgetItems: {
           estimate: 10000,
           contractPrice: 10000,
@@ -260,6 +284,7 @@ test.describe('Common Project Object endpoints', () => {
           amount: 12500,
           forecast: -1000,
           kayttosuunnitelmanMuutos: 5000,
+          committee: null,
         },
         {
           year: 2022,
@@ -268,6 +293,7 @@ test.describe('Common Project Object endpoints', () => {
           amount: 7500,
           forecast: -2500,
           kayttosuunnitelmanMuutos: 0,
+          committee: null,
         },
       ],
     };
@@ -281,6 +307,7 @@ test.describe('Common Project Object endpoints', () => {
     expect(partialUpdatedBudget).toStrictEqual([
       {
         year: 2021,
+        committee: null,
         budgetItems: {
           estimate: 10000,
           contractPrice: 10000,
@@ -291,6 +318,7 @@ test.describe('Common Project Object endpoints', () => {
       },
       {
         year: 2022,
+        committee: null,
         budgetItems: {
           estimate: 10000,
           contractPrice: 10000,
@@ -303,6 +331,7 @@ test.describe('Common Project Object endpoints', () => {
 
     const projectObject2 = testProjectObject(
       maintenanceProject.projectId,
+      [null],
       workerDevSession.user,
       'maintenance',
     );
@@ -317,6 +346,7 @@ test.describe('Common Project Object endpoints', () => {
             amount: 7500,
             forecast: 2000,
             kayttosuunnitelmanMuutos: 1000,
+            committee: null,
           },
           {
             year: 2022,
@@ -325,6 +355,7 @@ test.describe('Common Project Object endpoints', () => {
             amount: 5000,
             forecast: -1000,
             kayttosuunnitelmanMuutos: 1000,
+            committee: null,
           },
         ],
       },
@@ -337,6 +368,7 @@ test.describe('Common Project Object endpoints', () => {
     expect(projectBudget).toStrictEqual([
       {
         year: 2021,
+        committee: null,
         budgetItems: {
           estimate: null,
           amount: 20000, // Sum of project object amounts
@@ -346,6 +378,7 @@ test.describe('Common Project Object endpoints', () => {
       },
       {
         year: 2022,
+        committee: null,
         budgetItems: {
           estimate: null,
           amount: 12500, // Sum of project object amounts
@@ -358,7 +391,11 @@ test.describe('Common Project Object endpoints', () => {
 
   test('project object validation', async ({ workerDevSession }) => {
     const validationResult = await workerDevSession.client.projectObject.upsertValidate.query(
-      invalidDateProjectObject(investmentProject.projectId, workerDevSession.user),
+      invalidDateProjectObject(
+        investmentProject.projectId,
+        investmentProject.committees,
+        workerDevSession.user,
+      ),
     );
 
     expect(validationResult).toStrictEqual({
@@ -378,10 +415,12 @@ test.describe('Common Project Object endpoints', () => {
   test('project object validation with date constraints', async ({ workerDevSession }) => {
     const investmentProjectObjectData = testProjectObject(
       investmentProject.projectId,
+      investmentProject.committees,
       workerDevSession.user,
     );
     const maintenanceProjectObjectData = testProjectObject(
       maintenanceProject.projectId,
+      [null],
       workerDevSession.user,
       'maintenance',
     );
@@ -405,6 +444,7 @@ test.describe('Common Project Object endpoints', () => {
           amount: 50000,
           forecast: 50000,
           kayttosuunnitelmanMuutos: 0,
+          committee: investmentProject.committees[0],
         },
       ],
     };
@@ -418,6 +458,7 @@ test.describe('Common Project Object endpoints', () => {
           amount: 50000,
           forecast: 50000,
           kayttosuunnitelmanMuutos: 0,
+          committee: null,
         },
       ],
     };
@@ -465,24 +506,46 @@ test.describe('Common Project Object endpoints', () => {
   });
   test('project object search', async ({ workerDevSession }) => {
     await workerDevSession.client.investmentProjectObject.upsert.mutate(
-      testProjectObject(investmentProject.projectId, workerDevSession.user),
+      testProjectObject(
+        investmentProject.projectId,
+        investmentProject.committees,
+        workerDevSession.user,
+      ),
     );
     await workerDevSession.client.maintenanceProjectObject.upsert.mutate(
-      testProjectObject(maintenanceProject.projectId, workerDevSession.user, 'maintenance'),
+      testProjectObject(maintenanceProject.projectId, [null], workerDevSession.user, 'maintenance'),
     );
 
     await workerDevSession.client.investmentProjectObject.upsert.mutate(
-      testProjectObject2(investmentProject.projectId, workerDevSession.user),
+      testProjectObject2(
+        investmentProject.projectId,
+        investmentProject.committees,
+        workerDevSession.user,
+      ),
     );
     await workerDevSession.client.maintenanceProjectObject.upsert.mutate(
-      testProjectObject2(maintenanceProject.projectId, workerDevSession.user, 'maintenance'),
+      testProjectObject2(
+        maintenanceProject.projectId,
+        investmentProject.committees,
+        workerDevSession.user,
+        'maintenance',
+      ),
     );
 
     await workerDevSession.client.investmentProjectObject.upsert.mutate(
-      testProjectObject3(investmentProject.projectId, workerDevSession.user),
+      testProjectObject3(
+        investmentProject.projectId,
+        investmentProject.committees,
+        workerDevSession.user,
+      ),
     );
     await workerDevSession.client.maintenanceProjectObject.upsert.mutate(
-      testProjectObject3(maintenanceProject.projectId, workerDevSession.user, 'maintenance'),
+      testProjectObject3(
+        maintenanceProject.projectId,
+        [null],
+        workerDevSession.user,
+        'maintenance',
+      ),
     );
 
     const searchResult = await workerDevSession.client.projectObject.search.query({
@@ -525,7 +588,11 @@ test.describe('Investment Project Object endpoints', () => {
       project: testInvestmentProject(workerDevSession.user),
     });
 
-    const projectObject = testProjectObject(project.projectId, workerDevSession.user);
+    const projectObject = testProjectObject(
+      project.projectId,
+      project.committees,
+      workerDevSession.user,
+    );
     const resp = await workerDevSession.client.investmentProjectObject.upsert.mutate(projectObject);
 
     expect(resp.projectObjectId).toBeTruthy();
@@ -555,7 +622,7 @@ test.describe('Investment Project Object endpoints', () => {
 });
 
 test.describe('Maintenance Project Object endpoints', () => {
-  test.beforeAll(async ({ browser, modifyPermissions }) => {
+  test.beforeAll(async ({ modifyPermissions }) => {
     await modifyPermissions(DEV_USER, ['maintenanceProject.write']);
   });
 
@@ -570,6 +637,7 @@ test.describe('Maintenance Project Object endpoints', () => {
 
     const projectObject = testProjectObject(
       project.projectId,
+      [null],
       workerDevSession.user,
       'maintenance',
     );
@@ -608,6 +676,7 @@ test.describe('Maintenance Project Object endpoints', () => {
 
     const projectObject = testProjectObject(
       project.projectId,
+      [null],
       workerDevSession.user,
       'maintenance',
     );
@@ -624,6 +693,7 @@ test.describe('Maintenance Project Object endpoints', () => {
 
     const projectObject = testProjectObject(
       project.projectId,
+      [null],
       workerDevSession.user,
       'maintenance',
     );

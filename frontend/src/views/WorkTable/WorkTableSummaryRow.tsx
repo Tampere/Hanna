@@ -24,7 +24,7 @@ export const WorkTableSummaryRow = forwardRef(function WorkTableSummaryRow(
   }
 
   function getSummaryData(
-    fieldName: 'budget' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos',
+    fieldName: 'amount' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos',
   ) {
     const eurFormat = new Intl.NumberFormat('fi-FI', {
       style: 'currency',
@@ -76,8 +76,8 @@ export const WorkTableSummaryRow = forwardRef(function WorkTableSummaryRow(
       `}
     >
       <Box className="summaryContainer">
-        <Typography className="summaryLabel">{tr('workTable.summary.budget')}:</Typography>
-        <Typography>{getSummaryData('budget')}</Typography>
+        <Typography className="summaryLabel">{tr('workTable.summary.amount')}:</Typography>
+        <Typography>{getSummaryData('amount')}</Typography>
       </Box>
       <Box className="summaryContainer">
         <Typography className="summaryLabel">{tr('workTable.summary.actual')}:</Typography>

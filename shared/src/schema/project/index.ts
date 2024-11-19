@@ -156,20 +156,37 @@ export const yearBudgetSchema = z.object({
     forecast: z.number().nullish(),
     kayttosuunnitelmanMuutos: z.number().nullish(),
   }),
+  committee: z.string().nullable(),
 });
 
 export type ProjectYearBudget = z.infer<typeof yearBudgetSchema>;
 
-export const budgetUpdateSchema = z.object({
+const investmentItemBudgetUpdateSchema = z
+  .object({
+    year: z.number(),
+    estimate: z.number().nullable(),
+    committee: z.string(),
+  })
+  .strict();
+
+const maintenanceItemBudgetUpdateSchema = z
+  .object({
+    year: z.number(),
+    estimate: z.number().nullable(),
+    committee: z.null(),
+  })
+  .strict();
+
+export const maintenanceBudgetUpdateSchema = z.object({
   projectId: z.string(),
-  budgetItems: z.array(
-    z
-      .object({
-        year: z.number(),
-        estimate: z.number().nullable(),
-      })
-      .strict(),
-  ),
+  budgetItems: z.array(maintenanceItemBudgetUpdateSchema),
 });
 
-export type BudgetUpdate = z.infer<typeof budgetUpdateSchema>;
+export const investmentBudgetUpdateSchema = z.object({
+  projectId: z.string(),
+  budgetItems: z.array(investmentItemBudgetUpdateSchema),
+});
+
+export type BudgetUpdate =
+  | z.infer<typeof maintenanceBudgetUpdateSchema>
+  | z.infer<typeof investmentBudgetUpdateSchema>;

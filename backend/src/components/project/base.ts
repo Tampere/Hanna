@@ -353,3 +353,14 @@ export async function getProjectUserPermissions(projectId: string, withAdmins: b
            END, u.name
   ;`);
 }
+
+export async function getProjectCommitteesWithCodes(projectId: string) {
+  return getPool().any(sql.untyped`
+  SELECT
+    project_id AS "projectId",
+    (committee_type).id AS "typeId",
+    text_fi AS "text"
+  FROM app.project_committee pc
+  LEFT JOIN app.code c ON pc.committee_type = c.id
+  WHERE pc.project_id = ${projectId}`);
+}

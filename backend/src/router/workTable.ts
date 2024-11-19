@@ -63,10 +63,11 @@ function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'prin
         )
     ) AS "operatives"`,
     actual: sql.fragment`po_actual.total AS "actual"`,
-    budget: sql.fragment`po_budget.budget AS "budget"`,
+    amount: sql.fragment`po_budget.amount AS "amount"`,
     forecast: sql.fragment`po_budget.forecast AS "forecast"`,
     kayttosuunnitelmanMuutos: sql.fragment`po_budget.kayttosuunnitelman_muutos AS "kayttosuunnitelmanMuutos"`,
     sapProjectId: sql.fragment`search_results.sap_project_id AS "sapProjectId"`,
+    committee: sql.fragment``,
     budgetYear: sql.fragment``,
     sapWbsId: sql.fragment`search_results.sap_wbs_id AS "sapWbsId"`,
     companyContacts: sql.fragment`
@@ -125,6 +126,7 @@ export async function workTableSearch(input: WorkTableSearch) {
     rakennuttajaUsers = [],
     suunnitteluttajaUsers = [],
     company = [],
+    committee = [],
     projectTarget = [],
   } = input;
 
@@ -195,6 +197,11 @@ export async function workTableSearch(input: WorkTableSearch) {
         ${sql.array(company, 'text')}
       )
       AND (
+        ${sql.array(committee, 'text')} = '{}'::TEXT[] OR
+        (SELECT array_agg((committee_type).id) FROM app.project_object_committee WHERE project_object_id = project_object.id) &&
+        ${sql.array(committee, 'text')}
+      )
+      AND (
         ${sql.array(projectTarget, 'text')} = '{}'::TEXT[] OR
         (pi.target).id = ANY(${sql.array(projectTarget, 'text')})
       )
@@ -207,7 +214,8 @@ export async function workTableSearch(input: WorkTableSearch) {
   ), po_budget AS (
     SELECT
       project_object_id,
-      COALESCE(SUM(budget.amount), null) AS budget,
+      (committee).id AS committee,
+      COALESCE(SUM(budget.amount), null) AS amount,
       COALESCE(SUM(budget.forecast), null) AS forecast,
       COALESCE(SUM(budget.kayttosuunnitelman_muutos), null) AS kayttosuunnitelman_muutos
     FROM app.budget
@@ -216,7 +224,7 @@ export async function workTableSearch(input: WorkTableSearch) {
         ? sql.fragment`WHERE year BETWEEN EXTRACT('year' FROM CAST(${objectStartDate} as date)) AND EXTRACT('year' FROM CAST(${objectEndDate} as date))`
         : sql.fragment``
     }
-    GROUP BY project_object_id
+    GROUP BY project_object_id, committee
   ), po_actual AS (
     SELECT
       project_object.id AS po_id,
@@ -251,7 +259,8 @@ export async function workTableSearch(input: WorkTableSearch) {
 
 async function workTableUpdate(input: WorkTableUpdate, user: User) {
   const updates = Object.entries(input).map(([projectObjectId, projectObject]) => {
-    const { budgetYear, budget, forecast, kayttosuunnitelmanMuutos, ...poUpdate } = projectObject;
+    const { budgetYear, amount, forecast, kayttosuunnitelmanMuutos, committee, ...poUpdate } =
+      projectObject;
     return {
       ...poUpdate,
       startDate: projectObject.objectDateRange?.startDate,
@@ -279,9 +288,10 @@ async function workTableUpdate(input: WorkTableUpdate, user: User) {
         budgetItems: [
           {
             year: budgetYear,
-            amount: budget,
+            amount: amount,
             forecast,
             kayttosuunnitelmanMuutos,
+            committee,
           },
         ],
       },
@@ -327,7 +337,7 @@ export const createWorkTableRouter = (t: TRPC) =>
           .forEach(({ ctx, projectObjectId }) => {
             if (!ownsProject(user, ctx) && !hasWritePermission(user, ctx)) {
               const containsNonInvestmentFinancialField = Object.keys(input[projectObjectId]).some(
-                (key) => !['budgetYear', 'budget', 'kayttosuunnitelmanMuutos'].includes(key),
+                (key) => !['budgetYear', 'amount', 'kayttosuunnitelmanMuutos'].includes(key),
               );
               if (
                 !hasPermission(user, 'investmentFinancials.write') ||

@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { DatabaseTransactionConnection } from 'slonik';
+import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit.js';
 import { codeIdFragment } from '@backend/components/code/index.js';
@@ -217,7 +218,8 @@ export async function getProjectObjectBudget(projectObjectId: string) {
         'amount', amount,
         'forecast', forecast,
         'kayttosuunnitelmanMuutos', kayttosuunnitelman_muutos
-      ) AS "budgetItems"
+      ) AS "budgetItems",
+      (committee).id AS "committee"
     FROM app.budget
     WHERE project_object_id = ${projectObjectId}
     ORDER BY year ASC
@@ -246,6 +248,7 @@ export async function updateProjectObjectBudget(
           amount: item.amount,
           forecast: item.forecast,
           kayttosuunnitelman_muutos: item.kayttosuunnitelmanMuutos,
+          committee: item.committee ? `(Lautakunta,${item.committee})` : undefined,
         }).filter(([, value]) => value !== undefined),
       ) as Required<BudgetUpdate['budgetItems'][number]>;
 
@@ -405,4 +408,37 @@ export async function getPermissionContext(
     throw new Error('Could not get permission context');
   }
   return permissionCtx;
+}
+
+export async function updateProjectObjectCommittees(
+  projectId: string,
+  projectObjectId: string,
+  committeeId?: string,
+  tx?: DatabaseTransactionConnection,
+) {
+  if (!committeeId) {
+    return;
+  }
+  const conn = tx ?? getPool();
+
+  await conn.query(sql.untyped`
+    DELETE FROM app.project_object_committee WHERE project_object_id = ${projectObjectId}
+  `);
+
+  await conn.any(sql.untyped`
+        INSERT INTO app.project_object_committee (project_id, project_object_id, committee_type)
+        VALUES (${projectId}, ${projectObjectId}, ${codeIdFragment('Lautakunta', committeeId)});
+      `);
+}
+
+export async function getCommitteesUsedByProjectObjects(
+  projectId: string,
+  tx?: DatabaseTransactionConnection,
+) {
+  const conn = tx ?? getPool();
+  return conn.any(sql.type(z.object({ id: codeId }))`
+    SELECT DISTINCT (committee_type).id AS id, (committee_type).code_list_id AS "codeListId"
+    FROM app.project_object_committee
+    WHERE project_id = ${projectId}
+  `);
 }

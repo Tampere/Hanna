@@ -1,11 +1,13 @@
 import { z } from 'zod';
 
 import { codeId } from '../code.js';
+import { nonEmptyString } from '../common.js';
 import { commonDbProjectObjectSchema, newProjectObjectSchema } from './base.js';
 
 export const newInvestmentProjectObjectSchema = newProjectObjectSchema.extend({
   objectStage: codeId,
   objectType: z.array(codeId).superRefine((value) => value.length > 0),
+  committee: nonEmptyString,
 });
 
 export const updateInvestmentProjectObjectSchema = newInvestmentProjectObjectSchema

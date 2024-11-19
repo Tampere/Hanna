@@ -13,7 +13,7 @@ const newNotification = {
 
 test.describe('permission testing', () => {
   test.afterEach(async ({ refreshAllSessions }) => {
-    refreshAllSessions();
+    await refreshAllSessions();
   });
 
   test('without admin permissions, general notifications cannot be created', async ({

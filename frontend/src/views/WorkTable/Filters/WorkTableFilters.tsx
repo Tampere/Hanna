@@ -90,9 +90,9 @@ export function WorkTableFilters(props: Props) {
         ${props.expanded ? `height: 230px; opacity: 1;` : `height: 0px; opacity: 0;`}
         ${props.expanded
           ? `display: grid;
-        grid-template-columns: repeat(13, 1fr);
+        grid-template-columns: repeat(12, 1fr);
         grid-template-rows: 1fr 1fr 1fr;
-        gap: ${theme.spacing(2)};`
+        gap: ${theme.spacing(2)} ${theme.spacing(2)};`
           : `display: flex;`}
       `}
     >
@@ -254,12 +254,22 @@ export function WorkTableFilters(props: Props) {
               maxTags={1}
             />
           </GridSpan>
-          <GridSpan row={3} span={4} wideScreenSpan={3}>
+          <GridSpan row={3} span={3} wideScreenSpan={2}>
             <CustomFormLabel htmlFor="company" label={tr('workTable.search.company')} />
             <CompanySelect
               id="company"
               value={searchParams.company ?? []}
               onChange={(state) => setSearchParams({ ...searchParams, company: state })}
+              maxTags={1}
+            />
+          </GridSpan>
+          <GridSpan row={3} span={3} wideScreenSpan={2}>
+            <CustomFormLabel htmlFor="company" label={tr('workTable.search.committee')} />
+            <CodeSelect
+              multiple
+              codeListId="Lautakunta"
+              value={searchParams.committee ?? []}
+              onChange={(state) => setSearchParams({ ...searchParams, committee: state })}
               maxTags={1}
             />
           </GridSpan>

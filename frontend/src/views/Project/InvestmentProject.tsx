@@ -300,6 +300,9 @@ export function InvestmentProject() {
                   indicatorColor="primary"
                   textColor="primary"
                   TabIndicatorProps={{ sx: { height: '5px' } }}
+                  css={css`
+                    outline: ${tabView === 'talous' ? '1px solid #e0e0e0' : 'none'};
+                  `}
                 >
                   {tabs.map((tab) => {
                     const projectInFuture = dayjs(project.data?.startDate).year() > dayjs().year();

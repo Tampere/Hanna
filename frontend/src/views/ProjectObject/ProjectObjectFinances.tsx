@@ -6,12 +6,13 @@ import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 import { getRange } from '@frontend/utils/array';
 
+import { ProjectYearBudget } from '@shared/schema/project';
 import { ProjectType } from '@shared/schema/project/type';
 import { CommonDbProjectObject } from '@shared/schema/projectObject/base';
 
-import { BudgetFields, BudgetTable } from '../Project/BudgetTable';
+import { BudgetField, BudgetTable } from '../Project/BudgetTable';
 
-interface Props<TProjectObject extends CommonDbProjectObject> {
+interface Props<TProjectObject extends CommonDbProjectObject & { committee?: string }> {
   projectObject: { projectType: Omit<ProjectType, 'detailplanProject'>; data: TProjectObject };
   userIsFinanceEditor?: boolean;
   userIsEditor?: boolean;
@@ -21,7 +22,7 @@ interface Props<TProjectObject extends CommonDbProjectObject> {
 }
 
 export const ProjectObjectFinances = forwardRef(function ProjectObjectFinances<
-  TProjectObject extends CommonDbProjectObject,
+  TProjectObject extends CommonDbProjectObject & { committee?: string },
 >(props: Props<TProjectObject>, ref: React.ForwardedRef<unknown>) {
   const { projectObject } = props;
   const budget = !projectObject.data.projectObjectId
@@ -45,11 +46,7 @@ export const ProjectObjectFinances = forwardRef(function ProjectObjectFinances<
     return getRange(startYear, endYear);
   }, [projectObject.data?.startDate, projectObject.data?.endDate]);
 
-  const saveBudgetMutation = trpc[
-    projectObject.projectType === 'investmentProject'
-      ? 'investmentProjectObject'
-      : 'maintenanceProjectObject'
-  ].updateBudget.useMutation({
+  const saveBudgetMutationOptions = {
     onSuccess() {
       notify({
         severity: 'success',
@@ -63,9 +60,60 @@ export const ProjectObjectFinances = forwardRef(function ProjectObjectFinances<
         title: tr('budgetTable.notifySaveFailed'),
       });
     },
-  });
+  };
 
-  function getWritableFields(): BudgetFields[] {
+  const saveInvestmentBudgetMutation =
+    trpc.investmentProjectObject.updateBudget.useMutation(saveBudgetMutationOptions);
+  const saveMaintenanceBudgetMutation =
+    trpc.maintenanceProjectObject.updateBudget.useMutation(saveBudgetMutationOptions);
+
+  async function handleSaveBudget(yearBudgets: ProjectYearBudget[]) {
+    if (projectObject.data) {
+      // for typescript to know that project.data is not null or undefined
+      if (projectObject.projectType === 'investmentProject') {
+        type InvestmentProjectBudget = ProjectYearBudget['budgetItems'] & {
+          year: number;
+          committee: string;
+        };
+        const payload = yearBudgets
+          .map((yearBudget) => ({
+            ...yearBudget.budgetItems,
+            year: yearBudget.year,
+            committee: yearBudget.committee,
+          }))
+          .filter<InvestmentProjectBudget>((item): item is InvestmentProjectBudget =>
+            Boolean(item.committee),
+          );
+        console.log(payload);
+        await saveInvestmentBudgetMutation.mutateAsync({
+          projectObjectId: projectObject.data.projectObjectId as string,
+          budgetItems: payload,
+        });
+      } else {
+        type MaintenanceProjectBudget = ProjectYearBudget['budgetItems'] & {
+          year: number;
+          committee: null;
+        };
+        const payload = yearBudgets
+          .map((yearBudget) => ({
+            ...yearBudget.budgetItems,
+            year: yearBudget.year,
+            committee: null,
+          }))
+          .filter<MaintenanceProjectBudget>((item): item is MaintenanceProjectBudget =>
+            Boolean(item),
+          );
+        await saveMaintenanceBudgetMutation.mutateAsync({
+          projectObjectId: projectObject.data.projectObjectId as string,
+          budgetItems: payload,
+        });
+      }
+    }
+    props.onSave?.();
+    budget?.refetch();
+  }
+
+  function getWritableFields(): BudgetField[] {
     if (props.userIsAdmin) {
       return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
     } else if (props.userIsEditor) {
@@ -101,29 +149,31 @@ export const ProjectObjectFinances = forwardRef(function ProjectObjectFinances<
       ref={ref}
       years={years}
       budget={budget.data}
+      committees={[...(projectObject.data.committee ? [projectObject.data.committee] : [])]}
       actuals={yearlyActuals.data}
       actualsLoading={yearlyActuals.isFetching}
-      fields={[
-        'estimate',
-        'contractPrice',
-        'amount',
-        'forecast',
-        'kayttosuunnitelmanMuutos',
-        'actual',
-      ]}
+      fields={
+        projectObject.projectType === 'investmentProject'
+          ? [
+              'committee',
+              'estimate',
+              'contractPrice',
+              'amount',
+              'forecast',
+              'kayttosuunnitelmanMuutos',
+              'actual',
+            ]
+          : [
+              'estimate',
+              'contractPrice',
+              'amount',
+              'forecast',
+              'kayttosuunnitelmanMuutos',
+              'actual',
+            ]
+      }
       writableFields={getWritableFields()}
-      onSave={async (yearBudgets) => {
-        const payload = yearBudgets.map((yearBudget) => ({
-          ...yearBudget.budgetItems,
-          year: yearBudget.year,
-        }));
-        await saveBudgetMutation.mutateAsync({
-          projectObjectId: projectObject.data.projectObjectId,
-          budgetItems: payload,
-        });
-        budget.refetch();
-        props.onSave?.();
-      }}
+      onSave={handleSaveBudget}
       customTooltips={{
         estimate: tr('budgetTable.projectObjectEstimateHelp'),
         year:

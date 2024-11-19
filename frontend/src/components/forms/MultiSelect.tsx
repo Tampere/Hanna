@@ -17,6 +17,8 @@ import { useTranslations } from '@frontend/stores/lang';
 export type Props<T> = {
   id?: string;
   options: readonly T[];
+  disabledOptions?: readonly T[];
+  disabledTooltip?: string;
   loading?: boolean;
   disabled?: boolean;
   readOnly?: boolean;
@@ -48,6 +50,8 @@ export type Props<T> = {
 export function MultiSelect<T>({
   id,
   options,
+  disabledOptions,
+  disabledTooltip,
   loading,
   multiple,
   value,
@@ -84,6 +88,8 @@ export function MultiSelect<T>({
   function getId(option: T) {
     return getOptionId?.(option) ?? String(option);
   }
+
+  const disabledOptionIds = disabledOptions?.map(getId);
 
   return (
     <Autocomplete
@@ -173,7 +179,8 @@ export function MultiSelect<T>({
           </>
         ) : maxTags == null || value.length <= maxTags ? (
           // Only render the tags if the limit is not exceeded
-          value.map((tag, index) => {
+          value.map((id, index) => {
+            const isDisabled = Boolean(id && disabledOptionIds?.includes(id));
             const { key, ...props } = getTagProps({ index });
             return (
               <Chip
@@ -191,9 +198,10 @@ export function MultiSelect<T>({
                   }
                 `}
                 {...props}
+                {...(isDisabled && { onDelete: undefined })}
                 size="small"
-                title={getLabel(tag)}
-                label={optionLabelElement?.(tag) ?? getLabel(tag)}
+                title={getLabel(id)}
+                label={optionLabelElement?.(id) ?? getLabel(id)}
               />
             );
           })
@@ -201,19 +209,33 @@ export function MultiSelect<T>({
       }}
       renderOption={
         renderOption ??
-        ((props, id, { selected }) => (
-          <li {...props} style={{ hyphens: 'auto' }} key={id}>
-            {multiple && (
-              <Checkbox
-                icon={<CheckBoxOutlineBlank fontSize="small" />}
-                checkedIcon={<CheckBox fontSize="small" />}
-                sx={{ mr: 1 }}
-                checked={selected}
-              />
-            )}
-            {getLabel(id)}
-          </li>
-        ))
+        ((props, id, { selected }) => {
+          const isDisabled = Boolean(id && disabledOptionIds?.includes(id));
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { key, ...restProps } = props;
+          return (
+            <span key={id} {...(isDisabled && { title: disabledTooltip })}>
+              <li
+                {...restProps}
+                style={{
+                  hyphens: 'auto',
+                  ...(isDisabled && { pointerEvents: 'none', color: 'grey' }),
+                }}
+              >
+                {multiple && (
+                  <Checkbox
+                    disabled={isDisabled}
+                    icon={<CheckBoxOutlineBlank fontSize="small" />}
+                    checkedIcon={<CheckBox fontSize="small" />}
+                    sx={{ mr: 1 }}
+                    checked={selected}
+                  />
+                )}
+                {getLabel(id)}
+              </li>
+            </span>
+          );
+        })
       }
       renderInput={(params) => (
         <TextField
@@ -232,6 +254,6 @@ export function MultiSelect<T>({
           }}
         />
       )}
-    ></Autocomplete>
+    />
   );
 }

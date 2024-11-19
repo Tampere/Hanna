@@ -5,6 +5,7 @@ import {
   deleteProject,
   getPermissionContext,
   getProject,
+  getProjectCommitteesWithCodes,
   getProjectUserPermissions,
   projectPermissionUpsert,
 } from '@backend/components/project/base.js';
@@ -16,6 +17,7 @@ import {
   updateProjectGeometry,
 } from '@backend/components/project/index.js';
 import { listProjects, projectSearch } from '@backend/components/project/search.js';
+import { getCommitteesUsedByProjectObjects as getCommitteesAssignedToProjectObjects } from '@backend/components/projectObject/index.js';
 import { getProjectObjectsByProjectSearch } from '@backend/components/projectObject/search.js';
 import { startReportJob } from '@backend/components/taskQueue/reportQueue.js';
 import { getPool } from '@backend/db.js';
@@ -123,6 +125,17 @@ export const createProjectRouter = (t: TRPC) => {
     getBudget: t.procedure.input(projectIdSchema).query(async ({ input }) => {
       return getProjectBudget(input.projectId);
     }),
+
+    getCommittees: t.procedure.input(projectIdSchema).query(async ({ input }) => {
+      return getProjectCommitteesWithCodes(input.projectId);
+    }),
+
+    getCommitteesAssignedToProjectObjects: t.procedure
+      .input(projectIdSchema)
+      .query(async ({ input }) => {
+        const result = await getCommitteesAssignedToProjectObjects(input.projectId);
+        return result.map((committee) => committee.id);
+      }),
 
     startReportJob: t.procedure.input(projectSearchSchema).query(async ({ input }) => {
       return await startReportJob(input);

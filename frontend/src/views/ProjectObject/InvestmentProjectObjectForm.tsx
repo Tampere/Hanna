@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 import { trpc } from '@frontend/client';
 import {
@@ -16,6 +16,7 @@ import {
   getFormValidator,
 } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
+import { CommitteeSelect } from '@frontend/components/forms/CommitteeSelect';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
@@ -82,6 +83,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
   const notify = useNotifications();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { projectId } = useParams() as { projectId: string };
   const setDirtyAndValidViews = useSetAtom(dirtyAndValidFieldsAtom);
   const [newProjectObjectIds, setNewProjectObjectIds] = useState<{
     projectObjectId: string;
@@ -175,6 +177,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
       projectId: props.projectId,
       objectName: '',
       description: '',
+      committee: '',
       startDate: '',
       endDate: '',
       objectUserRoles: [],
@@ -409,6 +412,20 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
                 multiple
                 codeListId="KohteenToiminnallinenKayttoTarkoitus"
                 readOnly={!editing}
+              />
+            )}
+          />
+
+          <FormField
+            formField="committee"
+            label={tr('projectObject.committeeLabel')}
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            component={({ ref, ...field }) => (
+              <CommitteeSelect
+                {...field}
+                readOnly={!editing}
+                projectId={projectId}
+                itemType="projectObject"
               />
             )}
           />

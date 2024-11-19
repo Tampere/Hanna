@@ -31,12 +31,13 @@ const invalidDateProject = {
   target: '01',
 };
 
-const testProjectObject = (projectId: string, user: User) => ({
+const testProjectObject = (projectId: string, committees: string[], user: User) => ({
   projectId,
   description: 'Test description',
   objectName: 'Test project object',
   objectStage: '01',
   lifecycleState: '01',
+  committee: committees[0],
   objectType: ['01'],
   objectCategory: ['01'],
   objectUsage: ['01'],
@@ -129,12 +130,14 @@ test.describe('Project endpoints', () => {
     const project = await devSession.client.investmentProject.upsert.mutate({
       project: validProject(user.id),
     });
+
     const budgetUpdateInput = {
       projectId: project.projectId,
       budgetItems: [
         {
           year: 2021,
           estimate: 50000,
+          committee: project.committees[0],
         },
       ],
     };
@@ -146,7 +149,7 @@ test.describe('Project endpoints', () => {
     const validationResultWithBudget =
       await devSession.client.investmentProject.upsertValidate.query(projectWithNewDates);
 
-    const projectObject = testProjectObject(project.projectId, user);
+    const projectObject = testProjectObject(project.projectId, project.committees, user);
 
     await devSession.client.investmentProjectObject.upsert.mutate(projectObject);
 
@@ -204,10 +207,12 @@ test.describe('Project endpoints', () => {
         {
           year: 2021,
           estimate: 50000,
+          committee: project.committees[0],
         },
         {
           year: 2022,
           estimate: 60000,
+          committee: project.committees[0],
         },
       ],
     };
@@ -231,6 +236,7 @@ test.describe('Project endpoints', () => {
           forecast: null,
           kayttosuunnitelmanMuutos: null,
         },
+        committee: project.committees[0],
       },
       {
         year: 2022,
@@ -240,6 +246,7 @@ test.describe('Project endpoints', () => {
           forecast: null,
           kayttosuunnitelmanMuutos: null,
         },
+        committee: project.committees[0],
       },
     ]);
 
@@ -249,6 +256,7 @@ test.describe('Project endpoints', () => {
         {
           year: 2021,
           estimate: 70000,
+          committee: project.committees[0],
         },
       ],
     };
@@ -261,6 +269,7 @@ test.describe('Project endpoints', () => {
     expect(updatedBudgetResult2021).toStrictEqual([
       {
         year: 2021,
+        committee: project.committees[0],
         budgetItems: {
           estimate: 70000,
           amount: null,
@@ -270,6 +279,7 @@ test.describe('Project endpoints', () => {
       },
       {
         year: 2022,
+        committee: project.committees[0],
         budgetItems: {
           estimate: 60000,
           amount: null,
@@ -293,10 +303,12 @@ test.describe('Project endpoints', () => {
         {
           year: 2021,
           estimate: 50000,
+          committee: null,
         },
         {
           year: 2022,
           estimate: 60000,
+          committee: null,
         },
       ],
     };
@@ -320,6 +332,7 @@ test.describe('Project endpoints', () => {
           forecast: null,
           kayttosuunnitelmanMuutos: null,
         },
+        committee: null,
       },
       {
         year: 2022,
@@ -329,6 +342,7 @@ test.describe('Project endpoints', () => {
           forecast: null,
           kayttosuunnitelmanMuutos: null,
         },
+        committee: null,
       },
     ]);
 
@@ -338,6 +352,7 @@ test.describe('Project endpoints', () => {
         {
           year: 2021,
           estimate: 70000,
+          committee: null,
         },
       ],
     };
@@ -356,6 +371,7 @@ test.describe('Project endpoints', () => {
           forecast: null,
           kayttosuunnitelmanMuutos: null,
         },
+        committee: null,
       },
       {
         year: 2022,
@@ -365,6 +381,7 @@ test.describe('Project endpoints', () => {
           forecast: null,
           kayttosuunnitelmanMuutos: null,
         },
+        committee: null,
       },
     ]);
   });

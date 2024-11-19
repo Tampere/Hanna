@@ -16,9 +16,9 @@ import { createAccessMiddleware } from '@backend/router/projectObject/base.js';
 
 import {
   getProjectObjectParams,
-  updateBudgetFinancialWriterSchema,
-  updateBudgetOwnerWriterSchema,
-  updateBudgetSchema,
+  updateMaintenanceBudgetFinancialWriterSchema,
+  updateMaintenanceBudgetOwnerWriterSchema,
+  updateMaintenanceBudgetSchema,
 } from '@shared/schema/projectObject/base.js';
 import {
   hasPermission,
@@ -56,7 +56,7 @@ export const createMaintenanceProjectObjectRouter = (t: TRPC) => {
       });
     }),
     updateBudget: t.procedure
-      .input(updateBudgetSchema.required())
+      .input(updateMaintenanceBudgetSchema.required())
       .use(
         withAccess(
           (usr, ctx, input) =>
@@ -64,9 +64,9 @@ export const createMaintenanceProjectObjectRouter = (t: TRPC) => {
             ((ownsProject(usr, ctx) || hasWritePermission(usr, ctx)) &&
               hasPermission(usr, 'maintenanceFinancials.write')) ||
             ((ownsProject(usr, ctx) || hasWritePermission(usr, ctx)) &&
-              Boolean(updateBudgetOwnerWriterSchema.safeParse(input).success)) ||
+              Boolean(updateMaintenanceBudgetOwnerWriterSchema.safeParse(input).success)) ||
             (hasPermission(usr, 'maintenanceFinancials.write') &&
-              Boolean(updateBudgetFinancialWriterSchema.safeParse(input).success)),
+              Boolean(updateMaintenanceBudgetFinancialWriterSchema.safeParse(input).success)),
         ),
       )
       .mutation(async ({ input, ctx }) => {
