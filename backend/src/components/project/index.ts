@@ -2,6 +2,7 @@ import { DatabaseTransactionConnection } from 'slonik';
 
 import { addAuditEvent } from '@backend/components/audit.js';
 import { getPool, sql } from '@backend/db.js';
+import { logger } from '@backend/logging.js';
 
 import {
   BudgetUpdate,
@@ -13,6 +14,9 @@ import {
   yearBudgetSchema,
 } from '@shared/schema/project/index.js';
 import { User } from '@shared/schema/user.js';
+
+import { codeIdFragment } from '../code/index.js';
+import { getCommitteesUsedByProjectObjects } from '../projectObject/index.js';
 
 export async function addProjectRelation(
   projectId: string,
@@ -161,7 +165,8 @@ export async function getProjectBudget(projectId: string) {
     WITH project_budget AS (
       SELECT
         "year",
-        estimate
+        estimate,
+        committee
       FROM app.budget
       WHERE project_id = ${projectId}
     ), project_object_budget AS (
@@ -169,13 +174,15 @@ export async function getProjectBudget(projectId: string) {
         year,
         sum(amount) AS amount,
         sum(forecast) AS forecast,
-        sum(kayttosuunnitelman_muutos) AS kayttosuunnitelman_muutos
+        sum(kayttosuunnitelman_muutos) AS kayttosuunnitelman_muutos,
+        committee
       FROM app.budget
       WHERE project_object_id IN (SELECT id FROM app.project_object WHERE project_id = ${projectId} AND deleted = false)
-      GROUP BY "year"
+      GROUP BY "year", committee
     )
     SELECT
       coalesce(project_budget.year, project_object_budget.year) AS "year",
+      coalesce((project_budget.committee).id, (project_object_budget.committee).id) AS "committee",
       jsonb_build_object(
         'estimate', project_budget.estimate,
         'amount', project_object_budget.amount,
@@ -183,7 +190,7 @@ export async function getProjectBudget(projectId: string) {
         'kayttosuunnitelmanMuutos', project_object_budget.kayttosuunnitelman_muutos
       ) AS "budgetItems"
     FROM project_budget
-    FULL OUTER JOIN project_object_budget ON project_budget.year = project_object_budget.year
+    FULL OUTER JOIN project_object_budget ON project_budget.year = project_object_budget.year AND project_budget.committee = project_object_budget.committee
     ORDER BY "year" ASC
   `);
 }
@@ -200,20 +207,74 @@ export async function updateProjectBudget(
     eventUser: userId,
   });
 
-  await tx.any(sql.untyped`
-    DELETE FROM app.budget
-    WHERE project_id = ${projectId}
-      AND year = ANY (${sql.array(
-        budgetItems.map((budgetItem) => budgetItem.year),
-        'int4',
-      )})
-  `);
+  const withCommittees = budgetItems.every((budgetItem) => budgetItem.committee !== null);
+
+  if (withCommittees) {
+    await tx.any(sql.untyped`
+      DELETE FROM app.budget
+      WHERE project_id = ${projectId}
+        AND (year, (committee).id)
+          IN (VALUES ${sql.join(
+            budgetItems.map(
+              (budgetItem) =>
+                sql.fragment`(${sql.join(
+                  [budgetItem.year, budgetItem.committee],
+                  sql.fragment`::int4, `,
+                )})`,
+            ),
+            sql.fragment`, `,
+          )})
+    `);
+  } else {
+    await tx.any(sql.untyped`
+      DELETE FROM app.budget
+      WHERE project_id = ${projectId}
+        AND year = ANY(${sql.array(
+          budgetItems.map((budgetItem) => budgetItem.year),
+          'int4',
+        )})
+        AND committee IS NULL
+    `);
+  }
 
   await tx.any(sql.untyped`
-    INSERT INTO app.budget (project_id, "year", estimate)
-    SELECT * FROM ${sql.unnest(
-      budgetItems.map((row) => [projectId, row.year, row.estimate]),
-      ['uuid', 'int4', 'int8'],
-    )}
+    INSERT INTO app.budget (project_id, year, estimate, committee)
+    SELECT t.project_id, year, estimate,
+      CASE
+        WHEN committee IS NULL THEN NULL
+        ELSE ROW('Lautakunta', committee)::app.code_id
+      END
+    FROM ${sql.unnest(
+      budgetItems.map((row) => [projectId, row.year, row.estimate, row.committee]),
+      ['uuid', 'int4', 'int8', 'text'],
+    )} AS t(project_id, year, estimate, committee)
   `);
+}
+
+export async function updateProjectCommittees(
+  projectId: string,
+  committees: string[],
+  tx: DatabaseTransactionConnection,
+) {
+  const committeesUsedByProjectObjects = await getCommitteesUsedByProjectObjects(projectId, tx);
+
+  await tx.any(
+    sql.untyped`DELETE FROM app.project_committee WHERE project_id = ${projectId} AND (committee_type).id <> ALL(${sql.array(
+      committeesUsedByProjectObjects.map((committee) => committee.id),
+      'text',
+    )})`,
+  );
+
+  for (const committee of committees) {
+    if (committeesUsedByProjectObjects.some((committeeUsed) => committeeUsed.id === committee)) {
+      continue;
+    }
+    await tx.any(sql.untyped`
+      INSERT INTO app.project_committee (project_id, committee_type)
+      VALUES (
+        ${projectId},
+        ${codeIdFragment('Lautakunta', committee)}
+      );
+    `);
+  }
 }

@@ -160,6 +160,7 @@ export function DetailplanProject() {
                 css={css`
                   min-height: ${editing ? 0 : 48}px;
                   height: ${editing ? 0 : 48}px;
+
                   transition:
                     min-height 0.2s,
                     height 0.2s;

@@ -14,9 +14,9 @@ import { createAccessMiddleware } from '@backend/router/projectObject/base.js';
 
 import {
   getProjectObjectParams,
-  updateBudgetFinancialWriterSchema,
-  updateBudgetOwnerWriterSchema,
-  updateBudgetSchema,
+  updateInvestmentBudgetFinancialWriterSchema,
+  updateInvestmentBudgetOwnerWriterSchema,
+  updateInvestmentBudgetSchema,
 } from '@shared/schema/projectObject/base.js';
 import { upsertInvestmentProjectObjectSchema } from '@shared/schema/projectObject/investment.js';
 import {
@@ -64,7 +64,7 @@ export const createInvestmentProjectObjectRouter = (t: TRPC) => {
         });
       }),
     updateBudget: t.procedure
-      .input(updateBudgetSchema.required())
+      .input(updateInvestmentBudgetSchema.required())
       .use(
         withAccess(
           (usr, ctx, input) =>
@@ -72,9 +72,9 @@ export const createInvestmentProjectObjectRouter = (t: TRPC) => {
             ((ownsProject(usr, ctx) || hasWritePermission(usr, ctx)) &&
               hasPermission(usr, 'investmentFinancials.write')) ||
             ((ownsProject(usr, ctx) || hasWritePermission(usr, ctx)) &&
-              Boolean(updateBudgetOwnerWriterSchema.safeParse(input).success)) ||
+              Boolean(updateInvestmentBudgetOwnerWriterSchema.safeParse(input).success)) ||
             (hasPermission(usr, 'investmentFinancials.write') &&
-              Boolean(updateBudgetFinancialWriterSchema.safeParse(input).success)),
+              Boolean(updateInvestmentBudgetFinancialWriterSchema.safeParse(input).success)),
         ),
       )
 

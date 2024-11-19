@@ -13,7 +13,6 @@ import {
   ResolverOptions,
   useFormContext,
 } from 'react-hook-form';
-import { ZodObject, ZodType, objectUtil } from 'zod';
 
 import { useTranslations } from '@frontend/stores/lang';
 import { getRequiredFields } from '@frontend/utils/form';
@@ -112,6 +111,7 @@ interface FormFieldProps<T extends object> {
   component: (
     field: ControllerRenderProps<FieldValues, string> & { id?: string },
   ) => React.ReactElement;
+  className?: string;
 }
 
 export function FormField<T extends object = any>({
@@ -120,6 +120,7 @@ export function FormField<T extends object = any>({
   errorTooltip: tooltip,
   helpTooltip,
   component,
+  className,
 }: FormFieldProps<T>) {
   const { control } = useFormContext();
 
@@ -133,7 +134,7 @@ export function FormField<T extends object = any>({
       control={control}
       render={({ field, fieldState }) => {
         return (
-          <FormControl margin="dense">
+          <FormControl margin="dense" className={className}>
             <FormLabelWrapper
               htmlFor={String(formField)}
               label={label}

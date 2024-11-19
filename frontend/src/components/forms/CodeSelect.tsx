@@ -16,7 +16,6 @@ type Props = {
   getLabel?: (code: Code) => string;
   showIdInLabel?: boolean;
   allowEmptySelection?: boolean;
-  options?: Code[];
   disableClearable?: boolean;
 } & (
   | {
@@ -44,7 +43,6 @@ export function CodeSelect({
   showIdInLabel,
   maxTags,
   allowEmptySelection,
-  options,
   disableClearable,
 }: Props) {
   const codes = trpc.code.get.useQuery(
@@ -80,7 +78,7 @@ export function CodeSelect({
       id={id}
       readOnly={readOnly}
       onBlur={onBlur}
-      options={options ?? codes.data ?? []}
+      options={codes.data ?? []}
       loading={codes.isLoading}
       getOptionLabel={getLabel}
       getOptionId={(code) => code.id.id}
@@ -97,7 +95,7 @@ export function CodeSelect({
       id={id}
       readOnly={readOnly}
       onBlur={onBlur}
-      options={options ?? codes.data ?? []}
+      options={codes.data ?? []}
       loading={codes.isLoading}
       getOptionLabel={getLabel}
       getOptionId={(code) => code.id.id}

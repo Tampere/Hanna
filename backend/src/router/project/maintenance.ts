@@ -13,7 +13,7 @@ import { TRPC } from '@backend/router/index.js';
 import { createAccessMiddleware } from '@backend/router/project/base.js';
 
 import { projectIdSchema } from '@shared/schema/project/base.js';
-import { budgetUpdateSchema } from '@shared/schema/project/index.js';
+import { maintenanceBudgetUpdateSchema } from '@shared/schema/project/index.js';
 import { maintenanceProjectSchema } from '@shared/schema/project/maintenance.js';
 import { hasPermission, hasWritePermission, ownsProject } from '@shared/schema/userPermissions.js';
 
@@ -52,7 +52,7 @@ export const createMaintenanceProjectRouter = (t: TRPC) => {
         return await projectUpsert(project, ctx.user, keepOwnerRights);
       }),
     updateBudget: t.procedure
-      .input(budgetUpdateSchema)
+      .input(maintenanceBudgetUpdateSchema)
       .use(withAccess((usr, ctx) => ownsProject(usr, ctx) || hasWritePermission(usr, ctx)))
       .mutation(async ({ input, ctx }) => {
         return await getPool().transaction(async (tx) => {

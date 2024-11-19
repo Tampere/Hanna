@@ -32,6 +32,7 @@ export const testMaintenanceProject = (user: User) => ({
 
 export const testProjectObject = (
   projectId: string,
+  projectCommittees: string[],
   user: User,
   type: ObjectType = 'investment',
 ) => ({
@@ -43,6 +44,7 @@ export const testProjectObject = (
   objectType: ['01'],
   objectCategory: ['01'],
   objectUsage: ['01'],
+  committee: projectCommittees[0],
   suunnitteluttajaUser: user.id,
   rakennuttajaUser: user.id,
   startDate: '2021-01-01',
@@ -56,12 +58,14 @@ export const testProjectObject = (
 
 export const testProjectObject2 = (
   projectId: string,
+  projectCommittees: string[],
   user: User,
   type: ObjectType = 'investment',
 ) => ({
   projectId,
   description: 'Test description 2',
   objectName: 'Test project object 2',
+  committee: projectCommittees[0],
   lifecycleState: '01',
   objectCategory: ['01'],
   objectUsage: ['01'],
@@ -84,12 +88,14 @@ export const testProjectObject2 = (
 
 export const testProjectObject3 = (
   projectId: string,
+  projectCommittees: string[],
   user: User,
   type: ObjectType = 'investment',
 ) => ({
   projectId,
   description: 'Test description 3',
   objectName: 'Test project object 3',
+  committee: projectCommittees[0],
   lifecycleState: '01',
   objectCategory: ['01'],
   objectUsage: ['01'],
@@ -112,12 +118,14 @@ export const testProjectObject3 = (
 
 export const invalidDateProjectObject = (
   projectId: string,
+  projectCommittees: string[],
   user: User,
   type: ObjectType = 'investment',
 ) => ({
   projectId: projectId,
   description: 'Test description',
   objectName: 'Test project object',
+  committee: projectCommittees[0],
   lifecycleState: '01',
   objectCategory: ['01'],
   objectUsage: ['01'],

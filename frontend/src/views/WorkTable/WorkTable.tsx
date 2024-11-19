@@ -386,11 +386,11 @@ export default function WorkTable() {
     if (!auth) return [];
 
     if (isAdmin(auth.role)) {
-      return ['budget', 'forecast', 'kayttosuunnitelmanMuutos'];
+      return ['amount', 'forecast', 'kayttosuunnitelmanMuutos'];
     } else if (hasPermission(auth, 'investmentFinancials.write')) {
       if (hasWritePermission(auth, permissionCtx) || ownsProject(auth, permissionCtx))
-        return ['forecast', 'budget', 'kayttosuunnitelmanMuutos'];
-      return ['budget', 'kayttosuunnitelmanMuutos'];
+        return ['forecast', 'amount', 'kayttosuunnitelmanMuutos'];
+      return ['amount', 'kayttosuunnitelmanMuutos'];
     } else if (hasWritePermission(auth, permissionCtx) || ownsProject(auth, permissionCtx)) {
       return ['forecast'];
     } else {
@@ -616,7 +616,7 @@ export default function WorkTable() {
         slots={{ noRowsOverlay: NoRowsOverlay }}
         onResize={handleSummaryRowResize}
         isCellEditable={({ row, field }: { row: WorkTableRow; field: string }) => {
-          if (['budget', 'forecast', 'kayttosuunnitelmanMuutos'].includes(field)) {
+          if (['amount', 'forecast', 'kayttosuunnitelmanMuutos'].includes(field)) {
             return getWritableBudgetFields(row.permissionCtx).includes(
               field as WorkTableFinanceField,
             );

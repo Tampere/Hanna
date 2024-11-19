@@ -156,7 +156,7 @@ export async function setupWorkTableReportQueue() {
           users.find((user) => user.id === row.operatives.rakennuttajaUser)?.name ?? null,
         suunnitteluttajaUser: (row) =>
           users.find((user) => user.id === row.operatives.suunnitteluttajaUser)?.name ?? null,
-        budget: (row) => (row.budget == null ? null : row.budget / 100),
+        amount: (row) => (row.amount == null ? null : row.amount / 100),
         actual: (row) => (row.actual == null ? null : row.actual / 100),
         forecast: (row) => (row.forecast == null ? null : row.forecast / 100),
         kayttosuunnitelmanMuutos: (row) =>
@@ -181,7 +181,7 @@ export async function setupWorkTableReportQueue() {
         });
       }
 
-      const financeColumns = ['budget', 'actual', 'forecast', 'kayttosuunnitelmanMuutos'];
+      const financeColumns = ['amount', 'actual', 'forecast', 'kayttosuunnitelmanMuutos'];
 
       const sheet = buildSheet<ReportColumnKey>({
         workbook,
@@ -189,7 +189,7 @@ export async function setupWorkTableReportQueue() {
         rows: getRows(),
         headers: headers,
         types: {
-          budget: 'currency',
+          amount: 'currency',
           actual: 'currency',
           forecast: 'currency',
           kayttosuunnitelmanMuutos: 'currency',

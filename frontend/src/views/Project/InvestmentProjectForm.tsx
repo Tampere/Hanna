@@ -17,6 +17,7 @@ import {
   getFormValidator,
 } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
+import { CommitteeSelect } from '@frontend/components/forms/CommitteeSelect';
 import { SapProjectIdField } from '@frontend/components/forms/SapProjectIdField';
 import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
@@ -374,14 +375,15 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
             formField="committees"
             label={tr('project.committeeLabel')}
             errorTooltip={tr('newProject.committeeTooltip')}
-            component={({ id, onChange, value }) => (
-              <CodeSelect
+            component={({ id, onChange, value, onBlur }) => (
+              <CommitteeSelect
                 id={id}
-                // Coerce the single value into an array (support for multiple committees will be added later)
-                value={value?.[0]}
-                onChange={(value) => onChange(!value ? [] : [value])}
+                onBlur={onBlur}
+                value={value}
+                onChange={(value) => onChange(!value ? [] : value)}
                 readOnly={!editing}
-                codeListId="Lautakunta"
+                projectId={props.project?.projectId}
+                itemType="project"
               />
             )}
           />

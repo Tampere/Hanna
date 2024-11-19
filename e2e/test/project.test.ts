@@ -67,7 +67,7 @@ async function createProject(
   }
 
   await page.getByLabel('Lautakunta *', { exact: true }).click();
-  await page.getByRole('option', { name: 'Yhdyskuntalautakunta' }).click();
+  await page.getByRole('option', { name: 'Yhdyskuntalautakunta' }).getByRole('checkbox').check();
 
   await page.getByRole('button', { name: 'Tallenna' }).click();
 

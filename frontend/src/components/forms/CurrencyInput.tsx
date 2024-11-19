@@ -46,7 +46,7 @@ export function numericValueToText(value: number | null): string {
     return '';
   }
   if (value < 0) {
-    return `-${numericValueToText(-value)}`;
+    return `-${numericValueToText(Math.abs(value))}`;
   }
   const whole = Math.floor(value / 100);
   const decimals = String(value % 100);
@@ -62,7 +62,7 @@ export function formatCurrency(value: number | null) {
 export function CurrencyInput(props: Readonly<Props>) {
   const [value, setValue] = useState<string>(numericValueToText(props.value));
   const [editing, setEditing] = useState(props.editing ?? false);
-  const { style = { width: 144 } } = props;
+  const { style = { width: 157 } } = props;
 
   useEffect(() => {
     if (props.directlyHandleValueChange && editing) {
@@ -73,6 +73,8 @@ export function CurrencyInput(props: Readonly<Props>) {
   }, [props.value]);
 
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const textColor = props?.getColor?.(props.value ?? null) ?? style.color ?? 'inherit';
 
   return (
     <CurrencyInputField
@@ -87,11 +89,11 @@ export function CurrencyInput(props: Readonly<Props>) {
               backgroundColor: 'rgba(0, 0, 0, 0.08)',
               border: 'none',
               outline: 'none',
-              color: props?.getColor?.(props.value ?? null) ?? 'inherit',
+              color: textColor,
               textAlign: 'right',
               padding: 6,
             }
-          : style
+          : { ...style, color: textColor }
       }
       suffix="&nbsp;€"
       // NOTE: react-currency-input-field negative values broken with 'fi-FI' locale
@@ -105,9 +107,6 @@ export function CurrencyInput(props: Readonly<Props>) {
       css={css`
         text-align: right;
         padding: 6px;
-        &:not(:focus) {
-          color: ${props?.getColor?.(props.value ?? null) ?? 'inherit'};
-        }
       `}
       id={props.id}
       name={props.name}

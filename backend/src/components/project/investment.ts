@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { DatabaseTransactionConnection } from 'slonik';
+import { codeIdSchema } from 'tre-hanna-shared/src/schema/code.js';
 import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit.js';
@@ -9,7 +10,10 @@ import {
   validateUpsertProject as baseProjectValidate,
   getProjectGeometryDumpFragment,
 } from '@backend/components/project/base.js';
-import { updateProjectGeometry } from '@backend/components/project/index.js';
+import {
+  updateProjectCommittees,
+  updateProjectGeometry,
+} from '@backend/components/project/index.js';
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
 
@@ -55,7 +59,7 @@ export async function getProject(id: string, tx?: DatabaseTransactionConnection)
 
   if (!project) throw new TRPCError({ code: 'NOT_FOUND' });
 
-  const committees = await conn.any(sql.type(z.object({ id: z.string() }))`
+  const committees = await conn.any(sql.type(z.object({ id: codeIdSchema.shape.id }))`
     SELECT (committee_type).id
     FROM app.project_committee
     WHERE project_id = ${id}
@@ -108,22 +112,7 @@ export async function projectUpsert(
         RETURNING id AS "projectId"
       `);
 
-    await tx.query(sql.untyped`
-      DELETE FROM app.project_committee
-      WHERE project_id = ${upsertResult.projectId}
-    `);
-
-    await Promise.all(
-      project.committees.map((committee) =>
-        tx.any(sql.untyped`
-          INSERT INTO app.project_committee (project_id, committee_type)
-          VALUES (
-            ${upsertResult.projectId},
-            ${codeIdFragment('Lautakunta', committee)}
-          );
-        `),
-      ),
-    );
+    await updateProjectCommittees(upsertResult.projectId, project.committees, tx);
 
     if (project.geom) {
       await updateProjectGeometry(

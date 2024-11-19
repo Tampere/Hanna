@@ -155,6 +155,7 @@ export function investmentProjectFragment(input: ProjectSearch) {
           }
         `
     }
+    GROUP BY project_investment.id
   `;
 }
 

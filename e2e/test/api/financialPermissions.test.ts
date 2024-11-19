@@ -1,6 +1,4 @@
 import { clearProjectPermissions } from '@utils/db.js';
-import { login } from '@utils/page.js';
-import { ADMIN_USER, clearUserPermissions } from '@utils/users.js';
 import { expect } from 'playwright/test';
 import { test } from 'utils/fixtures.js';
 
@@ -28,29 +26,37 @@ const allBudgetFields: BudgetFields = [
   'kayttosuunnitelmanMuutos',
 ];
 
-function getProjectBudgetUpdateInput(
+function getProjectBudgetUpdateInput<T extends string | null>(
   id: string,
+  committee: T,
   budgetFields: BudgetFields = allBudgetFields,
-): ProjectBudgetUpdate {
+): ProjectBudgetUpdate & {
+  budgetItems: (ProjectBudgetUpdate['budgetItems'][number] & { committee: T })[];
+} {
   return {
     projectId: id,
     budgetItems: [
       budgetFields.reduce((budgetItems, field) => ({ ...budgetItems, [field]: 10000 }), {
         year: 2024,
-      } as Record<BudgetFields[number] | 'year', number>),
+        committee: committee,
+      } as Record<BudgetFields[number], number> & { year: number; committee: T }),
     ],
   };
 }
 
-function getProjectObjectBudgetUpdateInput(
+function getProjectObjectBudgetUpdateInput<T extends string | null>(
   id: string,
+  committee: T,
   budgetFields: BudgetFields = allBudgetFields,
-): ProjectObjectBudgetUpdate {
+): ProjectObjectBudgetUpdate & {
+  budgetItems: (ProjectObjectBudgetUpdate['budgetItems'][number] & { committee: T })[];
+} {
   return {
     projectObjectId: id,
     budgetItems: [
       {
         year: 2024,
+        committee: committee,
         ...budgetFields.reduce((budgetItems, field) => ({ ...budgetItems, [field]: 10000 }), {}),
       },
     ],
@@ -72,7 +78,9 @@ test.describe('Modify investment project financials', () => {
   test('without permissions', async ({ testSession }) => {
     await expect(
       testSession.client.investmentProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(investmentProject.projectId, ['estimate']),
+        getProjectBudgetUpdateInput(investmentProject.projectId, investmentProject.committees[0], [
+          'estimate',
+        ]),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -81,7 +89,9 @@ test.describe('Modify investment project financials', () => {
 
     await expect(
       testSession.client.investmentProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(investmentProject.projectId, ['estimate']),
+        getProjectBudgetUpdateInput(investmentProject.projectId, investmentProject.committees[0], [
+          'estimate',
+        ]),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -91,7 +101,9 @@ test.describe('Modify investment project financials', () => {
 
     await expect(
       testSession.client.investmentProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(investmentProject.projectId, ['estimate']),
+        getProjectBudgetUpdateInput(investmentProject.projectId, investmentProject.committees[0], [
+          'estimate',
+        ]),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -101,7 +113,9 @@ test.describe('Modify investment project financials', () => {
 
     await expect(
       testSession.client.investmentProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(investmentProject.projectId, ['estimate']),
+        getProjectBudgetUpdateInput(investmentProject.projectId, investmentProject.committees[0], [
+          'estimate',
+        ]),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -110,12 +124,14 @@ test.describe('Modify investment project financials', () => {
 
     await expect(
       testSession.client.investmentProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(investmentProject.projectId),
+        getProjectBudgetUpdateInput(investmentProject.projectId, investmentProject.committees[0]),
       ),
     ).rejects.toThrow(/unrecognized_keys/);
     await expect(
       testSession.client.investmentProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(investmentProject.projectId, ['estimate']),
+        getProjectBudgetUpdateInput(investmentProject.projectId, investmentProject.committees[0], [
+          'estimate',
+        ]),
       ),
     ).rejects.toThrow('error.insufficientPermissions');
   });
@@ -124,7 +140,9 @@ test.describe('Modify investment project financials', () => {
 
     await expect(
       testSession.client.investmentProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(investmentProject.projectId, ['estimate']),
+        getProjectBudgetUpdateInput(investmentProject.projectId, investmentProject.committees[0], [
+          'estimate',
+        ]),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -135,7 +153,9 @@ test.describe('Modify investment project financials', () => {
     });
     expect(
       await testSession.client.investmentProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(testProject.projectId, ['estimate']),
+        getProjectBudgetUpdateInput(testProject.projectId, investmentProject.committees[0], [
+          'estimate',
+        ]),
       ),
     ).toBeUndefined();
   });
@@ -148,10 +168,24 @@ test.describe('Modify investment project financials', () => {
 
     expect(
       await testSession.client.investmentProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(investmentProject.projectId, ['estimate']),
+        getProjectBudgetUpdateInput(investmentProject.projectId, investmentProject.committees[0], [
+          'estimate',
+        ]),
       ),
     ).toBeUndefined();
     await clearProjectPermissions();
+  });
+
+  test('without providing a committee', async ({ testSession, modifyPermissions }) => {
+    await modifyPermissions(testSession.user.id, ['investmentProject.write']);
+    const testProject = await testSession.client.investmentProject.upsert.mutate({
+      project: testInvestmentProject(testSession.user),
+    });
+    await expect(
+      testSession.client.investmentProject.updateBudget.mutate(
+        getProjectBudgetUpdateInput(testProject.projectId, null, ['estimate']),
+      ),
+    ).rejects.toThrow(/invalid_type/);
   });
 });
 
@@ -169,7 +203,7 @@ test.describe('Modify maintenance project financials', () => {
   test('without permissions', async ({ testSession }) => {
     await expect(
       testSession.client.maintenanceProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(maintenanceProject.projectId, ['estimate']),
+        getProjectBudgetUpdateInput(maintenanceProject.projectId, null, ['estimate']),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -178,7 +212,7 @@ test.describe('Modify maintenance project financials', () => {
 
     await expect(
       testSession.client.maintenanceProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(maintenanceProject.projectId, ['estimate']),
+        getProjectBudgetUpdateInput(maintenanceProject.projectId, null, ['estimate']),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -188,7 +222,7 @@ test.describe('Modify maintenance project financials', () => {
 
     await expect(
       testSession.client.maintenanceProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(maintenanceProject.projectId, ['estimate']),
+        getProjectBudgetUpdateInput(maintenanceProject.projectId, null, ['estimate']),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -198,7 +232,7 @@ test.describe('Modify maintenance project financials', () => {
 
     await expect(
       testSession.client.maintenanceProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(maintenanceProject.projectId, ['estimate']),
+        getProjectBudgetUpdateInput(maintenanceProject.projectId, null, ['estimate']),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -208,13 +242,13 @@ test.describe('Modify maintenance project financials', () => {
     // Only estimate is allowed to be updated
     expect(
       testSession.client.maintenanceProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(maintenanceProject.projectId),
+        getProjectBudgetUpdateInput(maintenanceProject.projectId, null),
       ),
     ).rejects.toThrow(/unrecognized_keys/);
 
     await expect(
       testSession.client.maintenanceProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(maintenanceProject.projectId, ['estimate']),
+        getProjectBudgetUpdateInput(maintenanceProject.projectId, null, ['estimate']),
       ),
     ).rejects.toThrow('error.insufficientPermissions');
   });
@@ -223,7 +257,7 @@ test.describe('Modify maintenance project financials', () => {
 
     await expect(
       testSession.client.maintenanceProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(maintenanceProject.projectId, ['estimate']),
+        getProjectBudgetUpdateInput(maintenanceProject.projectId, null, ['estimate']),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -234,7 +268,7 @@ test.describe('Modify maintenance project financials', () => {
     });
     expect(
       await testSession.client.maintenanceProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(maintenanceProject.projectId, ['estimate']),
+        getProjectBudgetUpdateInput(maintenanceProject.projectId, null, ['estimate']),
       ),
     ).toBeUndefined();
   });
@@ -246,10 +280,25 @@ test.describe('Modify maintenance project financials', () => {
     await refreshCachedSession(testSession);
     expect(
       await testSession.client.maintenanceProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(maintenanceProject.projectId, ['estimate']),
+        getProjectBudgetUpdateInput(maintenanceProject.projectId, null, ['estimate']),
       ),
     ).toBeUndefined();
     await clearProjectPermissions();
+  });
+  test('providing a committee', async ({ testSession, modifyPermissions }) => {
+    await modifyPermissions(testSession.user.id, ['maintenanceProject.write']);
+    const maintenanceProject = await testSession.client.maintenanceProject.upsert.mutate({
+      project: testMaintenanceProject(testSession.user),
+    });
+    await expect(
+      testSession.client.maintenanceProject.updateBudget.mutate(
+        getProjectBudgetUpdateInput(
+          maintenanceProject.projectId,
+          maintenanceProject.committees[0] as any,
+          ['estimate'],
+        ),
+      ),
+    ).rejects.toThrow(/invalid_type/);
   });
 });
 
@@ -261,9 +310,15 @@ test.describe('Modify investment project object financials', () => {
       project: testInvestmentProject(adminSession.user),
     });
 
-    investmentProjectObject = await adminSession.client.investmentProjectObject.upsert.mutate(
-      testProjectObject(investmentProject.projectId, adminSession.user),
+    const upsertResult = await adminSession.client.investmentProjectObject.upsert.mutate(
+      testProjectObject(
+        investmentProject.projectId,
+        investmentProject.committees,
+        adminSession.user,
+      ),
     );
+    investmentProjectObject =
+      await adminSession.client.investmentProjectObject.get.query(upsertResult);
   });
   test.afterAll(async ({ resetCachedSessions }) => {
     await resetCachedSessions();
@@ -272,15 +327,22 @@ test.describe('Modify investment project object financials', () => {
   test('without permissions', async ({ testSession }) => {
     await expect(
       testSession.client.investmentProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(investmentProjectObject.projectObjectId),
+        getProjectObjectBudgetUpdateInput(
+          investmentProjectObject.projectObjectId,
+          investmentProjectObject.committee,
+        ),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
   test('with investmentWrite permission', async ({ testSession, modifyPermissions }) => {
     await modifyPermissions(testSession.user.id, ['investmentProject.write']);
+
     await expect(
       testSession.client.investmentProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(investmentProjectObject.projectObjectId),
+        getProjectObjectBudgetUpdateInput(
+          investmentProjectObject.projectObjectId,
+          investmentProjectObject.committee,
+        ),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -288,7 +350,10 @@ test.describe('Modify investment project object financials', () => {
     await modifyPermissions(testSession.user.id, ['maintenanceProject.write']);
     await expect(
       testSession.client.investmentProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(investmentProjectObject.projectObjectId),
+        getProjectObjectBudgetUpdateInput(
+          investmentProjectObject.projectObjectId,
+          investmentProjectObject.committee,
+        ),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -296,7 +361,10 @@ test.describe('Modify investment project object financials', () => {
     await modifyPermissions(testSession.user.id, ['detailplanProject.write']);
     await expect(
       testSession.client.investmentProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(investmentProjectObject.projectObjectId),
+        getProjectObjectBudgetUpdateInput(
+          investmentProjectObject.projectObjectId,
+          investmentProjectObject.committee,
+        ),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -306,16 +374,20 @@ test.describe('Modify investment project object financials', () => {
 
     await expect(
       testSession.client.investmentProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(investmentProjectObject.projectObjectId),
+        getProjectObjectBudgetUpdateInput(
+          investmentProjectObject.projectObjectId,
+          investmentProjectObject.committee,
+        ),
       ),
     ).rejects.toThrow('error.insufficientPermissions');
 
     expect(
       await testSession.client.investmentProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(investmentProjectObject.projectObjectId, [
-          'amount',
-          'kayttosuunnitelmanMuutos',
-        ]),
+        getProjectObjectBudgetUpdateInput(
+          investmentProjectObject.projectObjectId,
+          investmentProjectObject.committee,
+          ['amount', 'kayttosuunnitelmanMuutos'],
+        ),
       ),
     ).toBeUndefined();
   });
@@ -325,16 +397,20 @@ test.describe('Modify investment project object financials', () => {
 
     await expect(
       testSession.client.investmentProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(investmentProjectObject.projectObjectId),
+        getProjectObjectBudgetUpdateInput(
+          investmentProjectObject.projectObjectId,
+          investmentProjectObject.committee,
+        ),
       ),
     ).rejects.toThrow('error.insufficientPermissions');
 
     await expect(
       testSession.client.investmentProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(investmentProjectObject.projectObjectId, [
-          'amount',
-          'kayttosuunnitelmanMuutos',
-        ]),
+        getProjectObjectBudgetUpdateInput(
+          investmentProjectObject.projectObjectId,
+          investmentProjectObject.committee,
+          ['amount', 'kayttosuunnitelmanMuutos'],
+        ),
       ),
     ).rejects.toThrow('error.insufficientPermissions');
   });
@@ -345,22 +421,25 @@ test.describe('Modify investment project object financials', () => {
     });
     const testInvestmentProjectObject =
       await testSession.client.investmentProjectObject.upsert.mutate(
-        testProjectObject(testProject.projectId, testSession.user),
+        testProjectObject(testProject.projectId, testProject.committees, testSession.user),
       );
 
     await expect(
       testSession.client.investmentProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(testInvestmentProjectObject.projectObjectId),
+        getProjectObjectBudgetUpdateInput(
+          testInvestmentProjectObject.projectObjectId,
+          testProject.committees[0],
+        ),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
 
     expect(
       await testSession.client.investmentProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(testInvestmentProjectObject.projectObjectId, [
-          'estimate',
-          'contractPrice',
-          'forecast',
-        ]),
+        getProjectObjectBudgetUpdateInput(
+          testInvestmentProjectObject.projectObjectId,
+          testProject.committees[0],
+          ['estimate', 'contractPrice', 'forecast'],
+        ),
       ),
     ).toBeUndefined();
   });
@@ -372,21 +451,44 @@ test.describe('Modify investment project object financials', () => {
     await refreshCachedSession(testSession);
     await expect(
       testSession.client.investmentProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(investmentProjectObject.projectObjectId),
+        getProjectObjectBudgetUpdateInput(
+          investmentProjectObject.projectObjectId,
+          investmentProjectObject.committee,
+        ),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
 
     expect(
       await testSession.client.investmentProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(investmentProjectObject.projectObjectId, [
+        getProjectObjectBudgetUpdateInput(
+          investmentProjectObject.projectObjectId,
+          investmentProjectObject.committee,
+          ['estimate', 'contractPrice', 'forecast'],
+        ),
+      ),
+    ).toBeUndefined();
+
+    await clearProjectPermissions();
+  });
+  test('without committee', async ({ testSession, modifyPermissions }) => {
+    await modifyPermissions(testSession.user.id, ['investmentProject.write']);
+    const testProject = await testSession.client.investmentProject.upsert.mutate({
+      project: testInvestmentProject(testSession.user),
+    });
+    const testInvestmentProjectObject =
+      await testSession.client.investmentProjectObject.upsert.mutate(
+        testProjectObject(testProject.projectId, testProject.committees, testSession.user),
+      );
+
+    await expect(
+      testSession.client.investmentProjectObject.updateBudget.mutate(
+        getProjectObjectBudgetUpdateInput(testInvestmentProjectObject.projectObjectId, null, [
           'estimate',
           'contractPrice',
           'forecast',
         ]),
       ),
-    ).toBeUndefined();
-
-    await clearProjectPermissions();
+    ).rejects.toThrow(/invalid_type/);
   });
 });
 
@@ -398,9 +500,15 @@ test.describe('Modify maintenance project object financials', () => {
       project: testMaintenanceProject(adminSession.user),
     });
 
-    maintenanceProjectObject = await adminSession.client.maintenanceProjectObject.upsert.mutate(
-      testProjectObject(maintenanceProject.projectId, adminSession.user),
+    const upsertResult = await adminSession.client.maintenanceProjectObject.upsert.mutate(
+      testProjectObject(
+        maintenanceProject.projectId,
+        maintenanceProject.committees,
+        adminSession.user,
+      ),
     );
+    maintenanceProjectObject =
+      await adminSession.client.maintenanceProjectObject.get.query(upsertResult);
   });
   test.afterAll(async ({ resetCachedSessions }) => {
     await resetCachedSessions();
@@ -409,7 +517,7 @@ test.describe('Modify maintenance project object financials', () => {
   test('without permissions', async ({ testSession }) => {
     await expect(
       testSession.client.maintenanceProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId),
+        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId, null),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -417,7 +525,7 @@ test.describe('Modify maintenance project object financials', () => {
     await modifyPermissions(testSession.user.id, ['investmentProject.write']);
     await expect(
       testSession.client.maintenanceProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId),
+        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId, null),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -425,7 +533,7 @@ test.describe('Modify maintenance project object financials', () => {
     await modifyPermissions(testSession.user.id, ['maintenanceProject.write']);
     await expect(
       testSession.client.maintenanceProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId),
+        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId, null),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -433,7 +541,7 @@ test.describe('Modify maintenance project object financials', () => {
     await modifyPermissions(testSession.user.id, ['detailplanProject.write']);
     await expect(
       testSession.client.maintenanceProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId),
+        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId, null),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
   });
@@ -443,13 +551,13 @@ test.describe('Modify maintenance project object financials', () => {
 
     await expect(
       testSession.client.maintenanceProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId),
+        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId, null),
       ),
     ).rejects.toThrow('error.insufficientPermissions');
 
     await expect(
       testSession.client.maintenanceProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId, [
+        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId, null, [
           'amount',
           'kayttosuunnitelmanMuutos',
         ]),
@@ -462,13 +570,13 @@ test.describe('Modify maintenance project object financials', () => {
 
     await expect(
       testSession.client.maintenanceProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId),
+        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId, null),
       ),
     ).rejects.toThrow('error.insufficientPermissions');
 
     expect(
       await testSession.client.maintenanceProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId, [
+        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId, null, [
           'amount',
           'kayttosuunnitelmanMuutos',
         ]),
@@ -482,18 +590,22 @@ test.describe('Modify maintenance project object financials', () => {
     });
     const maintenanceTestProjectObject =
       await testSession.client.maintenanceProjectObject.upsert.mutate(
-        testProjectObject(maintenanceTestProject.projectId, testSession.user),
+        testProjectObject(
+          maintenanceTestProject.projectId,
+          maintenanceTestProject.committees,
+          testSession.user,
+        ),
       );
 
     await expect(
       testSession.client.maintenanceProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(maintenanceTestProjectObject.projectObjectId),
+        getProjectObjectBudgetUpdateInput(maintenanceTestProjectObject.projectObjectId, null),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
 
     expect(
       await testSession.client.maintenanceProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(maintenanceTestProjectObject.projectObjectId, [
+        getProjectObjectBudgetUpdateInput(maintenanceTestProjectObject.projectObjectId, null, [
           'estimate',
           'contractPrice',
           'forecast',
@@ -509,13 +621,13 @@ test.describe('Modify maintenance project object financials', () => {
     await refreshCachedSession(testSession);
     await expect(
       testSession.client.maintenanceProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId),
+        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId, null),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
 
     expect(
       await testSession.client.maintenanceProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId, [
+        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId, null, [
           'estimate',
           'contractPrice',
           'forecast',
@@ -524,6 +636,19 @@ test.describe('Modify maintenance project object financials', () => {
     ).toBeUndefined();
 
     await clearProjectPermissions();
+  });
+  test('with committee', async ({ testSession, modifyPermissions }) => {
+    await modifyPermissions(testSession.user.id, ['maintenanceProject.write']);
+
+    await expect(
+      testSession.client.maintenanceProjectObject.updateBudget.mutate(
+        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId, '01' as any, [
+          'estimate',
+          'contractPrice',
+          'forecast',
+        ]),
+      ),
+    ).rejects.toThrow(/invalid_type/);
   });
 });
 
@@ -535,7 +660,11 @@ test.describe('Modify worktable financials', () => {
       project: testInvestmentProject(adminSession.user),
     });
     investmentProjectObject = await adminSession.client.investmentProjectObject.upsert.mutate(
-      testProjectObject(investmentProject.projectId, adminSession.user),
+      testProjectObject(
+        investmentProject.projectId,
+        investmentProject.committees,
+        adminSession.user,
+      ),
     );
   });
   test.afterAll(async ({ resetCachedSessions }) => {
@@ -549,7 +678,7 @@ test.describe('Modify worktable financials', () => {
       testSession.client.workTable.update.mutate({
         [investmentProjectObject.projectObjectId]: {
           budgetYear: 2024,
-          budget: 10000,
+          amount: 10000,
           actual: 10000,
           forecast: 10000,
           kayttosuunnitelmanMuutos: 10000,
@@ -561,7 +690,7 @@ test.describe('Modify worktable financials', () => {
       await testSession.client.workTable.update.mutate({
         [investmentProjectObject.projectObjectId]: {
           budgetYear: 2024,
-          budget: 10000,
+          amount: 10000,
           kayttosuunnitelmanMuutos: 10000,
         },
       }),

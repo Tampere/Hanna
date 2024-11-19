@@ -19,12 +19,26 @@ const baseBudgetItemSchema = z.object({
   kayttosuunnitelmanMuutos: z.number().nullable(),
 });
 
-export const updateBudgetSchema = z.object({
+export const updateInvestmentBudgetSchema = z.object({
   projectObjectId: z.string().optional(),
-  budgetItems: z.array(baseBudgetItemSchema.partial().extend({ year: z.number() })),
+  budgetItems: z.array(
+    baseBudgetItemSchema.partial().extend({ year: z.number(), committee: z.string() }).strict(),
+  ),
 });
 
-export const updateBudgetFinancialWriterSchema = updateBudgetSchema
+export const updateMaintenanceBudgetSchema = z.object({
+  projectObjectId: z.string().optional(),
+  budgetItems: z.array(
+    baseBudgetItemSchema.partial().extend({ year: z.number(), committee: z.null() }).strict(),
+  ),
+});
+
+export const updateBudgetSchema = z.union([
+  updateInvestmentBudgetSchema,
+  updateMaintenanceBudgetSchema,
+]);
+
+export const updateInvestmentBudgetFinancialWriterSchema = updateInvestmentBudgetSchema
   .pick({
     projectObjectId: true,
   })
@@ -34,12 +48,27 @@ export const updateBudgetFinancialWriterSchema = updateBudgetSchema
       baseBudgetItemSchema
         .partial()
         .pick({ amount: true, kayttosuunnitelmanMuutos: true })
-        .extend({ year: z.number() })
+        .extend({ year: z.number(), committee: z.string() })
         .strict(),
     ),
   });
 
-export const updateBudgetOwnerWriterSchema = updateBudgetSchema
+export const updateMaintenanceBudgetFinancialWriterSchema = updateMaintenanceBudgetSchema
+  .pick({
+    projectObjectId: true,
+  })
+  .required()
+  .extend({
+    budgetItems: z.array(
+      baseBudgetItemSchema
+        .partial()
+        .pick({ amount: true, kayttosuunnitelmanMuutos: true })
+        .extend({ year: z.number(), committee: z.null() })
+        .strict(),
+    ),
+  });
+
+export const updateInvestmentBudgetOwnerWriterSchema = updateInvestmentBudgetSchema
   .pick({
     projectObjectId: true,
   })
@@ -52,7 +81,25 @@ export const updateBudgetOwnerWriterSchema = updateBudgetSchema
           amount: true,
           kayttosuunnitelmanMuutos: true,
         })
-        .extend({ year: z.number() })
+        .extend({ year: z.number(), committee: z.string() })
+        .strict(),
+    ),
+  });
+
+export const updateMaintenanceBudgetOwnerWriterSchema = updateMaintenanceBudgetSchema
+  .pick({
+    projectObjectId: true,
+  })
+  .required()
+  .extend({
+    budgetItems: z.array(
+      baseBudgetItemSchema
+        .partial()
+        .omit({
+          amount: true,
+          kayttosuunnitelmanMuutos: true,
+        })
+        .extend({ year: z.number(), committee: z.null() })
         .strict(),
     ),
   });
@@ -125,6 +172,7 @@ export const yearBudgetSchema = z.object({
     forecast: z.number().nullable(),
     kayttosuunnitelmanMuutos: z.number().nullable(),
   }),
+  committee: z.string().nullable(),
 });
 
 export type YearBudget = z.infer<typeof yearBudgetSchema>;
