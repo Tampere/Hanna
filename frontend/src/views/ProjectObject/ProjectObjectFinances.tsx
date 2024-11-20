@@ -84,7 +84,7 @@ export const ProjectObjectFinances = forwardRef(function ProjectObjectFinances<
           .filter<InvestmentProjectBudget>((item): item is InvestmentProjectBudget =>
             Boolean(item.committee),
           );
-        console.log(payload);
+
         await saveInvestmentBudgetMutation.mutateAsync({
           projectObjectId: projectObject.data.projectObjectId as string,
           budgetItems: payload,
