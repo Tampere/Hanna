@@ -1,5 +1,4 @@
 import { TRPCError } from '@trpc/server';
-import { dbObjectOrderBySchema } from 'tre-hanna-shared/src/schema/projectObject/index.js';
 import { z } from 'zod';
 
 import {
@@ -20,6 +19,7 @@ import {
   deleteProjectObjectSchema,
   updateGeometrySchema,
 } from '@shared/schema/projectObject/base.js';
+import { dbObjectOrderBySchema } from '@shared/schema/projectObject/index.js';
 import { projectObjectSearchSchema } from '@shared/schema/projectObject/search.js';
 import {
   ProjectAccessChecker,
