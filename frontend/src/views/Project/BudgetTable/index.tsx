@@ -86,6 +86,10 @@ function getFieldTotalValueByCommittee(
   }, 0);
 }
 
+function isNullish(value?: number | null) {
+  return value === null || value === undefined;
+}
+
 function budgetToFormValues<
   TBudget extends {
     year: number;
@@ -100,7 +104,7 @@ function budgetToFormValues<
 
     values[year] = {};
     for (const committee of committees && committees.length > 0 ? committees : ['total']) {
-      values[year][committee] = yearlyBudgets.reduce(
+      values[year][committee] = yearlyBudgets.reduce<BudgetFormValues[string][string]>(
         (budgetItems, item) => {
           const { estimate, amount, forecast, contractPrice, kayttosuunnitelmanMuutos } =
             item.budgetItems;
@@ -110,21 +114,21 @@ function budgetToFormValues<
 
           return {
             ...budgetItems,
-            ...(estimate && {
+            ...(!isNullish(estimate) && {
               estimate: (budgetItems.estimate ?? 0) + estimate,
             }),
-            ...(amount && { amount: (budgetItems.amount ?? 0) + amount }),
-            ...(forecast && { forecast: (budgetItems.forecast ?? 0) + forecast }),
-            ...(contractPrice && {
+            ...(!isNullish(amount) && { amount: (budgetItems.amount ?? 0) + amount }),
+            ...(!isNullish(forecast) && { forecast: (budgetItems.forecast ?? 0) + forecast }),
+            ...(!isNullish(contractPrice) && {
               contractPrice: (budgetItems.contractPrice ?? 0) + contractPrice,
             }),
-            ...(kayttosuunnitelmanMuutos && {
+            ...(!isNullish(kayttosuunnitelmanMuutos) && {
               kayttosuunnitelmanMuutos:
                 (budgetItems.kayttosuunnitelmanMuutos ?? 0) + kayttosuunnitelmanMuutos,
             }),
           };
         },
-        { estimate: 0, amount: 0, forecast: 0, contractPrice: 0, kayttosuunnitelmanMuutos: 0 },
+        {},
       );
     }
   }
@@ -283,12 +287,19 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                     justify-content: flex-end;
                     align-items: center;
                   }
+                  th {
+                    padding-right: 8px;
+                  }
+                  & .MuiButtonBase-root {
+                    padding-right: 0;
+                  }
                 `}
               >
                 <TableRow>
                   <TableCell
                     css={css`
                       min-width: 120px;
+                      padding-left: 8px;
                     `}
                     align="left"
                   >
@@ -402,18 +413,19 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                 </TableRow>
               </TableHead>
               <TableBody
-                {...(fields.includes('committee') && {
-                  css: css`
-                    input {
-                      background-color: white !important;
-                      border: solid 1px lightgray;
-                      font-size: 13px;
-                    }
-                    td {
-                      padding: 4px 8px;
-                    }
-                  `,
-                })}
+                css={css`
+                  ${fields.includes('committee')
+                    ? `input {
+                    background-color: white !important;
+                    border: solid 1px lightgray;
+                    font-size: 13px;
+                  }`
+                    : ''}
+
+                  td {
+                    padding: ${fields.includes('committee') ? '4px 8px' : '8px'};
+                  }
+                `}
               >
                 {years?.map((year) => {
                   return (
@@ -466,7 +478,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                 })}
 
                 <TotalRow
-                  actuals={props.actuals ?? []}
+                  actuals={props.actuals}
                   actualsLoading={Boolean(props.actualsLoading)}
                   fields={fields}
                   formValues={watch}

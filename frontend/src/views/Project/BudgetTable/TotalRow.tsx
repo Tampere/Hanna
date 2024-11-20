@@ -11,7 +11,7 @@ import { getValueTextColor } from './YearTotalRow';
 
 interface Props {
   fields: BudgetField[];
-  actuals: YearlyActuals | null;
+  actuals?: YearlyActuals | null;
   actualsLoading: boolean;
   formValues: BudgetFormValues;
   getFieldValue: (
@@ -67,10 +67,11 @@ export function TotalRow({ actuals, actualsLoading, fields, getFieldValue, formV
             <CurrencyInput
               className={TABLE_CELL_CONTENT_CLASS}
               allowNegative
+              placeholder="–"
               value={
                 actuals?.reduce((total, yearData) => {
                   return total + yearData.total;
-                }, 0) ?? 0
+                }, 0) ?? null
               }
             />
           ) : (
