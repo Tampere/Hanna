@@ -1,4 +1,5 @@
 import { TRPCError } from '@trpc/server';
+import { dbObjectOrderBySchema } from 'tre-hanna-shared/src/schema/projectObject/index.js';
 import { z } from 'zod';
 
 import {
@@ -74,9 +75,9 @@ export const createProjectObjectRouter = (t: TRPC) => {
       }),
 
     getByProjectId: t.procedure
-      .input(z.object({ projectId: nonEmptyString }))
+      .input(z.object({ projectId: nonEmptyString, orderBy: dbObjectOrderBySchema.optional() }))
       .query(async ({ input }) => {
-        return getProjectObjectsByProjectId(input.projectId);
+        return getProjectObjectsByProjectId(input.projectId, input.orderBy);
       }),
 
     getGeometriesByProjectId: t.procedure

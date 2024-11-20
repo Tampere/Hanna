@@ -6,7 +6,10 @@ import { addAuditEvent } from '@backend/components/audit.js';
 import { codeIdFragment } from '@backend/components/code/index.js';
 import { getPool, sql } from '@backend/db.js';
 
-import { dbProjectObjectGeometrySchema } from '@shared//schema/projectObject/index.js';
+import {
+  DbObjectOrderBy,
+  dbProjectObjectGeometrySchema,
+} from '@shared//schema/projectObject/index.js';
 import {
   UpdateInvestmentProjectObject,
   UpsertInvestmentProjectObject,
@@ -88,7 +91,14 @@ export async function deleteProjectObject(projectObjectId: string, user: User) {
   });
 }
 
-export async function getProjectObjectsByProjectId(projectId: string) {
+export async function getProjectObjectsByProjectId(projectId: string, orderBy?: DbObjectOrderBy) {
+  const orderByColumns = {
+    name: 'object_name',
+    startDate: 'start_date',
+    endDate: 'end_date',
+    createdAt: 'created_at',
+  };
+
   return getPool().any(sql.type(commonDbProjectObjectSchema.extend({ objectStage: codeId }))`
     WITH dump AS (${getProjectObjectGeometryDumpFragment()})
     SELECT
@@ -104,6 +114,9 @@ export async function getProjectObjectsByProjectId(projectId: string) {
     LEFT JOIN app.project_object_investment poi ON project_object.id = poi.project_object_id
     LEFT JOIN dump ON dump.id = project_object.id
     WHERE deleted = false AND project_id = ${projectId}
+    ${
+      orderBy ? sql.fragment`ORDER BY ${sql.identifier([orderByColumns[orderBy]])}` : sql.fragment``
+    }
   `);
 }
 

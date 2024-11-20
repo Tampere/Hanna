@@ -87,7 +87,6 @@ export const fi = {
   'project.chartTabLabelNotStarted': 'Hanke ei ole vielä alkanut.',
   'project.projectObjectsTabLabel': 'Kohteet',
   'project.permissionsTabLabel': 'Luvitus',
-  'project.noProjectObjects': 'Hankkeella ei ole kohteita.',
   'project.deleteDialogMessage':
     'Olet poistamassa hanketta. Huomaa, että poistamalla hankkeen poistetaan samalla hankkeesseen liittyvät kohteet sekä vaiheet. Haluatko varmasti poistaa hankkeen?',
   'maintenanceProject.disclaimer':
@@ -132,6 +131,12 @@ export const fi = {
   'projectObject.error.budgetNotIncluded': 'Talouslukuja ajankohdan ulkopuolella.',
   'projectObject.error.budgetNotIncludedForOngoing': 'Talouslukuja määritelty vuoden {0} jälkeen.',
   'projectObject.error.projectNotIncluded': 'Kohteen aikaväli ei ole hankkeen aikavälin sisällä.',
+  'projectObjectList.noProjectObjects': 'Hankkeella ei ole kohteita.',
+  'projectObjectList.orderByLabel': 'Kohdejärjestys',
+  'projectObjectList.orderByName': 'Kohteen nimi',
+  'projectObjectList.orderByStartDate': 'Aloitusajankohta',
+  'projectObjectList.orderByEndDate': 'Lopetusajankohta',
+  'projectObjectList.orderByCreatedAt': 'Luontiajankohta',
   'projectForm.saveBtnLabel': 'Tallenna',
   'projectForm.editBtnLabel': 'Muokkaa',
   'projectForm.undoBtnLabel': 'Peruuta muutokset',

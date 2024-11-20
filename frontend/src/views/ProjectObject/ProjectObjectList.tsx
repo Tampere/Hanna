@@ -1,8 +1,23 @@
 import { AddCircle, NavigateNext } from '@mui/icons-material';
-import { Box, Button, Card, CardActionArea, List, Typography, css } from '@mui/material';
+import {
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  FormControl,
+  InputLabel,
+  List,
+  MenuItem,
+  Select,
+  Skeleton,
+  Typography,
+  css,
+} from '@mui/material';
 import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { DbObjectOrderBy } from 'tre-hanna-shared/src/schema/projectObject';
 
 import { trpc } from '@frontend/client';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
@@ -29,6 +44,7 @@ const cardStyle = css`
 export function ProjectObjectList(props: Props) {
   const tr = useTranslations();
   const lang = useAtomValue(langAtom);
+  const [orderBy, setOrderBy] = useState<DbObjectOrderBy>('name');
   const codes = trpc.code.get.useQuery(
     { codeListId: 'KohteenLaji', allowEmptySelection: false },
     { staleTime: Infinity },
@@ -38,7 +54,10 @@ export function ProjectObjectList(props: Props) {
     return codes?.data?.find((code) => code.id.id === objectId)?.text[lang] ?? '';
   }
 
-  const projObjects = trpc.projectObject.getByProjectId.useQuery({ projectId: props.projectId });
+  const projObjects = trpc.projectObject.getByProjectId.useQuery({
+    projectId: props.projectId,
+    orderBy,
+  });
 
   return (
     <Box>
@@ -46,8 +65,38 @@ export function ProjectObjectList(props: Props) {
         css={css`
           display: flex;
           justify-content: flex-end;
+          align-items: center;
+          height: 80px;
         `}
       >
+        <FormControl
+          size="small"
+          css={css`
+            margin-right: auto;
+          `}
+        >
+          <InputLabel
+            css={css`
+              background-color: white;
+            `}
+            id="project-object-order-label"
+          >
+            {tr('projectObjectList.orderByLabel')}
+          </InputLabel>
+          <Select
+            css={css`
+              width: 200px;
+            `}
+            labelId="project-object-order-label"
+            value={orderBy}
+            onChange={(e) => setOrderBy(e.target.value as DbObjectOrderBy)}
+          >
+            <MenuItem value={'name'}>{tr('projectObjectList.orderByName')}</MenuItem>
+            <MenuItem value={'startDate'}>{tr('projectObjectList.orderByStartDate')}</MenuItem>
+            <MenuItem value={'endDate'}>{tr('projectObjectList.orderByEndDate')}</MenuItem>
+            <MenuItem value={'createdAt'}>{tr('projectObjectList.orderByCreatedAt')}</MenuItem>
+          </Select>
+        </FormControl>
         <Button
           component={Link}
           disabled={!props.editable}
@@ -60,8 +109,20 @@ export function ProjectObjectList(props: Props) {
           {tr('projectObject.createNewBtnLabel')}
         </Button>
       </Box>
-      {projObjects.data?.length === 0 ? (
-        <span>{tr('project.noProjectObjects')}</span>
+      {projObjects.isLoading ? (
+        <Box
+          css={css`
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+          `}
+        >
+          <Skeleton variant="rectangular" animation="wave" height={68} />
+          <Skeleton variant="rectangular" animation="wave" height={68} />
+        </Box>
+      ) : projObjects.data?.length === 0 ? (
+        <span>{tr('projectObjectList.noProjectObjects')}</span>
       ) : (
         <List>
           {projObjects.data?.map((projObj) => (
