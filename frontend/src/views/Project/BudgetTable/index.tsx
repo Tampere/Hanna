@@ -128,7 +128,13 @@ function budgetToFormValues<
             }),
           };
         },
-        {},
+        {
+          estimate: null,
+          amount: null,
+          forecast: null,
+          contractPrice: null,
+          kayttosuunnitelmanMuutos: null,
+        }, // These initial values need to be set to allow form to infer dirty fields correctly
       );
     }
   }

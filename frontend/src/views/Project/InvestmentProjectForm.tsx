@@ -17,6 +17,7 @@ import {
   getFormValidator,
 } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
+import { CommitteeChangeAlert } from '@frontend/components/forms/CommitteeChangeAlert';
 import { CommitteeSelect } from '@frontend/components/forms/CommitteeSelect';
 import { SapProjectIdField } from '@frontend/components/forms/SapProjectIdField';
 import { UserSelect } from '@frontend/components/forms/UserSelect';
@@ -155,6 +156,14 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
 
   const { isBlocking } = useNavigationBlocker(isDirty || externalIsDirty, 'investmentForm');
   const ownerWatch = watch('owner');
+  const committeeWatch = watch('committees');
+
+  const removedProjectCommittees = useMemo(() => {
+    if (!props.project) {
+      return [];
+    }
+    return props.project.committees.filter((committee) => !committeeWatch.includes(committee));
+  }, [committeeWatch, props.project]);
 
   useEffect(() => {
     if (!props.project) {
@@ -257,10 +266,11 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
 
   function submitDisabled() {
     if (externalIsDirty) {
-      return !isValid || isSubmitting;
+      return Boolean(errors.root?.committeeFinancialsError) || !isValid || isSubmitting;
     }
-    return !isValid || !isDirty || isSubmitting;
+    return Boolean(errors.root?.committeeFinancialsError) || !isValid || !isDirty || isSubmitting;
   }
+
   return (
     <>
       <FormProvider {...form}>
@@ -376,15 +386,41 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
             label={tr('project.committeeLabel')}
             errorTooltip={tr('newProject.committeeTooltip')}
             component={({ id, onChange, value, onBlur }) => (
-              <CommitteeSelect
-                id={id}
-                onBlur={onBlur}
-                value={value}
-                onChange={(value) => onChange(!value ? [] : value)}
-                readOnly={!editing}
-                projectId={props.project?.projectId}
-                itemType="project"
-              />
+              <>
+                <CommitteeSelect
+                  id={id}
+                  onBlur={onBlur}
+                  value={value}
+                  onChange={(value) => onChange(!value ? [] : value)}
+                  readOnly={!editing}
+                  projectId={props.project?.projectId}
+                  itemType="project"
+                />
+                {form.formState.dirtyFields.committees && props.project?.projectId && (
+                  <CommitteeChangeAlert
+                    itemType="project"
+                    isVisible={Boolean(errors.root?.committeeFinancialsError)}
+                    onDelete={() => {
+                      form.clearErrors('root.committeeFinancialsError');
+                      setDirtyAndValidViews((prev) => ({
+                        ...prev,
+                        form: { isDirty: isDirty || externalIsDirty, isValid: !submitDisabled() },
+                      }));
+                    }}
+                    onCancel={() => {
+                      form.resetField('committees');
+                      form.clearErrors('root.committeeFinancialsError');
+                    }}
+                    setFormError={() => {
+                      form.setError('root.committeeFinancialsError', {
+                        type: 'custom',
+                      });
+                    }}
+                    projectId={props.project.projectId}
+                    removedCommittees={removedProjectCommittees}
+                  />
+                )}
+              </>
             )}
           />
 

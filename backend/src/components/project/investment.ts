@@ -153,3 +153,21 @@ export async function getParticipatedProjects(userId: string) {
     WHERE p.id = pi.id AND pp.user_id = ${userId} AND pp.can_write = TRUE AND p.deleted = false;
   `);
 }
+
+export async function deleteProjectBudget(
+  tx: DatabaseTransactionConnection,
+  projectId: string,
+  committees: string[],
+  userId: string,
+) {
+  await addAuditEvent(tx, {
+    eventType: 'project.deleteBudgetWithCommittees',
+    eventData: { projectId, committees },
+    eventUser: userId,
+  });
+
+  return tx.any(sql.untyped`
+  DELETE FROM app.budget
+  WHERE project_id = ${projectId}
+  AND (committee).id = ANY(${sql.array(committees, 'text')})`);
+}

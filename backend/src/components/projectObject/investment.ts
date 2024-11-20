@@ -291,3 +291,21 @@ export async function upsertProjectObject(
   }
   return upsertResult;
 }
+
+export async function deleteBudget(
+  tx: DatabaseTransactionConnection,
+  projectObjectId: string,
+  committees: string[],
+  userId: string,
+) {
+  await addAuditEvent(tx, {
+    eventType: 'projectObject.deleteBudgetWithCommittees',
+    eventData: { projectObjectId, committees },
+    eventUser: userId,
+  });
+
+  return tx.any(sql.untyped`
+  DELETE FROM app.budget
+  WHERE project_object_id = ${projectObjectId}
+  AND (committee).id = ANY(${sql.array(committees, 'text')})`);
+}

@@ -1,4 +1,5 @@
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 
 import { getPermissionContext as getProjectPermissionCtx } from '@backend/components/project/base.js';
 import {
@@ -6,6 +7,7 @@ import {
   updateProjectObjectBudget,
 } from '@backend/components/projectObject/index.js';
 import {
+  deleteBudget,
   getProjectObject,
   upsertProjectObject,
 } from '@backend/components/projectObject/investment.js';
@@ -86,6 +88,25 @@ export const createInvestmentProjectObjectRouter = (t: TRPC) => {
             input.budgetItems,
             ctx.user.id,
           );
+        });
+      }),
+    deleteBudget: t.procedure
+      .input(z.object({ projectObjectId: z.string(), committees: z.array(z.string()) }))
+      .use(
+        withAccess(
+          (usr, ctx, input) =>
+            userIsAdmin(usr) ||
+            ((ownsProject(usr, ctx) || hasWritePermission(usr, ctx)) &&
+              hasPermission(usr, 'investmentFinancials.write')) ||
+            ((ownsProject(usr, ctx) || hasWritePermission(usr, ctx)) &&
+              Boolean(updateInvestmentBudgetOwnerWriterSchema.safeParse(input).success)) ||
+            (hasPermission(usr, 'investmentFinancials.write') &&
+              Boolean(updateInvestmentBudgetFinancialWriterSchema.safeParse(input).success)),
+        ),
+      )
+      .mutation(async ({ input, ctx }) => {
+        return await getPool().transaction(async (tx) => {
+          return deleteBudget(tx, input.projectObjectId, input.committees, ctx.user.id);
         });
       }),
   });

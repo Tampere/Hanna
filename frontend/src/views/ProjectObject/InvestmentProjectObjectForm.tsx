@@ -16,6 +16,7 @@ import {
   getFormValidator,
 } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
+import { CommitteeChangeAlert } from '@frontend/components/forms/CommitteeChangeAlert';
 import { CommitteeSelect } from '@frontend/components/forms/CommitteeSelect';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
@@ -203,14 +204,10 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
   }, [props.projectObject]);
 
   useEffect(() => {
-    if (!props.projectObject) {
-      setDirtyAndValidViews((prev) => ({ ...prev, form: { isDirty, isValid } }));
-    } else {
-      setDirtyAndValidViews((prev) => ({
-        ...prev,
-        form: { isValid, isDirty },
-      }));
-    }
+    setDirtyAndValidViews((prev) => ({
+      ...prev,
+      form: { isValid: isValid && !errors.root?.committeeFinancialsError, isDirty },
+    }));
   }, [props.projectObject, isValid, isDirty]);
 
   useEffect(() => {
@@ -421,12 +418,44 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
             label={tr('projectObject.committeeLabel')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, ...field }) => (
-              <CommitteeSelect
-                {...field}
-                readOnly={!editing}
-                projectId={projectId}
-                itemType="projectObject"
-              />
+              <>
+                <CommitteeSelect
+                  {...field}
+                  readOnly={!editing}
+                  projectId={projectId}
+                  itemType="projectObject"
+                />
+                {form.formState.dirtyFields.committee &&
+                  props.projectObject?.projectObjectId &&
+                  props.projectObject?.committee && (
+                    <CommitteeChangeAlert
+                      itemType="projectObject"
+                      isVisible={Boolean(errors.root?.committeeFinancialsError)}
+                      onDelete={() => {
+                        form.clearErrors('root.committeeFinancialsError');
+
+                        setDirtyAndValidViews((prev) => ({
+                          ...prev,
+                          form: {
+                            isValid: isValid && !errors.root?.committeeFinancialsError,
+                            isDirty,
+                          },
+                        }));
+                      }}
+                      onCancel={() => {
+                        form.resetField('committee');
+                        form.clearErrors('root.committeeFinancialsError');
+                      }}
+                      setFormError={() => {
+                        form.setError('root.committeeFinancialsError', {
+                          type: 'custom',
+                        });
+                      }}
+                      projectObjectId={props.projectObject.projectObjectId}
+                      removedCommittees={props.projectObject.committee}
+                    />
+                  )}
+              </>
             )}
           />
 

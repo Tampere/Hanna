@@ -2,7 +2,6 @@ import { DatabaseTransactionConnection } from 'slonik';
 
 import { addAuditEvent } from '@backend/components/audit.js';
 import { getPool, sql } from '@backend/db.js';
-import { logger } from '@backend/logging.js';
 
 import {
   BudgetUpdate,
