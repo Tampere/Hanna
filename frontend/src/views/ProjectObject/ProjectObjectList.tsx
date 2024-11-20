@@ -17,11 +17,12 @@ import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DbObjectOrderBy } from 'tre-hanna-shared/src/schema/projectObject';
 
 import { trpc } from '@frontend/client';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { ProjectTypePath } from '@frontend/types';
+
+import { DbObjectOrderBy } from '@shared/schema/projectObject';
 
 interface Props {
   projectId: string;
