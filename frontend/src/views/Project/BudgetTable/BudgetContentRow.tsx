@@ -152,7 +152,10 @@ export function BudgetContentRow({
                   return 'inherit';
                 }}
                 directlyHandleValueChange
-                value={actuals?.find((data) => data.year === year)?.total ?? null}
+                value={
+                  (includeYearColumn ? actuals?.find((data) => data.year === year)?.total : null) ??
+                  null
+                }
                 placeholder={'–'}
               />
             </span>
