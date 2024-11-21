@@ -54,6 +54,24 @@ export function CommitteeSelection({
   const committeeCodes = useCodes('Lautakunta');
   const tr = useTranslations();
 
+  if (availableCommittees.length === 0) {
+    return null;
+  }
+
+  if (availableCommittees.length === 1) {
+    return (
+      <Typography
+        css={css`
+          font-size: 13px;
+          color: #525252;
+          margin: 0.5rem 0 0.5rem 8px;
+        `}
+      >
+        Lautakunta: {committeeCodes.get(availableCommittees[0])?.fi}
+      </Typography>
+    );
+  }
+
   return (
     <Box
       css={css`

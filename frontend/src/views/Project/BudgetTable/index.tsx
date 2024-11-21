@@ -258,13 +258,12 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   return !budget ? null : (
     <>
       <FormProvider {...form}>
-        {fields.includes('committee') && (
-          <CommitteeSelection
-            availableCommittees={props.committees ?? []}
-            selectedCommittees={selectedCommittees}
-            setSelectedCommittees={setSelectedCommittees}
-          />
-        )}
+        <CommitteeSelection
+          availableCommittees={props.committees ?? []}
+          selectedCommittees={selectedCommittees}
+          setSelectedCommittees={setSelectedCommittees}
+        />
+
         <form
           css={css`
             td {
@@ -318,7 +317,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                       )}
                     </Box>
                   </TableCell>
-                  {fields.includes('committee') && (
+                  {fields.includes('committee') && selectedCommittees.length > 1 && (
                     <TableCell css={cellStyle}>
                       <Typography variant="overline">{tr('budgetTable.committee')}</Typography>
                     </TableCell>
@@ -420,16 +419,16 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
               </TableHead>
               <TableBody
                 css={css`
-                  ${fields.includes('committee')
-                    ? `input {
+                  input {
                     background-color: white !important;
                     border: solid 1px lightgray;
                     font-size: 13px;
-                  }`
-                    : ''}
+                  }
 
                   td {
-                    padding: ${fields.includes('committee') ? '4px 8px' : '8px'};
+                    padding: ${fields.includes('committee') && selectedCommittees.length > 1
+                      ? '4px 8px'
+                      : '8px'};
                   }
                 `}
               >
@@ -438,36 +437,44 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                     <Fragment key={year}>
                       {fields.includes('committee') ? (
                         <Fragment>
-                          <YearTotalRow
-                            actual={
-                              props.actuals?.find((actual) => actual.year === year)?.total ?? null
-                            }
-                            actualsLoading={Boolean(props.actualsLoading)}
-                            fields={fields}
-                            selectedCommittees={selectedCommittees}
-                            formValues={watch}
-                            year={year}
-                          />
+                          {selectedCommittees.length > 1 && (
+                            <YearTotalRow
+                              actual={
+                                props.actuals?.find((actual) => actual.year === year)?.total ?? null
+                              }
+                              actualsLoading={Boolean(props.actualsLoading)}
+                              fields={fields}
+                              selectedCommittees={selectedCommittees}
+                              formValues={watch}
+                              year={year}
+                            />
+                          )}
 
                           {committees?.map((committee) => (
                             <BudgetContentRow
                               key={committee.id}
                               committee={committee}
                               year={year}
-                              includeYearColumn={false}
+                              includeYearColumn={selectedCommittees.length === 1}
                               writableFields={writableFields}
-                              fields={fields}
+                              fields={
+                                selectedCommittees.length === 1
+                                  ? fields.filter((f) => f !== 'committee')
+                                  : fields
+                              }
                               actualsLoading={props.actualsLoading}
                               actuals={props.actuals}
-                              disableBorder
+                              disableBorder={selectedCommittees.length > 1}
                             />
                           ))}
-                          <TableRow
-                            css={css`
-                              height: 1rem;
-                              border-bottom: 1px solid rgba(224, 224, 224, 1);
-                            `}
-                          />
+                          {selectedCommittees.length > 1 && (
+                            <TableRow
+                              css={css`
+                                height: 1rem;
+                                border-bottom: 1px solid rgba(224, 224, 224, 1);
+                              `}
+                            />
+                          )}
                         </Fragment>
                       ) : (
                         <BudgetContentRow
@@ -486,7 +493,11 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                 <TotalRow
                   actuals={props.actuals}
                   actualsLoading={Boolean(props.actualsLoading)}
-                  fields={fields}
+                  fields={
+                    selectedCommittees.length === 1
+                      ? fields.filter((f) => f !== 'committee')
+                      : fields
+                  }
                   formValues={watch}
                   getFieldValue={
                     fields.includes('committee')
