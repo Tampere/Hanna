@@ -52,6 +52,9 @@ export function BudgetContentRow({
         <TableCell
           css={css`
             font-weight: 700;
+            &.MuiTableCell-root {
+              text-align: left;
+            }
           `}
         >
           {year}
@@ -78,7 +81,7 @@ export function BudgetContentRow({
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, onChange, ...field }) => (
               <CurrencyInput
-                placeholder="0,00 €"
+                placeholder="–"
                 directlyHandleValueChange
                 {...field}
                 onChange={writableFields?.includes('estimate') ? onChange : undefined}
@@ -96,11 +99,11 @@ export function BudgetContentRow({
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, onChange, ...field }) => (
               <CurrencyInput
-                placeholder="0,00 €"
+                placeholder="–"
                 directlyHandleValueChange
                 {...field}
                 getColor={() => {
-                  if (!includeYearColumn && fields.includes('committee') && field.value >= 0) {
+                  if (!includeYearColumn && fields.includes('committee')) {
                     return committeeColor;
                   }
                   return 'inherit';
@@ -120,9 +123,9 @@ export function BudgetContentRow({
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, onChange, ...field }) => (
               <CurrencyInput
-                placeholder="0,00 €"
+                placeholder="–"
                 getColor={() => {
-                  if (!includeYearColumn && fields.includes('contractPrice') && field.value >= 0) {
+                  if (!includeYearColumn && fields.includes('contractPrice')) {
                     return committeeColor;
                   }
                   return 'inherit';
@@ -149,7 +152,10 @@ export function BudgetContentRow({
                   return 'inherit';
                 }}
                 directlyHandleValueChange
-                value={actuals?.find((data) => data.year === year)?.total ?? null}
+                value={
+                  (includeYearColumn ? actuals?.find((data) => data.year === year)?.total : null) ??
+                  null
+                }
                 placeholder={'–'}
               />
             </span>
@@ -172,13 +178,17 @@ export function BudgetContentRow({
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, onChange, ...field }) => (
               <CurrencyInput
-                placeholder="0,00 €"
+                placeholder="–"
                 directlyHandleValueChange
                 {...field}
                 allowNegative
                 style={{ color: includeYearColumn ? 'inherit' : committeeColor }}
                 getColor={(val) => {
-                  if (!includeYearColumn && fields.includes('committee') && field.value >= 0) {
+                  if (
+                    !includeYearColumn &&
+                    fields.includes('committee') &&
+                    (field.value >= 0 || !field.value)
+                  ) {
                     return committeeColor;
                   }
 
@@ -198,7 +208,7 @@ export function BudgetContentRow({
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, onChange, ...field }) => (
               <CurrencyInput
-                placeholder="0,00 €"
+                placeholder="–"
                 directlyHandleValueChange
                 style={{
                   width: '100%',

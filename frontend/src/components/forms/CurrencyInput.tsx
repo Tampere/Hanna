@@ -1,4 +1,4 @@
-import { css } from '@emotion/react';
+import { SerializedStyles, css } from '@emotion/react';
 import { useEffect, useRef, useState } from 'react';
 import CurrencyInputField from 'react-currency-input-field';
 
@@ -14,6 +14,7 @@ interface Props {
   allowNegative?: boolean;
   className?: string;
   style?: React.CSSProperties;
+  cssProp?: SerializedStyles;
   directlyHandleValueChange?: boolean;
 }
 
@@ -107,10 +108,13 @@ export function CurrencyInput(props: Readonly<Props>) {
       css={css`
         text-align: right;
         padding: 6px;
+        &::placeholder {
+          color: ${textColor} !important;
+        }
       `}
       id={props.id}
       name={props.name}
-      placeholder={props.placeholder}
+      placeholder={props.onChange ? undefined : props.placeholder}
       value={value}
       decimalsLimit={0}
       allowNegativeValue={props.allowNegative ?? false}

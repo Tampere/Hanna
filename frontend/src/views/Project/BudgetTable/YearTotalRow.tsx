@@ -83,7 +83,7 @@ export function YearTotalRow({
             <CurrencyInput
               allowNegative
               value={actual}
-              placeholder={actual == null ? '0,00 €' : undefined}
+              placeholder={actual == null ? '–' : undefined}
             />
           ) : (
             <Skeleton variant="rectangular" animation="wave">

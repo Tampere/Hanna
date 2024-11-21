@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { getPermissionContext } from '@backend/components/project/base.js';
 import { updateProjectBudget } from '@backend/components/project/index.js';
 import {
+  deleteProjectBudget,
   getParticipatedProjects,
   getProject,
   projectUpsert,
@@ -71,6 +72,14 @@ export const createInvestmentProjectRouter = (t: TRPC) => {
       .mutation(async ({ input, ctx }) => {
         return await getPool().transaction(async (tx) => {
           return await updateProjectBudget(tx, input.projectId, input.budgetItems, ctx.user.id);
+        });
+      }),
+    deleteBudget: t.procedure
+      .input(z.object({ projectId: z.string(), committees: z.array(z.string()) }))
+      .use(withAccess((usr, ctx) => ownsProject(usr, ctx) || hasWritePermission(usr, ctx)))
+      .mutation(async ({ input, ctx }) => {
+        return await getPool().transaction(async (tx) => {
+          return deleteProjectBudget(tx, input.projectId, input.committees, ctx.user.id);
         });
       }),
   });

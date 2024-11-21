@@ -50,6 +50,7 @@ export function EditingFooter({
     : form.isDirty
       ? form.isValid
       : map.isDirtyAndValid || finances.isDirtyAndValid || permissions.isDirtyAndValid;
+
   const tr = useTranslations();
   return (
     <Box
