@@ -258,11 +258,13 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   return !budget ? null : (
     <>
       <FormProvider {...form}>
-        <CommitteeSelection
-          availableCommittees={props.committees ?? []}
-          selectedCommittees={selectedCommittees}
-          setSelectedCommittees={setSelectedCommittees}
-        />
+        {props.committees && (
+          <CommitteeSelection
+            availableCommittees={props.committees}
+            selectedCommittees={selectedCommittees}
+            setSelectedCommittees={setSelectedCommittees}
+          />
+        )}
 
         <form
           css={css`
@@ -283,10 +285,19 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
           onSubmit={form.handleSubmit(onSubmit)}
           autoComplete="off"
         >
-          <TableContainer>
+          <TableContainer
+            css={css`
+              overflow-x: visible; // To change nearest scrolling ancestor and to enable sticky header
+            `}
+          >
             <Table size="small">
               <TableHead
                 css={css`
+                  position: sticky;
+                  top: ${props.committees && props.committees?.length > 0 ? '40px' : 0};
+                  background-color: white;
+                  box-shadow: 0 1px 0 0 rgba(224, 224, 224, 1);
+                  z-index: 1;
                   & .column-header {
                     display: flex;
                     justify-content: flex-end;
@@ -420,15 +431,9 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
               <TableBody
                 css={css`
                   input {
-                    background-color: white !important;
+                    background-color: white;
                     border: solid 1px lightgray;
                     font-size: 13px;
-                  }
-
-                  td {
-                    padding: ${fields.includes('committee') && selectedCommittees.length > 1
-                      ? '4px 8px'
-                      : '8px'};
                   }
                 `}
               >
@@ -491,6 +496,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                 })}
 
                 <TotalRow
+                  committeeColumnVisible={selectedCommittees.length > 1}
                   actuals={props.actuals}
                   actualsLoading={Boolean(props.actualsLoading)}
                   fields={
