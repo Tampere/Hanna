@@ -128,7 +128,7 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
           ? ['committee', 'estimate', 'amount', 'actual', 'forecast', 'kayttosuunnitelmanMuutos']
           : ['year', 'estimate', 'amount', 'forecast', 'actual', 'kayttosuunnitelmanMuutos']
       }
-      committees={project.data.committees}
+      {...(project.type === 'investmentProject' && { committees: project.data.committees })}
       budget={budget.data}
       actuals={yearlyActuals.data}
       actualsLoading={yearlyActuals.isFetching}
