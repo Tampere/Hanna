@@ -51,7 +51,7 @@ export const fi = {
   'projectView.projectShiftDialogTextDetailplan':
     'Hankkeen kesto ei muutu, eli loppuvuosi päivittyy vastaavasti.',
   'projectView.projectShiftDialogText':
-    'Hankkeen kesto ei muutu, eli loppuvuosi päivittyy vastaavasti. Myös hankkeen kohteidenaikataulut sekä taloustiedot päivittyvät.',
+    'Hankkeen kesto ei muutu, eli loppuvuosi päivittyy vastaavasti. Myös hankkeen kohteiden aikataulut sekä taloustiedot päivittyvät.',
   'projectSearch.projectType': 'Hanketyyppi',
   'projectSearch.geometry': 'Alue',
   'projectSearch.showOnlyItemsWithGeom': 'Vain sijaintitiedon sisältävät hankkeet',
