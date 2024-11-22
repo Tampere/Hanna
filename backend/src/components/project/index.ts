@@ -189,7 +189,10 @@ export async function getProjectBudget(projectId: string) {
         'kayttosuunnitelmanMuutos', project_object_budget.kayttosuunnitelman_muutos
       ) AS "budgetItems"
     FROM project_budget
-    FULL OUTER JOIN project_object_budget ON project_budget.year = project_object_budget.year AND project_budget.committee = project_object_budget.committee
+    FULL OUTER JOIN project_object_budget
+      ON project_budget.year = project_object_budget.year
+      -- Hackish way to compare committees, as committee is a composite type and NULL = NULL doesn't work here as wanted
+      AND (COALESCE(project_budget.committee, '(true,01)') = COALESCE(project_object_budget.committee, '(true,01)'))
     ORDER BY "year" ASC
   `);
 }
