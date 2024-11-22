@@ -1,9 +1,8 @@
-import { Close, Create, Save, Undo } from '@mui/icons-material';
+import { Close, Save } from '@mui/icons-material';
 import { Alert, Box, Button, CircularProgress, css } from '@mui/material';
 import { useAtom, useAtomValue } from 'jotai';
 import { PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router';
-import { useSearchParams } from 'react-router-dom';
 
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
@@ -14,6 +13,8 @@ import {
   projectEditingAtom,
 } from '@frontend/stores/projectView';
 import { ProjectTypePath } from '@frontend/types';
+import { DeleteProjectObjectDialog } from '@frontend/views/ProjectObject/DeleteProjectObjectDialog';
+import { SaveOptionsButton } from '@frontend/views/ProjectObject/SaveOptionsButton';
 
 import {
   ProjectPermissionContext,
@@ -21,9 +22,8 @@ import {
   ownsProject,
 } from '@shared/schema/userPermissions';
 
-import { DeleteProjectObjectDialog } from '../ProjectObject/DeleteProjectObjectDialog';
-import { SaveOptionsButton } from '../ProjectObject/SaveOptionsButton';
-import { DeleteProjectDialog } from './DeleteProjectDialog';
+import { DeleteProjectDialog } from '../DeleteProjectDialog';
+import { ModifyButton } from './ModifyButton';
 
 interface EditingFooterProps extends PropsWithChildren {
   onSave: () => void;
@@ -138,8 +138,6 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
 
   const tr = useTranslations();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
 
   const [editing, setEditing] = useAtom(projectEditingAtom);
   const dirtyAndValidViews = useAtomValue(dirtyAndValidFieldsAtom);
@@ -245,53 +243,15 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
         `}
       >
         {props.renderHeaderContent?.()}
-        {isNewItem ? (
-          <Button
-            css={css`
-              margin: 0 0 0 auto;
-            `}
-            disabled={isSubmitting}
-            size="small"
-            startIcon={<Undo />}
-            variant="outlined"
-            sx={{ mt: 2 }}
-            onClick={() => navigate(-1)}
-          >
-            {tr('cancel')}
-          </Button>
-        ) : (
-          <Button
-            onClick={() => {
-              if (editing) {
-                onCancel();
-                return;
-              }
-              if (searchParams.get('tab')) {
-                // Navigate back to default map tab if user starts editing
-                navigate(location.pathname);
-              }
-              setEditing(true);
-            }}
-            disabled={
-              (!isOwner && !canWrite) ||
-              isSubmitting ||
-              dirtyAndValidViews.finances.isDirtyAndValid ||
-              dirtyAndValidViews.permissions.isDirtyAndValid
-            }
-            variant={editing ? 'outlined' : 'contained'}
-            size="small"
-            css={css`
-              margin-left: auto;
-            `}
-            endIcon={editing ? <Undo /> : <Create />}
-          >
-            {editing
-              ? tr('cancel')
-              : projectObjectId
-                ? tr('projectObjectView.modify')
-                : tr('projectView.modify')}
-          </Button>
-        )}
+        <ModifyButton
+          projectType={props.projectType}
+          isNewItem={isNewItem}
+          isSubmitting={isSubmitting}
+          isOwner={isOwner}
+          canWrite={canWrite}
+          forProjectObject={type === 'projectObject'}
+          onCancel={onCancel}
+        />
       </Box>
       {props.renderMainContent?.(tabRefs)}
       <Box

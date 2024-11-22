@@ -455,3 +455,62 @@ export async function getCommitteesUsedByProjectObjects(
     WHERE project_id = ${projectId}
   `);
 }
+
+export async function shiftProjectObjectDateRange(
+  tx: DatabaseTransactionConnection,
+  projectObjectIds: string[],
+  yearShift: number,
+) {
+  return tx.query(sql.untyped`
+    UPDATE app.project_object
+    SET start_date = start_date + ${sql.interval({ years: yearShift })},
+        end_date = end_date + ${sql.interval({ years: yearShift })}
+    WHERE id = ANY(${sql.array(projectObjectIds, 'uuid')})
+  `);
+}
+
+export async function shiftProjectObjectBudgetDate(
+  tx: DatabaseTransactionConnection,
+  projectObjectIds: string[],
+  yearShift: number,
+) {
+  // Deletion needed to avoid conflicts with existing budget rows
+  const oldBudgetRows = await tx.any(sql.type(
+    yearBudgetSchema.extend({ projectObjectId: z.string() }),
+  )`
+    DELETE FROM app.budget
+    WHERE project_object_id = ANY(${sql.array(projectObjectIds, 'uuid')})
+    RETURNING project_object_id AS "projectObjectId", year, (committee).id AS committee, jsonb_build_object(
+        'estimate', estimate,
+        'contractPrice', contract_price,
+        'amount', amount,
+        'forecast', forecast,
+        'kayttosuunnitelmanMuutos', kayttosuunnitelman_muutos
+      ) AS "budgetItems";`);
+
+  const inputData = oldBudgetRows.map((row) => ({
+    project_object_id: row.projectObjectId,
+    year: row.year + yearShift,
+    ...(row.committee && { committee: `(Lautakunta,${row.committee})` }),
+    estimate: row.budgetItems.estimate,
+    contract_price: row.budgetItems.contractPrice,
+    amount: row.budgetItems.amount,
+    forecast: row.budgetItems.forecast,
+    kayttosuunnitelman_muutos: row.budgetItems.kayttosuunnitelmanMuutos,
+  }));
+
+  if (inputData.length === 0) {
+    return;
+  }
+
+  const identifiers = Object.keys(inputData[0]).map((key) => sql.identifier([key]));
+
+  return tx.query(sql.untyped`
+    INSERT INTO app.budget (${sql.join(identifiers, sql.fragment`,`)})
+    VALUES
+    ${sql.join(
+      inputData.map((data) => sql.fragment`(${sql.join(Object.values(data), sql.fragment`,`)})`),
+      sql.fragment`,`,
+    )};
+  `);
+}

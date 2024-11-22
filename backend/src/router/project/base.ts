@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
+import { addAuditEvent } from '@backend/components/audit.js';
 import {
   deleteProject,
   getPermissionContext,
@@ -8,6 +9,8 @@ import {
   getProjectCommitteesWithCodes,
   getProjectUserPermissions,
   projectPermissionUpsert,
+  shiftProjectBudgetDate,
+  shiftProjectDateRange,
 } from '@backend/components/project/base.js';
 import {
   addProjectRelation,
@@ -17,12 +20,18 @@ import {
   updateProjectGeometry,
 } from '@backend/components/project/index.js';
 import { listProjects, projectSearch } from '@backend/components/project/search.js';
-import { getCommitteesUsedByProjectObjects as getCommitteesAssignedToProjectObjects } from '@backend/components/projectObject/index.js';
+import {
+  getCommitteesUsedByProjectObjects as getCommitteesAssignedToProjectObjects,
+  shiftProjectObjectBudgetDate,
+  shiftProjectObjectDateRange,
+} from '@backend/components/projectObject/index.js';
 import { getProjectObjectsByProjectSearch } from '@backend/components/projectObject/search.js';
 import { startReportJob } from '@backend/components/taskQueue/reportQueue.js';
-import { getPool } from '@backend/db.js';
+import { getPool, sql } from '@backend/db.js';
+import { logger } from '@backend/logging.js';
 import { TRPC } from '@backend/router/index.js';
 
+import { nonEmptyString } from '@shared/schema/common.js';
 import { projectIdSchema, projectPermissionSchema } from '@shared/schema/project/base.js';
 import {
   projectListParamsSchema,
@@ -209,6 +218,36 @@ export const createProjectRouter = (t: TRPC) => {
       .use(withAccess(ownsProject))
       .mutation(async ({ input, ctx }) => {
         return await projectPermissionUpsert(input, ctx.user.id);
+      }),
+
+    shiftProjectDateWithYears: t.procedure
+      .input(z.object({ projectId: z.string(), newStartYear: z.number() }))
+      .use(withAccess((usr, ctx) => ownsProject(usr, ctx) || hasWritePermission(usr, ctx)))
+      .mutation(async ({ input, ctx }) => {
+        return await getPool().transaction(async (tx) => {
+          await addAuditEvent(tx, {
+            eventType: 'shiftProjectDateRange',
+            eventData: input,
+            eventUser: ctx.user.id,
+          });
+
+          const { yearShift } = await tx.one(
+            sql.type(z.object({ yearShift: z.number() }))`
+              SELECT (${input.newStartYear} - EXTRACT(YEAR FROM start_date)) AS "yearShift"
+              FROM app.project WHERE id = ${input.projectId}`,
+          );
+
+          const projectObjectIds = (
+            await tx.any(sql.type(z.object({ id: nonEmptyString }))`
+          SELECT id from app.project_object WHERE project_id = ${input.projectId}`)
+          ).map((obj) => obj.id);
+
+          await shiftProjectDateRange(tx, input.projectId, yearShift);
+          await shiftProjectBudgetDate(tx, input.projectId, yearShift);
+
+          await shiftProjectObjectDateRange(tx, projectObjectIds, yearShift);
+          await shiftProjectObjectBudgetDate(tx, projectObjectIds, yearShift);
+        });
       }),
   });
 };

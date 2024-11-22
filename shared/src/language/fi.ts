@@ -42,6 +42,16 @@ export const fi = {
   'projectView.modify': 'Muokkaa hanketta',
   'projectView.hideForm': 'Piilota perustiedot',
   'projectView.showForm': 'Näytä perustiedot',
+  'projectView.projectShiftButtonLabel': 'Siirrä vuodelle...',
+  'projectView.projectShiftSuccessful': 'Hankeen toteutusväli siirretty.',
+  'projectView.projectShiftFailed': 'Hankeen toteutusvälin siirto epäonnistui.',
+  'projectView.projectShiftFormLabel': 'Uusi alkamisvuosi',
+  'projectView.projectShiftFormErrorTooltip': 'Alkuvuoden tulee olla välillä {0}-{1}.',
+  'projectView.projectShiftDialogLabel': 'Valitse hankkeen uusi alkamisvuosi',
+  'projectView.projectShiftDialogTextDetailplan':
+    'Hankkeen kesto ei muutu, eli loppuvuosi päivittyy vastaavasti.',
+  'projectView.projectShiftDialogText':
+    'Hankkeen kesto ei muutu, eli loppuvuosi päivittyy vastaavasti. Myös hankkeen kohteidenaikataulut sekä taloustiedot päivittyvät.',
   'projectSearch.projectType': 'Hanketyyppi',
   'projectSearch.geometry': 'Alue',
   'projectSearch.showOnlyItemsWithGeom': 'Vain sijaintitiedon sisältävät hankkeet',

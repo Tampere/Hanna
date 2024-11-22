@@ -364,3 +364,28 @@ export async function getProjectCommitteesWithCodes(projectId: string) {
   LEFT JOIN app.code c ON pc.committee_type = c.id
   WHERE pc.project_id = ${projectId}`);
 }
+
+export async function shiftProjectDateRange(
+  tx: DatabaseTransactionConnection,
+  projectId: string,
+  yearShift: number,
+) {
+  return tx.query(sql.untyped`
+    UPDATE app.project
+    SET start_date = start_date + ${sql.interval({ years: yearShift })},
+        end_date = end_date + ${sql.interval({ years: yearShift })}
+    WHERE id = ${projectId}
+  `);
+}
+
+export async function shiftProjectBudgetDate(
+  tx: DatabaseTransactionConnection,
+  projectId: string,
+  yearShift: number,
+) {
+  return tx.query(sql.untyped`
+    UPDATE app.budget
+    SET year = year + ${yearShift}
+    WHERE project_id = ${projectId}
+  `);
+}
