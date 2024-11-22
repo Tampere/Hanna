@@ -237,8 +237,7 @@ export const fi = {
   'projectObjectDelete.notifyDelete': 'Kohde poistettu.',
   'projectObjectDelete.notifyDeleteFailed': 'Kohteen poisto epäonnistui.',
   'deleteProjectObjectDialog.title': 'Kohteen poistaminen',
-  'deleteProjectObjectDialog.content':
-    'Olet poistamassa kohdetta. Huomaa, että poistamalla kohteen poistetaan samalla kohteeseen liittyvät vaiheet. Haluatko varmasti poistaa kohteen?',
+  'deleteProjectObjectDialog.content': 'Haluatko varmasti poistaa kohteen?',
   'map.layerdrawer.open': 'Avaa karttatasovalikko',
   'map.layerdrawer.close': 'Sulje karttatasovalikko',
   'map.fitScreen': 'Sovita näkymään',
