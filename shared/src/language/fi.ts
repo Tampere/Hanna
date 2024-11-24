@@ -163,7 +163,7 @@ export const fi = {
     'Haluatko varmasti tallentaa tiedot tunnistamattomalla SAP-projektin ID:llä?',
   'projectForm.committeeDisabledLabel': 'Lautakunta on valittuna kohteella.',
   'projectForm.committeeChangeAlert':
-    'Lautakunnan vaihtaminen edellyttää nykyiselle lautakunnalle osoitettujen taloustietojen poistamista. Haluatko poistaa nykyisen lautakunnan taloustiedot?',
+    'Olet poistamassa lautakuntaa, jolle on osoitettu taloustietoja. Poista nämä taloustiedot jatkaaksesi.',
   'projectForm.committeeChangeAlert.deleteSuccess': 'Taloustiedot poistettu onnistuneesti.',
   'projectForm.committeeChangeAlert.deleteFailed': 'Taloustietojen poistaminen epäonnistui.',
   'externalProjectFrom.label': 'Hankealue',

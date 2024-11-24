@@ -64,10 +64,14 @@ export function CommitteeSelection({
         css={css`
           font-size: 13px;
           color: #525252;
-          margin: 0.5rem 0 0.5rem 8px;
+          position: sticky;
+          top: 0;
+          left: 0;
+          background-color: #fff;
+          z-index: 1;
         `}
       >
-        Lautakunta: {committeeCodes.get(availableCommittees[0])?.fi}
+        {committeeCodes.get(availableCommittees[0])?.fi}
       </Typography>
     );
   }

@@ -294,7 +294,11 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
               <TableHead
                 css={css`
                   position: sticky;
-                  top: ${props.committees && props.committees?.length > 0 ? '40px' : 0};
+                  top: ${props.committees &&
+                  props.committees.length > 1 &&
+                  selectedCommittees.length > 0
+                    ? '40px'
+                    : 0};
                   background-color: white;
                   box-shadow: 0 1px 0 0 rgba(224, 224, 224, 1);
                   z-index: 1;
