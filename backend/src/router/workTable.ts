@@ -78,7 +78,7 @@ function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'prin
         FROM po_roles
         WHERE po_roles."objectUserRoles"->>'roleId' = '06'
           AND po_roles.project_object_id = search_results.id
-          AND po_roles."roleType" = 'KohdeKayttajaRooli'
+          AND po_roles."objectUserRoles"->>'roleType' = 'KohdeKayttajaRooli'
         ), '{}'::json[]
       ) AS "companyContacts"`,
     objectRoles: sql.fragment`
@@ -88,7 +88,7 @@ function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'prin
         SELECT array_agg(po_roles."objectUserRoles")
         FROM po_roles
         WHERE po_roles.project_object_id = search_results.id
-          AND po_roles."roleType" = 'KohdeKayttajaRooli'
+          AND po_roles."objectUserRoles"->>'roleType' = 'KohdeKayttajaRooli'
         ), '{}'::json[]
       ) AS "objectRoles"`,
   };
