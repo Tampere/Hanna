@@ -38,7 +38,7 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
     const startYear = dayjs(project.data.startDate).get('year');
     const endYear =
       project.data.endDate === 'infinity'
-        ? dayjs().year() + 5
+        ? Math.max(dayjs().year() + 5, dayjs(project.data.startDate).get('year') + 5)
         : dayjs(project.data.endDate).get('year');
     return getRange(startYear, endYear);
   }, [project.data?.startDate, project.data?.endDate]);
