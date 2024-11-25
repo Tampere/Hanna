@@ -33,7 +33,7 @@ export const workTableRowSchema = z.object({
     suunnitteluttajaUser: nonEmptyString.nullable(),
   }),
   budgetYear: z.number(),
-  committee: z.string(),
+  committee: dbInvestmentProjectObjectSchema.shape.committee,
   amount: z.number().nullable(),
   actual: z.number().nullable(),
   forecast: z.number().nullable(),
@@ -75,6 +75,7 @@ export type WorkTableSearch = z.infer<typeof workTableSearchSchema>;
 
 export const workTableColumnCodesSchema = z.object({
   lifecycleState: codeListIdSchema.extract(['KohteenElinkaarentila']),
+  committee: codeListIdSchema.extract(['Lautakunta']),
   objectType: codeListIdSchema.extract(['KohdeTyyppi']),
   objectCategory: codeListIdSchema.extract(['KohteenOmaisuusLuokka']),
   objectUsage: codeListIdSchema.extract(['KohteenToiminnallinenKayttoTarkoitus']),
@@ -83,6 +84,7 @@ export const workTableColumnCodesSchema = z.object({
 
 export const workTableColumnCodes = workTableColumnCodesSchema.parse({
   lifecycleState: 'KohteenElinkaarentila',
+  committee: 'Lautakunta',
   objectType: 'KohdeTyyppi',
   objectCategory: 'KohteenOmaisuusLuokka',
   objectUsage: 'KohteenToiminnallinenKayttoTarkoitus',
@@ -115,6 +117,7 @@ export const templateColumns: Record<ReportTemplate, WorkTableColumn[]> = {
     'lifecycleState',
     'objectDateRange',
     'objectType',
+    'committee',
     'objectCategory',
     'objectUsage',
     'operatives',

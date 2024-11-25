@@ -67,7 +67,7 @@ function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'prin
     forecast: sql.fragment`po_budget.forecast AS "forecast"`,
     kayttosuunnitelmanMuutos: sql.fragment`po_budget.kayttosuunnitelman_muutos AS "kayttosuunnitelmanMuutos"`,
     sapProjectId: sql.fragment`search_results.sap_project_id AS "sapProjectId"`,
-    committee: sql.fragment``,
+    committee: sql.fragment`(SELECT jsonb_agg((committee_type).id)->>0 FROM app.project_object_committee WHERE project_object_id = search_results.id) AS "committee"`,
     budgetYear: sql.fragment``,
     sapWbsId: sql.fragment`search_results.sap_wbs_id AS "sapWbsId"`,
     companyContacts: sql.fragment`
@@ -263,6 +263,7 @@ async function workTableUpdate(input: WorkTableUpdate, user: User) {
       projectObject;
     return {
       ...poUpdate,
+      committee,
       startDate: projectObject.objectDateRange?.startDate,
       endDate: projectObject.objectDateRange?.endDate,
       objectUserRoles: [

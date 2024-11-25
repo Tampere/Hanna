@@ -67,46 +67,42 @@ export function CommitteeSelect({
 
   if (itemType === 'project') {
     return (
-      <>
-        <MultiSelect
-          disableClearable
-          id={id}
-          readOnly={readOnly}
-          onBlur={onBlur}
-          options={committeeCodes.data ?? []}
-          disabledOptions={
-            committeeCodes.data?.filter(
-              (committee) =>
-                assignedCommittees.data && assignedCommittees.data.includes(committee.id.id),
-            ) ?? []
-          }
-          disabledTooltip={tr('projectForm.committeeDisabledLabel')}
-          loading={committeeCodes.isLoading}
-          getOptionLabel={getLabel}
-          getOptionId={(committee) => committee.id.id}
-          value={(value?.map(getCode).filter(Boolean) ?? []) as Code[]}
-          onChange={(committees) => onChange(committees.map((committee) => committee.id.id))}
-          multiple={true}
-        />
-      </>
+      <MultiSelect
+        disableClearable
+        id={id}
+        readOnly={readOnly}
+        onBlur={onBlur}
+        options={committeeCodes.data ?? []}
+        disabledOptions={
+          committeeCodes.data?.filter(
+            (committee) =>
+              assignedCommittees.data && assignedCommittees.data.includes(committee.id.id),
+          ) ?? []
+        }
+        disabledTooltip={tr('projectForm.committeeDisabledLabel')}
+        loading={committeeCodes.isLoading}
+        getOptionLabel={getLabel}
+        getOptionId={(committee) => committee.id.id}
+        value={(value?.map(getCode).filter(Boolean) ?? []) as Code[]}
+        onChange={(committees) => onChange(committees.map((committee) => committee.id.id))}
+        multiple={true}
+      />
     );
   }
 
   return (
-    <>
-      <MultiSelect
-        disableClearable
-        id={id}
-        readOnly={readOnly || !projectId}
-        onBlur={onBlur}
-        options={projectCommittees.data ?? []}
-        loading={projectCommittees.isLoading}
-        getOptionLabel={(committee) => committee.text}
-        getOptionId={(committee) => committee.typeId}
-        value={value}
-        onChange={(committee) => onChange(committee.typeId)}
-        multiple={false}
-      />
-    </>
+    <MultiSelect
+      disableClearable
+      id={id}
+      readOnly={readOnly || !projectId}
+      onBlur={onBlur}
+      options={projectCommittees.data ?? []}
+      loading={projectCommittees.isLoading}
+      getOptionLabel={getLabel}
+      getOptionId={(committee) => committee.id.id}
+      value={projectCommittees.data?.find((committee) => committee.id.id === value) ?? null}
+      onChange={(committee) => onChange(committee?.id.id ?? '')}
+      multiple={false}
+    />
   );
 }
