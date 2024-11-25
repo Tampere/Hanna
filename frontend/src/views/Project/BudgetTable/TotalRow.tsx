@@ -33,22 +33,20 @@ export function TotalRow({
 
   return (
     <TableRow
-      css={css`
+      css={(theme) => css`
         position: sticky;
         bottom: 0;
         background-color: white;
         z-index: 1;
-        box-shadow: 0 -1px 0 0 #f3f3f3;
-        background-color: #f3f3f3;
+        outline: 3px double ${theme.palette.primary.main};
         input {
           min-height: 28px;
           flex: 1;
-          background-color: #f3f3f3 !important;
         }
         td {
           height: 34px;
           border: none;
-          padding: 0px 16px;
+          padding: 5px 16px 3px 16px !important;
         }
       `}
     >

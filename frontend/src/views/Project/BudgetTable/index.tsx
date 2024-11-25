@@ -268,9 +268,19 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
 
         <form
           css={css`
+            tr:nth-last-of-type(2) {
+              td {
+                ${(selectedCommittees.length === 1 || selectedCommittees.length === 0) &&
+                'padding-bottom: 13px;'}
+              }
+            }
+
             td {
               text-align: right;
+              ${(selectedCommittees.length === 1 || selectedCommittees.length === 0) &&
+              'padding-top: 10px;padding-bottom: 10px;'}
             }
+
             & .MuiFormControl-root {
               margin: 0;
             }
@@ -441,7 +451,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                   }
                 `}
               >
-                {years?.map((year) => {
+                {years?.map((year, yearIdx) => {
                   return (
                     <Fragment key={year}>
                       {fields.includes('committee') ? (
@@ -480,7 +490,9 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                             <TableRow
                               css={css`
                                 height: 1rem;
-                                border-bottom: 1px solid rgba(224, 224, 224, 1);
+                                border-bottom: ${yearIdx !== years.length - 1
+                                  ? '1px solid rgba(224, 224, 224, 1)'
+                                  : 'none'};
                               `}
                             />
                           )}
