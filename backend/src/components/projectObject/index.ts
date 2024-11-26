@@ -284,6 +284,38 @@ export async function updateProjectObjectBudget(
   );
 }
 
+/** Retrieves a valid date range for a project object,
+ * constrained by the existing project object budget
+ * and by the parent project date range */
+export async function getValidProjectObjectDateRange(projectObjectId: string) {
+  return getPool().one(sql.type(
+    z.object({
+      minStartDate: z.string(),
+      maxStartDate: z.string(),
+      minEndDate: z.string(),
+      maxEndDate: z.string(),
+    }),
+  )`
+    SELECT
+      min(p.start_date) AS "minStartDate",
+      COALESCE(min(make_date(b.YEAR, 12, 31)), max(p.end_date) - 1) AS "maxStartDate",
+      COALESCE(max(make_date(b.YEAR, 01, 01)), min(p.start_date) + 1) AS "minEndDate",
+      max(p.end_date) AS "maxEndDate"
+    FROM app.project_object po
+    LEFT JOIN app.project p ON po.project_id = p.id
+    LEFT JOIN app.budget b
+      ON po.id = b.project_object_id
+      AND (
+        b.amount IS NOT NULL OR
+        b.forecast IS NOT NULL OR
+        b.kayttosuunnitelman_muutos IS NOT NULL OR
+        b.estimate IS NOT NULL OR
+        b.contract_price IS NOT NULL)
+    WHERE po.id = ${projectObjectId}
+    GROUP BY po.id;
+  `);
+}
+
 export async function validateUpsertProjectObject(
   tx: DatabaseTransactionConnection,
   values: UpsertInvestmentProjectObject | UpsertMaintenanceProjectObject,

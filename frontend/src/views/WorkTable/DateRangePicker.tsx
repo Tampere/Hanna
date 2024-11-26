@@ -1,16 +1,19 @@
-import { Box, Button, Paper, Popover, Typography, css } from '@mui/material';
+import { Box, Button, CircularProgress, Paper, Popover, Typography, css } from '@mui/material';
 import { GridEditSingleSelectCellProps, useGridApiContext } from '@mui/x-data-grid';
 import { DateCalendar, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
+import minMax from 'dayjs/plugin/minMax';
 import { useAtomValue } from 'jotai';
 import { useEffect, useRef, useState } from 'react';
 
+import { trpc } from '@frontend/client';
 import { CustomDay } from '@frontend/components/forms/DateRange';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 
 import { isoDateFormat } from '@shared/date';
 
+dayjs.extend(minMax);
 interface DateRangeViewProps {
   value: { startDate: string; endDate: string };
 }
@@ -29,6 +32,10 @@ export function DateRangeEdit(params: GridEditSingleSelectCellProps) {
   const apiRef = useGridApiContext();
   const anchorElRef = useRef<HTMLDivElement>(null);
 
+  const validDateRange = trpc.projectObject.getValidDateRange.useQuery({
+    projectObjectId: params.row.id,
+  });
+
   const [startDate, setStartDate] = useState(dayjs(params.value.startDate));
   const [endDate, setEndDate] = useState(dayjs(params.value.endDate));
   const [open, setOpen] = useState(false);
@@ -44,6 +51,32 @@ export function DateRangeEdit(params: GridEditSingleSelectCellProps) {
       setOpen(true);
     }
   }, [anchorElRef.current]);
+
+  if (validDateRange.isLoading) {
+    return (
+      <Box ref={anchorElRef}>
+        <Popover
+          css={css`
+            z-index: 201;
+          `}
+          open={open}
+          anchorEl={anchorElRef.current?.parentElement}
+        >
+          <Box
+            css={css`
+              padding: 5rem;
+            `}
+          >
+            <CircularProgress
+              css={css`
+                margin: 0 auto;
+              `}
+            />
+          </Box>
+        </Popover>
+      </Box>
+    );
+  }
 
   return (
     <Box ref={anchorElRef}>
@@ -70,8 +103,17 @@ export function DateRangeEdit(params: GridEditSingleSelectCellProps) {
               display: flex;
               flex-direction: column;
               background-color: #fafafa;
+              width: 650px;
             `}
           >
+            <Typography
+              css={css`
+                padding: 1rem;
+              `}
+            >
+              Toteutusaikavälin tulee olla hankkeen aikavälin sisällä. Lisäksi kohteen
+              taloustietojen on pysyttävä toteutusaikavälin sisällä.
+            </Typography>
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={lang}>
               <Box
                 css={css`
@@ -108,7 +150,11 @@ export function DateRangeEdit(params: GridEditSingleSelectCellProps) {
                         dateFormat,
                       } as any,
                     }}
-                    maxDate={endDate?.subtract(1, 'day')}
+                    minDate={dayjs(validDateRange.data?.minStartDate)}
+                    maxDate={dayjs.min(
+                      dayjs(validDateRange.data?.maxStartDate),
+                      endDate?.subtract(1, 'day'),
+                    )}
                     onChange={(date) => setStartDate(date ?? startDate)}
                     value={startDate}
                   />
@@ -141,7 +187,11 @@ export function DateRangeEdit(params: GridEditSingleSelectCellProps) {
                         dateFormat,
                       } as any,
                     }}
-                    minDate={startDate?.add(1, 'day')}
+                    minDate={dayjs.max(
+                      dayjs(validDateRange.data?.minEndDate),
+                      startDate?.add(1, 'day'),
+                    )}
+                    maxDate={dayjs(validDateRange.data?.maxEndDate)}
                     onChange={(date) => setEndDate(date ?? endDate)}
                     value={endDate}
                   />

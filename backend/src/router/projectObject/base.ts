@@ -7,6 +7,7 @@ import {
   getPermissionContext,
   getProjectObjectBudget,
   getProjectObjectsByProjectId,
+  getValidProjectObjectDateRange,
   updateProjectObjectGeometry,
   validateUpsertProjectObject,
 } from '@backend/components/projectObject/index.js';
@@ -91,6 +92,12 @@ export const createProjectObjectRouter = (t: TRPC) => {
         return await validateUpsertProjectObject(conn, input);
       });
     }),
+
+    getValidDateRange: t.procedure
+      .input(z.object({ projectObjectId: nonEmptyString }))
+      .query(async ({ input }) => {
+        return getValidProjectObjectDateRange(input.projectObjectId);
+      }),
 
     // Mutations requiring write permissions / project ownership
 
