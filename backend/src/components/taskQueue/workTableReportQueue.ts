@@ -152,6 +152,7 @@ export async function setupWorkTableReportQueue() {
         objectType: (row) => formatIdArrayToText(row.objectType, 'objectType'),
         objectCategory: (row) => formatIdArrayToText(row.objectCategory, 'objectCategory'),
         objectUsage: (row) => formatIdArrayToText(row.objectUsage, 'objectUsage'),
+        committee: (row) => formatIdArrayToText([row.committee], 'committee'),
         rakennuttajaUser: (row) =>
           users.find((user) => user.id === row.operatives.rakennuttajaUser)?.name ?? null,
         suunnitteluttajaUser: (row) =>

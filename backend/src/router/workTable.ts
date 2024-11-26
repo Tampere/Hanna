@@ -67,7 +67,7 @@ function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'prin
     forecast: sql.fragment`po_budget.forecast AS "forecast"`,
     kayttosuunnitelmanMuutos: sql.fragment`po_budget.kayttosuunnitelman_muutos AS "kayttosuunnitelmanMuutos"`,
     sapProjectId: sql.fragment`search_results.sap_project_id AS "sapProjectId"`,
-    committee: sql.fragment``,
+    committee: sql.fragment`(SELECT jsonb_agg((committee_type).id)->>0 FROM app.project_object_committee WHERE project_object_id = search_results.id) AS "committee"`,
     budgetYear: sql.fragment``,
     sapWbsId: sql.fragment`search_results.sap_wbs_id AS "sapWbsId"`,
     companyContacts: sql.fragment`
@@ -78,7 +78,7 @@ function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'prin
         FROM po_roles
         WHERE po_roles."objectUserRoles"->>'roleId' = '06'
           AND po_roles.project_object_id = search_results.id
-          AND po_roles."roleType" = 'KohdeKayttajaRooli'
+          AND po_roles."objectUserRoles"->>'roleType' = 'KohdeKayttajaRooli'
         ), '{}'::json[]
       ) AS "companyContacts"`,
     objectRoles: sql.fragment`
@@ -88,7 +88,7 @@ function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'prin
         SELECT array_agg(po_roles."objectUserRoles")
         FROM po_roles
         WHERE po_roles.project_object_id = search_results.id
-          AND po_roles."roleType" = 'KohdeKayttajaRooli'
+          AND po_roles."objectUserRoles"->>'roleType' = 'KohdeKayttajaRooli'
         ), '{}'::json[]
       ) AS "objectRoles"`,
   };
@@ -263,6 +263,7 @@ async function workTableUpdate(input: WorkTableUpdate, user: User) {
       projectObject;
     return {
       ...poUpdate,
+      committee,
       startDate: projectObject.objectDateRange?.startDate,
       endDate: projectObject.objectDateRange?.endDate,
       objectUserRoles: [

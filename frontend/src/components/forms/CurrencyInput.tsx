@@ -63,7 +63,7 @@ export function formatCurrency(value: number | null) {
 export function CurrencyInput(props: Readonly<Props>) {
   const [value, setValue] = useState<string>(numericValueToText(props.value));
   const [editing, setEditing] = useState(props.editing ?? false);
-  const { style = { width: 157 } } = props;
+  const { style = { width: 'auto' } } = props;
 
   useEffect(() => {
     if (props.directlyHandleValueChange && editing) {
@@ -87,7 +87,6 @@ export function CurrencyInput(props: Readonly<Props>) {
         !props.onChange
           ? {
               ...style,
-              backgroundColor: 'rgba(0, 0, 0, 0.08)',
               border: 'none',
               outline: 'none',
               color: textColor,

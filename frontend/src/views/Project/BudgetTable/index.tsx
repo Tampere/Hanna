@@ -207,13 +207,27 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
         if (!dirtyFieldObject) {
           return dirtyValues;
         }
-        const objectEntries = Object.entries(data[year]).filter(
-          ([field]) => dirtyFieldObject[field as keyof typeof dirtyFieldObject],
-        ) as [BudgetField, BudgetFormValues[string]][];
+        // Get only dirty fields for submission since the user permissions might limit the accepted fields for the backend
+        const newDataEntries = Object.entries(dirtyFieldObject).map<
+          [string, BudgetFormValues[string][string]]
+        >(([committee, dirtyFields]) => [
+          committee,
+          {
+            ...(dirtyFields.estimate && { estimate: data[year][committee].estimate }),
+            ...(dirtyFields.amount && { amount: data[year][committee].amount }),
+            ...(dirtyFields.forecast && { forecast: data[year][committee].forecast }),
+            ...(dirtyFields.contractPrice && {
+              contractPrice: data[year][committee].contractPrice,
+            }),
+            ...(dirtyFields.kayttosuunnitelmanMuutos && {
+              kayttosuunnitelmanMuutos: data[year][committee].kayttosuunnitelmanMuutos,
+            }),
+          },
+        ]);
 
         return {
           ...dirtyValues,
-          [year]: Object.fromEntries<BudgetFormValues[string]>(objectEntries),
+          [year]: Object.fromEntries(newDataEntries),
         };
       },
       {},
@@ -258,17 +272,29 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   return !budget ? null : (
     <>
       <FormProvider {...form}>
-        <CommitteeSelection
-          availableCommittees={props.committees ?? []}
-          selectedCommittees={selectedCommittees}
-          setSelectedCommittees={setSelectedCommittees}
-        />
+        {props.committees && (
+          <CommitteeSelection
+            availableCommittees={props.committees}
+            selectedCommittees={selectedCommittees}
+            setSelectedCommittees={setSelectedCommittees}
+          />
+        )}
 
         <form
           css={css`
+            tr:nth-last-of-type(2) {
+              td {
+                ${(selectedCommittees.length === 1 || selectedCommittees.length === 0) &&
+                'padding-bottom: 13px;'}
+              }
+            }
+
             td {
               text-align: right;
+              ${(selectedCommittees.length === 1 || selectedCommittees.length === 0) &&
+              'padding-top: 10px;padding-bottom: 10px;'}
             }
+
             & .MuiFormControl-root {
               margin: 0;
             }
@@ -283,10 +309,23 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
           onSubmit={form.handleSubmit(onSubmit)}
           autoComplete="off"
         >
-          <TableContainer>
+          <TableContainer
+            css={css`
+              overflow-x: visible; // To change nearest scrolling ancestor and to enable sticky header
+            `}
+          >
             <Table size="small">
               <TableHead
                 css={css`
+                  position: sticky;
+                  top: ${props.committees &&
+                  props.committees.length > 1 &&
+                  selectedCommittees.length > 0
+                    ? '40px'
+                    : 0};
+                  background-color: white;
+                  box-shadow: 0 1px 0 0 rgba(224, 224, 224, 1);
+                  z-index: 1;
                   & .column-header {
                     display: flex;
                     justify-content: flex-end;
@@ -420,19 +459,13 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
               <TableBody
                 css={css`
                   input {
-                    background-color: white !important;
+                    background-color: white;
                     border: solid 1px lightgray;
                     font-size: 13px;
                   }
-
-                  td {
-                    padding: ${fields.includes('committee') && selectedCommittees.length > 1
-                      ? '4px 8px'
-                      : '8px'};
-                  }
                 `}
               >
-                {years?.map((year) => {
+                {years?.map((year, yearIdx) => {
                   return (
                     <Fragment key={year}>
                       {fields.includes('committee') ? (
@@ -471,7 +504,9 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                             <TableRow
                               css={css`
                                 height: 1rem;
-                                border-bottom: 1px solid rgba(224, 224, 224, 1);
+                                border-bottom: ${yearIdx !== years.length - 1
+                                  ? '1px solid rgba(224, 224, 224, 1)'
+                                  : 'none'};
                               `}
                             />
                           )}
@@ -491,6 +526,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                 })}
 
                 <TotalRow
+                  committeeColumnVisible={selectedCommittees.length > 1}
                   actuals={props.actuals}
                   actualsLoading={Boolean(props.actualsLoading)}
                   fields={

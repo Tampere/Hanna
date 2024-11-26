@@ -41,7 +41,7 @@ export const ProjectObjectFinances = forwardRef(function ProjectObjectFinances<
     const startYear = dayjs(projectObject.data.startDate).get('year');
     const endYear =
       projectObject.data.endDate === 'infinity'
-        ? dayjs().year() + 5
+        ? Math.max(dayjs().year() + 5, dayjs(projectObject.data.startDate).get('year') + 5)
         : dayjs(projectObject.data.endDate).get('year');
     return getRange(startYear, endYear);
   }, [projectObject.data?.startDate, projectObject.data?.endDate]);

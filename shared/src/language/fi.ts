@@ -51,7 +51,7 @@ export const fi = {
   'projectView.projectShiftDialogTextDetailplan':
     'Hankkeen kesto ei muutu, eli loppuvuosi päivittyy vastaavasti.',
   'projectView.projectShiftDialogText':
-    'Hankkeen kesto ei muutu, eli loppuvuosi päivittyy vastaavasti. Myös hankkeen kohteidenaikataulut sekä taloustiedot päivittyvät.',
+    'Hankkeen kesto ei muutu, eli loppuvuosi päivittyy vastaavasti. Myös hankkeen kohteiden aikataulut sekä taloustiedot päivittyvät.',
   'projectSearch.projectType': 'Hanketyyppi',
   'projectSearch.geometry': 'Alue',
   'projectSearch.showOnlyItemsWithGeom': 'Vain sijaintitiedon sisältävät hankkeet',
@@ -163,7 +163,7 @@ export const fi = {
     'Haluatko varmasti tallentaa tiedot tunnistamattomalla SAP-projektin ID:llä?',
   'projectForm.committeeDisabledLabel': 'Lautakunta on valittuna kohteella.',
   'projectForm.committeeChangeAlert':
-    'Lautakunnan vaihtaminen edellyttää nykyiselle lautakunnalle osoitettujen taloustietojen poistamista. Haluatko poistaa nykyisen lautakunnan taloustiedot?',
+    'Olet poistamassa lautakuntaa, jolle on osoitettu taloustietoja. Poista nämä taloustiedot jatkaaksesi.',
   'projectForm.committeeChangeAlert.deleteSuccess': 'Taloustiedot poistettu onnistuneesti.',
   'projectForm.committeeChangeAlert.deleteFailed': 'Taloustietojen poistaminen epäonnistui.',
   'externalProjectFrom.label': 'Hankealue',
@@ -237,8 +237,7 @@ export const fi = {
   'projectObjectDelete.notifyDelete': 'Kohde poistettu.',
   'projectObjectDelete.notifyDeleteFailed': 'Kohteen poisto epäonnistui.',
   'deleteProjectObjectDialog.title': 'Kohteen poistaminen',
-  'deleteProjectObjectDialog.content':
-    'Olet poistamassa kohdetta. Huomaa, että poistamalla kohteen poistetaan samalla kohteeseen liittyvät vaiheet. Haluatko varmasti poistaa kohteen?',
+  'deleteProjectObjectDialog.content': 'Haluatko varmasti poistaa kohteen?',
   'map.layerdrawer.open': 'Avaa karttatasovalikko',
   'map.layerdrawer.close': 'Sulje karttatasovalikko',
   'map.fitScreen': 'Sovita näkymään',
@@ -627,6 +626,7 @@ export const fi = {
   'workTable.export.objectType': 'Tyyppi',
   'workTable.export.objectCategory': 'Omaisuusluokka',
   'workTable.export.objectUsage': 'Käyttötarkoitus',
+  'workTable.export.committee': 'Lautakunta',
   'workTable.export.rakennuttajaUser': 'Rakennuttaja',
   'workTable.export.suunnitteluttajaUser': 'Suunnitteluttaja',
   'workTable.export.amount': 'Talousarvio',

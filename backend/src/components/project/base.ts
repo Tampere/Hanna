@@ -7,6 +7,7 @@ import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
 
 import { FormErrors, fieldError, hasErrors } from '@shared/formerror.js';
+import { codeSchema } from '@shared/schema/code.js';
 import {
   ProjectPermissions,
   UpsertProject,
@@ -188,9 +189,9 @@ export async function validateUpsertProject(
         extract(year FROM ${values?.endDate}::date) >= max(b.year) AS "validBudgetEndDate",
         CASE
           WHEN ${values?.endDate} = 'infinity'
-          THEN extract(year FROM CURRENT_DATE) + 5 >= max(b.year)
-        ELSE true
-      END AS "validOngoingBudgetEndDate"
+            THEN GREATEST(extract(year FROM CURRENT_DATE), extract(year FROM ${values.startDate}::date)) + 5 >= max(b.year)
+          ELSE true
+        END AS "validOngoingBudgetEndDate"
       FROM app.budget b
       WHERE b.project_id = ${values?.projectId} AND (estimate IS NOT NULL OR amount is NOT NULL OR forecast is NOT NULL OR kayttosuunnitelman_muutos is NOT NULL)
       GROUP BY b.project_id
@@ -355,11 +356,17 @@ export async function getProjectUserPermissions(projectId: string, withAdmins: b
 }
 
 export async function getProjectCommitteesWithCodes(projectId: string) {
-  return getPool().any(sql.untyped`
+  return getPool().many(sql.type(codeSchema.extend({ projectId: z.string() }))`
   SELECT
     project_id AS "projectId",
-    (committee_type).id AS "typeId",
-    text_fi AS "text"
+    json_build_object(
+      'codeListId', (committee_type).code_list_id,
+      'id', (committee_type).id
+    ) AS id,
+    json_build_object(
+      'fi', text_fi,
+      'en', text_en
+    ) AS text
   FROM app.project_committee pc
   LEFT JOIN app.code c ON pc.committee_type = c.id
   WHERE pc.project_id = ${projectId}`);

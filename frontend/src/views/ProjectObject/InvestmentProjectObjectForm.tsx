@@ -16,7 +16,6 @@ import {
   getFormValidator,
 } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
-import { CommitteeChangeAlert } from '@frontend/components/forms/CommitteeChangeAlert';
 import { CommitteeSelect } from '@frontend/components/forms/CommitteeSelect';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
@@ -24,6 +23,7 @@ import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { dirtyAndValidFieldsAtom, projectEditingAtom } from '@frontend/stores/projectView';
 import { ProjectTypePath } from '@frontend/types';
+import { getRange } from '@frontend/utils/array';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
 
@@ -268,6 +268,21 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
   }, [isSubmitSuccessful, reset]);
 
   const onSubmit = (data: UpsertInvestmentProjectObject, geom?: string) => {
+    if (props.projectObject && data.committee && data.committee?.length > 0) {
+      const startYear = dayjs(getValues('startDate')).year();
+      const endYear = dayjs(getValues('endDate')).year();
+      const committee = getValues('committee') as string;
+      const newBudgetCommittees = getRange(startYear, endYear).map((year) => ({
+        year,
+        committee,
+      }));
+
+      return projectObjectUpsert.mutateAsync({
+        ...data,
+        budgetUpdate: { budgetItems: newBudgetCommittees },
+        geom: geom ?? null,
+      });
+    }
     return projectObjectUpsert.mutateAsync({ ...data, geom: geom ?? null });
   };
 
@@ -425,7 +440,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
                   projectId={projectId}
                   itemType="projectObject"
                 />
-                {form.formState.dirtyFields.committee &&
+                {/* {form.formState.dirtyFields.committee &&
                   props.projectObject?.projectObjectId &&
                   props.projectObject?.committee && (
                     <CommitteeChangeAlert
@@ -454,7 +469,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
                       projectObjectId={props.projectObject.projectObjectId}
                       removedCommittees={props.projectObject.committee}
                     />
-                  )}
+                  )} */}
               </>
             )}
           />

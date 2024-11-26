@@ -42,9 +42,13 @@ export function ChartHeader({
         css={css`
           display: grid;
           flex: 1;
-          max-width: 42%;
+          max-width: 380px;
+          @media screen and (min-width: 1200px) {
+            max-width: 600px;
+            gap: 0.5rem;
+          }
           grid: auto / minmax(180px, 240px) minmax(180px, 240px);
-          gap: 0.25rem;
+          gap: 1.5rem;
         `}
       >
         {totalInCurrencySubunit ? (

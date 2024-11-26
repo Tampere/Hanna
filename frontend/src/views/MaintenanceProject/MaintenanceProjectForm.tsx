@@ -314,7 +314,9 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
             )}
             component={(field) => (
               <FormDatePicker
-                maxDate={dayjs(getValues('endDate')).subtract(1, 'day')}
+                {...(getValues('endDate') !== 'infinity' && {
+                  maxDate: dayjs(getValues('endDate')).subtract(1, 'day'),
+                })}
                 readOnly={!editing}
                 field={field}
               />

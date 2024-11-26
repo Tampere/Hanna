@@ -28,7 +28,6 @@ import {
 import { getProjectObjectsByProjectSearch } from '@backend/components/projectObject/search.js';
 import { startReportJob } from '@backend/components/taskQueue/reportQueue.js';
 import { getPool, sql } from '@backend/db.js';
-import { logger } from '@backend/logging.js';
 import { TRPC } from '@backend/router/index.js';
 
 import { nonEmptyString } from '@shared/schema/common.js';

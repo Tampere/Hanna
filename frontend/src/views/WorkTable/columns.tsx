@@ -29,6 +29,7 @@ import {
 import { WorkTableRow, workTableColumnCodes } from '@shared/schema/workTable';
 
 import { CodeSpan } from './CodeSpan';
+import { CommitteeCodeSelect } from './CommitteeCodeSelect';
 import { ProjectObjectNameEdit } from './ProjectObjectNameEdit';
 import { ModifiedFields } from './diff';
 
@@ -302,6 +303,31 @@ const fieldObjectUsage = {
   },
 };
 
+const fieldObjectCommittee = {
+  field: 'committee',
+  headerName: 'Lautakunta',
+  flex: 1,
+  minWidth: 172,
+  renderCell: (params: GridRenderCellParams) => (
+    <CodeSpan codeListId={workTableColumnCodes['committee']} value={params.value} />
+  ),
+  renderEditCell: (params: GridRenderEditCellParams) => {
+    const { id, field, value, row } = params;
+
+    return (
+      <CommitteeCodeSelect
+        projectId={row.projectLink.projectId}
+        value={value}
+        onChange={(newValue) => {
+          params.api.setEditCellValue({ id, field, value: newValue });
+          params.api.stopCellEditMode({ id, field, cellToFocusAfter: 'right' });
+        }}
+        onCancel={() => params.api.stopCellEditMode({ id, field })}
+      />
+    );
+  },
+};
+
 const fieldOperatives = {
   field: 'operatives',
   headerName: 'Rakennuttaja / Suunnitteluttaja',
@@ -349,6 +375,7 @@ const financesField = (
     },
     renderEditCell: (params: GridRenderEditCellParams) => {
       const { id, field, value, api } = params;
+
       return (
         <CurrencyInput
           autoFocus
@@ -385,6 +412,7 @@ export function getColumns({
     fieldObjectType,
     fieldObjectCategory,
     fieldObjectUsage,
+    fieldObjectCommittee,
     fieldOperatives,
     financesField('amount', { headerName: 'Talousarvio', editable: !allYearsSelected }),
     financesField('actual', { headerName: 'Toteuma', editable: false }),

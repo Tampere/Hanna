@@ -433,7 +433,12 @@ export function ProjectObject(props: Props) {
                   <ProjectObjectFinancesCharts
                     projectObjectId={projectObjectId}
                     startYear={dayjs(projectObject.data?.startDate).year()}
-                    endYear={dayjs(projectObject.data?.endDate).year()}
+                    endYear={
+                      props.projectType === 'kunnossapitohanke' &&
+                      projectObject.data?.endDate === 'infinity'
+                        ? dayjs().year() + 5
+                        : dayjs(projectObject.data?.endDate).year()
+                    }
                   />
                 )}
                 {searchParams.get('tab') === 'vaiheet' && (

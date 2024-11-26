@@ -451,8 +451,9 @@ export async function getCommitteesUsedByProjectObjects(
   const conn = tx ?? getPool();
   return conn.any(sql.type(z.object({ id: codeId }))`
     SELECT DISTINCT (committee_type).id AS id, (committee_type).code_list_id AS "codeListId"
-    FROM app.project_object_committee
-    WHERE project_id = ${projectId}
+    FROM app.project_object_committee poc
+    LEFT JOIN app.project_object po ON poc.project_object_id = po.id
+    WHERE poc.project_id = ${projectId} AND po.deleted = false
   `);
 }
 

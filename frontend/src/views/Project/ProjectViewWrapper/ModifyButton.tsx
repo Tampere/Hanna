@@ -101,7 +101,14 @@ export function ModifyButton({
     <>
       <SplitButton
         hideSelectedOptionFromList
-        disableButtonSelection={editing || dateShiftPopupOpen}
+        disableButtonSelection={
+          editing ||
+          dateShiftPopupOpen ||
+          (!isOwner && !canWrite) ||
+          isSubmitting ||
+          dirtyAndValidViews.finances.isDirtyAndValid ||
+          dirtyAndValidViews.permissions.isDirtyAndValid
+        }
         cssProp={css`
           margin-left: auto;
         `}

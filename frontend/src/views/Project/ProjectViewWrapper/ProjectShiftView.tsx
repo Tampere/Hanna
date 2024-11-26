@@ -27,7 +27,7 @@ interface Props {
 }
 
 const MIN_SHIFT_YEAR = 2000;
-const MAX_SHIFT_YEAR = dayjs().year() + 100;
+const MAX_SHIFT_YEAR = dayjs().year() + 50;
 
 export function ProjectShiftView(props: Props) {
   const tr = useTranslations();

@@ -64,10 +64,14 @@ export function CommitteeSelection({
         css={css`
           font-size: 13px;
           color: #525252;
-          margin: 0.5rem 0 0.5rem 8px;
+          position: sticky;
+          top: 0;
+          left: 0;
+          background-color: #fff;
+          z-index: 1;
         `}
       >
-        Lautakunta: {committeeCodes.get(availableCommittees[0])?.fi}
+        {committeeCodes.get(availableCommittees[0])?.fi}
       </Typography>
     );
   }
@@ -75,7 +79,12 @@ export function CommitteeSelection({
   return (
     <Box
       css={css`
-        margin-bottom: 1rem;
+        position: sticky;
+        top: 0;
+        left: 0;
+        background-color: #fff;
+        z-index: 1;
+        padding-bottom: 1rem;
         display: flex;
         align-items: center;
         gap: 1rem;
@@ -87,7 +96,7 @@ export function CommitteeSelection({
           color: #525252;
         `}
       >
-        Lautakuntaerittely:
+        {tr('budgetTable.committeeChip.title')}
       </Typography>
       {availableCommittees.map((committeeKey) => {
         const committeeColor = isCommitteeColorKey(committeeKey)
@@ -111,12 +120,14 @@ export function CommitteeSelection({
           />
         );
       })}
-      <CommitteeChip
-        label={tr('budgetTable.committeeChip.all')}
-        labelColor="#000"
-        chipColor={committeeColors.default}
-        handleClick={() => setSelectedCommittees(availableCommittees)}
-      />
+      {selectedCommittees.length < availableCommittees.length && (
+        <CommitteeChip
+          label={tr('budgetTable.committeeChip.all')}
+          labelColor="#000"
+          chipColor={committeeColors.default}
+          handleClick={() => setSelectedCommittees(availableCommittees)}
+        />
+      )}
     </Box>
   );
 }

@@ -14,26 +14,50 @@ interface Props {
   actuals?: YearlyActuals | null;
   actualsLoading: boolean;
   formValues: BudgetFormValues;
+  committeeColumnVisible: boolean;
   getFieldValue: (
     fieldName: keyof ProjectYearBudget['budgetItems'],
     formValues?: BudgetFormValues,
   ) => number | null;
 }
 
-export function TotalRow({ actuals, actualsLoading, fields, getFieldValue, formValues }: Props) {
+export function TotalRow({
+  actuals,
+  actualsLoading,
+  fields,
+  getFieldValue,
+  formValues,
+  committeeColumnVisible,
+}: Props) {
   const tr = useTranslations();
 
   return (
     <TableRow
-      css={css`
+      css={(theme) => css`
+        position: sticky;
+        bottom: 0;
+        background-color: white;
+        z-index: 1;
+        outline: 3px double ${theme.palette.primary.main};
         input {
           min-height: 28px;
           flex: 1;
         }
+        td {
+          height: 34px;
+          border: none;
+          padding: 5px 16px 3px 16px !important;
+        }
       `}
     >
-      <TableCell colSpan={fields.includes('committee') ? 2 : 1}>
-        <Typography className={TABLE_CELL_CONTENT_CLASS} variant="overline">
+      <TableCell colSpan={committeeColumnVisible ? 2 : 1}>
+        <Typography
+          css={css`
+            width: max-content;
+          `}
+          className={TABLE_CELL_CONTENT_CLASS}
+          variant="overline"
+        >
           {tr('budgetTable.total')}
         </Typography>
       </TableCell>
