@@ -207,13 +207,27 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
         if (!dirtyFieldObject) {
           return dirtyValues;
         }
-        const objectEntries = Object.entries(data[year]).filter(
-          ([field]) => dirtyFieldObject[field as keyof typeof dirtyFieldObject],
-        ) as [BudgetField, BudgetFormValues[string]][];
+        // Get only dirty fields for submission since the user permissions might limit the accepted fields for the backend
+        const newDataEntries = Object.entries(dirtyFieldObject).map<
+          [string, BudgetFormValues[string][string]]
+        >(([committee, dirtyFields]) => [
+          committee,
+          {
+            ...(dirtyFields.estimate && { estimate: data[year][committee].estimate }),
+            ...(dirtyFields.amount && { amount: data[year][committee].amount }),
+            ...(dirtyFields.forecast && { forecast: data[year][committee].forecast }),
+            ...(dirtyFields.contractPrice && {
+              contractPrice: data[year][committee].contractPrice,
+            }),
+            ...(dirtyFields.kayttosuunnitelmanMuutos && {
+              kayttosuunnitelmanMuutos: data[year][committee].kayttosuunnitelmanMuutos,
+            }),
+          },
+        ]);
 
         return {
           ...dirtyValues,
-          [year]: Object.fromEntries<BudgetFormValues[string]>(objectEntries),
+          [year]: Object.fromEntries(newDataEntries),
         };
       },
       {},

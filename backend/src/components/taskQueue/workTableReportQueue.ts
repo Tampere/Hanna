@@ -6,7 +6,6 @@ import { buildSheet } from '@backend/components/report/index.js';
 import { saveReportFile } from '@backend/components/report/report-file.js';
 import { getAllUsers } from '@backend/components/user/index.js';
 import { env } from '@backend/env.js';
-import { logger } from '@backend/logging.js';
 import { getAllContactsAndCompanies } from '@backend/router/company.js';
 import { workTableSearch } from '@backend/router/workTable.js';
 
@@ -100,8 +99,6 @@ export async function setupWorkTableReportQueue() {
       );
 
       function formatIdArrayToText(value: string[], codeKey: keyof typeof workTableColumnCodes) {
-        logger.info(value);
-        logger.info(codeKey);
         return value
           .map((id) => codes[codeKey].find((code) => code.id.id === id)?.text['fi'])
           .join(', ');
@@ -184,7 +181,7 @@ export async function setupWorkTableReportQueue() {
           );
         });
       }
-      logger.info(getRows());
+
       const financeColumns = ['amount', 'actual', 'forecast', 'kayttosuunnitelmanMuutos'];
 
       const sheet = buildSheet<ReportColumnKey>({
