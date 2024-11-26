@@ -15,9 +15,9 @@
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
-    "@types/node": "^22.9.0",
+    "@types/node": "^22.10.0",
     "tsc-alias": "^1.8.10",
-    "typescript": "^5.6.3",
-    "vitest": "^2.1.4"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.5"
   }
 }
