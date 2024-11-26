@@ -115,7 +115,9 @@ export async function getProjectObjectsByProjectId(projectId: string, orderBy?: 
     LEFT JOIN dump ON dump.id = project_object.id
     WHERE deleted = false AND project_id = ${projectId}
     ${
-      orderBy ? sql.fragment`ORDER BY ${sql.identifier([orderByColumns[orderBy]])}` : sql.fragment``
+      orderBy
+        ? sql.fragment`ORDER BY ${sql.identifier([orderByColumns[orderBy]])}, object_name`
+        : sql.fragment``
     }
   `);
 }
