@@ -123,7 +123,7 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
   }, []);
 
   const form = useForm<InvestmentProject>({
-    mode: 'onChange',
+    mode: 'all',
     resolver: formValidator,
     context: {
       requiredFields: getRequiredFields(investmentProjectSchema),
