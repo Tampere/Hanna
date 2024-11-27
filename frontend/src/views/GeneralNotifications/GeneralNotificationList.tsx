@@ -1,4 +1,4 @@
-import { ExpandMore } from '@mui/icons-material';
+import { CampaignTwoTone, ExpandMore } from '@mui/icons-material';
 import {
   Accordion,
   AccordionDetails,
@@ -63,9 +63,27 @@ export function GeneralNotificationList({ notifications }: Props) {
 
   if (notifications.length === 0) {
     return (
-      <Typography variant="h5" component="h1">
-        {tr('generalNotifications.noResults')}
-      </Typography>
+      <Box
+        css={css`
+          height: 200px;
+          margin: auto;
+          display: flex;
+          gap: 0.5rem;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+        `}
+      >
+        <CampaignTwoTone
+          css={css`
+            height: 70px;
+            width: 70px;
+          `}
+        />
+        <Typography variant="h6" component="p">
+          {tr('generalNotifications.noResults')}
+        </Typography>
+      </Box>
     );
   }
 
