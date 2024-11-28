@@ -222,7 +222,7 @@ export const mapOptions = {
       name: 'Rakennukset',
       visible: true,
       type: 'wfs',
-      url: `${geodataBaseUrl}/julkinn/wfs?${createWfsParams(
+      url: `${geodataBaseUrl}/julkinen/wfs?${createWfsParams(
         'julkinen:RAKENNUKSET_ALUE_MVIEW',
         'EPSG:3067',
       )}`,
