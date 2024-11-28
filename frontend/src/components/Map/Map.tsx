@@ -33,7 +33,7 @@ interface Props {
 }
 
 const { code, units, proj4String } = mapOptions.projection;
-registerProjection(code, mapOptions.projection.extent, proj4String);
+registerProjection(code, [...mapOptions.projection.extent], proj4String);
 
 const initialInteractions = defaultInteractions({
   altShiftDragRotate: false,
@@ -147,10 +147,9 @@ export function Map({
   /** WFS vector layers */
   useEffect(() => {
     if (!wfsLayers) return;
-    const wfsLayerIds = new Set(wfsLayers.map((layer) => layer.get('id')));
     const allLayers = [...olMap.getLayers().getArray()];
     allLayers.forEach((layer) => {
-      if (layer.get('type') === 'wfs' && !wfsLayerIds.has(layer.get('id'))) {
+      if (layer.get('type') === 'wfs') {
         olMap.removeLayer(layer);
       }
     });

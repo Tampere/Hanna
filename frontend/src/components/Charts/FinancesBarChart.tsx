@@ -85,8 +85,8 @@ export function FinancesBarChart({
   return (
     <ResponsiveChartContainer
       height={240}
+      margin={{ left: 85 }}
       css={css`
-        padding: 7px; // Dirty trick to display ticklabels
         & .MuiLineElement-root {
           stroke-dasharray: 6;
           stroke-width: 1;
@@ -186,9 +186,11 @@ export function FinancesBarChart({
             const { text, ownerState, ...restProps } = labelProps;
             const normalizedText = text.replace(/−/g, '-');
 
-            const formattedText = new Intl.NumberFormat('fi-FI').format(
-              Number(normalizedText.split(',').join('')),
-            );
+            const formattedText = new Intl.NumberFormat('fi-FI', {
+              style: 'currency',
+              maximumFractionDigits: 0,
+              currency: 'EUR',
+            }).format(Number(normalizedText.split(',').join('')));
 
             return <text {...restProps}>{formattedText}</text>;
           },

@@ -343,7 +343,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                   <TableCell
                     css={css`
                       min-width: 120px;
-                      padding-left: 8px;
+                      padding-left: 16px;
                     `}
                     align="left"
                   >

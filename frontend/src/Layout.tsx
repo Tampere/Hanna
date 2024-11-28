@@ -90,6 +90,13 @@ export const theme = createTheme(
 );
 
 const logoStyle = css`
+  color: #fff;
+  text-decoration: none;
+  :hover {
+    color: #bebebe;
+  }
+  font-size: 20px;
+
   font-family: Consolas, Menlo, sans-serif, monospace;
   text-transform: uppercase;
   font-weight: bold;
@@ -103,6 +110,7 @@ function Navbar() {
   const [aboutDialogOpen, setAboutDialogOpen] = useState(false);
   const profileMenuAnchor = useRef<HTMLButtonElement>(null);
   const { pathname } = useLocation();
+
   const recentGeneralNotifications =
     trpc.generalNotification.getRecentGeneralNotificationCount.useQuery(undefined, {
       staleTime: 15 * 60 * 1000,
@@ -128,9 +136,9 @@ function Navbar() {
         `}
       >
         <Box sx={{ mr: 2 }}>
-          <Typography variant="h6" noWrap component="div" css={logoStyle}>
+          <Link to={'/'} css={logoStyle}>
             Hanna
-          </Typography>
+          </Link>
         </Box>
         <Box
           css={css`

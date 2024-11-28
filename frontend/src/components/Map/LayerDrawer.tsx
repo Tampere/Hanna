@@ -1,25 +1,37 @@
 import { SerializedStyles, css } from '@emotion/react';
-import { Layers, ToggleOff, ToggleOn } from '@mui/icons-material';
-import { Box, Divider, IconButton, MenuItem, Theme, Tooltip, Typography } from '@mui/material';
-import { useAtom } from 'jotai';
+import { Layers, ReportProblem, ToggleOff, ToggleOn } from '@mui/icons-material';
+import {
+  Box,
+  CircularProgress,
+  Divider,
+  IconButton,
+  MenuItem,
+  Theme,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import { useTranslations } from '@frontend/stores/lang';
 import {
   ItemLayerState,
-  LayerState,
   VectorItemLayerKey,
   VectorLayerKey,
+  VectorLayerState,
   baseLayerIdAtom,
+  baseLayerStatusAtom,
+  setWFSLayerStatusAtom,
   vectorItemLayersAtom,
-  vectorLayersAtom,
+  wfsLayerStatusAtom,
+  wfsVectorLayersAtom,
 } from '@frontend/stores/map';
 
 import { mapOptions } from './mapOptions';
 
 const containerStyles = css`
-  width: 280px;
+  width: 290px;
   position: absolute;
   right: -2rem;
   top: 0;
@@ -52,7 +64,7 @@ const toggleOffStyle = css`
 `;
 
 function setLayerSelected(
-  layersState: LayerState[] | ItemLayerState[],
+  layersState: VectorLayerState[] | ItemLayerState[],
   layerId: VectorLayerKey | VectorItemLayerKey,
   selected: boolean,
 ) {
@@ -86,8 +98,12 @@ export function LayerDrawer({
 }) {
   const tr = useTranslations();
   const [baseLayerId, setBaseLayerId] = useAtom(baseLayerIdAtom);
-  const [vectorLayers, setVectorLayers] = useAtom(vectorLayersAtom);
+  const [vectorLayers, setVectorLayers] = useAtom(wfsVectorLayersAtom);
   const [vectorItemLayers, setVectorItemLayers] = useAtom(vectorItemLayersAtom);
+  const baseMapLayerStatus = useAtomValue(baseLayerStatusAtom);
+  const vectorLayerStatus = useAtomValue(wfsLayerStatusAtom);
+  const setWfsLayerStatus = useSetAtom(setWFSLayerStatusAtom);
+
   const { pathname } = useLocation();
 
   useEffect(() => {
@@ -169,16 +185,44 @@ export function LayerDrawer({
             <MenuItem
               sx={{ display: 'flex', justifyContent: 'space-between' }}
               key={`vectorlayer-${layerState.id}`}
-              onClick={() =>
+              onClick={() => {
                 setVectorLayers(
                   (prev) =>
-                    setLayerSelected(prev, layerState.id, !layerState.selected) as LayerState[],
-                )
-              }
+                    setLayerSelected(
+                      prev,
+                      layerState.id,
+                      !layerState.selected,
+                    ) as VectorLayerState[],
+                );
+                if (layerState.selected) {
+                  setWfsLayerStatus({
+                    type: 'setError',
+                    layerId: layerState.id,
+                    payload: !layerState.selected,
+                  });
+                }
+              }}
               disableTouchRipple
             >
-              <Box sx={{ display: 'flex' }}>
+              <Box
+                css={css`
+                  display: flex;
+                  align-items: center;
+                  gap: 1rem;
+                `}
+              >
                 <Typography>{tr(`vectorLayer.title.${layerState.id}`)}</Typography>
+
+                {layerState.selected &&
+                  (vectorLayerStatus.find((status) => status.id === layerState.id)?.isLoading ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    vectorLayerStatus.find((status) => status.id === layerState.id)?.hasError && (
+                      <Tooltip title={tr('vectorLayer.loadingError')}>
+                        <ReportProblem color="error" />
+                      </Tooltip>
+                    )
+                  ))}
               </Box>
               {layerState.selected ? (
                 <ToggleOn css={toggleOnStyle} fontSize="large" />
@@ -197,11 +241,18 @@ export function LayerDrawer({
               key={`basemap-${index}`}
               onClick={() => setBaseLayerId(baseMap.id)}
               style={{
+                display: 'flex',
+                gap: '1rem',
                 backgroundColor: baseMap.id === baseLayerId ? '#22437b' : '',
                 color: baseMap.id === baseLayerId ? 'white' : '',
               }}
             >
               <Typography>{baseMap.name}</Typography>
+              {baseMapLayerStatus.find((status) => status.id === baseMap.id)?.hasError && (
+                <Tooltip title={tr('vectorLayer.loadingError')}>
+                  <ReportProblem color="error" />
+                </Tooltip>
+              )}
             </MenuItem>
           ))}
         </Box>

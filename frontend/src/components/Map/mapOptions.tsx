@@ -1,5 +1,7 @@
 import { FeatureLike } from 'ol/Feature';
 
+import { BaseLayerKey, VectorLayerKey } from '@frontend/stores/map';
+
 const geodataBaseUrl = 'https://geodata.tampere.fi/geoserver';
 
 const createWfsParams = (typeName: string, projectionCode: string) => {
@@ -14,7 +16,7 @@ const createWfsParams = (typeName: string, projectionCode: string) => {
 };
 
 export interface WFSLayer {
-  id: string;
+  id: VectorLayerKey;
   title: string;
   name: string;
   visible: boolean;
@@ -29,6 +31,28 @@ export interface WFSLayer {
     font?: `${'Bold' | 'Normal'} ${number}px/${number} ${string}`;
   };
   attributions?: string[];
+}
+
+interface WMTSLayer {
+  id: BaseLayerKey;
+  title: string;
+  name: string;
+  visible: boolean;
+  type: 'base';
+  options: {
+    protocol: 'wmts';
+    url: string;
+    layer: string;
+    matrixSet: string;
+    projection: string;
+    format: string;
+    tileGridID: string;
+    tileSize: number;
+    zoomLevels: number;
+    zoomFactor: number;
+  };
+  opacity: number;
+  attributions: string[];
 }
 
 /**
@@ -157,7 +181,7 @@ export const mapOptions = {
       opacity: 1.0,
       attributions: [],
     },
-  ],
+  ] as WMTSLayer[],
   wfsLayers: [
     {
       id: 'kaupunginosat',
@@ -198,8 +222,8 @@ export const mapOptions = {
       name: 'Rakennukset',
       visible: true,
       type: 'wfs',
-      url: `${geodataBaseUrl}/rakennukset/wfs?${createWfsParams(
-        'rakennukset:RAKENN_ST_FA_GSVIEW',
+      url: `${geodataBaseUrl}/julkinn/wfs?${createWfsParams(
+        'julkinen:RAKENNUKSET_ALUE_MVIEW',
         'EPSG:3067',
       )}`,
       style: {
