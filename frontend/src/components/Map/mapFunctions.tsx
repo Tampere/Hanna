@@ -24,6 +24,7 @@ import proj4 from 'proj4';
  * @see https://openlayers.org/en/latest/apidoc/module-ol_source_WMTS-WMTS.html
  */
 import { WFSLayer } from '@frontend/components/Map/mapOptions';
+import { VectorLayerKey } from '@frontend/stores/map';
 import { AtLeast } from '@frontend/stores/misc';
 
 import { WFS_LAYER_DEFAULT_Z_INDEX } from './styles';
@@ -100,6 +101,7 @@ export function createWMTSLayer(
     style?: string;
   },
   projection: Projection,
+  setError: () => void,
 ) {
   const {
     url,
@@ -132,6 +134,10 @@ export function createWMTSLayer(
     ...(url.includes('geoserver') && { serverType: 'geoserver' }),
   });
 
+  wmtsSource.addEventListener('tileloaderror', () => {
+    setError();
+  });
+
   return new TileLayer({
     source: wmtsSource,
     properties: { type: 'basemap' },
@@ -155,19 +161,35 @@ function createTileMatrixIDS(zoomLevels: number, matrixSet: string) {
  * Creates a vector source used with vector layers
  */
 
-export function createVectorSource(url: string) {
-  return new VectorSource({
+export function createVectorSource(
+  url: string,
+  setError: (isError: boolean) => void,
+  setLoading: (isLoading: boolean) => void,
+) {
+  const vectorSource = new VectorSource({
     url: (extent: number[]) => {
       return `${url}&bbox=${extent.join(',')},EPSG:3067`;
     },
     strategy: bbox,
     format: new GeoJSON(),
   });
+  vectorSource.addEventListener('featuresloadstart', () => setLoading(true));
+  vectorSource.addEventListener('featuresloadend', () => setLoading(false));
+  vectorSource.addEventListener('featuresloaderror', () => setError(true));
+  return vectorSource;
 }
 
-export function createWFSLayer(layer: WFSLayer) {
+export function createWFSLayer(
+  layer: WFSLayer & { id: VectorLayerKey },
+  handleWfsLayerFetchError: (layerId: VectorLayerKey, isError: boolean) => void,
+  handleWfsLayerFetchLoading: (layerId: VectorLayerKey, isLoading: boolean) => void,
+) {
   return new VectorImageLayer({
-    source: createVectorSource(layer.url),
+    source: createVectorSource(
+      layer.url,
+      (isError: boolean) => handleWfsLayerFetchError(layer.id, isError),
+      (isLoading: boolean) => handleWfsLayerFetchLoading(layer.id, isLoading),
+    ),
     zIndex: WFS_LAYER_DEFAULT_Z_INDEX,
     style: (feature) =>
       new Style({

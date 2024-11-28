@@ -21,7 +21,7 @@ import {
   projectObjectAreaStyle,
 } from '@frontend/components/Map/styles';
 
-export const baseLayerIdAtom = atom<string>('virastokartta');
+export const baseLayerIdAtom = atom<BaseLayerKey>('virastokartta');
 
 export interface FeatureSelector {
   pos: Pixel;
@@ -50,6 +50,13 @@ export type VectorLayerKey =
   | 'kadut'
   | 'kevyenliikenteenvaylat';
 
+export type BaseLayerKey =
+  | 'virastokartta'
+  | 'opaskartta'
+  | 'kantakartta'
+  | 'ilmakuva'
+  | 'asemakaava';
+
 export const ALL_VECTOR_ITEM_LAYERS = [
   'projects',
   'projectObjects',
@@ -58,10 +65,18 @@ export const ALL_VECTOR_ITEM_LAYERS = [
   'municipality',
 ] as const;
 
+type wfsVectorLayerStatusAction = 'setError' | 'setLoading';
+
 export type VectorItemLayerKey = (typeof ALL_VECTOR_ITEM_LAYERS)[number];
 
-export interface LayerState {
+export interface VectorLayerState {
   id: VectorLayerKey;
+  selected: boolean;
+  opacity: number;
+}
+
+export interface BaseLayerState {
+  id: BaseLayerKey;
   selected: boolean;
   opacity: number;
 }
@@ -72,7 +87,58 @@ export interface ItemLayerState {
   opacity: number;
 }
 
-const defaultLayerState = [
+const baseMapLayerErrorState = [
+  {
+    id: 'virastokartta' as const,
+    hasError: false,
+  },
+  {
+    id: 'opaskartta' as const,
+    hasError: false,
+  },
+  {
+    id: 'kantakartta' as const,
+    hasError: false,
+  },
+  {
+    id: 'ilmakuva' as const,
+    hasError: false,
+  },
+  {
+    id: 'asemakaava' as const,
+    hasError: false,
+  },
+];
+
+const defaultWfsLayerStatusState = [
+  {
+    id: 'kaupunginosat' as const,
+    isLoading: false,
+    hasError: false,
+  },
+  {
+    id: 'kiinteistot' as const,
+    isLoading: false,
+    hasError: false,
+  },
+  {
+    id: 'rakennukset' as const,
+    isLoading: false,
+    hasError: false,
+  },
+  {
+    id: 'kadut' as const,
+    isLoading: false,
+    hasError: false,
+  },
+  {
+    id: 'kevyenliikenteenvaylat' as const,
+    isLoading: false,
+    hasError: false,
+  },
+];
+
+const defaultWfsLayerState = [
   {
     id: 'kaupunginosat' as const,
     selected: false,
@@ -198,12 +264,41 @@ export const selectedItemIdsAtom = atom<string[]>((get) =>
   getFeatureItemIds(get(featureSelectorAtom).features),
 );
 
-export const vectorLayersAtom = atom<LayerState[]>(defaultLayerState);
+export const wfsVectorLayersAtom = atom<VectorLayerState[]>(defaultWfsLayerState);
 export const vectorItemLayersAtom = atom<ItemLayerState[]>(defaultItemLayerState);
+export const wfsLayerStatusAtom = atom(defaultWfsLayerStatusState);
+export const baseLayerStatusAtom = atomWithReset(baseMapLayerErrorState);
 
-export const selectedWFSLayersAtom = atom<LayerState[]>((get) =>
-  get(vectorLayersAtom).filter((l) => l.selected),
+export const selectedWFSLayersAtom = atom<VectorLayerState[]>((get) =>
+  get(wfsVectorLayersAtom).filter((l) => l.selected),
 );
+
+export const setWFSLayerStatusAtom = atom<
+  null,
+  [{ type: wfsVectorLayerStatusAction; layerId: VectorLayerKey; payload: boolean }],
+  void
+>(null, (_get, set, action) => {
+  switch (action.type) {
+    case 'setError':
+      set(wfsLayerStatusAtom, (layers) =>
+        layers.map((layer) =>
+          layer.id === action.layerId
+            ? { ...layer, hasError: action.payload, ...(action.payload && { isLoading: false }) }
+            : layer,
+        ),
+      );
+      break;
+    case 'setLoading':
+      set(wfsLayerStatusAtom, (layers) =>
+        layers.map((layer) =>
+          layer.id === action.layerId
+            ? { ...layer, isLoading: action.payload, ...(action.payload && { hasError: false }) }
+            : layer,
+        ),
+      );
+      break;
+  }
+});
 
 export const selectedItemLayersAtom = atom<ItemLayerState[]>((get) =>
   get(vectorItemLayersAtom).filter((l) => l.selected),

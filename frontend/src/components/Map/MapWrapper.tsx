@@ -1,21 +1,27 @@
 import { GlobalStyles } from '@mui/material';
-import { useAtom, useAtomValue } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { RESET } from 'jotai/utils';
 import Feature from 'ol/Feature';
 import { Geometry } from 'ol/geom';
 import VectorLayer from 'ol/layer/Vector';
+import VectorImageLayer from 'ol/layer/VectorImage';
 import { Projection } from 'ol/proj';
 import VectorSource from 'ol/source/Vector';
 import { ComponentProps, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
+  BaseLayerKey,
   ItemLayerState,
+  VectorLayerKey,
   baseLayerIdAtom,
+  baseLayerStatusAtom,
   featureSelectorAtom,
   freezeMapHeightAtom,
   mapProjectionAtom,
   selectedItemLayersAtom,
   selectedWFSLayersAtom,
   selectionSourceAtom,
+  setWFSLayerStatusAtom,
 } from '@frontend/stores/map';
 import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 
@@ -75,8 +81,8 @@ interface Props<TProject, TProjectObject> {
 export function MapWrapper<TProject extends ProjectData, TProjectObject extends ProjectObjectData>(
   props: Props<TProject, TProjectObject>,
 ) {
-  const [zoom, setZoom] = useState(mapOptions.tre.defaultZoom);
-  const [viewExtent, setViewExtent] = useState<number[]>(mapOptions.tre.extent);
+  const [zoom, setZoom] = useState<number>(mapOptions.tre.defaultZoom);
+  const [viewExtent, setViewExtent] = useState<number[]>([...mapOptions.tre.extent]);
 
   const mapWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -94,20 +100,57 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
   const [baseLayerId] = useAtom(baseLayerIdAtom);
   const selectedWFSLayers = useAtomValue(selectedWFSLayersAtom);
   const selectedItemLayers = useAtomValue(selectedItemLayersAtom);
+  const setWfsLayerStatus = useSetAtom(setWFSLayerStatusAtom);
+  const [baseLayerStatus, setBaseLayerStatus] = useAtom(baseLayerStatusAtom);
+
+  function toggleWfsLayerFetchError(layerId: VectorLayerKey, isError: boolean) {
+    setWfsLayerStatus({ type: 'setError', layerId: layerId, payload: isError });
+  }
+
+  function toggleWfsLayerFetchLoading(layerId: VectorLayerKey, isLoading: boolean) {
+    setWfsLayerStatus({ type: 'setLoading', layerId: layerId, payload: isLoading });
+  }
+
+  function toggleBaseMapLayerError(layerId: BaseLayerKey) {
+    const currentLayerState = baseLayerStatus.find((layer) => layer.id === layerId);
+
+    if (currentLayerState && !currentLayerState?.hasError) {
+      setBaseLayerStatus((prev) =>
+        prev.map((layer) => (layer.id === layerId ? { ...layer, hasError: true } : layer)),
+      );
+    }
+  }
+
+  useEffect(() => {
+    setBaseLayerStatus(RESET);
+  }, [baseLayerId]);
 
   const baseMapLayers = useMemo(() => {
     if (!baseLayerId) return [];
-
     return mapOptions.baseMaps
       .filter((baseMap) => baseMap.id === (baseLayerId ? baseLayerId : 'virastokartta'))
-      .map((baseMap) => createWMTSLayer(baseMap.options, projection as Projection));
-  }, [baseLayerId]);
+      .map((baseMap) =>
+        createWMTSLayer(baseMap.options, projection as Projection, () =>
+          toggleBaseMapLayerError(baseLayerId ?? 'virastokartta'),
+        ),
+      );
+  }, [baseLayerId, baseLayerStatus]);
 
-  const WFSLayers = useMemo(() => {
-    if (!selectedWFSLayers) return [];
-    return mapOptions.wfsLayers
-      .filter((layer) => selectedWFSLayers.findIndex((l) => l.id === layer.id) !== -1)
-      .map((layer) => createWFSLayer(layer));
+  const [WFSLayers, setWFSLayers] = useState<
+    VectorImageLayer<Feature<Geometry>, VectorSource<Feature<Geometry>>>[]
+  >([]);
+
+  useEffect(() => {
+    if (!selectedWFSLayers) return;
+    setWFSLayers((prevWfsLayers) => {
+      return mapOptions.wfsLayers
+        .filter((layer) => selectedWFSLayers.findIndex((l) => l.id === layer.id) !== -1)
+        .map(
+          (layer) =>
+            prevWfsLayers.find((l) => l.get('id') === layer.id) ??
+            createWFSLayer(layer, toggleWfsLayerFetchError, toggleWfsLayerFetchLoading),
+        );
+    });
   }, [selectedWFSLayers]);
 
   const { resetInfoBox, isVisible: infoBoxVisible } = useMapInfoBox();
@@ -222,12 +265,10 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
           {props.withColorPatternSelect && <ColorPatternSelect />}
 
           <DrawerContainer
-            layerDrawerEnabledLayers={
-              props.vectorLayers?.map((layer) => layer.getProperties().id) ?? []
-            }
+            layerDrawerEnabledLayers={props.vectorLayers?.map((layer) => layer.get('id')) ?? []}
             legendVectorLayerKeys={
               props.vectorLayers
-                ?.map((layer) => layer.getProperties().id)
+                ?.map((layer) => layer.get('id'))
                 ?.filter((id) => ['projects', 'projectObjects'].includes(id)) ?? []
             }
             colorPatternSelectorVisible={props.withColorPatternSelect}

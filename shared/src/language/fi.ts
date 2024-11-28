@@ -278,6 +278,7 @@ export const fi = {
   'vectorLayer.title.kevyenliikenteenvaylat': 'Kevyen liikenteen väylät',
   'vectorLayer.title.projects': 'Hankkeet',
   'vectorLayer.title.projectObjects': 'Kohteet',
+  'vectorLayer.loadingError': 'Tason lataaminen epäonnistui.',
   'project.notifyGeometryUpdateTitle': 'Alue päivitetty',
   'project.notifyGeometryUpdateFailedTitle': 'Alueen päivitys epäonnistui.',
   'mapEdit.undoTooltip': 'Peruuta alueen muutokset',
