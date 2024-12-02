@@ -358,12 +358,14 @@ export default function WorkTable() {
   }
 
   async function update() {
+    const oneYearSelected =
+      dayjs(searchParams.objectStartDate).year() === dayjs(searchParams.objectEndDate).year();
     // NOTE: some problems with type inference, backend has schema validation however
     const updateData = {} as Record<string, Record<keyof WorkTableRowUpdate, any>>;
     editEvents.forEach((editEvent) => {
       const { rowId, field, newValue } = editEvent;
       updateData[rowId] = updateData[rowId] ?? {
-        budgetYear: dayjs(searchParams.objectStartDate).year(),
+        ...(oneYearSelected && { budgetYear: dayjs(searchParams.objectStartDate).year() }),
       };
       updateData[rowId][field] = newValue;
     });

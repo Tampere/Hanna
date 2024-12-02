@@ -65,7 +65,8 @@ export function ProjectObjectList(props: Props) {
 
   const objectYears = useMemo(() => {
     if (!projectObjects.data) return [];
-    return projectObjects.data.map((obj) => dayjs(obj.startDate).year());
+    const allYears = projectObjects.data.map((obj) => dayjs(obj.startDate).year());
+    return allYears.filter((year, index) => allYears.indexOf(year) === index);
   }, [projectObjects.data]);
 
   return (

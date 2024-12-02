@@ -285,17 +285,19 @@ async function workTableUpdate(input: WorkTableUpdate, user: User) {
         },
       ],
       projectObjectId,
-      budgetUpdate: {
-        budgetItems: [
-          {
-            year: budgetYear,
-            amount: amount,
-            forecast,
-            kayttosuunnitelmanMuutos,
-            committee,
-          },
-        ],
-      },
+      ...(budgetYear && {
+        budgetUpdate: {
+          budgetItems: [
+            {
+              year: budgetYear,
+              amount: amount,
+              forecast,
+              kayttosuunnitelmanMuutos,
+              committee,
+            },
+          ],
+        },
+      }),
     } as UpsertInvestmentProjectObject;
   });
 
