@@ -12,7 +12,8 @@ import {
   css,
 } from '@mui/material';
 import dayjs from 'dayjs';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useAtom, useSetAtom } from 'jotai';
+import { RESET } from 'jotai/utils';
 import { useEffect, useMemo, useState } from 'react';
 
 import { mapOptions } from '@frontend/components/Map/mapOptions';
@@ -93,8 +94,8 @@ export function SearchControls() {
   const [filters, setFilters] = useAtom(filtersAtom);
   const [includeWithoutGeom, setIncludeWithoutGeom] = useAtom(includeWithoutGeomAtom);
   const [onlyCoversMunicipality, setOnlyCoversMunicipality] = useAtom(onlyCoversMunicipalityAtom);
+  const [allSearchParams, setAllSearchParams] = useAtom(projectSearchParamAtom);
   const setFreezeMapHeight = useSetAtom(freezeMapHeightAtom);
-  const allSearchParams = useAtomValue(projectSearchParamAtom);
   const setMap = useSetAtom(mapAtom);
 
   const searchParamsCount = useMemo(
@@ -312,6 +313,8 @@ export function SearchControls() {
           display: flex;
           justify-content: flex-end;
           transition: opacity 1s ease-out;
+          gap: 0.5rem;
+          align-items: center;
           ${!isVisible && 'margin-bottom: 0.5rem;'}
         `}
       >
@@ -330,10 +333,10 @@ export function SearchControls() {
             {expanded ? tr('itemSearch.showLessBtnLabel') : tr('itemSearch.showMoreBtnLabel')}
           </Button>
         )}
-
-        {!isVisible && searchParamsCount > 0 && (
+        {searchParamsCount > 0 && (
           <Chip
             variant="outlined"
+            size="small"
             css={css`
               font-size: 12px;
               border-color: orange;
@@ -343,14 +346,15 @@ export function SearchControls() {
                 ? tr('workTable.search.chipLabelSingle')
                 : tr('workTable.search.chipLabelMultiple', searchParamsCount)
             }
+            onDelete={() => setAllSearchParams(RESET)}
           />
         )}
         <Button
           size="small"
           css={css`
-            margin-left: 0.5rem;
             grid-column: 13;
             height: fit-content;
+            width: 221px;
           `}
           onClick={() => {
             handleFreezeMapHeight(350);

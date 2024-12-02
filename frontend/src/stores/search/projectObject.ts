@@ -1,5 +1,5 @@
-import { atom } from 'jotai';
 import { focusAtom } from 'jotai-optics';
+import { atomWithReset } from 'jotai/utils';
 
 import { mapOptions } from '@frontend/components/Map/mapOptions';
 
@@ -30,7 +30,7 @@ const projectObjectSearchDefaultValues = {
   suunnitteluttajaUsers: [],
 };
 
-export const projectObjectSearchParamAtom = atom<ObjectSearchParams>(
+export const projectObjectSearchParamAtom = atomWithReset<ObjectSearchParams>(
   projectObjectSearchDefaultValues,
 );
 

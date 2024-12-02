@@ -1,5 +1,5 @@
-import { atom } from 'jotai';
 import { focusAtom } from 'jotai-optics';
+import { atomWithReset } from 'jotai/utils';
 
 import { mapOptions } from '@frontend/components/Map/mapOptions';
 
@@ -25,7 +25,7 @@ const projectSearchDefaultValues = {
   onlyCoversMunicipality: false,
 };
 
-export const projectSearchParamAtom = atom<SearchParams>(projectSearchDefaultValues);
+export const projectSearchParamAtom = atomWithReset<SearchParams>(projectSearchDefaultValues);
 
 export const textAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('text'));
 export const dateRangeAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('dateRange'));
