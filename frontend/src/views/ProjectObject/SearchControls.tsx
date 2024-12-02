@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { RESET } from 'jotai/utils';
 import { useEffect, useState } from 'react';
 
 import { mapOptions } from '@frontend/components/Map/mapOptions';
@@ -98,7 +99,7 @@ export function SearchControls() {
   const [suunnitteluttajaUsers, setSuunnitteluttajaUsers] = useAtom(suunnitteluttajaUsersAtom);
   const [rakennuttajaUsers, setRakennuttajaUsers] = useAtom(rakennuttajaUsersAtom);
   const setFreezeMapHeight = useSetAtom(freezeMapHeightAtom);
-  const allSearchParams = useAtomValue(projectObjectSearchParamAtom);
+  const [allSearchParams, setAllSearchParams] = useAtom(projectObjectSearchParamAtom);
   const currentUser = useAtomValue(asyncUserAtom);
   const setMap = useSetAtom(mapAtom);
 
@@ -322,12 +323,14 @@ export function SearchControls() {
         css={css`
           display: flex;
           justify-content: flex-end;
+          gap: 0.5rem;
           ${!isVisible && 'margin-bottom: 0.5rem;'}
         `}
       >
-        {!isVisible && searchParamsCount > 0 && (
+        {searchParamsCount > 0 && (
           <Chip
             variant="outlined"
+            size="small"
             css={css`
               font-size: 12px;
               border-color: orange;
@@ -337,12 +340,12 @@ export function SearchControls() {
                 ? tr('workTable.search.chipLabelSingle')
                 : tr('workTable.search.chipLabelMultiple', searchParamsCount)
             }
+            onDelete={() => setAllSearchParams(RESET)}
           />
         )}
         <Button
           size="small"
           css={css`
-            margin-left: 0.5rem;
             grid-column: 13;
             height: fit-content;
           `}
