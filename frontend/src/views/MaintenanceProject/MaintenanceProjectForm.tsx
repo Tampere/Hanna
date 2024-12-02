@@ -58,7 +58,16 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
     ref,
     () => ({
       onSave: async (geom?: string) => {
-        await handleSubmit(async (data) => await onSubmit(data, geom))();
+        await handleSubmit(
+          async (data) => await onSubmit(data, geom),
+          () => {
+            notify({
+              severity: 'error',
+              title: tr('newProject.notifyUpsertFailed'),
+            });
+            throw new Error('Form validation failed');
+          },
+        )();
       },
       onCancel: () => {
         reset();

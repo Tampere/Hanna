@@ -248,7 +248,7 @@ export async function validateUpsertProject(
       FROM app.project
       LEFT JOIN app.sap_project ON project.sap_project_id = sap_project.sap_project_id
       LEFT JOIN app.project_object ON project.id = project_object.project_id
-      WHERE project.id = ${values?.projectId}
+      WHERE project.id = ${values?.projectId} AND project_object.deleted = false
       GROUP BY project.id, sap_project.sap_project_id;
     `);
 
