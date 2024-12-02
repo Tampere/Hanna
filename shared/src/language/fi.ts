@@ -271,7 +271,7 @@ export const fi = {
   'map.layerdrawer.baseLayersTitle': 'Taustakartta',
   'map.layerdrawer.projectsAndObjects': 'Hankkeet & kohteet',
   'map.layerdrawer.vectorLayersTitle': 'Vektoritasot',
-  'vectorLayer.title.kaupunginosat': 'Kaupunginosat',
+  'vectorLayer.title.tilastoalueet': 'Tilastoalueet',
   'vectorLayer.title.kadut': 'Kadut',
   'vectorLayer.title.rakennukset': 'Rakennukset',
   'vectorLayer.title.kiinteistot': 'Kiinteistöt',

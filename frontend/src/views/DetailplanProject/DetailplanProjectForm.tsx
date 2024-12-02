@@ -59,7 +59,16 @@ export const DetailplanProjectForm = forwardRef(function DetailplanProjectForm(
     ref,
     () => ({
       onSave: async () => {
-        await handleSubmit(async (data) => await onSubmit(data))();
+        await handleSubmit(
+          async (data) => await onSubmit(data),
+          () => {
+            notify({
+              severity: 'error',
+              title: tr('newProject.notifyUpsertFailed'),
+            });
+            throw new Error('Form validation failed');
+          },
+        )();
       },
       onCancel: () => {
         reset();

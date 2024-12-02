@@ -87,7 +87,7 @@ Projektien ja tositteiden haku SAP:sta on rajattu seuraaviin yrityksiin.
 
 ## Geoserver
 
-Paikkatietojen osalta Hanna hyödyntää kaupungin olemassaolevia aineistoja ja rajapintoja. Geoserveriltä haetaan erilaisia taustakartta-aineistoja (opaskartta, asemakaava, virastokartta...), rekisterikohteita (kiinteistöt, kadut...) sekä aluerajauksia (kaupunginosat). Saatavilla olevia aineistoja on mahdollista lisätä tarpeen mukaan. Toistaiseksi Hannassa piirretyt hanke- ja kohdealueet eivät ole tarjolla kaupungin Geoserverillä tai Oskari-karttapalvelussa.
+Paikkatietojen osalta Hanna hyödyntää kaupungin olemassaolevia aineistoja ja rajapintoja. Geoserveriltä haetaan erilaisia taustakartta-aineistoja (opaskartta, asemakaava, virastokartta...), rekisterikohteita (kiinteistöt, kadut...) sekä aluerajauksia (tilastoalueet). Saatavilla olevia aineistoja on mahdollista lisätä tarpeen mukaan. Toistaiseksi Hannassa piirretyt hanke- ja kohdealueet eivät ole tarjolla kaupungin Geoserverillä tai Oskari-karttapalvelussa.
 
 ## Hankkeen perustamisen ja ostotilauksen pyyntölomake (nk. e-lomake)
 
@@ -235,7 +235,7 @@ Investointihankkeiden poistamisen osalta on tärkeää huomioida se, että samal
 
 Investoinnin ja kunnossapidon hankkeille ja kohteille voi halutessaan piirtää aluerajauksen. Aluerajauksen saa piirrettyä karttaikkunan vasemmasta laidasta löytyviä toimintoja hyödyntämällä. Toiminnot ja niiden merkitykset ovat listattu alle. Painikkeet ilmestyvät näkyviin vasta, kun olet laittanut muokkaustilan päälle oikeasta yläkulmasta.
 
-1. **Luo alue:** Jokainen hiiren vasemman painallus luo aluerajaukseen yhden solmupisteen. Käyttäjän tulee luoda vähintään kolme solmupistettä. Voit viimeistellä piirtämäsi alueen luomalla viimeisen solmupisteen kaksoispainalluksella, jolloin alue ilmestyy kartalle. Muista tallentaa muutoksesi lopuksi. Kohteille voi osoittaa myös pistemuotoisen geometrian. 
+1. **Luo alue:** Jokainen hiiren vasemman painallus luo aluerajaukseen yhden solmupisteen. Käyttäjän tulee luoda vähintään kolme solmupistettä. Voit viimeistellä piirtämäsi alueen luomalla viimeisen solmupisteen kaksoispainalluksella, jolloin alue ilmestyy kartalle. Muista tallentaa muutoksesi lopuksi. Kohteille voi osoittaa myös pistemuotoisen geometrian.
 2. **Valitse alue tai piste:** Painikkeen avulla voit valita yhden tai useamman piirtämäsi alueen, pisteen tai rajapinnalta haetun Tampereen paikkatietokohteen. Valinta korostetaan keltaisella. Pitämällä vaihtopainiketta (shift) pohjassa, voit valita samalla useamman alueen tai pisteen.
 3. **Käytä kohdealueena:** Voit valita aiemmin luoduista hanke-, kohde- tai kaupungin rajapinnan geometrioista haluamasi ja kopioida niiden geometrian hankkeelle tai kohteelle.
 4. **Jäljitä valittuja alueita:** Jos käyttäjällä on aktiivinen valinta päällä, voi hän tämän toiminnon valitsemalla piirtää pitkin valitsemansa kohteen ulkorajaa. Toiminnon tarkoitus on helpottaa aluerajauksen piirtoa tilanteessa, jossa hankkeen tai kohteen aluerajaus vastaa kokonaan tai osittain esimerkiksi kiinteistöä. Valittuasi toiminnon vie hiiren kursori valitun kohteen ulkoreunan lähelle, jolloin se kiinnittyy siihen. Painamalla ensimmäisen kerran tulee luoduksi ensimmäinen solmupiste, jonka jälkeen voit seurata hiirellä kohteen ulkoreunaa, kunnes pääset haluttuun kohtaan tai kierrettyä koko kohteen. Lopeta jäljitys painamalla uusi solmupiste, jonka jälkeen voit joko tallentaa alueen tai jatkaa piirto jäljitetyn alueen ulkopuolella.
@@ -408,7 +408,7 @@ Talousosioon kirjattujen lukujen katsotaan kohdistuvan aina hankkeelle kirjattuu
 - **Ennuste**: Ennusteella viitataan kohteen tuntevan käyttäjän arvioon siitä, miten talousarvio kestää tarkastelun toteumaa vasten. Ennusteen kirjaaminen on tapa viestiä budjetin (talousarvion) alittumisesta tai ylittymisestä. Budjetin ylitys kirjataan positiivisena, eli esimerkiksi sadan tuhannen euron ylitys kirjataan arvona 100 000. Budjetin alitus kirjataan taas negatiivisena numerona, esimerkiksi -100 000. Hannan käyttöliittymä värittää budjetin ylitykset punaisella värillä ja alitukset sinisellä värillä. Ennustetta voi muokata vain kohdetasolla, mistä käsin luvut summataan tiedoksi hankkeelle.
 - **Käyttösuunnitelman muutos:** Mikäli kohteen todellinen toteuma uhkaa kasvaa merkittävästi ennakoidusta, voi sille osoittaa lisää varoja käyttösuunnitelman muutoksen (KSM) muodossa. KSM on aina positiivinen luku. Sen voi kohdetasolla, mistä käsin luvut summataan tiedoksi hankkeelle.
 
-Kuluseurannan välilehdeltä käyttäjät voivat tarkastella hankkeen toteumaa pylväsdiagrammina. Toteuma on eritelty kuukausittain. Kuluseurannan välilehti ei ole valittavissa, mikäli hanke ei ole vielä alkanut ja/tai sille ei ole osoitettu soveltuvaa SAP-projektin tunnistetta. Vastaava välilehti on saatavilla myös hankkeen kohteille olettaen, että niille on osoitettu vielä SAP-rakenneosan tunniste. Toteumaa verrataan talousarviota vasten, jos käyttäjä on sellaisen kirjannut. 
+Kuluseurannan välilehdeltä käyttäjät voivat tarkastella hankkeen toteumaa pylväsdiagrammina. Toteuma on eritelty kuukausittain. Kuluseurannan välilehti ei ole valittavissa, mikäli hanke ei ole vielä alkanut ja/tai sille ei ole osoitettu soveltuvaa SAP-projektin tunnistetta. Vastaava välilehti on saatavilla myös hankkeen kohteille olettaen, että niille on osoitettu vielä SAP-rakenneosan tunniste. Toteumaa verrataan talousarviota vasten, jos käyttäjä on sellaisen kirjannut.
 
 ![Kuluseurannan välilehti](/images/kuluseuranta.png)
 
@@ -524,6 +524,7 @@ Muista, että SAP:sta haettavat tiedot on rajattu yrityksiin:
 - 1540 (ELOSA)
 
 Haettavista tositteista taas on rajattu pois seuraavat:
+
 - Käyttöomaisuuskirjaukset (laji: AA)
 - Lajiltaan tyhjät tositteet
 

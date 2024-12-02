@@ -184,9 +184,9 @@ export const mapOptions = {
   ] as WMTSLayer[],
   wfsLayers: [
     {
-      id: 'kaupunginosat',
-      title: 'Kaupunginosat',
-      name: 'Kaupunginosat',
+      id: 'tilastoalueet',
+      title: 'tilastoalueet',
+      name: 'Tilastoalueet',
       visible: true,
       type: 'wfs',
       url: `${geodataBaseUrl}/hallinnolliset_yksikot/wfs?${createWfsParams(
