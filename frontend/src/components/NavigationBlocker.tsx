@@ -14,10 +14,23 @@ export function NavigationBlocker() {
 
   const [status, setStatus] = useAtom(blockerStatusAtom);
 
+  function beforeUnloadHandler(event: BeforeUnloadEvent) {
+    event.preventDefault();
+  }
+
   useEffect(() => {
     if (status.updating) {
       setStatus((prev) => ({ ...prev, updating: false }));
     }
+    if (status.dirtyComponents.length > 0) {
+      window.addEventListener('beforeunload', beforeUnloadHandler);
+    } else {
+      window.removeEventListener('beforeunload', beforeUnloadHandler);
+    }
+
+    return () => {
+      window.removeEventListener('beforeunload', beforeUnloadHandler);
+    };
   }, [status.dirtyComponents]);
 
   // Note: useBlocker is a singleton so use of multiple NavigationBlockers in the same view is not possible (https://github.com/remix-run/react-router/discussions/9978)
