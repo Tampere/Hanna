@@ -44,7 +44,7 @@ export const mapProjectionAtom = atom(
 );
 
 export type VectorLayerKey =
-  | 'kaupunginosat'
+  | 'tilastoalueet'
   | 'kiinteistot'
   | 'rakennukset'
   | 'kadut'
@@ -112,7 +112,7 @@ const baseMapLayerErrorState = [
 
 const defaultWfsLayerStatusState = [
   {
-    id: 'kaupunginosat' as const,
+    id: 'tilastoalueet' as const,
     isLoading: false,
     hasError: false,
   },
@@ -140,7 +140,7 @@ const defaultWfsLayerStatusState = [
 
 const defaultWfsLayerState = [
   {
-    id: 'kaupunginosat' as const,
+    id: 'tilastoalueet' as const,
     selected: false,
     opacity: 1,
   },
