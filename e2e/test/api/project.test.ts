@@ -565,4 +565,105 @@ test.describe('Project endpoints', () => {
     expect(searchResults2.projects).toHaveLength(1);
     expect(searchResults2.projects[0].projectId).toBe(project.projectId);
   });
+
+  test('Project date shift', async () => {
+    const user = await devSession.client.user.self.query();
+    // Original start year is 2021
+    const projectInput = validProject(user.id, 'Project date shift');
+    const project = await devSession.client.investmentProject.upsert.mutate({
+      project: projectInput,
+    });
+
+    const projectObjectData = testProjectObject(project.projectId, project.committees, user);
+    const { projectId, projectObjectId } =
+      await devSession.client.investmentProjectObject.upsert.mutate(projectObjectData);
+
+    await devSession.client.investmentProject.updateBudget.mutate({
+      projectId: project.projectId,
+      budgetItems: [
+        {
+          year: 2021,
+          estimate: 50000,
+          committee: project.committees[0],
+        },
+        {
+          year: 2022,
+          estimate: 60000,
+          committee: project.committees[0],
+        },
+      ],
+    });
+
+    await devSession.client.investmentProjectObject.updateBudget.mutate({
+      projectObjectId: projectObjectId,
+      budgetItems: [
+        {
+          year: 2021,
+          estimate: 50000,
+          amount: 45000,
+          contractPrice: 47000,
+          committee: project.committees[0],
+        },
+        {
+          year: 2022,
+          estimate: 60000,
+          amount: 55000,
+          contractPrice: 58000,
+          committee: project.committees[0],
+        },
+      ],
+    });
+
+    await devSession.client.project.shiftProjectDateWithYears.mutate({
+      projectId: project.projectId,
+      newStartYear: 2023,
+    });
+
+    const projectObject = await devSession.client.investmentProjectObject.get.query({
+      projectId,
+      projectObjectId,
+    });
+
+    await expect(
+      devSession.client.investmentProject.get.query({ projectId: project.projectId }),
+    ).resolves.toMatchObject({
+      ...project,
+      startDate: project.startDate.replace('2021', '2023'),
+      endDate: project.endDate.replace('2022', '2024'),
+    });
+
+    await expect(
+      devSession.client.investmentProjectObject.get.query({
+        projectId,
+        projectObjectId,
+      }),
+    ).resolves.toMatchObject({
+      ...projectObject,
+      startDate: projectObject.startDate.replace('2021', '2023'),
+      endDate: projectObject.endDate.replace('2022', '2024'),
+    });
+
+    await expect(devSession.client.project.getBudget.query({ projectId })).resolves.toStrictEqual([
+      {
+        budgetItems: {
+          estimate: 50000,
+          amount: 45000,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
+        },
+        year: 2023,
+        committee: project.committees[0],
+      },
+      {
+        budgetItems: {
+          estimate: 60000,
+          amount: 55000,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
+        },
+        year: 2024,
+        committee: project.committees[0],
+      },
+    ]);
+  });
 });

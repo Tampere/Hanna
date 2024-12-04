@@ -9,6 +9,8 @@ import {
 import {
   deleteBudget,
   getProjectObject,
+  getProjectObjectNewProjectCandidates,
+  moveProjectObjectToProject,
   upsertProjectObject,
 } from '@backend/components/projectObject/investment.js';
 import { getPool } from '@backend/db.js';
@@ -41,6 +43,22 @@ export const createInvestmentProjectObjectRouter = (t: TRPC) => {
         return { ...projectObject, acl: permissionCtx };
       });
     }),
+
+    getNewProjectCandidates: t.procedure
+      .input(z.object({ projectObjectId: z.string() }))
+      .query(async ({ input, ctx }) => {
+        return getPool().transaction(async (tx) => {
+          if (userIsAdmin(ctx.user)) {
+            return await getProjectObjectNewProjectCandidates(tx, input.projectObjectId);
+          } else {
+            return await getProjectObjectNewProjectCandidates(
+              tx,
+              input.projectObjectId,
+              ctx.user.id,
+            );
+          }
+        });
+      }),
 
     // Mutations requiring write permissions / project ownership
     upsert: t.procedure
@@ -107,6 +125,22 @@ export const createInvestmentProjectObjectRouter = (t: TRPC) => {
       .mutation(async ({ input, ctx }) => {
         return await getPool().transaction(async (tx) => {
           return deleteBudget(tx, input.projectObjectId, input.committees, ctx.user.id);
+        });
+      }),
+
+    moveProjectObjectToProject: t.procedure
+      .input(z.object({ projectObjectId: z.string(), newProjectId: z.string() }))
+      .use(withAccess((usr, ctx) => ownsProject(usr, ctx)))
+      .mutation(async ({ input, ctx }) => {
+        return getPool().transaction(async (tx) => {
+          const projectObject = await getProjectObject(tx, input.projectObjectId);
+          return moveProjectObjectToProject(
+            tx,
+            input.projectObjectId,
+            projectObject.projectId,
+            input.newProjectId,
+            ctx.user.id,
+          );
         });
       }),
   });

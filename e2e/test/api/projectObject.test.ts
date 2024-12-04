@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 import { clearData, clearObjects } from '@utils/db.js';
 import { test } from '@utils/fixtures.js';
-import { DEV_USER } from '@utils/users.js';
+import { DEV_USER, TEST_USER } from '@utils/users.js';
 
 import {
   invalidDateProjectObject,
@@ -618,6 +618,51 @@ test.describe('Investment Project Object endpoints', () => {
       await workerDevSession.client.investmentProjectObject.upsert.mutate(partialUpdate);
 
     expect(partialUpdateResp.projectObjectId).toBe(resp.projectObjectId);
+  });
+
+  test('Move project object to another project', async ({ workerDevSession, adminSession }) => {
+    const project1 = await workerDevSession.client.investmentProject.upsert.mutate({
+      project: testInvestmentProject(workerDevSession.user),
+    });
+    const project2 = await workerDevSession.client.investmentProject.upsert.mutate({
+      project: testInvestmentProject(workerDevSession.user),
+    });
+
+    const projectObject = testProjectObject(
+      project1.projectId,
+      project1.committees,
+      workerDevSession.user,
+    );
+    const resp = await workerDevSession.client.investmentProjectObject.upsert.mutate(projectObject);
+
+    expect(resp.projectObjectId).toBeTruthy();
+    expect(resp.projectId).toBe(project1.projectId);
+
+    // Move as admin
+    await adminSession.client.investmentProjectObject.moveProjectObjectToProject.mutate({
+      projectObjectId: resp.projectObjectId,
+      newProjectId: project2.projectId,
+    });
+
+    const movedProjectObject = await workerDevSession.client.investmentProjectObject.get.query({
+      projectObjectId: resp.projectObjectId,
+      projectId: project2.projectId,
+    });
+
+    expect(movedProjectObject.projectId).toBe(project2.projectId);
+
+    // Move as owner back
+    await workerDevSession.client.investmentProjectObject.moveProjectObjectToProject.mutate({
+      projectObjectId: resp.projectObjectId,
+      newProjectId: project1.projectId,
+    });
+
+    const movedObject = await workerDevSession.client.investmentProjectObject.get.query({
+      projectObjectId: resp.projectObjectId,
+      projectId: project2.projectId,
+    });
+
+    expect(movedObject.projectId).toBe(project1.projectId);
   });
 });
 

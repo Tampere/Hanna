@@ -122,7 +122,7 @@ export function ProjectObject(props: Props) {
   const user = useAtomValue(asyncUserAtom);
   const editing = useAtomValue(projectEditingAtom);
 
-  const [projectId, setProjectId] = useState(routeParams.projectId);
+  const [savedProjectId, setSavedProjectId] = useState(routeParams.projectId);
 
   const tr = useTranslations();
   const notify = useNotifications();
@@ -145,11 +145,21 @@ export function ProjectObject(props: Props) {
     },
   });
 
-  const project = trpc.project.get.useQuery({ projectId }, { enabled: Boolean(projectId) });
-  const projectObjectGeometries = trpc.projectObject.getGeometriesByProjectId.useQuery(
-    { projectId },
-    { enabled: Boolean(projectId) },
+  const project = trpc.project.get.useQuery(
+    { projectId: savedProjectId },
+    { enabled: Boolean(savedProjectId) },
   );
+  const projectObjectGeometries = trpc.projectObject.getGeometriesByProjectId.useQuery(
+    { projectId: savedProjectId },
+    { enabled: Boolean(savedProjectId) },
+  );
+
+  useEffect(() => {
+    if (savedProjectId !== routeParams.projectId) {
+      project.refetch();
+      setSavedProjectId(routeParams.projectId);
+    }
+  }, [routeParams.projectId]);
 
   useEffect(() => {
     projectObjectGeometries.refetch();
@@ -272,7 +282,7 @@ export function ProjectObject(props: Props) {
                   projectId={routeParams.projectId}
                   projectType={props.projectType}
                   projectObject={projectObject.data}
-                  setProjectId={setProjectId}
+                  setProjectId={setSavedProjectId}
                 />
               );
             } else if (props.projectType === 'kunnossapitohanke') {
@@ -284,7 +294,7 @@ export function ProjectObject(props: Props) {
                   projectId={routeParams.projectId}
                   projectType={props.projectType}
                   projectObject={projectObject.data}
-                  setProjectId={setProjectId}
+                  setProjectId={setSavedProjectId}
                 />
               );
             } else {
@@ -374,7 +384,7 @@ export function ProjectObject(props: Props) {
                   return geometryUpdate.mutateAsync({ projectObjectId, features });
                 }}
                 initialMapDataLoading={
-                  Boolean(projectId) && (project.isLoading || projectObjects.isLoading)
+                  Boolean(savedProjectId) && (project.isLoading || projectObjects.isLoading)
                 }
                 drawOptions={{
                   coversMunicipality: false,
@@ -396,7 +406,7 @@ export function ProjectObject(props: Props) {
                     .map((obj) => ({
                       ...obj,
                       project: {
-                        projectId: projectId,
+                        projectId: savedProjectId,
                         projectName: project.data?.projectName ?? '',
                         projectType: project.data?.projectType,
                         coversMunicipality: project.data?.coversMunicipality ?? false,

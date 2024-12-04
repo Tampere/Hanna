@@ -309,3 +309,52 @@ export async function deleteBudget(
   WHERE project_object_id = ${projectObjectId}
   AND (committee).id = ANY(${sql.array(committees, 'text')})`);
 }
+
+export async function getProjectObjectNewProjectCandidates(
+  tx: DatabaseTransactionConnection,
+  projectObjectId: string,
+  ownerId?: string,
+) {
+  const projectObject = await getProjectObject(tx, projectObjectId);
+
+  return tx.any(sql.type(z.object({ projectId: z.string(), projectName: z.string() }))`
+    SELECT p.id AS "projectId", p.project_name AS "projectName"
+    FROM app.project p
+    WHERE
+      p.id <> ${projectObject.projectId} AND
+      p.start_date <= ${projectObject.startDate} AND
+      p.end_date >= ${projectObject.endDate} AND
+      ${
+        projectObject.committee
+      } = ANY(SELECT (committee_type).id FROM app.project_committee pc WHERE pc.project_id = p.id) AND
+      p.deleted = false ${ownerId ? sql.fragment`AND p.owner = ${ownerId}` : sql.fragment``}
+    GROUP BY p.id
+    `);
+}
+
+export async function moveProjectObjectToProject(
+  tx: DatabaseTransactionConnection,
+  projectObjectId: string,
+  oldProjectId: string,
+  newProjectId: string,
+  userId: string,
+) {
+  await addAuditEvent(tx, {
+    eventType: 'projectObject.moveProjectObjectToProject',
+    eventData: { projectObjectId, oldProjectId, newProjectId },
+    eventUser: userId,
+  });
+
+  await tx.any(
+    sql.untyped`
+      UPDATE app.project_object_committee
+      SET project_id = ${newProjectId}
+      WHERE project_object_id = ${projectObjectId}`,
+  );
+
+  return tx.one(sql.type(z.object({ projectId: z.string() }))`
+  UPDATE app.project_object
+  SET project_id = ${newProjectId}, sap_wbs_id = NULL
+  WHERE id = ${projectObjectId}
+  RETURNING ${newProjectId} as "projectId"`);
+}
