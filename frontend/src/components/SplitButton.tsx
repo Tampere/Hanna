@@ -20,6 +20,8 @@ interface Props {
   variant?: 'contained' | 'outlined';
   hideSelectedOptionFromList?: boolean;
   disableButtonSelection?: boolean;
+  /** Functions to be triggered immediately when a menu item is clicked. Overrides default menu item selection logic. */
+  directOptionFunctions?: ((() => void) | null)[];
 }
 
 export function SplitButton({
@@ -29,6 +31,7 @@ export function SplitButton({
   variant = 'outlined',
   hideSelectedOptionFromList,
   disableButtonSelection,
+  directOptionFunctions,
 }: Props) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -38,7 +41,12 @@ export function SplitButton({
     event: React.MouseEvent<HTMLLIElement, MouseEvent>,
     index: number,
   ) => {
-    setSelectedIndex(index);
+    if (directOptionFunctions) {
+      directOptionFunctions?.[index]?.();
+    } else {
+      setSelectedIndex(index);
+    }
+
     setOpen(false);
   };
 

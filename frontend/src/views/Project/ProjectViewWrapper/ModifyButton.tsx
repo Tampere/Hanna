@@ -11,6 +11,7 @@ import { useTranslations } from '@frontend/stores/lang';
 import { dirtyAndValidFieldsAtom, projectEditingAtom } from '@frontend/stores/projectView';
 import { ProjectTypePath } from '@frontend/types';
 
+import { ProjectObjectMoveView } from './ProjectObjectMoveView';
 import { ProjectShiftView } from './ProjectShiftView';
 
 interface Props {
@@ -33,10 +34,13 @@ export function ModifyButton({
   projectType,
 }: Props) {
   const tr = useTranslations();
-  const [dateShiftPopupOpen, setDateShiftPopupOpen] = useState(false);
+  const [popupOpen, setPopupOpen] = useState(false);
 
   const navigate = useNavigate();
-  const { projectId } = useParams() as { projectId?: string };
+  const { projectId, projectObjectId } = useParams() as {
+    projectId?: string;
+    projectObjectId?: string;
+  };
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
 
@@ -61,39 +65,67 @@ export function ModifyButton({
     );
   }
 
+  const splitButtonDisabled = forProjectObject
+    ? popupOpen ||
+      !isOwner ||
+      isSubmitting ||
+      dirtyAndValidViews.finances.isDirtyAndValid ||
+      dirtyAndValidViews.permissions.isDirtyAndValid
+    : popupOpen ||
+      (!isOwner && !canWrite) ||
+      isSubmitting ||
+      dirtyAndValidViews.finances.isDirtyAndValid ||
+      dirtyAndValidViews.permissions.isDirtyAndValid;
+
   if (forProjectObject) {
     return (
-      <Button
-        css={css`
-          margin-left: auto;
-        `}
-        onClick={() => {
-          if (editing) {
-            onCancel();
-            return;
-          }
-          if (searchParams.get('tab')) {
-            // Navigate back to default map tab if user starts editing
-            navigate(location.pathname);
-          }
-          setEditing(true);
-        }}
-        disabled={
-          (!isOwner && !canWrite) ||
-          isSubmitting ||
-          dirtyAndValidViews.finances.isDirtyAndValid ||
-          dirtyAndValidViews.permissions.isDirtyAndValid
-        }
-        variant={editing ? 'outlined' : 'contained'}
-        size="small"
-        endIcon={editing ? <Undo /> : <Create />}
-      >
-        {editing
-          ? tr('cancel')
-          : forProjectObject
-            ? tr('projectObjectView.modify')
-            : tr('projectView.modify')}
-      </Button>
+      <>
+        <SplitButton
+          hideSelectedOptionFromList
+          disableButtonSelection={editing || splitButtonDisabled}
+          cssProp={css`
+            margin-left: auto;
+          `}
+          variant={editing ? 'outlined' : 'contained'}
+          options={[tr('projectObjectView.modify'), tr('projectObjectView.moveToProject')]}
+          directOptionFunctions={[null, () => setPopupOpen(true)]}
+          renderButton={(label, idx) => (
+            <Button
+              css={css`
+                margin-left: auto;
+              `}
+              onClick={() => {
+                if (editing) {
+                  onCancel();
+                  return;
+                }
+                if (idx === 0) {
+                  if (searchParams.get('tab')) {
+                    // Navigate back to default map tab if user starts editing
+                    navigate(location.pathname);
+                  }
+                  setEditing(true);
+                }
+              }}
+              disabled={splitButtonDisabled}
+              variant={editing ? 'outlined' : 'contained'}
+              size="small"
+              endIcon={editing ? <Undo /> : <Create />}
+            >
+              {editing ? tr('cancel') : label}
+            </Button>
+          )}
+        />
+        {popupOpen && projectObjectId && (
+          <ProjectObjectMoveView
+            projectObjectId={projectObjectId}
+            handleClose={() => {
+              setPopupOpen(false);
+              queryClient.invalidateQueries();
+            }}
+          />
+        )}
+      </>
     );
   }
 
@@ -101,22 +133,13 @@ export function ModifyButton({
     <>
       <SplitButton
         hideSelectedOptionFromList
-        disableButtonSelection={
-          editing ||
-          dateShiftPopupOpen ||
-          (!isOwner && !canWrite) ||
-          isSubmitting ||
-          dirtyAndValidViews.finances.isDirtyAndValid ||
-          dirtyAndValidViews.permissions.isDirtyAndValid
-        }
+        disableButtonSelection={editing || splitButtonDisabled}
         cssProp={css`
           margin-left: auto;
         `}
         variant={editing ? 'outlined' : 'contained'}
-        options={[
-          forProjectObject ? tr('projectObjectView.modify') : tr('projectView.modify'),
-          tr('projectView.projectShiftButtonLabel'),
-        ]}
+        options={[tr('projectView.modify'), tr('projectView.projectShiftButtonLabel')]}
+        directOptionFunctions={[null, () => setPopupOpen(true)]}
         renderButton={(label, idx) => (
           <Button
             onClick={() => {
@@ -131,17 +154,9 @@ export function ModifyButton({
                   navigate(location.pathname);
                 }
                 setEditing(true);
-              } else {
-                setDateShiftPopupOpen(true);
               }
             }}
-            disabled={
-              dateShiftPopupOpen ||
-              (!isOwner && !canWrite) ||
-              isSubmitting ||
-              dirtyAndValidViews.finances.isDirtyAndValid ||
-              dirtyAndValidViews.permissions.isDirtyAndValid
-            }
+            disabled={splitButtonDisabled}
             variant={editing ? 'outlined' : 'contained'}
             size="small"
             endIcon={editing ? <Undo /> : <Create />}
@@ -150,12 +165,12 @@ export function ModifyButton({
           </Button>
         )}
       />
-      {dateShiftPopupOpen && projectId && (
+      {popupOpen && projectId && (
         <ProjectShiftView
           projectType={projectType}
           projectId={projectId}
           handleClose={() => {
-            setDateShiftPopupOpen(false);
+            setPopupOpen(false);
             queryClient.invalidateQueries();
           }}
         />
