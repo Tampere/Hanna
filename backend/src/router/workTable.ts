@@ -259,31 +259,44 @@ export async function workTableSearch(input: WorkTableSearch) {
 
 async function workTableUpdate(input: WorkTableUpdate, user: User) {
   const updates = Object.entries(input).map(([projectObjectId, projectObject]) => {
-    const { budgetYear, amount, forecast, kayttosuunnitelmanMuutos, committee, ...poUpdate } =
-      projectObject;
+    const {
+      budgetYear,
+      amount,
+      forecast,
+      kayttosuunnitelmanMuutos,
+      committee,
+      operatives,
+      ...poUpdate
+    } = projectObject;
     return {
       ...poUpdate,
       committee,
       startDate: projectObject.objectDateRange?.startDate,
       endDate: projectObject.objectDateRange?.endDate,
-      objectUserRoles: [
-        {
-          roleType: 'InvestointiKohdeKayttajaRooli',
-          roleId: '01',
-          userIds: projectObject.operatives?.rakennuttajaUser
-            ? [projectObject.operatives.rakennuttajaUser]
-            : [],
-          companyContactIds: [],
-        },
-        {
-          roleType: 'InvestointiKohdeKayttajaRooli',
-          roleId: '02',
-          userIds: projectObject.operatives?.suunnitteluttajaUser
-            ? [projectObject.operatives.suunnitteluttajaUser]
-            : [],
-          companyContactIds: [],
-        },
-      ],
+      ...(operatives && {
+        objectUserRoles: [
+          ...(operatives.rakennuttajaUser
+            ? [
+                {
+                  roleType: 'InvestointiKohdeKayttajaRooli',
+                  roleId: '01',
+                  userIds: [operatives.rakennuttajaUser],
+                  companyContactIds: [],
+                },
+              ]
+            : []),
+          ...(operatives.suunnitteluttajaUser
+            ? [
+                {
+                  roleType: 'InvestointiKohdeKayttajaRooli',
+                  roleId: '02',
+                  userIds: [operatives.suunnitteluttajaUser],
+                  companyContactIds: [],
+                },
+              ]
+            : []),
+        ],
+      }),
       projectObjectId,
       ...(budgetYear && {
         budgetUpdate: {
