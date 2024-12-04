@@ -12,8 +12,7 @@ import {
 import { Box, Button, Chip, IconButton, Theme, Tooltip, Typography } from '@mui/material';
 import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
 import { fiFI } from '@mui/x-data-grid/locales';
-import { useAtom, useAtomValue } from 'jotai';
-import { RESET, atomWithReset } from 'jotai/utils';
+import { atom, useAtom, useAtomValue } from 'jotai';
 import diff from 'microdiff';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -173,7 +172,7 @@ function getCellEditEvent(oldRow: WorkTableRow, newRow: WorkTableRow): CellEditE
   };
 }
 const thisYear = dayjs().year();
-const searchAtom = atomWithReset<WorkTableSearch>({
+const searchAtom = atom<WorkTableSearch>({
   objectStartDate: dayjs([thisYear, 0, 1]).format(isoDateFormat).toString(),
   objectEndDate: dayjs([thisYear, 11, 31]).format(isoDateFormat).toString(),
 });
@@ -592,7 +591,13 @@ export default function WorkTable() {
                   ? tr('workTable.search.chipLabelSingle')
                   : tr('workTable.search.chipLabelMultiple', searchParamsCount)
               }
-              onDelete={() => setSearchParams(RESET)}
+              onDelete={() =>
+                setSearchParams((prev) => {
+                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                  const { objectStartDate, objectEndDate, objectParticipantUser, ...rest } = prev;
+                  return { objectStartDate, objectEndDate, objectParticipantUser };
+                })
+              }
             />
           )}
           <Tooltip
