@@ -122,7 +122,7 @@ export function ProjectObjectMoveView(props: Props) {
                     autoFocus
                     size="small"
                     css={css`
-                      min-width: 200px;
+                      width: 200px;
                     `}
                     value={field.value}
                     onChange={(e) => field.onChange(e.target.value)}
