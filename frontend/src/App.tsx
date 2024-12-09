@@ -30,14 +30,25 @@ import { SearchPage } from '@frontend/views/Search';
 import { SessionRenewed } from '@frontend/views/SessionRenewed';
 import WorkTable from '@frontend/views/WorkTable/WorkTable';
 
+import { selectedSearchViewAtom } from './stores/search/searchView';
 import { GeneralNotifications } from './views/GeneralNotifications';
+
+function IndexPath() {
+  const selectedSearchView = useAtomValue(selectedSearchViewAtom);
+
+  if (selectedSearchView === 'kohteet') {
+    return <Navigate to="/kartta/kohteet" />;
+  }
+
+  return <Navigate to="/kartta/hankkeet" />;
+}
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <>
       <Route path="ohje" element={<Manual />} />
       <Route path="/" element={<Layout />}>
-        <Route index element={<Navigate to="/kartta/hankkeet" />} />
+        <Route index element={<IndexPath />} />
         <Route path="kartta/:tabView" element={<SearchPage />} />
         <Route path="investointihanke/luo" element={<InvestmentProject />} />
         <Route path="investointihanke/:projectId" element={<InvestmentProject />} />
