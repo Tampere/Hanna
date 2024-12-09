@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 
 import { theme } from '@frontend/Layout';
 import { trpc } from '@frontend/client';
-import { ChartHeader } from '@frontend/components/Charts/ChartHeader';
+import { AmountChartHeader } from '@frontend/components/Charts/AmountChartHeader';
 import { FinancesBarChart } from '@frontend/components/Charts/FinancesBarChart';
 import { getYAxisScale } from '@frontend/components/Charts/utils';
 import { useTranslations } from '@frontend/stores/lang';
@@ -99,7 +99,7 @@ export function ProjectFinancesCharts(props: Props) {
                 padding: 1rem 0;
               `}
             >
-              <ChartHeader year={year} amount={amount} totalsError={monthlyActuals.isError} />
+              <AmountChartHeader year={year} amount={amount} totalsError={monthlyActuals.isError} />
             </Box>
           );
         }
@@ -114,7 +114,7 @@ export function ProjectFinancesCharts(props: Props) {
             `}
             key={year}
           >
-            <ChartHeader
+            <AmountChartHeader
               year={year}
               totalInCurrencySubunit={totalInCurrencySubunit}
               amount={amount}

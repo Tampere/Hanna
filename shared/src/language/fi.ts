@@ -665,6 +665,8 @@ export const fi = {
   'financesChart.totalsErrorLabel': 'Virhe haettaessa toteumatietoja',
   'financesChart.amountLabel': 'Talousarvio',
   'financesChart.noAmountLabel': 'Talousarvio puuttuu.',
+  'financesChart.contractPriceLabel': 'Sopimushinta',
+  'financesChart.noContractPriceLabel': 'Sopimushinta puuttuu.',
   'financesChart.loading': 'Ladataan toteumia...',
   'itemInfoBox.dateRange': 'Aikaväli',
   'itemInfoBox.lifecycleState': 'Elinkaaritila',

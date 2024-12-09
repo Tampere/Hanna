@@ -1,7 +1,7 @@
 import { AccountTree, KeyTwoTone, Mail, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography, css } from '@mui/material';
 import { useAtomValue } from 'jotai';
-import { ReactElement, useEffect } from 'react';
+import { ReactElement } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
@@ -87,10 +87,6 @@ export function DetailplanProject() {
       staleTime: Infinity,
     },
   );
-
-  useEffect(() => {
-    console.log('project data changed');
-  }, [project.data]);
 
   const tabs = getTabs(routeParams.projectId).filter(
     (tab) => project?.data && user && tab.hasAccess(user, project.data),
