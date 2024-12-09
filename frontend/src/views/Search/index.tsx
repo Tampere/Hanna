@@ -1,12 +1,13 @@
 import { AddCircleOutline } from '@mui/icons-material';
 import { Box, Button, Tab, Tabs, css } from '@mui/material';
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 
 import { theme } from '@frontend/Layout';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
+import { selectedSearchViewAtom } from '@frontend/stores/search/searchView';
 import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
 import { ProjectsPage, Toolbar } from '@frontend/views/Project/Projects';
 import { ProjectObjectsPage } from '@frontend/views/ProjectObject/ProjectObjects';
@@ -43,6 +44,7 @@ export function SearchPage() {
   const { tabView } = useParams() as {
     tabView: TabView;
   };
+  const setSelectedSearchView = useSetAtom(selectedSearchViewAtom);
   const auth = useAtomValue(asyncUserAtom);
   const { resetInfoBox } = useMapInfoBox();
 
@@ -66,7 +68,10 @@ export function SearchPage() {
         <Tabs value={tabView} TabIndicatorProps={{ sx: { height: '3px' } }}>
           {tabs.map((tab) => (
             <Tab
-              onClick={() => resetInfoBox()}
+              onClick={() => {
+                resetInfoBox();
+                setSelectedSearchView(tab.tabView);
+              }}
               css={css`
                 &.MuiTab-root.Mui-selected {
                   color: ${tab.color};

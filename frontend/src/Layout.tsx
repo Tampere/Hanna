@@ -45,6 +45,7 @@ import { NavigationBlocker } from './components/NavigationBlocker';
 import { TooltipLinkTab } from './components/TooltipLinkTab';
 import NotificationList from './services/notification';
 import { asyncUserAtom, sessionExpiredAtom } from './stores/auth';
+import { selectedSearchViewAtom } from './stores/search/searchView';
 
 export const theme = createTheme(
   {
@@ -105,6 +106,7 @@ const logoStyle = css`
 
 function Navbar() {
   const auth = useAtomValue(asyncUserAtom);
+  const selectedSearchView = useAtomValue(selectedSearchViewAtom);
   const tr = useTranslations();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [aboutDialogOpen, setAboutDialogOpen] = useState(false);
@@ -168,7 +170,7 @@ function Navbar() {
               label={tr('pages.homeTitle')}
               component={Link}
               value="kartta"
-              to="/kartta/hankkeet"
+              to={`/kartta/${selectedSearchView}`}
             />
             {import.meta.env.VITE_FEATURE_SAP_REPORTS === 'true' && (
               <Tab
