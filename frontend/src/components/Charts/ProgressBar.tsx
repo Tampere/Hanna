@@ -1,3 +1,4 @@
+import { SerializedStyles } from '@emotion/react';
 import { css } from '@mui/material';
 
 const baseStyle = css`
@@ -7,17 +8,19 @@ const baseStyle = css`
 
 interface Props {
   fillPrecentage: number;
+  cssProp?: SerializedStyles;
 }
 
-export function ProgressBar({ fillPrecentage }: Props) {
+export function ProgressBar({ fillPrecentage, cssProp }: Props) {
   const usedPrecentage = fillPrecentage > 100 ? (100 / fillPrecentage) * 100 : fillPrecentage;
 
   return (
     <div
       css={css`
+        ${cssProp}
         ${baseStyle}
         margin: 0 1rem 0 0;
-        width: min(40em, 40%);
+        width: min(40em, 100%);
         flex: none;
         display: flex;
         background-color: #fff;

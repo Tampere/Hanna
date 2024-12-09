@@ -4,7 +4,8 @@ import { useMemo } from 'react';
 
 import { theme } from '@frontend/Layout';
 import { trpc } from '@frontend/client';
-import { ChartHeader } from '@frontend/components/Charts/ChartHeader';
+import { AmountChartHeader } from '@frontend/components/Charts/AmountChartHeader';
+import { ContractPriceChartHeader } from '@frontend/components/Charts/ContractPriceChartHeader';
 import { FinancesBarChart } from '@frontend/components/Charts/FinancesBarChart';
 import { getYAxisScale } from '@frontend/components/Charts/utils';
 import { useTranslations } from '@frontend/stores/lang';
@@ -90,6 +91,9 @@ export function ProjectObjectFinancesCharts(props: Props) {
           );
         }
         const amount = budget.data?.find((b) => b.year === Number(year))?.budgetItems.amount;
+        const contractPrice = budget.data?.find((b) => b.year === Number(year))?.budgetItems
+          .contractPrice;
+
         if (!monthlyActuals.data?.[year]) {
           return (
             <Box
@@ -99,7 +103,8 @@ export function ProjectObjectFinancesCharts(props: Props) {
                 padding: 1rem 0;
               `}
             >
-              <ChartHeader year={year} amount={amount} totalsError={monthlyActuals.isError} />
+              <AmountChartHeader year={year} amount={amount} totalsError={monthlyActuals.isError} />
+              <ContractPriceChartHeader contractPrice={contractPrice} />
             </Box>
           );
         }
@@ -114,10 +119,15 @@ export function ProjectObjectFinancesCharts(props: Props) {
             `}
             key={year}
           >
-            <ChartHeader
+            <AmountChartHeader
               year={year}
               totalInCurrencySubunit={totalInCurrencySubunit}
               amount={amount}
+            />
+
+            <ContractPriceChartHeader
+              contractPrice={contractPrice}
+              totalInCurrencySubunit={totalInCurrencySubunit}
             />
             <FinancesBarChart
               referenceLineValue={amount ? amount / 100 / DATA_LABEL_COUNT : null}
