@@ -82,12 +82,13 @@ export function ModifyButton({
       <>
         <SplitButton
           hideSelectedOptionFromList
-          disableButtonSelection={editing || splitButtonDisabled}
+          hideButtonSelection={editing}
+          disableButtonSelection={splitButtonDisabled}
           cssProp={css`
             margin-left: auto;
           `}
           variant={editing ? 'outlined' : 'contained'}
-          options={[tr('projectObjectView.modify'), tr('projectObjectView.moveToProject')]}
+          options={[tr('projectObjectView.modify'), tr('projectObjectView.moveToProjectButton')]}
           directOptionFunctions={[null, () => setPopupOpen(true)]}
           renderButton={(label, idx) => (
             <Button
@@ -133,7 +134,8 @@ export function ModifyButton({
     <>
       <SplitButton
         hideSelectedOptionFromList
-        disableButtonSelection={editing || splitButtonDisabled}
+        hideButtonSelection={editing}
+        disableButtonSelection={splitButtonDisabled}
         cssProp={css`
           margin-left: auto;
         `}

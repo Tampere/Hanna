@@ -139,14 +139,16 @@ export function ProjectShiftView(props: Props) {
             />
             <Box
               css={css`
+                display: flex;
                 margin-left: auto;
+                gap: 10px;
               `}
             >
               <Button onClick={props.handleClose} color="primary">
                 {tr('cancel')}
               </Button>
               <Button disabled={!isValid} type="submit" color="primary" variant="contained">
-                {tr('ok')}
+                {tr('move')}
               </Button>
             </Box>
           </form>
