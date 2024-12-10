@@ -87,7 +87,12 @@ export function ProjectObjectMoveView(props: Props) {
           padding-bottom: 1rem;
         `}
       >
-        <DialogContentText>{tr('projectObjectView.moveToProject.contentText')}</DialogContentText>
+        <DialogContentText>
+          {tr('projectObjectView.moveToProject.contentText')}{' '}
+          {newProjectCandidates.data &&
+            newProjectCandidates.data.length > 0 &&
+            tr('projectObjectView.moveToProject.contentTextSap')}
+        </DialogContentText>
       </DialogContent>
       <DialogActions
         css={css`
@@ -136,19 +141,31 @@ export function ProjectObjectMoveView(props: Props) {
                 )}
               />
             ) : (
-              <Typography>{tr('projectObjectView.moveToProject.noProjects')}</Typography>
+              <Typography color="error">
+                {tr('projectObjectView.moveToProject.noProjects')}
+              </Typography>
             )}
             <Box
               css={css`
                 margin-left: auto;
+                display: flex;
+                gap: 10px;
               `}
             >
-              <Button onClick={props.handleClose} color="primary">
-                {tr('cancel')}
-              </Button>
-              <Button disabled={!isValid} type="submit" variant="contained">
-                {tr('projectObjectView.move')}
-              </Button>
+              {!newProjectCandidates.isLoading && newProjectCandidates.data?.length === 0 ? (
+                <Button onClick={props.handleClose} color="primary" variant="contained">
+                  {tr('ok')}
+                </Button>
+              ) : (
+                <>
+                  <Button onClick={props.handleClose} color="primary">
+                    {tr('cancel')}
+                  </Button>
+                  <Button disabled={!isValid} type="submit" variant="contained">
+                    {tr('projectObjectView.move')}
+                  </Button>
+                </>
+              )}
             </Box>
           </form>
         </FormProvider>

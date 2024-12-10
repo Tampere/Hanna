@@ -20,6 +20,7 @@ interface Props {
   variant?: 'contained' | 'outlined';
   hideSelectedOptionFromList?: boolean;
   disableButtonSelection?: boolean;
+  hideButtonSelection?: boolean;
   /** Functions to be triggered immediately when a menu item is clicked. Overrides default menu item selection logic. */
   directOptionFunctions?: ((() => void) | null)[];
 }
@@ -31,6 +32,7 @@ export function SplitButton({
   variant = 'outlined',
   hideSelectedOptionFromList,
   disableButtonSelection,
+  hideButtonSelection,
   directOptionFunctions,
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -66,9 +68,11 @@ export function SplitButton({
     <>
       <ButtonGroup {...(cssProp && { css: cssProp })} variant={variant} ref={anchorRef}>
         {renderButton(options[selectedIndex], selectedIndex)}
-        <Button disabled={disableButtonSelection} size="small" onClick={handleToggle}>
-          <ArrowDropDown />
-        </Button>
+        {!hideButtonSelection && (
+          <Button disabled={disableButtonSelection} size="small" onClick={handleToggle}>
+            <ArrowDropDown />
+          </Button>
+        )}
       </ButtonGroup>
       <Popper
         css={css`
