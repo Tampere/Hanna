@@ -329,6 +329,7 @@ export async function getProjectObjectNewProjectCandidates(
       } = ANY(SELECT (committee_type).id FROM app.project_committee pc WHERE pc.project_id = p.id) AND
       p.deleted = false ${ownerId ? sql.fragment`AND p.owner = ${ownerId}` : sql.fragment``}
     GROUP BY p.id
+    ORDER BY p.project_name
     `);
 }
 
