@@ -6,6 +6,7 @@ import { langAtom } from '@frontend/stores/lang';
 
 import { type Code, type CodeId, EXPLICIT_EMPTY } from '@shared/schema/code';
 
+import { ObjectCategoryIcon } from '../icons/ObjectCategoryIcon';
 import { MultiSelect } from './MultiSelect';
 
 type Props = {
@@ -82,6 +83,9 @@ export function CodeSelect({
       loading={codes.isLoading}
       getOptionLabel={getLabel}
       getOptionId={(code) => code.id.id}
+      {...(codeListId === 'KohteenOmaisuusLuokka' && {
+        optionIconElement: (id) => <ObjectCategoryIcon id={id} />,
+      })}
       value={selection as Code[]}
       onChange={(value) => {
         onChange(value?.map((option) => option.id.id) ?? []);
@@ -99,6 +103,9 @@ export function CodeSelect({
       loading={codes.isLoading}
       getOptionLabel={getLabel}
       getOptionId={(code) => code.id.id}
+      {...(codeListId === 'KohteenOmaisuusLuokka' && {
+        optionIconElement: (id) => <ObjectCategoryIcon id={id} />,
+      })}
       value={selection as Code}
       onChange={(option) => {
         onChange(option?.id.id ?? null);

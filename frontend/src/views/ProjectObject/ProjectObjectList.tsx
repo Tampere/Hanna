@@ -19,6 +19,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
+import { ObjectStageIcon } from '@frontend/components/icons/ObjectStageIcon';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { ProjectTypePath } from '@frontend/types';
 
@@ -198,21 +199,16 @@ export function ProjectObjectList(props: Props) {
                         dayjs(projObj.endDate).format(tr('date.format'))}
                     </Typography>
                     {props.projectType === 'investointihanke' && (
-                      <span
-                        css={css`
-                          padding: 2px 6px;
-                          font-size: x-small;
-                          font-weight: 500;
-                          color: #333;
-                          border-radius: 8px;
-                          background-color: ${projObj.objectStage === '01' ? '#91c9ea' : '#f1eeeb'};
-                          position: absolute;
-                          bottom: 0.5rem;
-                          right: 1rem;
-                        `}
-                      >
-                        {getObjectStageTextById(projObj.objectStage)}
-                      </span>
+                      <>
+                        <ObjectStageIcon
+                          cssProp={css`
+                            position: absolute;
+                            right: 1rem;
+                          `}
+                          title={getObjectStageTextById(projObj.objectStage)}
+                          id={projObj.objectStage}
+                        />
+                      </>
                     )}
                   </Box>
                 </Card>

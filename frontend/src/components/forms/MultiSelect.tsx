@@ -25,6 +25,7 @@ export type Props<T> = {
   onBlur?: () => void;
   getOptionLabel?: (item: T) => string;
   optionLabelElement?: (id: string | null) => ReactJSXElement;
+  optionIconElement?: (id: string | null) => ReactJSXElement;
   getOptionId?: (item: T) => string;
   /**
    * Overrides MUI AutoComplete's default renderOption function.
@@ -63,6 +64,7 @@ export function MultiSelect<T>({
   getOptionId,
   renderOption,
   optionLabelElement,
+  optionIconElement,
   maxTags,
   disableClearable,
 }: Props<T>) {
@@ -221,6 +223,11 @@ export function MultiSelect<T>({
                   hyphens: 'auto',
                   ...(isDisabled && { pointerEvents: 'none', color: 'grey' }),
                 }}
+                css={css`
+                  svg {
+                    margin-left: auto;
+                  }
+                `}
               >
                 {multiple && (
                   <Checkbox
@@ -232,6 +239,7 @@ export function MultiSelect<T>({
                   />
                 )}
                 {getLabel(id)}
+                {optionIconElement?.(id)}
               </li>
             </span>
           );

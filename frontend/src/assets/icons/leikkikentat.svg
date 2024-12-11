@@ -1,0 +1,11 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 20.5V3.5H23V20.5H1Z" fill="#DBDBDB" style="fill:#DBDBDB;fill:color(display-p3 0.8569 0.8569 0.8569);fill-opacity:1;"/>
+<path d="M1 15V9H5V15H1Z" fill="white" style="fill:white;fill-opacity:1;"/>
+<path d="M19 15V9H23V15H19Z" fill="white" style="fill:white;fill-opacity:1;"/>
+<path d="M1 20.5V3.5H23V20.5H1Z" stroke="#737373" style="stroke:#737373;stroke:color(display-p3 0.4514 0.4514 0.4514);stroke-opacity:1;" stroke-width="2"/>
+<path d="M9 12C9 12.7956 9.31607 13.5587 9.87868 14.1213C10.4413 14.6839 11.2044 15 12 15C12.7956 15 13.5587 14.6839 14.1213 14.1213C14.6839 13.5587 15 12.7956 15 12C15 11.2044 14.6839 10.4413 14.1213 9.87868C13.5587 9.31607 12.7956 9 12 9C11.2044 9 10.4413 9.31607 9.87868 9.87868C9.31607 10.4413 9 11.2044 9 12Z" stroke="#737373" style="stroke:#737373;stroke:color(display-p3 0.4514 0.4514 0.4514);stroke-opacity:1;" stroke-width="2"/>
+<path d="M1 9H5V15H1" stroke="#737373" style="stroke:#737373;stroke:color(display-p3 0.4514 0.4514 0.4514);stroke-opacity:1;" stroke-width="2"/>
+<path d="M23 9H19V15H23" stroke="#737373" style="stroke:#737373;stroke:color(display-p3 0.4514 0.4514 0.4514);stroke-opacity:1;" stroke-width="2"/>
+<path d="M12 3.5V9" stroke="#737373" style="stroke:#737373;stroke:color(display-p3 0.4514 0.4514 0.4514);stroke-opacity:1;" stroke-width="2"/>
+<path d="M12 15V20.5" stroke="#737373" style="stroke:#737373;stroke:color(display-p3 0.4514 0.4514 0.4514);stroke-opacity:1;" stroke-width="2"/>
+</svg>

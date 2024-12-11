@@ -1,12 +1,13 @@
-import { css } from '@emotion/react';
 import { NavigateNext } from '@mui/icons-material';
-import { Box, Card, CardActionArea, Skeleton, Typography } from '@mui/material';
+import { Box, Card, CardActionArea, Skeleton, Typography, css } from '@mui/material';
 import dayjs from 'dayjs';
 import { useAtomValue } from 'jotai';
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
+import { ObjectCategoryIcon } from '@frontend/components/icons/ObjectCategoryIcon';
+import { ObjectStageIcon } from '@frontend/components/icons/ObjectStageIcon';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { activeItemIdAtom } from '@frontend/stores/map';
 import { projectObjectSearchParamAtom } from '@frontend/stores/search/projectObject';
@@ -15,12 +16,12 @@ import { useDebounce } from '@frontend/utils/useDebounce';
 import { ProjectObjectResultsMap } from '@frontend/views/ProjectObject/ProjectObjectResultsMap';
 import { SearchControls } from '@frontend/views/ProjectObject/SearchControls';
 
-import { Code } from '@shared/schema/code';
 import { ProjectObjectSearchResult } from '@shared/schema/projectObject/search';
 
 const projectObjectCardStyle = (highlighted: boolean) => css`
   padding: 12px;
   display: flex;
+
   align-items: center;
   cursor: pointer;
   background: ${highlighted ? '#e7eef9' : '#fff'};
@@ -88,12 +89,10 @@ function ProjectObjectCardSkeleton({ count = 1 }: { count: number }) {
 function ProjectObjectCard({
   result,
   highlighted,
-  objectStageCodes,
   newObjectHighlightId,
 }: {
   result: ProjectObjectSearchResult['projectObjects'][number];
   highlighted: boolean;
-  objectStageCodes?: readonly Code[];
   newObjectHighlightId: string | null;
 }) {
   const { resetInfoBox } = useMapInfoBox();
@@ -102,6 +101,9 @@ function ProjectObjectCard({
   const projectObjectUrl = `${projectTypeRootUrl[result.project.projectType]}/${
     result.project.projectId
   }/kohde/${result.projectObjectId}`;
+
+  const objectStageCodes = trpc.code.get.useQuery({ codeListId: 'KohteenLaji' });
+  const objectCategoryCodes = trpc.code.get.useQuery({ codeListId: 'KohteenOmaisuusLuokka' });
 
   return (
     <CardActionArea
@@ -160,22 +162,57 @@ function ProjectObjectCard({
             {result.endDate !== 'infinity' && dayjs(result.endDate).format(tr('date.format'))}
           </Typography>
         </Box>
-        {objectStageCodes && result?.objectStage && (
-          <span
-            css={css`
-              margin-left: auto;
-              align-self: center;
-              padding: 2px 6px;
-              font-size: x-small;
-              font-weight: 300;
-              border: 1px solid #ddd;
-              color: #333;
-              border-radius: 8px;
-            `}
-          >
-            {objectStageCodes.find((code) => code.id.id === result.objectStage)?.text[lang]}
-          </span>
-        )}
+        <Box
+          css={css`
+            padding-left: 8px;
+            display: flex;
+            flex: 1;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 5px;
+          `}
+        >
+          {result.objectCategory?.map((categoryId, idx) =>
+            idx < 4 ? (
+              <ObjectCategoryIcon
+                key={categoryId}
+                id={categoryId}
+                title={
+                  objectCategoryCodes.data?.find((code) => code.id.id === categoryId)?.text[lang] ??
+                  ''
+                }
+              />
+            ) : null,
+          )}
+          {result.objectCategory && result.objectCategory.length > 4 && (
+            <Typography
+              css={css`
+                font-size: 0.75rem;
+              `}
+            >
+              +{result.objectCategory.length - 4}
+            </Typography>
+          )}
+          {objectStageCodes.data && result?.objectStage && (
+            <>
+              <span
+                css={css`
+                  border-right: 1px solid #c4c4c4;
+                  width: 5px;
+                  align-self: stretch;
+                `}
+              />
+              <ObjectStageIcon
+                title={
+                  objectStageCodes.data.find((code) => code.id.id === result.objectStage)?.text[
+                    lang
+                  ] ?? ''
+                }
+                id={result.objectStage}
+              />
+            </>
+          )}
+        </Box>
       </Card>
     </CardActionArea>
   );
@@ -201,8 +238,6 @@ function SearchResults({
   const [newObjectHighlightId, setNewObjectHighlightId] = useState<string | null>(
     queryParams.get('highlight'),
   );
-
-  const codes = trpc.code.get.useQuery({ codeListId: 'KohteenLaji' });
 
   useEffect(() => {
     const activeProjectObjectCard = document.getElementById(
@@ -339,7 +374,6 @@ function SearchResults({
               <ProjectObjectCard
                 result={result}
                 highlighted={result.projectObjectId === activeProjectObjectId}
-                objectStageCodes={codes.data}
                 newObjectHighlightId={newObjectHighlightId}
               />
             </Box>
