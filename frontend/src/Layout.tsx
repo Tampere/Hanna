@@ -327,7 +327,16 @@ function AboutDialog({ open, handleClose }: { open: boolean; handleClose: () => 
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle css={logoStyle}>Hanna</DialogTitle>
+      <DialogTitle
+        css={css`
+          ${logoStyle} color: #4c4c4c;
+          :hover {
+            color: inherit;
+          }
+        `}
+      >
+        Hanna
+      </DialogTitle>
       <DialogContent
         css={css`
           padding: 0 auto;
