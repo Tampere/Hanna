@@ -7,7 +7,6 @@ import {
   timePeriodFragment,
 } from '@backend/components/projectObject/index.js';
 import { getPool } from '@backend/db.js';
-import { logger } from '@backend/logging.js';
 
 import {
   ObjectsByProjectSearch,
@@ -58,6 +57,7 @@ function getProjectObjectSearchFragment({
       po.end_date AS "endDate",
       po.object_name AS "objectName",
       (object_stage).id AS "objectStage",
+      (SELECT array_agg((object_category).id) FROM app.project_object_category WHERE po.id = project_object_category.project_object_id) AS "objectCategory",
       jsonb_build_object(
         'projectId', project.id,
         'projectName', project.project_name,
@@ -252,6 +252,7 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
       "endDate",
       "objectName",
       "objectStage",
+      "objectCategory",
       project
       ${withGeometries ? sql.fragment`, search_results.geom` : sql.fragment``}
     FROM search_results
