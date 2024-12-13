@@ -1,8 +1,7 @@
-import { ExpandLess, ExpandMore, Search } from '@mui/icons-material';
+import { DeleteSweepOutlined, ExpandLess, ExpandMore, Search } from '@mui/icons-material';
 import {
   Box,
   Button,
-  Chip,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -36,16 +35,22 @@ import {
   objectUsageAtom,
   projectObjectNameAtom,
   projectObjectSearchParamAtom,
+  projectObjectSearchParamsAtomWithoutMap,
   rakennuttajaUsersAtom,
+  selectedSavedProjectObjectSearchFilterAtom,
   suunnitteluttajaUsersAtom,
 } from '@frontend/stores/search/projectObject';
 
 import { isoDateFormat } from '@shared/date';
+import { UserSavedSearchFilter } from '@shared/schema/userSavedSearchFilters';
+
+import { SavedSearchFilters } from '../SavedSearchFilters';
 
 const searchControlContainerStyle = css`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 16px;
+  padding: 8px 0;
 `;
 
 function makeCalendarQuickSelections(tr: ReturnType<typeof useTranslations>) {
@@ -100,6 +105,10 @@ export function SearchControls() {
   const [rakennuttajaUsers, setRakennuttajaUsers] = useAtom(rakennuttajaUsersAtom);
   const setFreezeMapHeight = useSetAtom(freezeMapHeightAtom);
   const [allSearchParams, setAllSearchParams] = useAtom(projectObjectSearchParamAtom);
+  const searchParamsWithoutMap = useAtomValue(projectObjectSearchParamsAtomWithoutMap);
+  const [savedFilterState, setSavedFilterState] = useAtom(
+    selectedSavedProjectObjectSearchFilterAtom,
+  );
   const currentUser = useAtomValue(asyncUserAtom);
   const setMap = useSetAtom(mapAtom);
 
@@ -121,6 +130,14 @@ export function SearchControls() {
     }, timeout);
   }
 
+  function handleSavedFilterSelect(filters?: UserSavedSearchFilter['projectObjectSearch'] | null) {
+    if (!filters) {
+      setAllSearchParams(RESET);
+    } else {
+      setAllSearchParams({ ...filters, map: allSearchParams.map });
+    }
+  }
+
   return (
     <Box
       css={css`
@@ -136,6 +153,7 @@ export function SearchControls() {
         ${isVisible ? 'padding: 16px' : 'padding-right: 16px'};
         display: flex;
         flex-direction: column;
+        padding-top: 0;
         border-radius: 0;
         border-bottom: 1px solid #c4c4c4;
       `}
@@ -147,19 +165,26 @@ export function SearchControls() {
             opacity 0.3s ease-out;
           // Using media queries to get a smooth height transition animation between different screen sizes
           @media (min-width: 1900px) {
-            height: 100px;
-            ${!isVisible && `height: 0; opacity: 0;`};
-          }
-          @media (1900px >= width >= 1130px) {
             height: 180px;
             ${!isVisible && `height: 0; opacity: 0;`};
           }
+          @media (1900px >= width >= 1130px) {
+            height: 260px;
+            ${!isVisible && `height: 0; opacity: 0;`};
+          }
           @media (max-width: 1130px) {
-            height: 220px;
+            height: 300px;
             ${!isVisible && `height: 0; opacity: 0;`};
           }
         `}
       >
+        <SavedSearchFilters
+          filterType="projectObjectSearch"
+          selectedFilters={searchParamsWithoutMap}
+          handleFilterSelect={handleSavedFilterSelect}
+          selectedSavedFilterState={savedFilterState}
+          setSelectedSavedFilterState={setSavedFilterState}
+        />
         {isVisible && (
           <div css={searchControlContainerStyle}>
             <FormControl>
@@ -327,21 +352,21 @@ export function SearchControls() {
           ${!isVisible && 'margin-bottom: 0.5rem;'}
         `}
       >
-        {searchParamsCount > 0 && (
-          <Chip
-            variant="outlined"
+        {isVisible && (
+          <Button
             size="small"
             css={css`
-              font-size: 12px;
-              border-color: orange;
+              margin-right: auto;
             `}
-            label={
-              searchParamsCount === 1
-                ? tr('workTable.search.chipLabelSingle')
-                : tr('workTable.search.chipLabelMultiple', searchParamsCount)
-            }
-            onDelete={() => setAllSearchParams(RESET)}
-          />
+            disabled={searchParamsCount === 0}
+            onClick={() => {
+              setAllSearchParams(RESET);
+              setSavedFilterState({ id: null, isEditing: false });
+            }}
+            startIcon={<DeleteSweepOutlined />}
+          >
+            {tr('workTable.search.clearFiltersLabel')}
+          </Button>
         )}
         <Button
           size="small"
@@ -355,7 +380,15 @@ export function SearchControls() {
           }}
           endIcon={isVisible ? <ExpandLess /> : <ExpandMore />}
         >
-          {isVisible ? tr('workTable.search.hide') : tr('workTable.search.show')}
+          {isVisible
+            ? tr(
+                searchParamsCount > 0 ? 'workTable.search.hideWithCount' : 'workTable.search.hide',
+                searchParamsCount,
+              )
+            : tr(
+                searchParamsCount > 0 ? 'workTable.search.showWithCount' : 'workTable.search.show',
+                searchParamsCount,
+              )}
         </Button>
       </Box>
     </Box>

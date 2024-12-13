@@ -2,6 +2,7 @@ import { css } from '@emotion/react';
 import {
   AddCircleOutline,
   Cancel,
+  DeleteSweepOutlined,
   Download,
   ExpandLess,
   ExpandMore,
@@ -9,10 +10,11 @@ import {
   Save,
   Undo,
 } from '@mui/icons-material';
-import { Box, Button, Chip, IconButton, Theme, Tooltip, Typography } from '@mui/material';
+import { Box, Button, IconButton, Theme, Tooltip, Typography } from '@mui/material';
 import { DataGrid, useGridApiRef } from '@mui/x-data-grid';
 import { fiFI } from '@mui/x-data-grid/locales';
-import { atom, useAtom, useAtomValue } from 'jotai';
+import { useAtom, useAtomValue } from 'jotai';
+import { RESET } from 'jotai/utils';
 import diff from 'microdiff';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -25,17 +27,18 @@ import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
+import { searchAtom, selectedSavedFilterStateAtom } from '@frontend/stores/workTable';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { WorkTableFilters } from '@frontend/views/WorkTable/Filters/WorkTableFilters';
 import { WorkTableFinanceField, getColumns } from '@frontend/views/WorkTable/columns';
 
-import { isoDateFormat } from '@shared/date';
 import {
   hasPermission,
   hasWritePermission,
   isAdmin,
   ownsProject,
 } from '@shared/schema/userPermissions';
+import { UserSavedSearchFilter } from '@shared/schema/userSavedSearchFilters';
 import {
   ReportTemplate,
   WorkTableRow,
@@ -43,6 +46,7 @@ import {
   WorkTableSearch,
 } from '@shared/schema/workTable';
 
+import { SavedSearchFilters } from '../SavedSearchFilters';
 import { BackToTopButton } from './BackToTopButton';
 import { ProjectObjectParticipantFilter } from './Filters/ProjectObjectParticipantFilter';
 import { YearPicker } from './Filters/YearPicker';
@@ -171,11 +175,6 @@ function getCellEditEvent(oldRow: WorkTableRow, newRow: WorkTableRow): CellEditE
     newValue: newRow[changedField],
   };
 }
-const thisYear = dayjs().year();
-const searchAtom = atom<WorkTableSearch>({
-  objectStartDate: dayjs([thisYear, 0, 1]).format(isoDateFormat).toString(),
-  objectEndDate: dayjs([thisYear, 11, 31]).format(isoDateFormat).toString(),
-});
 
 function NoRowsOverlay() {
   const tr = useTranslations();
@@ -195,6 +194,9 @@ function NoRowsOverlay() {
 
 export default function WorkTable() {
   const [searchParams, setSearchParams] = useAtom(searchAtom);
+  const [selectedSavedFilterState, setSelectedSavedFilterState] = useAtom(
+    selectedSavedFilterStateAtom,
+  );
   const query = useDebounce(searchParams, 500);
   const tr = useTranslations();
   const gridApiRef = useGridApiRef();
@@ -203,7 +205,7 @@ export default function WorkTable() {
   const workTableScrollableElement = document.querySelector('.MuiDataGrid-virtualScroller');
   const [summaryRowHeight, setSummaryRowHeight] = useState(54);
   const [expanded, setExpanded] = useState(true);
-  const [filterExpandTooltipOpen, setFilterExpandTooltipOpen] = useState(false);
+
   const auth = useAtomValue(asyncUserAtom);
 
   const { workTable } = trpc.useUtils();
@@ -436,7 +438,13 @@ export default function WorkTable() {
 
   function calculateUsedSearchParamsCount(searchParams: WorkTableSearch): number {
     return (Object.keys(searchParams) as (keyof WorkTableSearch)[]).reduce((count, key) => {
-      if (['objectStartDate', 'objectEndDate', 'objectParticipantUser'].includes(key)) {
+      if (key === 'objectEndDate') {
+        return count;
+      }
+      if (key === 'objectStartDate') {
+        if (dayjs(searchParams.objectStartDate).year() !== dayjs().year()) {
+          return count + 1;
+        }
         return count;
       }
 
@@ -449,6 +457,14 @@ export default function WorkTable() {
       }
       return count + 1;
     }, 0);
+  }
+
+  function handleSavedFilterSelect(filters?: UserSavedSearchFilter['worktableSearch'] | null) {
+    if (!filters) {
+      setSearchParams(RESET);
+    } else {
+      setSearchParams(filters);
+    }
   }
 
   const searchParamsCount = useMemo(
@@ -469,6 +485,7 @@ export default function WorkTable() {
           display: flex;
           gap: 2rem;
           align-items: center;
+          padding-bottom: 16px;
         `}
       >
         <Typography
@@ -552,6 +569,16 @@ export default function WorkTable() {
           </Button>
         </Box>
       </Box>
+      {expanded && (
+        <SavedSearchFilters
+          filterType="worktableSearch"
+          selectedFilters={searchParams}
+          handleFilterSelect={handleSavedFilterSelect}
+          selectedSavedFilterState={selectedSavedFilterState}
+          setSelectedSavedFilterState={setSelectedSavedFilterState}
+        />
+      )}
+
       <WorkTableFilters
         expanded={expanded}
         readOnly={editEvents.length > 0}
@@ -559,69 +586,61 @@ export default function WorkTable() {
         yearRange={yearRange}
         setSearchParams={setSearchParams}
       />
+
       <Box
         css={css`
           display: flex;
           align-items: center;
         `}
       >
-        <WorkTableSummaryRow
-          editEvents={editEvents}
-          workTableData={workTableData}
-          ref={summaryRowRef}
-        />
-        <Box
-          css={css`
-            display: flex;
-            margin-left: auto;
-            align-items: center;
-            gap: 0.5rem;
-          `}
-        >
-          {searchParamsCount > 0 && (
-            <Chip
-              variant="outlined"
-              size="small"
-              css={css`
-                font-size: 12px;
-                border-color: orange;
-              `}
-              label={
-                searchParamsCount === 1
-                  ? tr('workTable.search.chipLabelSingle')
-                  : tr('workTable.search.chipLabelMultiple', searchParamsCount)
-              }
-              onDelete={() =>
-                setSearchParams((prev) => {
-                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                  const { objectStartDate, objectEndDate, objectParticipantUser, ...rest } = prev;
-                  return { objectStartDate, objectEndDate, objectParticipantUser };
-                })
-              }
-            />
-          )}
-          <Tooltip
-            open={filterExpandTooltipOpen}
-            onOpen={() => setFilterExpandTooltipOpen(true)}
-            onClose={() => setFilterExpandTooltipOpen(false)}
-            enterDelay={500}
-            title={expanded ? tr('workTable.search.hide') : tr('workTable.search.show')}
+        {expanded && (
+          <Button
+            disabled={searchParamsCount === 0}
+            size="small"
+            css={css`
+              white-space: nowrap;
+              min-width: auto;
+              margin-right: auto;
+            `}
+            onClick={() => {
+              setSearchParams(() => ({
+                objectStartDate: dayjs().startOf('year').toISOString(),
+                objectEndDate: dayjs().endOf('year').toISOString(),
+              }));
+              setSelectedSavedFilterState({ id: null, isEditing: false });
+            }}
+            startIcon={<DeleteSweepOutlined />}
           >
-            <IconButton
-              css={css`
-                grid-column: 13;
-                height: fit-content;
-              `}
-              onClick={() => {
-                setExpanded((prev) => !prev);
-                setFilterExpandTooltipOpen(false);
-              }}
-            >
-              {expanded ? <ExpandLess /> : <ExpandMore />}
-            </IconButton>
-          </Tooltip>
-        </Box>
+            {tr('workTable.search.clearFiltersLabel')}
+          </Button>
+        )}
+        <Button
+          size="small"
+          css={css`
+            margin-left: auto;
+          `}
+          onClick={() => {
+            setExpanded((prev) => !prev);
+          }}
+          endIcon={expanded ? <ExpandLess /> : <ExpandMore />}
+        >
+          {expanded
+            ? tr(
+                searchParamsCount > 0 ? 'workTable.search.hideWithCount' : 'workTable.search.hide',
+                searchParamsCount,
+              )
+            : tr(
+                searchParamsCount > 0 ? 'workTable.search.showWithCount' : 'workTable.search.show',
+                searchParamsCount,
+              )}
+        </Button>
       </Box>
+
+      <WorkTableSummaryRow
+        editEvents={editEvents}
+        workTableData={workTableData}
+        ref={summaryRowRef}
+      />
 
       <DataGrid
         slots={{ noRowsOverlay: NoRowsOverlay }}

@@ -54,7 +54,7 @@ export const WorkTableSummaryRow = forwardRef(function WorkTableSummaryRow(
       css={(theme) => css`
         display: flex;
         flex-wrap: wrap;
-        padding: 1rem;
+        padding: 0.5rem;
         gap: 1.5rem;
         z-index: 100;
         background-color: white;
@@ -66,7 +66,7 @@ export const WorkTableSummaryRow = forwardRef(function WorkTableSummaryRow(
         .summaryContainer {
           display: flex;
           gap: 10px;
-          align-items: flex-end;
+          align-items: center;
         }
         .summaryLabel {
           font-weight: 600;
