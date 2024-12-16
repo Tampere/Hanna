@@ -36,6 +36,11 @@ export async function clearData() {
   await clearProjects();
 }
 
+export async function clearUserSavedSearchFilters() {
+  return connection.query(`
+    TRUNCATE TABLE app.user_search_filters CASCADE;`);
+}
+
 export async function clearObjects() {
   return connection.query(`
     TRUNCATE TABLE app.project_object CASCADE;`);

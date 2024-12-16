@@ -31,7 +31,7 @@ export const ObjectStageIcon = forwardRef<SVGSVGElement | null, Props>(
 
     return (
       <Suspense fallback={<CircularProgress {...(cssProp && { css: cssProp })} size={15} />}>
-        <Tooltip title={title}>
+        <Tooltip title={title} placement="top">
           <SvgIcon
             ref={ref}
             {...(cssProp && {

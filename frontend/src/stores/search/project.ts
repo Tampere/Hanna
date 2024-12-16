@@ -1,12 +1,9 @@
+import { atom } from 'jotai';
 import { focusAtom } from 'jotai-optics';
 import { atomWithReset } from 'jotai/utils';
+import { ProjectSearchParams } from 'tre-hanna-shared/src/schema/userSavedSearchFilters';
 
 import { mapOptions } from '@frontend/components/Map/mapOptions';
-
-import { ProjectSearch } from '@shared/schema/project';
-
-// Use the shared schema as base, but omit unused fields and mark the rest as required
-type SearchParams = Omit<Required<ProjectSearch>, 'limit' | 'projectTypes' | 'withProjectObjects'>;
 
 const projectSearchDefaultValues = {
   text: '',
@@ -25,7 +22,22 @@ const projectSearchDefaultValues = {
   onlyCoversMunicipality: false,
 };
 
-export const projectSearchParamAtom = atomWithReset<SearchParams>(projectSearchDefaultValues);
+export const selectedSavedSearchFilterAtom = atom<{ id: string | null; isEditing: boolean }>({
+  id: null,
+  isEditing: false,
+});
+
+export const projectSearchParamAtom = atomWithReset<ProjectSearchParams>(
+  projectSearchDefaultValues,
+);
+export const searchParamsAtomWithoutMap = focusAtom(projectSearchParamAtom, (o) => {
+  return o.pick(
+    Object.keys(projectSearchDefaultValues).filter((key) => key !== 'map') as Exclude<
+      keyof ProjectSearchParams,
+      'map'
+    >[],
+  );
+});
 
 export const textAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('text'));
 export const dateRangeAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('dateRange'));
@@ -53,8 +65,8 @@ export const onlyCoversMunicipalityAtom = focusAtom(projectSearchParamAtom, (o) 
   o.prop('onlyCoversMunicipality'),
 );
 
-export function calculateUsedSearchParamsCount(searchParams: SearchParams): number {
-  return (Object.keys(searchParams) as (keyof SearchParams)[]).reduce((count, key) => {
+export function calculateUsedSearchParamsCount(searchParams: ProjectSearchParams): number {
+  return (Object.keys(searchParams) as (keyof ProjectSearchParams)[]).reduce((count, key) => {
     if (key === 'map') {
       return count;
     }

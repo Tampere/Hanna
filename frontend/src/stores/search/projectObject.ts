@@ -1,12 +1,10 @@
+import { atom } from 'jotai';
 import { focusAtom } from 'jotai-optics';
 import { atomWithReset } from 'jotai/utils';
 
 import { mapOptions } from '@frontend/components/Map/mapOptions';
 
-import { ProjectObjectSearch } from '@shared/schema/projectObject/search';
-
-// Use the shared schema as base, but omit unused fields and mark the rest as required
-type ObjectSearchParams = Omit<Required<ProjectObjectSearch>, 'limit' | 'projectId'>;
+import { ProjectObjectSearchParams } from '@shared/schema/userSavedSearchFilters';
 
 const projectObjectSearchDefaultValues = {
   projectObjectName: '',
@@ -30,8 +28,28 @@ const projectObjectSearchDefaultValues = {
   suunnitteluttajaUsers: [],
 };
 
-export const projectObjectSearchParamAtom = atomWithReset<ObjectSearchParams>(
+export const projectObjectSearchParamAtom = atomWithReset<ProjectObjectSearchParams>(
   projectObjectSearchDefaultValues,
+);
+
+export const selectedSavedProjectObjectSearchFilterAtom = atom<{
+  id: string | null;
+  isEditing: boolean;
+}>({
+  id: null,
+  isEditing: false,
+});
+
+export const projectObjectSearchParamsAtomWithoutMap = focusAtom(
+  projectObjectSearchParamAtom,
+  (o) => {
+    return o.pick(
+      Object.keys(projectObjectSearchDefaultValues).filter((key) => key !== 'map') as Exclude<
+        keyof ProjectObjectSearchParams,
+        'map'
+      >[],
+    );
+  },
 );
 
 export const dateRangeAtom = focusAtom(projectObjectSearchParamAtom, (o) => o.prop('dateRange'));
@@ -70,8 +88,8 @@ export const objectParticipantUserAtom = focusAtom(projectObjectSearchParamAtom,
 
 export const mapAtom = focusAtom(projectObjectSearchParamAtom, (o) => o.prop('map'));
 
-export function calculateUsedSearchParamsCount(searchParams: ObjectSearchParams) {
-  return (Object.keys(searchParams) as (keyof ObjectSearchParams)[]).reduce((count, key) => {
+export function calculateUsedSearchParamsCount(searchParams: ProjectObjectSearchParams) {
+  return (Object.keys(searchParams) as (keyof ProjectObjectSearchParams)[]).reduce((count, key) => {
     if (key === 'map') {
       return count;
     }

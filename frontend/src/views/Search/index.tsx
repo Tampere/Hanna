@@ -53,7 +53,7 @@ export function SearchPage() {
       css={css`
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 16px;
         height: 100%;
       `}
     >

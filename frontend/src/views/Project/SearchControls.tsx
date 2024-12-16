@@ -1,8 +1,14 @@
-import { ExpandLess, ExpandMore, Search, UnfoldLess, UnfoldMore } from '@mui/icons-material';
+import {
+  DeleteSweepOutlined,
+  ExpandLess,
+  ExpandMore,
+  Search,
+  UnfoldLess,
+  UnfoldMore,
+} from '@mui/icons-material';
 import {
   Box,
   Button,
-  Chip,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -10,11 +16,13 @@ import {
   Switch,
   TextField,
   css,
+  useMediaQuery,
 } from '@mui/material';
 import dayjs from 'dayjs';
-import { useAtom, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { RESET } from 'jotai/utils';
 import { useEffect, useMemo, useState } from 'react';
+import { UserSavedSearchFilter } from 'tre-hanna-shared/src/schema/userSavedSearchFilters';
 
 import { mapOptions } from '@frontend/components/Map/mapOptions';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
@@ -33,15 +41,19 @@ import {
   onlyCoversMunicipalityAtom,
   ownersAtom,
   projectSearchParamAtom,
+  searchParamsAtomWithoutMap,
+  selectedSavedSearchFilterAtom,
   textAtom,
 } from '@frontend/stores/search/project';
 
 import { isoDateFormat } from '@shared/date';
 
+import { SavedSearchFilters } from '../SavedSearchFilters';
 import { DetailplanProjectSearch } from './DetailplanProjectSearch';
 import { InvestmentProjectSearch } from './InvestmentProjectSearch';
 
 const searchControlContainerStyle = css`
+  padding: 8px 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 16px;
@@ -85,6 +97,8 @@ function makeCalendarQuickSelections(tr: ReturnType<typeof useTranslations>) {
 export function SearchControls() {
   const tr = useTranslations();
 
+  const narrowView = useMediaQuery('(max-width: 1850px)');
+
   const [expanded, setExpanded] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [text, setText] = useAtom(textAtom);
@@ -95,7 +109,9 @@ export function SearchControls() {
   const [includeWithoutGeom, setIncludeWithoutGeom] = useAtom(includeWithoutGeomAtom);
   const [onlyCoversMunicipality, setOnlyCoversMunicipality] = useAtom(onlyCoversMunicipalityAtom);
   const [allSearchParams, setAllSearchParams] = useAtom(projectSearchParamAtom);
+  const searchParamsWithoutMap = useAtomValue(searchParamsAtomWithoutMap);
   const setFreezeMapHeight = useSetAtom(freezeMapHeightAtom);
+  const [savedFilterState, setSavedFilterState] = useAtom(selectedSavedSearchFilterAtom);
   const setMap = useSetAtom(mapAtom);
 
   const searchParamsCount = useMemo(
@@ -138,6 +154,14 @@ export function SearchControls() {
     }, timeout);
   }
 
+  function handleSavedFilterSelect(filters?: UserSavedSearchFilter['projectSearch'] | null) {
+    if (!filters) {
+      setAllSearchParams(RESET);
+    } else {
+      setAllSearchParams({ ...filters, map: allSearchParams.map });
+    }
+  }
+
   const expandButtonVisible = isVisible && (filters.investmentProject || filters.detailplanProject);
 
   return (
@@ -153,8 +177,10 @@ export function SearchControls() {
           font-size: 12px;
         }
         padding: ${isVisible ? '16px' : '0 16px '};
+        padding-top: 0;
         display: flex;
         flex-direction: column;
+        gap: 5px;
         gap: ${expanded ? '16px' : 'none'};
         border-radius: 0;
         border-bottom: 1px solid #c4c4c4;
@@ -166,26 +192,37 @@ export function SearchControls() {
             height 0.3s ease-out,
             opacity 0.3s ease-out;
           // Using media queries to get a smooth height transition animation between different screen sizes
-          @media (min-width: 1900px) {
-            height: ${expanded ? getExpandedHeight(180) : 80}px;
-            ${!isVisible && `height: 0; opacity: 0;`};
-          }
-          @media (1900px >= width >= 1400px) {
+          @media (min-width: 1910px) {
             height: ${expanded ? getExpandedHeight(260) : 140}px;
             ${!isVisible && `height: 0; opacity: 0;`};
           }
+          @media (1850px <= width <= 1910px) {
+            height: ${expanded ? getExpandedHeight(300) : 180}px;
+            ${!isVisible && `height: 0; opacity: 0;`};
+          }
+          @media (1850px >= width >= 1400px) {
+            height: ${expanded ? getExpandedHeight(340) : 180}px;
+            ${!isVisible && `height: 0; opacity: 0;`};
+          }
           @media (1400px >= width >= 1130px) {
-            height: ${expanded ? getExpandedHeight(300) : 140}px;
+            height: ${expanded ? getExpandedHeight(380) : 200}px;
             ${!isVisible && `height: 0; opacity: 0;`};
           }
           @media (max-width: 1130px) {
-            height: ${expanded ? getExpandedHeight(350) : 200}px;
+            height: ${expanded ? getExpandedHeight(420) : 240}px;
             ${!isVisible && `height: 0; opacity: 0;`};
           }
         `}
       >
         {isVisible && (
           <Box>
+            <SavedSearchFilters
+              filterType="projectSearch"
+              selectedFilters={searchParamsWithoutMap}
+              handleFilterSelect={handleSavedFilterSelect}
+              selectedSavedFilterState={savedFilterState}
+              setSelectedSavedFilterState={setSavedFilterState}
+            />
             <div css={searchControlContainerStyle}>
               <FormControl>
                 <FormLabel htmlFor="text-search">{tr('itemSearch.textSearchLabel')}</FormLabel>
@@ -308,6 +345,25 @@ export function SearchControls() {
           </Box>
         )}
       </Box>
+      {narrowView && expandButtonVisible && (
+        <Button
+          size="small"
+          css={css`
+            color: green;
+            white-space: nowrap;
+            min-width: auto;
+            margin-right: auto;
+          `}
+          startIcon={expanded ? <UnfoldLess /> : <UnfoldMore />}
+          onClick={() => {
+            handleFreezeMapHeight(350);
+            setExpanded((previous) => !previous);
+          }}
+        >
+          {expanded ? tr('itemSearch.showLessBtnLabel') : tr('itemSearch.showMoreBtnLabel')}
+        </Button>
+      )}
+
       <Box
         css={css`
           display: flex;
@@ -318,12 +374,32 @@ export function SearchControls() {
           ${!isVisible && 'margin-bottom: 0.5rem;'}
         `}
       >
-        {expandButtonVisible && (
+        {isVisible && (
           <Button
+            disabled={searchParamsCount === 0}
+            size="small"
             css={css`
               margin-right: auto;
+              white-space: nowrap;
+              min-width: auto;
             `}
+            onClick={() => {
+              setAllSearchParams(RESET);
+              setSavedFilterState({ id: null, isEditing: false });
+            }}
+            startIcon={<DeleteSweepOutlined />}
+          >
+            {tr('workTable.search.clearFiltersLabel')}
+          </Button>
+        )}
+        {expandButtonVisible && !narrowView && (
+          <Button
             size="small"
+            css={css`
+              color: green;
+              white-space: nowrap;
+              min-width: auto;
+            `}
             startIcon={expanded ? <UnfoldLess /> : <UnfoldMore />}
             onClick={() => {
               handleFreezeMapHeight(350);
@@ -333,28 +409,13 @@ export function SearchControls() {
             {expanded ? tr('itemSearch.showLessBtnLabel') : tr('itemSearch.showMoreBtnLabel')}
           </Button>
         )}
-        {searchParamsCount > 0 && (
-          <Chip
-            variant="outlined"
-            size="small"
-            css={css`
-              font-size: 12px;
-              border-color: orange;
-            `}
-            label={
-              searchParamsCount === 1
-                ? tr('workTable.search.chipLabelSingle')
-                : tr('workTable.search.chipLabelMultiple', searchParamsCount)
-            }
-            onDelete={() => setAllSearchParams(RESET)}
-          />
-        )}
         <Button
           size="small"
           css={css`
             grid-column: 13;
             height: fit-content;
-            width: 221px;
+            min-width: auto;
+            white-space: nowrap;
           `}
           onClick={() => {
             handleFreezeMapHeight(350);
@@ -363,7 +424,15 @@ export function SearchControls() {
           }}
           endIcon={isVisible ? <ExpandLess /> : <ExpandMore />}
         >
-          {isVisible ? tr('workTable.search.hide') : tr('workTable.search.show')}
+          {isVisible
+            ? tr(
+                searchParamsCount > 0 ? 'workTable.search.hideWithCount' : 'workTable.search.hide',
+                searchParamsCount,
+              )
+            : tr(
+                searchParamsCount > 0 ? 'workTable.search.showWithCount' : 'workTable.search.show',
+                searchParamsCount,
+              )}
         </Button>
       </Box>
     </Box>
