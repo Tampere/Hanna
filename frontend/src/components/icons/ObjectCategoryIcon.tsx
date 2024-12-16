@@ -46,7 +46,7 @@ export const ObjectCategoryIcon = forwardRef<SVGSVGElement | null, Props>(
           />
         }
       >
-        <Tooltip title={title}>
+        <Tooltip title={title} placement="top">
           <SvgIcon ref={ref}>
             <Icon />
           </SvgIcon>
