@@ -1,6 +1,9 @@
+import { z } from 'zod';
+
 import { getPool, sql } from '@backend/db.js';
 import { env } from '@backend/env.js';
 
+import { nonEmptyString } from '@shared/schema/common.js';
 import { userSchema } from '@shared/schema/user.js';
 import {
   FilterType,
@@ -87,18 +90,20 @@ export async function upsertSavedSearchFilters(
   const worktableSearchInput = JSON.stringify(worktableSearch) ?? null;
 
   if (filterId) {
-    return getPool().query(sql.untyped`
+    return getPool().one(sql.type(z.object({ filterId: nonEmptyString }))`
       UPDATE app.user_search_filters
       SET
         filter_name = ${filterName},
         project_search_filters = ${projectSearchInput},
         project_object_search_filters = ${projectObjectSearchInput},
         worktable_filters = ${worktableSearchInput}
-      WHERE id = ${filterId}`);
+      WHERE id = ${filterId}
+      RETURNING id AS "filterId";`);
   } else {
-    return getPool().query(sql.untyped`
+    return getPool().one(sql.type(z.object({ filterId: nonEmptyString }))`
       INSERT INTO app.user_search_filters (user_id, filter_name, project_search_filters, project_object_search_filters, worktable_filters)
-      VALUES (${userId}, ${filterName}, ${projectSearchInput}, ${projectObjectSearchInput}, ${worktableSearchInput});`);
+      VALUES (${userId}, ${filterName}, ${projectSearchInput}, ${projectObjectSearchInput}, ${worktableSearchInput})
+      RETURNING id AS "filterId";`);
   }
 }
 
