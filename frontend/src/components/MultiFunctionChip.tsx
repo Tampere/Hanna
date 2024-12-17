@@ -112,6 +112,10 @@ export function MultiFunctionChip({
     }
   }, []);
 
+  function handleInputSave() {
+    onInputSave(inputText.trim());
+  }
+
   const editFunctions = {
     delete: onDelete,
     rename: () => {
@@ -120,7 +124,7 @@ export function MultiFunctionChip({
       setShowEditMenu(false);
     },
     refresh: () => {
-      onInputSave(inputText);
+      handleInputSave();
       setShowEditMenu(false);
     },
   };
@@ -132,10 +136,10 @@ export function MultiFunctionChip({
         if (
           isEditing &&
           !showInvalidInputPopper &&
-          inputText.length > 0 &&
+          inputText.trim().length > 0 &&
           inputText !== textContent
         ) {
-          onInputSave(inputText);
+          handleInputSave();
         } else if (isEditing) {
           onCancel?.();
         }
@@ -220,9 +224,13 @@ export function MultiFunctionChip({
               setInputText(textContent ?? '');
               setIsEditing(false);
               setShowInvalidInputPopper(false);
-            } else if (e.key === 'Enter' && !showInvalidInputPopper) {
+            } else if (
+              e.key === 'Enter' &&
+              !showInvalidInputPopper &&
+              inputText.trim().length > 0
+            ) {
               setIsEditing(false);
-              onInputSave(inputText);
+              handleInputSave();
             }
           }}
           value={inputText}
@@ -260,13 +268,13 @@ export function MultiFunctionChip({
         )}
         {isEditing && (
           <IconButton
-            disabled={showInvalidInputPopper}
+            disabled={inputText.trim().length === 0 || showInvalidInputPopper}
             css={css`
               padding: 0;
               transform: translateX(8px);
               margin-left: auto;
             `}
-            onClick={() => onInputSave(inputText)}
+            onClick={() => handleInputSave()}
           >
             <Done className="submit-icon" color="primary" fontSize="small" />
           </IconButton>
