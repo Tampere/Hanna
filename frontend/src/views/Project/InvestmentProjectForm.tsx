@@ -209,6 +209,8 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
       if (!props.project && data.projectId) {
         setNewProjectId(data.projectId);
         // Navigation to new project is handled in useEffect
+        reset(data);
+        resetExternal({ coversMunicipality: data.coversMunicipality });
         return;
       } else {
         await queryClient.invalidateQueries({
