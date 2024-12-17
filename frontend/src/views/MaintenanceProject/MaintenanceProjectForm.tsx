@@ -169,7 +169,7 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
     resetOptions: { keepDefaultValues: true },
   });
 
-  const { isBlocking } = useNavigationBlocker(isDirty, 'maintenanceForm');
+  const { isBlocking } = useNavigationBlocker(isDirty || externalIsDirty, 'maintenanceForm');
   const ownerWatch = watch('owner');
   const endDateWatch = watch('endDate');
 
@@ -214,6 +214,8 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
       if (!props.project && data.projectId) {
         setNewProjectId(data.projectId);
         // Navigation to new project is handled in useEffect
+        reset(data);
+        resetExternal({ coversMunicipality: data.coversMunicipality });
         return;
       } else {
         await queryClient.invalidateQueries({

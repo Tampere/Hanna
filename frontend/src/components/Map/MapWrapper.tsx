@@ -136,9 +136,9 @@ export function MapWrapper<TProject extends ProjectData, TProjectObject extends 
       );
   }, [baseLayerId, baseLayerStatus]);
 
-  const [WFSLayers, setWFSLayers] = useState<
-    VectorImageLayer<Feature<Geometry>, VectorSource<Feature<Geometry>>>[]
-  >([]);
+  const [WFSLayers, setWFSLayers] = useState<VectorImageLayer<VectorSource<Feature<Geometry>>>[]>(
+    [],
+  );
 
   useEffect(() => {
     if (!selectedWFSLayers) return;

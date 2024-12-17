@@ -98,6 +98,13 @@ export function DateRange(props: Props) {
         return;
       }
 
+      if (
+        dayjs(props.value.startDate).isSame(startDate) &&
+        dayjs(props.value.endDate).isSame(endDate)
+      ) {
+        return;
+      }
+
       props.onChange({
         startDate: startDate?.format(isoDateFormat) ?? null,
         endDate: endDate?.format(isoDateFormat) ?? null,
@@ -105,6 +112,18 @@ export function DateRange(props: Props) {
     },
     [startDate, endDate],
   );
+
+  useEffect(() => {
+    // This is used when saved search filter with date range is applied.
+    // Hackish, but preferring this over lifting state up to keep this component uncoupled.
+    if (
+      !dayjs(props.value.startDate).isSame(startDate) &&
+      !dayjs(props.value.endDate).isSame(endDate)
+    ) {
+      setStartDate(props.value.startDate ? dayjs(props.value.startDate) : null);
+      setEndDate(props.value.endDate ? dayjs(props.value.endDate) : null);
+    }
+  }, [props.value]);
 
   function handleQuickSelection(selection: QuickSelection) {
     setStartDate(dayjs(selection.period.startDate));

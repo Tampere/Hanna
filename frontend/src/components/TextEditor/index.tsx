@@ -1,7 +1,7 @@
-import { EmotionJSX } from '@emotion/react/types/jsx-namespace';
 import { Box, CssBaseline, css } from '@mui/material';
 import { EditorContent, JSONContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import { ReactElement } from 'react';
 
 import { MenuBar } from './MenuBar';
 import './styles.css';
@@ -10,7 +10,7 @@ const extensions = [StarterKit];
 
 interface Props {
   content: string;
-  renderFunctionButtons?: () => EmotionJSX.Element;
+  renderFunctionButtons?: () => ReactElement;
   onChange: (content: JSONContent) => void;
 }
 

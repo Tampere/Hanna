@@ -109,7 +109,8 @@ export async function getProjectObjectsByProjectId(projectId: string, orderBy?: 
       (poi.object_stage).id AS "objectStage",
       start_date AS "startDate",
       end_date AS "endDate",
-      dump.geom
+      dump.geom,
+      ((SELECT array_agg((object_category).id) FROM app.project_object_category WHERE project_object_id = project_object.id)) AS "objectCategory"
     FROM app.project_object
     LEFT JOIN app.project_object_investment poi ON project_object.id = poi.project_object_id
     LEFT JOIN dump ON dump.id = project_object.id

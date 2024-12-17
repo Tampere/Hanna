@@ -33,7 +33,7 @@ export function SavedSearchFilters<T extends FilterType>({
   const savedFilters = trpc.user.getSavedSearchFilters.useQuery({ filterType });
 
   function filterNameIsValid(filterName: string) {
-    return savedFilters.data?.every((filter) => filter.filterName !== filterName) ?? true;
+    return savedFilters.data?.every((filter) => filter.filterName !== filterName.trim()) ?? true;
   }
 
   const saveFiltersMutation = trpc.user.upsertSavedSearchFilters.useMutation({

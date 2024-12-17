@@ -25,7 +25,7 @@ interface Props {
   baseMapLayers: TileLayer<WMTS>[];
   children?: ReactNode;
   extent: number[] | null;
-  wfsLayers?: VectorImageLayer<Feature<Geometry>>[];
+  wfsLayers?: VectorImageLayer<VectorSource<Feature<Geometry>>>[];
   vectorLayers?: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>[];
   interactions?: MapInteraction[] | null;
   interactionLayers?: VectorLayer<VectorSource<Feature<Geometry>>, Feature<Geometry>>[];
