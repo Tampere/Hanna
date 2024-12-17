@@ -16,8 +16,8 @@ const iconEntries = Object.entries(objectStageIcons).map(([id, name]) => [
 const objectStageIconMap = Object.fromEntries(iconEntries);
 
 interface Props {
-  id?: string;
-  title: string;
+  id: string | null;
+  title?: string;
   cssProp?: SerializedStyles;
 }
 

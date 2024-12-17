@@ -19,6 +19,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
+import { ObjectCategoryIcon } from '@frontend/components/icons/ObjectCategoryIcon';
 import { ObjectStageIcon } from '@frontend/components/icons/ObjectStageIcon';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { ProjectTypePath } from '@frontend/types';
@@ -50,13 +51,22 @@ export function ProjectObjectList(props: Props) {
   const [orderBy, setOrderBy] = useState<DbObjectOrderBy>('name');
   const [byYear, setByYear] = useState<number | 'all'>('all');
 
-  const codes = trpc.code.get.useQuery(
+  const stageCodes = trpc.code.get.useQuery(
     { codeListId: 'KohteenLaji', allowEmptySelection: false },
     { staleTime: Infinity },
   );
 
+  const categoryCodes = trpc.code.get.useQuery(
+    { codeListId: 'KohteenOmaisuusLuokka', allowEmptySelection: false },
+    { staleTime: Infinity },
+  );
+
   function getObjectStageTextById(objectId: string) {
-    return codes?.data?.find((code) => code.id.id === objectId)?.text[lang] ?? '';
+    return stageCodes?.data?.find((code) => code.id.id === objectId)?.text[lang] ?? '';
+  }
+
+  function getObjectCategoryTextById(objectId: string) {
+    return categoryCodes?.data?.find((code) => code.id.id === objectId)?.text[lang] ?? '';
   }
 
   const projectObjects = trpc.projectObject.getByProjectId.useQuery({
@@ -198,18 +208,38 @@ export function ProjectObjectList(props: Props) {
                       {projObj.endDate !== 'infinity' &&
                         dayjs(projObj.endDate).format(tr('date.format'))}
                     </Typography>
-                    {props.projectType === 'investointihanke' && (
-                      <>
-                        <ObjectStageIcon
-                          cssProp={css`
-                            position: absolute;
-                            right: 1rem;
-                          `}
-                          title={getObjectStageTextById(projObj.objectStage)}
-                          id={projObj.objectStage}
+
+                    <Box
+                      css={css`
+                        display: flex;
+                        position: absolute;
+                        align-items: center;
+                        right: 1rem;
+                        gap: 8px;
+                      `}
+                    >
+                      {projObj.objectCategory?.map((categoryId) => (
+                        <ObjectCategoryIcon
+                          id={categoryId}
+                          title={getObjectCategoryTextById(categoryId)}
                         />
-                      </>
-                    )}
+                      ))}
+                      {props.projectType === 'investointihanke' && (
+                        <>
+                          <span
+                            css={css`
+                              border-right: 1px solid #c4c4c4;
+                              width: 5px;
+                              align-self: stretch;
+                            `}
+                          />
+                          <ObjectStageIcon
+                            title={getObjectStageTextById(projObj.objectStage)}
+                            id={projObj.objectStage}
+                          />
+                        </>
+                      )}
+                    </Box>
                   </Box>
                 </Card>
               </CardActionArea>

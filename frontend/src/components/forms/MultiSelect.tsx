@@ -1,4 +1,3 @@
-import { ReactJSXElement } from '@emotion/react/types/jsx-namespace';
 import { CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
 import {
   Autocomplete,
@@ -10,7 +9,7 @@ import {
   TextField,
   css,
 } from '@mui/material';
-import { useRef, useState } from 'react';
+import { ReactElement, useRef, useState } from 'react';
 
 import { useTranslations } from '@frontend/stores/lang';
 
@@ -24,8 +23,8 @@ export type Props<T> = {
   readOnly?: boolean;
   onBlur?: () => void;
   getOptionLabel?: (item: T) => string;
-  optionLabelElement?: (id: string | null) => ReactJSXElement;
-  optionIconElement?: (id: string | null) => ReactJSXElement;
+  optionLabelElement?: (id: string | null) => ReactElement;
+  optionIconElement?: (id: string | null) => ReactElement;
   getOptionId?: (item: T) => string;
   /**
    * Overrides MUI AutoComplete's default renderOption function.

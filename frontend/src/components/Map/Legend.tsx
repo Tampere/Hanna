@@ -1,5 +1,4 @@
 import { SerializedStyles, useTheme } from '@emotion/react';
-import { ReactJSXElement } from '@emotion/react/types/jsx-namespace';
 import {
   Box,
   IconButton,
@@ -13,6 +12,7 @@ import {
   css,
 } from '@mui/material';
 import { useAtomValue } from 'jotai';
+import { ReactElement } from 'react';
 
 import { colorPalette } from '@frontend/components/Map/styles';
 import { Info } from '@frontend/components/icons/Info';
@@ -40,7 +40,7 @@ function getLegendItems(
   selectedColorCodes?: SelectedProjectColorCode['projectColorCodes'],
 ): Record<
   Extract<VectorItemLayerKey, 'projects' | 'projectObjects'> | ProjectType,
-  { legendIcon: ReactJSXElement }
+  { legendIcon: ReactElement }
 > {
   return {
     projects: { legendIcon: <LayerLegendIcon color={colorPalette.projectClusterFill} /> },

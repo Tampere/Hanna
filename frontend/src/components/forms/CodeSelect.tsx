@@ -7,6 +7,7 @@ import { langAtom } from '@frontend/stores/lang';
 import { type Code, type CodeId, EXPLICIT_EMPTY } from '@shared/schema/code';
 
 import { ObjectCategoryIcon } from '../icons/ObjectCategoryIcon';
+import { ObjectStageIcon } from '../icons/ObjectStageIcon';
 import { MultiSelect } from './MultiSelect';
 
 type Props = {
@@ -66,6 +67,17 @@ export function CodeSelect({
     return [labelId, code.text[lang]].filter(Boolean).join(' ');
   }
 
+  function getOptionIconElementProp(codeListId: CodeId['codeListId']) {
+    switch (codeListId) {
+      case 'KohteenOmaisuusLuokka':
+        return { optionIconElement: (id: string | null) => <ObjectCategoryIcon id={id} /> };
+      case 'KohteenLaji':
+        return { optionIconElement: (id: string | null) => <ObjectStageIcon id={id} /> };
+      default:
+        return null;
+    }
+  }
+
   const selection = useMemo(() => {
     if (!value) {
       return multiple ? [] : null;
@@ -83,9 +95,7 @@ export function CodeSelect({
       loading={codes.isLoading}
       getOptionLabel={getLabel}
       getOptionId={(code) => code.id.id}
-      {...(codeListId === 'KohteenOmaisuusLuokka' && {
-        optionIconElement: (id) => <ObjectCategoryIcon id={id} />,
-      })}
+      {...getOptionIconElementProp(codeListId)}
       value={selection as Code[]}
       onChange={(value) => {
         onChange(value?.map((option) => option.id.id) ?? []);
@@ -103,9 +113,7 @@ export function CodeSelect({
       loading={codes.isLoading}
       getOptionLabel={getLabel}
       getOptionId={(code) => code.id.id}
-      {...(codeListId === 'KohteenOmaisuusLuokka' && {
-        optionIconElement: (id) => <ObjectCategoryIcon id={id} />,
-      })}
+      {...getOptionIconElementProp(codeListId)}
       value={selection as Code}
       onChange={(option) => {
         onChange(option?.id.id ?? null);
