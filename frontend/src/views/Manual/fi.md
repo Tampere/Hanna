@@ -467,9 +467,9 @@ Kunnossapitohankkeen ja sen kohteiden taloussuunnittelu vastaa investointihankke
 
 ![Investointiohjelmointi](/images/investointiohjelmointi.png)
 
-Investointiohjelmointinäkymä on tarkoitettu vuosikohtaisen investointiohjelman rakentamiseen, sen seuraamiseen ja hallinnointiin. Kyseinen näkymä muodostuu taulukosta, joka listaa **investointihankkeiden kohteita**. Näkymään voi siirtyä päänavigointipalkista käsin (1). Näkymä helpottaa suuren kohdejoukon hallinnoimista kerralla ja kokonaiskuvan muodostumista.
+Investointiohjelmointinäkymä on tarkoitettu vuosikohtaisen investointiohjelman rakentamiseen, sen seuraamiseen ja hallinnointiin. Kyseinen näkymä muodostuu taulukosta, joka listaa **investointihankkeiden kohteita**. Näkymään voi siirtyä päänavigointipalkista käsin. Näkymä helpottaa suuren kohdejoukon hallinnoimista kerralla ja kokonaiskuvan muodostumista.
 
-Taulukossa (8) jokaiselle kohteelle on kerrottu seuraavat tiedot.
+Taulukossa jokaiselle kohteelle on kerrottu seuraavat tiedot.
 
 - Hanke, johon kohde kuuluu
 - Kohteen nimi
@@ -486,11 +486,11 @@ Taulukossa (8) jokaiselle kohteelle on kerrottu seuraavat tiedot.
 
 Alla on kuvattu näkymään liittyvät toiminnallisuudet yllä olevan kuvan numeroinnin mukaan.
 
-1. Investointiohjelmointiin navigoidaan täältä.
-2. Taulukko kohdistuu ensisijaisesti yhteen kalenterivuoteen. Sivun yläosassa on vuosivalinta, josta käsin käyttäjä pystyy valitsemaan häntä kiinnostavan vuoden. Vuosivalinta vaikuttaa siihen, miltä vuodelta kohderiveille haetaan talousluvut. Valinta voi kohdistua kerrallaan vain yhteen vuoteen. Huomioi, että kohde katsotaan mukaan aina, kun se _leikkaa_ valittua vuotta. Näin ollen kohde, jonka toteutusväli on 31.12.2023-31.12.2024, valikoituisi mukaan vuosivalinnan ollessa `2023`, ja sille näytettävät talousluvut johdettaisiin päivältä yksinään päivältä 31.12.2023. Käyttäjä voi valita vuosivalitsimesta myös valinnan `koko elinkaari`, jolloin talousluvut johdetaan kohderiveille niiden koko elinkaaren ajalta. Tällöin talouslukuja ei pysty kuitenkaan muokkaamaan taulukossa.
+1. Investointiohjelmointi päänavigointipalkissa.
+2. Taulukko kohdistuu ensisijaisesti yhteen kalenterivuoteen. Sivun yläosassa on vuosivalinta, josta käsin käyttäjä pystyy valitsemaan häntä kiinnostavan vuoden. Vuosivalinta vaikuttaa siihen, miltä vuodelta kohderiveille haetaan talousluvut. Valinta voi kohdistua kerrallaan vain yhteen vuoteen. Huomioi, että kohde katsotaan mukaan aina, kun se _leikkaa_ valittua vuotta. Näin ollen kohde, jonka toteutusväli on 31.12.2023-31.12.2024, valikoituisi mukaan vuosivalinnan ollessa `2023`, ja sille näytettävät talousluvut johdettaisiin yksinään päivältä 31.12.2023. Käyttäjä voi valita vuosivalitsimesta myös valinnan `koko elinkaari`, jolloin talousluvut johdetaan kohderiveille niiden koko elinkaaren ajalta. Tällöin talouslukuja ei pysty kuitenkaan muokkaamaan taulukossa.
 3. Painikkeesta _näytä vain omat kohteet_ taulukkoon tuodaan vain kohteet, joissa kirjautunut käyttäjä on merkitty niissä yhteen tai useampaan rooliin (esim. rakennuttaja tai valvoja).
 4. Käyttäjän itselleen tallentamat pikasuodattimet.
-5. Taulukon suodatuksen mukaiset kohderivit on mahdollista viedä Excel-taulukkoon valitsemalla painikkeen _lataa raportti_. Tarjolla on neljä eri raporttipohjaa: tulosteraportti, perusraportti, kustannusraportti ja toimijaraportti.
+5. Taulukon aktiivisen suodatuksen mukaiset kohderivit on mahdollista viedä Excel-taulukkoon valitsemalla painikkeen _lataa raportti_. Tarjolla on neljä eri raporttipohjaa: tulosteraportti, perusraportti, kustannusraportti ja toimijaraportti.
 6. Käyttäjä voi lisätä uuden kohteen myös investointiohjelmoinnista käsin. Valitsemalla painikkeen `uusi kohde` painikkeen käyttäjä päätyy suoraan kohdesivulle, jossa hän samalla pääsee yksilöimään sen, mihin hankkeeseen kohde avataan. Hankevalinnan alasvetovalikko sisältää vain hankkeet, joissa käyttäjällä on muokkausoikeus. Mikäli käyttäjällä ei ole mihinkään hankkeeseen muokkausoikeutta, ei painike ole ollenkaan valittavissa. Kohteen tallentamisen jälkeen käyttäjä palaa takaisin investointiohjelmointinäkymään ja perustettu kohde korostetaan siinä hetkeksi.
 7. Vuosivalinnan lisäksi käyttäjän tarjolla on joukko muita suodattimia, joilla vaikuttaa taulukossa esitettävien kohderivien joukkoon. Suodattimia voi valita yhden tai useamman. Jos käytössä on useampi suodatin, on niiden välinen looginen operaattori `JA`. Näin ollen, jos käyttäjä on valinnut esimerkiksi vuodeksi `2024`, elinkaaritilaksi `aloittamatta` ja käyttötarkoitukseksi `ajoradat`, tulee taulukkoon ajoradat, jotka ovat aloittamatta ja joiden toteutus sijoittuu kokonaan tai osittain vuodelle 2024. Voit piilottaa yläosan suodattimet klikkaamalla hakasta oikeassa laidassa.
 8. Summariviin lasketaan taulukossa kullakin hetkellä esitettävien kohderivien talousarvioiden, toteumien, ennusteiden ja käyttösuunnitelman muutosten summa.
