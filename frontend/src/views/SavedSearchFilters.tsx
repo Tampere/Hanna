@@ -103,7 +103,7 @@ export function SavedSearchFilters<T extends FilterType>({
       ) : (
         savedFilters.data?.map((filter) => (
           <MultiFunctionChip
-            validateInput={filterNameIsValid}
+            isValidInput={filterNameIsValid}
             isEditing={
               selectedSavedFilterState.id === filter.filterId && selectedSavedFilterState.isEditing
             }
@@ -152,7 +152,7 @@ export function SavedSearchFilters<T extends FilterType>({
           `}
         >
           <MultiFunctionChip
-            validateInput={filterNameIsValid}
+            isValidInput={filterNameIsValid}
             isEditing={selectedSavedFilterState.isEditing}
             setIsEditing={(isEditing) =>
               isEditing
