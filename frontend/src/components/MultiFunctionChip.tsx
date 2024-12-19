@@ -81,7 +81,7 @@ interface Props {
   isSelected: boolean;
   isEditing: boolean;
   setIsEditing: (isEditing: boolean) => void;
-  validateInput: (input: string) => boolean;
+  isValidInput: (input: string) => boolean;
 }
 
 export function MultiFunctionChip({
@@ -95,7 +95,7 @@ export function MultiFunctionChip({
   onCancel,
   isEditing,
   setIsEditing,
-  validateInput,
+  isValidInput,
 }: Props) {
   const [inputText, setInputText] = useState(textContent ?? '');
   const [showEditMenu, setShowEditMenu] = useState(false);
@@ -141,6 +141,8 @@ export function MultiFunctionChip({
         ) {
           handleInputSave();
         } else if (isEditing) {
+          setInputText(textContent ?? '');
+          setShowInvalidInputPopper(false);
           onCancel?.();
         }
       }}
@@ -210,7 +212,7 @@ export function MultiFunctionChip({
             },
           })}
           onInput={(e) => {
-            if (!validateInput((e.target as HTMLInputElement).value)) {
+            if (!isValidInput((e.target as HTMLInputElement).value)) {
               setShowInvalidInputPopper(true);
             } else if (showInvalidInputPopper) {
               setShowInvalidInputPopper(false);
