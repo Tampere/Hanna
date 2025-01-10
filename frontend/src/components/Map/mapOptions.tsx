@@ -68,10 +68,7 @@ export const mapOptions = {
   },
   projection: {
     code: 'EPSG:3067',
-    extent: [
-      50199.4813825220335275, 5698259.8706227578222752, 2147351.4813825218006968,
-      7795411.8706227578222752,
-    ],
+    extent: [-548576, 6291456, 1548576, 8388608],
     units: 'm' as const,
     proj4String: '+proj=utm +zone=35 +ellps=GRS80 +units=m +no_defs',
   },
