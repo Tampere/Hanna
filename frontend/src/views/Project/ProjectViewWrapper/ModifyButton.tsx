@@ -65,25 +65,20 @@ export function ModifyButton({
     );
   }
 
-  const splitButtonDisabled = forProjectObject
-    ? popupOpen ||
-      !isOwner ||
-      isSubmitting ||
-      dirtyAndValidViews.finances.isDirtyAndValid ||
-      dirtyAndValidViews.permissions.isDirtyAndValid
-    : popupOpen ||
-      (!isOwner && !canWrite) ||
-      isSubmitting ||
-      dirtyAndValidViews.finances.isDirtyAndValid ||
-      dirtyAndValidViews.permissions.isDirtyAndValid;
+  const editingDisabled =
+    popupOpen ||
+    (!isOwner && !canWrite) ||
+    isSubmitting ||
+    dirtyAndValidViews.finances.isDirtyAndValid ||
+    dirtyAndValidViews.permissions.isDirtyAndValid;
 
   if (forProjectObject) {
     return (
       <>
         <SplitButton
           hideSelectedOptionFromList
-          hideButtonSelection={editing}
-          disableButtonSelection={splitButtonDisabled}
+          hideButtonSelection={editing || !isOwner}
+          disableButtonSelection={editingDisabled}
           cssProp={css`
             margin-left: auto;
           `}
@@ -108,7 +103,7 @@ export function ModifyButton({
                   setEditing(true);
                 }
               }}
-              disabled={splitButtonDisabled}
+              disabled={editingDisabled}
               variant={editing ? 'outlined' : 'contained'}
               size="small"
               endIcon={editing ? <Undo /> : <Create />}
@@ -135,7 +130,7 @@ export function ModifyButton({
       <SplitButton
         hideSelectedOptionFromList
         hideButtonSelection={editing}
-        disableButtonSelection={splitButtonDisabled}
+        disableButtonSelection={editingDisabled}
         cssProp={css`
           margin-left: auto;
         `}
@@ -158,7 +153,7 @@ export function ModifyButton({
                 setEditing(true);
               }
             }}
-            disabled={splitButtonDisabled}
+            disabled={editingDisabled}
             variant={editing ? 'outlined' : 'contained'}
             size="small"
             endIcon={editing ? <Undo /> : <Create />}
