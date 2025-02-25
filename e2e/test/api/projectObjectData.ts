@@ -41,7 +41,7 @@ export const testProjectObject = (
   objectName: 'Test project object',
   objectStage: '01',
   lifecycleState: '01',
-  objectType: ['01'],
+  objectType: '01',
   objectCategory: ['01'],
   objectUsage: ['01'],
   committee: projectCommittees[0],
@@ -80,7 +80,7 @@ export const testProjectObject2 = (
         landownership: null,
         locationOnProperty: null,
         height: null,
-        objectType: ['01'],
+        objectType: '01',
         objectStage: '01',
       }
     : { contract: 'contract n.1', procurementMethod: '01', poNumber: '123456' }),
@@ -110,7 +110,7 @@ export const testProjectObject3 = (
         landownership: null,
         locationOnProperty: null,
         height: null,
-        objectType: ['01'],
+        objectType: '01',
         objectStage: '01',
       }
     : { contract: 'contract n.1', procurementMethod: '01', poNumber: '123456' }),
@@ -140,7 +140,7 @@ export const invalidDateProjectObject = (
         landownership: null,
         locationOnProperty: null,
         height: null,
-        objectType: ['01'],
+        objectType: '01',
         objectStage: '01',
       }
     : { contract: 'contract n.1', procurementMethod: '01', poNumber: '123456' }),
