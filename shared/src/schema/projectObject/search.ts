@@ -13,7 +13,7 @@ export const projectObjectSearchSchema = z.object({
   dateRange: periodSchema.optional(),
   map: mapSearchSchema.optional(),
   objectParticipantUser: nonEmptyString.nullish(),
-  objectTypes: mergedProjectObjectDbSchema.shape.objectType.optional(),
+  objectTypes: z.array(mergedProjectObjectDbSchema.shape.objectType).optional(),
   objectCategories: mergedProjectObjectDbSchema.shape.objectCategory.optional(),
   objectUsages: mergedProjectObjectDbSchema.shape.objectUsage.optional(),
   lifecycleStates: z.array(mergedProjectObjectDbSchema.shape.lifecycleState).optional(),

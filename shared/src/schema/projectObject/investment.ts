@@ -6,7 +6,7 @@ import { commonDbProjectObjectSchema, newProjectObjectSchema } from './base.js';
 
 export const newInvestmentProjectObjectSchema = newProjectObjectSchema.extend({
   objectStage: codeId,
-  objectType: z.array(codeId).superRefine((value) => value.length > 0),
+  objectType: codeId,
   committee: nonEmptyString,
 });
 

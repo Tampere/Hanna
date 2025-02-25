@@ -397,13 +397,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
             errorTooltip={tr('projectObject.objectTypeTooltip')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, ...field }) => (
-              <CodeSelect
-                {...field}
-                multiple
-                codeListId="KohdeTyyppi"
-                readOnly={!editing}
-                maxTags={3}
-              />
+              <CodeSelect {...field} codeListId="KohdeTyyppi" readOnly={!editing} />
             )}
           />
 

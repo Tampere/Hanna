@@ -38,7 +38,7 @@ const testProjectObject = (projectId: string, committees: string[], user: User) 
   objectStage: '01',
   lifecycleState: '01',
   committee: committees[0],
-  objectType: ['01'],
+  objectType: '01',
   objectCategory: ['01'],
   objectUsage: ['01'],
   startDate: '2021-01-01',

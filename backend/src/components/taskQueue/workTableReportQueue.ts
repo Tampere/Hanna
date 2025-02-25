@@ -149,7 +149,8 @@ export async function setupWorkTableReportQueue() {
         projectEndDate: (row) => dayjs(row.projectDateRange.endDate).format(reportDateFormat),
         objectStartDate: (row) => dayjs(row.objectDateRange.startDate).format(reportDateFormat),
         objectEndDate: (row) => dayjs(row.objectDateRange.endDate).format(reportDateFormat),
-        objectType: (row) => formatIdArrayToText(row.objectType, 'objectType'),
+        objectType: (row) =>
+          codes.objectType.find((code) => row.objectType === code.id.id)?.text['fi'],
         objectCategory: (row) => formatIdArrayToText(row.objectCategory, 'objectCategory'),
         objectUsage: (row) => formatIdArrayToText(row.objectUsage, 'objectUsage'),
         committee: (row) => formatIdArrayToText([row.committee], 'committee'),
