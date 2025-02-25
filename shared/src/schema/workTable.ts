@@ -57,7 +57,7 @@ export const workTableSearchSchema = z.object({
   projectObjectName: z.string().optional(),
   objectStartDate: dbInvestmentProjectObjectSchema.shape.startDate.optional().nullable(),
   objectEndDate: dbInvestmentProjectObjectSchema.shape.endDate.optional().nullable(),
-  objectType: dbInvestmentProjectObjectSchema.shape.objectType.optional(),
+  objectType: z.array(dbInvestmentProjectObjectSchema.shape.objectType).optional(),
   objectCategory: dbInvestmentProjectObjectSchema.shape.objectCategory.optional(),
   objectUsage: dbInvestmentProjectObjectSchema.shape.objectUsage.optional(),
   lifecycleState: z.array(dbInvestmentProjectObjectSchema.shape.lifecycleState).optional(),

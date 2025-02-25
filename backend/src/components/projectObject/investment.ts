@@ -50,7 +50,7 @@ const getProjectObjectFragment = (ids: string | string[]) => sql.fragment`
      sap_wbs_id AS "sapWBSId",
      dump.geom,
      dump.geometry_dump AS "geometryDump",
-     (SELECT json_agg((object_type).id)
+     (SELECT json_agg((object_type).id)->0
       FROM app.project_object_type
       WHERE project_object.id = project_object_type.project_object_id) AS "objectType",
      (SELECT json_agg((object_category).id)
@@ -81,7 +81,7 @@ async function updateObjectTypes(
   tx: DatabaseTransactionConnection,
   projectObject: UpdateInvestmentProjectObject,
 ) {
-  if (!Array.isArray(projectObject.objectType)) {
+  if (!projectObject.objectType) {
     return;
   }
 
@@ -89,14 +89,9 @@ async function updateObjectTypes(
       DELETE FROM app.project_object_type WHERE project_object_id = ${projectObject.projectObjectId}
     `);
 
-  const tuples = projectObject.objectType.map((type) => [projectObject.projectObjectId, type]);
-
   await tx.any(sql.untyped`
       INSERT INTO app.project_object_type (project_object_id, object_type)
-      SELECT
-        t.project_object_id,
-        ('KohdeTyyppi', t.object_type)::app.code_id
-      FROM ${sql.unnest(tuples, ['uuid', 'text'])} AS t (project_object_id, object_type);
+      VALUES (${projectObject.projectObjectId}, ('KohdeTyyppi', ${projectObject.objectType})::app.code_id);
     `);
 }
 
