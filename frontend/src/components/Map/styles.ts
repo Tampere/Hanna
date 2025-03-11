@@ -178,7 +178,7 @@ const defaultDonutOptions = [{ color: CLUSTER_FILL.project, sectorPrecentage: 1 
 class DonutStyle extends RegularShape {
   donutOptions: DonutOptions[];
   constructor(options: Options & { donutOptions: DonutOptions[] }) {
-    super({ ...options, points: Infinity });
+    super({ ...options, points: Infinity, radius2: options.radius }); // Radius2 is a hackish way of distinguishing donut from circle so that the image will be redrawn on style change
     this.donutOptions = options.donutOptions;
   }
 
