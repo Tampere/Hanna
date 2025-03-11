@@ -1,4 +1,5 @@
 import { FeatureLike } from 'ol/Feature';
+import { createCanvasContext2D } from 'ol/dom';
 import { MultiPolygon, Polygon } from 'ol/geom';
 import CircleStyle, { Options } from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
@@ -177,17 +178,41 @@ const defaultDonutOptions = [{ color: CLUSTER_FILL.project, sectorPrecentage: 1 
 
 class DonutStyle extends RegularShape {
   donutOptions: DonutOptions[];
+  fill?: Fill;
+  points: number;
   constructor(options: Options & { donutOptions: DonutOptions[] }) {
-    super({ ...options, points: Infinity, radius2: options.radius }); // Radius2 is a hackish way of distinguishing donut from circle so that the image will be redrawn on style change
+    super({
+      ...options,
+      points: Infinity,
+    });
+    this.points = Infinity;
+    this.fill = options.fill;
     this.donutOptions = options.donutOptions;
   }
 
-  getImage(pixelRatio: number) {
-    const canvas = super.getImage(pixelRatio);
-    const context = canvas.getContext('2d');
+  private initializeDraw(
+    renderOptions: Record<string, any>,
+    context: CanvasRenderingContext2D,
+    pixelRatio: number,
+  ) {
+    context.scale(pixelRatio, pixelRatio);
+    // set origin to canvas center
+    context.translate(renderOptions.size / 2, renderOptions.size / 2);
+  }
 
-    if (context) this.drawDonut(context, this.donutOptions);
-    return canvas;
+  getImage(pixelRatio: number) {
+    // Otherwise as in RegularShape but skip caching. Caching doesn't work with dynamic donutOptions and results in all features having the same cached style.
+    const renderOptions = this.createRenderOptions();
+    const size = Math.ceil(renderOptions.size * pixelRatio);
+    const context = createCanvasContext2D(size, size);
+    this.initializeDraw(renderOptions, context, pixelRatio);
+
+    const image = context.canvas;
+
+    const imageContext = image.getContext('2d');
+
+    if (imageContext) this.drawDonut(context, this.donutOptions);
+    return image;
   }
 
   private drawSlice(
@@ -202,6 +227,7 @@ class DonutStyle extends RegularShape {
   ) {
     ctx.fillStyle = fillColor;
     ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, startAngle, endAngle, false);
     ctx.arc(centerX, centerY, radius - 5, endAngle, startAngle, true);
