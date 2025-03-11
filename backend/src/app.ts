@@ -10,6 +10,7 @@ import { serialize } from 'superjson';
 import { fileURLToPath } from 'url';
 
 import { registerAuth } from '@backend/auth.js';
+import { fileHandler } from '@backend/components/file/index.js';
 import healthApi from '@backend/components/health/api.js';
 import reportDownloadApi from '@backend/components/report/downloadApi.js';
 import {
@@ -65,7 +66,11 @@ async function run() {
     setupWorkTableReportQueue(),
   ]);
   // https://github.com/fastify/fastify/issues/4960
-  const server = fastify({ logger: logger as FastifyBaseLogger, trustProxy: 1 });
+  const server = fastify({
+    logger: logger as FastifyBaseLogger,
+    trustProxy: 1,
+    bodyLimit: 1024 * 1024 * 5, // 5 MiB
+  });
   const oidcClient = await getClient();
 
   registerApiKeyRoutes(server, { prefix: '/api/v1/admin', apis: [syncQueueApi] });
@@ -88,6 +93,7 @@ async function run() {
       '/api/v1/auth/callback',
       '/api/v1/ping',
       '/api/v1/health',
+      '/api/v1/files',
       '/*',
     ]),
   });
@@ -127,6 +133,7 @@ async function run() {
   });
 
   server.register(healthApi, { prefix: '/api/v1' });
+  server.register(fileHandler, { prefix: '/api/v1/files' });
   server.register(reportDownloadApi, { prefix: '/api/v1' });
   server.register(georasterProxy);
 

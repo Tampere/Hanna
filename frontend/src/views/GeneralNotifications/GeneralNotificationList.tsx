@@ -8,9 +8,11 @@ import {
   Typography,
   css,
 } from '@mui/material';
+import Image from '@tiptap/extension-image';
 import { generateHTML } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import dayjs from 'dayjs';
+import { useState } from 'react';
 
 import { useTranslations } from '@frontend/stores/lang';
 
@@ -58,6 +60,41 @@ const notificationListStyle = (theme: Theme) => css`
   }
 `;
 
+function GeneralNotificationAccordion({ notification }: { notification: GeneralNotification }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <Accordion
+      disableGutters
+      expanded={expanded}
+      onChange={(_event, expanded) => setExpanded(expanded)}
+    >
+      <AccordionSummary
+        css={css`
+          margin-left: 0;
+        `}
+        expandIcon={<ExpandMore />}
+      >
+        <Box display="flex" flex={1} justifyContent="space-between" alignItems="center">
+          <Typography variant="h5" component="h1" color="primary">
+            {notification.title}
+          </Typography>
+          <Typography color={'#c4c4c4'} fontSize={'14px'}>
+            {notification.publisher}, {dayjs(notification.createdAt).format('D.M.YYYY')}
+          </Typography>
+        </Box>
+      </AccordionSummary>
+      <AccordionDetails>
+        {expanded && (
+          <GeneralNotificationCard
+            content={generateHTML(notification.message, [StarterKit, Image])}
+          />
+        )}
+      </AccordionDetails>
+    </Accordion>
+  );
+}
+
 export function GeneralNotificationList({ notifications }: Props) {
   const tr = useTranslations();
 
@@ -98,26 +135,7 @@ export function GeneralNotificationList({ notifications }: Props) {
     >
       {notifications.map((notification) => (
         <article key={notification.id} css={notificationListStyle}>
-          <Accordion disableGutters>
-            <AccordionSummary
-              css={css`
-                margin-left: 0;
-              `}
-              expandIcon={<ExpandMore />}
-            >
-              <Box display="flex" flex={1} justifyContent="space-between" alignItems="center">
-                <Typography variant="h5" component="h1" color="primary">
-                  {notification.title}
-                </Typography>
-                <Typography color={'#c4c4c4'} fontSize={'14px'}>
-                  {notification.publisher}, {dayjs(notification.createdAt).format('D.M.YYYY')}
-                </Typography>
-              </Box>
-            </AccordionSummary>
-            <AccordionDetails>
-              <GeneralNotificationCard content={generateHTML(notification.message, [StarterKit])} />
-            </AccordionDetails>
-          </Accordion>
+          <GeneralNotificationAccordion notification={notification} />
         </article>
       ))}
     </Box>
