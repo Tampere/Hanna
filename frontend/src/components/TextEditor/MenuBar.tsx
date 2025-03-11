@@ -1,7 +1,7 @@
 import { FormatListBulleted, FormatListNumbered, Image } from '@mui/icons-material';
 import { Box, Button, IconButton, Theme, Tooltip, css } from '@mui/material';
 import { Editor } from '@tiptap/react';
-import { useCallback, useRef } from 'react';
+import { useRef } from 'react';
 
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
@@ -36,51 +36,48 @@ export function MenuBar({ editor }: Props) {
     return null;
   }
 
-  const addImage = useCallback(
-    (files: FileList | null) => {
-      if (!files || !files.length) return;
+  const addImage = (files: FileList | null) => {
+    if (!files || !files.length) return;
 
-      const file = files[0]; // Get the first file
-      const reader = new FileReader();
+    const file = files[0]; // Get the first file
+    const reader = new FileReader();
 
-      reader.onloadend = () => {
-        const base64String = reader.result?.toString().split(',')[1]; // Extract Base64
-        if (!base64String) return;
+    reader.onloadend = () => {
+      const base64String = reader.result?.toString().split(',')[1]; // Extract Base64
+      if (!base64String) return;
 
-        fetch('/api/v1/files/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            data: base64String,
-          }),
+      fetch('/api/v1/files/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: base64String,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (!data.fileid) {
+            notify({
+              severity: 'error',
+              title: tr('menuBar.uploadFailed'),
+              duration: 7500,
+            });
+            return;
+          }
+          if (editor) {
+            editor
+              .chain()
+              .focus()
+              .setImage({ src: `/api/v1/files/${data.fileid}` })
+              .run();
+          }
         })
-          .then((response) => response.json())
-          .then((data) => {
-            if (!data.fileid) {
-              notify({
-                severity: 'error',
-                title: tr('menuBar.uploadFailed'),
-                duration: 7500,
-              });
-              return;
-            }
-            if (editor) {
-              editor
-                .chain()
-                .focus()
-                .setImage({ src: `/api/v1/files/${data.fileid}` })
-                .run();
-            }
-          })
-          .catch((error) => console.error('Upload failed', error));
-      };
-      reader.readAsDataURL(file);
-    },
-    [editor],
-  );
+        .catch((error) => console.error('Upload failed', error));
+    };
+    reader.readAsDataURL(file);
+  };
 
   return (
     <Box css={menuBarStyle}>
