@@ -53,7 +53,7 @@ export const fileHandler = (
   fastify.post('/', async function (req, reply) {
     const user = JSON.parse(req.user as any) as User;
 
-    if (user.role && !isAdmin(user.role)) {
+    if (!isAdmin(user.role)) {
       return reply.status(400).send({ error: 'UNAUTHORIZED' });
     }
 
