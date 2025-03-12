@@ -19,7 +19,7 @@ export function AmountChartHeader({
   amount,
 }: AmountChartHeaderProps) {
   const tr = useTranslations();
-
+  console.log(amount);
   return (
     <Box
       css={css`
@@ -114,7 +114,7 @@ export function AmountChartHeader({
             </Typography>
           )}
         </Box>
-        {amount && (
+        {typeof amount === 'number' && amount > 0 && (
           <ProgressBar
             cssProp={css`
               grid-column: 3;
