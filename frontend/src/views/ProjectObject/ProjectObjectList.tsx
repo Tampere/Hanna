@@ -208,38 +208,36 @@ export function ProjectObjectList(props: Props) {
                       {projObj.endDate !== 'infinity' &&
                         dayjs(projObj.endDate).format(tr('date.format'))}
                     </Typography>
-
-                    <Box
-                      css={css`
-                        display: flex;
-                        position: absolute;
-                        align-items: center;
-                        right: 1rem;
-                        gap: 8px;
-                      `}
-                    >
-                      {projObj.objectCategory?.map((categoryId) => (
-                        <ObjectCategoryIcon
-                          id={categoryId}
-                          title={getObjectCategoryTextById(categoryId)}
+                  </Box>
+                  <Box
+                    css={css`
+                      display: flex;
+                      margin-left: auto;
+                      align-items: center;
+                      gap: 8px;
+                    `}
+                  >
+                    {projObj.objectCategory?.map((categoryId) => (
+                      <ObjectCategoryIcon
+                        id={categoryId}
+                        title={getObjectCategoryTextById(categoryId)}
+                      />
+                    ))}
+                    {props.projectType === 'investointihanke' && (
+                      <>
+                        <span
+                          css={css`
+                            border-right: 1px solid #c4c4c4;
+                            width: 5px;
+                            align-self: stretch;
+                          `}
                         />
-                      ))}
-                      {props.projectType === 'investointihanke' && (
-                        <>
-                          <span
-                            css={css`
-                              border-right: 1px solid #c4c4c4;
-                              width: 5px;
-                              align-self: stretch;
-                            `}
-                          />
-                          <ObjectStageIcon
-                            title={getObjectStageTextById(projObj.objectStage)}
-                            id={projObj.objectStage}
-                          />
-                        </>
-                      )}
-                    </Box>
+                        <ObjectStageIcon
+                          title={getObjectStageTextById(projObj.objectStage)}
+                          id={projObj.objectStage}
+                        />
+                      </>
+                    )}
                   </Box>
                 </Card>
               </CardActionArea>
