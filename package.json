@@ -1,4 +1,5 @@
 {
+  "name": "hanna",
   "scripts": {
     "dev-build": "scripts/clean_start_dev_environment.sh -d"
   },

@@ -1,8 +1,10 @@
+import { DatabaseTransactionConnection, IdleTransactionTimeoutError } from 'slonik';
 import { z } from 'zod';
 
 import { getPool, sql } from '@backend/db.js';
 
 import {
+  GeneralNotification,
   UpsertGeneralNotification,
   dbGeneralNotificationSchema,
   searchGeneralNotificationsSchema,
@@ -44,6 +46,18 @@ export async function upsertGeneralNotification(
         )
       : null;
 
+    // Collect image ids in updated message
+    const imageIds: number[] = existingNotification
+      ? notification.message.content
+          .filter((section: { type: string }) => section.type === 'image')
+          .map((imageSection: { attrs: { src: any } }) =>
+            Number(imageSection.attrs.src.split('/').at(-1)),
+          )
+      : [];
+    if (existingNotification && notification.id) {
+      await deleteUnusedImages(notification.id, tx, imageIds);
+    }
+
     return notification?.id && existingNotification
       ? await tx.one(sql.type(dbGeneralNotificationSchema)`
       UPDATE app.general_notification
@@ -77,8 +91,34 @@ export function deleteGeneralNotification(id: string, userId: string) {
       eventData: { id },
       eventUser: userId,
     });
+    await deleteUnusedImages(id, tx);
     return tx.maybeOne(sql.untyped`${getDeleteGeneralNotificationFragment(id)}`);
   });
+}
+
+async function deleteUnusedImages(
+  notificationId: string,
+  tx?: DatabaseTransactionConnection,
+  imageIdsToKeep: number[] = [],
+) {
+  const conn = tx ?? getPool();
+
+  const toBeDeletedMessage = await conn.maybeOne(
+    sql.type(
+      dbGeneralNotificationSchema.pick({ message: true }),
+    )`SELECT message FROM app.general_notification WHERE id=${notificationId}`,
+  );
+  if (!toBeDeletedMessage) return;
+
+  const imageIds: number[] = toBeDeletedMessage.message.content
+    .filter((section: { type: string }) => section.type === 'image')
+    .map((imageSection: { attrs: { src: string } }) =>
+      Number(imageSection.attrs.src.split('/').at(-1)),
+    );
+  const removeIds = imageIds.filter((imageNumber) => !imageIdsToKeep.includes(imageNumber));
+  await conn.maybeOne(
+    sql.untyped`DELETE FROM app.images WHERE id = ANY(${sql.array(removeIds, 'int4')})`,
+  );
 }
 
 export function getGeneralNotificationSearchCount() {

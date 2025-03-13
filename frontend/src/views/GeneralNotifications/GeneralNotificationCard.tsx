@@ -1,3 +1,4 @@
+import Image from '@tiptap/extension-image';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 
@@ -9,7 +10,7 @@ export function GeneralNotificationCard({ content }: Props) {
   const editor = useEditor({
     editable: false,
     content: content,
-    extensions: [StarterKit],
+    extensions: [StarterKit, Image],
   });
   if (!editor) {
     return null;

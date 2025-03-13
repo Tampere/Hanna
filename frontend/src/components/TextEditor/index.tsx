@@ -1,4 +1,5 @@
 import { Box, CssBaseline, css } from '@mui/material';
+import Image from '@tiptap/extension-image';
 import { EditorContent, JSONContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { ReactElement } from 'react';
@@ -6,7 +7,7 @@ import { ReactElement } from 'react';
 import { MenuBar } from './MenuBar';
 import './styles.css';
 
-const extensions = [StarterKit];
+const extensions = [StarterKit, Image.configure({ allowBase64: true })];
 
 interface Props {
   content: string;
