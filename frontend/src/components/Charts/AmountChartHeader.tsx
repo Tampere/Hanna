@@ -19,7 +19,7 @@ export function AmountChartHeader({
   amount,
 }: AmountChartHeaderProps) {
   const tr = useTranslations();
-  console.log(amount);
+
   return (
     <Box
       css={css`
