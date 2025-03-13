@@ -16,7 +16,7 @@ const ImageSchema = z.object({
 });
 
 const imageIdSchema = z.object({
-  imageid: z.string().regex(/^\d+$/, 'Image id must be a number'),
+  imageId: z.string().regex(/^\d+$/, 'Image id must be a number'),
 });
 
 export const fileHandler = (
@@ -24,12 +24,12 @@ export const fileHandler = (
   _opts: FastifyPluginOptions,
   done: () => void,
 ) => {
-  fastify.get('/:imageid', async function (req, reply) {
+  fastify.get('/:imageId', async function (req, reply) {
     const parseResult = imageIdSchema.safeParse(req.params);
     if (!parseResult.success) {
       return reply.status(400).send({ error: 'Invalid image ID' });
     }
-    const { imageid } = parseResult.data;
+    const { imageId } = parseResult.data;
 
     const result = await getPool().maybeOne(
       sql.type(
@@ -38,7 +38,7 @@ export const fileHandler = (
           mime_type: z.string(),
           data: z.instanceof(Buffer),
         }),
-      )`SELECT filename, mime_type, data FROM app.images WHERE id = ${imageid}`,
+      )`SELECT filename, mime_type, data FROM app.images WHERE id = ${imageId}`,
     );
 
     if (!result) {
@@ -61,13 +61,13 @@ export const fileHandler = (
 
     const imageBuffer = Buffer.from(data.data, 'base64');
 
-    const fileid = await getPool().oneFirst(
+    const fileId = await getPool().oneFirst(
       sql.type(z.string())`INSERT INTO app.images (filename, mime_type, data)
         VALUES (${data.name}, ${data.type}, ${sql.binary(imageBuffer)})
       RETURNING id`,
     );
 
-    return reply.send({ fileid });
+    return reply.send({ fileId });
   });
   done();
 };

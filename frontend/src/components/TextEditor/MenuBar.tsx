@@ -58,7 +58,7 @@ export function MenuBar({ editor }: Props) {
       })
         .then((response) => response.json())
         .then((data) => {
-          if (!data.fileid) {
+          if (!data.fileId) {
             notify({
               severity: 'error',
               title: tr('menuBar.uploadFailed'),
@@ -70,7 +70,7 @@ export function MenuBar({ editor }: Props) {
             editor
               .chain()
               .focus()
-              .setImage({ src: `/api/v1/files/${data.fileid}` })
+              .setImage({ src: `/api/v1/files/${data.fileId}` })
               .run();
           }
         })
