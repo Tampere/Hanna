@@ -436,44 +436,12 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
             label={tr('projectObject.committeeLabel')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, ...field }) => (
-              <>
-                <CommitteeSelect
-                  {...field}
-                  readOnly={!editing}
-                  projectId={projectId}
-                  itemType="projectObject"
-                />
-                {/* {form.formState.dirtyFields.committee &&
-                  props.projectObject?.projectObjectId &&
-                  props.projectObject?.committee && (
-                    <CommitteeChangeAlert
-                      itemType="projectObject"
-                      isVisible={Boolean(errors.root?.committeeFinancialsError)}
-                      onDelete={() => {
-                        form.clearErrors('root.committeeFinancialsError');
-
-                        setDirtyAndValidViews((prev) => ({
-                          ...prev,
-                          form: {
-                            isValid: isValid && !errors.root?.committeeFinancialsError,
-                            isDirty,
-                          },
-                        }));
-                      }}
-                      onCancel={() => {
-                        form.resetField('committee');
-                        form.clearErrors('root.committeeFinancialsError');
-                      }}
-                      setFormError={() => {
-                        form.setError('root.committeeFinancialsError', {
-                          type: 'custom',
-                        });
-                      }}
-                      projectObjectId={props.projectObject.projectObjectId}
-                      removedCommittees={props.projectObject.committee}
-                    />
-                  )} */}
-              </>
+              <CommitteeSelect
+                {...field}
+                readOnly={!editing}
+                projectId={projectId}
+                itemType="projectObject"
+              />
             )}
           />
 
@@ -504,7 +472,14 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
               <FormDatePicker
                 minDate={dayjs(getValues('startDate')).add(1, 'day')}
                 readOnly={!editing}
-                field={field}
+                field={{
+                  ...field,
+                  onChange: (value) => {
+                    field.onChange(value);
+                    // Trigger also start date validation to check if already provided start date is outside of project date range
+                    form.trigger('startDate');
+                  },
+                }}
               />
             )}
           />
