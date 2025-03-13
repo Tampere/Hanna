@@ -114,7 +114,7 @@ export function AmountChartHeader({
             </Typography>
           )}
         </Box>
-        {amount && (
+        {typeof amount === 'number' && amount > 0 && (
           <ProgressBar
             cssProp={css`
               grid-column: 3;

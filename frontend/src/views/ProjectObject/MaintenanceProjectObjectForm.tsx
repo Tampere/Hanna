@@ -400,7 +400,14 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
                 <FormDatePicker
                   minDate={dayjs(getValues('startDate')).add(1, 'day')}
                   readOnly={!editing || endDateWatch === 'infinity'}
-                  field={field}
+                  field={{
+                    ...field,
+                    onChange: (value) => {
+                      field.onChange(value);
+                      // Trigger also start date validation to check if already provided start date is outside of project date range
+                      form.trigger('startDate');
+                    },
+                  }}
                 />
                 <FormCheckBox
                   cssProp={css`

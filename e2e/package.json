@@ -14,17 +14,17 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "^1.49.1",
-    "@types/node": "^22.10.2",
+    "@playwright/test": "^1.51.0",
+    "@types/node": "^22.13.10",
     "nodemon": "^3.1.9",
-    "playwright": "^1.49.1"
+    "playwright": "^1.51.0"
   },
   "dependencies": {
     "@trpc/client": "^10.45.2",
     "@trpc/server": "^10.45.2",
     "dayjs": "^1.11.13",
     "node-fetch": "^3.3.2",
-    "pg": "^8.13.1",
+    "pg": "^8.14.0",
     "superjson": "^2.2.2"
   }
 }

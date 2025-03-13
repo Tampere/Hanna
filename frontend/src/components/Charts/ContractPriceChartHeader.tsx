@@ -63,7 +63,7 @@ export function ContractPriceChartHeader({
           </Typography>
         )}
 
-        {contractPrice && (
+        {typeof contractPrice === 'number' && contractPrice > 0 && (
           <ProgressBar
             cssProp={css`
               grid-column: 3;

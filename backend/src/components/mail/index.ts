@@ -1,6 +1,6 @@
 import EmailTemplate from 'email-templates';
 import { SendMailOptions, createTransport } from 'nodemailer';
-import SMTPPool from 'nodemailer/lib/smtp-pool';
+import SMTPPool from 'nodemailer/lib/smtp-pool/index.js';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
