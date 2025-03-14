@@ -32,7 +32,8 @@ export function getAllContactsAndCompanies() {
         c.company_name AS "companyName"
       FROM app.company_contact cc
       LEFT JOIN app.company c ON cc.business_id = c.business_id
-      WHERE c.deleted IS FALSE AND cc.deleted IS FALSE`);
+      WHERE c.deleted IS FALSE AND cc.deleted IS FALSE
+      ORDER BY c.company_name ASC, cc.contact_name ASC`);
 }
 
 export const createCompanyRouter = (t: TRPC) =>
@@ -75,6 +76,7 @@ export const createCompanyRouter = (t: TRPC) =>
           (company_name ILIKE ${`%${input}%`}
             OR
           business_id ILIKE ${`%${input}%`})
+          ORDER BY company_name ASC
         `);
       return z.array(companySchema).parse(result);
     }),
@@ -213,7 +215,7 @@ export const createCompanyRouter = (t: TRPC) =>
           business_id AS "businessId"
         FROM contacts
         WHERE ${searchTerm}::text IS NULL OR ts_vec @@ to_tsquery('simple', ${searchTerm})
-        ORDER BY ts_rank(ts_vec, to_tsquery('simple', ${searchTerm})) DESC
+        ORDER BY company_name, contact_name, ts_rank(ts_vec, to_tsquery('simple', ${searchTerm})) DESC
         LIMIT 20;
       `);
       return resultsSchema.parse(result ?? []);
