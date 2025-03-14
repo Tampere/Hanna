@@ -161,6 +161,7 @@ export const fi = {
   'projectObjectList.orderByStartDate': 'Aloitusajankohta',
   'projectObjectList.orderByEndDate': 'Lopetusajankohta',
   'projectObjectList.orderByCreatedAt': 'Luontiajankohta',
+  'projectObjectList.orderByLifecycleState': 'Elinkaaren tila',
   'projectForm.saveBtnLabel': 'Tallenna',
   'projectForm.editBtnLabel': 'Muokkaa',
   'projectForm.undoBtnLabel': 'Peruuta muutokset',

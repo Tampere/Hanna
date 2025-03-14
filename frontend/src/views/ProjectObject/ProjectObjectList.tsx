@@ -19,6 +19,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
+import { Complete } from '@frontend/components/icons/Complete';
 import { ObjectCategoryIcon } from '@frontend/components/icons/ObjectCategoryIcon';
 import { ObjectStageIcon } from '@frontend/components/icons/ObjectStageIcon';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
@@ -32,16 +33,20 @@ interface Props {
   editable?: boolean;
 }
 
-const cardStyle = css`
+const cardStyle = (isCompleted: boolean, hoverColor: string) => css`
+  background-color: ${isCompleted ? '#eeeeee' : 'inherit'};
   margin-top: 8px;
   padding: 16px;
   display: flex;
   align-items: center;
   cursor: pointer;
   :hover {
-    background: #eee;
+    background: ${hoverColor};
   }
   transition: background 0.5s;
+  .MuiTypography-root {
+    color: ${isCompleted ? '#606060' : 'inherit'};
+  }
 `;
 
 export function ProjectObjectList(props: Props) {
@@ -152,6 +157,9 @@ export function ProjectObjectList(props: Props) {
             <MenuItem value={'startDate'}>{tr('projectObjectList.orderByStartDate')}</MenuItem>
             <MenuItem value={'endDate'}>{tr('projectObjectList.orderByEndDate')}</MenuItem>
             <MenuItem value={'createdAt'}>{tr('projectObjectList.orderByCreatedAt')}</MenuItem>
+            <MenuItem value={'lifecycleState'}>
+              {tr('projectObjectList.orderByLifecycleState')}
+            </MenuItem>
           </Select>
         </FormControl>
         <Button
@@ -190,7 +198,13 @@ export function ProjectObjectList(props: Props) {
                 component={Link}
                 to={`/${props.projectType}/${props.projectId}/kohde/${projObj.projectObjectId}`}
               >
-                <Card variant="outlined" css={cardStyle}>
+                <Card
+                  variant="outlined"
+                  css={cardStyle(
+                    projObj.lifecycleState === '03',
+                    projObj.objectStage === '01' ? '#D9F9FB' : '#E5EFFF',
+                  )}
+                >
                   <NavigateNext sx={{ color: '#aaa', mr: 1 }} />
                   <Box
                     sx={{
@@ -199,9 +213,21 @@ export function ProjectObjectList(props: Props) {
                       gap: '0.15rem',
                     }}
                   >
-                    <Typography sx={{ lineHeight: '120%' }} variant="button">
-                      {projObj.objectName}
-                    </Typography>
+                    <Box display="flex" gap={1}>
+                      <Box
+                        display="flex"
+                        gap={0.5}
+                        alignItems={'center'}
+                        sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}
+                      >
+                        {projObj.lifecycleState === '03' && (
+                          <Complete sx={{ height: '12px', width: '12px' }} />
+                        )}
+                        <Typography sx={{ lineHeight: '120%' }} variant="button">
+                          {projObj.objectName}
+                        </Typography>
+                      </Box>
+                    </Box>
 
                     <Typography sx={{ lineHeight: '120%' }} variant="overline">
                       {dayjs(projObj.startDate).format(tr('date.format'))} —{' '}
@@ -219,6 +245,7 @@ export function ProjectObjectList(props: Props) {
                   >
                     {projObj.objectCategory?.map((categoryId) => (
                       <ObjectCategoryIcon
+                        key={categoryId}
                         id={categoryId}
                         title={getObjectCategoryTextById(categoryId)}
                       />

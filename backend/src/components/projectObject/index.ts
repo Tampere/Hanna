@@ -97,7 +97,26 @@ export async function getProjectObjectsByProjectId(projectId: string, orderBy?: 
     startDate: 'start_date',
     endDate: 'end_date',
     createdAt: 'created_at',
+    lifecycleState: 'lifecycle_state',
   };
+
+  function getOrderByFragment() {
+    if (!orderBy) {
+      return sql.fragment``;
+    }
+    if (orderBy === 'lifecycleState') {
+      return sql.fragment`
+        ORDER BY CASE
+          WHEN (lifecycle_state).id = '05' THEN 1
+          WHEN (lifecycle_state).id = '01' THEN 2
+          WHEN (lifecycle_state).id = '02' THEN 3
+          WHEN (lifecycle_state).id = '03' THEN 5 -- Lifecycle state completed as the last one
+          ELSE 4
+        END, object_name
+        `;
+    }
+    return sql.fragment`ORDER BY ${sql.identifier([orderByColumns[orderBy]])}, object_name`;
+  }
 
   return getPool().any(sql.type(commonDbProjectObjectSchema.extend({ objectStage: codeId }))`
     WITH dump AS (${getProjectObjectGeometryDumpFragment()})
@@ -110,16 +129,13 @@ export async function getProjectObjectsByProjectId(projectId: string, orderBy?: 
       start_date AS "startDate",
       end_date AS "endDate",
       dump.geom,
-      ((SELECT array_agg((object_category).id) FROM app.project_object_category WHERE project_object_id = project_object.id)) AS "objectCategory"
+      ((SELECT array_agg((object_category).id) FROM app.project_object_category WHERE project_object_id = project_object.id)) AS "objectCategory",
+      (lifecycle_state).id AS "lifecycleState"
     FROM app.project_object
     LEFT JOIN app.project_object_investment poi ON project_object.id = poi.project_object_id
     LEFT JOIN dump ON dump.id = project_object.id
     WHERE deleted = false AND project_id = ${projectId}
-    ${
-      orderBy
-        ? sql.fragment`ORDER BY ${sql.identifier([orderByColumns[orderBy]])}, object_name`
-        : sql.fragment``
-    }
+    ${getOrderByFragment()}
   `);
 }
 
