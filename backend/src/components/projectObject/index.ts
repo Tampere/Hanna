@@ -107,11 +107,8 @@ export async function getProjectObjectsByProjectId(projectId: string, orderBy?: 
     if (orderBy === 'lifecycleState') {
       return sql.fragment`
         ORDER BY CASE
-          WHEN (lifecycle_state).id = '05' THEN 1
-          WHEN (lifecycle_state).id = '01' THEN 2
-          WHEN (lifecycle_state).id = '02' THEN 3
-          WHEN (lifecycle_state).id = '03' THEN 5 -- Lifecycle state completed as the last one
-          ELSE 4
+          WHEN (lifecycle_state).id = '03' THEN 2 -- Lifecycle state completed as the last one
+          ELSE 1
         END, object_name
         `;
     }
