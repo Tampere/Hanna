@@ -74,7 +74,14 @@ export function MenuBar({ editor }: Props) {
               .run();
           }
         })
-        .catch((error) => console.error('Upload failed', error));
+        .catch((error) => {
+          notify({
+            severity: 'error',
+            title: tr('menuBar.uploadFailed'),
+            duration: 7500,
+          });
+          console.error('Upload failed', error);
+        });
     };
     reader.readAsDataURL(file);
   };
