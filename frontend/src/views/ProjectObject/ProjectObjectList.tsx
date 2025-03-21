@@ -207,29 +207,54 @@ export function ProjectObjectList(props: Props) {
                 >
                   <NavigateNext sx={{ color: '#aaa', mr: 1 }} />
                   <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.15rem',
-                    }}
+                    css={css`
+                      display: flex;
+                      flex-direction: column;
+                      align-items: stretch;
+                      gap: 0.15rem;
+                    `}
                   >
-                    <Box display="flex" gap={1}>
+                    <Box
+                      css={css`
+                        display: flex;
+                        gap: 1rem;
+                      `}
+                    >
                       <Box
-                        display="flex"
-                        gap={0.5}
-                        alignItems={'center'}
-                        sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}
+                        css={css`
+                          display: flex;
+                          gap: 0.5rem;
+                          align-items: center;
+                          width: 100%;
+                          flex: 1;
+                        `}
                       >
                         {projObj.lifecycleState === '03' && (
-                          <Complete sx={{ height: '12px', width: '12px' }} />
+                          <Complete
+                            css={css`
+                              height: 12px;
+                              width: 12px;
+                            `}
+                          />
                         )}
-                        <Typography sx={{ lineHeight: '120%' }} variant="button">
+                        <Typography
+                          css={css`
+                            line-height: 120%;
+                            overflow-wrap: anywhere;
+                          `}
+                          variant="button"
+                        >
                           {projObj.objectName}
                         </Typography>
                       </Box>
                     </Box>
 
-                    <Typography sx={{ lineHeight: '120%' }} variant="overline">
+                    <Typography
+                      css={css`
+                        line-height: 120%;
+                      `}
+                      variant="overline"
+                    >
                       {dayjs(projObj.startDate).format(tr('date.format'))} —{' '}
                       {projObj.endDate !== 'infinity' &&
                         dayjs(projObj.endDate).format(tr('date.format'))}
@@ -239,6 +264,7 @@ export function ProjectObjectList(props: Props) {
                     css={css`
                       display: flex;
                       margin-left: auto;
+                      padding-left: 16px;
                       align-items: center;
                       gap: 8px;
                     `}

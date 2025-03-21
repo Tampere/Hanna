@@ -250,9 +250,19 @@ export function ProjectObject(props: Props) {
             align-items: center;
             gap: 8px;
             margin-bottom: 8px;
+            max-width: 80%;
+            overflow-x: hidden;
+            text-overflow: ellipsis;
+            & .MuiChip-root {
+              max-width: 60vw;
+            }
           `}
         >
-          <Breadcrumbs sx={{ mb: 1 }}>
+          <Breadcrumbs
+            css={css`
+              margin-bottom: 8px;
+            `}
+          >
             {routeParams.projectId && (
               <Chip
                 clickable={true}
