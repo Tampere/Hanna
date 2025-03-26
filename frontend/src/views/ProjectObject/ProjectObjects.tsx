@@ -154,7 +154,7 @@ function ProjectObjectCard({
           >
             {result.project.projectName}
           </Typography>
-          <Typography sx={{ lineHeight: '120%' }} variant="button">
+          <Typography sx={{ lineHeight: '120%', overflowWrap: 'anywhere' }} variant="button">
             {result.objectName}
           </Typography>
           <Typography sx={{ lineHeight: '120%' }} variant="overline">
