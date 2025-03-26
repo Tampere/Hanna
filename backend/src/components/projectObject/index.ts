@@ -93,11 +93,11 @@ export async function deleteProjectObject(projectObjectId: string, user: User) {
 
 export async function getProjectObjectsByProjectId(projectId: string, orderBy?: DbObjectOrderBy) {
   const orderByColumns = {
-    name: 'object_name',
-    startDate: 'start_date',
-    endDate: 'end_date',
-    createdAt: 'created_at',
-    lifecycleState: 'lifecycle_state',
+    name: sql.fragment`LOWER(object_name)`,
+    startDate: sql.identifier(['start_date']),
+    endDate: sql.identifier(['end_date']),
+    createdAt: sql.identifier(['created_at']),
+    lifecycleState: sql.identifier(['lifecycle_state']),
   };
 
   function getOrderByFragment() {
@@ -107,12 +107,22 @@ export async function getProjectObjectsByProjectId(projectId: string, orderBy?: 
     if (orderBy === 'lifecycleState') {
       return sql.fragment`
         ORDER BY CASE
-          WHEN (lifecycle_state).id = '03' THEN 2 -- Lifecycle state completed as the last one
-          ELSE 1
+          WHEN (lifecycle_state).id = '05' THEN 1 -- Lifecycle state proposed
+          WHEN (lifecycle_state).id = '04' THEN 2 -- Lifecycle state waiting
+          WHEN (lifecycle_state).id = '01' THEN 3 -- Lifecycle state not started
+          WHEN (lifecycle_state).id = '02' THEN 4 -- Lifecycle state in progress
+          WHEN (lifecycle_state).id = '03' THEN 5 -- Lifecycle state completed
         END, object_name
         `;
     }
-    return sql.fragment`ORDER BY ${sql.identifier([orderByColumns[orderBy]])}, object_name`;
+    return sql.fragment`
+      ORDER BY
+        CASE
+          WHEN (lifecycle_state).id = '03' THEN 2 -- Lifecycle state completed always last
+          ELSE 1
+        END,
+        ${orderByColumns[orderBy]},
+        LOWER(object_name)`;
   }
 
   return getPool().any(sql.type(commonDbProjectObjectSchema.extend({ objectStage: codeId }))`
