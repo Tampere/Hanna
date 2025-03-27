@@ -192,10 +192,6 @@ export function ProjectObjectList(props: Props) {
         <List>
           {projectObjects.data
             ?.filter((obj) => byYear === 'all' || dayjs(obj.startDate).year() === byYear)
-            // Push objects with Ready-state to end
-            .sort(
-              (a, b) => (a.lifecycleState === '03' ? 1 : 0) - (b.lifecycleState === '03' ? 1 : 0),
-            )
             .map((projObj) => (
               <CardActionArea
                 key={projObj.projectObjectId}
