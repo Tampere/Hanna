@@ -18,6 +18,7 @@ import { useState } from 'react';
 
 import { trpc } from '@frontend/client';
 import { HelpTooltip } from '@frontend/components/HelpTooltip';
+import { formatCurrency } from '@frontend/components/forms/CurrencyInput';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { TaskRow } from './TaskRow';
@@ -106,6 +107,14 @@ export function TaskList({ projectObjectId }: Props) {
                 </TableCell>
               </TableRow>
             )}
+            <TableRow>
+              <TableCell>Yhteensä</TableCell>
+              <TableCell>
+                {activities.data && activities.data?.length > 0
+                  ? formatCurrency(activities.data.reduce((acc, d) => acc + d.total, 0))
+                  : 0}
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
