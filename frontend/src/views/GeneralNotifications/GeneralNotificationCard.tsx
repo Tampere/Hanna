@@ -10,7 +10,7 @@ export function GeneralNotificationCard({ content }: Props) {
   const editor = useEditor({
     editable: false,
     content: content,
-    extensions: [StarterKit, Image],
+    extensions: [StarterKit, Image.configure({ allowBase64: true })],
   });
   if (!editor) {
     return null;

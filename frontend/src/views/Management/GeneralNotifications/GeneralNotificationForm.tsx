@@ -115,7 +115,25 @@ export function GeneralNotificationForm({ notification, onUpsertSuccess }: Props
   const { isDirty } = form.formState;
   useNavigationBlocker(isDirty, 'generalNotifications');
 
+  // Recursively go through elements and upload any picture in base64 (added from clipboard)
+  const handleElement = async (element: Record<string, any>) => {
+    if (Array.isArray(element.content)) {
+      await Promise.allSettled(element.content.map((e) => handleElement(e)));
+    }
+    if (element.type === 'image') {
+      const [header, dataSection] = element.attrs.src.split(';');
+      if (!dataSection) return element;
+      const type = header.split('data:')[1];
+      const data = dataSection.split('base64,')[1];
+      const url = await uploadPicture({ name: 'pasted image', type, size: 123, data });
+      element.attrs.src = url;
+      return element;
+    }
+    return element;
+  };
+
   const onSubmit = async (data: UpsertGeneralNotification) => {
+    data.message = await handleElement(data.message);
     generalNotificationUpsert.mutate(data);
   };
 
@@ -208,4 +226,29 @@ export function GeneralNotificationForm({ notification, onUpsertSuccess }: Props
       </FormProvider>
     </Box>
   );
+}
+
+export async function uploadPicture(file: {
+  name: string;
+  type: string;
+  size: number;
+  data: string;
+}) {
+  return fetch('/api/v1/files/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      data: file.data,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (!data.fileId) {
+        throw new Error('Upload failed');
+      }
+      return `/api/v1/files/${data.fileId}`;
+    });
 }
