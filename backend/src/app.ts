@@ -69,7 +69,7 @@ async function run() {
   const server = fastify({
     logger: logger as FastifyBaseLogger,
     trustProxy: 1,
-    bodyLimit: 1024 * 1024 * 5, // 5 MiB
+    bodyLimit: 1024 * 1024 * 7.5, // 7,5 MiB, roughly 5MiB with base64 overhead
   });
   const oidcClient = await getClient();
 

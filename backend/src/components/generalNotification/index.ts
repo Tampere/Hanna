@@ -1,10 +1,9 @@
-import { DatabaseTransactionConnection, IdleTransactionTimeoutError } from 'slonik';
+import { DatabaseTransactionConnection } from 'slonik';
 import { z } from 'zod';
 
 import { getPool, sql } from '@backend/db.js';
 
 import {
-  GeneralNotification,
   UpsertGeneralNotification,
   dbGeneralNotificationSchema,
   searchGeneralNotificationsSchema,
@@ -114,7 +113,8 @@ async function deleteUnusedImages(
     .filter((section: { type: string }) => section.type === 'image')
     .map((imageSection: { attrs: { src: string } }) =>
       Number(imageSection.attrs.src.split('/').at(-1)),
-    );
+    )
+    .filter(Number);
   const removeIds = imageIds.filter((imageNumber) => !imageIdsToKeep.includes(imageNumber));
   await conn.maybeOne(
     sql.untyped`DELETE FROM app.images WHERE id = ANY(${sql.array(removeIds, 'int4')})`,

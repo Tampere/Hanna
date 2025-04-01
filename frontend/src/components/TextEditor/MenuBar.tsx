@@ -5,6 +5,7 @@ import { useRef } from 'react';
 
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
+import { uploadPicture } from '@frontend/views/Management/GeneralNotifications/GeneralNotificationForm';
 
 const menuBarStyle = (theme: Theme) => css`
   background-color: rgb(227, 227, 227);
@@ -42,39 +43,25 @@ export function MenuBar({ editor }: Props) {
     const file = files[0]; // Get the first file
     const reader = new FileReader();
 
-    reader.onloadend = () => {
+    reader.onloadend = async () => {
       const base64String = reader.result?.toString().split(',')[1]; // Extract Base64
       if (!base64String) return;
-
-      fetch('/api/v1/files/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      try {
+        const fileUrl = await uploadPicture({
           name: file.name,
           type: file.type,
-          size: file.size,
           data: base64String,
-        }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (!data.fileId) {
-            notify({
-              severity: 'error',
-              title: tr('menuBar.uploadFailed'),
-              duration: 7500,
-            });
-            return;
-          }
-          if (editor) {
-            editor
-              .chain()
-              .focus()
-              .setImage({ src: `/api/v1/files/${data.fileId}` })
-              .run();
-          }
-        })
-        .catch((error) => console.error('Upload failed', error));
+        });
+        if (editor) {
+          editor.chain().focus().setImage({ src: fileUrl }).run();
+        }
+      } catch {
+        notify({
+          severity: 'error',
+          title: tr('menuBar.uploadFailed'),
+          duration: 7500,
+        });
+      }
     };
     reader.readAsDataURL(file);
   };
