@@ -1,6 +1,5 @@
 import { Box, CssBaseline, css } from '@mui/material';
 import Image from '@tiptap/extension-image';
-import { Slice } from '@tiptap/pm/model';
 import { EditorContent, JSONContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { ReactElement } from 'react';
@@ -23,11 +22,6 @@ export function TextEditor({ content, renderFunctionButtons, onChange }: Props) 
     content: content,
     onUpdate: ({ editor }) => {
       onChange(editor.getJSON());
-    },
-    onPaste: (_event, slice: Slice) => {
-      slice.content.forEach((s) => {
-        s.content;
-      });
     },
   });
 
