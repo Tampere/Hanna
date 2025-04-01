@@ -50,7 +50,6 @@ export function MenuBar({ editor }: Props) {
         const fileUrl = await uploadPicture({
           name: file.name,
           type: file.type,
-          size: file.size,
           data: base64String,
         });
         if (editor) {

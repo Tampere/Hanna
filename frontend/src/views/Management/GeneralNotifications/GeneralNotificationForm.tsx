@@ -125,7 +125,7 @@ export function GeneralNotificationForm({ notification, onUpsertSuccess }: Props
       if (!dataSection) return element;
       const type = header.split('data:')[1];
       const data = dataSection.split('base64,')[1];
-      const url = await uploadPicture({ name: 'pasted image', type, size: 123, data });
+      const url = await uploadPicture({ name: 'pasted image', type, data });
       element.attrs.src = url;
       return element;
     }
@@ -228,19 +228,13 @@ export function GeneralNotificationForm({ notification, onUpsertSuccess }: Props
   );
 }
 
-export async function uploadPicture(file: {
-  name: string;
-  type: string;
-  size: number;
-  data: string;
-}) {
+export async function uploadPicture(file: { name: string; type: string; data: string }) {
   return fetch('/api/v1/files/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       name: file.name,
       type: file.type,
-      size: file.size,
       data: file.data,
     }),
   })
