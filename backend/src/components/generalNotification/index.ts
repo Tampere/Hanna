@@ -1,10 +1,9 @@
-import { DatabaseTransactionConnection, IdleTransactionTimeoutError } from 'slonik';
+import { DatabaseTransactionConnection } from 'slonik';
 import { z } from 'zod';
 
 import { getPool, sql } from '@backend/db.js';
 
 import {
-  GeneralNotification,
   UpsertGeneralNotification,
   dbGeneralNotificationSchema,
   searchGeneralNotificationsSchema,

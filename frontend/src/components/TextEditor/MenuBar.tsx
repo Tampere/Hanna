@@ -55,7 +55,7 @@ export function MenuBar({ editor }: Props) {
         if (editor) {
           editor.chain().focus().setImage({ src: fileUrl }).run();
         }
-      } catch (e) {
+      } catch {
         notify({
           severity: 'error',
           title: tr('menuBar.uploadFailed'),
