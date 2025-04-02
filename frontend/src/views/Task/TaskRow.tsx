@@ -8,6 +8,7 @@ import { SapTask } from '@shared/schema/task';
 interface Props {
   projectObjectId: string;
   task: SapTask;
+  onToggleSelection: (id: string) => void;
 }
 
 export function TaskRow(props: Readonly<Props>) {
@@ -22,7 +23,7 @@ export function TaskRow(props: Readonly<Props>) {
 
   return (
     <>
-      <TableRow>
+      <TableRow onClick={() => props.onToggleSelection(props.task.activityId)}>
         <TableCell>{getActivityDescription()}</TableCell>
         <TableCell>{formatCurrency(props.task.total)}</TableCell>
       </TableRow>

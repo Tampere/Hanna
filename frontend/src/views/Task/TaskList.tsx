@@ -32,6 +32,7 @@ interface Props {
 
 export function TaskList({ projectObjectId }: Props) {
   const [infoBoxOpen, setInfoBoxOpen] = useState(false);
+  const [selectedActivities, setSelectedActivities] = useState<Set<string>>(new Set());
   const tr = useTranslations();
 
   const activities = trpc.sap.getWbsActualsByNetworkActivity.useQuery({
@@ -41,6 +42,20 @@ export function TaskList({ projectObjectId }: Props) {
   if (activities.data && activities.data.length === 0) {
     return <Typography>{tr('projectObject.noTasks')}</Typography>;
   }
+
+  const toggleSelection = (activityId: string) => {
+    console.log(activities);
+
+    const newSelection = new Set(selectedActivities);
+    if (newSelection.has(activityId)) {
+      newSelection.delete(activityId);
+    } else {
+      newSelection.add(activityId);
+    }
+
+    setSelectedActivities(newSelection);
+    console.log(newSelection);
+  };
 
   return (
     <Box
@@ -77,6 +92,7 @@ export function TaskList({ projectObjectId }: Props) {
                   key={activity.activityId}
                   task={activity}
                   projectObjectId={projectObjectId}
+                  onToggleSelection={() => toggleSelection(activity.activityId)}
                 />
               ))
             ) : (
@@ -112,6 +128,18 @@ export function TaskList({ projectObjectId }: Props) {
               <TableCell>
                 {activities.data && activities.data?.length > 0
                   ? formatCurrency(activities.data.reduce((acc, d) => acc + d.total, 0))
+                  : 0}
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Valitut yhteensä</TableCell>
+              <TableCell>
+                {activities.data && activities.data?.length > 0
+                  ? formatCurrency(
+                      activities.data
+                        .filter((d) => selectedActivities.has(d.activityId))
+                        .reduce((acc, d) => acc + d.total, 0),
+                    )
                   : 0}
               </TableCell>
             </TableRow>
