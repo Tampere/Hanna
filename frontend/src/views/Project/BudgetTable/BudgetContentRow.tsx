@@ -40,7 +40,7 @@ export function BudgetContentRow({
     // If there's no committee saved, the field represents total row for the year
     return `${String(year)}.${committeeId ?? 'total'}.${field}`;
   }
-
+  console.log(year, actuals, committee);
   return (
     <TableRow
       css={css`
@@ -152,10 +152,7 @@ export function BudgetContentRow({
                   return 'inherit';
                 }}
                 directlyHandleValueChange
-                value={
-                  (includeYearColumn ? actuals?.find((data) => data.year === year)?.total : null) ??
-                  null
-                }
+                value={(true ? actuals?.find((data) => data.year === year)?.total : null) ?? null}
                 placeholder={'–'}
               />
             </span>

@@ -46,7 +46,14 @@ interface Props {
   budget: readonly ProjectYearBudget[];
   onSave: (budget: ProjectYearBudget[]) => Promise<void>;
   committees?: Code['id']['id'][];
-  actuals?: YearlyActuals | null;
+  actuals?: {
+    byCommittee: {
+      year: number;
+      total: number;
+      committeeId: string;
+    }[];
+    yearlyActuals: YearlyActuals | null;
+  };
   actualsLoading?: boolean;
   writableFields?: BudgetField[];
   fields?: BudgetField[];
@@ -268,7 +275,6 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     await onSave(formValuesToBudget(getDirtyValues(data), years));
     form.reset(data);
   }
-
   return !budget ? null : (
     <>
       <FormProvider {...form}>
@@ -473,7 +479,8 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                           {selectedCommittees.length > 1 && (
                             <YearTotalRow
                               actual={
-                                props.actuals?.find((actual) => actual.year === year)?.total ?? null
+                                props.actuals?.yearlyActuals?.find((actual) => actual.year === year)
+                                  ?.total ?? null
                               }
                               actualsLoading={Boolean(props.actualsLoading)}
                               fields={fields}
@@ -496,7 +503,10 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                   : fields
                               }
                               actualsLoading={props.actualsLoading}
-                              actuals={props.actuals}
+                              actuals={props.actuals?.byCommittee.filter((c) => {
+                                console.log(c.committeeId, c.year, committee.id, year);
+                                return c.committeeId === committee.id && c.year === year;
+                              })}
                               disableBorder={selectedCommittees.length > 1}
                             />
                           ))}
@@ -518,7 +528,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                           writableFields={writableFields}
                           fields={fields}
                           actualsLoading={props.actualsLoading}
-                          actuals={props.actuals}
+                          actuals={props.actuals?.yearlyActuals}
                         />
                       )}
                     </Fragment>
@@ -527,7 +537,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
 
                 <TotalRow
                   committeeColumnVisible={selectedCommittees.length > 1}
-                  actuals={props.actuals}
+                  actuals={props.actuals?.yearlyActuals}
                   actualsLoading={Boolean(props.actualsLoading)}
                   fields={
                     selectedCommittees.length === 1
