@@ -430,6 +430,7 @@ export function getColumns({
         editable: !allYearsSelected,
       },
       {
+        allowNegative: true,
         valueTextColor,
       },
     ),

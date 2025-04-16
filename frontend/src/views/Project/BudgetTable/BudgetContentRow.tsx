@@ -210,6 +210,7 @@ export function BudgetContentRow({
               <CurrencyInput
                 placeholder="–"
                 directlyHandleValueChange
+                allowNegative
                 style={{
                   width: '100%',
                   minWidth: 220,
