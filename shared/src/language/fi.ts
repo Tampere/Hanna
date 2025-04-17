@@ -345,7 +345,7 @@ export const fi = {
     'Ennuste kirjataan suhteessa talousarvioon. Ennuste on käyttäjän arvio talousarvion riittävyydestä toimintavuonna. Talousarvion ylitys merkitään positiivisena lukuna ja talousarvion alitus negatiivisena lukuna. Ennusteet kirjataan kohdetasolla, josta ne koostetaan hankkeelle tiedoksi.',
   'budgetTable.kayttosuunnitelmanMuutos': 'Käyttösuunnitelman muutos',
   'budgetTable.kayttosuunnitelmanMuutosHelp':
-    'Toteutukselle on mahdollista osoittaa lisää rahaa käyttösuunnitelman muutoksella (KSM). Luku on aina positiivinen. KSM kirjataan aina kohteille, joista se johdetaan tiedoksi hanketasolle. Oikeus kirjata käyttösuunnitelman muutoksia on rajattu vain tietyille käyttäjille. ',
+    'Toteutukselle on mahdollista osoittaa lisää rahaa käyttösuunnitelman muutoksella (KSM). KSM kirjataan aina kohteille, joista se johdetaan tiedoksi hanketasolle. Oikeus kirjata käyttösuunnitelman muutoksia on rajattu vain tietyille käyttäjille. ',
   'budgetTable.total': 'Yhteensä',
   'budgetTable.notifySave': 'Taloustiedot tallennettu',
   'budgetTable.notifySaveFailed': 'Taloustietojen tallentaminen epäonnistui',
