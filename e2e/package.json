@@ -20,8 +20,8 @@
     "playwright": "^1.51.1"
   },
   "dependencies": {
-    "@trpc/client": "^10.45.2",
-    "@trpc/server": "^10.45.2",
+    "@trpc/client": "^11.1.0",
+    "@trpc/server": "^11.1.0",
     "dayjs": "^1.11.13",
     "node-fetch": "^3.3.2",
     "pg": "^8.14.1",
