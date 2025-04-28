@@ -440,6 +440,8 @@ export const fi = {
   'task.noActivityDescription': 'Vaiheen tyypille ei löydy kuvausta.',
   'task.actuals': 'Toteuma',
   'task.error': 'Virhe ladattaessa vaiheita',
+  'task.sumLine': 'Yhteensä',
+  'task.noSelection': 'Ei valintaa',
   'textEditor.addPicture': 'Lisää kuva',
   'textEditor.headerTitle': 'Otsikko',
   'textEditor.boldTitle': 'Korostus',
