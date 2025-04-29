@@ -14,7 +14,7 @@ import { yearRange } from '@backend/components/sap/utils.js';
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
 
-import { yearlyActualsSchema } from '@shared/schema/sapActuals.js';
+import { yearlyAndCommitteeActualsSchema } from '@shared/schema/sapActuals.js';
 import { SapTask, sapTaskSchema } from '@shared/schema/task.js';
 
 import { TRPC } from './index.js';
@@ -86,29 +86,62 @@ export const createSapRouter = (t: TRPC) =>
           );
         }
 
-        const returnSchema = z.object({ result: yearlyActualsSchema });
+        const returnSchema = z.object({ result: yearlyAndCommitteeActualsSchema });
         const dbResult = await getPool().maybeOne(sql.type(returnSchema)`
-          WITH yearly_totals AS (
-            SELECT fiscal_year, sum(value_in_currency_subunit) AS total
-            FROM app.sap_actuals_item
-            WHERE sap_project_id IN (
-                SELECT sap_project_id
-                FROM app.project
-                WHERE id = ${input.projectId}
-            ) AND fiscal_year >= ${input.startYear}
-              AND fiscal_year <= ${endYear}
-              AND document_type <> 'AA'
-            GROUP BY fiscal_year
-          )
+          WITH yearly_totals_by_wbs as (SELECT fiscal_year, wbs_element_id, sum(value_in_currency_subunit) AS total
+          FROM app.sap_actuals_item
+          WHERE sap_project_id IN (
+              SELECT sap_project_id
+              FROM app.project
+              WHERE id = ${input.projectId}
+          ) AND fiscal_year >= ${input.startYear}
+            AND fiscal_year <= ${endYear}
+            AND document_type <> 'AA'
+          GROUP BY fiscal_year, wbs_element_id),
+          yearly_totals_by_committee as (
+            SELECT ytbc.fiscal_year, (poc.committee_type).id as committee_id, sum(ytbc.total) as total FROM
+              yearly_totals_by_wbs ytbc
+                LEFT join app.project_object po on ytbc.wbs_element_id = po.sap_wbs_id
+                left join app.project_object_committee poc on po.id = poc.project_object_id
+            where poc.committee_type is not null
+            group by ytbc.fiscal_year, poc.committee_type
+            order by ytbc.fiscal_year, poc.committee_type
+          ),
+          overall_yearly_totals AS ( -- Calculate the overall yearly totals
+            SELECT
+              fiscal_year,
+              sum(total) AS total
+            FROM
+              yearly_totals_by_wbs
+            GROUP BY
+              fiscal_year
+            order by fiscal_year
+          ),
+        committee_json AS (
           SELECT jsonb_agg(
-              jsonb_build_object(
-                  'year', yearly_totals.fiscal_year,
-                  'total', yearly_totals.total
-              )
-          ) AS result
-          FROM yearly_totals;
+            jsonb_build_object(
+              'year', fiscal_year,
+              'committeeId', committee_id,
+              'total', total
+            )
+          ) AS byCommittee
+          FROM yearly_totals_by_committee
+        ),
+        yearly_totals_json AS (
+          SELECT jsonb_agg(
+            jsonb_build_object(
+              'year', fiscal_year,
+              'total', total
+            )
+          ) AS yearlyActuals
+          FROM overall_yearly_totals
+        )
+        SELECT jsonb_build_object(
+          'byCommittee', cj.byCommittee,
+          'yearlyActuals', yj.yearlyActuals
+        ) AS result
+        FROM committee_json cj, yearly_totals_json yj;
         `);
-
         return dbResult?.result;
       }),
 
@@ -130,7 +163,7 @@ export const createSapRouter = (t: TRPC) =>
           return null;
         }
 
-        const returnSchema = z.object({ result: yearlyActualsSchema });
+        const returnSchema = z.object({ result: yearlyAndCommitteeActualsSchema });
         const dbResult = await getPool().maybeOne(sql.type(returnSchema)`
           WITH yearly_totals AS (
             SELECT fiscal_year, sum(value_in_currency_subunit) AS total

@@ -53,4 +53,14 @@ export const yearlyActualsSchema = z.array(
   }),
 );
 
+export const yearlyAndCommitteeActualsSchema = z
+  .object({
+    byCommittee: z.array(
+      z.object({ year: z.number(), total: z.number().int(), committeeId: z.string() }),
+    ),
+    yearlyActuals: yearlyActualsSchema,
+  })
+  .nullable();
+
 export type YearlyActuals = z.infer<typeof yearlyActualsSchema>;
+export type yearlyAndCommitteeActuals = z.infer<typeof yearlyAndCommitteeActualsSchema>;
