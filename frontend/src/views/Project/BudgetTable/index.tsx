@@ -22,7 +22,7 @@ import { useCodes } from '@frontend/utils/codes';
 
 import { Code } from '@shared/schema/code';
 import { ProjectYearBudget } from '@shared/schema/project';
-import { YearlyActuals } from '@shared/schema/sapActuals';
+import { yearlyAndCommitteeActuals } from '@shared/schema/sapActuals';
 
 import { BudgetContentRow } from './BudgetContentRow';
 import { CommitteeSelection } from './CommitteeSelection';
@@ -46,14 +46,7 @@ interface Props {
   budget: readonly ProjectYearBudget[];
   onSave: (budget: ProjectYearBudget[]) => Promise<void>;
   committees?: Code['id']['id'][];
-  actuals?: {
-    byCommittee: {
-      year: number;
-      total: number;
-      committeeId: string;
-    }[];
-    yearlyActuals: YearlyActuals | null;
-  };
+  actuals?: yearlyAndCommitteeActuals;
   actualsLoading?: boolean;
   writableFields?: BudgetField[];
   fields?: BudgetField[];
@@ -503,10 +496,9 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                   : fields
                               }
                               actualsLoading={props.actualsLoading}
-                              actuals={props.actuals?.byCommittee.filter((c) => {
-                                console.log(c.committeeId, c.year, committee.id, year);
-                                return c.committeeId === committee.id && c.year === year;
-                              })}
+                              actuals={props.actuals?.byCommittee.filter(
+                                (c) => c.committeeId === committee.id && c.year === year,
+                              )}
                               disableBorder={selectedCommittees.length > 1}
                             />
                           ))}

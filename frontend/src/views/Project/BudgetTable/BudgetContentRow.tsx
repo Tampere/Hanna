@@ -40,7 +40,6 @@ export function BudgetContentRow({
     // If there's no committee saved, the field represents total row for the year
     return `${String(year)}.${committeeId ?? 'total'}.${field}`;
   }
-  console.log(year, actuals, committee);
   return (
     <TableRow
       css={css`
