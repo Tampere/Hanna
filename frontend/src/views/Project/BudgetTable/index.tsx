@@ -22,7 +22,7 @@ import { useCodes } from '@frontend/utils/codes';
 
 import { Code } from '@shared/schema/code';
 import { ProjectYearBudget } from '@shared/schema/project';
-import { yearlyAndCommitteeActuals } from '@shared/schema/sapActuals';
+import { YearlyActuals, yearlyAndCommitteeActuals } from '@shared/schema/sapActuals';
 
 import { BudgetContentRow } from './BudgetContentRow';
 import { CommitteeSelection } from './CommitteeSelection';
@@ -46,7 +46,7 @@ interface Props {
   budget: readonly ProjectYearBudget[];
   onSave: (budget: ProjectYearBudget[]) => Promise<void>;
   committees?: Code['id']['id'][];
-  actuals?: yearlyAndCommitteeActuals;
+  actuals?: yearlyAndCommitteeActuals | YearlyActuals;
   actualsLoading?: boolean;
   writableFields?: BudgetField[];
   fields?: BudgetField[];
@@ -472,8 +472,11 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                           {selectedCommittees.length > 1 && (
                             <YearTotalRow
                               actual={
-                                props.actuals?.yearlyActuals?.find((actual) => actual.year === year)
-                                  ?.total ?? null
+                                props.actuals && 'byCommittee' in props.actuals
+                                  ? props.actuals?.yearlyActuals?.find(
+                                      (actual) => actual.year === year,
+                                    )?.total ?? null
+                                  : null
                               }
                               actualsLoading={Boolean(props.actualsLoading)}
                               fields={fields}
@@ -496,9 +499,13 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                   : fields
                               }
                               actualsLoading={props.actualsLoading}
-                              actuals={props.actuals?.byCommittee.filter(
-                                (c) => c.committeeId === committee.id && c.year === year,
-                              )}
+                              actuals={
+                                props.actuals && 'byCommittee' in props.actuals
+                                  ? props.actuals?.byCommittee?.filter(
+                                      (c) => c.committeeId === committee.id && c.year === year,
+                                    )
+                                  : props.actuals?.filter((c) => c.year === year)
+                              }
                               disableBorder={selectedCommittees.length > 1}
                             />
                           ))}
@@ -520,7 +527,11 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                           writableFields={writableFields}
                           fields={fields}
                           actualsLoading={props.actualsLoading}
-                          actuals={props.actuals?.yearlyActuals}
+                          actuals={
+                            props.actuals && 'yearlyActuals' in props.actuals
+                              ? props.actuals?.yearlyActuals
+                              : null
+                          }
                         />
                       )}
                     </Fragment>
@@ -529,7 +540,11 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
 
                 <TotalRow
                   committeeColumnVisible={selectedCommittees.length > 1}
-                  actuals={props.actuals?.yearlyActuals}
+                  actuals={
+                    props.actuals && 'yearlyActuals' in props.actuals
+                      ? props.actuals?.yearlyActuals
+                      : props.actuals
+                  }
                   actualsLoading={Boolean(props.actualsLoading)}
                   fields={
                     selectedCommittees.length === 1

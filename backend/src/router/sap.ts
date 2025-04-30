@@ -14,7 +14,7 @@ import { yearRange } from '@backend/components/sap/utils.js';
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
 
-import { yearlyAndCommitteeActualsSchema } from '@shared/schema/sapActuals.js';
+import { yearlyActualsSchema, yearlyAndCommitteeActualsSchema } from '@shared/schema/sapActuals.js';
 import { SapTask, sapTaskSchema } from '@shared/schema/task.js';
 
 import { TRPC } from './index.js';
@@ -163,7 +163,7 @@ export const createSapRouter = (t: TRPC) =>
           return null;
         }
 
-        const returnSchema = z.object({ result: yearlyAndCommitteeActualsSchema });
+        const returnSchema = z.object({ result: yearlyActualsSchema });
         const dbResult = await getPool().maybeOne(sql.type(returnSchema)`
           WITH yearly_totals AS (
             SELECT fiscal_year, sum(value_in_currency_subunit) AS total

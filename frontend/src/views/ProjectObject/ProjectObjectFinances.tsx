@@ -150,7 +150,7 @@ export const ProjectObjectFinances = forwardRef(function ProjectObjectFinances<
       years={years}
       budget={budget.data}
       committees={[...(projectObject.data.committee ? [projectObject.data.committee] : [])]}
-      actuals={yearlyActuals.data}
+      actuals={yearlyActuals?.data}
       actualsLoading={yearlyActuals.isFetching}
       fields={
         projectObject.projectType === 'investmentProject'
