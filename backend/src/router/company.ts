@@ -215,8 +215,7 @@ export const createCompanyRouter = (t: TRPC) =>
           business_id AS "businessId"
         FROM contacts
         WHERE ${searchTerm}::text IS NULL OR ts_vec @@ to_tsquery('simple', ${searchTerm})
-        ORDER BY LOWER(contact_name), ts_rank(ts_vec, to_tsquery('simple', ${searchTerm})) DESC
-        LIMIT 20;
+        ORDER BY LOWER(contact_name), ts_rank(ts_vec, to_tsquery('simple', ${searchTerm})) DESC;
       `);
       return resultsSchema.parse(result ?? []);
     }),
