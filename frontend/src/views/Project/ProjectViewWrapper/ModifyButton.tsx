@@ -77,7 +77,7 @@ export function ModifyButton({
       <>
         <SplitButton
           hideSelectedOptionFromList
-          hideButtonSelection={editing || !isOwner}
+          hideButtonSelection={editing || !(isOwner || canWrite)}
           disableButtonSelection={editingDisabled}
           cssProp={css`
             margin-left: auto;
