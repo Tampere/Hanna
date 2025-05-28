@@ -10,7 +10,7 @@ import { ProjectYearBudget } from '@shared/schema/project';
 import { ProjectType } from '@shared/schema/project/type';
 import { CommonDbProjectObject } from '@shared/schema/projectObject/base';
 
-import { BudgetField, BudgetTable } from '../Project/BudgetTable';
+import { BudgetField, BudgetTable } from '../ProjectObject/BudgetTable';
 
 interface Props<TProjectObject extends CommonDbProjectObject & { committee?: string }> {
   projectObject: { projectType: Omit<ProjectType, 'detailplanProject'>; data: TProjectObject };
@@ -149,29 +149,16 @@ export const ProjectObjectFinances = forwardRef(function ProjectObjectFinances<
       ref={ref}
       years={years}
       budget={budget.data}
-      committees={[...(projectObject.data.committee ? [projectObject.data.committee] : [])]}
-      actuals={yearlyActuals?.data}
+      actuals={yearlyActuals?.data === null ? undefined : yearlyActuals?.data}
       actualsLoading={yearlyActuals.isFetching}
-      fields={
-        projectObject.projectType === 'investmentProject'
-          ? [
-              'committee',
-              'estimate',
-              'contractPrice',
-              'amount',
-              'forecast',
-              'kayttosuunnitelmanMuutos',
-              'actual',
-            ]
-          : [
-              'estimate',
-              'contractPrice',
-              'amount',
-              'forecast',
-              'kayttosuunnitelmanMuutos',
-              'actual',
-            ]
-      }
+      fields={[
+        'estimate',
+        'contractPrice',
+        'amount',
+        'forecast',
+        'kayttosuunnitelmanMuutos',
+        'actual',
+      ]}
       writableFields={getWritableFields()}
       onSave={handleSaveBudget}
       customTooltips={{
