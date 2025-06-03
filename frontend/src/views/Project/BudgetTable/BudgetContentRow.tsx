@@ -2,6 +2,7 @@ import { Skeleton, TableCell, TableRow, Typography, css } from '@mui/material';
 
 import { FormField } from '@frontend/components/forms';
 import { CurrencyInput, valueTextColor } from '@frontend/components/forms/CurrencyInput';
+import { SapActualsIcon } from '@frontend/components/icons/SapActuals';
 
 import { Code } from '@shared/schema/code';
 import { YearlyActuals } from '@shared/schema/sapActuals';

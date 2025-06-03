@@ -46,7 +46,7 @@ interface Props {
   budget: readonly ProjectYearBudget[];
   onSave: (budget: ProjectYearBudget[]) => Promise<void>;
   committees?: Code['id']['id'][];
-  actuals?: yearlyAndCommitteeActuals | YearlyActuals;
+  actuals?: yearlyAndCommitteeActuals;
   actualsLoading?: boolean;
   writableFields?: BudgetField[];
   fields?: BudgetField[];
@@ -472,6 +472,17 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                           {selectedCommittees.length > 1 && (
                             <YearTotalRow
                               actual={
+                                props.actuals
+                                  ? props.actuals.byCommittee
+                                      .filter(
+                                        (value) =>
+                                          value.year === year &&
+                                          selectedCommittees.includes(value.committeeId),
+                                      )
+                                      .reduce((total, actual) => actual.total + total, 0)
+                                  : null
+                              }
+                              sapActual={
                                 props.actuals && 'byCommittee' in props.actuals
                                   ? props.actuals?.yearlyActuals?.find(
                                       (actual) => actual.year === year,
@@ -499,13 +510,9 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                   : fields
                               }
                               actualsLoading={props.actualsLoading}
-                              actuals={
-                                props.actuals && 'byCommittee' in props.actuals
-                                  ? props.actuals?.byCommittee?.filter(
-                                      (c) => c.committeeId === committee.id && c.year === year,
-                                    )
-                                  : props.actuals?.filter((c) => c.year === year)
-                              }
+                              actuals={props.actuals?.byCommittee?.filter(
+                                (c) => c.committeeId === committee.id && c.year === year,
+                              )}
                               disableBorder={selectedCommittees.length > 1}
                             />
                           ))}
