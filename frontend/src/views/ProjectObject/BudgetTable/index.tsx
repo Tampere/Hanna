@@ -10,24 +10,19 @@ import {
   Typography,
   css,
 } from '@mui/material';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 import { Fragment, forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { HelpTooltip } from '@frontend/components/HelpTooltip';
-import { langAtom, useTranslations } from '@frontend/stores/lang';
+import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { dirtyAndValidFieldsAtom } from '@frontend/stores/projectView';
-import { useCodes } from '@frontend/utils/codes';
+import { BudgetContentRow } from '@frontend/views/Project/BudgetTable/BudgetContentRow';
+import { TotalRow } from '@frontend/views/Project/BudgetTable/TotalRow';
 
-import { Code } from '@shared/schema/code';
 import { ProjectYearBudget } from '@shared/schema/project';
-import { YearlyActuals, yearlyAndCommitteeActuals } from '@shared/schema/sapActuals';
-
-import { BudgetContentRow } from './BudgetContentRow';
-import { CommitteeSelection } from './CommitteeSelection';
-import { TotalRow } from './TotalRow';
-import { YearTotalRow } from './YearTotalRow';
+import { YearlyActuals } from '@shared/schema/sapActuals';
 
 export const TABLE_CELL_CONTENT_CLASS = 'table-cell-content';
 
@@ -45,8 +40,7 @@ interface Props {
   years: number[];
   budget: readonly ProjectYearBudget[];
   onSave: (budget: ProjectYearBudget[]) => Promise<void>;
-  committees?: Code['id']['id'][];
-  actuals?: yearlyAndCommitteeActuals;
+  actuals?: YearlyActuals;
   actualsLoading?: boolean;
   writableFields?: BudgetField[];
   fields?: BudgetField[];
@@ -61,28 +55,9 @@ function getFieldTotalValueByYear(
   formValues?: BudgetFormValues,
 ) {
   if (!formValues) return null;
+  console.log(formValues);
   return Object.values(formValues).reduce((total, budgetItem) => {
     return (total || 0) + ((budgetItem['total'] && budgetItem['total'][fieldName]) ?? 0);
-  }, 0);
-}
-
-function getFieldTotalValueByCommittee(
-  fieldName: keyof ProjectYearBudget['budgetItems'],
-  selectedCommittees: string[],
-  formValues?: BudgetFormValues,
-) {
-  if (!formValues) return null;
-  return Object.values(formValues).reduce((total, budgetItem) => {
-    return (
-      (total || 0) +
-      Object.entries(budgetItem)
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        .filter(([committee, _]) => selectedCommittees.includes(committee))
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        .reduce((committeeTotal, [_, committeeItem]) => {
-          return committeeTotal + (committeeItem[fieldName] ?? 0);
-        }, 0)
-    );
   }, 0);
 }
 
@@ -179,7 +154,6 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     ...props,
   };
 
-  const [selectedCommittees, setSelectedCommittees] = useState<string[]>(props.committees ?? []);
   const tr = useTranslations();
   const form = useForm<BudgetFormValues>({ mode: 'all', defaultValues: {} });
   const { isDirty, dirtyFields } = form.formState;
@@ -189,8 +163,6 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   useNavigationBlocker(Object.keys(dirtyFields).length > 0, 'budgetTable', () => {
     setDirtyAndValidViews((prev) => ({ ...prev, finances: { isDirtyAndValid: false } }));
   });
-  const lang = useAtomValue(langAtom);
-  const committeeCodes = useCodes('Lautakunta');
 
   useImperativeHandle(
     ref,
@@ -234,15 +206,6 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     );
   }
 
-  const committees = useMemo(
-    () =>
-      selectedCommittees?.map((committee) => ({
-        id: committee,
-        text: committeeCodes.get(committee)?.[lang].replace(/lautakunta/g, ' ') ?? '',
-      })),
-    [selectedCommittees, committeeCodes],
-  );
-
   /**
    * Convert budget from object into a simple array for the form
    */
@@ -252,7 +215,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     }
 
     // Fill in all the years within the project's range
-    form.reset(budgetToFormValues([...budget], years, props.committees));
+    form.reset(budgetToFormValues([...budget], years));
   }, [budget, years]);
 
   useEffect(() => {
@@ -271,27 +234,17 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   return !budget ? null : (
     <>
       <FormProvider {...form}>
-        {props.committees && (
-          <CommitteeSelection
-            availableCommittees={props.committees}
-            selectedCommittees={selectedCommittees}
-            setSelectedCommittees={setSelectedCommittees}
-          />
-        )}
-
         <form
           css={css`
             tr:nth-last-of-type(2) {
               td {
-                ${(selectedCommittees.length === 1 || selectedCommittees.length === 0) &&
-                'padding-bottom: 13px;'}
+                ${'padding-bottom: 13px;'}
               }
             }
 
             td {
               text-align: right;
-              ${(selectedCommittees.length === 1 || selectedCommittees.length === 0) &&
-              'padding-top: 10px;padding-bottom: 10px;'}
+              ${'padding-top: 10px;padding-bottom: 10px;'}
             }
 
             & .MuiFormControl-root {
@@ -317,11 +270,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
               <TableHead
                 css={css`
                   position: sticky;
-                  top: ${props.committees &&
-                  props.committees.length > 1 &&
-                  selectedCommittees.length > 0
-                    ? '40px'
-                    : 0};
+
                   background-color: white;
                   box-shadow: 0 1px 0 0 rgba(224, 224, 224, 1);
                   z-index: 1;
@@ -355,11 +304,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                       )}
                     </Box>
                   </TableCell>
-                  {fields.includes('committee') && selectedCommittees.length > 1 && (
-                    <TableCell css={cellStyle}>
-                      <Typography variant="overline">{tr('budgetTable.committee')}</Typography>
-                    </TableCell>
-                  )}
+
                   {fields?.includes('estimate') && (
                     <TableCell>
                       <Box className="column-header">
@@ -465,106 +410,30 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                 `}
               >
                 {years?.map((year, yearIdx) => {
+                  console.log(year, fields);
                   return (
                     <Fragment key={year}>
-                      {fields.includes('committee') ? (
-                        <Fragment>
-                          {selectedCommittees.length > 1 && (
-                            <YearTotalRow
-                              actual={
-                                props.actuals
-                                  ? props.actuals.byCommittee
-                                      .filter(
-                                        (value) =>
-                                          value.year === year &&
-                                          selectedCommittees.includes(value.committeeId),
-                                      )
-                                      .reduce((total, actual) => actual.total + total, 0)
-                                  : null
-                              }
-                              sapActual={
-                                props.actuals && 'byCommittee' in props.actuals
-                                  ? props.actuals?.yearlyActuals?.find(
-                                      (actual) => actual.year === year,
-                                    )?.total ?? null
-                                  : null
-                              }
-                              actualsLoading={Boolean(props.actualsLoading)}
-                              fields={fields}
-                              selectedCommittees={selectedCommittees}
-                              formValues={watch}
-                              year={year}
-                            />
-                          )}
-
-                          {committees?.map((committee) => (
-                            <BudgetContentRow
-                              key={committee.id}
-                              committee={committee}
-                              year={year}
-                              includeYearColumn={selectedCommittees.length === 1}
-                              writableFields={writableFields}
-                              fields={
-                                selectedCommittees.length === 1
-                                  ? fields.filter((f) => f !== 'committee')
-                                  : fields
-                              }
-                              actualsLoading={props.actualsLoading}
-                              actuals={props.actuals?.byCommittee?.filter(
-                                (c) => c.committeeId === committee.id && c.year === year,
-                              )}
-                              disableBorder={selectedCommittees.length > 1}
-                            />
-                          ))}
-                          {selectedCommittees.length > 1 && (
-                            <TableRow
-                              css={css`
-                                height: 1rem;
-                                border-bottom: ${yearIdx !== years.length - 1
-                                  ? '1px solid rgba(224, 224, 224, 1)'
-                                  : 'none'};
-                              `}
-                            />
-                          )}
-                        </Fragment>
-                      ) : (
+                      {
                         <BudgetContentRow
                           year={year}
                           includeYearColumn
                           writableFields={writableFields}
                           fields={fields}
                           actualsLoading={props.actualsLoading}
-                          actuals={
-                            props.actuals && 'yearlyActuals' in props.actuals
-                              ? props.actuals?.yearlyActuals
-                              : null
-                          }
+                          actuals={props.actuals}
                         />
-                      )}
+                      }
                     </Fragment>
                   );
                 })}
 
                 <TotalRow
-                  committeeColumnVisible={selectedCommittees.length > 1}
-                  actuals={
-                    props.actuals && 'yearlyActuals' in props.actuals
-                      ? props.actuals?.yearlyActuals
-                      : props.actuals
-                  }
+                  committeeColumnVisible={false}
+                  actuals={props.actuals}
                   actualsLoading={Boolean(props.actualsLoading)}
-                  fields={
-                    selectedCommittees.length === 1
-                      ? fields.filter((f) => f !== 'committee')
-                      : fields
-                  }
+                  fields={fields}
                   formValues={watch}
-                  getFieldValue={
-                    fields.includes('committee')
-                      ? (fieldName, formValues) =>
-                          getFieldTotalValueByCommittee(fieldName, selectedCommittees, formValues)
-                      : getFieldTotalValueByYear
-                  }
+                  getFieldValue={getFieldTotalValueByYear}
                 />
               </TableBody>
             </Table>

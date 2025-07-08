@@ -1,10 +1,11 @@
 import { Skeleton, TableCell, TableRow, css } from '@mui/material';
 
 import { CurrencyInput } from '@frontend/components/forms/CurrencyInput';
+import { SapActualsIcon } from '@frontend/components/icons/SapActuals';
 
 import { ProjectYearBudget } from '@shared/schema/project';
 
-import { BudgetField, BudgetFormValues } from '.';
+import { BudgetField, BudgetFormValues, TABLE_CELL_CONTENT_CLASS } from '.';
 
 export function getValueTextColor(value: number | null) {
   return value && value < 0 ? 'red' : 'inherit';
@@ -15,6 +16,7 @@ interface Props {
   formValues: BudgetFormValues;
   selectedCommittees: string[];
   year: number;
+  sapActual: number | null;
   actual: number | null;
   actualsLoading: boolean;
 }
@@ -23,6 +25,7 @@ export function YearTotalRow({
   fields,
   formValues,
   year,
+  sapActual,
   actualsLoading,
   actual,
   selectedCommittees,
@@ -80,11 +83,14 @@ export function YearTotalRow({
       {fields?.includes('actual') && (
         <TableCell>
           {!actualsLoading ? (
-            <CurrencyInput
-              allowNegative
-              value={actual}
-              placeholder={actual == null ? '–' : undefined}
-            />
+            <span className={TABLE_CELL_CONTENT_CLASS}>
+              <CurrencyInput
+                allowNegative
+                value={actual}
+                placeholder={actual == null ? '–' : undefined}
+              />
+              <SapActualsIcon sapActual={sapActual}></SapActualsIcon>
+            </span>
           ) : (
             <Skeleton variant="rectangular" animation="wave">
               <CurrencyInput value={actual} />
