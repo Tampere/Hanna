@@ -2,7 +2,7 @@
   "type": "module",
   "dependencies": {
     "@types/oidc-provider": "^8.4.2",
-    "oidc-provider": "^8.4.3",
+    "oidc-provider": "^9.4.0",
     "ts-node": "^10.9.1"
   },
   "devDependencies": {
