@@ -472,7 +472,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                           {selectedCommittees.length > 1 && (
                             <YearTotalRow
                               actual={
-                                props.actuals
+                                props.actuals && props.actuals.byCommittee
                                   ? props.actuals.byCommittee
                                       .filter(
                                         (value) =>
