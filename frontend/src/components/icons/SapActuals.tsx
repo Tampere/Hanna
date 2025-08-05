@@ -6,7 +6,6 @@ import { useTranslations } from '@frontend/stores/lang';
 
 export function SapActualsIcon({ sapActual }: { sapActual: number | null }) {
   const tr = useTranslations();
-  console.log(tr('sapActualsOnHover'))
   return (
     <Tooltip
       title={`${formatCurrency(sapActual || 0)} (${tr('sapActualsOnHover')})`}
