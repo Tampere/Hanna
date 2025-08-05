@@ -95,14 +95,6 @@ export function Toolbar() {
               <ListItemText>{tr('newProject.newMaintenanceProject')}</ListItemText>
             </MenuItem>
           )}
-          {auth && hasPermission(auth, 'detailplanProject.write') && (
-            <MenuItem component={Link} to="/asemakaavahanke/luo">
-              <ListItemIcon>
-                <Add />
-              </ListItemIcon>
-              <ListItemText>{tr('newProject.newDetailplanProject')}</ListItemText>
-            </MenuItem>
-          )}
         </Menu>
       </div>
     </Box>

@@ -6,7 +6,6 @@ import { useTranslations } from '@frontend/stores/lang';
 
 export function SapActualsIcon({ sapActual }: { sapActual: number | null }) {
   const tr = useTranslations();
-  console.log(tr('sapActualsOnHover'))
   return (
     <Tooltip
       title={`${formatCurrency(sapActual || 0)} (${tr('sapActualsOnHover')})`}
@@ -17,9 +16,8 @@ export function SapActualsIcon({ sapActual }: { sapActual: number | null }) {
         css={css`
           height: 32px;
           width: 32px;
-          /* Add the hover effect here */
           &:hover .icon-path {
-            fill: ${theme.palette.primary.main}; /* Change to your desired hover color */
+            fill: ${theme.palette.primary.main};
           }
         `}
         viewBox="0 0 24 24"
