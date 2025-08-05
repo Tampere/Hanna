@@ -33,8 +33,6 @@ export function ModifyButton({
   onCancel,
   projectType,
 }: Props) {
-  console.log(projectType);
-
   const tr = useTranslations();
   const [popupOpen, setPopupOpen] = useState(false);
 
