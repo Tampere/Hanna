@@ -88,7 +88,7 @@ export const createSapRouter = (t: TRPC) =>
 
         const returnSchema = z.object({ result: yearlyAndCommitteeActualsSchema });
         const dbResult = await getPool().maybeOne(sql.type(returnSchema)`
-          WITH yearly_totals_by_wbs as (SELECT fiscal_year, wbs_element_id, sum(value_in_currency_subunit) AS total
+          WITH yearly_totals_by_wbs AS (SELECT fiscal_year, wbs_element_id, sum(value_in_currency_subunit) AS total
           FROM app.sap_actuals_item
           WHERE sap_project_id IN (
               SELECT sap_project_id
@@ -98,24 +98,24 @@ export const createSapRouter = (t: TRPC) =>
             AND fiscal_year <= ${endYear}
             AND document_type <> 'AA'
           GROUP BY fiscal_year, wbs_element_id),
-          yearly_totals_by_committee as (
-            SELECT ytbc.fiscal_year, (poc.committee_type).id as committee_id, sum(ytbc.total) as total FROM
+          yearly_totals_by_committee AS (
+            SELECT ytbc.fiscal_year, (poc.committee_type).id as committee_id, sum(ytbc.total) AS total FROM
               yearly_totals_by_wbs ytbc
-                LEFT join app.project_object po on ytbc.wbs_element_id = po.sap_wbs_id
-                left join app.project_object_committee poc on po.id = poc.project_object_id
-            where poc.committee_type is not null
-            group by ytbc.fiscal_year, poc.committee_type
-            order by ytbc.fiscal_year, poc.committee_type
+                LEFT JOIN app.project_object po ON ytbc.wbs_element_id = po.sap_wbs_id AND po.project_id = ${input.projectId} AND NOT po.deleted
+                LEFT JOIN app.project_object_committee poc ON po.id = poc.project_object_id
+            WHERE poc.committee_type IS NOT NULL
+            GROUP BY ytbc.fiscal_year, poc.committee_type
+            ORDER BY ytbc.fiscal_year, poc.committee_type
           ),
           overall_yearly_totals AS ( -- Calculate the overall yearly totals
             SELECT
               fiscal_year,
-              sum(total) AS total
+              SUM(total) AS total
             FROM
               yearly_totals_by_wbs
             GROUP BY
               fiscal_year
-            order by fiscal_year
+            ORDER BY fiscal_year
           ),
         committee_json AS (
           SELECT jsonb_agg(
