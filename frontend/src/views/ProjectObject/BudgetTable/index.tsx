@@ -55,7 +55,6 @@ function getFieldTotalValueByYear(
   formValues?: BudgetFormValues,
 ) {
   if (!formValues) return null;
-  console.log(formValues);
   return Object.values(formValues).reduce((total, budgetItem) => {
     return (total || 0) + ((budgetItem['total'] && budgetItem['total'][fieldName]) ?? 0);
   }, 0);
@@ -410,7 +409,6 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                 `}
               >
                 {years?.map((year, yearIdx) => {
-                  console.log(year, fields);
                   return (
                     <Fragment key={year}>
                       {
