@@ -79,7 +79,7 @@ export const ProjectObjectFinances = forwardRef(function ProjectObjectFinances<
           .map((yearBudget) => ({
             ...yearBudget.budgetItems,
             year: yearBudget.year,
-            committee: yearBudget.committee,
+            committee: projectObject.data.committee,
           }))
           .filter<InvestmentProjectBudget>((item): item is InvestmentProjectBudget =>
             Boolean(item.committee),
