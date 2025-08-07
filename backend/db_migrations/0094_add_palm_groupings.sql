@@ -57,7 +57,7 @@ VALUES
         'PALM-koritus 10'
     );
 
--- ALTER TABLE
---     app.
--- ADD
---     COLUMN target app.code_id DEFAULT ('PalmKoritus', '00');
+ALTER TABLE
+    app.project
+ADD
+    COLUMN target app.code_id DEFAULT ('PalmKoritus', '00');
