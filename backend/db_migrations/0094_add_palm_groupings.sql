@@ -60,4 +60,9 @@ VALUES
 ALTER TABLE
     app.project
 ADD
-    COLUMN target app.code_id DEFAULT ('PalmKoritus', '00');
+    COLUMN palm_grouping app.code_id DEFAULT ('PalmKoritus', '00');
+
+ALTER TABLE
+    app.project_object
+ADD
+    COLUMN palm_grouping app.code_id DEFAULT ('PalmKoritus', '00');
