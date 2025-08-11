@@ -150,7 +150,7 @@ export async function setupWorkTableReportQueue() {
         objectStartDate: (row) => dayjs(row.objectDateRange.startDate).format(reportDateFormat),
         objectEndDate: (row) => dayjs(row.objectDateRange.endDate).format(reportDateFormat),
         objectType: (row) =>
-          codes.objectType.find((code) => row.objectType === code.id.id)?.text['fi'],
+          codes.objectType.find((code) => row.objectType[0] === code.id.id)?.text['fi'],
         objectCategory: (row) => formatIdArrayToText(row.objectCategory, 'objectCategory'),
         objectUsage: (row) => formatIdArrayToText(row.objectUsage, 'objectUsage'),
         committee: (row) => formatIdArrayToText([row.committee], 'committee'),
