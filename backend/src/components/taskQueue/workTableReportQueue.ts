@@ -1,8 +1,11 @@
 import dayjs from 'dayjs';
-import { Workbook } from 'excel4node';
+import { Workbook, Worksheet } from 'excel4node';
 
 import { getCodesForCodeList } from '@backend/components/code/index.js';
-import { buildSheet } from '@backend/components/report/index.js';
+import {
+  buildInvestmentTypeListingReportSheet,
+  buildSheet,
+} from '@backend/components/report/index.js';
 import { saveReportFile } from '@backend/components/report/report-file.js';
 import { getAllUsers } from '@backend/components/user/index.js';
 import { env } from '@backend/env.js';
@@ -28,7 +31,10 @@ const queueName = 'work-table-report';
 
 type JobData = WorkTableSearch;
 
-type ReportColumnKey = Exclude<Partial<Suffix<TranslationKey, 'workTable.export.'>>, 'label'>;
+export type ReportColumnKey = Exclude<
+  Partial<Suffix<TranslationKey, 'workTable.export.'>>,
+  'label'
+>;
 
 export async function setupWorkTableReportQueue() {
   getTaskQueue().work<JobData>(
@@ -185,21 +191,31 @@ export async function setupWorkTableReportQueue() {
 
       const financeColumns = ['amount', 'actual', 'forecast', 'kayttosuunnitelmanMuutos'];
 
-      const sheet = buildSheet<ReportColumnKey>({
-        workbook,
-        sheetTitle: translations['fi']['workTable.export.label'],
-        rows: getRows(),
-        headers: headers,
-        types: {
-          amount: 'currency',
-          actual: 'currency',
-          forecast: 'currency',
-          kayttosuunnitelmanMuutos: 'currency',
-        },
-        sum: (data.reportTemplate && templateColumns[data.reportTemplate])?.filter((column) =>
-          financeColumns.includes(column),
-        ) as ReportColumnKey[],
-      });
+      let sheet: Worksheet | undefined;
+
+      if (data.reportTemplate === 'investmentTypeListing') {
+        sheet = buildInvestmentTypeListingReportSheet({
+          workbook,
+          sheetTitle: translations['fi']['workTable.export.label'],
+          rows: getRows(),
+        });
+      } else {
+        sheet = buildSheet<ReportColumnKey>({
+          workbook,
+          sheetTitle: translations['fi']['workTable.export.label'],
+          rows: getRows(),
+          headers: headers,
+          types: {
+            amount: 'currency',
+            actual: 'currency',
+            forecast: 'currency',
+            kayttosuunnitelmanMuutos: 'currency',
+          },
+          sum: (data.reportTemplate && templateColumns[data.reportTemplate])?.filter((column) =>
+            financeColumns.includes(column),
+          ) as ReportColumnKey[],
+        });
+      }
 
       if (!sheet) {
         return;
@@ -210,6 +226,7 @@ export async function setupWorkTableReportQueue() {
         basic: translations['fi']['workTable.basicReport'],
         expences: translations['fi']['workTable.expencesReport'],
         roles: translations['fi']['workTable.rolesReport'],
+        investmentTypeListing: translations['fi']['workTable.investmentTypeListingReport'],
       };
 
       await saveReportFile(id, `${workbookNames[data.reportTemplate ?? 'print']}.xlsx`, workbook);

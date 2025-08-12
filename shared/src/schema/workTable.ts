@@ -50,7 +50,7 @@ export const workTableRowSchema = z.object({
 
 const workTableColumnKeys = workTableRowSchema.keyof().exclude(['id', 'permissionCtx']);
 export type WorkTableColumn = z.infer<typeof workTableColumnKeys>;
-const reportTemplate = z.enum(['print', 'basic', 'expences', 'roles']);
+const reportTemplate = z.enum(['print', 'basic', 'expences', 'roles', 'investmentTypeListing']);
 
 export const workTableSearchSchema = z.object({
   projectName: z.string().optional(),
@@ -128,6 +128,7 @@ export const templateColumns: Record<ReportTemplate, WorkTableColumn[]> = {
     'sapProjectId',
     'sapWbsId',
   ],
+  investmentTypeListing: ['projectLink', 'objectName', 'objectType', 'amount'],
   basic: [
     'projectLink',
     'projectDateRange',

@@ -8,11 +8,21 @@ declare module 'excel4node' {
     dateFormat?: string;
   }
 
+  export interface WorkSheetOptions {
+    sheetView?: {
+      showGridLines?: boolean;
+    };
+  }
+
   export interface StyleOptions {
     font?: {
       bold?: boolean;
     };
     numberFormat?: string;
+    alignment?: {
+      indent?: number;
+    };
+    border?: Record<'top' | 'bottom', { style: string; color: string }>;
   }
 
   export class Column {
@@ -41,7 +51,7 @@ declare module 'excel4node' {
 
   export class Workbook {
     constructor(options?: WorkbookOptions);
-    addWorksheet(name: string): Worksheet;
+    addWorksheet(name: string, options?: WorkSheetOptions): Worksheet;
     createStyle(options: StyleOptions): Style;
     writeToBuffer(): Promise<Buffer>;
   }
