@@ -4,6 +4,7 @@ import { logger } from '@backend/logging.js';
 
 import { ProjectSearch } from '@shared/schema/project/index.js';
 
+import { ReportColumnKey } from '../taskQueue/workTableReportQueue.js';
 import { buildDetailplanCatalogSheet } from './detailplanProject.js';
 import { buildInvestmentProjectReportSheet } from './investmentProject.js';
 import { buildMaintenanceProjectReportSheet } from './maintenanceProject.js';
@@ -29,6 +30,33 @@ function generateSumCell(sheet: Worksheet, rowIndex: number, columnIndex: number
   // Generate a sum formula using the alphanumeric references
   cell.formula(`SUM(${column}2:${column}${Number(row) - 1})`);
   return cell;
+}
+
+function updateColumnWidths(
+  current: number[],
+  columnIndex: number,
+  cellValue: string | number | Date,
+  isCurrencyType: boolean,
+  maxWidth?: number,
+) {
+  const columnMax = maxWidth ?? columnMaxWidth;
+  const text =
+    cellValue instanceof Date ? cellValue.toLocaleDateString('fi-FI') : String(cellValue);
+
+  let width = calculateTextWidth({
+    text,
+    fontName: 'Calibri',
+    fontSize: '12px',
+    fontWeight: 'normal',
+  });
+
+  if (isCurrencyType) {
+    width *= 1.5;
+  }
+
+  if (width > current[columnIndex]) {
+    current[columnIndex] = width <= columnMax ? width : columnMax;
+  }
 }
 
 /**
@@ -107,22 +135,7 @@ export function buildSheet<ColumnKey extends string>({
         cell.string(value);
       }
 
-      // Calculate the width of the cell - if it's larger than the previously widest column, replace it
-      let width = calculateTextWidth({
-        text: value,
-        fontName: 'Calibri',
-        fontSize: '12px',
-        fontWeight: 'normal',
-      });
-
-      // For formatted currency fields multiply the width by a fixed ratio
-      if (isCurrencyType) {
-        width *= 1.5;
-      }
-
-      if (width > columnWidths[column]) {
-        columnWidths[column] = width <= columnMaxWidth ? width : columnMaxWidth;
-      }
+      updateColumnWidths(columnWidths, column, value, isCurrencyType);
     });
   });
 
@@ -134,6 +147,137 @@ export function buildSheet<ColumnKey extends string>({
       .style(boldStyle);
     sheet.column(index + 1).setWidth(columnWidths[index] * excelWidthFactor);
   });
+
+  return sheet;
+}
+
+export function buildInvestmentTypeListingReportSheet({
+  workbook,
+  sheetTitle,
+  rows,
+}: {
+  workbook: Workbook;
+  sheetTitle: string;
+  rows: readonly { [field in ReportColumnKey]?: ReportFieldValue }[];
+}) {
+  if (!rows.length) {
+    return;
+  }
+
+  const boldStyle = workbook.createStyle({
+    font: {
+      bold: true,
+    },
+  });
+
+  const typeRowStyle = workbook.createStyle({
+    border: {
+      bottom: { style: 'thin', color: '#c9c9c9' },
+      top: { style: 'thin', color: '#c9c9c9' },
+    },
+  });
+
+  const projectIndentStyle = workbook.createStyle({
+    alignment: {
+      indent: 2,
+    },
+  });
+
+  const objectIndentStyle = workbook.createStyle({
+    alignment: {
+      indent: 4,
+    },
+  });
+
+  const currencyStyle = workbook.createStyle({
+    numberFormat: '#,##0.00 "€"',
+  });
+
+  const sheet = workbook.addWorksheet(sheetTitle, {
+    sheetView: { showGridLines: false },
+  });
+
+  // Initialize column widths
+  const columnWidths = [200, 200];
+
+  const sheetData = rows.reduce<
+    Record<string, Record<string, { [field in ReportColumnKey]?: ReportFieldValue }[]>>
+  >((data, row) => {
+    if (typeof row.objectType === 'string' && typeof row.projectName === 'string') {
+      if (!data[row.objectType]) {
+        data[row.objectType] = {};
+      }
+      if (data[row.objectType][row.projectName]) {
+        data[row.objectType][row.projectName].push(row);
+      } else {
+        data[row.objectType][row.projectName] = [row];
+      }
+    }
+    return data;
+  }, {});
+
+  let latestRowIndex = 1;
+  // First group by object type
+  Object.entries(sheetData).forEach(([objectType, rows]) => {
+    latestRowIndex++;
+    const cell = sheet.cell(latestRowIndex, 1);
+    cell.string(objectType).style(boldStyle).style(typeRowStyle);
+    const amountCell = sheet.cell(latestRowIndex, 2);
+    const totalAmount = Object.values(rows).reduce((sum, projectRows) => {
+      return (
+        sum +
+        projectRows.reduce((projectSum, row) => {
+          if (typeof row.amount === 'number') {
+            return projectSum + row.amount;
+          }
+          return projectSum;
+        }, 0)
+      );
+    }, 0);
+    amountCell.number(totalAmount).style(currencyStyle).style(boldStyle).style(typeRowStyle);
+    updateColumnWidths(columnWidths, 0, objectType, false, 1200);
+    updateColumnWidths(columnWidths, 1, totalAmount, true);
+    // Then group by project name
+    Object.entries(rows).forEach(([projectName, projectRows]) => {
+      latestRowIndex++;
+      const projectCell = sheet.cell(latestRowIndex, 1);
+      projectCell.string(projectName).style(boldStyle).style(projectIndentStyle);
+
+      const amountCell = sheet.cell(latestRowIndex, 2);
+      const totalAmount = projectRows.reduce((sum, row) => {
+        if (typeof row.amount === 'number') {
+          return sum + row.amount;
+        }
+        return sum;
+      }, 0);
+      amountCell.number(totalAmount).style(currencyStyle).style(boldStyle);
+      updateColumnWidths(columnWidths, 0, projectName, false, 1200);
+      updateColumnWidths(columnWidths, 1, totalAmount, true);
+      // Then list project objects
+      projectRows.forEach((objectRow) => {
+        latestRowIndex++;
+        const objectNameCell = sheet.cell(latestRowIndex, 1);
+        objectNameCell
+          .string((objectRow.objectName as string | undefined) ?? '')
+          .style(objectIndentStyle);
+        const amountCell = sheet.cell(latestRowIndex, 2);
+        updateColumnWidths(columnWidths, 0, objectRow.objectName ?? '', false, 1200);
+
+        if (typeof objectRow.amount === 'number') {
+          amountCell.number(objectRow.amount).style(currencyStyle);
+          updateColumnWidths(columnWidths, 1, objectRow.amount, true);
+        }
+      });
+    });
+  });
+
+  sheet.column(1).setWidth(columnWidths[0] * excelWidthFactor);
+  sheet.column(2).setWidth(columnWidths[1] * excelWidthFactor);
+
+  // Visually hide columns beyond the used ones
+  for (let c = 3; c <= 5; c++) {
+    sheet.column(c).setWidth(1);
+  }
 
   return sheet;
 }

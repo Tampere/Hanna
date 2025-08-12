@@ -434,6 +434,7 @@ export default function WorkTable() {
       title: tr('workTable.rolesReport'),
       reportTemplate: 'roles',
     },
+    { title: tr('workTable.investmentTypeListingReport'), reportTemplate: 'investmentTypeListing' },
   ];
 
   function calculateUsedSearchParamsCount(searchParams: WorkTableSearch): number {
