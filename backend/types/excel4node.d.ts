@@ -22,7 +22,7 @@ declare module 'excel4node' {
     alignment?: {
       indent?: number;
     };
-    border?: Record<'top' | 'bottom', { style: string; color: string }>;
+    border?: Partial<Record<'top' | 'bottom', { style: string; color: string }>>;
   }
 
   export class Column {
