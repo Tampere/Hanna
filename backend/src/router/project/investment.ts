@@ -82,5 +82,22 @@ export const createInvestmentProjectRouter = (t: TRPC) => {
           return deleteProjectBudget(tx, input.projectId, input.committees, ctx.user.id);
         });
       }),
+    palmUpsert: t.procedure
+      .input(
+        z.object({ projectId: z.string(), palmGrouping: z.string().optional() }),
+      )
+      .use(withAccess((usr, ctx) => isAdmin(usr.role) || usr.permissions.includes('palmGroup')))
+      .mutation(async ({ input, ctx }) => {
+
+        const {projectId, palmGrouping} = input;
+        if (!projectId || !projectId) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Project ID is required' });
+        }
+        const baseProject = await getProject(projectId);
+        const project = { ...baseProject, palmGrouping: palmGrouping ?? '' };
+        return getPool().transaction(async (tx) => {
+          return await projectUpsert(project, ctx.user, true);
+        });
+      })
   });
 };
