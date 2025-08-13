@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { TextField, Typography } from '@mui/material';
+import { Button, Stack, TextField, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
@@ -117,6 +117,7 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
       target: '01',
       sapProjectId: null,
       coversMunicipality: false,
+      palmGrouping: '00'
     }),
     [currentUser],
   );
@@ -255,8 +256,8 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
     try {
       validOrEmptySAPId = data.sapProjectId
         ? await sap.doesSapProjectIdExist.fetch({
-            projectId: data.sapProjectId,
-          })
+          projectId: data.sapProjectId,
+        })
         : true;
     } catch {
       validOrEmptySAPId = false;
@@ -280,6 +281,28 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
       return Boolean(errors.root?.committeeFinancialsError) || !isValid || isSubmitting;
     }
     return Boolean(errors.root?.committeeFinancialsError) || !isValid || !isDirty || isSubmitting;
+  }
+
+  const [palmIsSubmitting, setPalmIsSubmitting] = useState(false);
+  const palmUpsertMutation = trpc.investmentProject.palmUpsert.useMutation();
+
+  async function onPalmSave() {
+    if (!props.project) return;
+    setPalmIsSubmitting(true);
+
+      try {
+        await palmUpsertMutation.mutateAsync({
+          projectId: form.getValues().projectId ?? '',
+          palmGrouping: form.getValues().palmGrouping,
+        });
+      } catch {
+        setPalmIsSubmitting(false);
+        return;
+      }
+    await queryClient.invalidateQueries({
+      queryKey: [['investmentProject', 'get'], { input: { projectId: form.getValues().projectId } }],
+    });
+    setPalmIsSubmitting(false);
   }
 
   return (
@@ -459,6 +482,31 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
                 value={field.value ?? ''}
                 size="small"
               />
+            )}
+          />
+        </form>
+      </FormProvider>
+      <FormProvider {...form}>
+        <form css={newProjectFormStyle} autoComplete="off">
+          <FormField
+            formField="palmGrouping"
+            label={tr('project.PalmGrouping')}
+            component={({ id, onChange, value }) => (<>
+              <CodeSelect
+                id={id}
+                value={value}
+                onChange={(onChange)}
+                codeListId="PalmKoritus"
+                readOnly={
+                  (!isAdmin(currentUser.role) || !currentUser.permissions.includes('palmGrouping.write')) && editing
+                }
+              />
+              {!editing && isDirty && (
+                <Stack direction="row" spacing={1} justifyContent={'flex-end'} sx={{ mt: 1 }}>
+                  <Button variant="outlined" disabled={palmIsSubmitting} onClick={() => form.reset()}> {tr('reject')}</Button>
+                  <Button variant="contained" disabled={palmIsSubmitting} onClick={onPalmSave}>{tr('save')}</Button>
+                </Stack>)}
+            </>
             )}
           />
         </form>

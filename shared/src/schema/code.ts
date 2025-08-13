@@ -34,6 +34,7 @@ export const codeListIdSchema = z.enum([
   'InvestointiKohdeKayttajaRooli',
   'KohteenToteutustapa',
   'HankkeenSitovuus',
+  'PalmKoritus'
 ]);
 
 export const codeIdSchema = z.object({

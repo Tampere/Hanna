@@ -88,6 +88,7 @@ export const fi = {
   'projectObjectListing.searchResultsTitle': 'Näytetään {0} kohdetta',
   'projectObjectListing.searchResultsTitleSingle': 'Näytetään yksi kohde',
   'projectObjectListing.searchResultsTitleExceeded': 'Kohteita on {0}. Täsmennä rajausta.',
+  'project.PalmGrouping': 'PALM-koritus',
   'project.projectNameLabel': 'Hankkeen nimi',
   'project.descriptionLabel': 'Kuvaus',
   'project.sapProjectIdLabel': 'SAP-projektin ID',

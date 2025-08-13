@@ -1,13 +1,13 @@
 import { z } from 'zod';
 
-import { userRoleSchema } from './userPermissions.js';
+import { permissionSchema, userRoleSchema } from './userPermissions.js';
 
 export const userSchema = z.object({
   id: z.string(),
   email: z.string(),
   name: z.string(),
   role: userRoleSchema,
-  permissions: z.array(z.string()),
+  permissions: z.array(permissionSchema),
 });
 
 export type User = z.infer<typeof userSchema>;

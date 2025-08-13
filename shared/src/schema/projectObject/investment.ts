@@ -8,6 +8,7 @@ export const newInvestmentProjectObjectSchema = newProjectObjectSchema.extend({
   objectStage: codeId,
   objectType: codeId,
   committee: nonEmptyString,
+  palmGrouping: codeId
 });
 
 export const updateInvestmentProjectObjectSchema = newInvestmentProjectObjectSchema

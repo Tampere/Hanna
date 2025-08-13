@@ -13,6 +13,7 @@ export const testInvestmentProject = (user: User) => ({
   sapProjectId: null,
   coversMunicipality: false,
   target: '01',
+  palmGrouping: '00',
 });
 
 export const testMaintenanceProject = (user: User) => ({
@@ -54,6 +55,7 @@ export const testProjectObject = (
   locationOnProperty: null,
   height: null,
   objectUserRoles: [],
+  palmGrouping: '00',
 });
 
 export const testProjectObject2 = (
@@ -82,6 +84,7 @@ export const testProjectObject2 = (
         height: null,
         objectType: '01',
         objectStage: '01',
+        palmGrouping: '00',
       }
     : { contract: 'contract n.1', procurementMethod: '01', poNumber: '123456' }),
 });
@@ -105,6 +108,7 @@ export const testProjectObject3 = (
   endDate: '2022-01-01',
   sapWBSId: null,
   objectUserRoles: [],
+  palmGrouping: '00',
   ...(type === 'investment'
     ? {
         landownership: null,
@@ -142,6 +146,7 @@ export const invalidDateProjectObject = (
         height: null,
         objectType: '01',
         objectStage: '01',
+        palmGrouping: '00',
       }
     : { contract: 'contract n.1', procurementMethod: '01', poNumber: '123456' }),
 });

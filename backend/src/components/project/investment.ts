@@ -26,6 +26,7 @@ const getSelectProjectFragment = (id: string) => sql.fragment`
 WITH dump AS (${getProjectGeometryDumpFragment()})
   SELECT
     project_investment.id AS "projectId",
+    (project_investment.palm_grouping).id AS "palmGrouping",
     project.id AS "parentId",
     project_name AS "projectName",
     description,
@@ -94,6 +95,7 @@ export async function projectUpsert(
     const data = {
       id,
       target: codeIdFragment('HankkeenSitovuus', project.target),
+      palm_grouping: codeIdFragment('PalmKoritus', project.palmGrouping),
     };
 
     const identifiers = Object.keys(data).map((key) => sql.identifier([key]));

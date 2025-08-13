@@ -31,9 +31,10 @@ export const ALL_PERMISSIONS = [
   'maintenanceProject.write',
   'investmentFinancials.write',
   'maintenanceFinancials.write',
+  'palmGrouping.write',
 ] as const;
 
-const permissionSchema = z.enum(ALL_PERMISSIONS);
+export const permissionSchema = z.enum(ALL_PERMISSIONS);
 
 type Permission = z.infer<typeof permissionSchema>;
 

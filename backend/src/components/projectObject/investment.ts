@@ -44,6 +44,7 @@ const getProjectObjectFragment = (ids: string | string[]) => sql.fragment`
      description AS "description",
      (lifecycle_state).id AS "lifecycleState",
      (poi.object_stage).id AS "objectStage",
+     (poi.palm_grouping).id AS "palmGrouping",
      (SELECT (committee_type).id FROM app.project_object_committee poc WHERE project_object.id = poc.project_object_id) AS committee,
      start_date AS "startDate",
      end_date AS "endDate",
@@ -161,6 +162,8 @@ function getUpdateData(
   const investmentData = {
     object_stage:
       projectObject.objectStage && codeIdFragment('KohteenLaji', projectObject.objectStage),
+    palm_grouping:
+      projectObject.palmGrouping && codeIdFragment('PalmKoritus', projectObject.palmGrouping),
   };
   // filter undefined values
   return {
