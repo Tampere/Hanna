@@ -29,6 +29,7 @@ const invalidDateProject = {
   committees: ['01'],
   sapProjectId: null,
   target: '01',
+  palmGrouping: '00',
 };
 
 const testProjectObject = (projectId: string, committees: string[], user: User) => ({
@@ -48,6 +49,7 @@ const testProjectObject = (projectId: string, committees: string[], user: User) 
   locationOnProperty: null,
   height: null,
   objectUserRoles: [],
+  palmGrouping: '00',
 });
 
 const validProject = (userId: string, projectName = 'Test project') => ({
@@ -61,6 +63,7 @@ const validProject = (userId: string, projectName = 'Test project') => ({
   sapProjectId: null,
   coversMunicipality: false,
   target: '01',
+  palmGrouping: '00',
 });
 
 test.describe('Project endpoints', () => {

@@ -17,6 +17,7 @@ const validProject = (userId: string) => ({
   sapProjectId: null,
   coversMunicipality: false,
   target: '01',
+  palmGrouping: '00',
 });
 
 function findUserByEmail(users: readonly User[], email: string) {
@@ -110,6 +111,7 @@ test.describe('permission testing', () => {
       startDate: '2021-01-01',
       endDate: '2022-01-01',
       objectUserRoles: [],
+      palmGrouping: '00',
     });
 
     expect(
@@ -148,6 +150,7 @@ test.describe('permission testing', () => {
       startDate: '2021-01-01',
       endDate: '2022-01-01',
       objectUserRoles: [],
+      palmGrouping: '00',
     });
 
     expect(
