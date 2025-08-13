@@ -117,6 +117,7 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
       target: '01',
       sapProjectId: null,
       coversMunicipality: false,
+      palmGrouping: '00'
     }),
     [currentUser],
   );
