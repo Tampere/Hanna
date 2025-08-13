@@ -287,8 +287,8 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
   const palmUpsertMutation = trpc.investmentProject.palmUpsert.useMutation();
 
   async function onPalmSave() {
+    if (!props.project) return;
     setPalmIsSubmitting(true);
-    if (props.project) {
 
       try {
         await palmUpsertMutation.mutateAsync({
@@ -299,7 +299,6 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
         setPalmIsSubmitting(false);
         return;
       }
-    }
     await queryClient.invalidateQueries({
       queryKey: [['investmentProject', 'get'], { input: { projectId: form.getValues().projectId } }],
     });

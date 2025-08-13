@@ -329,12 +329,12 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
 
   async function onPalmSave() {
     setPalmIsSubmitting(true);
-    if (props.projectId && props.projectObject) {
+    if (props.projectId && props.projectObject && form.getValues().palmGrouping) {
 
       try {
         await palmUpsertMutation.mutateAsync({
           projectObjectId: form.getValues().projectObjectId ?? '',
-          palmGrouping: form.getValues().palmGrouping,
+          palmGrouping: form.getValues().palmGrouping ?? '00',
         });
       } catch {
         setPalmIsSubmitting(false);

@@ -146,13 +146,13 @@ export const createInvestmentProjectObjectRouter = (t: TRPC) => {
       }),
           palmUpsert: t.procedure
       .input(
-        z.object({ projectObjectId: z.string(), palmGrouping: z.string().optional() }),
+        z.object({ projectObjectId: z.string(), palmGrouping: z.string() }),
       )
       .use(withAccess((usr, ctx) => isAdmin(usr.role) || usr.permissions.includes('palmGrouping.write')))
       .mutation(async ({ input, ctx }) => {
 
         const {projectObjectId, palmGrouping} = input;
-        if (!projectObjectId || !projectObjectId) {
+        if (!projectObjectId ) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Project ID is required' });
         }
 
