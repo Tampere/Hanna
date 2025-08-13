@@ -86,7 +86,7 @@ export const createInvestmentProjectRouter = (t: TRPC) => {
       .input(
         z.object({ projectId: z.string(), palmGrouping: z.string().optional() }),
       )
-      .use(withAccess((usr, ctx) => isAdmin(usr.role) || usr.permissions.includes('palmGroup')))
+      .use(withAccess((usr, ctx) => isAdmin(usr.role) || usr.permissions.includes('palmGrouping.write')))
       .mutation(async ({ input, ctx }) => {
 
         const {projectId, palmGrouping} = input;

@@ -288,8 +288,6 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
   async function onPalmSave() {
     setPalmIsSubmitting(true);
     if (props.project) {
-      console.log(form.getValues());
-      console.log(props.project);
 
       try {
         await palmUpsertMutation.mutateAsync({
@@ -301,6 +299,9 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
         return;
       }
     }
+    await queryClient.invalidateQueries({
+      queryKey: [['investmentProject', 'get'], { input: { projectId: form.getValues().projectId } }],
+    });
     setPalmIsSubmitting(false);
   }
 
@@ -497,12 +498,12 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
                 onChange={(onChange)}
                 codeListId="PalmKoritus"
                 readOnly={
-                  !(isAdmin(currentUser.role) || currentUser.permissions.includes('palmGroup') && !editing)
+                  (!isAdmin(currentUser.role) || !currentUser.permissions.includes('palmGrouping.write')) && editing
                 }
               />
               {!editing && isDirty && (
                 <Stack direction="row" spacing={1} justifyContent={'flex-end'} sx={{ mt: 1 }}>
-                  <Button variant="outlined" disabled={palmIsSubmitting}>{tr('reject')}</Button>
+                  <Button variant="outlined" disabled={palmIsSubmitting} onClick={() => form.reset()}> {tr('reject')}</Button>
                   <Button variant="contained" disabled={palmIsSubmitting} onClick={onPalmSave}>{tr('save')}</Button>
                 </Stack>)}
             </>

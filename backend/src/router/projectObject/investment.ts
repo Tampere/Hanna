@@ -26,6 +26,7 @@ import { upsertInvestmentProjectObjectSchema } from '@shared/schema/projectObjec
 import {
   hasPermission,
   hasWritePermission,
+  isAdmin,
   ownsProject,
   userIsAdmin,
 } from '@shared/schema/userPermissions.js';
@@ -143,5 +144,23 @@ export const createInvestmentProjectObjectRouter = (t: TRPC) => {
           );
         });
       }),
+          palmUpsert: t.procedure
+      .input(
+        z.object({ projectObjectId: z.string(), palmGrouping: z.string().optional() }),
+      )
+      .use(withAccess((usr, ctx) => isAdmin(usr.role) || usr.permissions.includes('palmGrouping.write')))
+      .mutation(async ({ input, ctx }) => {
+
+        const {projectObjectId, palmGrouping} = input;
+        if (!projectObjectId || !projectObjectId) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Project ID is required' });
+        }
+
+        return getPool().transaction(async (tx) => {
+          const baseProjectObject = await getProjectObject(tx, projectObjectId);
+          const projectObject = { ...baseProjectObject, palmGrouping: palmGrouping ?? '' };
+          return await upsertProjectObject(tx, projectObject, ctx.user.id);
+        });
+      })
   });
 };
