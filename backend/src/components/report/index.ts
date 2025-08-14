@@ -177,6 +177,16 @@ export function buildInvestmentTypeListingReportSheet({
     },
   });
 
+  const amountSumStyle = workbook.createStyle({
+    font: {
+      bold: true,
+    },
+    border: {
+      top: { style: 'medium', color: '#c9c9c9' },
+    },
+    numberFormat: '#,##0.00 "€"',
+  });
+
   const projectIndentStyle = workbook.createStyle({
     alignment: {
       indent: 2,
@@ -217,13 +227,14 @@ export function buildInvestmentTypeListingReportSheet({
   }, {});
 
   let latestRowIndex = 1;
+  let totalAmount = 0;
   // First group by object type
   Object.entries(sheetData).forEach(([objectType, rows]) => {
     latestRowIndex++;
     const cell = sheet.cell(latestRowIndex, 1);
     cell.string(objectType).style(boldStyle).style(typeRowStyle);
     const amountCell = sheet.cell(latestRowIndex, 2);
-    const totalAmount = Object.values(rows).reduce((sum, projectRows) => {
+    const totalTypeAmount = Object.values(rows).reduce((sum, projectRows) => {
       return (
         sum +
         projectRows.reduce((projectSum, row) => {
@@ -234,9 +245,10 @@ export function buildInvestmentTypeListingReportSheet({
         }, 0)
       );
     }, 0);
-    amountCell.number(totalAmount).style(currencyStyle).style(boldStyle).style(typeRowStyle);
+    totalAmount += totalTypeAmount;
+    amountCell.number(totalTypeAmount).style(currencyStyle).style(boldStyle).style(typeRowStyle);
     updateColumnWidths(columnWidths, 0, objectType, false, 1200);
-    updateColumnWidths(columnWidths, 1, totalAmount, true);
+    updateColumnWidths(columnWidths, 1, totalTypeAmount, true);
     // Then group by project name
     Object.entries(rows).forEach(([projectName, projectRows]) => {
       latestRowIndex++;
@@ -270,6 +282,12 @@ export function buildInvestmentTypeListingReportSheet({
       });
     });
   });
+  // Add amount sum at the end
+  sheet.cell(latestRowIndex + 1, 1).style(amountSumStyle);
+  sheet
+    .cell(latestRowIndex + 1, 2)
+    .number(totalAmount)
+    .style(amountSumStyle);
 
   sheet.column(1).setWidth(columnWidths[0] * excelWidthFactor);
   sheet.column(2).setWidth(columnWidths[1] * excelWidthFactor);
