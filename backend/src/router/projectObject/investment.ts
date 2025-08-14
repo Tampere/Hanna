@@ -11,6 +11,7 @@ import {
   getProjectObject,
   getProjectObjectNewProjectCandidates,
   moveProjectObjectToProject,
+  updateProjectObjectPalmGrouping,
   upsertProjectObject,
 } from '@backend/components/projectObject/investment.js';
 import { getPool } from '@backend/db.js';
@@ -144,7 +145,7 @@ export const createInvestmentProjectObjectRouter = (t: TRPC) => {
           );
         });
       }),
-          palmUpsert: t.procedure
+      palmUpsert: t.procedure
       .input(
         z.object({ projectObjectId: z.string(), palmGrouping: z.string() }),
       )
@@ -157,9 +158,7 @@ export const createInvestmentProjectObjectRouter = (t: TRPC) => {
         }
 
         return getPool().transaction(async (tx) => {
-          const baseProjectObject = await getProjectObject(tx, projectObjectId);
-          const projectObject = { ...baseProjectObject, palmGrouping: palmGrouping ?? '' };
-          return await upsertProjectObject(tx, projectObject, ctx.user.id);
+          return await updateProjectObjectPalmGrouping(tx, projectObjectId, palmGrouping, ctx.user.id);
         });
       })
   });

@@ -173,3 +173,24 @@ export async function deleteProjectBudget(
   WHERE project_id = ${projectId}
   AND (committee).id = ANY(${sql.array(committees, 'text')})`);
 }
+
+export async function updateProjectPalmGrouping(
+  tx: DatabaseTransactionConnection,
+  projectId: string,
+  palmGrouping: string,
+  userId: string,
+) {
+
+  await addAuditEvent(tx, {
+    eventType: 'projectObject.updateProjectPalmGrouping',
+    eventData: { projectId, palmGrouping },
+    eventUser: userId,
+  });
+
+  await tx.query(sql.untyped`
+    UPDATE app.project_investment
+    SET palm_grouping = ('PalmKoritus', ${palmGrouping})::app.code_id
+    WHERE id = ${projectId}
+    RETURNING palm_grouping AS "palmGrouping"
+  `);
+}

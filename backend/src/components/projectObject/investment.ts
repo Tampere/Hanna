@@ -357,3 +357,24 @@ export async function moveProjectObjectToProject(
   WHERE id = ${projectObjectId}
   RETURNING ${newProjectId} as "projectId"`);
 }
+
+export async function updateProjectObjectPalmGrouping(
+  tx: DatabaseTransactionConnection,
+  projectObjectId: string,
+  palmGrouping: string,
+  userId: string,
+) {
+
+  await addAuditEvent(tx, {
+    eventType: 'projectObject.updateProjectObjectPalmGrouping',
+    eventData: { projectObjectId, palmGrouping },
+    eventUser: userId,
+  });
+
+  await tx.query(sql.untyped`
+    UPDATE app.project_object_investment
+    SET palm_grouping = ('PalmKoritus', ${palmGrouping})::app.code_id
+    WHERE project_object_id = ${projectObjectId}
+    RETURNING palm_grouping AS "palmGrouping"
+  `);
+}
