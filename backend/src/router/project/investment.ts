@@ -8,6 +8,7 @@ import {
   getParticipatedProjects,
   getProject,
   projectUpsert,
+  updateProjectPalmGrouping,
   validateUpsertProject,
 } from '@backend/components/project/investment.js';
 import { listProjects } from '@backend/components/project/search.js';
@@ -93,10 +94,9 @@ export const createInvestmentProjectRouter = (t: TRPC) => {
         if (!projectId) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Project ID is required' });
         }
-        const baseProject = await getProject(projectId);
-        const project = { ...baseProject, palmGrouping: palmGrouping ?? '' };
-        return getPool().transaction(async () => {
-          return await projectUpsert(project, ctx.user, true);
+
+        return getPool().transaction(async (tx) => {
+          return await updateProjectPalmGrouping(tx, projectId, palmGrouping, ctx.user.id);
         });
       })
   });
