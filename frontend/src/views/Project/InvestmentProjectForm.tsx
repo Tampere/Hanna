@@ -498,7 +498,7 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
                 onChange={(onChange)}
                 codeListId="PalmKoritus"
                 readOnly={
-                  (!isAdmin(currentUser.role) || !currentUser.permissions.includes('palmGrouping.write')) && editing
+                  (!isAdmin(currentUser.role) && !currentUser.permissions.includes('palmGrouping.write')) || editing
                 }
               />
               {!editing && isDirty && (
