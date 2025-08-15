@@ -338,6 +338,10 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
         });
       } catch {
         setPalmIsSubmitting(false);
+        notify({
+          severity: 'error',
+          title: tr('projectObject.notifyPalmUpsertFailed'),
+        });
         return;
       }
     }
@@ -346,6 +350,11 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
         ['investmentProjectObject', 'get'],
         { input: { projectObjectId: form.getValues().projectObjectId } },
       ],
+    });
+    notify({
+      severity: 'success',
+      title: tr('projectObject.notifyPalmUpsertSuccess'),
+      duration: 5000,
     });
     setPalmIsSubmitting(false);
   }
