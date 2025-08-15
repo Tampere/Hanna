@@ -503,6 +503,7 @@ export const fi = {
   'userPermissions.maintenanceFinancials.write': 'Kunnossapito talousarvio & KSM',
   'userPermissions.admin': 'Pääkäyttäjä',
   'userPermissions.noUsersFound': 'Ei hakuehtoja vastaavia käyttäjiä',
+  'userPermissions.palmGrouping.write': 'PALM-ryhmittely',
   'genericForm.selectionCount': 'valittuna',
   'genericForm.accept': 'Hyväksy',
   'genericForm.select': 'Valitse',

@@ -223,6 +223,9 @@ export function UserPermissionsPage() {
                   <TableCell align="center">
                     {tr('userPermissions.maintenanceFinancials.write')}
                   </TableCell>
+                <TableCell align="center">
+                  {tr('userPermissions.palmGrouping.write')}
+                </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -275,6 +278,13 @@ export function UserPermissionsPage() {
                         checked={hasPermission(user, 'maintenanceFinancials.write')}
                         disabled={user.isAdmin}
                         onClick={() => handlePermissionChange(user, 'maintenanceFinancials.write')}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Checkbox
+                        checked={hasPermission(user, 'palmGrouping.write')}
+                        disabled={user.isAdmin}
+                        onClick={() => handlePermissionChange(user, 'palmGrouping.write')}
                       />
                     </TableCell>
                   </TableRow>
