@@ -297,12 +297,21 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
         });
       } catch {
         setPalmIsSubmitting(false);
+        notify({
+          severity: 'error',
+          title: tr('project.notifyPalmUpsertFailed'),
+        });
         return;
       }
     await queryClient.invalidateQueries({
       queryKey: [['investmentProject', 'get'], { input: { projectId: form.getValues().projectId } }],
     });
     setPalmIsSubmitting(false);
+    notify({
+      severity: 'success',
+      title: tr('project.notifyPalmUpsertSuccess'),
+      duration: 5000,
+    });
   }
 
   return (
