@@ -140,7 +140,7 @@ export const fi = {
   'newProject.infoNoGeom': 'Olet luomassa hankkeen ilman aluetta.',
   'newProject.createBtnLabel': 'Lisää hanke',
   'project.relatedProjectsTabLabel': 'Sidoshankkeet',
-  'project.notifyPalmUpsertFailed': 'Hankkeen PALM-koritus tallennus epäonnistui.',
+  'project.notifyPalmUpsertFailed': 'Hankkeen PALM-korituksen tallennus epäonnistui.',
   'project.notifyPalmUpsertSuccess': 'Hankkeen PALM-koritus tallennettu.',
   'newProject.documentsSectionTitle': 'Asiakirjat',
   'newProject.financeSectionTitle': 'Talous',
