@@ -1,15 +1,20 @@
 import { Skeleton, TableCell, TableRow, Typography, css } from '@mui/material';
 
+
+
 import { FormField } from '@frontend/components/forms';
 import { CurrencyInput, valueTextColor } from '@frontend/components/forms/CurrencyInput';
 import { SapActualsIcon } from '@frontend/components/icons/SapActuals';
 
+
+
 import { Code } from '@shared/schema/code';
 import { YearlyActuals } from '@shared/schema/sapActuals';
 
+
+
 import { BudgetField, TABLE_CELL_CONTENT_CLASS } from '.';
 import { committeeColors } from './CommitteeSelection';
-
 interface BudgetContentRowCellProps {
   year: number;
   writableFields?: BudgetField[];
@@ -19,6 +24,7 @@ interface BudgetContentRowCellProps {
   committee?: { id: Code['id']['id']; text: string };
   includeYearColumn: boolean;
   disableBorder?: boolean;
+  sapYearTotal?: number | null;
 }
 
 export function BudgetContentRow({
@@ -30,6 +36,7 @@ export function BudgetContentRow({
   includeYearColumn,
   committee,
   disableBorder,
+  sapYearTotal,
 }: BudgetContentRowCellProps) {
   const committeeColor =
     committeeColors[(committee?.id as keyof typeof committeeColors) ?? 'default'];
@@ -144,17 +151,26 @@ export function BudgetContentRow({
         <TableCell>
           {!actualsLoading ? (
             <span className={TABLE_CELL_CONTENT_CLASS}>
-              <CurrencyInput
-                getColor={() => {
-                  if (!includeYearColumn && fields.includes('committee')) {
-                    return committeeColor;
-                  }
-                  return 'inherit';
-                }}
-                directlyHandleValueChange
-                value={(true ? actuals?.find((data) => data.year === year)?.total : null) ?? null}
-                placeholder={'–'}
-              />
+              <>
+                <CurrencyInput
+                  getColor={() => {
+                    if (!includeYearColumn && fields.includes('committee')) {
+                      return committeeColor;
+                    }
+                    return 'inherit';
+                  }}
+                  directlyHandleValueChange
+                  value={(true ? actuals?.find((data) => data.year === year)?.total : null) ?? null}
+                  placeholder={'–'}
+                />
+
+                {
+                  !disableBorder &&
+                    sapYearTotal != null && ( // Borders are disabled when there are multiple committees
+                      <SapActualsIcon sapActual={sapYearTotal ?? 0}></SapActualsIcon>
+                    ) // Sap actuals icon is shown only when there is only one committee
+                }
+              </>
             </span>
           ) : (
             <Skeleton variant="rectangular" animation="wave">

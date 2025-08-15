@@ -15,6 +15,7 @@ import { Fragment, forwardRef, useEffect, useImperativeHandle, useMemo, useState
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { HelpTooltip } from '@frontend/components/HelpTooltip';
+import { SapActualsIcon } from '@frontend/components/icons/SapActuals';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { dirtyAndValidFieldsAtom } from '@frontend/stores/projectView';
@@ -483,10 +484,13 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                   : null
                               }
                               sapActual={
-                                props.actuals && 'byCommittee' in props.actuals
-                                  ? props.actuals?.yearlyActuals?.find(
-                                      (actual) => actual.year === year,
-                                    )?.total ?? null
+                                props.actuals && 'yearlyActuals' in props.actuals
+                                  ? props.actuals?.yearlyActuals
+                                      ?.filter((sapYearlyActual) => sapYearlyActual.year === year)
+                                      .reduce(
+                                        (total, sapYearlyActual) => sapYearlyActual.total + total,
+                                        0,
+                                      )
                                   : null
                               }
                               actualsLoading={Boolean(props.actualsLoading)}
@@ -514,6 +518,11 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                 (c) => c.committeeId === committee.id && c.year === year,
                               )}
                               disableBorder={selectedCommittees.length > 1}
+                              sapYearTotal={props.actuals?.yearlyActuals?.reduce(
+                                (total, actual) =>
+                                  actual.year === year ? total + actual.total : total,
+                                0,
+                              )}
                             />
                           ))}
                           {selectedCommittees.length > 1 && (
@@ -548,15 +557,25 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                 <TotalRow
                   committeeColumnVisible={selectedCommittees.length > 1}
                   actuals={
-                    props.actuals && 'yearlyActuals' in props.actuals
-                      ? props.actuals?.yearlyActuals
-                      : props.actuals
+                    props.actuals && 'byCommittee' in props.actuals
+                      ? props.actuals?.byCommittee.filter((value) =>
+                          selectedCommittees.includes(value.committeeId),
+                        )
+                      : null
                   }
                   actualsLoading={Boolean(props.actualsLoading)}
                   fields={
                     selectedCommittees.length === 1
                       ? fields.filter((f) => f !== 'committee')
                       : fields
+                  }
+                  sapActuals={
+                    props.actuals && 'yearlyActuals' in props.actuals
+                      ? props.actuals?.yearlyActuals.reduce(
+                          (total, sapYearlyActual) => sapYearlyActual.total + total,
+                          0,
+                        )
+                      : null
                   }
                   formValues={watch}
                   getFieldValue={
