@@ -11,10 +11,10 @@ import { SapActualsIcon } from '@frontend/components/icons/SapActuals';
 import { Code } from '@shared/schema/code';
 import { YearlyActuals } from '@shared/schema/sapActuals';
 
-
-
 import { BudgetField, TABLE_CELL_CONTENT_CLASS } from '.';
 import { committeeColors } from './CommitteeSelection';
+
+
 interface BudgetContentRowCellProps {
   year: number;
   writableFields?: BudgetField[];
