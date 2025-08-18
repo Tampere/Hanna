@@ -103,7 +103,14 @@ export function ProjectFinancesCharts(props: Props) {
             </Box>
           );
         }
-        const data = monthlyActuals.data?.[year].map((actual) => actual.total / 100) ?? [];
+
+        const data = [...Array(12).keys()].map((month) => {
+          const actual = monthlyActuals.data?.[year]?.find(
+            (actual) => actual.month === month + 1,
+          );
+          return actual ? actual.total / 100 : 0;
+        });
+
         const totalInCurrencySubunit = data.reduce((sum, val) => sum + val, 0) * 100;
 
         return (
