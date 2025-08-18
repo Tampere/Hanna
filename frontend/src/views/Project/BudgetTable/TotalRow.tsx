@@ -1,6 +1,9 @@
 import { Skeleton, TableCell, TableRow, Typography, css } from '@mui/material';
 
+
+
 import { CurrencyInput, valueTextColor } from '@frontend/components/forms/CurrencyInput';
+import { SapActualsIcon } from '@frontend/components/icons/SapActuals';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { ProjectYearBudget } from '@shared/schema/project';
@@ -19,6 +22,7 @@ interface Props {
     fieldName: keyof ProjectYearBudget['budgetItems'],
     formValues?: BudgetFormValues,
   ) => number | null;
+  sapActuals?: number | null;
 }
 
 export function TotalRow({
@@ -28,6 +32,7 @@ export function TotalRow({
   getFieldValue,
   formValues,
   committeeColumnVisible,
+  sapActuals,
 }: Props) {
   const tr = useTranslations();
 
@@ -88,16 +93,18 @@ export function TotalRow({
       {fields?.includes('actual') && (
         <TableCell>
           {!actualsLoading ? (
-            <CurrencyInput
-              className={TABLE_CELL_CONTENT_CLASS}
-              allowNegative
-              placeholder="–"
-              value={
-                actuals?.reduce((total, yearData) => {
-                  return total + yearData.total;
-                }, 0) ?? null
-              }
-            />
+            <span className={TABLE_CELL_CONTENT_CLASS}>
+              <CurrencyInput
+                allowNegative
+                placeholder="–"
+                value={
+                  actuals?.reduce((total, yearData) => {
+                    return total + yearData.total;
+                  }, 0) ?? null
+                }
+              />
+              {sapActuals && <SapActualsIcon sapActual={sapActuals ?? null}></SapActualsIcon>}
+            </span>
           ) : (
             <Skeleton variant="rectangular" animation="wave">
               <CurrencyInput

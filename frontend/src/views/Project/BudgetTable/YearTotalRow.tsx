@@ -89,7 +89,7 @@ export function YearTotalRow({
                 value={actual}
                 placeholder={actual == null ? '–' : undefined}
               />
-              <SapActualsIcon sapActual={sapActual}></SapActualsIcon>
+              {sapActual != null && <SapActualsIcon sapActual={sapActual}></SapActualsIcon>}
             </span>
           ) : (
             <Skeleton variant="rectangular" animation="wave">
