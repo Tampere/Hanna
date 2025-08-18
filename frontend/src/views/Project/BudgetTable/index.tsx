@@ -475,7 +475,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                               actual={
                                 props.actuals && props.actuals.byCommittee
                                   ? props.actuals.byCommittee
-                                      .filter(
+                                      ?.filter(
                                         (value) =>
                                           value.year === year &&
                                           selectedCommittees.includes(value.committeeId),
@@ -558,7 +558,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                   committeeColumnVisible={selectedCommittees.length > 1}
                   actuals={
                     props.actuals && 'byCommittee' in props.actuals
-                      ? props.actuals?.byCommittee.filter((value) =>
+                      ? props.actuals?.byCommittee?.filter((value) =>
                           selectedCommittees.includes(value.committeeId),
                         )
                       : null
@@ -571,7 +571,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                   }
                   sapActuals={
                     props.actuals && 'yearlyActuals' in props.actuals
-                      ? props.actuals?.yearlyActuals.reduce(
+                      ? props.actuals?.yearlyActuals?.reduce(
                           (total, sapYearlyActual) => sapYearlyActual.total + total,
                           0,
                         )
