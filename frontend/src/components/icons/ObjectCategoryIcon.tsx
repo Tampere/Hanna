@@ -1,6 +1,7 @@
 import { CircularProgress, SvgIcon, Tooltip, css } from '@mui/material';
 import { Suspense, forwardRef, lazy } from 'react';
 
+
 const objectCategoryIcons = {
   '01': 'viheralueet',
   '02': 'tekniset_jarjestelmat',
@@ -12,6 +13,7 @@ const objectCategoryIcons = {
   '08': 'hulevedet',
   '09': 'liikuntareitit',
   '10': 'maa_ja_vesialueet',
+  '11': 'osakkeet_ja_osuudet',
 };
 
 // Lazy needs to be called outside of a react component
