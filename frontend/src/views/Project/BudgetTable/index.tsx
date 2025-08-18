@@ -413,7 +413,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                         <Typography variant="overline">{tr('budgetTable.actual')}</Typography>
                         {enableTooltips && (
                           <HelpTooltip
-                            title={props.customTooltips?.actual ?? tr('budgetTable.actualHelp')}
+                            title={props.customTooltips?.actual ?? tr('budgetTable.ProjectActualHelp')}
                           />
                         )}
                       </Box>

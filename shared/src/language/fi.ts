@@ -343,8 +343,10 @@ export const fi = {
   'budgetTable.amountHelp':
     'Talousarvio on valtuuston hyväksymä rahamäärä talousarviovuodelle ennen edellisen vuoden loppua. Kirjattava talousarvio on aina positiivinen luku, joka viittaa tulevaan kustannukseen. Talousarvion voi kirjata vain kohdetasolla. Oikeus kirjata talousarvioita on rajattu vain tietyille käyttäjille.',
   'budgetTable.actual': 'Toteuma',
-  'budgetTable.actualHelp':
-    'Toteuma kertoo toteutukseen kuluneen rahasumman kahden desimaalin tarkkuudella. Toteuma haetaan suoraan SAP:sta, ja sen Hannassa esittämisen ehtona on, että sopiva SAP-tunniste on annettu tiedoksi. Hannasta käsin toteumaa ei voi muokata. Toteuma päivittyy kerran vuorokaudessa. Toteumaan tulevat huomioiduksi sekä tulot että menot. Positiivinen luku viittaa siihen, että kaupungille on syntynyt kustannuksia, kun taas negatiivinen luku viittaa siihen, että kaupungille on syntynyt tuloja. Huomioi, että toteumatietoa voi olla SAP:ssa mahdollisesti myös Hannaan kirjatun toteutusvälin ulkopuolella.',
+  'budgetTable.ProjectObjectActualHelp':
+    'Toteuma kertoo toteutukseen kuluneen rahasumman. Toteuma haetaan suoraan SAP:sta, ja sen esittämisen edellytyksenä on, että sopiva SAP-tunniste on annettu tiedoksi kohteelle. Huomioi, että toteumatietoa voi olla SAP:ssa myös Hannaan kirjatun toteutusvälin ulkopuolella.',
+  'budgetTable.ProjectActualHelp':
+    'Toteuma kertoo toteutukseen kuluneen rahasumman. Toteuma summataan hankkeelle lisätyiltä kohteilta. Voit tarkastella myös SAP-projektin ID:n perusteella haettua toteumaa viemällä hiiren osoittimen sinisen palkin päälle. Kohteilta summattu toteuma ja SAP-projektin ID:n perusteella haettu toteuma voivat erota toisistaan. Huomioi, että toteumatietoa voi olla SAP:ssa myös Hannaan kirjatun toteutusvälin ulkopuolella.',
   'budgetTable.forecast': 'Ennuste',
   'budgetTable.forecastHelp':
     'Ennuste kirjataan suhteessa talousarvioon. Ennuste on käyttäjän arvio talousarvion riittävyydestä toimintavuonna. Talousarvion ylitys merkitään positiivisena lukuna ja talousarvion alitus negatiivisena lukuna. Ennusteet kirjataan kohdetasolla, josta ne koostetaan hankkeelle tiedoksi.',
