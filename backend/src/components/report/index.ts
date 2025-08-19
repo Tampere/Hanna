@@ -154,10 +154,12 @@ export function buildSheet<ColumnKey extends string>({
 export function buildInvestmentTypeListingReportSheet({
   workbook,
   sheetTitle,
+  sumRowTitle,
   rows,
 }: {
   workbook: Workbook;
   sheetTitle: string;
+  sumRowTitle: string;
   rows: readonly { [field in ReportColumnKey]?: ReportFieldValue }[];
 }) {
   if (!rows.length) {
@@ -283,7 +285,10 @@ export function buildInvestmentTypeListingReportSheet({
     });
   });
   // Add amount sum at the end
-  sheet.cell(latestRowIndex + 1, 1).style(amountSumStyle);
+  sheet
+    .cell(latestRowIndex + 1, 1)
+    .string(sumRowTitle)
+    .style(amountSumStyle);
   sheet
     .cell(latestRowIndex + 1, 2)
     .number(totalAmount)

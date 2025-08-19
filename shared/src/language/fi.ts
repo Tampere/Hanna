@@ -666,6 +666,7 @@ export const fi = {
   'workTable.export.sapProjectId': 'Hankkeen SAP-projekti',
   'workTable.export.companyContacts': 'Yritysten yhteyshenkilöt',
   'workTable.export.objectRoles': 'Toimijat',
+  'workTable.export.total': 'Kaikki yhteensä',
   'workTable.cityOfTampere': 'Tampereen kaupunki',
   'workTable.reportFailed': 'Raportin luonti epäonnistui.',
   'workTable.noData': 'Ei hakutuloksia.',
