@@ -174,6 +174,7 @@ export async function getProjectBudget(projectId: string) {
         sum(amount) AS amount,
         sum(forecast) AS forecast,
         sum(kayttosuunnitelman_muutos) AS kayttosuunnitelman_muutos,
+        sum(estimate) AS estimate,
         committee
       FROM app.budget
       WHERE project_object_id IN (SELECT id FROM app.project_object WHERE project_id = ${projectId} AND deleted = false)
@@ -183,7 +184,7 @@ export async function getProjectBudget(projectId: string) {
       coalesce(project_budget.year, project_object_budget.year) AS "year",
       coalesce((project_budget.committee).id, (project_object_budget.committee).id) AS "committee",
       jsonb_build_object(
-        'estimate', project_budget.estimate,
+        'estimate', project_object_budget.estimate,
         'amount', project_object_budget.amount,
         'forecast', project_object_budget.forecast,
         'kayttosuunnitelmanMuutos', project_object_budget.kayttosuunnitelman_muutos

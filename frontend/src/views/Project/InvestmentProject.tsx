@@ -388,7 +388,7 @@ export function InvestmentProject() {
                     ref={tabRefs.finances}
                     editable={userCanModify}
                     project={{ type: 'investmentProject', data: project.data }}
-                    writableFields={['estimate']}
+                    writableFields={[]}
                   />
                 )}
                 {tabView === 'kuluseuranta' && (
