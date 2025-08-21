@@ -204,37 +204,80 @@ test.describe('Project endpoints', () => {
     const project = await devSession.client.investmentProject.upsert.mutate({
       project: validProjectInput,
     });
-    const budgetUpdateInput = {
-      projectId: project.projectId,
-      budgetItems: [
-        {
-          year: 2021,
-          estimate: 50000,
-          committee: project.committees[0],
-        },
-        {
-          year: 2022,
-          estimate: 60000,
-          committee: project.committees[0],
-        },
-      ],
-    };
+
+    // Project budget (estimates) changed to be sum of project objects' estimates
+    const projectObject1 = testProjectObject(project.projectId, project.committees, user);
+    const { projectObjectId: objectId1 } =
+      await devSession.client.investmentProjectObject.upsert.mutate(projectObject1);
+
+    const projectObject2 = testProjectObject(project.projectId, project.committees, user);
+    const { projectObjectId: objectId2 } =
+      await devSession.client.investmentProjectObject.upsert.mutate(projectObject2);
+
     const getBudgetResult = await devSession.client.project.getBudget.query({
       projectId: project.projectId,
     });
 
     expect(getBudgetResult).toStrictEqual([]);
 
-    await devSession.client.investmentProject.updateBudget.mutate(budgetUpdateInput);
+    await devSession.client.investmentProjectObject.updateBudget.mutate({
+      projectObjectId: objectId1,
+      budgetItems: [
+        {
+          year: 2021,
+          estimate: 30000,
+          amount: null,
+          contractPrice: null,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
+          committee: project.committees[0],
+        },
+        {
+          year: 2022,
+          estimate: 40000,
+          amount: null,
+          contractPrice: null,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
+          committee: project.committees[0],
+        },
+      ],
+    });
+
+    await devSession.client.investmentProjectObject.updateBudget.mutate({
+      projectObjectId: objectId2,
+      budgetItems: [
+        {
+          year: 2021,
+          estimate: 20000,
+          amount: null,
+          contractPrice: null,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
+          committee: project.committees[0],
+        },
+        {
+          year: 2022,
+          estimate: 20000,
+          amount: null,
+          contractPrice: null,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
+          committee: project.committees[0],
+        },
+      ],
+    });
 
     const updatedBudgetResult = await devSession.client.project.getBudget.query({
       projectId: project.projectId,
     });
+
+    // Project budget should now show sum of project object estimates
     expect(updatedBudgetResult).toStrictEqual([
       {
         year: 2021,
         budgetItems: {
-          estimate: 50000,
+          estimate: 50000, // Sum from project objects
           amount: null,
           forecast: null,
           kayttosuunnitelmanMuutos: null,
@@ -253,22 +296,27 @@ test.describe('Project endpoints', () => {
       },
     ]);
 
-    const budgetUpdate2021 = {
-      projectId: project.projectId,
+    // Update budget for one project object.
+    await devSession.client.investmentProjectObject.updateBudget.mutate({
+      projectObjectId: objectId1,
       budgetItems: [
         {
           year: 2021,
-          estimate: 70000,
+          estimate: 50000,
+          amount: null,
+          contractPrice: null,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
           committee: project.committees[0],
         },
       ],
-    };
-
-    await devSession.client.investmentProject.updateBudget.mutate(budgetUpdate2021);
+    });
 
     const updatedBudgetResult2021 = await devSession.client.project.getBudget.query({
       projectId: project.projectId,
     });
+
+    // Project budget should reflect the updated sum.
     expect(updatedBudgetResult2021).toStrictEqual([
       {
         year: 2021,
@@ -300,32 +348,94 @@ test.describe('Project endpoints', () => {
     const project = await devSession.client.maintenanceProject.upsert.mutate({
       project: validProjectInput,
     });
-    const budgetUpdateInput = {
-      projectId: project.projectId,
-      budgetItems: [
-        {
-          year: 2021,
-          estimate: 50000,
-          committee: null,
-        },
-        {
-          year: 2022,
-          estimate: 60000,
-          committee: null,
-        },
-      ],
-    };
+
+    const testMaintenanceProjectObject = (projectId: string, user: User) => ({
+      projectId,
+      description: 'Test description',
+      objectName: 'Test maintenance project object',
+      objectStage: '01',
+      lifecycleState: '01',
+      committee: null,
+      objectType: '01',
+      objectCategory: ['01'],
+      objectUsage: ['01'],
+      startDate: '2021-01-01',
+      endDate: '2022-01-01',
+      sapWBSId: null,
+      landownership: null,
+      locationOnProperty: null,
+      height: null,
+      objectUserRoles: [],
+      palmGrouping: '00',
+    });
+
+    const projectObject1 = testMaintenanceProjectObject(project.projectId, user);
+    const { projectObjectId: objectId1 } =
+      await devSession.client.maintenanceProjectObject.upsert.mutate(projectObject1);
+
+    const projectObject2 = testMaintenanceProjectObject(project.projectId, user);
+    const { projectObjectId: objectId2 } =
+      await devSession.client.maintenanceProjectObject.upsert.mutate(projectObject2);
+
     const getBudgetResult = await devSession.client.project.getBudget.query({
       projectId: project.projectId,
     });
 
     expect(getBudgetResult).toStrictEqual([]);
 
-    await devSession.client.maintenanceProject.updateBudget.mutate(budgetUpdateInput);
+    await devSession.client.maintenanceProjectObject.updateBudget.mutate({
+      projectObjectId: objectId1,
+      budgetItems: [
+        {
+          year: 2021,
+          estimate: 30000,
+          amount: null,
+          contractPrice: null,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
+          committee: null,
+        },
+        {
+          year: 2022,
+          estimate: 40000,
+          amount: null,
+          contractPrice: null,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
+          committee: null,
+        },
+      ],
+    });
+
+    await devSession.client.maintenanceProjectObject.updateBudget.mutate({
+      projectObjectId: objectId2,
+      budgetItems: [
+        {
+          year: 2021,
+          estimate: 20000,
+          amount: null,
+          contractPrice: null,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
+          committee: null,
+        },
+        {
+          year: 2022,
+          estimate: 20000,
+          amount: null,
+          contractPrice: null,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
+          committee: null,
+        },
+      ],
+    });
 
     const updatedBudgetResult = await devSession.client.project.getBudget.query({
       projectId: project.projectId,
     });
+
+    // Project budget should now show sum of project object estimates
     expect(updatedBudgetResult).toStrictEqual([
       {
         year: 2021,
@@ -349,18 +459,20 @@ test.describe('Project endpoints', () => {
       },
     ]);
 
-    const budgetUpdate2021 = {
-      projectId: project.projectId,
+    await devSession.client.maintenanceProjectObject.updateBudget.mutate({
+      projectObjectId: objectId1,
       budgetItems: [
         {
           year: 2021,
-          estimate: 70000,
+          estimate: 50000,
+          amount: null,
+          contractPrice: null,
+          forecast: null,
+          kayttosuunnitelmanMuutos: null,
           committee: null,
         },
       ],
-    };
-
-    await devSession.client.maintenanceProject.updateBudget.mutate(budgetUpdate2021);
+    });
 
     const updatedBudgetResult2021 = await devSession.client.project.getBudget.query({
       projectId: project.projectId,
