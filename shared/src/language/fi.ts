@@ -333,7 +333,7 @@ export const fi = {
   'budgetTable.committee': 'Lautakunta',
   'budgetTable.estimate': 'Kustannusarvio',
   'budgetTable.projectEstimateHelp':
-    'Hankkeen suunniteltu kustannus, joka on ehdolla talousarvioon.',
+    'Hankkeen suunniteltu kustannus, joka on ehdolla talousarvioon. Summa kohteiden talousarvioista.',
   'budgetTable.projectObjectEstimateHelp':
     'Kohteen suunniteltu kustannus, joka on ehdolla talousarvioon.',
   'budgetTable.contractPrice': 'Sopimushinta',
