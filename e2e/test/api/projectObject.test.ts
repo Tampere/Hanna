@@ -198,7 +198,7 @@ test.describe('Common Project Object endpoints', () => {
         year: 2021,
         committee: investmentProject.committees[0],
         budgetItems: {
-          estimate: null,
+          estimate: 20000, // Sum of project object estimates
           amount: 20000, // Sum of project object amounts
           forecast: 1000,
           kayttosuunnitelmanMuutos: 6000,
@@ -208,7 +208,7 @@ test.describe('Common Project Object endpoints', () => {
         year: 2022,
         committee: investmentProject.committees[0],
         budgetItems: {
-          estimate: null,
+          estimate: 20000, // Sum of project object estimates
           amount: 12500, // Sum of project object amounts
           forecast: -3500,
           kayttosuunnitelmanMuutos: 1000,
@@ -370,7 +370,7 @@ test.describe('Common Project Object endpoints', () => {
         year: 2021,
         committee: null,
         budgetItems: {
-          estimate: null,
+          estimate: 20000, // Sum of project object estimates
           amount: 20000, // Sum of project object amounts
           forecast: 1000,
           kayttosuunnitelmanMuutos: 6000,
@@ -380,7 +380,7 @@ test.describe('Common Project Object endpoints', () => {
         year: 2022,
         committee: null,
         budgetItems: {
-          estimate: null,
+          estimate: 20000, // Sum of project object estimates
           amount: 12500, // Sum of project object amounts
           forecast: -3500,
           kayttosuunnitelmanMuutos: 1000,
