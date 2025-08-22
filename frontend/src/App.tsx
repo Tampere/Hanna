@@ -96,7 +96,10 @@ export function App() {
   const userValue = useAtomValue(asyncUserAtom);
 
   const [queryClient] = useState(
-    () => new QueryClient({ defaultOptions: { queries: { retry: false } } }),
+    () =>
+      new QueryClient({
+        defaultOptions: { queries: { refetchOnWindowFocus: false, retry: false } },
+      }),
   );
   const [trpcClient] = useState(() =>
     trpc.createClient({
