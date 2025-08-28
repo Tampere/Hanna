@@ -14,6 +14,7 @@ import { useSetAtom } from 'jotai';
 import { Fragment, forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
+import { trpc } from '@frontend/client';
 import { HelpTooltip } from '@frontend/components/HelpTooltip';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
@@ -154,6 +155,8 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   };
 
   const tr = useTranslations();
+  const lockedYears = trpc.lockedYears.get.useQuery().data ?? [];
+
   const form = useForm<BudgetFormValues>({ mode: 'all', defaultValues: {} });
   const { isDirty, dirtyFields } = form.formState;
 
@@ -356,7 +359,10 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                         <Typography variant="overline">{tr('budgetTable.actual')}</Typography>
                         {enableTooltips && (
                           <HelpTooltip
-                            title={props.customTooltips?.actual ?? tr('budgetTable.ProjectObjectActualHelp')}
+                            title={
+                              props.customTooltips?.actual ??
+                              tr('budgetTable.ProjectObjectActualHelp')
+                            }
                           />
                         )}
                       </Box>
@@ -415,7 +421,11 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                         <BudgetContentRow
                           year={year}
                           includeYearColumn
-                          writableFields={writableFields}
+                          writableFields={
+                            lockedYears?.value?.includes(year)
+                              ? writableFields?.filter((field) => field !== 'amount')
+                              : writableFields
+                          }
                           fields={fields}
                           actualsLoading={props.actualsLoading}
                           actuals={props.actuals}
