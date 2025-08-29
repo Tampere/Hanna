@@ -1,4 +1,5 @@
 import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit.js';
 import { getPool, sql } from '@backend/db.js';
@@ -25,12 +26,16 @@ export const createLockedYearsRouter = (t: TRPC) => {
 
   return t.router({
     get: t.procedure.query(async () => {
-      const result = await getPool().maybeOne(sql.type(lockedYearsSchema)`
+      const result = await getPool().maybeOne(sql.type(
+        z.object({
+          value: lockedYearsSchema,
+        }),
+      )`
         SELECT value
         FROM app.global_settings
         WHERE setting = 'locked_years'
       `);
-      return result;
+      return result?.value ?? [];
     }),
 
     setLockedYears: t.procedure

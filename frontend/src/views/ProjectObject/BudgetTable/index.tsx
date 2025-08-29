@@ -422,7 +422,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                           year={year}
                           includeYearColumn
                           writableFields={
-                            lockedYears?.value?.includes(year)
+                            lockedYears?.includes(year)
                               ? writableFields?.filter((field) => field !== 'amount')
                               : writableFields
                           }

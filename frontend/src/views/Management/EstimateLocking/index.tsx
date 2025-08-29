@@ -23,7 +23,7 @@ export function EstimateLocking() {
   } = trpc.lockedYears.get.useQuery();
   useEffect(() => {
     if (initialLockedYearsData) {
-      setLockedYears(initialLockedYearsData.value);
+      setLockedYears(initialLockedYearsData);
     }
   }, [initialLockedYearsData]);
 

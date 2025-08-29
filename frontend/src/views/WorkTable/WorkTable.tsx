@@ -391,7 +391,7 @@ export default function WorkTable() {
     let writableFields: WorkTableFinanceField[] = [];
     if (!auth) return writableFields;
 
-    const yearIsLocked = lockedYears?.value.includes(dayjs(searchParams.objectStartDate).year());
+    const yearIsLocked = lockedYears?.includes(dayjs(searchParams.objectStartDate).year());
 
     if (isAdmin(auth.role)) {
       writableFields = ['amount', 'forecast', 'kayttosuunnitelmanMuutos'];
