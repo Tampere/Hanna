@@ -481,7 +481,6 @@ export default function WorkTable() {
         flex-direction: column;
       `}
     >
-      <h1>ge</h1>
       <Box
         css={css`
           display: flex;
