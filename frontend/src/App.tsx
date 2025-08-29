@@ -28,10 +28,10 @@ import { SapDebugView } from '@frontend/views/SapDebug';
 import { SapReports } from '@frontend/views/SapReports';
 import { SearchPage } from '@frontend/views/Search';
 import { SessionRenewed } from '@frontend/views/SessionRenewed';
-import WorkTable from '@frontend/views/WorkTable/WorkTable';
 
 import { selectedSearchViewAtom } from './stores/search/searchView';
 import { GeneralNotifications } from './views/GeneralNotifications';
+import { InvestmentPlanning } from './views/WorkTable';
 
 function IndexPath() {
   const selectedSearchView = useAtomValue(selectedSearchViewAtom);
@@ -77,7 +77,7 @@ const router = createBrowserRouter(
         {import.meta.env.VITE_FEATURE_SAP_REPORTS === 'true' && (
           <Route path="sap-raportit/:tabView" element={<SapReports />} />
         )}
-        <Route path="investointiohjelma" element={<WorkTable />} />
+        <Route path="ohjelmointi/:tabView" element={<InvestmentPlanning />} />
         <Route path="hallinta/:tabView" element={<Management />} />
         <Route path="hallinta/:tabView/:contentId" element={<Management />} />
         <Route path="hallinta/:tabView/luo" element={<Management />} />
