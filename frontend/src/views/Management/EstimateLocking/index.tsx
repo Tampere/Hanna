@@ -23,7 +23,6 @@ export function EstimateLocking() {
   } = trpc.lockedYears.get.useQuery();
   useEffect(() => {
     if (initialLockedYearsData) {
-      console.log('initialLockedYearsData', initialLockedYearsData);
       setLockedYears(initialLockedYearsData.value);
     }
   }, [initialLockedYearsData]);
@@ -84,31 +83,51 @@ export function EstimateLocking() {
         </Box>
       )}
       {newLockedYears.length + deletedYears.length > 0 && (
-        <Button
-          onClick={async () => {
-            const parsed = lockedYearSchema.array().safeParse([...newLockedYears, ...lockedYears]);
-            if (!parsed.success) {
-              return;
-            }
-            try {
-              await mutateLockedYears.mutateAsync(parsed.data);
-              setNewLockedYears([]);
+        <Box alignContent="right">
+          <Button
+            onClick={async () => {
+              setLockedYears([...lockedYears, ...deletedYears]);
               setDeletedYears([]);
-              refetch();
-              notify({
-                severity: 'success',
-                title: tr('EstimateLocking.saveSuccess'),
-              });
-            } catch (error) {
-              notify({
-                severity: 'error',
-                title: tr('EstimateLocking.saveFailed'),
-              });
-            }
-          }}
-        >
-          {tr('save')}
-        </Button>
+              setNewLockedYears([]);
+            }}
+          >
+            {tr('cancel')}
+          </Button>
+          <Button
+            onClick={async () => {
+              const parsed = lockedYearSchema
+                .array()
+                .safeParse([...newLockedYears, ...lockedYears]);
+              if (!parsed.success) {
+                notify({
+                  severity: 'error',
+                  title: tr('EstimateLocking.saveFailed'),
+                  duration: 5000,
+                });
+                return;
+              }
+              try {
+                await mutateLockedYears.mutateAsync(parsed.data);
+                setNewLockedYears([]);
+                setDeletedYears([]);
+                refetch();
+                notify({
+                  severity: 'success',
+                  title: tr('EstimateLocking.saveSuccess'),
+                  duration: 5000,
+                });
+              } catch (error) {
+                notify({
+                  severity: 'error',
+                  title: tr('EstimateLocking.saveFailed'),
+                  duration: 5000,
+                });
+              }
+            }}
+          >
+            {tr('save')}
+          </Button>
+        </Box>
       )}
     </>
   );
