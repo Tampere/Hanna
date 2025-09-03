@@ -126,7 +126,7 @@ function Navbar() {
     return tabs.includes(currentPath) ? currentPath : false;
   }
 
-  const tabs = ['kartta', 'sap-raportit', 'investointiohjelma', 'hallinta', 'tiedotteet'];
+  const tabs = ['kartta', 'sap-raportit', 'ohjelmointi', 'hallinta', 'tiedotteet'];
 
   return (
     <AppBar position="static" style={{ zIndex: 200 }}>
@@ -185,10 +185,10 @@ function Navbar() {
             <Tab
               icon={<Reorder sx={{ mr: 1 }} />}
               iconPosition="start"
-              label={tr('pages.workTableTitle')}
+              label={tr('pages.plannigTitle')}
               component={Link}
-              value="investointiohjelma"
-              to="/investointiohjelma"
+              value="ohjelmointi"
+              to="/ohjelmointi/investointiohjelmointi"
             />
             {recentGeneralNotifications?.data && recentGeneralNotifications.data.count > 0 ? (
               <TooltipLinkTab

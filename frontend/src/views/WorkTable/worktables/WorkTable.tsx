@@ -46,12 +46,12 @@ import {
   WorkTableSearch,
 } from '@shared/schema/workTable';
 
-import { SavedSearchFilters } from '../SavedSearchFilters';
-import { BackToTopButton } from './BackToTopButton';
-import { ProjectObjectParticipantFilter } from './Filters/ProjectObjectParticipantFilter';
-import { YearPicker } from './Filters/YearPicker';
-import { WorkTableSummaryRow } from './WorkTableSummaryRow';
-import { ModifiedFields } from './diff';
+import { SavedSearchFilters } from '../../SavedSearchFilters';
+import { BackToTopButton } from '../BackToTopButton';
+import { ProjectObjectParticipantFilter } from '../Filters/ProjectObjectParticipantFilter';
+import { YearPicker } from '../Filters/YearPicker';
+import { WorkTableSummaryRow } from '../WorkTableSummaryRow';
+import { ModifiedFields } from '../diff';
 
 const pinnedColumns = [
   { name: 'projectLink', offset: 0 },

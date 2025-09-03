@@ -6,7 +6,7 @@ import { useTranslations } from '@frontend/stores/lang';
 
 import { WorkTableRow } from '@shared/schema/workTable';
 
-import { CellEditEvent } from './WorkTable';
+import { CellEditEvent } from './worktables/WorkTable';
 
 interface Props {
   workTableData: UseTRPCQueryResult<Readonly<WorkTableRow[]>, object>;
