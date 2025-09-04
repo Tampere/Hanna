@@ -1,4 +1,4 @@
-import { Autocomplete, Box, Button, Chip, TextField } from '@mui/material';
+import { Autocomplete, Box, Button, Chip, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 
 import { trpc } from '@frontend/client';
@@ -49,7 +49,10 @@ export function EstimateLocking() {
     return <h1>Error loading locked years.</h1>;
   }
   return (
-    <>
+    <Box sx={{ maxWidth: 840, margin: '2em auto', width: '100%' }}>
+      <Typography variant="h4" gutterBottom>
+        {tr('management.tabs.locking')}
+      </Typography>
       <Autocomplete
         multiple
         id="tags-outlined"
@@ -70,7 +73,7 @@ export function EstimateLocking() {
             ...lockedYears.map((year) => ({ status: 'locked', year: year })),
             ...deletedYears.map((year) => ({ status: 'deleted', year: year })),
           ]
-            .sort((a, b) => b.year - a.year)
+            .sort((a, b) => a.year - b.year)
             .map(({ status, year }) => (
               <Chip
                 key={year}
@@ -83,7 +86,7 @@ export function EstimateLocking() {
         </Box>
       )}
       {newLockedYears.length + deletedYears.length > 0 && (
-        <Box alignContent="right">
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1em' }}>
           <Button
             onClick={async () => {
               setLockedYears([...lockedYears, ...deletedYears]);
@@ -94,6 +97,7 @@ export function EstimateLocking() {
             {tr('cancel')}
           </Button>
           <Button
+            variant="contained"
             onClick={async () => {
               const parsed = lockedYearSchema
                 .array()
@@ -129,6 +133,6 @@ export function EstimateLocking() {
           </Button>
         </Box>
       )}
-    </>
+    </Box>
   );
 }
