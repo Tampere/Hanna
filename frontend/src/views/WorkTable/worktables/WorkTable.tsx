@@ -206,6 +206,7 @@ export default function WorkTable() {
   const [summaryRowHeight, setSummaryRowHeight] = useState(54);
   const [expanded, setExpanded] = useState(true);
 
+  const lockedYears = trpc.lockedYears.get.useQuery().data ?? [];
   const auth = useAtomValue(asyncUserAtom);
 
   const { workTable } = trpc.useUtils();
@@ -387,19 +388,21 @@ export default function WorkTable() {
   function getWritableBudgetFields(
     permissionCtx: WorkTableRow['permissionCtx'],
   ): WorkTableFinanceField[] {
-    if (!auth) return [];
+    let writableFields: WorkTableFinanceField[] = [];
+    if (!auth) return writableFields;
+
+    const yearIsLocked = lockedYears?.includes(dayjs(searchParams.objectStartDate).year());
 
     if (isAdmin(auth.role)) {
-      return ['amount', 'forecast', 'kayttosuunnitelmanMuutos'];
+      writableFields = ['amount', 'forecast', 'kayttosuunnitelmanMuutos'];
     } else if (hasPermission(auth, 'investmentFinancials.write')) {
       if (hasWritePermission(auth, permissionCtx) || ownsProject(auth, permissionCtx))
-        return ['forecast', 'amount', 'kayttosuunnitelmanMuutos'];
-      return ['amount', 'kayttosuunnitelmanMuutos'];
+        writableFields = ['forecast', 'amount', 'kayttosuunnitelmanMuutos'];
+      writableFields = ['amount', 'kayttosuunnitelmanMuutos'];
     } else if (hasWritePermission(auth, permissionCtx) || ownsProject(auth, permissionCtx)) {
-      return ['forecast'];
-    } else {
-      return [];
+      writableFields = ['forecast'];
     }
+    return !yearIsLocked ? writableFields : writableFields.filter((field) => field !== 'amount');
   }
 
   function participantFilterChange() {
