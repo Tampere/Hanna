@@ -1,4 +1,10 @@
-import { BusinessCenterTwoTone, Campaign, KeyTwoTone, PersonTwoTone } from '@mui/icons-material';
+import {
+  BusinessCenterTwoTone,
+  Campaign,
+  KeyTwoTone,
+  LockTwoTone,
+  PersonTwoTone,
+} from '@mui/icons-material';
 import { Box, Tab, Tabs, css } from '@mui/material';
 import { useAtomValue } from 'jotai';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
@@ -9,6 +15,7 @@ import { CompanyPage } from '@frontend/views/Management/Company';
 import { CompanyContactPage } from '@frontend/views/Management/CompanyContact';
 import { UserPermissionsPage } from '@frontend/views/Management/UserPermissions';
 
+import { EstimateLocking } from './EstimateLocking';
 import { ManageGeneralNotifications } from './GeneralNotifications';
 
 const tabs = [
@@ -38,6 +45,13 @@ const tabs = [
     label: 'management.tabs.generalNotifications',
     icon: <Campaign />,
     to: '/hallinta/tiedotteet',
+    requiredRole: 'Hanna.Admin',
+  },
+  {
+    tabView: 'lukitus',
+    label: 'management.tabs.locking',
+    icon: <LockTwoTone />,
+    to: '/hallinta/lukitus',
     requiredRole: 'Hanna.Admin',
   },
 ] as const;
@@ -88,6 +102,7 @@ export function Management() {
       {routeParams.tabView === 'yritykset' && <CompanyPage {...viewParams} />}
       {routeParams.tabView === 'kayttajien-luvitus' && <UserPermissionsPage {...viewParams} />}
       {routeParams.tabView === 'tiedotteet' && <ManageGeneralNotifications />}
+      {routeParams.tabView === 'lukitus' && <EstimateLocking />}
     </Box>
   );
 }
