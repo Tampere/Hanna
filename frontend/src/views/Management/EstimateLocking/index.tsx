@@ -5,7 +5,7 @@ import { trpc } from '@frontend/client';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
 
-import { lockedYearSchema } from '@shared/schema/lockedYears.js';
+import { filterAndValidateYears, lockedYearSchema } from '@shared/schema/lockedYears.js';
 
 export function EstimateLocking() {
   const [newLockedYears, setNewLockedYears] = useState<number[]>([]);
@@ -38,7 +38,9 @@ export function EstimateLocking() {
   };
 
   const handleYearChange = (_event: any, newValue: (string | number)[]) => {
-    setNewLockedYears(newValue as number[]);
+    //const numericYears = newValue.map((year) => Number(year)).filter((year) => !isNaN(year));
+
+    setNewLockedYears(filterAndValidateYears(newValue));
   };
 
   if (isLoading) {
@@ -99,19 +101,10 @@ export function EstimateLocking() {
           <Button
             variant="contained"
             onClick={async () => {
-              const parsed = lockedYearSchema
-                .array()
-                .safeParse([...newLockedYears, ...lockedYears]);
-              if (!parsed.success) {
-                notify({
-                  severity: 'error',
-                  title: tr('EstimateLocking.saveFailed'),
-                  duration: 5000,
-                });
-                return;
-              }
+              const parsed = filterAndValidateYears([...newLockedYears, ...lockedYears]);
+
               try {
-                await mutateLockedYears.mutateAsync(parsed.data);
+                await mutateLockedYears.mutateAsync(parsed);
                 setNewLockedYears([]);
                 setDeletedYears([]);
                 refetch();
