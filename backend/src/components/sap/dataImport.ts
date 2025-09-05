@@ -283,21 +283,30 @@ export async function getSapProject(projectId: string) {
  */
 
 async function getCachedSapActuals(projectId: string, fromYear: number, toYear: number) {
-  const result = await getPool().maybeOne(sql.type(z.object({ actuals: sapActualsSchema }))`
+  const result = await getPool().maybeOne(sql.type(
+    z.object({ lastCheck: z.string(), actuals: sapActualsSchema }),
+  )`
     WITH latestActuals AS (
       SELECT
+        last_check,
         jsonb_array_elements(raw_data) as raw_data_object,
         rank() OVER (PARTITION BY sap_project_id, actuals_year ORDER BY last_check DESC) AS "rank"
       FROM app.sap_actuals_raw
       WHERE sap_project_id = ${projectId}
         AND actuals_year BETWEEN ${fromYear} AND ${toYear}
-        AND last_check > now() - interval '1 seconds' * ${env.sapWebService.actualsInfoTTLSeconds}
     )
-    SELECT jsonb_agg(raw_data_object) AS actuals
+    SELECT
+      jsonb_agg(raw_data_object) AS actuals,
+      MAX(last_check) as lastCheck
     FROM latestActuals
     WHERE rank = 1;
   `);
-  return result?.actuals;
+  logger.info(
+    `Cached actuals for ${projectId}, years ${fromYear}-${toYear}: ${
+      (result?.actuals ?? []).length
+    } items, last check: ${result?.lastCheck}`,
+  );
+  return result ?? { lastCheck: null, actuals: [] };
 }
 
 async function getCachedSapActualsByWbs(projectId: string, wbsId: string) {
@@ -444,12 +453,16 @@ export async function getSapActuals(
 
   logger.info(`Getting SAP actuals for ${sapProjectId}, years ${fromYear}-${toYear}...`);
 
-  const cachedActuals = await getCachedSapActuals(sapProjectId, fromYear, toYear);
-  if (cachedActuals) {
+  const { lastCheck, actuals } = await getCachedSapActuals(sapProjectId, fromYear, toYear);
+  const currentTime = new Date(lastCheck ?? 0).getMilliseconds();
+  if (
+    actuals?.length &&
+    currentTime > Date.now() + env.sapWebService.actualsInfoTTLSeconds * 1000
+  ) {
     logger.info(
       `Found recently cached SAP actuals for ${sapProjectId}, years ${fromYear}-${toYear}...`,
     );
-    return cachedActuals;
+    return actuals;
   } else {
     logger.info(
       `No recent cache entry for ${sapProjectId}, years ${fromYear}-${toYear} actuals, fetching...`,
