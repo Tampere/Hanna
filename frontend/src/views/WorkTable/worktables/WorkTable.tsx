@@ -490,18 +490,9 @@ export default function WorkTable() {
           gap: 2rem;
           align-items: center;
           padding-bottom: 16px;
+          padding-top: 12px;
         `}
       >
-        <Typography
-          variant="h4"
-          component="h1"
-          data-testid="worktable-title"
-          css={css`
-            font-size: 1.8rem;
-          `}
-        >
-          {tr('workTable.title')}
-        </Typography>
         <YearPicker
           selectedYear={allYearsSelected ? 'allYears' : dayjs(searchParams.objectStartDate).year()}
           onChange={(dates) =>
