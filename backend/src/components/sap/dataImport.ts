@@ -453,16 +453,20 @@ export async function getSapActuals(
 
   logger.info(`Getting SAP actuals for ${sapProjectId}, years ${fromYear}-${toYear}...`);
 
-  const { lastCheck, actuals } = await getCachedSapActuals(sapProjectId, fromYear, toYear);
+  const { lastCheck, actuals: cachedActuals } = await getCachedSapActuals(
+    sapProjectId,
+    fromYear,
+    toYear,
+  );
   const currentTime = new Date(lastCheck ?? 0).getMilliseconds();
   if (
-    actuals?.length &&
+    cachedActuals?.length &&
     currentTime > Date.now() + env.sapWebService.actualsInfoTTLSeconds * 1000
   ) {
     logger.info(
       `Found recently cached SAP actuals for ${sapProjectId}, years ${fromYear}-${toYear}...`,
     );
-    return actuals;
+    return cachedActuals;
   } else {
     logger.info(
       `No recent cache entry for ${sapProjectId}, years ${fromYear}-${toYear} actuals, fetching...`,
@@ -477,6 +481,16 @@ export async function getSapActuals(
     });
     // JSON response in the first element of the array
     const actuals = transformActuals(wsResult[0]);
+
+    // If fetched actuals are significantly lower than cached, skip the cache update
+    // Likely some error in SAP response
+    if (cachedActuals?.length * 0.9 > actuals.length) {
+      logger.info(
+        `Fetched actuals (${actuals.length} items) is lower than cached (${cachedActuals.length} items), skipping cache update.`,
+      );
+      return cachedActuals;
+    }
+
     return maybeCacheSapActuals(sapProjectId, actuals);
   }
 }
