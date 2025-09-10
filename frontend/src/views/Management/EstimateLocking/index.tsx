@@ -38,8 +38,6 @@ export function EstimateLocking() {
   };
 
   const handleYearChange = (_event: any, newValue: (string | number)[]) => {
-    //const numericYears = newValue.map((year) => Number(year)).filter((year) => !isNaN(year));
-
     setNewLockedYears(filterAndValidateYears(newValue));
   };
 
@@ -67,25 +65,36 @@ export function EstimateLocking() {
         getOptionLabel={(option) => option.toString()}
         filterSelectedOptions
         sx={{ width: '100%' }}
-        renderInput={(params) => <TextField {...params} />}
+        renderInput={(params) => (
+          <TextField
+            label={tr('EstimateLocking.pickLockedYears')}
+            placeholder={tr('EstimateLocking.placeholder')}
+            {...params}
+          />
+        )}
       />
       {lockedYears.length + deletedYears.length > 0 && (
-        <Box display="flex" rowGap={1} columnGap={1} flexWrap="wrap" marginTop={2}>
-          {[
-            ...lockedYears.map((year) => ({ status: 'locked', year: year })),
-            ...deletedYears.map((year) => ({ status: 'deleted', year: year })),
-          ]
-            .sort((a, b) => a.year - b.year)
-            .map(({ status, year }) => (
-              <Chip
-                key={year}
-                label={year}
-                color={status === 'deleted' ? 'error' : 'primary'}
-                onDelete={status === 'locked' ? () => handleDeleteYear(year) : undefined}
-                onClick={status === 'deleted' ? () => handleCancelYear(year) : undefined}
-              />
-            ))}
-        </Box>
+        <>
+          <Typography variant="h6" gutterBottom marginTop={2}>
+            {tr('management.currentlyLockedYears')}
+          </Typography>
+          <Box display="flex" rowGap={1} columnGap={1} flexWrap="wrap" marginTop={2}>
+            {[
+              ...lockedYears.map((year) => ({ status: 'locked', year: year })),
+              ...deletedYears.map((year) => ({ status: 'deleted', year: year })),
+            ]
+              .sort((a, b) => a.year - b.year)
+              .map(({ status, year }) => (
+                <Chip
+                  key={year}
+                  label={year}
+                  color={status === 'deleted' ? 'error' : 'primary'}
+                  onDelete={status === 'locked' ? () => handleDeleteYear(year) : undefined}
+                  onClick={status === 'deleted' ? () => handleCancelYear(year) : undefined}
+                />
+              ))}
+          </Box>
+        </>
       )}
       {newLockedYears.length + deletedYears.length > 0 && (
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1em' }}>
