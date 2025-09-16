@@ -8,6 +8,7 @@ import { createCompanyRouter } from '@backend/router/company.js';
 import { createGeneralNotificationRouter } from '@backend/router/generalNotification.js';
 import { createJobRouter } from '@backend/router/job.js';
 import { createLockedYearsRouter } from '@backend/router/lockedYears.js';
+import { createPlanningRouter } from '@backend/router/planning.js';
 import { createProjectRouter } from '@backend/router/project/base.js';
 import { createDetailplanProjectRouter } from '@backend/router/project/detailplan.js';
 import { createInvestmentProjectRouter } from '@backend/router/project/investment.js';
@@ -61,6 +62,7 @@ export const appRouter = t.router({
   workTable: createWorkTableRouter(t),
   generalNotification: createGeneralNotificationRouter(t),
   lockedYears: createLockedYearsRouter(t),
+  planning: createPlanningRouter(t),
 });
 
 export type TRPC = typeof t;
