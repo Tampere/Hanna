@@ -89,7 +89,11 @@ export function ProjectFinancesCharts(props: Props) {
             />
           );
         }
-        const amount = budget.data?.find((b) => b.year === Number(year))?.budgetItems.amount;
+        const amount =
+          budget.data
+            ?.filter((b) => b.year === Number(year))
+            ?.reduce((sum, b) => (b.budgetItems.amount ? sum + b.budgetItems.amount : sum), 0) ??
+          null;
         if (!monthlyActuals.data?.[year]) {
           return (
             <Box
@@ -105,9 +109,7 @@ export function ProjectFinancesCharts(props: Props) {
         }
 
         const data = [...Array(12).keys()].map((month) => {
-          const actual = monthlyActuals.data?.[year]?.find(
-            (actual) => actual.month === month + 1,
-          );
+          const actual = monthlyActuals.data?.[year]?.find((actual) => actual.month === month + 1);
           return actual ? actual.total / 100 : 0;
         });
 
