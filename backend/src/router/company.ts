@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit.js';
 import { getPool, sql } from '@backend/db.js';
+import { logger } from '@backend/logging.js';
 import { TRPC } from '@backend/router/index.js';
 
 import { nonEmptyString } from '@shared/schema/common.js';
@@ -17,7 +18,8 @@ import {
 const selectCompanyFragment = sql.fragment`
   SELECT
     business_id AS "businessId",
-    company_name AS "companyName"
+    company_name AS "companyName",
+    id AS id
   FROM app.company
   WHERE deleted IS FALSE
 `;
@@ -27,11 +29,11 @@ export function getAllContactsAndCompanies() {
     z.object({ id: nonEmptyString, contactName: z.string(), companyName: z.string() }),
   )`
       SELECT
-        id,
+        cc.id,
         cc.contact_name AS "contactName",
         c.company_name AS "companyName"
       FROM app.company_contact cc
-      LEFT JOIN app.company c ON cc.business_id = c.business_id
+      LEFT JOIN app.company c ON cc.company_id = c.id
       WHERE c.deleted IS FALSE AND cc.deleted IS FALSE
       ORDER BY LOWER(cc.contact_name) ASC`);
 }
@@ -45,12 +47,33 @@ export const createCompanyRouter = (t: TRPC) =>
           eventData: input,
           eventUser: ctx.user.id,
         });
-        await tx.any(sql.untyped`
-          INSERT INTO app.company (business_id, company_name, modified_by)
-          VALUES (${input.businessId}, ${input.companyName}, ${ctx.user.id})
-          ON CONFLICT (business_id)
-          DO UPDATE SET company_name = ${input.companyName}, modified_by = ${ctx.user.id}
-        `);
+        if (input.id) {
+          await tx.any(sql.untyped`
+            UPDATE app.company
+            SET
+              business_id = ${input.businessId},
+              company_name = ${input.companyName},
+              modified_by = ${ctx.user.id},
+              modified_at = NOW()
+            WHERE id = ${input.id}
+              AND deleted IS FALSE
+            RETURNING id; -- Return the ID of the updated company
+          `);
+        } else {
+          await tx.query(sql.untyped`
+            INSERT INTO app.company (
+              business_id,
+              company_name,
+              modified_by,
+              modified_at
+            )
+            VALUES (
+              ${input.businessId},
+              ${input.companyName},
+              ${ctx.user.id},
+              NOW()
+            )`);
+        }
       });
     }),
 

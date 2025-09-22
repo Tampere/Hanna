@@ -5,6 +5,7 @@ import { nonEmptyString } from './common.js';
 export const companySchema = z.object({
   businessId: nonEmptyString,
   companyName: nonEmptyString,
+  id: nonEmptyString.optional(),
 });
 
 export const companyIdSchema = z.object({
