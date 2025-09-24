@@ -72,19 +72,21 @@ export function CompanyContactTable(props: Props) {
                 component={Link}
                 replace={true}
                 to={`?dialog=edit&contactId=${contact.id}`}
+                disabled={!contact.id}
                 startIcon={<EditTwoTone />}
               >
                 {tr('genericForm.editBtnLabel')}
               </Button>
               <Button
                 onClick={() => {
-                  if (confirm(tr('genericForm.deleteConfirmation'))) {
+                  if (contact.id && confirm(tr('genericForm.deleteConfirmation'))) {
                     contactDeletion.mutate({ id: contact.id });
                   }
                 }}
                 color="secondary"
                 size="small"
                 variant="outlined"
+                disabled={!contact.id}
                 startIcon={<DeleteForeverTwoTone />}
               >
                 {tr('genericForm.deleteBtnLabel')}
