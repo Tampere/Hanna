@@ -46,7 +46,7 @@ export function CompanyContactForm(props: Props) {
       contactName: '',
       phoneNumber: '',
       emailAddress: '',
-      businessId: '',
+      companyId: '',
     },
   });
 
@@ -121,7 +121,7 @@ export function CompanyContactForm(props: Props) {
           component={({ ref, ...field }) => <TextField {...field} size="small" />}
         />
         <FormField
-          formField="businessId"
+          formField="companyId"
           component={(field) => (
             <Autocomplete
               {...field}
@@ -131,9 +131,9 @@ export function CompanyContactForm(props: Props) {
                 field.onChange(item);
               }}
               getOptionLabel={(option) => {
-                return companies.data?.find((c) => c.businessId === option)?.companyName ?? '';
+                return companies.data?.find((c) => c.id === option)?.companyName ?? '';
               }}
-              options={companies.data ? companies.data.map((c) => c.businessId) : []}
+              options={companies.data ? companies.data.map((c) => c.id) : []}
               renderInput={(params) => {
                 return <TextField {...params} size="small" />;
               }}

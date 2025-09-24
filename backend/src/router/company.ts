@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit.js';
 import { getPool, sql } from '@backend/db.js';
-import { logger } from '@backend/logging.js';
 import { TRPC } from '@backend/router/index.js';
 
 import { nonEmptyString } from '@shared/schema/common.js';
@@ -125,7 +124,7 @@ export const createCompanyRouter = (t: TRPC) =>
         contact_name: input.contactName,
         phone_number: input.phoneNumber,
         email_address: input.emailAddress,
-        business_id: input.businessId,
+        company_id: input.companyId,
         modified_by: ctx.user.id,
       };
 
@@ -157,16 +156,16 @@ export const createCompanyRouter = (t: TRPC) =>
     getContactById: t.procedure.input(z.object({ id: nonEmptyString })).query(async ({ input }) => {
       return getPool().one(sql.type(companyContactSearchResultSchema)`
           SELECT
-            id,
+            company_contact.id,
             contact_name AS "contactName",
             phone_number AS "phoneNumber",
             email_address AS "emailAddress",
-            company_contact.business_id AS "businessId",
+            company.id AS "companyId",
             company_name AS "companyName"
           FROM app.company_contact
-          LEFT JOIN app.company ON company_contact.business_id = company.business_id
+          LEFT JOIN app.company ON company_contact.company_id = company.id
           WHERE company_contact.deleted IS FALSE
-            AND id = ${input.id}
+            AND company_contact.id = ${input.id}
         `);
     }),
 
@@ -177,7 +176,7 @@ export const createCompanyRouter = (t: TRPC) =>
         contact_name AS "contactName",
         phone_number AS "phoneNumber",
         email_address AS "emailAddress",
-        business_id AS "businessId"
+        company_id AS "companyId"
       FROM app.company_contact
       WHERE deleted IS FALSE`);
     }),
@@ -214,18 +213,19 @@ export const createCompanyRouter = (t: TRPC) =>
       const result = await getPool().any(sql.type(resultsSchema)`
         WITH contacts AS (
             SELECT
-                id,
+                company_contact.id AS id,
                 contact_name,
                 phone_number,
                 email_address,
                 company.company_name AS company_name,
-                company.business_id,
+                company.business_id AS business_id,
+                company.id AS company_id,
                 to_tsvector(
                   'simple',
                   concat_ws(' ', contact_name, replace(email_address, '@', ' '), company_name)
                 ) AS ts_vec
             FROM app.company_contact
-            LEFT JOIN app.company ON company_contact.business_id = company.business_id
+            LEFT JOIN app.company ON company_contact.company_id = company.id
             WHERE company_contact.deleted IS FALSE
               AND company.deleted IS FALSE
         )
@@ -235,7 +235,8 @@ export const createCompanyRouter = (t: TRPC) =>
           phone_number AS "phoneNumber",
           email_address AS "emailAddress",
           company_name AS "companyName",
-          business_id AS "businessId"
+          business_id AS "businessId",
+          company_id AS "companyId"
         FROM contacts
         WHERE ${searchTerm}::text IS NULL OR ts_vec @@ to_tsquery('simple', ${searchTerm})
         ORDER BY LOWER(contact_name), ts_rank(ts_vec, to_tsquery('simple', ${searchTerm})) DESC;

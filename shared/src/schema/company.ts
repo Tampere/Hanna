@@ -17,7 +17,7 @@ export const companyContactSchema = z.object({
   contactName: nonEmptyString,
   phoneNumber: nonEmptyString,
   emailAddress: nonEmptyString,
-  businessId: nonEmptyString,
+  companyId: nonEmptyString,
 });
 
 export const companyContactIdSchema = z.object({
@@ -29,7 +29,7 @@ export const companyContactSearchQuerySchema = z.object({
 });
 
 export const companyContactSearchResultSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   contactName: nonEmptyString,
   phoneNumber: nonEmptyString,
   emailAddress: nonEmptyString,
