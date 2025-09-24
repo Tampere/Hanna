@@ -193,7 +193,7 @@ export async function workTableSearch(input: WorkTableSearch) {
       )
       AND (
         ${sql.array(company, 'text')} = '{}'::TEXT[] OR
-        (SELECT array_agg(business_id) FROM app.project_object_user_role pour LEFT JOIN app.company_contact cc ON pour.company_contact_id = cc.id WHERE project_object.id = pour.project_object_id) &&
+        (SELECT array_agg(c.business_id) FROM app.project_object_user_role pour LEFT JOIN app.company_contact cc ON pour.company_contact_id = cc.id LEFT JOIN app.company c ON cc.company_id = c.id WHERE project_object.id = pour.project_object_id AND c.business_id IS NOT NULL) &&
         ${sql.array(company, 'text')}
       )
       AND (
