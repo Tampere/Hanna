@@ -18,7 +18,6 @@ export const fi = {
   'pages.sapReportsTitle': 'SAP-raportit',
   'pages.planning.workTableTitle': 'Investointiohjelmointi',
   'pages.estimateplanning.workTableTitle': 'Taloussuunnittelu',
-  'pages.yearplanning.workTableTitle': 'Vuosisuunnittelu',
   'pages.plannigTitle': 'Ohjelmointi',
   'pages.managementTitle': 'Hallinta',
   'pages.manualTitle': 'Ohje',

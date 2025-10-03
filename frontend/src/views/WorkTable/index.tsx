@@ -25,13 +25,6 @@ const tabs = [
     to: '/ohjelmointi/taloussuunnittelu',
     requiredRole: null,
   },
-  {
-    tabView: 'vuosisuunnittelu',
-    label: 'pages.yearplanning.workTableTitle',
-    icon: <Reorder sx={{ mr: 1 }} />,
-    to: '/ohjelmointi/vuosisuunnittelu',
-    requiredRole: null,
-  },
 ] as const;
 
 export function InvestmentPlanning() {
@@ -77,8 +70,7 @@ export function InvestmentPlanning() {
           ))}
       </Tabs>
       {routeParams.tabView === 'investointiohjelmointi' && <WorkTable {...viewParams} />}
-      {/*routeParams.tabView === 'taloussuunnittelu' && <EstimatePlanningTable {...viewParams} />*/}
-      {routeParams.tabView === 'vuosisuunnittelu' && <PlanningTable {...viewParams} />}
+      {routeParams.tabView === 'taloussuunnittelu' && <PlanningTable {...viewParams} />}
     </Box>
   );
 }

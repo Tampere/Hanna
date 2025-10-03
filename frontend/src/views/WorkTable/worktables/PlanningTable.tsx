@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { Launch } from '@mui/icons-material';
+import { Launch, Work } from '@mui/icons-material';
 import { Box, Link, Theme, Typography } from '@mui/material';
 import {
   DataGrid,
@@ -9,13 +9,19 @@ import {
   useGridApiRef,
 } from '@mui/x-data-grid';
 import { fiFI } from '@mui/x-data-grid/locales';
-import { useEffect, useMemo, useRef } from 'react';
+import { useAtom } from 'jotai';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { start } from 'repl';
 
 import { trpc } from '@frontend/client';
 import { formatCurrency } from '@frontend/components/forms/CurrencyInput';
 import { useTranslations } from '@frontend/stores/lang';
+import { searchAtom } from '@frontend/stores/workTable';
+import { useDebounce } from '@frontend/utils/useDebounce';
 
-import { PlanningTableRow } from '@shared/schema/planningTable';
+import { PlanningTableRow, ProjectObjectRow } from '@shared/schema/planningTable';
+
+import { WorkTableFilters } from '../Filters/WorkTableFilters';
 
 interface MaybeModifiedCellProps<T extends GridValidRowModel> {
   params: GridRenderCellParams<T>;
@@ -73,7 +79,7 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   & .MuiDataGrid-columnHeader {
     background: ${theme.palette.primary.main};
     color: white;
-    height: 45px !important;
+    height: 55px !important;
     min-height: 0 !important;
     position: sticky;
     top: calc(${summaryRowHeight}px - 1rem);
@@ -140,18 +146,31 @@ function NoRowsOverlay() {
 const pinnedColumns = [{ name: 'displayName', offset: 0 }];
 
 export default function PlanningTable() {
+  const [searchParams, setSearchParams] = useAtom(searchAtom);
+  const [yearRange, setYearRange] = useState<{ start: number; end: number }>({
+    start: new Date().getFullYear(),
+    end: new Date().getFullYear() + 15,
+  });
+  const query = useDebounce(searchParams, 500);
   const tr = useTranslations();
 
   // Start with default year range (current year +/- 2 years)
   const currentYear = new Date().getFullYear();
   const defaultYearRange = {
-    start: currentYear - 2,
+    start: currentYear - 4,
     end: currentYear + 5,
   };
+  console.log(searchParams);
 
-  const planningData = trpc.planning.search.useQuery({
-    yearRange: defaultYearRange,
-  });
+  const planningData = trpc.planning.search.useQuery(
+    {
+      ...query,
+      yearRange: yearRange,
+    },
+    //{
+    //  yearRange: defaultYearRange,
+    //}
+  );
 
   const gridApiRef = useGridApiRef();
 
@@ -162,7 +181,7 @@ export default function PlanningTable() {
       planningData: planningData.data,
     });
   }, [defaultYearRange]);
-
+  //const workTableData = trpc.workTable.search.useQuery(query);
   return (
     <Box
       css={css`
@@ -171,6 +190,13 @@ export default function PlanningTable() {
         flex-direction: column;
       `}
     >
+      <WorkTableFilters
+        searchParams={searchParams}
+        setSearchParams={setSearchParams}
+        yearRange={{ startYear: defaultYearRange.start, endYear: defaultYearRange.end }}
+        readOnly={false}
+        expanded={true}
+      />
       <DataGrid
         slots={{ noRowsOverlay: NoRowsOverlay }}
         getCellClassName={({ field }) => {
@@ -269,28 +295,117 @@ function getColumns({
     columns.push({
       field: yearKey,
       headerName: `${year}`,
-      width: 120,
+      width: isPastOrCurrent ? 170 : 90,
       headerAlign: 'center',
       headerClassName: 'year-column',
+      renderHeader: () => (
+        <Box
+          css={css`
+            display: flex;
+            flex-direction: column;
+            align-items: normal;
+            width: 100%;
+            gap: 2px;
+          `}
+        >
+          <Box
+            css={css`
+              width: 100%;
+              font-weight: 600;
+              font-size: 14px;
+            `}
+          >
+            {year}
+          </Box>
+          {isPastOrCurrent ? (
+            <Box
+              css={css`
+                display: flex;
+                width: 140px;
+                justify-content: space-between;
+                font-size: 10px;
+                font-weight: 500;
+                opacity: 0.9;
+              `}
+            >
+              <Typography>Toteutunut</Typography>
+              <Typography>Arvio</Typography>
+            </Box>
+          ) : (
+            <Box
+              css={css`
+                font-size: 10px;
+                font-weight: 500;
+                opacity: 0.9;
+              `}
+            >
+              Arvio
+            </Box>
+          )}
+        </Box>
+      ),
       renderCell: (params: GridRenderCellParams<PlanningTableRow>) => {
-        const sampleEstimate = 100;
-        const sampleActual = 1000;
+        const amount =
+          params.row.type === 'projectObject'
+            ? planningData
+                ?.find((item) => item.id === params.row.id)
+                ?.budget?.find((b) => b?.year === year)?.amount ?? null
+            : null;
+
+        const actual =
+          params.row.type === 'projectObject' && params.row.id
+            ? trpc.sap.getYearlyActualsByProjectObjectId.useQuery({
+                projectObjectId: params.row.id,
+                startYear: year,
+                endYear: year,
+              }).data?.[0].total ?? null
+            : null;
 
         return (
           <Box
             css={css`
               display: flex;
-              flex-direction: column;
+              flex-direction: row;
               width: 100%;
-              text-align: right;
+              justify-content: space-between;
+              align-items: center;
               font-family: monospace;
               font-size: 11px;
               line-height: 1.2;
+              gap: 8px;
             `}
           >
-            <div className="estimate-value">E: {formatCurrency(sampleEstimate)}</div>
-            {isPastOrCurrent && sampleActual !== null && (
-              <div className="actual-value">A: {formatCurrency(sampleActual)}</div>
+            {isPastOrCurrent ? (
+              <>
+                <Box
+                  className="actual-value"
+                  css={css`
+                    flex: 1;
+                    text-align: left;
+                  `}
+                >
+                  {formatCurrency(actual)}
+                </Box>
+                <Box
+                  className="estimate-value"
+                  css={css`
+                    flex: 1;
+                    text-align: right;
+                  `}
+                >
+                  {formatCurrency(amount) ?? '-'}
+                </Box>
+              </>
+            ) : (
+              <Box
+                className="estimate-value"
+                css={css`
+                  width: 100%;
+                  text-align: right;
+                `}
+              >
+                {formatCurrency(amount) ?? '-'}
+              </Box>
             )}
           </Box>
         );
