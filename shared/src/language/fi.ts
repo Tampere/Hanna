@@ -640,6 +640,7 @@ export const fi = {
   'workTable.search.clearFiltersLabel': 'Tyhjennä suodattimet',
   'workTable.search.company': 'Yritys',
   'workTable.search.committee': 'Lautakunta',
+  'workTable.search.palmGrouping': 'PALM-ryhmittely',
   'workTable.startDate': 'Hakuaikavälin alku',
   'workTable.endDate': 'Hakuaikavälin loppu',
   'workTable.yearSelect': 'Vuosi',

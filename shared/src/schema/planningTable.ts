@@ -13,16 +13,20 @@ export const yearRange = z.object({
 
 export const planningTableSearchSchema = z
   .object({
-    committee: z.array(nonEmptyString).optional(),
-    // sitovuus
-    palmGrouping: z.array(codeListIdSchema.extract(['PalmKoritus'])).optional(),
-    // Omistaja
-    // Kohteen laji
-    // Kohteen tyyppi
-    // Rakennuttaja
-    // suunnitteluttaja
+    projectName: z.string().optional(),
+    projectObjectName: z.string().optional(),
+    objectType: z.array(dbInvestmentProjectObjectSchema.shape.objectType).optional(),
+    objectCategory: dbInvestmentProjectObjectSchema.shape.objectCategory.optional(),
+    objectUsage: dbInvestmentProjectObjectSchema.shape.objectUsage.optional(),
+    lifecycleState: z.array(dbInvestmentProjectObjectSchema.shape.lifecycleState).optional(),
     objectStage: z.array(dbInvestmentProjectObjectSchema.shape.objectStage).optional(),
-    // Omat kohteet
+    objectParticipantUser: nonEmptyString.optional(),
+    rakennuttajaUsers: z.array(nonEmptyString).optional(),
+    suunnitteluttajaUsers: z.array(nonEmptyString).optional(),
+    company: z.array(nonEmptyString).optional(),
+    committee: z.array(nonEmptyString).optional(),
+    projectTarget: z.array(nonEmptyString).optional(),
+    palmGrouping: z.array(nonEmptyString).optional(),
     yearRange: yearRange.optional(),
   })
   .default({});

@@ -51,10 +51,11 @@ interface Props {
   yearRange: { startYear: number; endYear: number };
   readOnly?: boolean;
   expanded: boolean;
+  palmGroupingVisible?: boolean;
 }
 
 export function WorkTableFilters(props: Props) {
-  const { searchParams, setSearchParams } = props;
+  const { searchParams, setSearchParams, palmGroupingVisible = false } = props;
 
   const tr = useTranslations();
   const lang = useAtomValue(langAtom);
@@ -197,7 +198,7 @@ export function WorkTableFilters(props: Props) {
             />
           </GridSpan>
 
-          <GridSpan row={2} span={3} wideScreenSpan={2}>
+          <GridSpan row={2} span={3} wideScreenSpan={3}>
             <CustomFormLabel
               label={tr('projectObject.objectUsageLabelShort')}
               htmlFor="objectUsageField"
@@ -212,7 +213,7 @@ export function WorkTableFilters(props: Props) {
             />
           </GridSpan>
 
-          <GridSpan row={2} span={3} wideScreenSpan={2}>
+          <GridSpan row={2} span={3} wideScreenSpan={3}>
             <CustomFormLabel
               label={tr('projectObject.lifecycleStateLabel')}
               htmlFor="objectLifecycleState"
@@ -254,7 +255,11 @@ export function WorkTableFilters(props: Props) {
               maxTags={1}
             />
           </GridSpan>
-          <GridSpan row={3} span={3} wideScreenSpan={2}>
+          <GridSpan
+            row={3}
+            span={palmGroupingVisible ? 2 : 3}
+            wideScreenSpan={palmGroupingVisible ? 2 : 3}
+          >
             <CustomFormLabel htmlFor="company" label={tr('workTable.search.company')} />
             <CompanySelect
               id="company"
@@ -263,7 +268,11 @@ export function WorkTableFilters(props: Props) {
               maxTags={1}
             />
           </GridSpan>
-          <GridSpan row={3} span={3} wideScreenSpan={2}>
+          <GridSpan
+            row={3}
+            span={palmGroupingVisible ? 2 : 3}
+            wideScreenSpan={palmGroupingVisible ? 2 : 3}
+          >
             <CustomFormLabel htmlFor="company" label={tr('workTable.search.committee')} />
             <CodeSelect
               multiple
@@ -273,6 +282,18 @@ export function WorkTableFilters(props: Props) {
               maxTags={1}
             />
           </GridSpan>
+          {palmGroupingVisible && (
+            <GridSpan row={3} span={2} wideScreenSpan={2}>
+              <CustomFormLabel htmlFor="palmGrouping" label={tr('workTable.search.palmGrouping')} />
+              <CodeSelect
+                multiple
+                codeListId="PalmKoritus"
+                value={searchParams.palmGrouping ?? []}
+                onChange={(state) => setSearchParams({ ...searchParams, palmGrouping: state })}
+                maxTags={1}
+              />
+            </GridSpan>
+          )}
         </>
       )}
     </div>

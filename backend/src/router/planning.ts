@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { textToTsSearchTerms } from '@backend/components/project/search.js';
 import { getProjectObjectBudget } from '@backend/components/projectObject/index.js';
 import { refreshProjectObjectSapActuals } from '@backend/components/sap/actuals.js';
 import { getPool, sql } from '@backend/db.js';
@@ -23,18 +24,26 @@ import { getWorkTableYearRange } from './workTable.js';
 // Actuals are only shown for past and current years, not future years
 async function planningTableSearch(input: PlanningTableSearch) {
   const {
-    committee = [],
-    // sitovuus
-    palmGrouping = [],
-    // Omistaja
-    // Kohteen laji
-    // Kohteen tyyppi
-    // Rakennuttaja
-    // suunnitteluttaja
+    objectType = [],
+    objectCategory = [],
+    objectUsage = [],
+    lifecycleState = [],
     objectStage = [],
-    // Omat kohteet
-    yearRange = null,
+    objectParticipantUser = '',
+    rakennuttajaUsers = [],
+    suunnitteluttajaUsers = [],
+    company = [],
+    committee = [],
+    projectTarget = [],
+    palmGrouping = [],
   } = input;
+
+  const objectNameSearch = textToTsSearchTerms(input.projectObjectName, { minTermLength: 3 });
+  const projectNameSearch = textToTsSearchTerms(input.projectName, { minTermLength: 3 });
+  const objectNameSubstringSearch =
+    input.projectObjectName && input.projectObjectName?.length >= 3 ? input.projectObjectName : '';
+  const projectNameSubstringSearch =
+    input.projectName && input.projectName?.length >= 3 ? input.projectName : '';
 
   // Determine the year range to display
   const currentYear = new Date().getFullYear();
@@ -49,67 +58,144 @@ async function planningTableSearch(input: PlanningTableSearch) {
       FROM app.project p
       INNER JOIN app.project_investment pi ON pi.id = p.id
       WHERE p.deleted = false
+        AND (${projectNameSearch}::text IS NULL OR to_tsquery('simple', ${projectNameSearch}) @@ to_tsvector('simple', p.project_name) OR  p.project_name LIKE '%' || ${projectNameSubstringSearch} || '%')
+        -- Sitovuus
         AND (
-          ${sql.array(committee, 'text')} = '{}'::TEXT[] OR
+          ${sql.array(projectTarget, 'text')} = '{}'::TEXT[] OR
+          (pi.target).id = ANY(${sql.array(projectTarget, 'text')}::TEXT[])
+        )
+        -- Elinkaaren tila
+        AND (
+          ${sql.array(lifecycleState, 'text')} = '{}'::TEXT[] OR
+          (p.lifecycle_state).id = ANY(${sql.array(lifecycleState, 'text')})
+        )
+        -- Lautakunta
+        AND (
+          ${sql.array(committee, 'text')}::TEXT[] = '{}'::TEXT[] OR
           EXISTS (
             SELECT 1 FROM app.project_committee pc
             WHERE pc.project_id = p.id AND (pc.committee_type).id = ANY(${sql.array(
               committee,
               'text',
-            )})
+            )}::TEXT[])
           )
         )
         AND (
-          ${sql.array(palmGrouping, 'text')} = '{}'::TEXT[] OR
-          (pi.palm_grouping).id = ANY(${sql.array(palmGrouping, 'text')})
+          ${sql.array(palmGrouping, 'text')}::TEXT[] = '{}'::TEXT[] OR
+          (pi.palm_grouping).id = ANY(${sql.array(palmGrouping, 'text')}::TEXT[])
         )
+         AND (
+          ${sql.array(projectTarget, 'text')}::TEXT[] = '{}'::TEXT[] OR
+          (pi.target).id = ANY(${sql.array(projectTarget, 'text')}::TEXT[])
+        )
+
     ),
     filtered_project_objects AS (
-      SELECT DISTINCT po.id, po.object_name, po.project_id, p.project_name
+      SELECT po.id, po.object_name, po.project_id, p.project_name
       FROM app.project_object po
       INNER JOIN app.project_object_investment poi ON poi.project_object_id = po.id
       INNER JOIN app.project p ON p.id = po.project_id
+      LEFT JOIN app.project_object_user_role pour ON po.id = pour.project_object_id
       WHERE po.deleted = false
+        AND (${objectNameSearch}::text IS NULL OR to_tsquery('simple', ${objectNameSearch}) @@ to_tsvector('simple', po.object_name) OR po.object_name LIKE '%' || ${objectNameSubstringSearch} || '%')
+        AND (${projectNameSearch}::text IS NULL OR to_tsquery('simple', ${projectNameSearch}) @@ to_tsvector('simple', p.project_name) OR  p.project_name LIKE '%' || ${projectNameSubstringSearch} || '%')
+        -- Kohteen laji
         AND (
-          ${sql.array(committee, 'text')} = '{}'::TEXT[] OR
+          ${sql.array(objectStage, 'text')}::TEXT[] = '{}'::TEXT[] OR
+          (poi.object_stage).id = ANY(${sql.array(objectStage, 'text')}::TEXT[])
+        )
+        -- Tyyppi
+        AND (
+          ${sql.array(objectType, 'text')} = '{}'::TEXT[] OR
+          (SELECT array_agg((object_type).id) FROM app.project_object_type WHERE po.id = project_object_type.project_object_id) &&
+          ${sql.array(objectType, 'text')}
+        )
+        -- Omaisuusluokka
+        AND (
+          ${sql.array(objectCategory, 'text')} = '{}'::TEXT[] OR
+          (SELECT array_agg((object_category).id) FROM app.project_object_category WHERE po.id = project_object_category.project_object_id) &&
+          ${sql.array(objectCategory ?? [], 'text')}
+        )
+        -- Käyttötarkoitus
+        AND (
+          ${sql.array(objectUsage, 'text')} = '{}'::TEXT[] OR
+          (SELECT array_agg((object_usage).id) FROM app.project_object_usage WHERE po.id = project_object_usage.project_object_id) &&
+          ${sql.array(objectUsage, 'text')}
+        )
+        -- Elinkaaren tila
+        AND (
+          ${sql.array(lifecycleState, 'text')} = '{}'::TEXT[] OR
+          (po.lifecycle_state).id = ANY(${sql.array(lifecycleState, 'text')})
+        )
+        -- Rakennuttaja tai Suunnitteluttaja)
+        AND (
+          (${sql.array(rakennuttajaUsers, 'text')}::TEXT[] = '{}'::TEXT[] AND ${sql.array(
+            suunnitteluttajaUsers,
+            'text',
+          )}::TEXT[] = '{}'::TEXT[]) OR
+          (
+            (${sql.array(rakennuttajaUsers, 'text')}::TEXT[] != '{}'::TEXT[] AND
+             pour.role = ('InvestointiKohdeKayttajaRooli', '01')::app.code_id AND
+             pour.user_id = ANY(${sql.array(rakennuttajaUsers, 'text')}::TEXT[])
+            ) OR
+            (${sql.array(suunnitteluttajaUsers, 'text')}::TEXT[] != '{}'::TEXT[] AND
+             pour.role = ('InvestointiKohdeKayttajaRooli', '02')::app.code_id AND
+             pour.user_id = ANY(${sql.array(suunnitteluttajaUsers, 'text')}::TEXT[])
+            )
+          )
+        )
+        -- Yritys
+        AND (
+          ${sql.array(company, 'text')} = '{}'::TEXT[] OR
+          (SELECT array_agg(c.business_id) FROM app.project_object_user_role pour LEFT JOIN app.company_contact cc ON pour.company_contact_id = cc.id LEFT JOIN app.company c ON cc.company_id = c.id WHERE po.id = pour.project_object_id AND c.business_id IS NOT NULL) &&
+          ${sql.array(company, 'text')}
+        )
+        -- Lautakunta
+        AND (
+          ${sql.array(committee, 'text')}::TEXT[] = '{}'::TEXT[] OR
           EXISTS (
             SELECT 1 FROM app.project_object_committee poc
             WHERE poc.project_object_id = po.id AND (poc.committee_type).id = ANY(${sql.array(
               committee,
               'text',
-            )})
+            )}::TEXT[])
           )
         )
         AND (
-          ${sql.array(palmGrouping, 'text')} = '{}'::TEXT[] OR
-          (poi.palm_grouping).id = ANY(${sql.array(palmGrouping, 'text')})
+          ${sql.array(palmGrouping, 'text')}::TEXT[] = '{}'::TEXT[] OR
+          (poi.palm_grouping).id = ANY(${sql.array(palmGrouping, 'text')}::TEXT[])
         )
-        AND (
-          ${sql.array(objectStage, 'text')} = '{}'::TEXT[] OR
-          (poi.object_stage).id = ANY(${sql.array(objectStage, 'text')})
-        )
+      GROUP BY po.id, po.object_name, po.project_id, p.project_name
+        ${
+          objectParticipantUser
+            ? sql.fragment`HAVING ${objectParticipantUser} = ANY(array_agg(pour.user_id))`
+            : sql.fragment``
+        }
     )
-    -- Return project rows
-    SELECT
-      fp.id::text,
-      'project' AS type,
-      fp.project_name AS "projectName",
-      null AS "projectObjectName",
-      fp.project_name AS "sortName" -- Added this for consistent sorting
-    FROM filtered_projects fp
+    SELECT * FROM (
+      -- Return project rows
+      SELECT
+        fp.id::text,
+        'project' AS type,
+        fp.project_name AS "projectName",
+        null AS "projectObjectName",
+        fp.project_name AS "sortName"
+      FROM filtered_projects fp
 
-    UNION ALL
+      UNION ALL
 
-    -- Return project object rows
-    SELECT
-      fpo.id::text,
-      'projectObject' AS type,
-      fpo.project_name AS "projectName",
-      fpo.object_name AS "projectObjectName",
-      fpo.object_name AS "sortName" -- Added this for consistent sorting
-    FROM filtered_project_objects fpo
-
-    ORDER BY type, "sortName"
+      -- Return project object rows
+      SELECT
+        fpo.id::text,
+        'projectObject' AS type,
+        fpo.project_name AS "projectName",
+        fpo.object_name AS "projectObjectName",
+        fpo.object_name AS "sortName"
+      FROM filtered_project_objects fpo
+    ) AS results
+    ORDER BY "projectName",
+             CASE WHEN type = 'project' THEN 0 ELSE 1 END,
+             "sortName"
   `;
   const result = await getPool().any(query);
 

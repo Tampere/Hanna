@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { Launch, Work } from '@mui/icons-material';
-import { Box, Link, Theme, Typography } from '@mui/material';
+import { Box, Input, InputLabel, Link, Select, Theme, Typography } from '@mui/material';
 import {
   DataGrid,
   GridColDef,
@@ -9,19 +9,32 @@ import {
   useGridApiRef,
 } from '@mui/x-data-grid';
 import { fiFI } from '@mui/x-data-grid/locales';
-import { useAtom } from 'jotai';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { start } from 'repl';
+import { atom, useAtom, useAtomValue } from 'jotai';
+import { atomWithDefault } from 'jotai/utils';
+import { useMemo, useRef, useState } from 'react';
 
 import { trpc } from '@frontend/client';
 import { formatCurrency } from '@frontend/components/forms/CurrencyInput';
+import dayjs from '@frontend/dayjs';
+import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { searchAtom } from '@frontend/stores/workTable';
 import { useDebounce } from '@frontend/utils/useDebounce';
 
-import { PlanningTableRow, ProjectObjectRow } from '@shared/schema/planningTable';
+import { isoDateFormat } from '@shared/date';
+import { PlanningTableRow } from '@shared/schema/planningTable';
+import {
+  hasPermission,
+  hasWritePermission,
+  isAdmin,
+  ownsProject,
+} from '@shared/schema/userPermissions';
+import { WorkTableRow } from '@shared/schema/workTable';
 
+import { ProjectObjectParticipantFilter } from '../Filters/ProjectObjectParticipantFilter';
 import { WorkTableFilters } from '../Filters/WorkTableFilters';
+import { YearPicker } from '../Filters/YearPicker';
+import { WorkTableFinanceField } from '../columns';
 
 interface MaybeModifiedCellProps<T extends GridValidRowModel> {
   params: GridRenderCellParams<T>;
@@ -146,42 +159,88 @@ function NoRowsOverlay() {
 const pinnedColumns = [{ name: 'displayName', offset: 0 }];
 
 export default function PlanningTable() {
-  const [searchParams, setSearchParams] = useAtom(searchAtom);
-  const [yearRange, setYearRange] = useState<{ start: number; end: number }>({
-    start: new Date().getFullYear(),
-    end: new Date().getFullYear() + 15,
-  });
+  const auth = useAtomValue(asyncUserAtom);
+  const lockedYears = trpc.lockedYears.get.useQuery().data ?? [];
+
+  // Custom search atom for PlanningTable with extended year range
+  const currentYear = new Date().getFullYear();
+  const planningSearchAtom = useMemo(
+    () =>
+      atomWithDefault((get) => {
+        const baseSearch = get(searchAtom);
+        return {
+          ...baseSearch,
+          objectStartDate: dayjs([currentYear, 0, 1]).format(isoDateFormat),
+          objectEndDate: dayjs([currentYear + 15, 11, 31]).format(isoDateFormat),
+        };
+      }),
+    [currentYear],
+  );
+
+  const [searchParams, setSearchParams] = useAtom(planningSearchAtom);
   const query = useDebounce(searchParams, 500);
   const tr = useTranslations();
 
-  // Start with default year range (current year +/- 2 years)
-  const currentYear = new Date().getFullYear();
+  // Start with default year range (current year to current year + 15)
   const defaultYearRange = {
-    start: currentYear - 4,
-    end: currentYear + 5,
+    start: currentYear,
+    end: currentYear + 15,
   };
   console.log(searchParams);
 
-  const planningData = trpc.planning.search.useQuery(
-    {
-      ...query,
-      yearRange: yearRange,
-    },
-    //{
-    //  yearRange: defaultYearRange,
-    //}
-  );
+  const planningData = trpc.planning.search.useQuery(query);
+
+  function participantFilterChange() {
+    if (searchParams.objectParticipantUser) {
+      setSearchParams((prev) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { objectParticipantUser, ...rest } = prev;
+        return rest;
+      });
+    } else {
+      setSearchParams((prev) => ({
+        ...prev,
+        objectParticipantUser: auth?.id,
+      }));
+    }
+  }
+
+  function getWritableBudgetFields(
+    permissionCtx: WorkTableRow['permissionCtx'],
+  ): WorkTableFinanceField[] {
+    let writableFields: WorkTableFinanceField[] = [];
+    if (!auth) return writableFields;
+
+    const yearIsLocked = lockedYears?.includes(dayjs(searchParams.objectStartDate).year());
+
+    if (isAdmin(auth.role)) {
+      writableFields = ['amount', 'forecast', 'kayttosuunnitelmanMuutos'];
+    } else if (hasPermission(auth, 'investmentFinancials.write')) {
+      if (hasWritePermission(auth, permissionCtx) || ownsProject(auth, permissionCtx))
+        writableFields = ['forecast', 'amount', 'kayttosuunnitelmanMuutos'];
+      writableFields = ['amount', 'kayttosuunnitelmanMuutos'];
+    } else if (hasWritePermission(auth, permissionCtx) || ownsProject(auth, permissionCtx)) {
+      writableFields = ['forecast'];
+    }
+    return !yearIsLocked ? writableFields : writableFields.filter((field) => field !== 'amount');
+  }
 
   const gridApiRef = useGridApiRef();
 
   const columns = useMemo(() => {
     return getColumns({
-      yearRange: defaultYearRange,
+      yearRange:
+        searchParams.objectStartDate && searchParams.objectEndDate
+          ? {
+              start: dayjs(searchParams.objectStartDate).year(),
+              end: dayjs(searchParams.objectEndDate).year(),
+            }
+          : defaultYearRange,
       pinnedColumns: pinnedColumns.map((column) => column.name),
       planningData: planningData.data,
     });
-  }, [defaultYearRange]);
-  //const workTableData = trpc.workTable.search.useQuery(query);
+  }, [planningData.data]);
+
   return (
     <Box
       css={css`
@@ -190,12 +249,51 @@ export default function PlanningTable() {
         flex-direction: column;
       `}
     >
+      <Box
+        css={css`
+          display: flex;
+          gap: 2rem;
+          align-items: center;
+          padding-bottom: 16px;
+          padding-top: 12px;
+        `}
+      >
+        <YearPicker
+          selectedYear={dayjs(searchParams.objectStartDate).year()}
+          onChange={(dates) =>
+            setSearchParams({
+              ...searchParams,
+              objectStartDate: dates.startDate,
+            })
+          }
+          allowAllYears={false}
+        />
+
+        <YearPicker
+          selectedYear={dayjs(searchParams.objectEndDate).year()}
+          onChange={(dates) =>
+            setSearchParams({
+              ...searchParams,
+              objectEndDate: dates.endDate,
+            })
+          }
+          allowAllYears={false}
+        />
+      </Box>
+      <ProjectObjectParticipantFilter
+        onChange={participantFilterChange}
+        isChecked={!!searchParams.objectParticipantUser}
+      />
       <WorkTableFilters
         searchParams={searchParams}
         setSearchParams={setSearchParams}
-        yearRange={{ startYear: defaultYearRange.start, endYear: defaultYearRange.end }}
+        yearRange={{
+          startYear: dayjs(searchParams.objectStartDate).year(),
+          endYear: dayjs(searchParams.objectEndDate).year(),
+        }}
         readOnly={false}
         expanded={true}
+        palmGroupingVisible={true}
       />
       <DataGrid
         slots={{ noRowsOverlay: NoRowsOverlay }}
