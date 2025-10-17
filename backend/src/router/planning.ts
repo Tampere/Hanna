@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { textToTsSearchTerms } from '@backend/components/project/search.js';
 import { getProjectObjectBudget } from '@backend/components/projectObject/index.js';
+import { upsertProjectObject } from '@backend/components/projectObject/investment.js';
 import { refreshProjectObjectSapActuals } from '@backend/components/sap/actuals.js';
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
@@ -14,8 +15,9 @@ import {
   planningTableRowResult,
   planningTableRowSchema,
   planningTableSearchSchema,
+  planningUpdateSchema,
 } from '@shared/schema/planningTable.js';
-import { yearlyActualsSchema } from '@shared/schema/sapActuals.js';
+import { hasPermission, isAdmin } from '@shared/schema/userPermissions.js';
 
 import { getWorkTableYearRange } from './workTable.js';
 
@@ -91,7 +93,7 @@ async function planningTableSearch(input: PlanningTableSearch) {
 
     ),
     filtered_project_objects AS (
-      SELECT po.id, po.object_name, po.project_id, p.project_name
+      SELECT po.id, po.object_name, po.project_id, p.project_name, po.start_date, po.end_date
       FROM app.project_object po
       INNER JOIN app.project_object_investment poi ON poi.project_object_id = po.id
       INNER JOIN app.project p ON p.id = po.project_id
@@ -179,7 +181,8 @@ async function planningTableSearch(input: PlanningTableSearch) {
         'project' AS type,
         fp.project_name AS "projectName",
         null AS "projectObjectName",
-        fp.project_name AS "sortName"
+        fp.project_name AS "sortName",
+        NULL::jsonb AS "objectDateRange"
       FROM filtered_projects fp
 
       UNION ALL
@@ -190,7 +193,8 @@ async function planningTableSearch(input: PlanningTableSearch) {
         'projectObject' AS type,
         fpo.project_name AS "projectName",
         fpo.object_name AS "projectObjectName",
-        fpo.object_name AS "sortName"
+        fpo.object_name AS "sortName",
+        jsonb_build_object('startDate', fpo.start_date, 'endDate', fpo.end_date) AS "objectDateRange"
       FROM filtered_project_objects fpo
     ) AS results
     ORDER BY "projectName",
@@ -259,6 +263,35 @@ export const createPlanningRouter = (t: TRPC) =>
   t.router({
     search: t.procedure.input(planningTableSearchSchema).query(async ({ input }) => {
       return planningTableSearch(input);
+    }),
+    update: t.procedure.input(planningUpdateSchema).mutation(async ({ input, ctx }) => {
+      const user = ctx.user;
+      if (!isAdmin(user.role) && !hasPermission(user, 'investmentFinancials.write')) {
+        throw new Error('error.insufficientPermissions');
+      }
+
+      return await getPool().transaction(async (tx) => {
+        await Promise.all(
+          Object.entries(input).map(async ([projectObjectId, items]) => {
+            if (!items || items.length === 0) return;
+            await upsertProjectObject(
+              tx,
+              {
+                projectObjectId,
+                budgetUpdate: {
+                  budgetItems: items.map((i) => ({
+                    year: i.year,
+                    amount: i.amount,
+                    committee: null,
+                  })),
+                },
+              },
+              user.id,
+            );
+          }),
+        );
+        return true;
+      });
     }),
     years: t.procedure.query(async () => {
       return getWorkTableYearRange();

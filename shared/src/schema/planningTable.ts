@@ -49,6 +49,10 @@ const projectObjectRow = baseRowSchema.extend({
   type: z.literal('projectObject'),
   projectObjectName: commonDbProjectObjectSchema.shape.objectName,
   projectName: dbProjectSchema.shape.projectName,
+  objectDateRange: z.object({
+    startDate: commonDbProjectObjectSchema.shape.startDate,
+    endDate: commonDbProjectObjectSchema.shape.endDate,
+  }),
   budget: z.array(
     z
       .object({
@@ -74,3 +78,11 @@ export const planningTableRowResult = z.array(planningTableRowSchema);
 export type ProjectObjectRow = z.infer<typeof projectObjectRow>;
 export type ProjectRow = z.infer<typeof projectRow>;
 export type PlanningTableRow = z.infer<typeof planningTableRowSchema>;
+
+// Update schema for planning table (only amount per year for project objects)
+export const planningUpdateItemSchema = z.object({
+  year: z.number().int(),
+  amount: z.number().nullable(),
+});
+export const planningUpdateSchema = z.record(z.array(planningUpdateItemSchema));
+export type PlanningUpdate = z.infer<typeof planningUpdateSchema>;
