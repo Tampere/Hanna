@@ -554,7 +554,6 @@ function getColumns({
   actualsByPo,
   tr,
 }: GetColumnsParams): GridColDef<PlanningRowWithYears>[] {
-  //const tr = useTranslations();
   const columns: GridColDef<PlanningRowWithYears>[] = [];
 
   // Name column (pinned)
@@ -568,7 +567,7 @@ function getColumns({
     renderCell: (params: GridRenderCellParams<PlanningRowWithYears>) => {
       const displayName =
         params.row.type === 'project' ? params.row.projectName : params.row.projectObjectName;
-      console.log('params', params);
+
       return (
         <Box
           css={css`
