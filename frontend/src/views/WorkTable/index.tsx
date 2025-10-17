@@ -6,6 +6,8 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 
+//import EstimatePlanningTable from './worktables/EstimatePlanningTable';
+import PlanningTable from './worktables/PlanningTable';
 import WorkTable from './worktables/WorkTable';
 
 const tabs = [
@@ -14,6 +16,13 @@ const tabs = [
     label: 'pages.planning.workTableTitle',
     icon: <Reorder sx={{ mr: 1 }} />,
     to: '/ohjelmointi/investointiohjelmointi',
+    requiredRole: null,
+  },
+  {
+    tabView: 'taloussuunnittelu',
+    label: 'pages.estimateplanning.workTableTitle',
+    icon: <Reorder sx={{ mr: 1 }} />,
+    to: '/ohjelmointi/taloussuunnittelu',
     requiredRole: null,
   },
 ] as const;
@@ -61,6 +70,7 @@ export function InvestmentPlanning() {
           ))}
       </Tabs>
       {routeParams.tabView === 'investointiohjelmointi' && <WorkTable {...viewParams} />}
+      {routeParams.tabView === 'taloussuunnittelu' && <PlanningTable {...viewParams} />}
     </Box>
   );
 }

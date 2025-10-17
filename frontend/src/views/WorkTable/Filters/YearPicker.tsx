@@ -9,9 +9,10 @@ import { isoDateFormat } from '@shared/date';
 interface Props {
   onChange: (dates: { startDate: string; endDate: string }) => void;
   selectedYear: number | 'allYears';
+  allowAllYears?: boolean;
 }
 
-export function YearPicker({ onChange, selectedYear }: Props) {
+export function YearPicker({ onChange, selectedYear, allowAllYears = true }: Props) {
   const tr = useTranslations();
   const yearsQuery = trpc.workTable.years.useQuery();
 
@@ -49,7 +50,7 @@ export function YearPicker({ onChange, selectedYear }: Props) {
         }
       }}
     >
-      <option value="allYears">{tr('workTable.allYears')}</option>
+      {allowAllYears && <option value="allYears">{tr('workTable.allYears')}</option>}
       <optgroup label={tr('workTable.yearSelect')}>
         {yearsQuery.data?.map((year) => (
           <option

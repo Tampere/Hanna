@@ -26,6 +26,7 @@ import {
   ProjectObjectUsers,
 } from '@frontend/views/WorkTable/ProjectObjectUsers';
 
+import { PlanningTableRow } from '@shared/schema/planningTable';
 import { WorkTableRow, workTableColumnCodes } from '@shared/schema/workTable';
 
 import { CodeSpan } from './CodeSpan';
@@ -345,7 +346,7 @@ const fieldOperatives = {
   },
 };
 
-const financesField = (
+export const financesField = (
   targetField: 'amount' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos',
   opts?: Partial<GridColDef<WorkTableRow>>,
   CurrencyInputProps?: {

@@ -320,7 +320,7 @@ async function workTableUpdate(input: WorkTableUpdate, user: User) {
   });
 }
 
-async function getWorkTableYearRange() {
+export async function getWorkTableYearRange() {
   const data = await getPool().any(sql.type(projectObjectYears)`
   WITH date_range AS (
     SELECT
