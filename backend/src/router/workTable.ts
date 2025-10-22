@@ -30,6 +30,7 @@ function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'prin
   const columnMappings: Record<WorkTableColumn, FragmentSqlToken> = {
     objectName: sql.fragment`object_name AS "objectName"`,
     lifecycleState: sql.fragment`(search_results.lifecycle_state).id AS "lifecycleState"`,
+    objectStage: sql.fragment`(search_results.object_stage).id AS "objectStage"`,
     objectDateRange: sql.fragment`jsonb_build_object(
         'startDate', start_date,
         'endDate', end_date
