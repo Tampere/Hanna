@@ -119,7 +119,6 @@ export const templateColumns: Record<ReportTemplate, WorkTableColumn[]> = {
     'projectLink',
     'objectName',
     'lifecycleState',
-    'objectStage',
     'objectDateRange',
     'objectType',
     'committee',
