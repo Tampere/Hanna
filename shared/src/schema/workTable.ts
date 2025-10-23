@@ -12,6 +12,7 @@ export const workTableRowSchema = z.object({
   id: nonEmptyString,
   objectName: dbInvestmentProjectObjectSchema.shape.objectName,
   lifecycleState: dbInvestmentProjectObjectSchema.shape.lifecycleState,
+  objectStage: dbInvestmentProjectObjectSchema.shape.objectStage,
   objectDateRange: z.object({
     startDate: dbInvestmentProjectObjectSchema.shape.startDate,
     endDate: dbInvestmentProjectObjectSchema.shape.endDate,
@@ -81,6 +82,7 @@ export const workTableColumnCodesSchema = z.object({
   objectCategory: codeListIdSchema.extract(['KohteenOmaisuusLuokka']),
   objectUsage: codeListIdSchema.extract(['KohteenToiminnallinenKayttoTarkoitus']),
   objectRoles: codeListIdSchema.extract(['KohdeKayttajaRooli']),
+  objectStage: codeListIdSchema.extract(['KohteenLaji']),
 });
 
 export const workTableColumnCodes = workTableColumnCodesSchema.parse({
@@ -90,6 +92,7 @@ export const workTableColumnCodes = workTableColumnCodesSchema.parse({
   objectCategory: 'KohteenOmaisuusLuokka',
   objectUsage: 'KohteenToiminnallinenKayttoTarkoitus',
   objectRoles: 'KohdeKayttajaRooli',
+  objectStage: 'KohteenLaji',
 });
 
 export const workTableColumnCodeKeys = workTableColumnCodesSchema.keyof();
@@ -116,6 +119,7 @@ export const templateColumns: Record<ReportTemplate, WorkTableColumn[]> = {
     'projectLink',
     'objectName',
     'lifecycleState',
+    'objectStage',
     'objectDateRange',
     'objectType',
     'committee',

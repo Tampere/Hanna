@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { Launch } from '@mui/icons-material';
-import { Box } from '@mui/material';
+import { Box, Tooltip } from '@mui/material';
 import {
   GridColDef,
   GridRenderCellParams,
@@ -17,6 +17,7 @@ import {
   formatCurrency,
   valueTextColor,
 } from '@frontend/components/forms/CurrencyInput';
+import { ObjectStageIcon } from '@frontend/components/icons/ObjectStageIcon';
 import { TableCodeCheckbox } from '@frontend/views/WorkTable/CodeCheckbox';
 import { TableCodeSelect } from '@frontend/views/WorkTable/CodeSelect';
 import { CodeSpanMulti } from '@frontend/views/WorkTable/CodeSpanMulti';
@@ -256,6 +257,28 @@ const fieldObjectType = {
   },
 };
 
+const fieldObjectStage = {
+  field: 'objectStage',
+  headerName: 'Laji',
+  flex: 1,
+  minWidth: 40,
+  renderCell: (params: GridRenderCellParams) => <ObjectStageIcon id={params.value} />,
+  renderEditCell(params: GridRenderEditCellParams) {
+    const { id, field, value } = params;
+    return (
+      <TableCodeCheckbox
+        codeListId={workTableColumnCodes['objectStage']}
+        value={value}
+        onChange={(newValue) => {
+          params.api.setEditCellValue({ id, field, value: newValue });
+          params.api.stopCellEditMode({ id, field });
+        }}
+        onCancel={() => params.api.stopCellEditMode({ id, field })}
+      />
+    );
+  },
+};
+
 const fieldObjectCategory = {
   field: 'objectCategory',
   headerName: 'Omaisuusluokka',
@@ -410,6 +433,7 @@ export function getColumns({
     fieldObjectName,
     fieldObjectLifecycleState,
     fieldDateRange,
+    fieldObjectStage,
     fieldObjectType,
     fieldObjectCategory,
     fieldObjectUsage,
