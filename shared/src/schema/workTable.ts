@@ -1,4 +1,4 @@
-import { object, z } from 'zod';
+import { z } from 'zod';
 
 import { codeListIdSchema } from './code.js';
 import { nonEmptyString } from './common.js';
@@ -119,6 +119,7 @@ export const templateColumns: Record<ReportTemplate, WorkTableColumn[]> = {
     'projectLink',
     'objectName',
     'lifecycleState',
+    'objectStage',
     'objectDateRange',
     'objectType',
     'committee',

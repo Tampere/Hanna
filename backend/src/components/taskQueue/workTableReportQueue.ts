@@ -159,6 +159,8 @@ export async function setupWorkTableReportQueue() {
           codes.objectType.find((code) => row.objectType[0] === code.id.id)?.text['fi'],
         objectCategory: (row) => formatIdArrayToText(row.objectCategory, 'objectCategory'),
         objectUsage: (row) => formatIdArrayToText(row.objectUsage, 'objectUsage'),
+        objectStage: (row) =>
+          codes.objectStage.find((code) => code.id.id === row.objectStage)?.text['fi'],
         committee: (row) => formatIdArrayToText([row.committee], 'committee'),
         rakennuttajaUser: (row) =>
           users.find((user) => user.id === row.operatives.rakennuttajaUser)?.name ?? null,

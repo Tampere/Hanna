@@ -664,6 +664,7 @@ export const fi = {
   'workTable.export.objectType': 'Tyyppi',
   'workTable.export.objectCategory': 'Omaisuusluokka',
   'workTable.export.objectUsage': 'Käyttötarkoitus',
+  'workTable.export.objectStage': 'Kohteen laji',
   'workTable.export.committee': 'Lautakunta',
   'workTable.export.rakennuttajaUser': 'Rakennuttaja',
   'workTable.export.suunnitteluttajaUser': 'Suunnitteluttaja',
