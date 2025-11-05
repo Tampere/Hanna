@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
-import { Cancel, Redo, Save, Undo } from '@mui/icons-material';
-import { Box, Button, IconButton, Link, Theme, Tooltip, Typography } from '@mui/material';
+import { Cancel, ExpandLess, ExpandMore, Redo, Save, Undo } from '@mui/icons-material';
+import { Box, Button, IconButton, Link, Skeleton, Theme, Tooltip, Typography } from '@mui/material';
 import {
   DataGrid,
   GridColDef,
@@ -60,9 +60,11 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
         position: sticky;
         left: ${column.offset}px;
         z-index: 101;
-        border-right: ${
-          idx === pinnedColumns.length - 1 ? '1px solid var(--DataGrid-rowBorderColor)' : 'none'
-        };
+        ${
+          idx === pinnedColumns.length - 1
+            ? 'border-right: 1px solid var(--DataGrid-rowBorderColor);'
+            : ''
+        }
   }`,
   )}
   & .MuiDataGrid-cell {
@@ -125,11 +127,9 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
     font-family: monospace;
   }
   & .estimate-value {
-    color: #1976d2;
     font-weight: 500;
   }
   & .actual-value {
-    color: #2e7d32;
     font-weight: 600;
   }
 `;
@@ -154,6 +154,8 @@ const pinnedColumns = [{ name: 'displayName', offset: 0 }];
 export default function PlanningTable() {
   const auth = useAtomValue(asyncUserAtom);
   const lockedYears = trpc.lockedYears.get.useQuery().data ?? [];
+
+  const [expanded, setExpanded] = useState(true);
 
   // Custom search atom for PlanningTable with extended year range
   const currentYear = new Date().getFullYear();
@@ -235,7 +237,7 @@ export default function PlanningTable() {
           row.type === 'projectObject'
             ? row.budget?.find((b) => b?.year === y)?.amount ?? null
             : null;
-        (r as any)[`year${y}`] = budgetAmount;
+        r[`year${y}`] = budgetAmount;
       }
       return r;
     });
@@ -262,6 +264,34 @@ export default function PlanningTable() {
     return /^year\d{4}$/.test(field);
   }
 
+  function calculateUsedSearchParamsCount(searchParams: WorkTableSearch): number {
+    return (Object.keys(searchParams) as (keyof WorkTableSearch)[]).reduce((count, key) => {
+      if (key === 'objectEndDate') {
+        return count;
+      }
+      if (key === 'objectStartDate') {
+        if (dayjs(searchParams.objectStartDate).year() !== dayjs().year()) {
+          return count + 1;
+        }
+        return count;
+      }
+
+      const keyValue = searchParams[key];
+      if (Array.isArray(keyValue) && keyValue.length === 0) {
+        return count;
+      }
+      if (typeof keyValue === 'string' && keyValue === '') {
+        return count;
+      }
+      return count + 1;
+    }, 0);
+  }
+
+  const searchParamsCount = useMemo(
+    () => calculateUsedSearchParamsCount(searchParams),
+    [searchParams],
+  );
+
   function canEditYear(field: string, row: PlanningRowWithYears): boolean {
     if (!isYearField(field)) return false;
     if (row.type !== 'projectObject') return false;
@@ -269,18 +299,15 @@ export default function PlanningTable() {
     const year = Number(field.replace('year', ''));
     const yearIsLocked = lockedYears?.includes(year);
     if (yearIsLocked) return false;
-    const startYear = dayjs((row as any).objectDateRange?.startDate).year();
-    const endYear = dayjs((row as any).objectDateRange?.endDate).year();
+    const startYear = dayjs(row.objectDateRange?.startDate).year();
+    const endYear = dayjs(row.objectDateRange?.endDate).year();
     const inRange = year >= startYear && year <= endYear;
     if (!inRange) return false;
     return isAdmin(auth.role) || hasPermission(auth, 'investmentFinancials.write');
   }
 
   const poIds = useMemo(
-    () =>
-      Array.from(
-        new Set(rows.filter((r) => (r as any).type === 'projectObject').map((r) => (r as any).id)),
-      ),
+    () => Array.from(new Set(rows.filter((r) => r.type === 'projectObject').map((r) => r.id))),
     [rows],
   );
 
@@ -290,7 +317,7 @@ export default function PlanningTable() {
       queryKey: ['sapActuals', id, yearRange.start, yearRange.end],
       queryFn: () =>
         utils.sap.getYearlyActualsByProjectObjectId.fetch({
-          projectObjectId: id as string,
+          projectObjectId: id,
           startYear: yearRange.start,
           endYear: yearRange.end,
         }),
@@ -302,8 +329,8 @@ export default function PlanningTable() {
   const actualsByPo = useMemo(() => {
     const map = new Map<string, Record<number, number>>();
     actualsQueries.forEach((q, idx) => {
-      const id = poIds[idx] as string;
-      const data = (q.data ?? []) as { year: number; total: number }[];
+      const id = poIds[idx];
+      const data = q.data ?? [];
       const rec: Record<number, number> = {};
       data.forEach((d) => {
         rec[d.year] = d.total;
@@ -313,6 +340,82 @@ export default function PlanningTable() {
     return map;
   }, [actualsQueries, poIds]);
 
+  const actualsLoading = useMemo(
+    () => actualsQueries.some((q) => q.isLoading || q.isFetching),
+    [actualsQueries],
+  );
+
+  const estimateSumsByProjectName = useMemo(() => {
+    // Build per-project sums and track if any non-null values exist per year
+    const sumMap = new Map<string, Record<number, number>>();
+    const seenMap = new Map<string, Record<number, boolean>>();
+
+    rows
+      .filter((r) => r.type === 'projectObject')
+      .forEach((r) => {
+        const projectName = r.projectName as string;
+        const sums = sumMap.get(projectName) ?? {};
+        const seen = seenMap.get(projectName) ?? {};
+        for (let y = yearRange.start; y <= yearRange.end; y++) {
+          const v = r[`year${y}`] as number | null | undefined;
+          if (v !== null && v !== undefined) {
+            sums[y] = (sums[y] ?? 0) + v;
+            seen[y] = true;
+          } else if (seen[y] === undefined) {
+            seen[y] = false;
+          }
+        }
+        sumMap.set(projectName, sums);
+        seenMap.set(projectName, seen);
+      });
+
+    const out = new Map<string, Record<number, number | null>>();
+    sumMap.forEach((sums, projectName) => {
+      const seen = seenMap.get(projectName) ?? {};
+      const rec: Record<number, number | null> = {} as Record<number, number | null>;
+      for (let y = yearRange.start; y <= yearRange.end; y++) {
+        rec[y] = seen[y] ? sums[y] ?? 0 : null;
+      }
+      out.set(projectName, rec);
+    });
+
+    return out;
+  }, [rows, yearRange.start, yearRange.end]);
+
+  const actualSumsByProjectName = useMemo(() => {
+    const map = new Map<string, Record<number, number | null>>();
+    const poByProject = new Map<string, string[]>();
+
+    rows
+      .filter((r) => r.type === 'projectObject')
+      .forEach((r) => {
+        const projectName = r.projectName as string;
+        const id = r.id as string;
+        const arr = poByProject.get(projectName) ?? [];
+        arr.push(id);
+        poByProject.set(projectName, arr);
+      });
+
+    poByProject.forEach((poList, projectName) => {
+      const rec: Record<number, number | null> = {} as Record<number, number | null>;
+      for (let y = yearRange.start; y <= yearRange.end; y++) {
+        let sum = 0;
+        let seen = false;
+        for (const poId of poList) {
+          const v = actualsByPo.get(poId)?.[y];
+          if (typeof v === 'number') {
+            sum += v;
+            seen = true;
+          }
+        }
+        rec[y] = seen ? sum : null;
+      }
+      map.set(projectName, rec);
+    });
+
+    return map;
+  }, [rows, yearRange.start, yearRange.end, actualsByPo]);
+
   const columns = useMemo(() => {
     return getColumns({
       yearRange,
@@ -321,16 +424,32 @@ export default function PlanningTable() {
       canEditYear,
       modifiedFields,
       actualsByPo,
+      actualsLoading,
+      estimateSumsByProjectName,
+      actualSumsByProjectName,
       tr: tr as (key: string, ...args: any[]) => string,
     });
-  }, [rows, yearRange.start, yearRange.end, lockedYears, auth, actualsByPo, tr]);
+  }, [
+    rows,
+    yearRange.start,
+    yearRange.end,
+    lockedYears,
+    auth,
+    actualsByPo,
+    actualsLoading,
+    estimateSumsByProjectName,
+    actualSumsByProjectName,
+    tr,
+  ]);
 
   function undo() {
     const last = editEvents[editEvents.length - 1];
     if (!last) return;
     setEditEvents((prev) => prev.slice(0, -1));
     setRedoEvents((prev) => [...prev, last]);
-    gridApiRef.current.updateRows([{ id: last.rowId, [last.field]: last.oldValue } as any]);
+    gridApiRef.current.updateRows([
+      { id: last.rowId, [last.field]: last.oldValue } as Partial<PlanningRowWithYears>,
+    ]);
   }
 
   async function undoAll() {
@@ -344,7 +463,9 @@ export default function PlanningTable() {
     if (!last) return;
     setRedoEvents((prev) => prev.slice(0, -1));
     setEditEvents((prev) => [...prev, last]);
-    gridApiRef.current.updateRows([{ id: last.rowId, [last.field]: last.newValue } as any]);
+    gridApiRef.current.updateRows([
+      { id: last.rowId, [last.field]: last.newValue } as Partial<PlanningRowWithYears>,
+    ]);
   }
 
   const planningUtils = trpc.useUtils();
@@ -384,6 +505,7 @@ export default function PlanningTable() {
       >
         <YearPicker
           selectedYear={dayjs(searchParams.objectStartDate).year()}
+          label={tr('planningTable.startYear')}
           onChange={(dates) =>
             setSearchParams({
               ...searchParams,
@@ -392,9 +514,10 @@ export default function PlanningTable() {
           }
           allowAllYears={false}
         />
-
+        <Typography>—</Typography>
         <YearPicker
           selectedYear={dayjs(searchParams.objectEndDate).year()}
+          label={tr('planningTable.endYear')}
           onChange={(dates) =>
             setSearchParams({
               ...searchParams,
@@ -416,11 +539,35 @@ export default function PlanningTable() {
           endYear: dayjs(searchParams.objectEndDate).year(),
         }}
         readOnly={false}
-        expanded={true}
+        expanded={expanded}
         palmGroupingVisible={true}
       />
+
+      <Button
+        size="small"
+        css={css`
+          margin-left: auto;
+        `}
+        onClick={() => {
+          setExpanded((prev) => !prev);
+        }}
+        endIcon={expanded ? <ExpandLess /> : <ExpandMore />}
+      >
+        {expanded
+          ? tr(
+              searchParamsCount > 0 ? 'workTable.search.hideWithCount' : 'workTable.search.hide',
+              searchParamsCount,
+            )
+          : tr(
+              searchParamsCount > 0 ? 'workTable.search.showWithCount' : 'workTable.search.show',
+              searchParamsCount,
+            )}
+      </Button>
+
       <DataGrid
         slots={{ noRowsOverlay: () => <NoRowsOverlay label={tr('workTable.noData')} /> }}
+        showCellVerticalBorder
+        showColumnVerticalBorder
         isCellEditable={({ row, field }) => canEditYear(field, row as PlanningRowWithYears)}
         getCellClassName={({ field, id, row }) => {
           const classNames: string[] = [];
@@ -446,26 +593,28 @@ export default function PlanningTable() {
         apiRef={gridApiRef}
         processRowUpdate={(newRow, oldRow) => {
           // detect changed year field
-          const changedField = Object.keys(newRow).find(
-            (k) => isYearField(k) && (newRow as any)[k] !== (oldRow as any)[k],
+          const changedField = Object.keys(newRow as PlanningRowWithYears).find(
+            (k) =>
+              isYearField(k) &&
+              (newRow as PlanningRowWithYears)[k] !== (oldRow as PlanningRowWithYears)[k],
           );
           if (changedField) {
             const year = Number(changedField.replace('year', ''));
             const evt: EditEvent = {
-              rowId: (newRow as any).id,
+              rowId: (newRow as PlanningRowWithYears).id,
               field: changedField,
               year,
-              oldValue: (oldRow as any)[changedField] ?? null,
-              newValue: (newRow as any)[changedField] ?? null,
+              oldValue: (oldRow as PlanningRowWithYears)[changedField] ?? null,
+              newValue: (newRow as PlanningRowWithYears)[changedField] ?? null,
             };
             setEditEvents((prev) => [...prev, evt]);
             setRedoEvents([]);
           }
-          return newRow as any;
+          return newRow as PlanningRowWithYears;
         }}
         css={(theme) => dataGridStyle(theme, 15)}
         density={'standard'}
-        columns={columns as any}
+        columns={columns}
         rows={rows}
         rowSelection={false}
         initialState={{ pagination: { paginationModel: { page: 0, pageSize: 1000 } } }}
@@ -475,7 +624,7 @@ export default function PlanningTable() {
             event.stopPropagation();
           }
         }}
-        getRowId={(row) => (row as any).id}
+        getRowId={(row: PlanningRowWithYears) => row.id}
         disableColumnMenu
       />
       <Box
@@ -542,6 +691,9 @@ interface GetColumnsParams {
   canEditYear: (field: string, row: PlanningRowWithYears) => boolean;
   modifiedFields: Record<string, Record<string, boolean>>;
   actualsByPo: Map<string, Record<number, number>>;
+  actualsLoading: boolean;
+  estimateSumsByProjectName: Map<string, Record<number, number | null>>;
+  actualSumsByProjectName: Map<string, Record<number, number | null>>;
   tr: (key: string, ...args: any[]) => string;
 }
 
@@ -552,13 +704,16 @@ function getColumns({
   canEditYear,
   modifiedFields,
   actualsByPo,
+  actualsLoading,
+  estimateSumsByProjectName,
+  actualSumsByProjectName,
   tr,
 }: GetColumnsParams): GridColDef<PlanningRowWithYears>[] {
   const columns: GridColDef<PlanningRowWithYears>[] = [];
 
   // Name column (pinned)
   columns.push({
-    field: 'displayName' as any,
+    field: 'displayName',
     headerName: `${tr('planningTable.nameHeader')}`,
     flex: 1,
 
@@ -566,7 +721,9 @@ function getColumns({
     headerClassName: 'pinned-displayName',
     renderCell: (params: GridRenderCellParams<PlanningRowWithYears>) => {
       const displayName =
-        params.row.type === 'project' ? params.row.projectName : params.row.projectObjectName;
+        params.row.type === 'project'
+          ? params.row.projectName
+          : ` └ ${params.row.projectObjectName}`;
 
       return (
         <Box
@@ -584,7 +741,7 @@ function getColumns({
               -webkit-box-orient: vertical;
               -webkit-line-clamp: 2;
               overflow: hidden;
-              color: ${params.row.type === 'project' ? '#2e7d32' : '#1976d2'};
+              color: ${params.row.type === 'project' ? '#2e7d32' : ''};
             `}
           >
             {displayName}
@@ -597,14 +754,14 @@ function getColumns({
 
   // Generate year columns dynamically
   for (let year = yearRange.start; year <= yearRange.end; year++) {
-    const yearKey = `year${year}` as any;
+    const yearKey = `year${year}`;
     const currentYear = new Date().getFullYear();
     const isPastOrCurrent = year <= currentYear;
 
     columns.push({
       field: yearKey,
       headerName: `${year}`,
-      width: isPastOrCurrent ? 175 : 120,
+      width: isPastOrCurrent ? 190 : 125,
       headerAlign: 'center',
       headerClassName: 'year-column',
       renderHeader: () => (
@@ -654,12 +811,22 @@ function getColumns({
         </Box>
       ),
       renderCell: (params: GridRenderCellParams<PlanningRowWithYears>) => {
-        const amount = (params.row as any)[`year${year}`] as number | null;
+        const isProjectObject = params.row.type === 'projectObject';
+        const isProject = params.row.type === 'project';
 
-        const actual =
-          (params.row as any).type === 'projectObject'
-            ? actualsByPo.get((params.row as any).id)?.[year] ?? null
+        const amount = isProjectObject
+          ? (params.row[`year${year}`] as number | null) ?? null
+          : isProject
+            ? estimateSumsByProjectName.get(params.row.projectName)?.[year] ?? null
             : null;
+
+        const actual = isProjectObject
+          ? actualsByPo.get(params.row.id)?.[year] ?? null
+          : isProject
+            ? actualSumsByProjectName.get(params.row.projectName)?.[year] ?? null
+            : null;
+
+        const isLoadingActuals = isProjectObject || isProject ? actualsLoading : false;
 
         return (
           <Box
@@ -684,7 +851,11 @@ function getColumns({
                     text-align: left;
                   `}
                 >
-                  {formatCurrency(actual)}
+                  {isLoadingActuals ? (
+                    <Skeleton variant="text" width="80%" height={14} />
+                  ) : (
+                    formatCurrency(actual)
+                  )}
                 </Box>
                 <Box
                   className="estimate-value"
