@@ -1,4 +1,4 @@
-import { Select, css } from '@mui/material';
+import { TextField, css } from '@mui/material';
 
 import { trpc } from '@frontend/client';
 import dayjs from '@frontend/dayjs';
@@ -10,9 +10,10 @@ interface Props {
   onChange: (dates: { startDate: string; endDate: string }) => void;
   selectedYear: number | 'allYears';
   allowAllYears?: boolean;
+  label?: string;
 }
 
-export function YearPicker({ onChange, selectedYear, allowAllYears = true }: Props) {
+export function YearPicker({ onChange, selectedYear, allowAllYears = true, label }: Props) {
   const tr = useTranslations();
   const yearsQuery = trpc.workTable.years.useQuery();
 
@@ -25,17 +26,21 @@ export function YearPicker({ onChange, selectedYear, allowAllYears = true }: Pro
   }
 
   return (
-    <Select
+    <TextField
+      select
+      SelectProps={{ native: true }}
       value={selectedYear}
+      label={label ?? ''}
       css={(theme) => css`
-        color: ${theme.palette.primary.main};
-        & .MuiNativeSelect-select {
+        & .MuiInputBase-input,
+        & .MuiNativeSelect-select,
+        & .MuiSelect-select {
           padding: 0.2rem 0.5rem;
           font-weight: 500;
+          color: ${theme.palette.primary.main};
+          width: 6.5rem;
         }
       `}
-      native
-      size="small"
       onChange={({ target }) => {
         if (!target.value || !yearsQuery.data) return;
 
@@ -64,6 +69,6 @@ export function YearPicker({ onChange, selectedYear, allowAllYears = true }: Pro
           </option>
         ))}
       </optgroup>
-    </Select>
+    </TextField>
   );
 }

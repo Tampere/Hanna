@@ -689,6 +689,8 @@ export const fi = {
   'planningTable.amount': 'Arvio',
   'planningTable.actual': 'Toteuma',
   'planningTable.nameHeader': 'Kohteen/hankkeen nimi',
+  'planningTable.startYear': 'Aloitusvuosi',
+  'planningTable.endYear': 'Lopetusvuosi',
   'dataTable.error': 'Tietojen haussa tapahtui virhe. Yritä myöhemmin uudestaan.',
   'dataTable.noData': 'Ei hakutuloksia.',
   'financesChart.averageLineLabel': 'Talousarvio/kuukausi',
