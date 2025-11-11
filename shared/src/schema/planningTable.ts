@@ -47,12 +47,19 @@ const baseRowSchema = z.object({
 
 const projectObjectRow = baseRowSchema.extend({
   type: z.literal('projectObject'),
+  projectId: nonEmptyString,
   projectObjectName: commonDbProjectObjectSchema.shape.objectName,
   projectName: dbProjectSchema.shape.projectName,
   objectDateRange: z.object({
     startDate: commonDbProjectObjectSchema.shape.startDate,
     endDate: commonDbProjectObjectSchema.shape.endDate,
   }),
+  projectDateRange: z
+    .object({
+      startDate: dbProjectSchema.shape.startDate,
+      endDate: dbProjectSchema.shape.endDate,
+    })
+    .nullable(),
   budget: z.array(
     z
       .object({
@@ -68,8 +75,15 @@ const projectObjectRow = baseRowSchema.extend({
 
 const projectRow = baseRowSchema.extend({
   type: z.literal('project'),
+  projectId: nonEmptyString,
   projectName: dbProjectSchema.shape.projectName,
   projectObjectName: z.null().default(null),
+  projectDateRange: z
+    .object({
+      startDate: dbProjectSchema.shape.startDate,
+      endDate: dbProjectSchema.shape.endDate,
+    })
+    .nullable(),
   // Dynamic yearly columns will be added at runtime
 });
 

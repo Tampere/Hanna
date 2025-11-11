@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
-import { Cancel, ExpandLess, ExpandMore, Redo, Save, Undo } from '@mui/icons-material';
-import { Box, Button, IconButton, Link, Skeleton, Theme, Tooltip, Typography } from '@mui/material';
+import { Cancel, ExpandLess, ExpandMore, Launch, Redo, Save, Undo } from '@mui/icons-material';
+import { Box, Button, IconButton, Skeleton, Theme, Tooltip, Typography } from '@mui/material';
 import {
   DataGrid,
   GridColDef,
@@ -13,6 +13,7 @@ import { useQueries } from '@tanstack/react-query';
 import { useAtom, useAtomValue } from 'jotai';
 import { atomWithDefault } from 'jotai/utils';
 import { type SetStateAction, useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
 import { CurrencyInput, formatCurrency } from '@frontend/components/forms/CurrencyInput';
@@ -44,6 +45,54 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   }
   & .MuiDataGrid-row:hover {
     background-color: #e7eef9;
+  }
+
+  /* Project row styling - bold text for all cells */
+  & .project-row {
+    font-weight: 600;
+  }
+  & .project-row .MuiDataGrid-cell {
+    font-weight: 600;
+  }
+
+  /* Light blue background only for cells within project date range */
+  & .project-row .project-year-in-range {
+    background-color: #d6ebf5 !important;
+  }
+  & .project-row:hover .project-year-in-range {
+    background-color: #c0ddef !important;
+  }
+  & .project-row .pinned-displayName {
+    background-color: #d6ebf5 !important;
+  }
+  & .project-row:hover .pinned-displayName {
+    background-color: #c0ddef !important;
+  }
+  & .project-row .estimate-value,
+  & .project-row .actual-value {
+    font-weight: 600 !important;
+  }
+  & .project-row b,
+  & .project-row strong {
+    font-weight: 600;
+  }
+
+  /* Sum row styling - pinned to bottom with distinct appearance */
+  & .sum-row {
+    background-color: #f0f0f0 !important;
+    font-weight: 700;
+    border-top: 2px solid ${theme.palette.primary.main};
+  }
+  & .sum-row .MuiDataGrid-cell {
+    background-color: #f0f0f0 !important;
+    font-weight: 700;
+  }
+  & .sum-row .pinned-displayName {
+    background-color: #f0f0f0 !important;
+  }
+  & .sum-row .estimate-value,
+  & .sum-row .actual-value {
+    font-weight: 700 !important;
   }
 
   /* Ensure pinned name column has opaque background matching row striping */
@@ -132,6 +181,9 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   & .actual-value {
     font-weight: 600;
   }
+  & .project-object-row .actual-value {
+    font-weight: 400;
+  }
 `;
 
 function NoRowsOverlay({ label }: { label: string }) {
@@ -209,8 +261,21 @@ export default function PlanningTable() {
 
   const [editEvents, setEditEvents] = useState<EditEvent[]>([]);
   const [redoEvents, setRedoEvents] = useState<EditEvent[]>([]);
+  const [collapsedProjects, setCollapsedProjects] = useState<Set<string>>(new Set());
 
   const gridApiRef = useGridApiRef();
+
+  function toggleProjectCollapse(projectId: string) {
+    setCollapsedProjects((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(projectId)) {
+        newSet.delete(projectId);
+      } else {
+        newSet.add(projectId);
+      }
+      return newSet;
+    });
+  }
 
   const yearRange = useMemo(
     () =>
@@ -416,6 +481,63 @@ export default function PlanningTable() {
     return map;
   }, [rows, yearRange.start, yearRange.end, actualsByPo]);
 
+  // Calculate total sums across all projects
+  const totalSumRow = useMemo(() => {
+    const sumRow: any = {
+      id: 'TOTAL_SUM_ROW',
+      type: 'project' as const,
+      projectId: 'total',
+      projectName: tr('planningTable.total'),
+      projectObjectName: null,
+      projectDateRange: null,
+      objectDateRange: null,
+    };
+
+    // Sum up estimates and actuals for each year from project rows only
+    for (let y = yearRange.start; y <= yearRange.end; y++) {
+      let estimateSum = 0;
+      let actualSum = 0;
+      let hasEstimate = false;
+      let hasActual = false;
+
+      estimateSumsByProjectName.forEach((yearData) => {
+        const val = yearData[y];
+        if (val !== null && val !== undefined) {
+          estimateSum += val;
+          hasEstimate = true;
+        }
+      });
+
+      actualSumsByProjectName.forEach((yearData) => {
+        const val = yearData[y];
+        if (val !== null && val !== undefined) {
+          actualSum += val;
+          hasActual = true;
+        }
+      });
+
+      sumRow[`year${y}`] = hasEstimate ? estimateSum : null;
+      sumRow[`year${y}_actual`] = hasActual ? actualSum : null;
+    }
+
+    return sumRow;
+  }, [estimateSumsByProjectName, actualSumsByProjectName, yearRange.start, yearRange.end, tr]);
+
+  // Filter out project objects whose parent project is collapsed
+  const visibleRows = useMemo(() => {
+    return rows.filter((row) => {
+      if (row.type === 'project') return true;
+      // For project objects, check if parent project is collapsed
+      return !collapsedProjects.has(row.projectId);
+    });
+  }, [rows, collapsedProjects]);
+
+  // Add sum row to the end of rows for display
+  const rowsWithSum = useMemo(() => {
+    if (!totalSumRow || visibleRows.length === 0) return visibleRows;
+    return [...visibleRows, totalSumRow];
+  }, [visibleRows, totalSumRow]);
+
   const columns = useMemo(() => {
     return getColumns({
       yearRange,
@@ -427,6 +549,9 @@ export default function PlanningTable() {
       actualsLoading,
       estimateSumsByProjectName,
       actualSumsByProjectName,
+      totalSumRow,
+      collapsedProjects,
+      toggleProjectCollapse,
       tr: tr as (key: string, ...args: any[]) => string,
     });
   }, [
@@ -439,6 +564,8 @@ export default function PlanningTable() {
     actualsLoading,
     estimateSumsByProjectName,
     actualSumsByProjectName,
+    totalSumRow,
+    collapsedProjects,
     tr,
   ]);
 
@@ -571,6 +698,7 @@ export default function PlanningTable() {
         isCellEditable={({ row, field }) => canEditYear(field, row as PlanningRowWithYears)}
         getCellClassName={({ field, id, row }) => {
           const classNames: string[] = [];
+          const typedRow = row as PlanningRowWithYears;
           if (pinnedColumns.map((column) => column.name).includes(field)) {
             classNames.push(`pinned-${field}`);
           }
@@ -579,11 +707,25 @@ export default function PlanningTable() {
             const mod = modifiedFields?.[id as string]?.[field];
             if (mod) {
               classNames.push('modified-cell');
-            } else if (canEditYear(field, row as PlanningRowWithYears)) {
+            } else if (canEditYear(field, typedRow)) {
               classNames.push('cell-writable');
             } else {
               classNames.push('cell-readonly');
             }
+
+            // Add class for project year cells within project date range
+            if (typedRow.type === 'project' && typedRow.projectDateRange) {
+              const year = Number(field.replace('year', ''));
+              const startYear = dayjs(typedRow.projectDateRange.startDate).year();
+              const endYear = dayjs(typedRow.projectDateRange.endDate).year();
+              if (year >= startYear && year <= endYear) {
+                classNames.push('project-year-in-range');
+              }
+            }
+          }
+          // Add project-cell class for project rows to help with styling
+          if (typedRow.type === 'project') {
+            classNames.push('project-cell');
           }
           return classNames.join(' ');
         }}
@@ -615,7 +757,7 @@ export default function PlanningTable() {
         css={(theme) => dataGridStyle(theme, 15)}
         density={'standard'}
         columns={columns}
-        rows={rows}
+        rows={rowsWithSum}
         rowSelection={false}
         initialState={{ pagination: { paginationModel: { page: 0, pageSize: 1000 } } }}
         pageSizeOptions={[100, 500, 1000]}
@@ -625,6 +767,12 @@ export default function PlanningTable() {
           }
         }}
         getRowId={(row: PlanningRowWithYears) => row.id}
+        getRowClassName={(params) => {
+          if (params.row.id === 'TOTAL_SUM_ROW') return 'sum-row';
+          if (params.row.type === 'project') return 'project-row';
+          if (params.row.type === 'projectObject') return 'project-object-row';
+          return '';
+        }}
         disableColumnMenu
       />
       <Box
@@ -694,6 +842,9 @@ interface GetColumnsParams {
   actualsLoading: boolean;
   estimateSumsByProjectName: Map<string, Record<number, number | null>>;
   actualSumsByProjectName: Map<string, Record<number, number | null>>;
+  totalSumRow: PlanningRowWithYears;
+  collapsedProjects: Set<string>;
+  toggleProjectCollapse: (projectId: string) => void;
   tr: (key: string, ...args: any[]) => string;
 }
 
@@ -707,6 +858,9 @@ function getColumns({
   actualsLoading,
   estimateSumsByProjectName,
   actualSumsByProjectName,
+  totalSumRow,
+  collapsedProjects,
+  toggleProjectCollapse,
   tr,
 }: GetColumnsParams): GridColDef<PlanningRowWithYears>[] {
   const columns: GridColDef<PlanningRowWithYears>[] = [];
@@ -720,10 +874,28 @@ function getColumns({
     minWidth: 300,
     headerClassName: 'pinned-displayName',
     renderCell: (params: GridRenderCellParams<PlanningRowWithYears>) => {
-      const displayName =
-        params.row.type === 'project'
-          ? params.row.projectName
-          : ` └ ${params.row.projectObjectName}`;
+      const isSumRow = params.row.id === 'TOTAL_SUM_ROW';
+      const isProject = params.row.type === 'project';
+      const displayName = isProject ? params.row.projectName : ` └ ${params.row.projectObjectName}`;
+
+      const linkPath = isProject
+        ? `/investointihanke/${params.row.projectId}`
+        : `/investointihanke/${params.row.projectId}/kohde/${params.row.id}`;
+
+      // Sum row just shows the label without link
+      if (isSumRow) {
+        return (
+          <Box
+            css={css`
+              display: flex;
+              align-items: center;
+              padding-left: 4px;
+            `}
+          >
+            <b>{params.row.projectName}</b>
+          </Box>
+        );
+      }
 
       return (
         <Box
@@ -733,6 +905,29 @@ function getColumns({
             gap: 4px;
           `}
         >
+          {isProject && (
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleProjectCollapse(params.row.projectId);
+              }}
+              css={css`
+                padding: 0;
+                width: 24px;
+                height: 24px;
+              `}
+            >
+              {collapsedProjects.has(params.row.projectId) ? (
+                <ExpandMore fontSize="small" />
+              ) : (
+                <ExpandLess fontSize="small" />
+              )}
+            </IconButton>
+          )}
+          <Link to={linkPath} target="_blank" rel="noopener noreferrer">
+            <Launch fontSize={'small'} htmlColor="#aaa" />
+          </Link>
           <b
             title={displayName ?? ''}
             css={css`
@@ -741,7 +936,7 @@ function getColumns({
               -webkit-box-orient: vertical;
               -webkit-line-clamp: 2;
               overflow: hidden;
-              color: ${params.row.type === 'project' ? '#2e7d32' : ''};
+              color: ${isProject ? '#2e7d32' : ''};
             `}
           >
             {displayName}
@@ -761,7 +956,7 @@ function getColumns({
     columns.push({
       field: yearKey,
       headerName: `${year}`,
-      width: isPastOrCurrent ? 190 : 125,
+      width: isPastOrCurrent ? 230 : 130,
       headerAlign: 'center',
       headerClassName: 'year-column',
       renderHeader: () => (
@@ -811,22 +1006,29 @@ function getColumns({
         </Box>
       ),
       renderCell: (params: GridRenderCellParams<PlanningRowWithYears>) => {
+        const isSumRow = params.row.id === 'TOTAL_SUM_ROW';
         const isProjectObject = params.row.type === 'projectObject';
         const isProject = params.row.type === 'project';
 
-        const amount = isProjectObject
+        // For sum row, get the pre-calculated totals
+        const amount = isSumRow
           ? (params.row[`year${year}`] as number | null) ?? null
-          : isProject
-            ? estimateSumsByProjectName.get(params.row.projectName)?.[year] ?? null
-            : null;
+          : isProjectObject
+            ? (params.row[`year${year}`] as number | null) ?? null
+            : isProject
+              ? estimateSumsByProjectName.get(params.row.projectName)?.[year] ?? null
+              : null;
 
-        const actual = isProjectObject
-          ? actualsByPo.get(params.row.id)?.[year] ?? null
-          : isProject
-            ? actualSumsByProjectName.get(params.row.projectName)?.[year] ?? null
-            : null;
+        const actual = isSumRow
+          ? (params.row[`year${year}_actual`] as number | null) ?? null
+          : isProjectObject
+            ? actualsByPo.get(params.row.id)?.[year] ?? null
+            : isProject
+              ? actualSumsByProjectName.get(params.row.projectName)?.[year] ?? null
+              : null;
 
-        const isLoadingActuals = isProjectObject || isProject ? actualsLoading : false;
+        const isLoadingActuals =
+          !isSumRow && (isProjectObject || isProject) ? actualsLoading : false;
 
         return (
           <Box
@@ -836,10 +1038,8 @@ function getColumns({
               width: 100%;
               justify-content: space-between;
               align-items: center;
-              font-family: monospace;
               font-size: 11px;
               line-height: 1.2;
-              gap: 8px;
             `}
           >
             {isPastOrCurrent ? (
@@ -849,6 +1049,8 @@ function getColumns({
                   css={css`
                     flex: 1;
                     text-align: left;
+                    font-weight: ${isProject ? '600' : 'inherit'};
+                    padding-right: 8px;
                   `}
                 >
                   {isLoadingActuals ? (
@@ -858,10 +1060,19 @@ function getColumns({
                   )}
                 </Box>
                 <Box
+                  css={css`
+                    width: 1px;
+                    background-color: #d0d0d0;
+                    align-self: stretch;
+                  `}
+                />
+                <Box
                   className="estimate-value"
                   css={css`
                     flex: 1;
                     text-align: right;
+                    font-weight: ${isProject ? '600' : 'inherit'};
+                    padding-left: 8px;
                   `}
                 >
                   {formatCurrency(amount) ?? '-'}
@@ -873,6 +1084,7 @@ function getColumns({
                 css={css`
                   width: 100%;
                   text-align: right;
+                  font-weight: ${isProject ? '600' : 'inherit'};
                 `}
               >
                 {formatCurrency(amount) ?? '-'}
