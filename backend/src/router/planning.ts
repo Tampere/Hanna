@@ -47,20 +47,26 @@ async function planningTableSearch(input: PlanningTableSearch) {
   const projectNameSubstringSearch =
     input.projectName && input.projectName?.length >= 3 ? input.projectName : '';
 
-  // Determine the year range to display
   const currentYear = new Date().getFullYear();
-  const startYear = input.yearRange?.start; // yearRange?.start ?? currentYear;
-  const endYear = input.yearRange?.end; // yearRange?.end ?? currentYear + 4;
+  const startYear = input.yearRange?.start ?? currentYear;
+  const endYear = input.yearRange?.end ?? currentYear + 15;
 
-  // Simplified approach: return basic data and let frontend format it
-  // This avoids complex dynamic SQL that causes parameter overflow
+  // Convert years to dates for comparison
+  const rangeStartDate = `${startYear}-01-01`;
+  const rangeEndDate = `${endYear}-12-31`;
+
   const query = sql.type(planningTableRowResult)`
-    WITH filtered_projects AS (
-      SELECT DISTINCT p.id, p.project_name
+    WITH candidate_projects AS (
+      SELECT DISTINCT p.id, p.project_name, p.start_date, p.end_date
       FROM app.project p
       INNER JOIN app.project_investment pi ON pi.id = p.id
       WHERE p.deleted = false
         AND (${projectNameSearch}::text IS NULL OR to_tsquery('simple', ${projectNameSearch}) @@ to_tsvector('simple', p.project_name) OR  p.project_name LIKE '%' || ${projectNameSubstringSearch} || '%')
+        -- Filter by year range: project date range must overlap with selected year range
+        AND (
+          (p.start_date IS NULL OR p.end_date IS NULL) OR
+          (p.start_date <= ${rangeEndDate}::date AND p.end_date >= ${rangeStartDate}::date)
+        )
         -- Sitovuus
         AND (
           ${sql.array(projectTarget, 'text')} = '{}'::TEXT[] OR
@@ -90,17 +96,22 @@ async function planningTableSearch(input: PlanningTableSearch) {
           ${sql.array(projectTarget, 'text')}::TEXT[] = '{}'::TEXT[] OR
           (pi.target).id = ANY(${sql.array(projectTarget, 'text')}::TEXT[])
         )
-
     ),
     filtered_project_objects AS (
       SELECT po.id, po.object_name, po.project_id, p.project_name, po.start_date, po.end_date
       FROM app.project_object po
       INNER JOIN app.project_object_investment poi ON poi.project_object_id = po.id
       INNER JOIN app.project p ON p.id = po.project_id
+      INNER JOIN candidate_projects cp ON cp.id = p.id
       LEFT JOIN app.project_object_user_role pour ON po.id = pour.project_object_id
       WHERE po.deleted = false
         AND (${objectNameSearch}::text IS NULL OR to_tsquery('simple', ${objectNameSearch}) @@ to_tsvector('simple', po.object_name) OR po.object_name LIKE '%' || ${objectNameSubstringSearch} || '%')
         AND (${projectNameSearch}::text IS NULL OR to_tsquery('simple', ${projectNameSearch}) @@ to_tsvector('simple', p.project_name) OR  p.project_name LIKE '%' || ${projectNameSubstringSearch} || '%')
+        -- Filter by year range: object date range must overlap with selected year range
+        AND (
+          (po.start_date IS NULL OR po.end_date IS NULL) OR
+          (po.start_date <= ${rangeEndDate}::date AND po.end_date >= ${rangeStartDate}::date)
+        )
         -- Kohteen laji
         AND (
           ${sql.array(objectStage, 'text')}::TEXT[] = '{}'::TEXT[] OR
@@ -173,16 +184,26 @@ async function planningTableSearch(input: PlanningTableSearch) {
             ? sql.fragment`HAVING ${objectParticipantUser} = ANY(array_agg(pour.user_id))`
             : sql.fragment``
         }
+    ),
+    filtered_projects AS (
+      SELECT cp.id, cp.project_name, cp.start_date, cp.end_date
+      FROM candidate_projects cp
+      WHERE EXISTS (
+        SELECT 1 FROM filtered_project_objects fpo
+        WHERE fpo.project_id = cp.id
+      )
     )
     SELECT * FROM (
       -- Return project rows
       SELECT
         fp.id::text,
         'project' AS type,
+        fp.id::text AS "projectId",
         fp.project_name AS "projectName",
         null AS "projectObjectName",
         fp.project_name AS "sortName",
-        NULL::jsonb AS "objectDateRange"
+        NULL::jsonb AS "objectDateRange",
+        jsonb_build_object('startDate', fp.start_date, 'endDate', fp.end_date) AS "projectDateRange"
       FROM filtered_projects fp
 
       UNION ALL
@@ -191,10 +212,12 @@ async function planningTableSearch(input: PlanningTableSearch) {
       SELECT
         fpo.id::text,
         'projectObject' AS type,
+        fpo.project_id::text AS "projectId",
         fpo.project_name AS "projectName",
         fpo.object_name AS "projectObjectName",
         fpo.object_name AS "sortName",
-        jsonb_build_object('startDate', fpo.start_date, 'endDate', fpo.end_date) AS "objectDateRange"
+        jsonb_build_object('startDate', fpo.start_date, 'endDate', fpo.end_date) AS "objectDateRange",
+        NULL::jsonb AS "projectDateRange"
       FROM filtered_project_objects fpo
     ) AS results
     ORDER BY "projectName",
