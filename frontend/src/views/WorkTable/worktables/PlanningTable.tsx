@@ -392,37 +392,71 @@ export default function PlanningTable() {
   );
 
   const utils = trpc.useUtils();
+  
+  // Batched loading: enable queries in chunks to limit concurrent requests
+  const batchSize = 10;
+  const [enabledBatches, setEnabledBatches] = useState(1);
+  
+  // Gradually enable more batches as previous ones complete
+  useEffect(() => {
+    const totalBatches = Math.ceil(poIds.length / batchSize);
+    if (enabledBatches < totalBatches) {
+      const timer = setTimeout(() => {
+        setEnabledBatches((prev) => Math.min(prev + 1, totalBatches));
+      }, 500); // Enable next batch after 500ms
+      return () => clearTimeout(timer);
+    }
+  }, [enabledBatches, poIds.length]);
+  
+  // Reset batches when poIds change
+  useEffect(() => {
+    setEnabledBatches(1);
+  }, [poIds.join(',')]);
+  
   const actualsQueries = useQueries({
-    queries: poIds.map((id) => ({
-      queryKey: ['sapActuals', id, yearRange.start, yearRange.end],
-      queryFn: () =>
-        utils.sap.getYearlyActualsByProjectObjectId.fetch({
-          projectObjectId: id,
-          startYear: yearRange.start,
-          endYear: yearRange.end,
-        }),
-      enabled: Boolean(id),
-      staleTime: 5 * 60 * 1000,
-    })),
+    queries: poIds.map((id, idx) => {
+      const batchIndex = Math.floor(idx / batchSize);
+      const isEnabled = batchIndex < enabledBatches;
+      
+      return {
+        queryKey: ['sapActuals', id, yearRange.start, yearRange.end],
+        queryFn: () =>
+          utils.sap.getYearlyActualsByProjectObjectId.fetch({
+            projectObjectId: id,
+            startYear: yearRange.start,
+            endYear: yearRange.end,
+          }),
+        enabled: Boolean(id) && isEnabled,
+        staleTime: 5 * 60 * 1000,
+      };
+    }),
   });
 
+  // Progressive rendering: update map as individual queries complete
   const actualsByPo = useMemo(() => {
     const map = new Map<string, Record<number, number>>();
     actualsQueries.forEach((q, idx) => {
       const id = poIds[idx];
-      const data = q.data ?? [];
-      const rec: Record<number, number> = {};
-      data.forEach((d) => {
-        rec[d.year] = d.total;
-      });
-      map.set(id, rec);
+      // Only process queries that have completed successfully
+      if (q.data) {
+        const rec: Record<number, number> = {};
+        q.data.forEach((d) => {
+          rec[d.year] = d.total;
+        });
+        map.set(id, rec);
+      }
     });
     return map;
-  }, [actualsQueries, poIds]);
+  }, [
+    // Update whenever any query's data changes (not just when ALL complete)
+    actualsQueries.map((q) => q.dataUpdatedAt).join(','),
+    poIds.join(','),
+  ]);
 
+  // Track individual loading states for better UX
   const actualsLoading = useMemo(
     () => actualsQueries.some((q) => q.isLoading || q.isFetching),
-    [actualsQueries],
+    [actualsQueries.map((q) => q.fetchStatus).join(',')],
   );
 
   const estimateSumsByProjectName = useMemo(() => {
