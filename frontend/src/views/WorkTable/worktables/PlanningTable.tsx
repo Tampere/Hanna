@@ -225,7 +225,7 @@ export default function PlanningTable() {
   );
 
   const [searchParams, setSearchParams] = useAtom(planningSearchAtom);
-  const query = useDebounce(searchParams, 500);
+  const debouncedSearchParams = useDebounce(searchParams, 500);
   const tr = useTranslations();
 
   // Start with default year range (current year to current year + 15)
@@ -233,6 +233,21 @@ export default function PlanningTable() {
     start: currentYear,
     end: currentYear + 15,
   };
+
+  // Transform search params to include yearRange for backend
+  const query = useMemo(() => {
+    const startYear = debouncedSearchParams.objectStartDate
+      ? dayjs(debouncedSearchParams.objectStartDate).year()
+      : currentYear;
+    const endYear = debouncedSearchParams.objectEndDate
+      ? dayjs(debouncedSearchParams.objectEndDate).year()
+      : currentYear + 15;
+
+    return {
+      ...debouncedSearchParams,
+      yearRange: { start: startYear, end: endYear },
+    };
+  }, [debouncedSearchParams, currentYear]);
 
   const planningData = trpc.planning.search.useQuery(query);
 

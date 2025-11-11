@@ -47,10 +47,13 @@ async function planningTableSearch(input: PlanningTableSearch) {
   const projectNameSubstringSearch =
     input.projectName && input.projectName?.length >= 3 ? input.projectName : '';
 
-  // Determine the year range to display
   const currentYear = new Date().getFullYear();
-  const startYear = input.yearRange?.start; // yearRange?.start ?? currentYear;
-  const endYear = input.yearRange?.end; // yearRange?.end ?? currentYear + 4;
+  const startYear = input.yearRange?.start ?? currentYear;
+  const endYear = input.yearRange?.end ?? currentYear + 15;
+
+  // Convert years to dates for comparison
+  const rangeStartDate = `${startYear}-01-01`;
+  const rangeEndDate = `${endYear}-12-31`;
 
   const query = sql.type(planningTableRowResult)`
     WITH candidate_projects AS (
@@ -59,6 +62,11 @@ async function planningTableSearch(input: PlanningTableSearch) {
       INNER JOIN app.project_investment pi ON pi.id = p.id
       WHERE p.deleted = false
         AND (${projectNameSearch}::text IS NULL OR to_tsquery('simple', ${projectNameSearch}) @@ to_tsvector('simple', p.project_name) OR  p.project_name LIKE '%' || ${projectNameSubstringSearch} || '%')
+        -- Filter by year range: project date range must overlap with selected year range
+        AND (
+          (p.start_date IS NULL OR p.end_date IS NULL) OR
+          (p.start_date <= ${rangeEndDate}::date AND p.end_date >= ${rangeStartDate}::date)
+        )
         -- Sitovuus
         AND (
           ${sql.array(projectTarget, 'text')} = '{}'::TEXT[] OR
@@ -99,6 +107,11 @@ async function planningTableSearch(input: PlanningTableSearch) {
       WHERE po.deleted = false
         AND (${objectNameSearch}::text IS NULL OR to_tsquery('simple', ${objectNameSearch}) @@ to_tsvector('simple', po.object_name) OR po.object_name LIKE '%' || ${objectNameSubstringSearch} || '%')
         AND (${projectNameSearch}::text IS NULL OR to_tsquery('simple', ${projectNameSearch}) @@ to_tsvector('simple', p.project_name) OR  p.project_name LIKE '%' || ${projectNameSubstringSearch} || '%')
+        -- Filter by year range: object date range must overlap with selected year range
+        AND (
+          (po.start_date IS NULL OR po.end_date IS NULL) OR
+          (po.start_date <= ${rangeEndDate}::date AND po.end_date >= ${rangeStartDate}::date)
+        )
         -- Kohteen laji
         AND (
           ${sql.array(objectStage, 'text')}::TEXT[] = '{}'::TEXT[] OR
