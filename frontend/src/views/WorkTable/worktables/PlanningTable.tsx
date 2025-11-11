@@ -173,7 +173,6 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   }
   & .financial-cell {
     text-align: right;
-    font-family: monospace;
   }
   & .estimate-value {
     font-weight: 500;
@@ -918,8 +917,8 @@ function getColumns({
   columns.push({
     field: 'displayName',
     headerName: `${tr('planningTable.nameHeader')}`,
-    flex: 1,
-
+    width: 400,
+    maxWidth: 400,
     minWidth: 300,
     headerClassName: 'pinned-displayName',
     renderCell: (params: GridRenderCellParams<PlanningRowWithYears>) => {
