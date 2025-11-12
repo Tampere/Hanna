@@ -330,11 +330,11 @@ export async function getValidProjectObjectDateRange(projectObjectId: string) {
     LEFT JOIN app.budget b
       ON po.id = b.project_object_id
       AND (
-        b.amount IS NOT NULL OR
-        b.forecast IS NOT NULL OR
-        b.kayttosuunnitelman_muutos IS NOT NULL OR
-        b.estimate IS NOT NULL OR
-        b.contract_price IS NOT NULL)
+        b.amount <> 0 OR
+        b.forecast <> 0 OR
+        b.kayttosuunnitelman_muutos <> 0 OR
+        b.estimate <> 0 OR
+        b.contract_price <> 0)
     WHERE po.id = ${projectObjectId}
     GROUP BY po.id;
   `);
@@ -363,11 +363,11 @@ export async function validateUpsertProjectObject(
       END AS "validOngoingBudgetEndDate"
     FROM app.budget
     WHERE project_object_id = ${values?.projectObjectId} AND (
-      estimate is NOT NULL or
-      contract_price IS NOT NULL or
-      amount is NOT NULL or
-      forecast is NOT NULL or
-      kayttosuunnitelman_muutos is NOT NULL)
+      estimate <> 0 or
+      contract_price <> 0 or
+      amount <> 0 or
+      forecast <> 0 or
+      kayttosuunnitelman_muutos <> 0)
     GROUP BY project_object_id
     ), project_range AS (
       SELECT

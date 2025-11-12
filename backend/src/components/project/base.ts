@@ -193,7 +193,7 @@ export async function validateUpsertProject(
           ELSE true
         END AS "validOngoingBudgetEndDate"
       FROM app.budget b
-      WHERE b.project_id = ${values?.projectId} AND (estimate IS NOT NULL OR amount is NOT NULL OR forecast is NOT NULL OR kayttosuunnitelman_muutos is NOT NULL)
+      WHERE b.project_id = ${values?.projectId} AND (estimate <> 0 OR amount <> 0 OR forecast <> 0 OR kayttosuunnitelman_muutos <> 0)
       GROUP BY b.project_id
     ), object_range AS (
       SELECT
