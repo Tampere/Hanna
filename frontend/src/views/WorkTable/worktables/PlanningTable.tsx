@@ -1,6 +1,24 @@
 import { css } from '@emotion/react';
-import { Cancel, ExpandLess, ExpandMore, Launch, Redo, Save, Undo } from '@mui/icons-material';
-import { Box, Button, IconButton, Skeleton, Theme, Tooltip, Typography } from '@mui/material';
+import {
+  Cancel,
+  ExpandLess,
+  ExpandMore,
+  Launch,
+  Redo,
+  Save,
+  SubdirectoryArrowRight,
+  Undo,
+} from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  IconButton,
+  Popover,
+  Skeleton,
+  Theme,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import {
   DataGrid,
   GridColDef,
@@ -43,8 +61,12 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   .even {
     background-color: #f3f3f3;
   }
+  /* Only highlight hovered cell, not the whole row */
   & .MuiDataGrid-row:hover {
-    background-color: #e7eef9;
+    background-color: transparent;
+  }
+  & .MuiDataGrid-cell:hover {
+    background-color: #e7eef9 !important;
   }
 
   /* Project row styling - bold text for all cells */
@@ -55,19 +77,7 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
     font-weight: 600;
   }
 
-  /* Light blue background only for cells within project date range */
-  & .project-row .project-year-in-range {
-    background-color: #d6ebf5 !important;
-  }
-  & .project-row:hover .project-year-in-range {
-    background-color: #c0ddef !important;
-  }
-  & .project-row .pinned-displayName {
-    background-color: #d6ebf5 !important;
-  }
-  & .project-row:hover .pinned-displayName {
-    background-color: #c0ddef !important;
-  }
+  /* Project rows: no special background tint */
   & .project-row .estimate-value,
   & .project-row .actual-value {
     font-weight: 600 !important;
@@ -79,16 +89,25 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
 
   /* Sum row styling - pinned to bottom with distinct appearance */
   & .sum-row {
-    background-color: #f0f0f0 !important;
+    background-color: #fff !important;
     font-weight: 700;
     border-top: 2px solid ${theme.palette.primary.main};
   }
   & .sum-row .MuiDataGrid-cell {
-    background-color: #f0f0f0 !important;
+    background-color: #fff !important;
     font-weight: 700;
   }
   & .sum-row .pinned-displayName {
-    background-color: #f0f0f0 !important;
+    background-color: #fff !important;
+  }
+  /* Sum row should not look disabled */
+  & .sum-row .cell-readonly {
+    background-color: #fff !important;
+    color: inherit !important;
+  }
+  & .sum-row .cell-readonly .estimate-value,
+  & .sum-row .cell-readonly .actual-value {
+    color: inherit !important;
   }
   & .sum-row .estimate-value,
   & .sum-row .actual-value {
@@ -276,6 +295,10 @@ export default function PlanningTable() {
   const [editEvents, setEditEvents] = useState<EditEvent[]>([]);
   const [redoEvents, setRedoEvents] = useState<EditEvent[]>([]);
   const [collapsedProjects, setCollapsedProjects] = useState<Set<string>>(new Set());
+  const [disabledInfo, setDisabledInfo] = useState<{
+    anchorEl: HTMLElement | null;
+    message: string;
+  } | null>(null);
 
   const gridApiRef = useGridApiRef();
 
@@ -385,17 +408,46 @@ export default function PlanningTable() {
     return isAdmin(auth.role) || hasPermission(auth, 'investmentFinancials.write');
   }
 
+  function getYearDisabledReason(field: string, row: PlanningRowWithYears): string | null {
+    if (!isYearField(field)) return null;
+    if (row.type !== 'projectObject') return null;
+
+    const year = Number(field.replace('year', ''));
+
+    if (lockedYears?.includes(year)) {
+      return tr('planningTable.yearsDisable');
+    }
+
+    if (!row.objectDateRange?.startDate || !row.objectDateRange?.endDate) {
+      return null;
+    }
+
+    const startYear = dayjs(row.objectDateRange.startDate).year();
+    const endYear = dayjs(row.objectDateRange.endDate).year();
+    const inRange = year >= startYear && year <= endYear;
+
+    if (!inRange) {
+      return tr('planningTable.yearOutOfRange');
+    }
+
+    if (!isAdmin(auth.role) && !hasPermission(auth, 'investmentFinancials.write')) {
+      return tr('planningTable.noPermissions');
+    }
+
+    return null;
+  }
+
   const poIds = useMemo(
     () => Array.from(new Set(rows.filter((r) => r.type === 'projectObject').map((r) => r.id))),
     [rows],
   );
 
   const utils = trpc.useUtils();
-  
+
   // Batched loading: enable queries in chunks to limit concurrent requests
   const batchSize = 10;
   const [enabledBatches, setEnabledBatches] = useState(1);
-  
+
   // Gradually enable more batches as previous ones complete
   useEffect(() => {
     const totalBatches = Math.ceil(poIds.length / batchSize);
@@ -406,17 +458,17 @@ export default function PlanningTable() {
       return () => clearTimeout(timer);
     }
   }, [enabledBatches, poIds.length]);
-  
+
   // Reset batches when poIds change
   useEffect(() => {
     setEnabledBatches(1);
   }, [poIds.join(',')]);
-  
+
   const actualsQueries = useQueries({
     queries: poIds.map((id, idx) => {
       const batchIndex = Math.floor(idx / batchSize);
       const isEnabled = batchIndex < enabledBatches;
-      
+
       return {
         queryKey: ['sapActuals', id, yearRange.start, yearRange.end],
         queryFn: () =>
@@ -661,6 +713,10 @@ export default function PlanningTable() {
     setRedoEvents([]);
   }
 
+  const handleCloseDisabledInfo = () => {
+    setDisabledInfo(null);
+  };
+
   return (
     <Box
       css={css`
@@ -744,6 +800,22 @@ export default function PlanningTable() {
         showCellVerticalBorder
         showColumnVerticalBorder
         isCellEditable={({ row, field }) => canEditYear(field, row as PlanningRowWithYears)}
+        onCellClick={(params, event) => {
+          const row = params.row as PlanningRowWithYears;
+          const field = params.field as string;
+
+          if (!isYearField(field)) return;
+          if (canEditYear(field, row)) return;
+
+          const reason = getYearDisabledReason(field, row);
+          if (!reason) return;
+
+          event.stopPropagation();
+          setDisabledInfo({
+            anchorEl: event.currentTarget as HTMLElement,
+            message: reason,
+          });
+        }}
         getCellClassName={({ field, id, row }) => {
           const classNames: string[] = [];
           const typedRow = row as PlanningRowWithYears;
@@ -823,6 +895,17 @@ export default function PlanningTable() {
         }}
         disableColumnMenu
       />
+      <Popover
+        open={Boolean(disabledInfo?.anchorEl)}
+        anchorEl={disabledInfo?.anchorEl}
+        onClose={handleCloseDisabledInfo}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Box padding={1.5}>
+          <Typography variant="body2">{disabledInfo?.message}</Typography>
+        </Box>
+      </Popover>
       <Box
         css={(theme) => css`
           position: absolute;
@@ -924,7 +1007,7 @@ function getColumns({
     renderCell: (params: GridRenderCellParams<PlanningRowWithYears>) => {
       const isSumRow = params.row.id === 'TOTAL_SUM_ROW';
       const isProject = params.row.type === 'project';
-      const displayName = isProject ? params.row.projectName : ` └ ${params.row.projectObjectName}`;
+      const displayName = isProject ? params.row.projectName : params.row.projectObjectName;
 
       const linkPath = isProject
         ? `/investointihanke/${params.row.projectId}`
@@ -972,6 +1055,24 @@ function getColumns({
                 <ExpandLess fontSize="small" />
               )}
             </IconButton>
+          )}
+          {!isProject && (
+            <Box
+              css={css`
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              `}
+            >
+              <SubdirectoryArrowRight
+                fontSize="small"
+                css={css`
+                  color: #9e9e9e;
+                `}
+              />
+            </Box>
           )}
           <Link to={linkPath} target="_blank" rel="noopener noreferrer">
             <Launch fontSize={'small'} htmlColor="#aaa" />
