@@ -688,7 +688,7 @@ export const fi = {
   'workTable.reportDisabled': 'Ei hakutuloksia raportin lataamiseksi.',
   'planningTable.amount': 'Arvio',
   'planningTable.actual': 'Toteuma',
-  'planningTable.nameHeader': 'Kohteen/hankkeen nimi',
+  'planningTable.nameHeader': 'Hankkeen/kohteen nimi',
   'planningTable.startYear': 'Aloitusvuosi',
   'planningTable.endYear': 'Lopetusvuosi',
   'planningTable.total': 'Yhteensä',

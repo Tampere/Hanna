@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { Cancel, ExpandLess, ExpandMore, Launch, Redo, Save, Undo } from '@mui/icons-material';
+import { Cancel, ExpandLess, ExpandMore, Launch, Redo, Save, Undo, SubdirectoryArrowRight } from '@mui/icons-material';
 import { Box, Button, IconButton, Skeleton, Theme, Tooltip, Typography } from '@mui/material';
 import {
   DataGrid,
@@ -43,8 +43,12 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   .even {
     background-color: #f3f3f3;
   }
+  /* Only highlight hovered cell, not the whole row */
   & .MuiDataGrid-row:hover {
-    background-color: #e7eef9;
+    background-color: transparent;
+  }
+  & .MuiDataGrid-cell:hover {
+    background-color: #e7eef9 !important;
   }
 
   /* Project row styling - bold text for all cells */
@@ -55,19 +59,7 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
     font-weight: 600;
   }
 
-  /* Light blue background only for cells within project date range */
-  & .project-row .project-year-in-range {
-    background-color: #d6ebf5 !important;
-  }
-  & .project-row:hover .project-year-in-range {
-    background-color: #c0ddef !important;
-  }
-  & .project-row .pinned-displayName {
-    background-color: #d6ebf5 !important;
-  }
-  & .project-row:hover .pinned-displayName {
-    background-color: #c0ddef !important;
-  }
+  /* Project rows: no special background tint */
   & .project-row .estimate-value,
   & .project-row .actual-value {
     font-weight: 600 !important;
@@ -79,16 +71,25 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
 
   /* Sum row styling - pinned to bottom with distinct appearance */
   & .sum-row {
-    background-color: #f0f0f0 !important;
+    background-color: #fff !important;
     font-weight: 700;
     border-top: 2px solid ${theme.palette.primary.main};
   }
   & .sum-row .MuiDataGrid-cell {
-    background-color: #f0f0f0 !important;
+    background-color: #fff !important;
     font-weight: 700;
   }
   & .sum-row .pinned-displayName {
-    background-color: #f0f0f0 !important;
+    background-color: #fff !important;
+  }
+  /* Sum row should not look disabled */
+  & .sum-row .cell-readonly {
+    background-color: #fff !important;
+    color: inherit !important;
+  }
+  & .sum-row .cell-readonly .estimate-value,
+  & .sum-row .cell-readonly .actual-value {
+    color: inherit !important;
   }
   & .sum-row .estimate-value,
   & .sum-row .actual-value {
@@ -924,7 +925,7 @@ function getColumns({
     renderCell: (params: GridRenderCellParams<PlanningRowWithYears>) => {
       const isSumRow = params.row.id === 'TOTAL_SUM_ROW';
       const isProject = params.row.type === 'project';
-      const displayName = isProject ? params.row.projectName : ` └ ${params.row.projectObjectName}`;
+      const displayName = isProject ? params.row.projectName : params.row.projectObjectName;
 
       const linkPath = isProject
         ? `/investointihanke/${params.row.projectId}`
@@ -972,6 +973,19 @@ function getColumns({
                 <ExpandLess fontSize="small" />
               )}
             </IconButton>
+          )}
+          {!isProject && (
+            <Box
+              css={css`
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              `}
+            >
+              <SubdirectoryArrowRight fontSize="small" css={css`color:#9e9e9e;`} />
+            </Box>
           )}
           <Link to={linkPath} target="_blank" rel="noopener noreferrer">
             <Launch fontSize={'small'} htmlColor="#aaa" />
