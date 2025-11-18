@@ -125,14 +125,17 @@ export async function getProjectObjectsByProjectId(projectId: string, orderBy?: 
         LOWER(object_name)`;
   }
 
-  return getPool().any(sql.type(commonDbProjectObjectSchema.extend({ objectStage: codeId }))`
+  return getPool().any(sql.type(
+    commonDbProjectObjectSchema.extend({ objectStage: codeId, objectCommittee: codeId }),
+  )`
     WITH dump AS (${getProjectObjectGeometryDumpFragment()})
     SELECT
-      project_id AS "projectId",
+      project_object.project_id AS "projectId",
       project_object.id AS "projectObjectId",
       object_name AS "objectName",
       description AS "description",
       (poi.object_stage).id AS "objectStage",
+      (poc.committee_type).id AS "objectCommittee",
       start_date AS "startDate",
       end_date AS "endDate",
       dump.geom,
@@ -140,8 +143,9 @@ export async function getProjectObjectsByProjectId(projectId: string, orderBy?: 
       (lifecycle_state).id AS "lifecycleState"
     FROM app.project_object
     LEFT JOIN app.project_object_investment poi ON project_object.id = poi.project_object_id
+    LEFT JOIN app.project_object_committee poc ON project_object.id = poc.project_object_id
     LEFT JOIN dump ON dump.id = project_object.id
-    WHERE deleted = false AND project_id = ${projectId}
+    WHERE deleted = false AND project_object.project_id = ${projectId}
     ${getOrderByFragment()}
   `);
 }

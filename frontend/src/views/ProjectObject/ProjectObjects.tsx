@@ -12,6 +12,7 @@ import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { activeItemIdAtom } from '@frontend/stores/map';
 import { projectObjectSearchParamAtom } from '@frontend/stores/search/projectObject';
 import { useMapInfoBox } from '@frontend/stores/useMapInfoBox';
+import { getCommitteeAbbreviation } from '@frontend/utils/codes';
 import { useDebounce } from '@frontend/utils/useDebounce';
 import { ProjectObjectResultsMap } from '@frontend/views/ProjectObject/ProjectObjectResultsMap';
 import { SearchControls } from '@frontend/views/ProjectObject/SearchControls';
@@ -154,13 +155,33 @@ function ProjectObjectCard({
           >
             {result.project.projectName}
           </Typography>
-          <Typography sx={{ lineHeight: '120%', overflowWrap: 'anywhere' }} variant="button">
+          <Typography sx={{ lineHeight: 1.2, overflowWrap: 'anywhere' }} variant="button">
             {result.objectName}
           </Typography>
-          <Typography sx={{ lineHeight: '120%' }} variant="overline">
-            {dayjs(result.startDate).format(tr('date.format'))} –{' '}
-            {result.endDate !== 'infinity' && dayjs(result.endDate).format(tr('date.format'))}
-          </Typography>
+          <Box
+            css={css`
+              display: flex;
+              gap: 1rem;
+              height: 0.875rem;
+            `}
+          >
+            {result.committee && (
+              <Typography
+                component="span"
+                css={css`
+                  line-height: 1.2;
+                  font-size: 0.75rem;
+                  width: 32px;
+                `}
+              >
+                {getCommitteeAbbreviation(result.committee)}
+              </Typography>
+            )}
+            <Typography sx={{ lineHeight: '1.2' }} variant="overline">
+              {dayjs(result.startDate).format(tr('date.format'))} –{' '}
+              {result.endDate !== 'infinity' && dayjs(result.endDate).format(tr('date.format'))}
+            </Typography>
+          </Box>
         </Box>
         <Box
           css={css`

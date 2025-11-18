@@ -14,3 +14,18 @@ export function useCodes(codeListId: CodeId['codeListId']) {
   });
   return result;
 }
+
+export function getCommitteeAbbreviation(committee: string) {
+  switch (committee) {
+    case '01':
+      return 'YLA';
+    case '02':
+      return 'AKILA';
+    case '03':
+      return 'ELOSA';
+    case '04':
+      return 'JOLILA';
+    default:
+      return '';
+  }
+}

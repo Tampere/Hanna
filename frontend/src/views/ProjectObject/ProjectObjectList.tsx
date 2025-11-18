@@ -24,6 +24,7 @@ import { ObjectCategoryIcon } from '@frontend/components/icons/ObjectCategoryIco
 import { ObjectStageIcon } from '@frontend/components/icons/ObjectStageIcon';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { ProjectTypePath } from '@frontend/types';
+import { getCommitteeAbbreviation } from '@frontend/utils/codes';
 
 import { DbObjectOrderBy } from '@shared/schema/projectObject';
 
@@ -248,17 +249,34 @@ export function ProjectObjectList(props: Props) {
                         </Typography>
                       </Box>
                     </Box>
-
-                    <Typography
+                    <Box
                       css={css`
-                        line-height: 120%;
+                        display: flex;
+                        gap: 1rem;
+                        height: 0.875rem;
                       `}
-                      variant="overline"
                     >
-                      {dayjs(projObj.startDate).format(tr('date.format'))} —{' '}
-                      {projObj.endDate !== 'infinity' &&
-                        dayjs(projObj.endDate).format(tr('date.format'))}
-                    </Typography>
+                      <Typography
+                        component="span"
+                        css={css`
+                          line-height: 1.2;
+                          font-size: 0.75rem;
+                          width: 32px;
+                        `}
+                      >
+                        {getCommitteeAbbreviation(projObj.objectCommittee)}
+                      </Typography>
+                      <Typography
+                        css={css`
+                          line-height: 1.2;
+                        `}
+                        variant="overline"
+                      >
+                        {dayjs(projObj.startDate).format(tr('date.format'))} —{' '}
+                        {projObj.endDate !== 'infinity' &&
+                          dayjs(projObj.endDate).format(tr('date.format'))}
+                      </Typography>
+                    </Box>
                   </Box>
                   <Box
                     css={css`
