@@ -504,11 +504,15 @@ export default function PlanningTable() {
     poIds.join(','),
   ]);
 
-  // Track individual loading states for better UX
-  const actualsLoading = useMemo(
-    () => actualsQueries.some((q) => q.isLoading || q.isFetching),
-    [actualsQueries.map((q) => q.fetchStatus).join(',')],
-  );
+  // Per-project-object loading state for better UX
+  const actualsLoadingByPo = useMemo(() => {
+    const map = new Map<string, boolean>();
+    actualsQueries.forEach((q, idx) => {
+      const id = poIds[idx];
+      map.set(id, q.isLoading || q.isFetching);
+    });
+    return map;
+  }, [actualsQueries.map((q) => q.fetchStatus).join(','), poIds.join(',')]);
 
   const estimateSumsByProjectName = useMemo(() => {
     // Build per-project sums and track if any non-null values exist per year
@@ -646,7 +650,7 @@ export default function PlanningTable() {
       canEditYear,
       modifiedFields,
       actualsByPo,
-      actualsLoading,
+      actualsLoadingByPo,
       estimateSumsByProjectName,
       actualSumsByProjectName,
       totalSumRow,
@@ -661,7 +665,7 @@ export default function PlanningTable() {
     lockedYears,
     auth,
     actualsByPo,
-    actualsLoading,
+    actualsLoadingByPo,
     estimateSumsByProjectName,
     actualSumsByProjectName,
     totalSumRow,
@@ -970,7 +974,7 @@ interface GetColumnsParams {
   canEditYear: (field: string, row: PlanningRowWithYears) => boolean;
   modifiedFields: Record<string, Record<string, boolean>>;
   actualsByPo: Map<string, Record<number, number>>;
-  actualsLoading: boolean;
+  actualsLoadingByPo: Map<string, boolean>;
   estimateSumsByProjectName: Map<string, Record<number, number | null>>;
   actualSumsByProjectName: Map<string, Record<number, number | null>>;
   totalSumRow: PlanningRowWithYears;
@@ -986,7 +990,7 @@ function getColumns({
   canEditYear,
   modifiedFields,
   actualsByPo,
-  actualsLoading,
+  actualsLoadingByPo,
   estimateSumsByProjectName,
   actualSumsByProjectName,
   totalSumRow,
@@ -1177,7 +1181,9 @@ function getColumns({
               : null;
 
         const isLoadingActuals =
-          !isSumRow && (isProjectObject || isProject) ? actualsLoading : false;
+          isProjectObject && isPastOrCurrent
+            ? actualsLoadingByPo.get(params.row.id) ?? false
+            : false;
 
         return (
           <Box
