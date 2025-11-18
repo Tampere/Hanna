@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
-import { ControllerRenderProps, FieldValues, FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router';
 
 import { trpc } from '@frontend/client';
@@ -19,6 +19,7 @@ import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { CommitteeSelect } from '@frontend/components/forms/CommitteeSelect';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
+import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { dirtyAndValidFieldsAtom, projectEditingAtom } from '@frontend/stores/projectView';
@@ -34,10 +35,9 @@ import {
   newInvestmentProjectObjectSchema,
   upsertInvestmentProjectObjectSchema,
 } from '@shared/schema/projectObject/investment';
+import { isAdmin } from '@shared/schema/userPermissions';
 
 import { ProjectObjectFormUserRoles } from './ProjectObjectFormUserRoles';
-import { isAdmin } from '@shared/schema/userPermissions';
-import { asyncUserAtom } from '@frontend/stores/auth';
 
 const newProjectFormStyle = css`
   display: grid;
@@ -330,7 +330,6 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
   async function onPalmSave() {
     setPalmIsSubmitting(true);
     if (props.projectId && props.projectObject && form.getValues().palmGrouping) {
-
       try {
         await palmUpsertMutation.mutateAsync({
           projectObjectId: form.getValues().projectObjectId ?? '',
@@ -358,7 +357,6 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
     });
     setPalmIsSubmitting(false);
   }
-
 
   return (
     <>
@@ -583,27 +581,38 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
           <FormField
             formField="palmGrouping"
             label={tr('project.PalmGrouping')}
-            component={({ id, onChange, value }) => (<>
-              <CodeSelect
-                id={id}
-                value={value}
-                onChange={(onChange)}
-                codeListId="PalmKoritus"
-                readOnly={
-                  (!isAdmin(currentUser.role) && !currentUser.permissions.includes('palmGrouping.write')) || editing
-                }
-              />
-              {!editing && isDirty && (
-                <Stack direction="row" spacing={1} justifyContent={'flex-end'} sx={{ mt: 1 }}>
-                  <Button variant="outlined" disabled={palmIsSubmitting} onClick={() => form.reset()}>{tr('reject')}</Button>
-                  <Button variant="contained" disabled={palmIsSubmitting} onClick={onPalmSave}>{tr('save')}</Button>
-                </Stack>)}
-            </>
+            component={({ id, onChange, value }) => (
+              <>
+                <CodeSelect
+                  id={id}
+                  value={value}
+                  onChange={onChange}
+                  codeListId="PalmKoritus"
+                  readOnly={
+                    (!isAdmin(currentUser.role) &&
+                      !currentUser.permissions.includes('palmGrouping.write')) ||
+                    editing
+                  }
+                />
+                {!editing && isDirty && (
+                  <Stack direction="row" spacing={1} justifyContent={'flex-end'} sx={{ mt: 1 }}>
+                    <Button
+                      variant="outlined"
+                      disabled={palmIsSubmitting}
+                      onClick={() => form.reset()}
+                    >
+                      {tr('reject')}
+                    </Button>
+                    <Button variant="contained" disabled={palmIsSubmitting} onClick={onPalmSave}>
+                      {tr('save')}
+                    </Button>
+                  </Stack>
+                )}
+              </>
             )}
           />
         </form>
       </FormProvider>
-
     </>
   );
 });

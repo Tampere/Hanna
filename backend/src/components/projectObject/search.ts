@@ -67,7 +67,8 @@ function getProjectObjectSearchFragment({
         'projectType', (CASE WHEN (poi.project_object_id IS NULL) THEN 'maintenanceProject' ELSE 'investmentProject' END),
         'geom', ${withGeometries ? sql.fragment`project_dump.geom` : sql.fragment`null`}
       ) as project,
-      po.geom as "rawGeom"
+      po.geom as "rawGeom",
+      (SELECT (committee_type).id FROM app.project_object_committee WHERE project_object_id = po.id LIMIT 1) AS "committee"
       ${withGeometries ? sql.fragment`, object_dump.geom` : sql.fragment``}
       ${withGeoHash ? sql.fragment`, po.geohash` : sql.fragment``}
       ${
@@ -253,6 +254,7 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
       "objectName",
       "objectStage",
       "objectCategory",
+      committee,
       project
       ${withGeometries ? sql.fragment`, search_results.geom` : sql.fragment``}
     FROM search_results

@@ -42,6 +42,7 @@ export const projectObjectSearchResultSchema = z.object({
         endDate: mergedProjectObjectDbSchema.shape.endDate.or(z.literal('infinity')),
         objectStage: mergedProjectObjectDbSchema.shape.objectStage.nullish(),
         objectCategory: mergedProjectObjectDbSchema.shape.objectCategory.nullish(),
+        committee: mergedProjectObjectDbSchema.shape.committee.nullish(),
         project: dbProjectSchema
           .pick({
             projectId: true,
