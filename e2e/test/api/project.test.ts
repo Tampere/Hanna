@@ -47,7 +47,6 @@ const testProjectObject = (projectId: string, committees: string[], user: User) 
   sapWBSId: null,
   landownership: null,
   locationOnProperty: null,
-  height: null,
   objectUserRoles: [],
   palmGrouping: '00',
 });
@@ -364,7 +363,6 @@ test.describe('Project endpoints', () => {
       sapWBSId: null,
       landownership: null,
       locationOnProperty: null,
-      height: null,
       objectUserRoles: [],
       palmGrouping: '00',
     });
