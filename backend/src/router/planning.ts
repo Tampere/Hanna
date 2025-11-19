@@ -7,6 +7,7 @@ import { refreshProjectObjectSapActuals } from '@backend/components/sap/actuals.
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
 import { TRPC } from '@backend/router/index.js';
+import { startPlanningTableReportJob } from '@backend/components/taskQueue/planningTableReportQueue.js';
 
 import {
   PlanningTableRow,
@@ -24,7 +25,7 @@ import { getWorkTableYearRange } from './workTable.js';
 // Creates a PlanningTable view similar to WorkTable
 // Shows projects/project objects as rows with yearly columns (Estimate/Actual)
 // Actuals are only shown for past and current years, not future years
-async function planningTableSearch(input: PlanningTableSearch) {
+export async function planningTableSearch(input: PlanningTableSearch) {
   const {
     objectType = [],
     objectCategory = [],
@@ -319,4 +320,9 @@ export const createPlanningRouter = (t: TRPC) =>
     years: t.procedure.query(async () => {
       return getWorkTableYearRange();
     }),
+    startPlanningTableReportJob: t.procedure
+      .input(planningTableSearchSchema)
+      .query(async ({ input }) => {
+        return startPlanningTableReportJob(input);
+      }),
   });

@@ -91,7 +91,8 @@ export function buildSheet<ColumnKey extends string>({
     numberFormat: '#,##0.00 "€"',
   });
 
-  const headerValues = Object.keys(rows[0]).map((key) => headers[key as ColumnKey]);
+  const fieldKeys = Object.keys(rows[0]) as ColumnKey[];
+  const headerValues = fieldKeys.map((key) => headers[key as ColumnKey]);
 
   const sheet = workbook.addWorksheet(sheetTitle);
 
@@ -105,7 +106,13 @@ export function buildSheet<ColumnKey extends string>({
     const columnIndex = Object.keys(rows[0]).findIndex((key) => key === column);
     const rowIndex = rows.length + 1;
     const sumCell = generateSumCell(sheet, rowIndex + 1, columnIndex + 1);
+
+    // Always make sums bold
     sumCell.style(boldStyle);
+
+    if (types?.[column] === 'currency') {
+      sumCell.style(currencyStyle);
+    }
   });
 
   // Fill in the actual data
@@ -145,7 +152,21 @@ export function buildSheet<ColumnKey extends string>({
       .cell(1, index + 1)
       .string(header)
       .style(boldStyle);
-    sheet.column(index + 1).setWidth(columnWidths[index] * excelWidthFactor);
+
+    const fieldKey = fieldKeys[index];
+    const isCurrencyType = types?.[fieldKey] === 'currency';
+
+    let width = columnWidths[index];
+
+    // Ensure currency/value columns have a reasonable minimum width
+    if (isCurrencyType) {
+      const minCurrencyWidthPx = 150; // empirically chosen so typical € values fit without wrapping
+      if (width < minCurrencyWidthPx) {
+        width = minCurrencyWidthPx;
+      }
+    }
+
+    sheet.column(index + 1).setWidth(width * excelWidthFactor);
   });
 
   return sheet;

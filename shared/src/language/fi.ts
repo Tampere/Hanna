@@ -687,6 +687,7 @@ export const fi = {
   'planningTable.amount': 'Arvio',
   'planningTable.actual': 'Toteuma',
   'planningTable.nameHeader': 'Hankkeen/kohteen nimi',
+  'planningTable.export.label': 'Suunnittelutaulukko',
   'planningTable.startYear': 'Aloitusvuosi',
   'planningTable.endYear': 'Lopetusvuosi',
   'planningTable.total': 'Yhteensä',
