@@ -48,7 +48,9 @@ export type VectorLayerKey =
   | 'kiinteistot'
   | 'rakennukset'
   | 'kadut'
-  | 'kevyenliikenteenvaylat';
+  | 'kevyenliikenteenvaylat'
+  | 'urakka-alueet'
+  | 'kaavatyot';
 
 export type BaseLayerKey =
   | 'virastokartta'
@@ -164,6 +166,8 @@ const defaultWfsLayerState = [
     selected: false,
     opacity: 1,
   },
+  { id: 'urakka-alueet' as const, selected: false, opacity: 1 },
+  { id: 'kaavatyot' as const, selected: false, opacity: 1 },
 ];
 
 const defaultItemLayerState = [

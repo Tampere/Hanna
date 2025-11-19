@@ -301,6 +301,8 @@ export const fi = {
   'vectorLayer.title.rakennukset': 'Rakennukset',
   'vectorLayer.title.kiinteistot': 'Kiinteistöt',
   'vectorLayer.title.kevyenliikenteenvaylat': 'Kevyen liikenteen väylät',
+  'vectorLayer.title.urakka-alueet': 'Kunnossapidon urakka-alueet',
+  'vectorLayer.title.kaavatyot': 'Kaavatyöt',
   'vectorLayer.title.projects': 'Hankkeet',
   'vectorLayer.title.projectObjects': 'Kohteet',
   'vectorLayer.loadingError': 'Tason lataaminen epäonnistui.',
