@@ -44,8 +44,6 @@ function projectReportFragment(searchParams: ProjectSearch) {
       project_object.created_at AS "projectObjectCreatedAt",
       project_object.start_date AS "projectObjectStartDate",
       project_object.end_date AS "projectObjectEndDate",
-      (SELECT text_fi FROM app.code WHERE id = project_object.landownership) AS "projectObjectLandownership",
-      (SELECT text_fi FROM app.code WHERE id = project_object.location_on_property) AS "projectObjectLocationOnProperty",
       project_object.sap_wbs_id AS "projectObjectSAPWBSId",
       ts_rank(
         COALESCE(project.tsv, ''),
@@ -80,8 +78,6 @@ const reportRowSchema = z.object({
   projectObjectCreatedAt: datetimeSchema.nullish(),
   projectObjectStartDate: dateStringSchema.nullish(),
   projectObjectEndDate: dateStringSchema.nullish(),
-  projectObjectLandownership: z.string().nullish(),
-  projectObjectLocationOnProperty: z.string().nullish(),
   projectObjectSAPWBSId: z.string().nullish(),
 });
 

@@ -51,9 +51,6 @@ export const testProjectObject = (
   startDate: '2021-01-01',
   endDate: '2022-01-01',
   sapWBSId: null,
-  landownership: null,
-  locationOnProperty: null,
-  height: null,
   objectUserRoles: [],
   palmGrouping: '00',
 });
@@ -79,9 +76,6 @@ export const testProjectObject2 = (
   objectUserRoles: [],
   ...(type === 'investment'
     ? {
-        landownership: null,
-        locationOnProperty: null,
-        height: null,
         objectType: '01',
         objectStage: '01',
         palmGrouping: '00',
@@ -111,9 +105,6 @@ export const testProjectObject3 = (
   palmGrouping: '00',
   ...(type === 'investment'
     ? {
-        landownership: null,
-        locationOnProperty: null,
-        height: null,
         objectType: '01',
         objectStage: '01',
       }
@@ -141,9 +132,6 @@ export const invalidDateProjectObject = (
   objectUserRoles: [],
   ...(type === 'investment'
     ? {
-        landownership: null,
-        locationOnProperty: null,
-        height: null,
         objectType: '01',
         objectStage: '01',
         palmGrouping: '00',
