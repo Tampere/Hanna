@@ -1,6 +1,7 @@
 import { css } from '@emotion/react';
 import {
   Cancel,
+  Download,
   ExpandLess,
   ExpandMore,
   Launch,
@@ -34,6 +35,7 @@ import { type SetStateAction, useEffect, useMemo, useRef, useState } from 'react
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
+import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
 import { CurrencyInput, formatCurrency } from '@frontend/components/forms/CurrencyInput';
 import dayjs from '@frontend/dayjs';
 import { asyncUserAtom } from '@frontend/stores/auth';
@@ -443,6 +445,7 @@ export default function PlanningTable() {
   );
 
   const utils = trpc.useUtils();
+  const { planning } = trpc.useUtils();
 
   // Batched loading: enable queries in chunks to limit concurrent requests
   const batchSize = 10;
@@ -761,11 +764,42 @@ export default function PlanningTable() {
           }
           allowAllYears={false}
         />
+        <ProjectObjectParticipantFilter
+          onChange={participantFilterChange}
+          isChecked={!!searchParams.objectParticipantUser}
+        />
+        <Box
+          css={css`
+            display: flex;
+            gap: 1rem;
+            margin-left: auto;
+          `}
+        >
+          <AsyncJobButton
+            variant="outlined"
+            disabled={planningData.isLoading || planningData.data?.length === 0}
+            title={
+              planningData.isLoading || planningData.data?.length === 0
+                ? tr('workTable.reportDisabled')
+                : undefined
+            }
+            onStart={async () => {
+              return planning.startPlanningTableReportJob.fetch(query);
+            }}
+            onError={() => {
+              console.error('Planning table report failed');
+            }}
+            onFinished={(jobId) => {
+              const link = document.createElement('a');
+              link.href = `/api/v1/report/file?id=${jobId}`;
+              link.click();
+            }}
+            endIcon={<Download />}
+          >
+            {tr('planningTable.export.label')}
+          </AsyncJobButton>
+        </Box>
       </Box>
-      <ProjectObjectParticipantFilter
-        onChange={participantFilterChange}
-        isChecked={!!searchParams.objectParticipantUser}
-      />
       <WorkTableFilters
         searchParams={searchParams}
         setSearchParams={(value: SetStateAction<WorkTableSearch>) => setSearchParams(value as any)}

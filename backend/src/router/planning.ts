@@ -4,6 +4,7 @@ import { textToTsSearchTerms } from '@backend/components/project/search.js';
 import { getProjectObjectBudget } from '@backend/components/projectObject/index.js';
 import { upsertProjectObject } from '@backend/components/projectObject/investment.js';
 import { refreshProjectObjectSapActuals } from '@backend/components/sap/actuals.js';
+import { startPlanningTableReportJob } from '@backend/components/taskQueue/planningTableReportQueue.js';
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
 import { TRPC } from '@backend/router/index.js';
@@ -24,7 +25,7 @@ import { getWorkTableYearRange } from './workTable.js';
 // Creates a PlanningTable view similar to WorkTable
 // Shows projects/project objects as rows with yearly columns (Estimate/Actual)
 // Actuals are only shown for past and current years, not future years
-async function planningTableSearch(input: PlanningTableSearch) {
+export async function planningTableSearch(input: PlanningTableSearch) {
   const {
     objectType = [],
     objectCategory = [],
@@ -37,7 +38,8 @@ async function planningTableSearch(input: PlanningTableSearch) {
     company = [],
     committee = [],
     projectTarget = [],
-    palmGrouping = [],
+    projectPalmGrouping = [],
+    objectPalmGrouping = [],
   } = input;
 
   const objectNameSearch = textToTsSearchTerms(input.projectObjectName, { minTermLength: 3 });
@@ -89,8 +91,8 @@ async function planningTableSearch(input: PlanningTableSearch) {
           )
         )
         AND (
-          ${sql.array(palmGrouping, 'text')}::TEXT[] = '{}'::TEXT[] OR
-          (pi.palm_grouping).id = ANY(${sql.array(palmGrouping, 'text')}::TEXT[])
+          ${sql.array(projectPalmGrouping, 'text')}::TEXT[] = '{}'::TEXT[] OR
+          (pi.palm_grouping).id = ANY(${sql.array(projectPalmGrouping, 'text')}::TEXT[])
         )
          AND (
           ${sql.array(projectTarget, 'text')}::TEXT[] = '{}'::TEXT[] OR
@@ -175,8 +177,8 @@ async function planningTableSearch(input: PlanningTableSearch) {
           )
         )
         AND (
-          ${sql.array(palmGrouping, 'text')}::TEXT[] = '{}'::TEXT[] OR
-          (poi.palm_grouping).id = ANY(${sql.array(palmGrouping, 'text')}::TEXT[])
+          ${sql.array(objectPalmGrouping, 'text')}::TEXT[] = '{}'::TEXT[] OR
+          (poi.palm_grouping).id = ANY(${sql.array(objectPalmGrouping, 'text')}::TEXT[])
         )
       GROUP BY po.id, po.object_name, po.project_id, p.project_name
         ${
@@ -319,4 +321,9 @@ export const createPlanningRouter = (t: TRPC) =>
     years: t.procedure.query(async () => {
       return getWorkTableYearRange();
     }),
+    startPlanningTableReportJob: t.procedure
+      .input(planningTableSearchSchema)
+      .query(async ({ input }) => {
+        return startPlanningTableReportJob(input);
+      }),
   });

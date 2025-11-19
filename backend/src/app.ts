@@ -34,6 +34,7 @@ import { initializeTaskQueue } from './components/taskQueue/index.js';
 import { setupMailQueue } from './components/taskQueue/mailQueue.js';
 import { setupReportQueue } from './components/taskQueue/reportQueue.js';
 import { setupWorkTableReportQueue } from './components/taskQueue/workTableReportQueue.js';
+import { setupPlanningTableReportQueue } from './components/taskQueue/planningTableReportQueue.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -64,6 +65,7 @@ async function run() {
     env.enabledFeatures.sapSync ? setupBlanketContractReportQueue() : null,
     setupDetailPlanGeomSyncQueue(),
     setupWorkTableReportQueue(),
+    setupPlanningTableReportQueue(),
   ]);
   // https://github.com/fastify/fastify/issues/4960
   const server = fastify({
