@@ -53,6 +53,7 @@ export const testProjectObject = (
   sapWBSId: null,
   landownership: null,
   locationOnProperty: null,
+  height: null,
   objectUserRoles: [],
   palmGrouping: '00',
 });
@@ -80,6 +81,7 @@ export const testProjectObject2 = (
     ? {
         landownership: null,
         locationOnProperty: null,
+        height: null,
         objectType: '01',
         objectStage: '01',
         palmGrouping: '00',
@@ -111,6 +113,7 @@ export const testProjectObject3 = (
     ? {
         landownership: null,
         locationOnProperty: null,
+        height: null,
         objectType: '01',
         objectStage: '01',
       }
@@ -140,6 +143,7 @@ export const invalidDateProjectObject = (
     ? {
         landownership: null,
         locationOnProperty: null,
+        height: null,
         objectType: '01',
         objectStage: '01',
         palmGrouping: '00',
