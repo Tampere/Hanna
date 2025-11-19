@@ -150,12 +150,6 @@ function getUpdateData(
     start_date: projectObject.startDate,
     end_date: projectObject.endDate,
     sap_wbs_id: projectObject.sapWBSId,
-    landownership:
-      projectObject.landownership &&
-      codeIdFragment('KohteenMaanomistusLaji', projectObject.landownership),
-    location_on_property:
-      projectObject.locationOnProperty &&
-      codeIdFragment('KohteenSuhdePeruskiinteistoon', projectObject.locationOnProperty),
     height: projectObject.height,
     updated_by: userId,
   };
@@ -364,7 +358,6 @@ export async function updateProjectObjectPalmGrouping(
   palmGrouping: string,
   userId: string,
 ) {
-
   await addAuditEvent(tx, {
     eventType: 'projectObject.updateProjectObjectPalmGrouping',
     eventData: { projectObjectId, palmGrouping },

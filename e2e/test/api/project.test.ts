@@ -45,9 +45,6 @@ const testProjectObject = (projectId: string, committees: string[], user: User) 
   startDate: '2021-01-01',
   endDate: '2022-01-01',
   sapWBSId: null,
-  landownership: null,
-  locationOnProperty: null,
-  height: null,
   objectUserRoles: [],
   palmGrouping: '00',
 });
@@ -362,9 +359,6 @@ test.describe('Project endpoints', () => {
       startDate: '2021-01-01',
       endDate: '2022-01-01',
       sapWBSId: null,
-      landownership: null,
-      locationOnProperty: null,
-      height: null,
       objectUserRoles: [],
       palmGrouping: '00',
     });
