@@ -259,6 +259,42 @@ export const mapOptions = {
         fillColor: '#ffffff',
       },
     },
+    {
+      id: 'urakka-alueet',
+      title: 'Kunnossapidon urakka-alueiden aluejako',
+      name: 'Kunnossapidon urakka-alueiden aluejako',
+      visible: true,
+      type: 'wfs',
+      url: `${geodataBaseUrl}/locus/wfs?${createWfsParams(
+        'locus:v_Urakka_alueet_gsview',
+        'EPSG:3067',
+      )}`,
+      style: {
+        strokeColor: '#000000',
+        strokeWidth: 1,
+        label: (feature) => feature.get('label'),
+        font: 'Bold 12px/1 Verdana',
+        fillColor: 'transparent',
+      },
+    },
+    {
+      id: 'kaavatyot',
+      title: 'Vireillä olevat asemakaavat (maanpäälliset)',
+      name: 'Vireillä olevat asemakaavat (maanpäälliset)',
+      visible: true,
+      type: 'wfs',
+      url: `${geodataBaseUrl}/wfs?${createWfsParams(
+        'maankaytto:AK_KAAVATYOT_VIR_LISA_MP_MVIEW_GSVIEW',
+        'EPSG:3067',
+      )}`,
+      style: {
+        strokeColor: '#000000',
+        strokeWidth: 1,
+        label: (feature) => feature.get('KAAVA_NUMERO'),
+        font: 'Bold 12px/1 Verdana',
+        fillColor: 'transparent',
+      },
+    },
   ] as WFSLayer[],
 };
 

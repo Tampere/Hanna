@@ -31,7 +31,7 @@ import {
 import { mapOptions } from './mapOptions';
 
 const containerStyles = css`
-  width: 290px;
+  width: 310px;
   position: absolute;
   right: -2rem;
   top: 0;
@@ -47,7 +47,7 @@ const containerStyles = css`
 `;
 
 const drawerStyles = css`
-  min-height: 750px;
+  min-height: 800px;
   position: relative;
   background-color: white;
   flex: 1;
