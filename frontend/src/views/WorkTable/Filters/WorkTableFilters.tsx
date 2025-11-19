@@ -227,7 +227,7 @@ export function WorkTableFilters(props: Props) {
               onChange={(state) => setSearchParams({ ...searchParams, lifecycleState: state })}
             />
           </GridSpan>
-          <GridSpan row={3} span={3} wideScreenSpan={2}>
+          <GridSpan row={3} span={palmGroupingVisible ? 2 : 3} wideScreenSpan={2}>
             <CustomFormLabel
               htmlFor="rakennuttaja"
               label={tr('projectObject.rakennuttajaUserLabel')}
@@ -240,7 +240,11 @@ export function WorkTableFilters(props: Props) {
               maxTags={1}
             />
           </GridSpan>
-          <GridSpan row={3} span={3} wideScreenSpan={2}>
+          <GridSpan
+            row={3}
+            span={palmGroupingVisible ? 2 : 3}
+            wideScreenSpan={palmGroupingVisible ? 2 : 3}
+          >
             <CustomFormLabel
               htmlFor="suunnitteluttaja"
               label={tr('projectObject.suunnitteluttajaUserLabel')}
@@ -283,16 +287,38 @@ export function WorkTableFilters(props: Props) {
             />
           </GridSpan>
           {palmGroupingVisible && (
-            <GridSpan row={3} span={2} wideScreenSpan={2}>
-              <CustomFormLabel htmlFor="palmGrouping" label={tr('workTable.search.palmGrouping')} />
-              <CodeSelect
-                multiple
-                codeListId="PalmKoritus"
-                value={searchParams.palmGrouping ?? []}
-                onChange={(state) => setSearchParams({ ...searchParams, palmGrouping: state })}
-                maxTags={1}
-              />
-            </GridSpan>
+            <>
+              <GridSpan row={3} span={2} wideScreenSpan={2}>
+                <CustomFormLabel
+                  htmlFor="projectPalmGrouping"
+                  label={tr('planningTable.palmGrouping.project')}
+                />
+                <CodeSelect
+                  multiple
+                  codeListId="PalmKoritus"
+                  value={searchParams.projectPalmGrouping ?? []}
+                  onChange={(state) =>
+                    setSearchParams({ ...searchParams, projectPalmGrouping: state })
+                  }
+                  maxTags={1}
+                />
+              </GridSpan>
+              <GridSpan row={3} span={2} wideScreenSpan={2}>
+                <CustomFormLabel
+                  htmlFor="objectPalmGrouping"
+                  label={tr('planningTable.palmGrouping.object')}
+                />
+                <CodeSelect
+                  multiple
+                  codeListId="PalmKoritus"
+                  value={searchParams.objectPalmGrouping ?? []}
+                  onChange={(state) =>
+                    setSearchParams({ ...searchParams, objectPalmGrouping: state })
+                  }
+                  maxTags={1}
+                />
+              </GridSpan>
+            </>
           )}
         </>
       )}

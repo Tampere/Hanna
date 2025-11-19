@@ -688,6 +688,8 @@ export const fi = {
   'planningTable.actual': 'Toteuma',
   'planningTable.nameHeader': 'Hankkeen/kohteen nimi',
   'planningTable.export.label': 'Suunnittelutaulukko',
+  'planningTable.palmGrouping.project': 'PALM-ryhmittely (hanke)',
+  'planningTable.palmGrouping.object': 'PALM-ryhmittely (kohde)',
   'planningTable.startYear': 'Aloitusvuosi',
   'planningTable.endYear': 'Lopetusvuosi',
   'planningTable.total': 'Yhteensä',
