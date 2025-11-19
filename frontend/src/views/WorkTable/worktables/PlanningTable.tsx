@@ -811,17 +811,6 @@ export default function PlanningTable() {
         expanded={expanded}
         palmGroupingVisible={true}
       />
-      <WorkTableFilters
-        searchParams={searchParams}
-        setSearchParams={(value: SetStateAction<WorkTableSearch>) => setSearchParams(value as any)}
-        yearRange={{
-          startYear: dayjs(searchParams.objectStartDate).year(),
-          endYear: dayjs(searchParams.objectEndDate).year(),
-        }}
-        readOnly={false}
-        expanded={expanded}
-        palmGroupingVisible={true}
-      />
 
       <Button
         size="small"
