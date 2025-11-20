@@ -67,6 +67,8 @@ function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'prin
     amount: sql.fragment`po_budget.amount AS "amount"`,
     forecast: sql.fragment`po_budget.forecast AS "forecast"`,
     kayttosuunnitelmanMuutos: sql.fragment`po_budget.kayttosuunnitelman_muutos AS "kayttosuunnitelmanMuutos"`,
+    estimate: sql.fragment`po_budget.estimate AS "estimate"`,
+    contractPrice: sql.fragment`po_budget.contract_price AS "contractPrice"`,
     sapProjectId: sql.fragment`search_results.sap_project_id AS "sapProjectId"`,
     committee: sql.fragment`(SELECT jsonb_agg((committee_type).id)->>0 FROM app.project_object_committee WHERE project_object_id = search_results.id) AS "committee"`,
     budgetYear: sql.fragment``,
@@ -218,7 +220,9 @@ export async function workTableSearch(input: WorkTableSearch) {
       (committee).id AS committee,
       COALESCE(SUM(budget.amount), null) AS amount,
       COALESCE(SUM(budget.forecast), null) AS forecast,
-      COALESCE(SUM(budget.kayttosuunnitelman_muutos), null) AS kayttosuunnitelman_muutos
+      COALESCE(SUM(budget.kayttosuunnitelman_muutos), null) AS kayttosuunnitelman_muutos,
+      COALESCE(SUM(budget.estimate), null) AS estimate,
+      COALESCE(SUM(budget.contract_price), null) AS contract_price
     FROM app.budget
     ${
       objectStartDate

@@ -670,6 +670,8 @@ export const fi = {
   'workTable.export.actual': 'Toteuma',
   'workTable.export.forecast': 'Ennuste',
   'workTable.export.kayttosuunnitelmanMuutos': 'Käyttösuunnitelman muutos',
+  'workTable.export.estimate': 'Kustannusarvio',
+  'workTable.export.contractPrice': 'Sopimushinta',
   'workTable.export.sapWbsId': 'Kohteen SAP-rakenneosa',
   'workTable.export.sapProjectId': 'Hankkeen SAP-projekti',
   'workTable.export.companyContacts': 'Yritysten yhteyshenkilöt',

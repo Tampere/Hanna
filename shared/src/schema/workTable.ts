@@ -38,6 +38,8 @@ export const workTableRowSchema = z.object({
   amount: z.number().nullable(),
   actual: z.number().nullable(),
   forecast: z.number().nullable(),
+  estimate: z.number().nullable(),
+  contractPrice: z.number().nullable(),
   kayttosuunnitelmanMuutos: z.number().nullable(),
   permissionCtx: z.object({
     writeUsers: z.array(nonEmptyString),
@@ -152,7 +154,9 @@ export const templateColumns: Record<ReportTemplate, WorkTableColumn[]> = {
     'objectDateRange',
     'sapWbsId',
     'operatives',
+    'estimate',
     'amount',
+    'contractPrice',
     'actual',
     'forecast',
     'kayttosuunnitelmanMuutos',

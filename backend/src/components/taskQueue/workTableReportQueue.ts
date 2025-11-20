@@ -171,6 +171,8 @@ export async function setupWorkTableReportQueue() {
         forecast: (row) => (row.forecast == null ? null : row.forecast / 100),
         kayttosuunnitelmanMuutos: (row) =>
           row.kayttosuunnitelmanMuutos == null ? null : row.kayttosuunnitelmanMuutos / 100,
+        estimate: (row) => (row.estimate == null ? null : row.estimate / 100),
+        contractPrice: (row) => (row.contractPrice == null ? null : row.contractPrice / 100),
         sapWbsId: (row) => row.sapWbsId,
         sapProjectId: (row) => row.sapProjectId,
         companyContacts: (row) => formatRolesToUsersAndContacts(row.companyContacts),
@@ -191,7 +193,14 @@ export async function setupWorkTableReportQueue() {
         });
       }
 
-      const financeColumns = ['amount', 'actual', 'forecast', 'kayttosuunnitelmanMuutos'];
+      const financeColumns = [
+        'amount',
+        'actual',
+        'forecast',
+        'kayttosuunnitelmanMuutos',
+        'estimate',
+        'contractPrice',
+      ];
 
       let sheet: Worksheet | undefined;
 
@@ -213,6 +222,8 @@ export async function setupWorkTableReportQueue() {
             actual: 'currency',
             forecast: 'currency',
             kayttosuunnitelmanMuutos: 'currency',
+            estimate: 'currency',
+            contractPrice: 'currency',
           },
           sum: (data.reportTemplate && templateColumns[data.reportTemplate])?.filter((column) =>
             financeColumns.includes(column),
