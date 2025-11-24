@@ -161,11 +161,7 @@ test.describe('Project endpoints', () => {
         startDate: { type: 'custom', message: 'project.error.objectNotIncluded' },
       },
     });
-    expect(validationResultWithBudget).toStrictEqual({
-      errors: {
-        startDate: { type: 'custom', message: 'project.error.budgetNotIncluded' },
-      },
-    });
+    expect(validationResultWithBudget).toStrictEqual({ errors: {} });
   });
 
   test('project geometry edit', async () => {

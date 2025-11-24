@@ -182,20 +182,6 @@ export async function validateUpsertProject(
 
   if (values?.projectId) {
     const dateRange = await conn.maybeOne(sql.untyped`
-    WITH budget_range AS (
-      SELECT
-        ${values?.projectId} as id,
-        extract(year FROM ${values?.startDate}::date) <= min(b.year) AS "validBudgetStartDate",
-        extract(year FROM ${values?.endDate}::date) >= max(b.year) AS "validBudgetEndDate",
-        CASE
-          WHEN ${values?.endDate} = 'infinity'
-            THEN GREATEST(extract(year FROM CURRENT_DATE), extract(year FROM ${values.startDate}::date)) + 5 >= max(b.year)
-          ELSE true
-        END AS "validOngoingBudgetEndDate"
-      FROM app.budget b
-      WHERE b.project_id = ${values?.projectId} AND (estimate <> 0 OR amount <> 0 OR forecast <> 0 OR kayttosuunnitelman_muutos <> 0)
-      GROUP BY b.project_id
-    ), object_range AS (
       SELECT
         ${values?.projectId} as id,
         min(po.start_date) >= ${values?.startDate} AS "validObjectStartDate",
@@ -203,29 +189,14 @@ export async function validateUpsertProject(
       FROM app.project_object po
       WHERE po.project_id = ${values?.projectId} AND po.deleted = false
       GROUP BY po.project_id
-    )
-    SELECT
-      br."validBudgetStartDate",
-      br."validBudgetEndDate",
-      br."validOngoingBudgetEndDate",
-      obr."validObjectStartDate",
-      obr."validObjectEndDate"
-    FROM object_range obr
-	  FULL JOIN budget_range br ON obr.id = br.id;
-  `);
+    `);
 
     if (dateRange?.validObjectStartDate === false) {
       validationErrors.errors['startDate'] = fieldError('project.error.objectNotIncluded');
-    } else if (dateRange?.validBudgetStartDate === false) {
-      validationErrors.errors['startDate'] = fieldError('project.error.budgetNotIncluded');
     }
 
     if (dateRange?.validObjectEndDate === false) {
       validationErrors.errors['endDate'] = fieldError('project.error.objectNotIncluded');
-    } else if (dateRange?.validBudgetEndDate === false) {
-      validationErrors.errors['endDate'] = fieldError('project.error.budgetNotIncluded');
-    } else if (dateRange?.validOngoingBudgetEndDate === false) {
-      validationErrors.errors['endDate'] = fieldError('project.error.budgetNotIncludedForOngoing');
     }
   }
 
