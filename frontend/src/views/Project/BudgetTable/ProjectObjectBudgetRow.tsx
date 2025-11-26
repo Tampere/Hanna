@@ -3,13 +3,14 @@ import { Skeleton, TableCell, TableRow, Typography, css } from '@mui/material';
 import { FormField } from '@frontend/components/forms';
 import { CurrencyInput, valueTextColor } from '@frontend/components/forms/CurrencyInput';
 import { SapActualsIcon } from '@frontend/components/icons/SapActuals';
+import { getCommitteeAbbreviation } from '@frontend/utils/codes';
 
 import { Code } from '@shared/schema/code';
 import { CommonDbProjectObject } from '@shared/schema/projectObject/base';
 import { YearlyActuals } from '@shared/schema/sapActuals';
 
 import { BudgetField, TABLE_CELL_CONTENT_CLASS } from '.';
-import { committeeColors } from './CommitteeSelection';
+import { CommitteeChip, MutedCommitteeChip, committeeColors } from './CommitteeSelection';
 
 interface BudgetContentRowCellProps {
   projectObject: CommonDbProjectObject;
@@ -59,6 +60,12 @@ export function ProjectObjectBudgetRow({
           `}
         >
           {projectObject.objectName ?? '–'}
+          {
+            <MutedCommitteeChip
+              label={getCommitteeAbbreviation(projectObject.objectCommittee)}
+              chipColor={committeeColor}
+            />
+          }
         </TableCell>
       }
 

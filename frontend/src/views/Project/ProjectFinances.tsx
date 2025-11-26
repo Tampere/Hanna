@@ -11,8 +11,6 @@ import { DbInvestmentProject } from '@shared/schema/project/investment';
 import { DbMaintenanceProject } from '@shared/schema/project/maintenance';
 import { ProjectType } from '@shared/schema/project/type';
 import { CommonDbProjectObject } from '@shared/schema/projectObject/base';
-import { NewInvestmentProjectObject } from '@shared/schema/projectObject/investment';
-import { NewMaintenanceProjectObject } from '@shared/schema/projectObject/maintenance';
 
 import { BudgetField, BudgetTable } from './BudgetTable';
 
@@ -119,13 +117,21 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
     // Save project object budgets if provided
     if (projectObjectBudgets && projectObjectBudgets.length > 0) {
       const groupedByObject = projectObjectBudgets.reduce<
-        Record<string, { year: number; committee: string | null; budgetItems: ProjectYearBudget['budgetItems'] }[]>
+        Record<
+          string,
+          {
+            year: number;
+            committee: string | null;
+            budgetItems: ProjectYearBudget['budgetItems'];
+          }[]
+        >
       >((acc, item) => {
         const key = item.projectObjectId;
         if (!acc[key]) acc[key] = [];
         acc[key].push({
           year: item.year,
-          committee: project.type === 'investmentProject' ? (project.data?.committees?.[0] ?? null) : null,
+          committee:
+            project.type === 'investmentProject' ? project.data?.committees?.[0] ?? null : null,
           budgetItems: item.budgetItems,
         });
         return acc;
@@ -143,8 +149,8 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
               year: item.year,
               committee: (item.committee ?? '') as string,
             }))
-            .filter<InvestmentProjectObjectBudget>(
-              (b): b is InvestmentProjectObjectBudget => Boolean(b.committee),
+            .filter<InvestmentProjectObjectBudget>((b): b is InvestmentProjectObjectBudget =>
+              Boolean(b.committee),
             );
 
           if (payload.length > 0) {
@@ -200,7 +206,15 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
       years={projectYears}
       fields={
         project.type === 'investmentProject'
-          ? ['committee', 'estimate', 'amount', 'actual', 'forecast', 'kayttosuunnitelmanMuutos']
+          ? [
+              'committee',
+              'estimate',
+              'amount',
+              'contractPrice',
+              'actual',
+              'forecast',
+              'kayttosuunnitelmanMuutos',
+            ]
           : ['year', 'estimate', 'amount', 'forecast', 'actual', 'kayttosuunnitelmanMuutos']
       }
       {...(project.type === 'investmentProject' && { committees: project.data.committees })}

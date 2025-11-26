@@ -72,37 +72,33 @@ export const createSapRouter = (t: TRPC) =>
         const currentYear = new Date().getFullYear();
         const endYear = Math.min(input.endYear, currentYear);
 
-        const result = await getPool().maybeOne(sql.type(z.object({ sapProjectId: z.string() }))`
-          SELECT sap_project_id AS "sapProjectId"
-          FROM app.project
-          WHERE id = ${input.projectId}
-        `);
-
-        if (result?.sapProjectId) {
-          await Promise.all(
-            yearRange(input.startYear, endYear).map((year) =>
-              getSapActuals(result.sapProjectId, year),
-            ),
-          );
-        }
-
         const returnSchema = z.object({ result: yearlyAndCommitteeActualsSchema });
         const dbResult = await getPool().maybeOne(sql.type(returnSchema)`
-          WITH yearly_totals_by_wbs AS (SELECT fiscal_year, wbs_element_id, sum(value_in_currency_subunit) AS total
-          FROM app.sap_actuals_item
-          WHERE sap_project_id IN (
-              SELECT sap_project_id
-              FROM app.project
-              WHERE id = ${input.projectId}
-          ) AND fiscal_year >= ${input.startYear}
-            AND fiscal_year <= ${endYear}
-            AND document_type <> 'AA'
-          GROUP BY fiscal_year, wbs_element_id),
+          WITH yearly_totals_by_wbs AS (
+            SELECT fiscal_year, wbs_element_id, sum(value_in_currency_subunit) AS total
+            FROM app.sap_actuals_item
+            WHERE sap_project_id IN (
+                SELECT sap_project_id
+                FROM app.project
+                WHERE id = ${input.projectId}
+            )
+              AND fiscal_year >= ${input.startYear}
+              AND fiscal_year <= ${endYear}
+              AND document_type <> 'AA'
+            GROUP BY fiscal_year, wbs_element_id
+          ),
           yearly_totals_by_committee AS (
-            SELECT ytbc.fiscal_year, (poc.committee_type).id as committee_id, sum(ytbc.total) AS total FROM
-              yearly_totals_by_wbs ytbc
-                LEFT JOIN app.project_object po ON ytbc.wbs_element_id = po.sap_wbs_id AND po.project_id = ${input.projectId} AND NOT po.deleted
-                LEFT JOIN app.project_object_committee poc ON po.id = poc.project_object_id
+            SELECT
+              ytbc.fiscal_year,
+              (poc.committee_type).id AS committee_id,
+              sum(ytbc.total) AS total
+            FROM yearly_totals_by_wbs ytbc
+              LEFT JOIN app.project_object po
+                ON ytbc.wbs_element_id = po.sap_wbs_id
+                AND po.project_id = ${input.projectId}
+                AND NOT po.deleted
+              LEFT JOIN app.project_object_committee poc
+                ON po.id = poc.project_object_id
             WHERE poc.committee_type IS NOT NULL
             GROUP BY ytbc.fiscal_year, poc.committee_type
             ORDER BY ytbc.fiscal_year, poc.committee_type
@@ -111,31 +107,29 @@ export const createSapRouter = (t: TRPC) =>
             SELECT
               fiscal_year,
               SUM(total) AS total
-            FROM
-              yearly_totals_by_wbs
-            GROUP BY
-              fiscal_year
+            FROM yearly_totals_by_wbs
+            GROUP BY fiscal_year
             ORDER BY fiscal_year
           ),
-        committee_json AS (
-          SELECT jsonb_agg(
-            jsonb_build_object(
-              'year', fiscal_year,
-              'committeeId', committee_id,
-              'total', total
-            )
-          ) AS byCommittee
-          FROM yearly_totals_by_committee
-        ),
-        yearly_totals_json AS (
-          SELECT jsonb_agg(
-            jsonb_build_object(
-              'year', fiscal_year,
-              'total', total
-            )
-          ) AS yearlyActuals
-          FROM overall_yearly_totals
-        )
+          committee_json AS (
+            SELECT jsonb_agg(
+              jsonb_build_object(
+                'year', fiscal_year,
+                'committeeId', committee_id,
+                'total', total
+              )
+            ) AS byCommittee
+            FROM yearly_totals_by_committee
+          ),
+          yearly_totals_json AS (
+            SELECT jsonb_agg(
+              jsonb_build_object(
+                'year', fiscal_year,
+                'total', total
+              )
+            ) AS yearlyActuals
+            FROM overall_yearly_totals
+          )
         SELECT jsonb_build_object(
           'byCommittee', cj.byCommittee,
           'yearlyActuals', yj.yearlyActuals

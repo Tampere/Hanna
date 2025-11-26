@@ -22,6 +22,7 @@ import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { dirtyAndValidFieldsAtom } from '@frontend/stores/projectView';
 import { useCodes } from '@frontend/utils/codes';
+import { getCommitteeAbbreviation } from '@frontend/utils/codes';
 
 import { Code } from '@shared/schema/code';
 import { ProjectYearBudget } from '@shared/schema/project';

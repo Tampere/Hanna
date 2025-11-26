@@ -1,6 +1,7 @@
 import { Box, Chip, Typography, css } from '@mui/material';
 
 import { useTranslations } from '@frontend/stores/lang';
+import { getCommitteeAbbreviation } from '@frontend/utils/codes';
 import { useCodes } from '@frontend/utils/codes';
 
 export const committeeColors = {
@@ -22,7 +23,29 @@ interface ChipProps {
   handleClick: () => void;
 }
 
-function CommitteeChip({ label, labelColor, chipColor, handleClick }: ChipProps) {
+export function MutedCommitteeChip({
+  label,
+  chipColor,
+}: Omit<ChipProps, 'labelColor' | 'handleClick'>) {
+  return (
+    <span
+      css={css`
+        display: inline-block;
+        font-weight: 400;
+        color: ${chipColor};
+        border: 2px solid ${committeeColors.default};
+        border-radius: 4px;
+        margin: 0 8px;
+        padding: 0 4px;
+        vertical-align: middle;
+      `}
+    >
+      {label}
+    </span>
+  );
+}
+
+export function CommitteeChip({ label, labelColor, chipColor, handleClick }: ChipProps) {
   return (
     <Chip
       label={label}
@@ -102,10 +125,11 @@ export function CommitteeSelection({
         const committeeColor = isCommitteeColorKey(committeeKey)
           ? committeeColors[committeeKey]
           : committeeColors.default;
+        console.log('committeeKey', committeeKey, committeeColor);
         return (
           <CommitteeChip
             key={committeeKey}
-            label={committeeCodes.get(committeeKey)?.fi.replace(/lautakunta/g, ' ') ?? ''}
+            label={getCommitteeAbbreviation(committeeKey)}
             labelColor={selectedCommittees.includes(committeeKey) ? '#fff' : '#000'}
             chipColor={
               selectedCommittees.includes(committeeKey) ? committeeColor : committeeColors.default
