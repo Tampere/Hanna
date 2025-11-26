@@ -37,6 +37,7 @@ import { Link } from 'react-router-dom';
 import { trpc } from '@frontend/client';
 import { AsyncJobButton } from '@frontend/components/AsyncJobButton';
 import { CurrencyInput, formatCurrency } from '@frontend/components/forms/CurrencyInput';
+import { SapActualsIcon } from '@frontend/components/icons/SapActuals';
 import dayjs from '@frontend/dayjs';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
@@ -517,6 +518,46 @@ export default function PlanningTable() {
     return map;
   }, [actualsQueries.map((q) => q.fetchStatus).join(','), poIds.join(',')]);
 
+  // Project-level yearly SAP actuals (for SapActualsIcon on project rows)
+  const projectIds = useMemo(
+    () => Array.from(new Set(rows.filter((r) => r.type === 'project').map((r) => r.projectId))),
+    [rows],
+  );
+
+  const projectActualsQueries = useQueries({
+    queries: projectIds.map((projectId) => ({
+      queryKey: ['sapProjectActuals', projectId, yearRange.start, yearRange.end],
+      queryFn: () =>
+        utils.sap.getYearlyActualsByProjectId.fetch({
+          projectId,
+          startYear: yearRange.start,
+          endYear: yearRange.end,
+        }),
+      enabled: Boolean(projectId),
+      staleTime: 5 * 60 * 1000,
+    })),
+  });
+
+  const sapActualsByProject = useMemo(() => {
+    const map = new Map<string, Record<number, number>>();
+    projectActualsQueries.forEach((q, idx) => {
+      const projectId = projectIds[idx];
+      const yearlyActuals = q.data?.yearlyActuals;
+      if (yearlyActuals) {
+        const rec: Record<number, number> = {};
+        yearlyActuals.forEach((d) => {
+          // Sum per year in case there are multiple rows
+          rec[d.year] = (rec[d.year] ?? 0) + d.total;
+        });
+        map.set(projectId, rec);
+      }
+    });
+    return map;
+  }, [
+    projectActualsQueries.map((q) => q.dataUpdatedAt).join(','),
+    projectIds.join(','),
+  ]);
+
   const estimateSumsByProjectName = useMemo(() => {
     // Build per-project sums and track if any non-null values exist per year
     const sumMap = new Map<string, Record<number, number>>();
@@ -656,6 +697,7 @@ export default function PlanningTable() {
       actualsLoadingByPo,
       estimateSumsByProjectName,
       actualSumsByProjectName,
+      sapActualsByProject,
       totalSumRow,
       collapsedProjects,
       toggleProjectCollapse,
@@ -671,6 +713,7 @@ export default function PlanningTable() {
     actualsLoadingByPo,
     estimateSumsByProjectName,
     actualSumsByProjectName,
+    sapActualsByProject,
     totalSumRow,
     collapsedProjects,
     tr,
@@ -1011,6 +1054,7 @@ interface GetColumnsParams {
   actualsLoadingByPo: Map<string, boolean>;
   estimateSumsByProjectName: Map<string, Record<number, number | null>>;
   actualSumsByProjectName: Map<string, Record<number, number | null>>;
+  sapActualsByProject: Map<string, Record<number, number>>;
   totalSumRow: PlanningRowWithYears;
   collapsedProjects: Set<string>;
   toggleProjectCollapse: (projectId: string) => void;
@@ -1027,6 +1071,7 @@ function getColumns({
   actualsLoadingByPo,
   estimateSumsByProjectName,
   actualSumsByProjectName,
+  sapActualsByProject,
   totalSumRow,
   collapsedProjects,
   toggleProjectCollapse,
@@ -1214,6 +1259,11 @@ function getColumns({
               ? actualSumsByProjectName.get(params.row.projectName)?.[year] ?? null
               : null;
 
+        const sapActual =
+          isProject && sapActualsByProject.get(params.row.projectId)
+            ? sapActualsByProject.get(params.row.projectId)?.[year] ?? null
+            : null;
+
         const isLoadingActuals =
           isProjectObject && isPastOrCurrent
             ? actualsLoadingByPo.get(params.row.id) ?? false
@@ -1240,12 +1290,18 @@ function getColumns({
                     text-align: left;
                     font-weight: ${isProject ? '600' : 'inherit'};
                     padding-right: 8px;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
                   `}
                 >
                   {isLoadingActuals ? (
                     <Skeleton variant="text" width="80%" height={14} />
                   ) : (
                     formatCurrency(actual)
+                  )}
+                  {isProject && sapActual != null && (
+                    <SapActualsIcon sapActual={sapActual} />
                   )}
                 </Box>
                 <Box
