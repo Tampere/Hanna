@@ -553,10 +553,7 @@ export default function PlanningTable() {
       }
     });
     return map;
-  }, [
-    projectActualsQueries.map((q) => q.dataUpdatedAt).join(','),
-    projectIds.join(','),
-  ]);
+  }, [projectActualsQueries.map((q) => q.dataUpdatedAt).join(','), projectIds.join(',')]);
 
   const estimateSumsByProjectName = useMemo(() => {
     // Build per-project sums and track if any non-null values exist per year
@@ -1301,7 +1298,13 @@ function getColumns({
                     formatCurrency(actual)
                   )}
                   {isProject && sapActual != null && (
-                    <SapActualsIcon sapActual={sapActual} />
+                    <Box
+                      css={css`
+                        margin-left: auto;
+                      `}
+                    >
+                      <SapActualsIcon sapActual={sapActual} />
+                    </Box>
                   )}
                 </Box>
                 <Box
