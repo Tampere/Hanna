@@ -1,8 +1,12 @@
 import { Skeleton, TableCell, TableRow, Typography, css } from '@mui/material';
+import { useAtomValue } from 'jotai';
 
+import { trpc } from '@frontend/client';
 import { FormField } from '@frontend/components/forms';
 import { CurrencyInput, valueTextColor } from '@frontend/components/forms/CurrencyInput';
+import { ObjectStageIcon } from '@frontend/components/icons/ObjectStageIcon';
 import { SapActualsIcon } from '@frontend/components/icons/SapActuals';
+import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { getCommitteeAbbreviation } from '@frontend/utils/codes';
 
 import { Code } from '@shared/schema/code';
@@ -38,10 +42,19 @@ export function ProjectObjectBudgetRow({
    * We namespace project object fields under projectObjects.{projectObjectId}.{year}.{field}
    * to avoid collisions with the main project budget fields.
    */
+  const tr = useTranslations();
+  const lang = useAtomValue(langAtom);
   function getFormFieldIdentifier(year: number, field: BudgetField) {
     return `projectObjects.${projectObject.projectObjectId}.${String(year)}.${field}`;
   }
-  console.log('projectObject', projectObject, writableFields);
+  function getObjectStageTextById(objectId: string) {
+    return stageCodes?.data?.find((code) => code.id.id === objectId)?.text[lang] ?? '';
+  }
+  const stageCodes = trpc.code.get.useQuery(
+    { codeListId: 'KohteenLaji', allowEmptySelection: false },
+    { staleTime: Infinity },
+  );
+
   return (
     <TableRow
       css={css`
@@ -66,6 +79,12 @@ export function ProjectObjectBudgetRow({
               chipColor={committeeColor}
             />
           }
+          {projectObject.objectStage && (
+            <ObjectStageIcon
+              title={getObjectStageTextById(projectObject.objectStage)}
+              id={projectObject.objectStage}
+            />
+          )}
         </TableCell>
       }
 
@@ -95,20 +114,23 @@ export function ProjectObjectBudgetRow({
             className={TABLE_CELL_CONTENT_CLASS}
             formField={getFormFieldIdentifier(year, 'amount')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            component={({ ref, onChange, ...field }) => (
-              <CurrencyInput
-                placeholder="–"
-                directlyHandleValueChange
-                {...field}
-                getColor={() => {
-                  return committeeColor;
-                }}
-                onChange={writableFields?.includes('amount') ? onChange : undefined}
-                style={() => {
-                  return committeeColor;
-                }}
-              />
-            )}
+            component={({ ref, onChange, ...field }) => {
+              console.log('row field', field.name, 'value', field.value);
+              return (
+                <CurrencyInput
+                  placeholder="–"
+                  directlyHandleValueChange
+                  {...field}
+                  getColor={() => {
+                    return committeeColor;
+                  }}
+                  onChange={writableFields?.includes('amount') ? onChange : undefined}
+                  style={() => {
+                    return committeeColor;
+                  }}
+                />
+              );
+            }}
           />
         </TableCell>
       )}

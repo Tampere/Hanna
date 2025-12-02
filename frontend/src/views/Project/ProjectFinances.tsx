@@ -92,10 +92,13 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
           .filter<InvestmentProjectBudget>((item): item is InvestmentProjectBudget =>
             Boolean(item.committee),
           );
-        await saveInvestmentBudgetMutation.mutateAsync({
-          projectId: project.data.projectId as string,
-          budgetItems: payload,
-        });
+
+        if (payload.length > 0) {
+          await saveInvestmentBudgetMutation.mutateAsync({
+            projectId: project.data.projectId as string,
+            budgetItems: payload,
+          });
+        }
       } else {
         type MaintenanceProjectBudget = { year: number; estimate: number | null; committee: null };
         const payload = yearBudgets
@@ -107,10 +110,13 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
           .filter<MaintenanceProjectBudget>((item): item is MaintenanceProjectBudget =>
             Boolean(item),
           );
-        await saveMaintenanceBudgetMutation.mutateAsync({
-          projectId: project.data.projectId as string,
-          budgetItems: payload,
-        });
+
+        if (payload.length > 0) {
+          await saveMaintenanceBudgetMutation.mutateAsync({
+            projectId: project.data.projectId as string,
+            budgetItems: payload,
+          });
+        }
       }
     }
 
@@ -204,6 +210,7 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
     <BudgetTable
       ref={ref}
       years={projectYears}
+      projectType={project.type}
       fields={
         project.type === 'investmentProject'
           ? [
