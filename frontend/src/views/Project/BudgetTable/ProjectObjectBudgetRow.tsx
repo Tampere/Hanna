@@ -1,20 +1,18 @@
-import { Skeleton, TableCell, TableRow, Typography, css } from '@mui/material';
+import { Skeleton, TableCell, TableRow, css } from '@mui/material';
 import { useAtomValue } from 'jotai';
 
 import { trpc } from '@frontend/client';
 import { FormField } from '@frontend/components/forms';
 import { CurrencyInput, valueTextColor } from '@frontend/components/forms/CurrencyInput';
 import { ObjectStageIcon } from '@frontend/components/icons/ObjectStageIcon';
-import { SapActualsIcon } from '@frontend/components/icons/SapActuals';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { getCommitteeAbbreviation } from '@frontend/utils/codes';
 
-import { Code } from '@shared/schema/code';
 import { CommonDbProjectObject } from '@shared/schema/projectObject/base';
 import { YearlyActuals } from '@shared/schema/sapActuals';
 
 import { BudgetField, TABLE_CELL_CONTENT_CLASS } from '.';
-import { CommitteeChip, MutedCommitteeChip, committeeColors } from './CommitteeSelection';
+import { MutedCommitteeChip, committeeColors } from './CommitteeSelection';
 
 interface BudgetContentRowCellProps {
   projectObject: CommonDbProjectObject;

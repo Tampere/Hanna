@@ -107,7 +107,6 @@ export function CommitteeSelection({
         left: 0;
         background-color: #fff;
         z-index: 1;
-        padding-bottom: 1rem;
         display: flex;
         align-items: center;
         gap: 1rem;
@@ -118,14 +117,11 @@ export function CommitteeSelection({
           font-size: 13px;
           color: #525252;
         `}
-      >
-        {tr('budgetTable.committeeChip.title')}
-      </Typography>
+      ></Typography>
       {availableCommittees.map((committeeKey) => {
         const committeeColor = isCommitteeColorKey(committeeKey)
           ? committeeColors[committeeKey]
           : committeeColors.default;
-        console.log('committeeKey', committeeKey, committeeColor);
         return (
           <CommitteeChip
             key={committeeKey}
