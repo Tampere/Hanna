@@ -19,6 +19,15 @@ interface Props {
   sapActual: number | null;
   actual: number | null;
   actualsLoading: boolean;
+  /**
+   * Optional custom aggregator for budget fields.
+   * If provided, it is used instead of the default committee-based sum.
+   */
+  getFieldValue?: (
+    fieldName: keyof ProjectYearBudget['budgetItems'],
+    formValues: BudgetFormValues,
+    year: number,
+  ) => number;
 }
 
 export function YearTotalRow({
@@ -29,8 +38,9 @@ export function YearTotalRow({
   actualsLoading,
   actual,
   selectedCommittees,
+  getFieldValue,
 }: Props) {
-  function getFieldValue(fieldName: keyof ProjectYearBudget['budgetItems']) {
+  function defaultGetFieldValue(fieldName: keyof ProjectYearBudget['budgetItems']) {
     if (!formValues || !formValues[year]) return 0;
 
     return Object.entries(formValues[year]).reduce((total, [committeeId, budgetItems]) => {
@@ -40,6 +50,9 @@ export function YearTotalRow({
       return total || 0;
     }, 0);
   }
+
+  const effectiveGetFieldValue = (fieldName: keyof ProjectYearBudget['budgetItems']) =>
+    getFieldValue ? getFieldValue(fieldName, formValues, year) : defaultGetFieldValue(fieldName);
 
   return (
     <TableRow
@@ -55,7 +68,7 @@ export function YearTotalRow({
       `}
     >
       <TableCell
-        colSpan={2}
+        colSpan={1}
         css={css`
           font-weight: 700;
           &.MuiTableCell-root {
@@ -67,17 +80,17 @@ export function YearTotalRow({
       </TableCell>
       {fields?.includes('estimate') && (
         <TableCell>
-          <CurrencyInput value={getFieldValue('estimate')} />
+          <CurrencyInput value={effectiveGetFieldValue('estimate')} />
         </TableCell>
       )}
       {fields?.includes('amount') && (
         <TableCell>
-          <CurrencyInput value={getFieldValue('amount')} />
+          <CurrencyInput value={effectiveGetFieldValue('amount')} />
         </TableCell>
       )}
       {fields?.includes('contractPrice') && (
         <TableCell>
-          <CurrencyInput value={getFieldValue('contractPrice')} />
+          <CurrencyInput value={effectiveGetFieldValue('contractPrice')} />
         </TableCell>
       )}
       {fields?.includes('actual') && (
@@ -103,7 +116,7 @@ export function YearTotalRow({
           <CurrencyInput
             allowNegative
             getColor={getValueTextColor}
-            value={getFieldValue('forecast')}
+            value={effectiveGetFieldValue('forecast')}
           />
         </TableCell>
       )}
@@ -112,7 +125,7 @@ export function YearTotalRow({
           <CurrencyInput
             style={{ minWidth: 220 }}
             getColor={getValueTextColor}
-            value={getFieldValue('kayttosuunnitelmanMuutos')}
+            value={effectiveGetFieldValue('kayttosuunnitelmanMuutos')}
           />
         </TableCell>
       )}

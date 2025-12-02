@@ -1,71 +1,71 @@
-import { Skeleton, TableCell, TableRow, Typography, css } from '@mui/material';
+import { Skeleton, TableCell, TableRow, css } from '@mui/material';
+import { useAtomValue } from 'jotai';
 
+import { trpc } from '@frontend/client';
 import { FormField } from '@frontend/components/forms';
 import { CurrencyInput, valueTextColor } from '@frontend/components/forms/CurrencyInput';
-import { SapActualsIcon } from '@frontend/components/icons/SapActuals';
+import { ObjectStageIcon } from '@frontend/components/icons/ObjectStageIcon';
+import { langAtom, useTranslations } from '@frontend/stores/lang';
+import { getCommitteeAbbreviation } from '@frontend/utils/codes';
 
-import { Code } from '@shared/schema/code';
+import { CommonDbProjectObject } from '@shared/schema/projectObject/base';
 import { YearlyActuals } from '@shared/schema/sapActuals';
 
 import { BudgetField, TABLE_CELL_CONTENT_CLASS } from '.';
-import { committeeColors } from './CommitteeSelection';
+import { MutedCommitteeChip, committeeColors } from './CommitteeSelection';
+
+type BudgetTableProjectObject = CommonDbProjectObject & {
+  objectCommittee?: string | null;
+  objectStage?: string | null;
+};
 
 interface BudgetContentRowCellProps {
+  projectObject: BudgetTableProjectObject;
+  fields?: BudgetField[];
   year: number;
   writableFields?: BudgetField[];
-  fields?: BudgetField[];
   actualsLoading?: boolean;
   actuals?: YearlyActuals | null;
-  committee?: { id: Code['id']['id']; text: string };
-  includeYearColumn: boolean;
   disableBorder?: boolean;
-  sapYearTotal?: number | null;
-  name?: string;
 }
 
-export function BudgetContentRow({
+export function ProjectObjectBudgetRow({
+  projectObject,
+  fields,
   year,
   writableFields,
-  fields,
   actualsLoading,
   actuals,
-  includeYearColumn,
-  committee,
   disableBorder,
-  sapYearTotal,
-  name,
 }: BudgetContentRowCellProps) {
   const committeeColor =
-    committeeColors[(committee?.id as keyof typeof committeeColors) ?? 'default'];
+    committeeColors[(projectObject.objectCommittee as keyof typeof committeeColors) ?? 'default'];
 
-  /** Form field identifier determines how to form data is structured.
-   * For example year.committee.estimate represents an object {year: {committee: {estimate: value}}}.
+  /** Form field identifier determines how the form data is structured.
+   * We namespace project object fields under projectObjects.{projectObjectId}.{year}.{field}
+   * to avoid collisions with the main project budget fields.
    */
-  function getFormFieldIdentifier(year: number, field: BudgetField, committeeId?: string) {
-    // If there's no committee saved, the field represents total row for the year
-    return `${String(year)}.${committeeId ?? 'total'}.${field}`;
+  const tr = useTranslations();
+  const lang = useAtomValue(langAtom);
+  function getFormFieldIdentifier(year: number, field: BudgetField) {
+    return `projectObjects.${projectObject.projectObjectId}.${String(year)}.${field}`;
   }
+  function getObjectStageTextById(objectId: string) {
+    return stageCodes?.data?.find((code) => code.id.id === objectId)?.text[lang] ?? '';
+  }
+  const stageCodes = trpc.code.get.useQuery(
+    { codeListId: 'KohteenLaji', allowEmptySelection: false },
+    { staleTime: Infinity },
+  );
+
   return (
     <TableRow
       css={css`
         min-height: 50px;
-        ${disableBorder ? 'td {border-bottom: none;}' : ''}
+        ${true ? 'td {border-bottom: none;}' : ''}
       `}
     >
-      {includeYearColumn && (
-        <TableCell
-          css={css`
-            font-weight: 700;
-            width: 180px;
-            &.MuiTableCell-root {
-              text-align: left;
-            }
-          `}
-        >
-          {year}
-        </TableCell>
-      )}
-      {name && (
+      {
         <TableCell
           css={css`
             font-weight: 700;
@@ -75,27 +75,27 @@ export function BudgetContentRow({
             }
           `}
         >
-          {name}
+          {projectObject.objectName ?? '–'}
+          {
+            <MutedCommitteeChip
+              label={getCommitteeAbbreviation(projectObject.objectCommittee ?? '')}
+              chipColor={committeeColor}
+            />
+          }
+          {projectObject.objectStage && (
+            <ObjectStageIcon
+              title={getObjectStageTextById(projectObject.objectStage)}
+              id={projectObject.objectStage}
+            />
+          )}
         </TableCell>
-      )}
-      {fields?.includes('committee') && (
-        <TableCell colSpan={includeYearColumn ? 1 : 2} align="right">
-          <Typography
-            className={TABLE_CELL_CONTENT_CLASS}
-            css={css`
-              font-size: 0.875rem;
-              color: ${committeeColor};
-            `}
-          >
-            {committee?.text}
-          </Typography>
-        </TableCell>
-      )}
+      }
+
       {fields?.includes('estimate') && (
         <TableCell>
           <FormField
             className={TABLE_CELL_CONTENT_CLASS}
-            formField={getFormFieldIdentifier(year, 'estimate', committee?.id)}
+            formField={getFormFieldIdentifier(year, 'estimate')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, onChange, ...field }) => (
               <CurrencyInput
@@ -103,7 +103,7 @@ export function BudgetContentRow({
                 directlyHandleValueChange
                 {...field}
                 onChange={writableFields?.includes('estimate') ? onChange : undefined}
-                style={{ color: includeYearColumn ? 'inherit' : committeeColor }}
+                getColor={() => committeeColor}
               />
             )}
           />
@@ -113,23 +113,20 @@ export function BudgetContentRow({
         <TableCell>
           <FormField
             className={TABLE_CELL_CONTENT_CLASS}
-            formField={getFormFieldIdentifier(year, 'amount', committee?.id)}
+            formField={getFormFieldIdentifier(year, 'amount')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            component={({ ref, onChange, ...field }) => (
-              <CurrencyInput
-                placeholder="–"
-                directlyHandleValueChange
-                {...field}
-                getColor={() => {
-                  if (!includeYearColumn && fields.includes('committee')) {
-                    return committeeColor;
-                  }
-                  return 'inherit';
-                }}
-                onChange={writableFields?.includes('amount') ? onChange : undefined}
-                style={{ color: includeYearColumn ? 'inherit' : committeeColor }}
-              />
-            )}
+            component={({ ref, onChange, ...field }) => {
+              console.log('row field', field.name, 'value', field.value);
+              return (
+                <CurrencyInput
+                  placeholder="–"
+                  directlyHandleValueChange
+                  {...field}
+                  getColor={() => committeeColor}
+                  onChange={writableFields?.includes('amount') ? onChange : undefined}
+                />
+              );
+            }}
           />
         </TableCell>
       )}
@@ -137,21 +134,15 @@ export function BudgetContentRow({
         <TableCell>
           <FormField
             className={TABLE_CELL_CONTENT_CLASS}
-            formField={getFormFieldIdentifier(year, 'contractPrice', committee?.id)}
+            formField={getFormFieldIdentifier(year, 'contractPrice')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, onChange, ...field }) => (
               <CurrencyInput
                 placeholder="–"
-                getColor={() => {
-                  if (!includeYearColumn && fields.includes('contractPrice')) {
-                    return committeeColor;
-                  }
-                  return 'inherit';
-                }}
+                getColor={() => committeeColor}
                 directlyHandleValueChange
                 {...field}
                 onChange={writableFields?.includes('contractPrice') ? onChange : undefined}
-                style={{ color: includeYearColumn ? 'inherit' : committeeColor }}
               />
             )}
           />
@@ -165,22 +156,12 @@ export function BudgetContentRow({
               <>
                 <CurrencyInput
                   getColor={() => {
-                    if (!includeYearColumn && fields.includes('committee')) {
-                      return committeeColor;
-                    }
-                    return 'inherit';
+                    return committeeColor;
                   }}
                   directlyHandleValueChange
                   value={(true ? actuals?.find((data) => data.year === year)?.total : null) ?? null}
                   placeholder={'–'}
                 />
-
-                {
-                  !disableBorder &&
-                    sapYearTotal != null && ( // Borders are disabled when there are multiple committees
-                      <SapActualsIcon sapActual={sapYearTotal ?? 0}></SapActualsIcon>
-                    ) // Sap actuals icon is shown only when there is only one committee
-                }
               </>
             </span>
           ) : (
@@ -198,7 +179,7 @@ export function BudgetContentRow({
         <TableCell>
           <FormField
             className={TABLE_CELL_CONTENT_CLASS}
-            formField={getFormFieldIdentifier(year, 'forecast', committee?.id)}
+            formField={getFormFieldIdentifier(year, 'forecast')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, onChange, ...field }) => (
               <CurrencyInput
@@ -206,13 +187,8 @@ export function BudgetContentRow({
                 directlyHandleValueChange
                 {...field}
                 allowNegative
-                style={{ color: includeYearColumn ? 'inherit' : committeeColor }}
                 getColor={(val) => {
-                  if (
-                    !includeYearColumn &&
-                    fields.includes('committee') &&
-                    (field.value >= 0 || !field.value)
-                  ) {
+                  if (fields.includes('committee') && (field.value >= 0 || !field.value)) {
                     return committeeColor;
                   }
 
@@ -228,7 +204,7 @@ export function BudgetContentRow({
         <TableCell style={{ textAlign: 'right' }}>
           <FormField
             className={TABLE_CELL_CONTENT_CLASS}
-            formField={getFormFieldIdentifier(year, 'kayttosuunnitelmanMuutos', committee?.id)}
+            formField={getFormFieldIdentifier(year, 'kayttosuunnitelmanMuutos')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, onChange, ...field }) => (
               <CurrencyInput
@@ -238,13 +214,10 @@ export function BudgetContentRow({
                 style={{
                   width: '100%',
                   minWidth: 220,
-                  color: includeYearColumn ? 'inherit' : committeeColor,
+                  color: committeeColor,
                 }}
                 getColor={(val) => {
-                  if (!includeYearColumn && fields.includes('committee')) {
-                    return committeeColor;
-                  }
-                  return valueTextColor(val);
+                  return committeeColor;
                 }}
                 {...field}
                 onChange={

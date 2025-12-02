@@ -2,6 +2,7 @@ import { css } from '@emotion/react';
 import { AccountTree, BarChart, Euro, KeyTwoTone, ListAlt, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import dayjs from 'dayjs';
+import { useQueries } from '@tanstack/react-query';
 import { useAtomValue } from 'jotai';
 import VectorSource from 'ol/source/Vector';
 import { useEffect, useMemo, useState } from 'react';
@@ -38,6 +39,7 @@ import {
   hasWritePermission,
   ownsProject,
 } from '@shared/schema/userPermissions';
+import { YearBudget } from '@shared/schema/projectObject/base';
 
 import { InvestmentProjectForm } from './InvestmentProjectForm';
 import { ProjectAreaSelectorForm } from './ProjectAreaSelectorForm';
@@ -148,6 +150,36 @@ export function InvestmentProject() {
     { projectId },
     { enabled: Boolean(projectId), queryKey: ['projectObject.getByProjectId', { projectId }] },
   );
+
+  const poIds = useMemo(
+    () => projectObjects.data?.map((po) => po.projectObjectId) ?? [],
+    [projectObjects.data],
+  );
+
+  const utils = trpc.useUtils();
+
+  const projectObjectBudgetQueries = useQueries({
+    queries: poIds.map((id) => ({
+      queryKey: ['projectObject.getBudget', { projectObjectId: id }],
+      queryFn: () => utils.projectObject.getBudget.fetch({ projectObjectId: id }),
+      enabled: Boolean(id) && tabView === 'talous',
+      staleTime: 5 * 60 * 1000,
+    })),
+  });
+
+  const projectObjectBudgetsById = useMemo(() => {
+    const map: Record<string, YearBudget[]> = {};
+    projectObjectBudgetQueries.forEach((q, idx) => {
+      const id = poIds[idx];
+      if (id && q.data) {
+        map[id] = q.data as YearBudget[];
+      }
+    });
+    return map;
+  }, [
+    poIds.join(','),
+    projectObjectBudgetQueries.map((q) => q.dataUpdatedAt).join(','),
+  ]);
 
   const projectObjectSource = useMemo(() => {
     const source = new VectorSource();
@@ -389,6 +421,44 @@ export function InvestmentProject() {
                     editable={userCanModify}
                     project={{ type: 'investmentProject', data: project.data }}
                     writableFields={[]}
+                    projectObjects={
+                      projectObjects.data
+                        ? projectObjects.data.map((obj) => {
+                            const budgets = projectObjectBudgetsById[obj.projectObjectId];
+
+                            if (!budgets || budgets.length === 0) {
+                              return { ...obj, budgetUpdate: null };
+                            }
+
+                            const budgetItems = budgets
+                              .filter(
+                                (b): b is YearBudget & { committee: string } =>
+                                  Boolean(b.committee),
+                              )
+                              .map((b) => ({
+                                year: b.year,
+                                committee: b.committee,
+                                estimate: b.budgetItems.estimate,
+                                contractPrice: b.budgetItems.contractPrice,
+                                amount: b.budgetItems.amount,
+                                forecast: b.budgetItems.forecast,
+                                kayttosuunnitelmanMuutos:
+                                  b.budgetItems.kayttosuunnitelmanMuutos,
+                              }));
+
+                            return {
+                              ...obj,
+                              budgetUpdate:
+                                budgetItems.length > 0
+                                  ? {
+                                      projectObjectId: obj.projectObjectId,
+                                      budgetItems,
+                                    }
+                                  : null,
+                            };
+                          })
+                        : []
+                    }
                   />
                 )}
                 {tabView === 'kuluseuranta' && (

@@ -10,8 +10,14 @@ import { ProjectYearBudget } from '@shared/schema/project';
 import { DbInvestmentProject } from '@shared/schema/project/investment';
 import { DbMaintenanceProject } from '@shared/schema/project/maintenance';
 import { ProjectType } from '@shared/schema/project/type';
+import { CommonDbProjectObject } from '@shared/schema/projectObject/base';
 
 import { BudgetField, BudgetTable } from './BudgetTable';
+
+type FinanceProjectObject = CommonDbProjectObject & {
+  objectStage?: string | null;
+  objectCommittee?: string | null;
+};
 
 interface Props {
   project:
@@ -19,6 +25,7 @@ interface Props {
     | { type: Omit<ProjectType, 'detailpanProject'>; data?: DbMaintenanceProject | null };
   editable?: boolean;
   writableFields?: BudgetField[];
+  projectObjects?: FinanceProjectObject[];
   onSave?: () => void;
 }
 
@@ -64,7 +71,19 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
   const saveMaintenanceBudgetMutation =
     trpc.maintenanceProject.updateBudget.useMutation(saveBudgetMutationOptions);
 
-  async function handleSaveBudget(yearBudgets: ProjectYearBudget[]) {
+  const saveInvestmentProjectObjectBudgetMutation =
+    trpc.investmentProjectObject.updateBudget.useMutation(saveBudgetMutationOptions);
+  const saveMaintenanceProjectObjectBudgetMutation =
+    trpc.maintenanceProjectObject.updateBudget.useMutation(saveBudgetMutationOptions);
+
+  async function handleSaveBudget(
+    yearBudgets: ProjectYearBudget[],
+    projectObjectBudgets?: {
+      projectObjectId: string;
+      year: number;
+      budgetItems: ProjectYearBudget['budgetItems'];
+    }[],
+  ) {
     if (project.data) {
       // for typescript to know that project.data is not null or undefined
       if (project.type === 'investmentProject') {
@@ -78,10 +97,13 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
           .filter<InvestmentProjectBudget>((item): item is InvestmentProjectBudget =>
             Boolean(item.committee),
           );
-        await saveInvestmentBudgetMutation.mutateAsync({
-          projectId: project.data.projectId as string,
-          budgetItems: payload,
-        });
+
+        if (payload.length > 0) {
+          await saveInvestmentBudgetMutation.mutateAsync({
+            projectId: project.data.projectId as string,
+            budgetItems: payload,
+          });
+        }
       } else {
         type MaintenanceProjectBudget = { year: number; estimate: number | null; committee: null };
         const payload = yearBudgets
@@ -93,12 +115,82 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
           .filter<MaintenanceProjectBudget>((item): item is MaintenanceProjectBudget =>
             Boolean(item),
           );
-        await saveMaintenanceBudgetMutation.mutateAsync({
-          projectId: project.data.projectId as string,
-          budgetItems: payload,
-        });
+
+        if (payload.length > 0) {
+          await saveMaintenanceBudgetMutation.mutateAsync({
+            projectId: project.data.projectId as string,
+            budgetItems: payload,
+          });
+        }
       }
     }
+
+    // Save project object budgets if provided
+    if (projectObjectBudgets && projectObjectBudgets.length > 0) {
+      const groupedByObject = projectObjectBudgets.reduce<
+        Record<
+          string,
+          {
+            year: number;
+            committee: string | null;
+            budgetItems: ProjectYearBudget['budgetItems'];
+          }[]
+        >
+      >((acc, item) => {
+        const key = item.projectObjectId;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push({
+          year: item.year,
+          committee:
+            project.type === 'investmentProject' ? project.data?.committees?.[0] ?? null : null,
+          budgetItems: item.budgetItems,
+        });
+        return acc;
+      }, {});
+
+      for (const [projectObjectId, items] of Object.entries(groupedByObject)) {
+        if (project.type === 'investmentProject') {
+          type InvestmentProjectObjectBudget = ProjectYearBudget['budgetItems'] & {
+            year: number;
+            committee: string;
+          };
+          const payload: InvestmentProjectObjectBudget[] = items
+            .map((item) => ({
+              ...item.budgetItems,
+              year: item.year,
+              committee: (item.committee ?? '') as string,
+            }))
+            .filter<InvestmentProjectObjectBudget>((b): b is InvestmentProjectObjectBudget =>
+              Boolean(b.committee),
+            );
+
+          if (payload.length > 0) {
+            await saveInvestmentProjectObjectBudgetMutation.mutateAsync({
+              projectObjectId,
+              budgetItems: payload,
+            });
+          }
+        } else {
+          type MaintenanceProjectObjectBudget = ProjectYearBudget['budgetItems'] & {
+            year: number;
+            committee: null;
+          };
+          const payload: MaintenanceProjectObjectBudget[] = items.map((item) => ({
+            ...item.budgetItems,
+            year: item.year,
+            committee: null,
+          }));
+
+          if (payload.length > 0) {
+            await saveMaintenanceProjectObjectBudgetMutation.mutateAsync({
+              projectObjectId,
+              budgetItems: payload,
+            });
+          }
+        }
+      }
+    }
+
     props.onSave?.();
     budget?.refetch();
   }
@@ -123,9 +215,18 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
     <BudgetTable
       ref={ref}
       years={projectYears}
+      projectType={project.type}
       fields={
         project.type === 'investmentProject'
-          ? ['committee', 'estimate', 'amount', 'actual', 'forecast', 'kayttosuunnitelmanMuutos']
+          ? [
+              'committee',
+              'estimate',
+              'amount',
+              'contractPrice',
+              'actual',
+              'forecast',
+              'kayttosuunnitelmanMuutos',
+            ]
           : ['year', 'estimate', 'amount', 'forecast', 'actual', 'kayttosuunnitelmanMuutos']
       }
       {...(project.type === 'investmentProject' && { committees: project.data.committees })}
@@ -140,6 +241,7 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
             ? tr('budgetTable.yearHelpOngoing')
             : tr('budgetTable.yearHelp'),
       }}
+      projectObjects={props.projectObjects}
     />
   );
 });
