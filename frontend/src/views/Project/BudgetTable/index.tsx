@@ -244,9 +244,7 @@ function getFieldTotalValueByYear(
   const entries = Object.entries(formValues).filter(([key]) => key !== 'projectObjects');
 
   return entries.reduce<number>((total, [, budgetItem]) => {
-    const yearTotals = (budgetItem as any)['total'] as
-      | ProjectYearBudget['budgetItems']
-      | undefined;
+    const yearTotals = (budgetItem as any)['total'] as ProjectYearBudget['budgetItems'] | undefined;
     return total + (yearTotals?.[fieldName] ?? 0);
   }, 0);
 }
@@ -259,7 +257,9 @@ function getFieldTotalValueByCommittee(
   if (!formValues) return null;
 
   return Object.values(formValues).reduce<number>((total, budgetItem) => {
-    const committeeSum = Object.entries(budgetItem as Record<string, ProjectYearBudget['budgetItems']>)
+    const committeeSum = Object.entries(
+      budgetItem as Record<string, ProjectYearBudget['budgetItems']>,
+    )
       .filter(([committee]) => selectedCommittees.includes(committee))
       .reduce<number>((committeeTotal, [, committeeItem]) => {
         return committeeTotal + (committeeItem[fieldName] ?? 0);
@@ -542,7 +542,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   const lockedYears = trpc.lockedYears.get.useQuery().data ?? [];
   const form = useForm<BudgetFormValues>({ mode: 'all', defaultValues: {} });
   const { isDirty, dirtyFields } = form.formState;
-  //console.log('form:', form.getValues().projectObjects);
+
   const setDirtyAndValidViews = useSetAtom(dirtyAndValidFieldsAtom);
   const watch = form.watch();
   useNavigationBlocker(Object.keys(dirtyFields).length > 0, 'budgetTable', () => {
@@ -809,7 +809,6 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     return false;
   }
 
-  console.log('form', form.getValues());
   return !budget ? null : (
     <>
       <FormProvider {...form}>
