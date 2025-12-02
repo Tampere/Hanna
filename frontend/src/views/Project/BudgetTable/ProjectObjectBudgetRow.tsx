@@ -14,8 +14,13 @@ import { YearlyActuals } from '@shared/schema/sapActuals';
 import { BudgetField, TABLE_CELL_CONTENT_CLASS } from '.';
 import { MutedCommitteeChip, committeeColors } from './CommitteeSelection';
 
+type BudgetTableProjectObject = CommonDbProjectObject & {
+  objectCommittee?: string | null;
+  objectStage?: string | null;
+};
+
 interface BudgetContentRowCellProps {
-  projectObject: CommonDbProjectObject;
+  projectObject: BudgetTableProjectObject;
   fields?: BudgetField[];
   year: number;
   writableFields?: BudgetField[];
@@ -73,7 +78,7 @@ export function ProjectObjectBudgetRow({
           {projectObject.objectName ?? '–'}
           {
             <MutedCommitteeChip
-              label={getCommitteeAbbreviation(projectObject.objectCommittee)}
+              label={getCommitteeAbbreviation(projectObject.objectCommittee ?? '')}
               chipColor={committeeColor}
             />
           }
@@ -98,9 +103,7 @@ export function ProjectObjectBudgetRow({
                 directlyHandleValueChange
                 {...field}
                 onChange={writableFields?.includes('estimate') ? onChange : undefined}
-                style={() => {
-                  return committeeColor;
-                }}
+                getColor={() => committeeColor}
               />
             )}
           />
@@ -119,13 +122,8 @@ export function ProjectObjectBudgetRow({
                   placeholder="–"
                   directlyHandleValueChange
                   {...field}
-                  getColor={() => {
-                    return committeeColor;
-                  }}
+                  getColor={() => committeeColor}
                   onChange={writableFields?.includes('amount') ? onChange : undefined}
-                  style={() => {
-                    return committeeColor;
-                  }}
                 />
               );
             }}
@@ -141,15 +139,10 @@ export function ProjectObjectBudgetRow({
             component={({ ref, onChange, ...field }) => (
               <CurrencyInput
                 placeholder="–"
-                getColor={() => {
-                  return committeeColor;
-                }}
+                getColor={() => committeeColor}
                 directlyHandleValueChange
                 {...field}
                 onChange={writableFields?.includes('contractPrice') ? onChange : undefined}
-                style={() => {
-                  return committeeColor;
-                }}
               />
             )}
           />
@@ -194,7 +187,6 @@ export function ProjectObjectBudgetRow({
                 directlyHandleValueChange
                 {...field}
                 allowNegative
-                style={{ committeeColor }}
                 getColor={(val) => {
                   if (fields.includes('committee') && (field.value >= 0 || !field.value)) {
                     return committeeColor;

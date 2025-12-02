@@ -14,13 +14,18 @@ import { CommonDbProjectObject } from '@shared/schema/projectObject/base';
 
 import { BudgetField, BudgetTable } from './BudgetTable';
 
+type FinanceProjectObject = CommonDbProjectObject & {
+  objectStage?: string | null;
+  objectCommittee?: string | null;
+};
+
 interface Props {
   project:
     | { type: Omit<ProjectType, 'detailpanProject'>; data?: DbInvestmentProject | null }
     | { type: Omit<ProjectType, 'detailpanProject'>; data?: DbMaintenanceProject | null };
   editable?: boolean;
   writableFields?: BudgetField[];
-  projectObjects?: CommonDbProjectObject[];
+  projectObjects?: FinanceProjectObject[];
   onSave?: () => void;
 }
 

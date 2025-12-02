@@ -209,6 +209,11 @@ export type BudgetField =
   | 'kayttosuunnitelmanMuutos'
   | 'actual';
 
+type BudgetTableProjectObject = CommonDbProjectObject & {
+  objectStage?: string | null;
+  objectCommittee?: string | null;
+};
+
 interface Props {
   years: number[];
   budget: readonly ProjectYearBudget[];
@@ -220,7 +225,7 @@ interface Props {
   fields?: BudgetField[];
   enableTooltips?: boolean;
   customTooltips?: Partial<Record<BudgetField, string>>;
-  projectObjects?: CommonDbProjectObject[];
+  projectObjects?: BudgetTableProjectObject[];
   projectType?: Omit<ProjectType, 'detailplanProject'>;
 }
 
@@ -235,8 +240,14 @@ function getFieldTotalValueByYear(
   formValues?: BudgetFormValues,
 ) {
   if (!formValues) return null;
-  return Object.values(formValues).reduce((total, budgetItem) => {
-    return (total || 0) + ((budgetItem['total'] && budgetItem['total'][fieldName]) ?? 0);
+
+  const entries = Object.entries(formValues).filter(([key]) => key !== 'projectObjects');
+
+  return entries.reduce<number>((total, [, budgetItem]) => {
+    const yearTotals = (budgetItem as any)['total'] as
+      | ProjectYearBudget['budgetItems']
+      | undefined;
+    return total + (yearTotals?.[fieldName] ?? 0);
   }, 0);
 }
 
@@ -247,17 +258,14 @@ function getFieldTotalValueByCommittee(
 ) {
   if (!formValues) return null;
 
-  return Object.values(formValues).reduce((total, budgetItem) => {
-    return (
-      (total || 0) +
-      Object.entries(budgetItem)
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        .filter(([committee, _]) => selectedCommittees.includes(committee))
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        .reduce((committeeTotal, [_, committeeItem]) => {
-          return committeeTotal + (committeeItem[fieldName] ?? 0);
-        }, 0)
-    );
+  return Object.values(formValues).reduce<number>((total, budgetItem) => {
+    const committeeSum = Object.entries(budgetItem as Record<string, ProjectYearBudget['budgetItems']>)
+      .filter(([committee]) => selectedCommittees.includes(committee))
+      .reduce<number>((committeeTotal, [, committeeItem]) => {
+        return committeeTotal + (committeeItem[fieldName] ?? 0);
+      }, 0);
+
+    return total + committeeSum;
   }, 0);
 }
 
@@ -660,7 +668,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
             if (!isNullish(value)) {
               form.setValue(
                 `projectObjects.${projectObjectId}.${yearKey}.${fieldName}` as any,
-                value,
+                value as any,
                 {
                   shouldDirty: false,
                   shouldTouch: false,
@@ -1043,7 +1051,11 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                             // Compute yearly totals from the projectObjects subtree so filtering by
                             // objectStage and committee is reflected in the total line.
                             const filteredProjectObjects = (props.projectObjects ?? [])
-                              .filter((po) => selectedCommittees.includes(po.objectCommittee))
+                              .filter(
+                                (po) =>
+                                  po.objectCommittee &&
+                                  selectedCommittees.includes(po.objectCommittee),
+                              )
                               .filter(
                                 (po) =>
                                   selectedObjectStages.length === 0 ||
@@ -1116,7 +1128,11 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                           })()}
                           {props.projectObjects
                             ? props.projectObjects
-                                .filter((po) => selectedCommittees.includes(po.objectCommittee))
+                                .filter(
+                                  (po) =>
+                                    po.objectCommittee &&
+                                    selectedCommittees.includes(po.objectCommittee),
+                                )
                                 .filter(
                                   (po) =>
                                     selectedObjectStages.length === 0 ||

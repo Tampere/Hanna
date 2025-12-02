@@ -425,24 +425,37 @@ export function InvestmentProject() {
                       projectObjects.data
                         ? projectObjects.data.map((obj) => {
                             const budgets = projectObjectBudgetsById[obj.projectObjectId];
-                            return budgets
-                              ? {
-                                  ...obj,
-                                  budgetUpdate: {
-                                    projectObjectId: obj.projectObjectId,
-                                    budgetItems: budgets.map((b) => ({
-                                      year: b.year,
-                                      committee: b.committee,
-                                      estimate: b.budgetItems.estimate,
-                                      contractPrice: b.budgetItems.contractPrice,
-                                      amount: b.budgetItems.amount,
-                                      forecast: b.budgetItems.forecast,
-                                      kayttosuunnitelmanMuutos:
-                                        b.budgetItems.kayttosuunnitelmanMuutos,
-                                    })),
-                                  },
-                                }
-                              : obj;
+
+                            if (!budgets || budgets.length === 0) {
+                              return { ...obj, budgetUpdate: null };
+                            }
+
+                            const budgetItems = budgets
+                              .filter(
+                                (b): b is YearBudget & { committee: string } =>
+                                  Boolean(b.committee),
+                              )
+                              .map((b) => ({
+                                year: b.year,
+                                committee: b.committee,
+                                estimate: b.budgetItems.estimate,
+                                contractPrice: b.budgetItems.contractPrice,
+                                amount: b.budgetItems.amount,
+                                forecast: b.budgetItems.forecast,
+                                kayttosuunnitelmanMuutos:
+                                  b.budgetItems.kayttosuunnitelmanMuutos,
+                              }));
+
+                            return {
+                              ...obj,
+                              budgetUpdate:
+                                budgetItems.length > 0
+                                  ? {
+                                      projectObjectId: obj.projectObjectId,
+                                      budgetItems,
+                                    }
+                                  : null,
+                            };
                           })
                         : []
                     }
