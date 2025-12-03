@@ -132,7 +132,7 @@ export const createInvestmentProjectObjectRouter = (t: TRPC) => {
 
     moveProjectObjectToProject: t.procedure
       .input(z.object({ projectObjectId: z.string(), newProjectId: z.string() }))
-      .use(withAccess((usr, ctx) => ownsProject(usr, ctx)))
+      .use(withAccess((usr, ctx) => hasWritePermission(usr, ctx) || ownsProject(usr, ctx)))
       .mutation(async ({ input, ctx }) => {
         return getPool().transaction(async (tx) => {
           const projectObject = await getProjectObject(tx, input.projectObjectId);
