@@ -305,10 +305,9 @@ export async function deleteBudget(
 export async function getProjectObjectNewProjectCandidates(
   tx: DatabaseTransactionConnection,
   projectObjectId: string,
-  ownerId?: string,
+  userId?: string,
 ) {
   const projectObject = await getProjectObject(tx, projectObjectId);
-
   return tx.any(sql.type(z.object({ projectId: z.string(), projectName: z.string() }))`
     SELECT p.id AS "projectId", p.project_name AS "projectName"
     FROM app.project p
@@ -319,7 +318,19 @@ export async function getProjectObjectNewProjectCandidates(
       ${
         projectObject.committee
       } = ANY(SELECT (committee_type).id FROM app.project_committee pc WHERE pc.project_id = p.id) AND
-      p.deleted = false ${ownerId ? sql.fragment`AND p.owner = ${ownerId}` : sql.fragment``}
+      p.deleted = false
+      ${
+        userId
+          ? sql.fragment`AND (
+                p.owner = ${userId}
+                OR p.id IN (
+                    SELECT pp.project_id
+                    FROM app.project_permission pp
+                    WHERE pp.user_id = ${userId} AND pp.can_write = TRUE
+                )
+            )`
+          : sql.fragment``
+      }
     GROUP BY p.id
     ORDER BY p.project_name
     `);
