@@ -65,7 +65,7 @@ export const fi = {
   'projectObjectView.moveToProject': 'Siirretään kohde toiselle hankkeelle',
   'projectObjectView.moveToProject.label': 'Kohteen uusi hanke',
   'projectObjectView.moveToProject.contentText':
-    'Kohteen voi siirtää investointihankkeelle, jolla on sopiva toteutusväli sekä oikea lautakunta ja jonka omistaja käyttäjä on. Omistajuusrajoite ei koske pääkäyttäjää.',
+    'Kohteen voi siirtää investointihankkeelle, jolla on sopiva toteutusväli sekä oikea lautakunta ja johon käyttäjällä on kirjoitus tai omistussuhde. Omistajuusrajoite ei koske pääkäyttäjää.',
   'projectObjectView.moveToProject.contentTextSap':
     'Kohteen mahdollinen SAP-rakenneosan tunniste poistetaan siirron yhteydessä.',
   'projectObjectView.moveToProject.noProjects': 'Sopivia hankkeita ei ole.',
