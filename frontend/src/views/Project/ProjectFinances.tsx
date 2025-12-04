@@ -87,12 +87,34 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
     if (project.data) {
       // for typescript to know that project.data is not null or undefined
       if (project.type === 'investmentProject') {
-        type InvestmentProjectBudget = { year: number; committee: string; estimate: number | null };
+        type InvestmentProjectBudget = {
+          year: number;
+          committee: string;
+          estimate?: number | null;
+          contractPrice?: number | null;
+          amount?: number | null;
+          forecast?: number | null;
+          kayttosuunnitelmanMuutos?: number | null;
+        };
         const payload = yearBudgets
           .map((yearBudget) => ({
             year: yearBudget.year,
-            estimate: yearBudget.budgetItems.estimate ?? null,
             committee: yearBudget.committee,
+            ...(yearBudget.budgetItems.estimate !== undefined && {
+              estimate: yearBudget.budgetItems.estimate ?? null,
+            }),
+            ...(yearBudget.budgetItems.contractPrice !== undefined && {
+              contractPrice: yearBudget.budgetItems.contractPrice ?? null,
+            }),
+            ...(yearBudget.budgetItems.amount !== undefined && {
+              amount: yearBudget.budgetItems.amount ?? null,
+            }),
+            ...(yearBudget.budgetItems.forecast !== undefined && {
+              forecast: yearBudget.budgetItems.forecast ?? null,
+            }),
+            ...(yearBudget.budgetItems.kayttosuunnitelmanMuutos !== undefined && {
+              kayttosuunnitelmanMuutos: yearBudget.budgetItems.kayttosuunnitelmanMuutos ?? null,
+            }),
           }))
           .filter<InvestmentProjectBudget>((item): item is InvestmentProjectBudget =>
             Boolean(item.committee),
@@ -101,16 +123,38 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
         if (payload.length > 0) {
           await saveInvestmentBudgetMutation.mutateAsync({
             projectId: project.data.projectId as string,
-            budgetItems: payload,
+            budgetItems: payload as any,
           });
         }
       } else {
-        type MaintenanceProjectBudget = { year: number; estimate: number | null; committee: null };
+        type MaintenanceProjectBudget = {
+          year: number;
+          committee: null;
+          estimate?: number | null;
+          contractPrice?: number | null;
+          amount?: number | null;
+          forecast?: number | null;
+          kayttosuunnitelmanMuutos?: number | null;
+        };
         const payload = yearBudgets
           .map((yearBudget) => ({
             year: yearBudget.year,
-            estimate: yearBudget.budgetItems.estimate ?? null,
             committee: null,
+            ...(yearBudget.budgetItems.estimate !== undefined && {
+              estimate: yearBudget.budgetItems.estimate ?? null,
+            }),
+            ...(yearBudget.budgetItems.contractPrice !== undefined && {
+              contractPrice: yearBudget.budgetItems.contractPrice ?? null,
+            }),
+            ...(yearBudget.budgetItems.amount !== undefined && {
+              amount: yearBudget.budgetItems.amount ?? null,
+            }),
+            ...(yearBudget.budgetItems.forecast !== undefined && {
+              forecast: yearBudget.budgetItems.forecast ?? null,
+            }),
+            ...(yearBudget.budgetItems.kayttosuunnitelmanMuutos !== undefined && {
+              kayttosuunnitelmanMuutos: yearBudget.budgetItems.kayttosuunnitelmanMuutos ?? null,
+            }),
           }))
           .filter<MaintenanceProjectBudget>((item): item is MaintenanceProjectBudget =>
             Boolean(item),
@@ -119,7 +163,7 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
         if (payload.length > 0) {
           await saveMaintenanceBudgetMutation.mutateAsync({
             projectId: project.data.projectId as string,
-            budgetItems: payload,
+            budgetItems: payload as any,
           });
         }
       }
@@ -233,7 +277,7 @@ export const ProjectFinances = forwardRef(function ProjectFinances(props: Props,
       budget={budget.data}
       actuals={yearlyActuals.data}
       actualsLoading={yearlyActuals.isFetching}
-      writableFields={editable ? props.writableFields : []}
+      writableFields={props.writableFields}
       onSave={handleSaveBudget}
       customTooltips={{
         year:

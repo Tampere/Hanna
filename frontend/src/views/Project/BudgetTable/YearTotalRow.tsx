@@ -1,4 +1,5 @@
-import { Skeleton, TableCell, TableRow, css } from '@mui/material';
+import { ChevronRight } from '@mui/icons-material';
+import { IconButton, Skeleton, TableCell, TableRow, css } from '@mui/material';
 
 import { CurrencyInput } from '@frontend/components/forms/CurrencyInput';
 import { SapActualsIcon } from '@frontend/components/icons/SapActuals';
@@ -19,6 +20,8 @@ interface Props {
   sapActual: number | null;
   actual: number | null;
   actualsLoading: boolean;
+  onHideYear?: () => void;
+  isHidden?: boolean;
   /**
    * Optional custom aggregator for budget fields.
    * If provided, it is used instead of the default committee-based sum.
@@ -39,6 +42,8 @@ export function YearTotalRow({
   actual,
   selectedCommittees,
   getFieldValue,
+  onHideYear,
+  isHidden,
 }: Props) {
   function defaultGetFieldValue(fieldName: keyof ProjectYearBudget['budgetItems']) {
     if (!formValues || !formValues[year]) return 0;
@@ -76,6 +81,18 @@ export function YearTotalRow({
           }
         `}
       >
+        {onHideYear && (
+          <IconButton
+            size="small"
+            onClick={onHideYear}
+            sx={{
+              transform: isHidden ? 'rotate(0deg)' : 'rotate(90deg)',
+              transition: 'transform 0.25s ease-in-out',
+            }}
+          >
+            <ChevronRight />
+          </IconButton>
+        )}
         {year}
       </TableCell>
       {fields?.includes('estimate') && (

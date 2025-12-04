@@ -36,10 +36,14 @@ import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectLi
 import { User } from '@shared/schema/user';
 import {
   ProjectPermissionContext,
+  hasPermission,
   hasWritePermission,
+  isAdmin,
   ownsProject,
 } from '@shared/schema/userPermissions';
 import { YearBudget } from '@shared/schema/projectObject/base';
+
+import { BudgetField } from './BudgetTable';
 
 import { InvestmentProjectForm } from './InvestmentProjectForm';
 import { ProjectAreaSelectorForm } from './ProjectAreaSelectorForm';
@@ -120,6 +124,28 @@ export function InvestmentProject() {
       user &&
       (ownsProject(user, project.data) || hasWritePermission(user, project.data)),
   );
+
+  function getProjectWritableFields(): BudgetField[] {
+    if (!user || !project.data) return [];
+
+    const userIsAdmin = isAdmin(user.role);
+    const isOwner = ownsProject(user, project.data);
+    const canWrite = hasWritePermission(user, project.data);
+    const isFinanceEditor = hasPermission(user, 'investmentFinancials.write');
+
+    if (userIsAdmin) {
+      return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
+    } else if (isOwner || canWrite) {
+      if (isFinanceEditor) {
+        return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
+      }
+      return ['estimate', 'contractPrice', 'forecast'];
+    } else if (isFinanceEditor) {
+      return ['amount', 'kayttosuunnitelmanMuutos'];
+    } else {
+      return [];
+    }
+  }
 
   const tabs = getTabs(routeParams.projectId).filter(
     (tab) => project?.data && user && tab.hasAccess(user, project.data),
@@ -420,7 +446,7 @@ export function InvestmentProject() {
                     ref={tabRefs.finances}
                     editable={userCanModify}
                     project={{ type: 'investmentProject', data: project.data }}
-                    writableFields={[]}
+                    writableFields={getProjectWritableFields()}
                     projectObjects={
                       projectObjects.data
                         ? projectObjects.data.map((obj) => {

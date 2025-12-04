@@ -30,7 +30,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { trpc } from '@frontend/client';
 import { HelpTooltip } from '@frontend/components/HelpTooltip';
 import { ObjectStageIcon } from '@frontend/components/icons/ObjectStageIcon';
-import { asyncUserAtom } from '@frontend/stores/auth';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { dirtyAndValidFieldsAtom } from '@frontend/stores/projectView';
@@ -41,12 +40,6 @@ import { ProjectYearBudget } from '@shared/schema/project';
 import { ProjectType } from '@shared/schema/project/type';
 import { CommonDbProjectObject, YearBudget } from '@shared/schema/projectObject/base';
 import { YearlyActuals, yearlyAndCommitteeActuals } from '@shared/schema/sapActuals';
-import {
-  hasPermission,
-  hasWritePermission,
-  isAdmin,
-  ownsProject,
-} from '@shared/schema/userPermissions';
 
 import { CommitteeSelection } from './CommitteeSelection';
 import { ProjectObjectBudgetRow } from './ProjectObjectBudgetRow';
@@ -57,29 +50,28 @@ export const TABLE_CELL_CONTENT_CLASS = 'table-cell-content';
 
 interface YearFilterProps {
   years: number[];
-  startYear: number | 'all';
-  endYear: number | 'all';
-  onChange: (value: { start: number | 'all'; end: number | 'all' }) => void;
+  startYear: number;
+  endYear: number;
+  onChange: (value: { start: number; end: number }) => void;
 }
 
 function YearFilter({ years, startYear, endYear, onChange }: YearFilterProps) {
   const tr = useTranslations();
-
   if (!years.length) return null;
 
   function handleStartChange(value: string) {
-    const newStart = value === 'all' ? 'all' : Number(value);
+    const newStart = Number(value);
     let newEnd = endYear;
-    if (newStart !== 'all' && newEnd !== 'all' && newEnd < newStart) {
+    if (newEnd < newStart) {
       newEnd = newStart;
     }
     onChange({ start: newStart, end: newEnd });
   }
 
   function handleEndChange(value: string) {
-    const newEnd = value === 'all' ? 'all' : Number(value);
+    const newEnd = Number(value);
     let newStart = startYear;
-    if (newEnd !== 'all' && newStart !== 'all' && newStart > newEnd) {
+    if (newStart > newEnd) {
       newStart = newEnd;
     }
     onChange({ start: newStart, end: newEnd });
@@ -94,15 +86,14 @@ function YearFilter({ years, startYear, endYear, onChange }: YearFilterProps) {
         gap: 0.25rem;
       `}
     >
+      <Typography variant="body2">{tr('budgetTable.yearRange')}</Typography>
       <TextField
         select
         SelectProps={{ native: true }}
         size="small"
-        label={tr('sapReports.environmentCodes.year')}
         value={startYear}
         onChange={(event) => handleStartChange(event.target.value)}
       >
-        <option value="all">{tr('workTable.allYears')}</option>
         {years.map((year) => (
           <option key={year} value={year}>
             {year}
@@ -117,7 +108,6 @@ function YearFilter({ years, startYear, endYear, onChange }: YearFilterProps) {
         value={endYear}
         onChange={(event) => handleEndChange(event.target.value)}
       >
-        <option value="all">{tr('workTable.allYears')}</option>
         {years.map((year) => (
           <option key={year} value={year}>
             {year}
@@ -135,7 +125,6 @@ interface ObjectStageFilterProps {
 }
 
 function ObjectStageFilter({ availableStages, selectedStages, onChange }: ObjectStageFilterProps) {
-  const tr = useTranslations();
   const stageCodes = useCodes('KohteenLaji');
 
   if (!availableStages.length) return null;
@@ -155,16 +144,9 @@ function ObjectStageFilter({ availableStages, selectedStages, onChange }: Object
         align-items: center;
         gap: 0.5rem;
         flex-wrap: wrap;
+        position: sticky;
       `}
     >
-      <Typography
-        variant="body2"
-        css={css`
-          white-space: nowrap;
-        `}
-      >
-        {tr('itemInfoBox.objectStage')}
-      </Typography>
       {availableStages.map((stageId) => {
         const code = stageCodes.get(stageId) as any;
         const label = code?.fi ?? stageId;
@@ -185,13 +167,17 @@ function ObjectStageFilter({ availableStages, selectedStages, onChange }: Object
             css={css`
               padding-left: 24px;
               padding-right: 0px;
+              background-color: ${selected ? '#83e2e8' : '#defdffff'};
+              :hover {
+                opacity: 0.75;
+                background-color: ${selected ? '#83e2e8' : '#d3f0f2'};
+              }
               & .MuiChip-icon {
                 padding-left: 24px;
                 margin-right: 0;
               }
             `}
             variant={selected ? 'filled' : 'outlined'}
-            color={selected ? 'primary' : 'default'}
           />
         );
       })}
@@ -407,7 +393,6 @@ function projectObjectsToFormValues(
 }
 
 const cellStyle = css`
-  min-width: 128px;
   text-align: right;
 `;
 
@@ -425,11 +410,11 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   const { fields = ['estimate', 'amount', 'forecast', 'kayttosuunnitelmanMuutos', 'actual'] } = {
     ...props,
   };
-
+  const [hiddenYears, setHiddenYears] = useState<number[]>([]);
   const [selectedCommittees, setSelectedCommittees] = useState<string[]>(props.committees ?? []);
-  const [yearRange, setYearRange] = useState<{ start: number | 'all'; end: number | 'all' }>({
-    start: 'all',
-    end: 'all',
+  const [yearRange, setYearRange] = useState<{ start: number; end: number }>({
+    start: Math.min(...years),
+    end: Math.max(...years),
   });
   const [selectedObjectStages, setSelectedObjectStages] = useState<string[]>([]);
   const [hideZeroRows, setHideZeroRows] = useState(false);
@@ -533,8 +518,8 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   const visibleYears = useMemo(() => {
     const { start, end } = yearRange;
     return years.filter((year) => {
-      const meetsStart = start === 'all' ? true : year >= start;
-      const meetsEnd = end === 'all' ? true : year <= end;
+      const meetsStart = year >= start;
+      const meetsEnd = year <= end;
       return meetsStart && meetsEnd;
     });
   }, [years, yearRange]);
@@ -719,17 +704,26 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
           const value = projectObjectValues[projectObjectId]?.[yearKey];
           if (!value) continue;
 
-          const budgetItems: ProjectYearBudget['budgetItems'] = {
-            estimate: (fieldsDirty as any).estimate ? value.estimate ?? null : null,
-            contractPrice: (fieldsDirty as any).contractPrice ? value.contractPrice ?? null : null,
-            amount: (fieldsDirty as any).amount ? value.amount ?? null : null,
-            forecast: (fieldsDirty as any).forecast ? value.forecast ?? null : null,
-            kayttosuunnitelmanMuutos: (fieldsDirty as any).kayttosuunnitelmanMuutos
-              ? value.kayttosuunnitelmanMuutos ?? null
-              : null,
+          // Only include fields that are actually dirty so that
+          // financial-writer-only users send just amount / kayttosuunnitelmanMuutos
+          // and pass the strict backend schema.
+          const budgetItems: Partial<ProjectYearBudget['budgetItems']> = {
+            ...((fieldsDirty as any).estimate && { estimate: value.estimate ?? null }),
+            ...((fieldsDirty as any).contractPrice && {
+              contractPrice: value.contractPrice ?? null,
+            }),
+            ...((fieldsDirty as any).amount && { amount: value.amount ?? null }),
+            ...((fieldsDirty as any).forecast && { forecast: value.forecast ?? null }),
+            ...((fieldsDirty as any).kayttosuunnitelmanMuutos && {
+              kayttosuunnitelmanMuutos: value.kayttosuunnitelmanMuutos ?? null,
+            }),
           };
 
-          projectObjectBudgets.push({ projectObjectId, year, budgetItems });
+          projectObjectBudgets.push({
+            projectObjectId,
+            year,
+            budgetItems: budgetItems as ProjectYearBudget['budgetItems'],
+          });
         }
       }
     }
@@ -737,35 +731,6 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     // @ts-expect-error onSave may accept project object budgets
     await onSave(projectBudget, projectObjectBudgets);
     form.reset(data);
-  }
-
-  const currentUser = useAtomValue(asyncUserAtom);
-
-  function getProjectObjectWritableFields(projectObject: CommonDbProjectObject): BudgetField[] {
-    if (!currentUser || !props.projectType) return [];
-
-    const userIsAdmin = isAdmin(currentUser.role);
-    const isOwner = ownsProject(currentUser, projectObject.permissionCtx);
-    const canWrite = hasWritePermission(currentUser, projectObject.permissionCtx);
-    const isFinanceEditor = hasPermission(
-      currentUser,
-      props.projectType === 'investmentProject'
-        ? 'investmentFinancials.write'
-        : 'maintenanceFinancials.write',
-    );
-
-    if (userIsAdmin) {
-      return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
-    } else if (isOwner || canWrite) {
-      if (isFinanceEditor) {
-        return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
-      }
-      return ['estimate', 'contractPrice', 'forecast'];
-    } else if (isFinanceEditor) {
-      return ['amount', 'kayttosuunnitelmanMuutos'];
-    } else {
-      return [];
-    }
   }
 
   function projectObjectHasNonZeroValuesForYear(
@@ -816,6 +781,8 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
           css={css`
             position: sticky;
             top: 0;
+            left: 0;
+            right: 0;
             z-index: 2;
             display: flex;
             flex-wrap: wrap;
@@ -827,12 +794,41 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
             padding-bottom: 0.5rem;
           `}
         >
-          {props.committees && (
-            <CommitteeSelection
-              availableCommittees={props.committees}
-              selectedCommittees={selectedCommittees}
-              setSelectedCommittees={setSelectedCommittees}
-            />
+          {props.committees && props.committees.length > 1 && (
+            <>
+              <CommitteeSelection
+                availableCommittees={(
+                  props.projectObjects?.map((po) => po.objectCommittee ?? '') ?? []
+                ).filter((v, i, a) => v && a.indexOf(v) === i)}
+                selectedCommittees={selectedCommittees}
+                setSelectedCommittees={setSelectedCommittees}
+              />
+              <Box
+                css={css`
+                  position: sticky;
+                  width: 2px;
+                  background-color: #d0d0d0;
+                  align-self: stretch;
+                `}
+              />
+            </>
+          )}
+
+          {props.projectObjects && availableObjectStages.length > 1 && (
+            <>
+              <ObjectStageFilter
+                availableStages={availableObjectStages}
+                selectedStages={selectedObjectStages}
+                onChange={setSelectedObjectStages}
+              />
+              <Box
+                css={css`
+                  width: 2px;
+                  background-color: #d0d0d0;
+                  align-self: stretch;
+                `}
+              />
+            </>
           )}
 
           <YearFilter
@@ -841,25 +837,22 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
             endYear={yearRange.end}
             onChange={setYearRange}
           />
-
-          {props.projectObjects && props.projectObjects.length > 0 && (
-            <>
-              <ObjectStageFilter
-                availableStages={availableObjectStages}
-                selectedStages={selectedObjectStages}
-                onChange={setSelectedObjectStages}
+          <Box
+            css={css`
+              width: 2px;
+              background-color: #d0d0d0;
+              align-self: stretch;
+            `}
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={hideZeroRows}
+                onChange={(event) => setHideZeroRows(event.target.checked)}
               />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={hideZeroRows}
-                    onChange={(event) => setHideZeroRows(event.target.checked)}
-                  />
-                }
-                label="Piilota nollarivit"
-              />
-            </>
-          )}
+            }
+            label="Piilota nollarivit"
+          />
         </Box>
 
         <form
@@ -920,7 +913,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                 <TableRow>
                   <TableCell
                     css={css`
-                      min-width: 220px;
+                      min-width: 320px;
                       padding-left: 16px;
                     `}
                     align="left"
@@ -936,7 +929,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                   </TableCell>
 
                   {fields?.includes('estimate') && (
-                    <TableCell>
+                    <TableCell css={cellStyle}>
                       <Box className="column-header">
                         <Typography variant="overline">{tr('budgetTable.estimate')}</Typography>
                         {enableTooltips && (
@@ -964,7 +957,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                     </TableCell>
                   )}
                   {fields?.includes('contractPrice') && (
-                    <TableCell>
+                    <TableCell css={cellStyle}>
                       <Box className="column-header">
                         <Typography variant="overline">
                           {tr('budgetTable.contractPrice')}
@@ -1010,7 +1003,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                   {fields?.includes('kayttosuunnitelmanMuutos') && (
                     <TableCell
                       css={css`
-                        min-width: 280px;
+                        min-width: 265px;
                         text-align: right;
                       `}
                     >
@@ -1050,11 +1043,17 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                             // Compute yearly totals from the projectObjects subtree so filtering by
                             // objectStage and committee is reflected in the total line.
                             const filteredProjectObjects = (props.projectObjects ?? [])
-                              .filter(
-                                (po) =>
+                              .filter((po) => {
+                                // If no committees are used (maintenance projects), show all objects
+                                if (!props.committees || props.committees.length === 0) {
+                                  return true;
+                                }
+                                // Otherwise filter by committee
+                                return (
                                   po.objectCommittee &&
-                                  selectedCommittees.includes(po.objectCommittee),
-                              )
+                                  selectedCommittees.includes(po.objectCommittee)
+                                );
+                              })
                               .filter(
                                 (po) =>
                                   selectedObjectStages.length === 0 ||
@@ -1122,16 +1121,33 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                 formValues={watch}
                                 year={year}
                                 getFieldValue={getFieldValueFromObjects}
+                                onHideYear={
+                                  props.projectObjects
+                                    ? () =>
+                                        setHiddenYears((prev) =>
+                                          prev.includes(year)
+                                            ? prev.filter((y) => y !== year)
+                                            : [...prev, year],
+                                        )
+                                    : undefined
+                                }
+                                isHidden={hiddenYears.includes(year)}
                               />
                             );
                           })()}
                           {props.projectObjects
                             ? props.projectObjects
-                                .filter(
-                                  (po) =>
+                                .filter((po) => {
+                                  // If no committees are used (maintenance projects), show all objects
+                                  if (!props.committees || props.committees.length === 0) {
+                                    return true;
+                                  }
+                                  // Otherwise filter by committee
+                                  return (
                                     po.objectCommittee &&
-                                    selectedCommittees.includes(po.objectCommittee),
-                                )
+                                    selectedCommittees.includes(po.objectCommittee)
+                                  );
+                                })
                                 .filter(
                                   (po) =>
                                     selectedObjectStages.length === 0 ||
@@ -1142,12 +1158,12 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                   (po) =>
                                     !hideZeroRows || projectObjectHasNonZeroValuesForYear(po, year),
                                 )
-                                .map((projectObject) => {
-                                  const writableForObject =
-                                    getProjectObjectWritableFields(projectObject);
+                                .filter((po) => !hiddenYears.includes(year))
+                                .map((projectObject, index) => {
+                                  // Use writableFields from props (set at project level)
                                   const writableForYear = lockedYears.includes(year)
-                                    ? writableForObject.filter((field) => field !== 'amount')
-                                    : writableForObject;
+                                    ? (writableFields || []).filter((field) => field !== 'amount')
+                                    : writableFields || [];
 
                                   const finalWritableFields = projectObjectBudgetsLoaded
                                     ? writableForYear
@@ -1170,6 +1186,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                       writableFields={finalWritableFields}
                                       actualsLoading={objectActualsLoading}
                                       actuals={objectActuals}
+                                      rowIndex={index}
                                     />
                                   );
                                 })

@@ -331,6 +331,7 @@ export const fi = {
   'dateRange.startDate': 'Alkupäivä',
   'dateRange.endDate': 'Loppupäivä',
   'budgetTable.year': 'Vuosi',
+  'budgetTable.yearRange': 'Aikaväli',
   'budgetTable.yearHelp':
     'Talousluvut osoitetaan vuosikohtaisina. Näkymässä tarjolla olevat vuodet johdetaan suoraan käyttäjän kirjaamasta toteutusvälistä (alku- ja lopetusajankohta).',
   'budgetTable.yearHelpOngoing':

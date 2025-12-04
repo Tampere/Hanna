@@ -50,7 +50,7 @@ export function CommitteeChip({ label, labelColor, chipColor, handleClick }: Chi
     <Chip
       label={label}
       css={css`
-        height: 24px;
+        height: 32px;
         background-color: ${chipColor};
         color: ${labelColor ?? '#fff'};
         :hover {
@@ -87,11 +87,6 @@ export function CommitteeSelection({
         css={css`
           font-size: 13px;
           color: #525252;
-          position: sticky;
-          top: 0;
-          left: 0;
-          background-color: #fff;
-          z-index: 1;
         `}
       >
         {committeeCodes.get(availableCommittees[0])?.fi}
@@ -102,11 +97,6 @@ export function CommitteeSelection({
   return (
     <Box
       css={css`
-        position: sticky;
-        top: 0;
-        left: 0;
-        background-color: #fff;
-        z-index: 1;
         display: flex;
         align-items: center;
         gap: 1rem;
