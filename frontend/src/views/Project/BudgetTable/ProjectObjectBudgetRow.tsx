@@ -1,4 +1,4 @@
-import { Skeleton, TableCell, TableRow, css } from '@mui/material';
+import { Box, Skeleton, TableCell, TableRow, css } from '@mui/material';
 import { useAtomValue } from 'jotai';
 
 import { trpc } from '@frontend/client';
@@ -27,6 +27,7 @@ interface BudgetContentRowCellProps {
   actualsLoading?: boolean;
   actuals?: YearlyActuals | null;
   disableBorder?: boolean;
+  rowIndex: number;
 }
 
 export function ProjectObjectBudgetRow({
@@ -37,6 +38,7 @@ export function ProjectObjectBudgetRow({
   actualsLoading,
   actuals,
   disableBorder,
+  rowIndex,
 }: BudgetContentRowCellProps) {
   const committeeColor =
     committeeColors[(projectObject.objectCommittee as keyof typeof committeeColors) ?? 'default'];
@@ -63,13 +65,12 @@ export function ProjectObjectBudgetRow({
       css={css`
         min-height: 50px;
         ${true ? 'td {border-bottom: none;}' : ''}
+        background-color: ${rowIndex % 2 === 0 ? '#ffffff' : '#f0f0f0'};
       `}
     >
       {
         <TableCell
           css={css`
-            font-weight: 700;
-            width: 550px;
             &.MuiTableCell-root {
               text-align: left;
             }
@@ -82,12 +83,20 @@ export function ProjectObjectBudgetRow({
               chipColor={committeeColor}
             />
           }
-          {projectObject.objectStage && (
-            <ObjectStageIcon
-              title={getObjectStageTextById(projectObject.objectStage)}
-              id={projectObject.objectStage}
-            />
-          )}
+          <Box
+            css={css`
+              padding-top: 4px;
+              vertical-align: middle;
+              display: inline-block;
+            `}
+          >
+            {projectObject.objectStage && (
+              <ObjectStageIcon
+                title={getObjectStageTextById(projectObject.objectStage)}
+                id={projectObject.objectStage}
+              />
+            )}
+          </Box>
         </TableCell>
       }
 
@@ -99,11 +108,13 @@ export function ProjectObjectBudgetRow({
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, onChange, ...field }) => (
               <CurrencyInput
+                css={css`
+                  background-color: rgba(255, 255, 255, 0) !important;
+                `}
                 placeholder="–"
                 directlyHandleValueChange
                 {...field}
                 onChange={writableFields?.includes('estimate') ? onChange : undefined}
-                getColor={() => committeeColor}
               />
             )}
           />
@@ -119,10 +130,12 @@ export function ProjectObjectBudgetRow({
               console.log('row field', field.name, 'value', field.value);
               return (
                 <CurrencyInput
+                  css={css`
+                    background-color: rgba(255, 255, 255, 0) !important;
+                  `}
                   placeholder="–"
                   directlyHandleValueChange
                   {...field}
-                  getColor={() => committeeColor}
                   onChange={writableFields?.includes('amount') ? onChange : undefined}
                 />
               );
@@ -138,8 +151,10 @@ export function ProjectObjectBudgetRow({
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, onChange, ...field }) => (
               <CurrencyInput
+                css={css`
+                  background-color: rgba(255, 255, 255, 0) !important;
+                `}
                 placeholder="–"
-                getColor={() => committeeColor}
                 directlyHandleValueChange
                 {...field}
                 onChange={writableFields?.includes('contractPrice') ? onChange : undefined}
@@ -155,9 +170,9 @@ export function ProjectObjectBudgetRow({
             <span className={TABLE_CELL_CONTENT_CLASS}>
               <>
                 <CurrencyInput
-                  getColor={() => {
-                    return committeeColor;
-                  }}
+                  css={css`
+                    background-color: rgba(255, 255, 255, 0) !important;
+                  `}
                   directlyHandleValueChange
                   value={(true ? actuals?.find((data) => data.year === year)?.total : null) ?? null}
                   placeholder={'–'}
@@ -183,17 +198,13 @@ export function ProjectObjectBudgetRow({
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, onChange, ...field }) => (
               <CurrencyInput
+                css={css`
+                  background-color: rgba(255, 255, 255, 0) !important;
+                `}
                 placeholder="–"
                 directlyHandleValueChange
                 {...field}
                 allowNegative
-                getColor={(val) => {
-                  if (fields.includes('committee') && (field.value >= 0 || !field.value)) {
-                    return committeeColor;
-                  }
-
-                  return valueTextColor(val);
-                }}
                 onChange={writableFields?.includes('forecast') ? onChange : undefined}
               />
             )}
@@ -208,16 +219,15 @@ export function ProjectObjectBudgetRow({
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, onChange, ...field }) => (
               <CurrencyInput
+                css={css`
+                  background-color: rgba(255, 255, 255, 0) !important;
+                `}
                 placeholder="–"
                 directlyHandleValueChange
                 allowNegative
                 style={{
                   width: '100%',
                   minWidth: 220,
-                  color: committeeColor,
-                }}
-                getColor={(val) => {
-                  return committeeColor;
                 }}
                 {...field}
                 onChange={

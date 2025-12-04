@@ -57,29 +57,28 @@ export const TABLE_CELL_CONTENT_CLASS = 'table-cell-content';
 
 interface YearFilterProps {
   years: number[];
-  startYear: number | 'all';
-  endYear: number | 'all';
-  onChange: (value: { start: number | 'all'; end: number | 'all' }) => void;
+  startYear: number;
+  endYear: number;
+  onChange: (value: { start: number; end: number }) => void;
 }
 
 function YearFilter({ years, startYear, endYear, onChange }: YearFilterProps) {
   const tr = useTranslations();
-
   if (!years.length) return null;
 
   function handleStartChange(value: string) {
-    const newStart = value === 'all' ? 'all' : Number(value);
+    const newStart = Number(value);
     let newEnd = endYear;
-    if (newStart !== 'all' && newEnd !== 'all' && newEnd < newStart) {
+    if (newEnd < newStart) {
       newEnd = newStart;
     }
     onChange({ start: newStart, end: newEnd });
   }
 
   function handleEndChange(value: string) {
-    const newEnd = value === 'all' ? 'all' : Number(value);
+    const newEnd = Number(value);
     let newStart = startYear;
-    if (newEnd !== 'all' && newStart !== 'all' && newStart > newEnd) {
+    if (newStart > newEnd) {
       newStart = newEnd;
     }
     onChange({ start: newStart, end: newEnd });
@@ -94,15 +93,14 @@ function YearFilter({ years, startYear, endYear, onChange }: YearFilterProps) {
         gap: 0.25rem;
       `}
     >
+      <Typography variant="body2">{tr('budgetTable.yearRange')}</Typography>
       <TextField
         select
         SelectProps={{ native: true }}
         size="small"
-        label={tr('sapReports.environmentCodes.year')}
         value={startYear}
         onChange={(event) => handleStartChange(event.target.value)}
       >
-        <option value="all">{tr('workTable.allYears')}</option>
         {years.map((year) => (
           <option key={year} value={year}>
             {year}
@@ -117,7 +115,6 @@ function YearFilter({ years, startYear, endYear, onChange }: YearFilterProps) {
         value={endYear}
         onChange={(event) => handleEndChange(event.target.value)}
       >
-        <option value="all">{tr('workTable.allYears')}</option>
         {years.map((year) => (
           <option key={year} value={year}>
             {year}
@@ -135,7 +132,6 @@ interface ObjectStageFilterProps {
 }
 
 function ObjectStageFilter({ availableStages, selectedStages, onChange }: ObjectStageFilterProps) {
-  const tr = useTranslations();
   const stageCodes = useCodes('KohteenLaji');
 
   if (!availableStages.length) return null;
@@ -155,16 +151,9 @@ function ObjectStageFilter({ availableStages, selectedStages, onChange }: Object
         align-items: center;
         gap: 0.5rem;
         flex-wrap: wrap;
+        position: sticky;
       `}
     >
-      <Typography
-        variant="body2"
-        css={css`
-          white-space: nowrap;
-        `}
-      >
-        {tr('itemInfoBox.objectStage')}
-      </Typography>
       {availableStages.map((stageId) => {
         const code = stageCodes.get(stageId) as any;
         const label = code?.fi ?? stageId;
@@ -185,13 +174,17 @@ function ObjectStageFilter({ availableStages, selectedStages, onChange }: Object
             css={css`
               padding-left: 24px;
               padding-right: 0px;
+              background-color: ${selected ? '#83e2e8' : '#defdffff'};
+              :hover {
+                opacity: 0.75;
+                background-color: ${selected ? '#83e2e8' : '#d3f0f2'};
+              }
               & .MuiChip-icon {
                 padding-left: 24px;
                 margin-right: 0;
               }
             `}
             variant={selected ? 'filled' : 'outlined'}
-            color={selected ? 'primary' : 'default'}
           />
         );
       })}
@@ -407,7 +400,6 @@ function projectObjectsToFormValues(
 }
 
 const cellStyle = css`
-  min-width: 128px;
   text-align: right;
 `;
 
@@ -425,11 +417,11 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   const { fields = ['estimate', 'amount', 'forecast', 'kayttosuunnitelmanMuutos', 'actual'] } = {
     ...props,
   };
-
+  const [hiddenYears, setHiddenYears] = useState<number[]>([]);
   const [selectedCommittees, setSelectedCommittees] = useState<string[]>(props.committees ?? []);
-  const [yearRange, setYearRange] = useState<{ start: number | 'all'; end: number | 'all' }>({
-    start: 'all',
-    end: 'all',
+  const [yearRange, setYearRange] = useState<{ start: number; end: number }>({
+    start: Math.min(...years),
+    end: Math.max(...years),
   });
   const [selectedObjectStages, setSelectedObjectStages] = useState<string[]>([]);
   const [hideZeroRows, setHideZeroRows] = useState(false);
@@ -533,8 +525,8 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   const visibleYears = useMemo(() => {
     const { start, end } = yearRange;
     return years.filter((year) => {
-      const meetsStart = start === 'all' ? true : year >= start;
-      const meetsEnd = end === 'all' ? true : year <= end;
+      const meetsStart = year >= start;
+      const meetsEnd = year <= end;
       return meetsStart && meetsEnd;
     });
   }, [years, yearRange]);
@@ -816,6 +808,8 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
           css={css`
             position: sticky;
             top: 0;
+            left: 0;
+            right: 0;
             z-index: 2;
             display: flex;
             flex-wrap: wrap;
@@ -827,39 +821,65 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
             padding-bottom: 0.5rem;
           `}
         >
-          {props.committees && (
+          {props.committees && props.committees.length > 1 && (
             <CommitteeSelection
-              availableCommittees={props.committees}
+              availableCommittees={(
+                props.projectObjects?.map((po) => po.objectCommittee ?? '') ?? []
+              ).filter((v, i, a) => v && a.indexOf(v) === i)}
               selectedCommittees={selectedCommittees}
               setSelectedCommittees={setSelectedCommittees}
             />
           )}
 
+          {props.projectObjects && props.projectObjects.length > 1 && (
+            <>
+              <Box
+                css={css`
+                  position: sticky;
+                  width: 2px;
+                  background-color: #d0d0d0;
+                  align-self: stretch;
+                `}
+              />
+
+              <ObjectStageFilter
+                availableStages={availableObjectStages}
+                selectedStages={selectedObjectStages}
+                onChange={setSelectedObjectStages}
+              />
+            </>
+          )}
+          {props.projectObjects && props.projectObjects.length > 1 && (
+            <Box
+              css={css`
+                width: 2px;
+                background-color: #d0d0d0;
+                align-self: stretch;
+              `}
+            />
+          )}
           <YearFilter
             years={years}
             startYear={yearRange.start}
             endYear={yearRange.end}
             onChange={setYearRange}
           />
-
-          {props.projectObjects && props.projectObjects.length > 0 && (
-            <>
-              <ObjectStageFilter
-                availableStages={availableObjectStages}
-                selectedStages={selectedObjectStages}
-                onChange={setSelectedObjectStages}
+          <Box
+            css={css`
+              width: 2px;
+              background-color: #d0d0d0;
+              align-self: stretch;
+            `}
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={hideZeroRows}
+                onChange={(event) => setHideZeroRows(event.target.checked)}
               />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={hideZeroRows}
-                    onChange={(event) => setHideZeroRows(event.target.checked)}
-                  />
-                }
-                label="Piilota nollarivit"
-              />
-            </>
-          )}
+            }
+            label="Piilota nollarivit"
+          />
         </Box>
 
         <form
@@ -920,7 +940,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                 <TableRow>
                   <TableCell
                     css={css`
-                      min-width: 220px;
+                      min-width: 320px;
                       padding-left: 16px;
                     `}
                     align="left"
@@ -936,7 +956,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                   </TableCell>
 
                   {fields?.includes('estimate') && (
-                    <TableCell>
+                    <TableCell css={cellStyle}>
                       <Box className="column-header">
                         <Typography variant="overline">{tr('budgetTable.estimate')}</Typography>
                         {enableTooltips && (
@@ -964,7 +984,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                     </TableCell>
                   )}
                   {fields?.includes('contractPrice') && (
-                    <TableCell>
+                    <TableCell css={cellStyle}>
                       <Box className="column-header">
                         <Typography variant="overline">
                           {tr('budgetTable.contractPrice')}
@@ -1010,7 +1030,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                   {fields?.includes('kayttosuunnitelmanMuutos') && (
                     <TableCell
                       css={css`
-                        min-width: 280px;
+                        min-width: 265px;
                         text-align: right;
                       `}
                     >
@@ -1122,6 +1142,14 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                 formValues={watch}
                                 year={year}
                                 getFieldValue={getFieldValueFromObjects}
+                                onHideYear={() =>
+                                  setHiddenYears((prev) =>
+                                    prev.includes(year)
+                                      ? prev.filter((y) => y !== year)
+                                      : [...prev, year],
+                                  )
+                                }
+                                isHidden={hiddenYears.includes(year)}
                               />
                             );
                           })()}
@@ -1142,7 +1170,8 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                   (po) =>
                                     !hideZeroRows || projectObjectHasNonZeroValuesForYear(po, year),
                                 )
-                                .map((projectObject) => {
+                                .filter((po) => !hiddenYears.includes(year))
+                                .map((projectObject, index) => {
                                   const writableForObject =
                                     getProjectObjectWritableFields(projectObject);
                                   const writableForYear = lockedYears.includes(year)
@@ -1170,6 +1199,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                       writableFields={finalWritableFields}
                                       actualsLoading={objectActualsLoading}
                                       actuals={objectActuals}
+                                      rowIndex={index}
                                     />
                                   );
                                 })
