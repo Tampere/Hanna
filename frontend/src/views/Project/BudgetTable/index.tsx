@@ -30,7 +30,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { trpc } from '@frontend/client';
 import { HelpTooltip } from '@frontend/components/HelpTooltip';
 import { ObjectStageIcon } from '@frontend/components/icons/ObjectStageIcon';
-import { asyncUserAtom } from '@frontend/stores/auth';
 import { langAtom, useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { dirtyAndValidFieldsAtom } from '@frontend/stores/projectView';
@@ -41,12 +40,6 @@ import { ProjectYearBudget } from '@shared/schema/project';
 import { ProjectType } from '@shared/schema/project/type';
 import { CommonDbProjectObject, YearBudget } from '@shared/schema/projectObject/base';
 import { YearlyActuals, yearlyAndCommitteeActuals } from '@shared/schema/sapActuals';
-import {
-  hasPermission,
-  hasWritePermission,
-  isAdmin,
-  ownsProject,
-} from '@shared/schema/userPermissions';
 
 import { CommitteeSelection } from './CommitteeSelection';
 import { ProjectObjectBudgetRow } from './ProjectObjectBudgetRow';
@@ -711,17 +704,26 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
           const value = projectObjectValues[projectObjectId]?.[yearKey];
           if (!value) continue;
 
-          const budgetItems: ProjectYearBudget['budgetItems'] = {
-            estimate: (fieldsDirty as any).estimate ? value.estimate ?? null : null,
-            contractPrice: (fieldsDirty as any).contractPrice ? value.contractPrice ?? null : null,
-            amount: (fieldsDirty as any).amount ? value.amount ?? null : null,
-            forecast: (fieldsDirty as any).forecast ? value.forecast ?? null : null,
-            kayttosuunnitelmanMuutos: (fieldsDirty as any).kayttosuunnitelmanMuutos
-              ? value.kayttosuunnitelmanMuutos ?? null
-              : null,
+          // Only include fields that are actually dirty so that
+          // financial-writer-only users send just amount / kayttosuunnitelmanMuutos
+          // and pass the strict backend schema.
+          const budgetItems: Partial<ProjectYearBudget['budgetItems']> = {
+            ...((fieldsDirty as any).estimate && { estimate: value.estimate ?? null }),
+            ...((fieldsDirty as any).contractPrice && {
+              contractPrice: value.contractPrice ?? null,
+            }),
+            ...((fieldsDirty as any).amount && { amount: value.amount ?? null }),
+            ...((fieldsDirty as any).forecast && { forecast: value.forecast ?? null }),
+            ...((fieldsDirty as any).kayttosuunnitelmanMuutos && {
+              kayttosuunnitelmanMuutos: value.kayttosuunnitelmanMuutos ?? null,
+            }),
           };
 
-          projectObjectBudgets.push({ projectObjectId, year, budgetItems });
+          projectObjectBudgets.push({
+            projectObjectId,
+            year,
+            budgetItems: budgetItems as ProjectYearBudget['budgetItems'],
+          });
         }
       }
     }
@@ -729,35 +731,6 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     // @ts-expect-error onSave may accept project object budgets
     await onSave(projectBudget, projectObjectBudgets);
     form.reset(data);
-  }
-
-  const currentUser = useAtomValue(asyncUserAtom);
-
-  function getProjectObjectWritableFields(projectObject: CommonDbProjectObject): BudgetField[] {
-    if (!currentUser || !props.projectType) return [];
-
-    const userIsAdmin = isAdmin(currentUser.role);
-    const isOwner = ownsProject(currentUser, projectObject.permissionCtx);
-    const canWrite = hasWritePermission(currentUser, projectObject.permissionCtx);
-    const isFinanceEditor = hasPermission(
-      currentUser,
-      props.projectType === 'investmentProject'
-        ? 'investmentFinancials.write'
-        : 'maintenanceFinancials.write',
-    );
-
-    if (userIsAdmin) {
-      return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
-    } else if (isOwner || canWrite) {
-      if (isFinanceEditor) {
-        return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
-      }
-      return ['estimate', 'contractPrice', 'forecast'];
-    } else if (isFinanceEditor) {
-      return ['amount', 'kayttosuunnitelmanMuutos'];
-    } else {
-      return [];
-    }
   }
 
   function projectObjectHasNonZeroValuesForYear(
@@ -822,17 +795,14 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
           `}
         >
           {props.committees && props.committees.length > 1 && (
-            <CommitteeSelection
-              availableCommittees={(
-                props.projectObjects?.map((po) => po.objectCommittee ?? '') ?? []
-              ).filter((v, i, a) => v && a.indexOf(v) === i)}
-              selectedCommittees={selectedCommittees}
-              setSelectedCommittees={setSelectedCommittees}
-            />
-          )}
-
-          {props.projectObjects && props.projectObjects.length > 1 && (
             <>
+              <CommitteeSelection
+                availableCommittees={(
+                  props.projectObjects?.map((po) => po.objectCommittee ?? '') ?? []
+                ).filter((v, i, a) => v && a.indexOf(v) === i)}
+                selectedCommittees={selectedCommittees}
+                setSelectedCommittees={setSelectedCommittees}
+              />
               <Box
                 css={css`
                   position: sticky;
@@ -841,23 +811,26 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                   align-self: stretch;
                 `}
               />
+            </>
+          )}
 
+          {props.projectObjects && availableObjectStages.length > 1 && (
+            <>
               <ObjectStageFilter
                 availableStages={availableObjectStages}
                 selectedStages={selectedObjectStages}
                 onChange={setSelectedObjectStages}
               />
+              <Box
+                css={css`
+                  width: 2px;
+                  background-color: #d0d0d0;
+                  align-self: stretch;
+                `}
+              />
             </>
           )}
-          {props.projectObjects && props.projectObjects.length > 1 && (
-            <Box
-              css={css`
-                width: 2px;
-                background-color: #d0d0d0;
-                align-self: stretch;
-              `}
-            />
-          )}
+
           <YearFilter
             years={years}
             startYear={yearRange.start}
@@ -1070,11 +1043,17 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                             // Compute yearly totals from the projectObjects subtree so filtering by
                             // objectStage and committee is reflected in the total line.
                             const filteredProjectObjects = (props.projectObjects ?? [])
-                              .filter(
-                                (po) =>
+                              .filter((po) => {
+                                // If no committees are used (maintenance projects), show all objects
+                                if (!props.committees || props.committees.length === 0) {
+                                  return true;
+                                }
+                                // Otherwise filter by committee
+                                return (
                                   po.objectCommittee &&
-                                  selectedCommittees.includes(po.objectCommittee),
-                              )
+                                  selectedCommittees.includes(po.objectCommittee)
+                                );
+                              })
                               .filter(
                                 (po) =>
                                   selectedObjectStages.length === 0 ||
@@ -1142,12 +1121,15 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                 formValues={watch}
                                 year={year}
                                 getFieldValue={getFieldValueFromObjects}
-                                onHideYear={() =>
-                                  setHiddenYears((prev) =>
-                                    prev.includes(year)
-                                      ? prev.filter((y) => y !== year)
-                                      : [...prev, year],
-                                  )
+                                onHideYear={
+                                  props.projectObjects
+                                    ? () =>
+                                        setHiddenYears((prev) =>
+                                          prev.includes(year)
+                                            ? prev.filter((y) => y !== year)
+                                            : [...prev, year],
+                                        )
+                                    : undefined
                                 }
                                 isHidden={hiddenYears.includes(year)}
                               />
@@ -1155,11 +1137,17 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                           })()}
                           {props.projectObjects
                             ? props.projectObjects
-                                .filter(
-                                  (po) =>
+                                .filter((po) => {
+                                  // If no committees are used (maintenance projects), show all objects
+                                  if (!props.committees || props.committees.length === 0) {
+                                    return true;
+                                  }
+                                  // Otherwise filter by committee
+                                  return (
                                     po.objectCommittee &&
-                                    selectedCommittees.includes(po.objectCommittee),
-                                )
+                                    selectedCommittees.includes(po.objectCommittee)
+                                  );
+                                })
                                 .filter(
                                   (po) =>
                                     selectedObjectStages.length === 0 ||
@@ -1172,11 +1160,10 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                 )
                                 .filter((po) => !hiddenYears.includes(year))
                                 .map((projectObject, index) => {
-                                  const writableForObject =
-                                    getProjectObjectWritableFields(projectObject);
+                                  // Use writableFields from props (set at project level)
                                   const writableForYear = lockedYears.includes(year)
-                                    ? writableForObject.filter((field) => field !== 'amount')
-                                    : writableForObject;
+                                    ? (writableFields || []).filter((field) => field !== 'amount')
+                                    : writableFields || [];
 
                                   const finalWritableFields = projectObjectBudgetsLoaded
                                     ? writableForYear

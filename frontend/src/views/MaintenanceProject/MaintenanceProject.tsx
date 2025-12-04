@@ -2,6 +2,7 @@ import { css } from '@emotion/react';
 import { BarChart, Euro, KeyTwoTone, ListAlt, Map } from '@mui/icons-material';
 import { Box, Breadcrumbs, Chip, Paper, Tab, Tabs, Typography } from '@mui/material';
 import dayjs from 'dayjs';
+import { useQueries } from '@tanstack/react-query';
 import { useAtomValue } from 'jotai';
 import VectorSource from 'ol/source/Vector';
 import { useEffect, useMemo, useState } from 'react';
@@ -38,9 +39,14 @@ import { ProjectObjectList } from '@frontend/views/ProjectObject/ProjectObjectLi
 import { User } from '@shared/schema/user';
 import {
   ProjectPermissionContext,
+  hasPermission,
   hasWritePermission,
+  isAdmin,
   ownsProject,
 } from '@shared/schema/userPermissions';
+import { YearBudget } from '@shared/schema/projectObject/base';
+
+import { BudgetField } from '../Project/BudgetTable';
 
 import { ProjectFinancesCharts } from '../Project/ProjectFinancesCharts';
 import { ProjectViewMainContentWrapper } from '../Project/ProjectViewMainContentWrapper';
@@ -110,6 +116,28 @@ export function MaintenanceProject() {
       (ownsProject(user, project.data) || hasWritePermission(user, project.data)),
   );
 
+  function getProjectWritableFields(): BudgetField[] {
+    if (!user || !project.data) return [];
+
+    const userIsAdmin = isAdmin(user.role);
+    const isOwner = ownsProject(user, project.data);
+    const canWrite = hasWritePermission(user, project.data);
+    const isFinanceEditor = hasPermission(user, 'maintenanceFinancials.write');
+
+    if (userIsAdmin) {
+      return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
+    } else if (isOwner || canWrite) {
+      if (isFinanceEditor) {
+        return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
+      }
+      return ['estimate', 'contractPrice', 'forecast'];
+    } else if (isFinanceEditor) {
+      return ['amount', 'kayttosuunnitelmanMuutos'];
+    } else {
+      return [];
+    }
+  }
+
   const tabs = getTabs(routeParams.projectId).filter(
     (tab) => project?.data && user && tab.hasAccess(user, project.data),
   );
@@ -139,6 +167,36 @@ export function MaintenanceProject() {
     { projectId },
     { enabled: Boolean(projectId), queryKey: ['projectObject.getByProjectId', { projectId }] },
   );
+
+  const poIds = useMemo(
+    () => projectObjects.data?.map((po) => po.projectObjectId) ?? [],
+    [projectObjects.data],
+  );
+
+  const utils = trpc.useUtils();
+
+  const projectObjectBudgetQueries = useQueries({
+    queries: poIds.map((id) => ({
+      queryKey: ['projectObject.getBudget', { projectObjectId: id }],
+      queryFn: () => utils.projectObject.getBudget.fetch({ projectObjectId: id }),
+      enabled: Boolean(id) && tabView === 'talous',
+      staleTime: 5 * 60 * 1000,
+    })),
+  });
+
+  const projectObjectBudgetsById = useMemo(() => {
+    const map: Record<string, YearBudget[]> = {};
+    projectObjectBudgetQueries.forEach((q, idx) => {
+      const id = poIds[idx];
+      if (id && q.data) {
+        map[id] = q.data as YearBudget[];
+      }
+    });
+    return map;
+  }, [
+    poIds.join(','),
+    projectObjectBudgetQueries.map((q) => q.dataUpdatedAt).join(','),
+  ]);
 
   const projectObjectSource = useMemo(() => {
     const source = new VectorSource();
@@ -381,7 +439,39 @@ export function MaintenanceProject() {
                     }}
                     editable={userCanModify}
                     project={{ type: 'maintenanceProject', data: project.data }}
-                    writableFields={[]}
+                    writableFields={getProjectWritableFields()}
+                    projectObjects={
+                      projectObjects.data
+                        ? projectObjects.data.map((obj) => {
+                            const budgets = projectObjectBudgetsById[obj.projectObjectId];
+
+                            if (!budgets || budgets.length === 0) {
+                              return { ...obj, budgetUpdate: null };
+                            }
+
+                            const budgetItems = budgets.map((b) => ({
+                              year: b.year,
+                              committee: null,
+                              estimate: b.budgetItems.estimate,
+                              contractPrice: b.budgetItems.contractPrice,
+                              amount: b.budgetItems.amount,
+                              forecast: b.budgetItems.forecast,
+                              kayttosuunnitelmanMuutos: b.budgetItems.kayttosuunnitelmanMuutos,
+                            }));
+
+                            return {
+                              ...obj,
+                              budgetUpdate:
+                                budgetItems.length > 0
+                                  ? {
+                                      projectObjectId: obj.projectObjectId,
+                                      budgetItems,
+                                    }
+                                  : null,
+                            };
+                          })
+                        : []
+                    }
                   />
                 )}
                 {tabView === 'kuluseuranta' && (

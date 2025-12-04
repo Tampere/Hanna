@@ -77,12 +77,12 @@ export function ProjectObjectBudgetRow({
           `}
         >
           {projectObject.objectName ?? '–'}
-          {
+          {projectObject.objectCommittee && (
             <MutedCommitteeChip
               label={getCommitteeAbbreviation(projectObject.objectCommittee ?? '')}
               chipColor={committeeColor}
             />
-          }
+          )}
           <Box
             css={css`
               padding-top: 4px;
@@ -127,7 +127,6 @@ export function ProjectObjectBudgetRow({
             formField={getFormFieldIdentifier(year, 'amount')}
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, onChange, ...field }) => {
-              console.log('row field', field.name, 'value', field.value);
               return (
                 <CurrencyInput
                   css={css`
