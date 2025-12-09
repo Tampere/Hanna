@@ -1,5 +1,6 @@
 import { ChevronRight } from '@mui/icons-material';
 import { IconButton, Skeleton, TableCell, TableRow, css } from '@mui/material';
+import { Ref } from 'react';
 
 import { CurrencyInput } from '@frontend/components/forms/CurrencyInput';
 import { SapActualsIcon } from '@frontend/components/icons/SapActuals';
@@ -31,6 +32,10 @@ interface Props {
     formValues: BudgetFormValues,
     year: number,
   ) => number;
+  /**
+   * Optional ref to the underlying table row, used for scrolling.
+   */
+  rowRef?: Ref<HTMLTableRowElement>;
 }
 
 export function YearTotalRow({
@@ -44,6 +49,7 @@ export function YearTotalRow({
   getFieldValue,
   onHideYear,
   isHidden,
+  rowRef,
 }: Props) {
   function defaultGetFieldValue(fieldName: keyof ProjectYearBudget['budgetItems']) {
     if (!formValues || !formValues[year]) return 0;
@@ -61,6 +67,7 @@ export function YearTotalRow({
 
   return (
     <TableRow
+      ref={rowRef}
       css={css`
         input {
           min-height: 28px;
