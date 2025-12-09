@@ -687,7 +687,7 @@ export const fi = {
   'workTable.rolesReport': 'Toimijaraportti',
   'workTable.investmentTypeListingReport': 'Investointiraportti',
   'workTable.reportDisabled': 'Ei hakutuloksia raportin lataamiseksi.',
-  'planningTable.amount': 'Arvio',
+  'planningTable.amount': 'Talousarvio',
   'planningTable.actual': 'Toteuma',
   'planningTable.nameHeader': 'Hankkeen/kohteen nimi',
   'planningTable.export.label': 'Suunnittelutaulukko',

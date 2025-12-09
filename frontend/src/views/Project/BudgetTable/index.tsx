@@ -396,6 +396,17 @@ const cellStyle = css`
   text-align: right;
 `;
 
+function projectObjectIsActiveInYear(projectObject: CommonDbProjectObject, year: number): boolean {
+  const startYear = Number(projectObject.startDate.slice(0, 4));
+  const endYear = Number(projectObject.endDate.slice(0, 4));
+
+  if (Number.isNaN(startYear) || Number.isNaN(endYear)) {
+    return true;
+  }
+
+  return year >= startYear && year <= endYear;
+}
+
 export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   const {
     years,
@@ -418,6 +429,15 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   });
   const [selectedObjectStages, setSelectedObjectStages] = useState<string[]>([]);
   const [hideZeroRows, setHideZeroRows] = useState(false);
+
+  const visibleYears = useMemo(() => {
+    const { start, end } = yearRange;
+    return years.filter((year) => {
+      const meetsStart = year >= start;
+      const meetsEnd = year <= end;
+      return meetsStart && meetsEnd;
+    });
+  }, [years, yearRange]);
 
   const availableObjectStages = useMemo(
     () =>
@@ -505,6 +525,67 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     projectObjectIds.join(','),
   ]);
 
+  // Pre-compute yearly actuals from project objects so that the "Actual" totals
+  // (both per-year and grand total) respect the same filters as the table
+  // (committees, object stages, year range).
+  const yearlyActualsFromObjects = useMemo(() => {
+    if (!props.projectObjects || props.projectObjects.length === 0) {
+      return null;
+    }
+
+    const result: YearlyActuals = [];
+
+    for (const year of visibleYears) {
+      const filteredProjectObjects = (props.projectObjects ?? [])
+        .filter((po) => projectObjectIsActiveInYear(po, year))
+        .filter((po) => {
+          // If no committees are used (maintenance projects), show all objects
+          if (!props.committees || props.committees.length === 0) {
+            return true;
+          }
+          // Otherwise filter by committee
+          return po.objectCommittee && selectedCommittees.includes(po.objectCommittee);
+        })
+        .filter(
+          (po) =>
+            selectedObjectStages.length === 0 ||
+            (po.objectStage && selectedObjectStages.includes(po.objectStage)),
+        );
+
+      if (filteredProjectObjects.length === 0) {
+        continue;
+      }
+
+      const totalForYear = filteredProjectObjects.reduce((sum, po) => {
+        const objectActuals = projectObjectActualsById.get(po.projectObjectId) ?? null;
+        if (!objectActuals) return sum;
+        const yearActual = objectActuals.find((a) => a.year === year)?.total ?? 0;
+        return sum + (yearActual || 0);
+      }, 0);
+
+      result.push({ year, total: totalForYear });
+    }
+
+    return result.length > 0 ? result : null;
+  }, [
+    visibleYears.join(','),
+    props.projectObjects
+      ? props.projectObjects
+          .map(
+            (po) =>
+              `${po.projectObjectId}-${po.objectCommittee ?? ''}-${po.objectStage ?? ''}-${
+                po.startDate
+              }-${po.endDate}`,
+          )
+          .join('|')
+      : '',
+    props.committees ? props.committees.join(',') : '',
+    selectedCommittees.join(','),
+    selectedObjectStages.join(','),
+    projectObjectActualsQueries.map((q) => q.dataUpdatedAt).join(','),
+    projectObjectIds.join(','),
+  ]);
+
   const projectObjectActualsLoadingById = useMemo(() => {
     const map = new Map<string, boolean>();
     projectObjectActualsQueries.forEach((q, idx) => {
@@ -515,14 +596,10 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     return map;
   }, [projectObjectActualsQueries.map((q) => q.fetchStatus).join(','), projectObjectIds.join(',')]);
 
-  const visibleYears = useMemo(() => {
-    const { start, end } = yearRange;
-    return years.filter((year) => {
-      const meetsStart = year >= start;
-      const meetsEnd = year <= end;
-      return meetsStart && meetsEnd;
-    });
-  }, [years, yearRange]);
+  // Track refs to the per-year total rows so we can scroll to the current year
+  // once data has been loaded.
+  const yearRowRefs = useRef<Record<number, HTMLTableRowElement | null>>({});
+
   const tr = useTranslations();
   const lockedYears = trpc.lockedYears.get.useQuery().data ?? [];
   const form = useForm<BudgetFormValues>({ mode: 'all', defaultValues: {} });
@@ -627,6 +704,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
    * react-hook-form deep-merge quirks with numeric keys.
    */
   const hasSeededProjectObjectsRef = useRef(false);
+  const [hasAutoScrolled, setHasAutoScrolled] = useState(false);
 
   useEffect(() => {
     if (hasSeededProjectObjectsRef.current) return;
@@ -677,6 +755,41 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
       };
     });
   }, [isDirty]);
+
+  // Consider data "loaded" for scrolling when:
+  // - the base project budget is present,
+  // - any project object budgets/actuals (if used) have finished loading, and
+  const objectDataLoaded =
+    !props.projectObjects ||
+    props.projectObjects.length === 0 ||
+    (projectObjectBudgetsLoaded &&
+      hasSeededProjectObjectsRef.current &&
+      projectObjectActualsQueries.every((q) => !q.isLoading && !q.isFetching));
+
+  const tableDataLoaded = objectDataLoaded && !props.actualsLoading;
+
+  useEffect(() => {
+    if (hasAutoScrolled) return;
+    if (!budget || years.length === 0) return;
+    if (!tableDataLoaded) return;
+
+    const timeoutId = window.setTimeout(() => {
+      const nowYear = new Date().getFullYear();
+      const targetYear = visibleYears.includes(nowYear)
+        ? nowYear
+        : visibleYears[visibleYears.length - 1];
+
+      const rowEl = yearRowRefs.current[targetYear];
+      if (rowEl) {
+        rowEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        setHasAutoScrolled(true);
+      }
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [budget, years.length, visibleYears.join(','), tableDataLoaded, hasAutoScrolled]);
 
   async function onSubmit(data: BudgetFormValues) {
     const projectBudget = formValuesToBudget(getDirtyValues(data), years);
@@ -1043,6 +1156,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                             // Compute yearly totals from the projectObjects subtree so filtering by
                             // objectStage and committee is reflected in the total line.
                             const filteredProjectObjects = (props.projectObjects ?? [])
+                              .filter((po) => projectObjectIsActiveInYear(po, year))
                               .filter((po) => {
                                 // If no committees are used (maintenance projects), show all objects
                                 if (!props.committees || props.committees.length === 0) {
@@ -1085,16 +1199,8 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                             };
 
                             const actualFromObjects =
-                              filteredProjectObjects.length > 0
-                                ? filteredProjectObjects.reduce((sum, po) => {
-                                    const objectActuals =
-                                      projectObjectActualsById.get(po.projectObjectId) ?? null;
-                                    if (!objectActuals) return sum;
-                                    const yearActual =
-                                      objectActuals.find((a) => a.year === year)?.total ?? 0;
-                                    return sum + (yearActual || 0);
-                                  }, 0)
-                                : null;
+                              yearlyActualsFromObjects?.find((entry) => entry.year === year)
+                                ?.total ?? null;
 
                             const actualsLoadingFromObjects = filteredProjectObjects.some((po) =>
                               projectObjectActualsLoadingById.get(po.projectObjectId),
@@ -1102,6 +1208,9 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
 
                             return (
                               <YearTotalRow
+                                rowRef={(el) => {
+                                  yearRowRefs.current[year] = el;
+                                }}
                                 actual={actualFromObjects}
                                 sapActual={
                                   props.actuals && 'yearlyActuals' in props.actuals
@@ -1137,6 +1246,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                           })()}
                           {props.projectObjects
                             ? props.projectObjects
+                                .filter((po) => projectObjectIsActiveInYear(po, year))
                                 .filter((po) => {
                                   // If no committees are used (maintenance projects), show all objects
                                   if (!props.committees || props.committees.length === 0) {
@@ -1209,14 +1319,24 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
 
                 <TotalRow
                   committeeColumnVisible={false /* disables padding */}
+                  // When project objects are present, derive the "Actual" total from
+                  // the per-object actuals that are currently visible under the
+                  // active filters (committees, stages, year range). Otherwise,
+                  // fall back to the aggregated project-level actuals.
                   actuals={
-                    props.actuals && 'byCommittee' in props.actuals
-                      ? props.actuals?.byCommittee?.filter((value) =>
-                          selectedCommittees.includes(value.committeeId),
-                        )
-                      : null
+                    props.projectObjects && yearlyActualsFromObjects
+                      ? yearlyActualsFromObjects
+                      : props.actuals && 'byCommittee' in props.actuals
+                        ? props.actuals?.byCommittee?.filter((value) =>
+                            selectedCommittees.includes(value.committeeId),
+                          )
+                        : null
                   }
-                  actualsLoading={Boolean(props.actualsLoading)}
+                  actualsLoading={
+                    props.projectObjects
+                      ? projectObjectActualsQueries.some((q) => q.isLoading || q.isFetching)
+                      : Boolean(props.actualsLoading)
+                  }
                   fields={
                     selectedCommittees.length === 1
                       ? fields.filter((f) => f !== 'committee')

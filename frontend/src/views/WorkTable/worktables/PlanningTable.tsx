@@ -1185,7 +1185,7 @@ function getColumns({
     columns.push({
       field: yearKey,
       headerName: `${year}`,
-      width: isPastOrCurrent ? 230 : 130,
+      width: isPastOrCurrent ? 240 : 130,
       headerAlign: 'center',
       headerClassName: 'year-column',
       renderHeader: () => (
@@ -1211,10 +1211,10 @@ function getColumns({
             <Box
               css={css`
                 display: flex;
-                width: 145px;
+                width: 190px;
                 justify-content: space-between;
-                font-size: 10px;
-                font-weight: 500;
+                font-size: 14px;
+                font-weight: 300;
                 opacity: 0.9;
               `}
             >
@@ -1225,7 +1225,7 @@ function getColumns({
             <Box
               css={css`
                 font-size: 10px;
-                font-weight: 500;
+                font-weight: 300;
                 opacity: 0.9;
               `}
             >
