@@ -396,6 +396,17 @@ const cellStyle = css`
   text-align: right;
 `;
 
+function projectObjectIsActiveInYear(projectObject: CommonDbProjectObject, year: number): boolean {
+  const startYear = Number(projectObject.startDate.slice(0, 4));
+  const endYear = Number(projectObject.endDate.slice(0, 4));
+
+  if (Number.isNaN(startYear) || Number.isNaN(endYear)) {
+    return true;
+  }
+
+  return year >= startYear && year <= endYear;
+}
+
 export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   const {
     years,
@@ -1043,6 +1054,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                             // Compute yearly totals from the projectObjects subtree so filtering by
                             // objectStage and committee is reflected in the total line.
                             const filteredProjectObjects = (props.projectObjects ?? [])
+                              .filter((po) => projectObjectIsActiveInYear(po, year))
                               .filter((po) => {
                                 // If no committees are used (maintenance projects), show all objects
                                 if (!props.committees || props.committees.length === 0) {
@@ -1137,6 +1149,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                           })()}
                           {props.projectObjects
                             ? props.projectObjects
+                                .filter((po) => projectObjectIsActiveInYear(po, year))
                                 .filter((po) => {
                                   // If no committees are used (maintenance projects), show all objects
                                   if (!props.committees || props.committees.length === 0) {
