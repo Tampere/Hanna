@@ -32,9 +32,6 @@ interface Props {
     formValues: BudgetFormValues,
     year: number,
   ) => number;
-  /**
-   * Optional ref to the underlying table row, used for scrolling.
-   */
   rowRef?: Ref<HTMLTableRowElement>;
 }
 
