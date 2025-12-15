@@ -310,28 +310,26 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
                   />
                 )
               ))}
-            {isNewItem &&
-              props.projectType !== 'asemakaavahanke' &&
-              !dirtyAndValidViews.map.isDirtyAndValid && (
-                <Alert
-                  css={css`
-                    padding: 0px 16px;
-                    height: min-content;
-                    align-items: center;
-                    & .MuiAlert-message {
-                      padding: 4px 0;
-                    }
-                    & .MuiAlert-icon {
-                      padding: 4px 0;
-                    }
-                  `}
-                  severity="info"
-                >
-                  {type === 'project'
-                    ? tr('newProject.infoNoGeom')
-                    : tr('projectObjectForm.infoNoGeom')}
-                </Alert>
-              )}
+            {isNewItem && !dirtyAndValidViews.map.isDirtyAndValid && (
+              <Alert
+                css={css`
+                  padding: 0px 16px;
+                  height: min-content;
+                  align-items: center;
+                  & .MuiAlert-message {
+                    padding: 4px 0;
+                  }
+                  & .MuiAlert-icon {
+                    padding: 4px 0;
+                  }
+                `}
+                severity="info"
+              >
+                {type === 'project'
+                  ? tr('newProject.infoNoGeom')
+                  : tr('projectObjectForm.infoNoGeom')}
+              </Alert>
+            )}
           </EditingFooter>
         )}
       </Box>

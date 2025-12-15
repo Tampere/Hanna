@@ -19,7 +19,6 @@ import {
 } from '@backend/components/sap/syncQueue.js';
 import syncQueueApi from '@backend/components/sap/syncQueueApi.js';
 import { ActualsService, ProjectInfoService } from '@backend/components/sap/webservice.js';
-import { setupDetailPlanGeomSyncQueue } from '@backend/components/taskQueue/detailPlanGeomSyncQueue.js';
 import { createDatabasePool, createPgPool } from '@backend/db.js';
 import { env } from '@backend/env.js';
 import { logger } from '@backend/logging.js';
@@ -32,9 +31,9 @@ import { setupBlanketContractReportQueue } from './components/sap/blanketContrac
 import { setupEnvironmentCodeReportQueue } from './components/sap/environmentCodeReportQueue.js';
 import { initializeTaskQueue } from './components/taskQueue/index.js';
 import { setupMailQueue } from './components/taskQueue/mailQueue.js';
+import { setupPlanningTableReportQueue } from './components/taskQueue/planningTableReportQueue.js';
 import { setupReportQueue } from './components/taskQueue/reportQueue.js';
 import { setupWorkTableReportQueue } from './components/taskQueue/workTableReportQueue.js';
-import { setupPlanningTableReportQueue } from './components/taskQueue/planningTableReportQueue.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -63,7 +62,6 @@ async function run() {
     env.enabledFeatures.sapSync ? setupDailySapSyncQueue() : null,
     env.enabledFeatures.sapSync ? setupEnvironmentCodeReportQueue() : null,
     env.enabledFeatures.sapSync ? setupBlanketContractReportQueue() : null,
-    setupDetailPlanGeomSyncQueue(),
     setupWorkTableReportQueue(),
     setupPlanningTableReportQueue(),
   ]);

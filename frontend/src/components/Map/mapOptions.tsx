@@ -157,27 +157,6 @@ export const mapOptions = {
       opacity: 1.0,
       attributions: [],
     },
-    {
-      id: 'asemakaava',
-      title: 'Asemakaava',
-      name: 'Asemakaava',
-      visible: true,
-      type: 'base',
-      options: {
-        protocol: 'wmts',
-        url: '/proxy/georaster/gwc/service/wmts?service=WMTS',
-        layer: 'georaster:ajantasa_asemakaava_EPSG_3067',
-        matrixSet: 'JHS',
-        projection: 'EPSG:3067',
-        format: 'image/png',
-        tileGridID: 'JHS',
-        tileSize: 256,
-        zoomLevels: 16,
-        zoomFactor: 2,
-      },
-      opacity: 1.0,
-      attributions: [],
-    },
   ] as WMTSLayer[],
   wfsLayers: [
     {

@@ -25,7 +25,6 @@ export const dbProjectSchema = upsertProjectSchema.extend({
   projectId: z.string(),
   geom: z.string().nullable(),
   projectType: z.enum(projectTypes),
-  detailplanId: z.number().nullable(),
   writeUsers: z.array(z.string()),
 });
 

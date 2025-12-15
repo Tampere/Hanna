@@ -61,13 +61,6 @@ function getLegendItems(
         />
       ),
     },
-    detailplanProject: {
-      legendIcon: (
-        <LayerLegendIcon
-          color={selectedColorCodes?.detailplanProject.stroke ?? colorPalette.projectClusterFill}
-        />
-      ),
-    },
   };
 }
 

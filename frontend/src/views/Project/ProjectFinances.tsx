@@ -21,8 +21,8 @@ type FinanceProjectObject = CommonDbProjectObject & {
 
 interface Props {
   project:
-    | { type: Omit<ProjectType, 'detailpanProject'>; data?: DbInvestmentProject | null }
-    | { type: Omit<ProjectType, 'detailpanProject'>; data?: DbMaintenanceProject | null };
+    | { type: ProjectType; data?: DbInvestmentProject | null }
+    | { type: ProjectType; data?: DbMaintenanceProject | null };
   editable?: boolean;
   writableFields?: BudgetField[];
   projectObjects?: FinanceProjectObject[];

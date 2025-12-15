@@ -27,9 +27,7 @@ export function ProjectDetails<TProject extends ProjectData>({
   const projectDetails =
     project.projectType === 'investmentProject'
       ? trpc.investmentProject.get.useQuery({ projectId: project.projectId })
-      : project.projectType === 'maintenanceProject'
-        ? trpc.maintenanceProject.get.useQuery({ projectId: project.projectId })
-        : trpc.detailplanProject.get.useQuery({ projectId: project.projectId });
+      : trpc.maintenanceProject.get.useQuery({ projectId: project.projectId });
 
   const lifecycleStateCodes = useCodes('KohteenElinkaarentila');
   const committeeCodes = useCodes('Lautakunta');

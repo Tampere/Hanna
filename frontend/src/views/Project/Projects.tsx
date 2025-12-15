@@ -50,7 +50,6 @@ export function Toolbar() {
   const canCreateProject =
     auth &&
     (hasPermission(auth, 'investmentProject.write') ||
-      hasPermission(auth, 'detailplanProject.write') ||
       hasPermission(auth, 'maintenanceProject.write'));
   return (
     <Box css={toolbarContainerStyle} className="toolbar-container">
@@ -115,7 +114,6 @@ const projectCardStyle = (highlighted: boolean) => css`
 `;
 
 const projectTypeRootUrl = {
-  detailplanProject: '/asemakaavahanke',
   investmentProject: '/investointihanke',
   maintenanceProject: '/kunnossapitohanke',
 };
@@ -149,18 +147,6 @@ function ProjectCard({
         >
           <Typography sx={{ lineHeight: '120%' }} variant="button">
             {result.projectName}
-            {result.detailplanId && (
-              <>
-                ,{' '}
-                <span
-                  css={css`
-                    color: #aaa;
-                  `}
-                >
-                  ({result.detailplanId})
-                </span>
-              </>
-            )}
           </Typography>
           <Typography sx={{ lineHeight: '120%' }} variant="overline">
             {dayjs(result.startDate).format(tr('date.format'))} –{' '}

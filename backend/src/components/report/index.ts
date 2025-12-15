@@ -5,7 +5,6 @@ import { logger } from '@backend/logging.js';
 import { ProjectSearch } from '@shared/schema/project/index.js';
 
 import { ReportColumnKey } from '../taskQueue/workTableReportQueue.js';
-import { buildDetailplanCatalogSheet } from './detailplanProject.js';
 import { buildInvestmentProjectReportSheet } from './investmentProject.js';
 import { buildMaintenanceProjectReportSheet } from './maintenanceProject.js';
 import { saveReportFile } from './report-file.js';
@@ -344,7 +343,6 @@ export async function buildReport(jobId: string, searchParams: ProjectSearch) {
     // Build each sheet in desired order
     await buildInvestmentProjectReportSheet(workbook, searchParams);
     await buildMaintenanceProjectReportSheet(workbook, searchParams);
-    await buildDetailplanCatalogSheet(workbook, searchParams);
 
     await saveReportFile(jobId, 'raportti.xlsx', workbook);
   } catch (error) {

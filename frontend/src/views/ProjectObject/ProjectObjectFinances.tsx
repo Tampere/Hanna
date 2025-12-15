@@ -13,7 +13,7 @@ import { CommonDbProjectObject } from '@shared/schema/projectObject/base';
 import { BudgetField, BudgetTable } from '../ProjectObject/BudgetTable';
 
 interface Props<TProjectObject extends CommonDbProjectObject & { committee?: string }> {
-  projectObject: { projectType: Omit<ProjectType, 'detailplanProject'>; data: TProjectObject };
+  projectObject: { projectType: ProjectType; data: TProjectObject };
   userIsFinanceEditor?: boolean;
   userIsEditor?: boolean;
   userCanWrite?: boolean;

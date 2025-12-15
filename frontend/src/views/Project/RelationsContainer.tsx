@@ -77,7 +77,6 @@ interface Props {
 }
 
 const projectUrlIdentifier = {
-  detailplanProject: 'asemakaavahanke',
   investmentProject: 'investointihanke',
   maintenanceProject: 'kunnossapitohanke',
 };

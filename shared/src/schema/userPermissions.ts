@@ -27,7 +27,6 @@ export function isAdmin(userRole: UserRole): boolean {
 
 export const ALL_PERMISSIONS = [
   'investmentProject.write',
-  'detailplanProject.write',
   'maintenanceProject.write',
   'investmentFinancials.write',
   'maintenanceFinancials.write',

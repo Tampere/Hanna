@@ -10,7 +10,6 @@ import { createJobRouter } from '@backend/router/job.js';
 import { createLockedYearsRouter } from '@backend/router/lockedYears.js';
 import { createPlanningRouter } from '@backend/router/planning.js';
 import { createProjectRouter } from '@backend/router/project/base.js';
-import { createDetailplanProjectRouter } from '@backend/router/project/detailplan.js';
 import { createInvestmentProjectRouter } from '@backend/router/project/investment.js';
 import { createMaintenanceProjectRouter } from '@backend/router/project/maintenance.js';
 import { createProjectObjectRouter } from '@backend/router/projectObject/base.js';
@@ -47,7 +46,6 @@ export const appRouter = t.router({
   project: createProjectRouter(t),
   investmentProject: createInvestmentProjectRouter(t),
   maintenanceProject: createMaintenanceProjectRouter(t),
-  detailplanProject: createDetailplanProjectRouter(t),
   projectObject: createProjectObjectRouter(t),
   investmentProjectObject: createInvestmentProjectObjectRouter(t),
   maintenanceProjectObject: createMaintenanceProjectObjectRouter(t),

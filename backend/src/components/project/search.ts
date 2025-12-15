@@ -115,8 +115,7 @@ function clusterResultsFragment(zoom: number | undefined) {
           ST_AsGeoJSON(ST_Centroid(ST_Collect(geom))) AS "clusterLocation",
           jsonb_build_object(
             'investmentProject', count(*) FILTER (WHERE ("projectType" = 'investmentProject')),
-      	    'maintenanceProject', count(*) FILTER (WHERE ("projectType" = 'maintenanceProject')),
-      	    'detailplanProject', count(*) FILTER (WHERE ("projectType" = 'detailplanProject'))
+      	    'maintenanceProject', count(*) FILTER (WHERE ("projectType" = 'maintenanceProject'))
       	  ) AS "projectDistribution"
         FROM projects
         WHERE geom IS NOT NULL
@@ -184,47 +183,6 @@ export function maintenanceProjectFragment(input: ProjectSearch) {
   `;
 }
 
-export function detailplanProjectFragment(input: ProjectSearch) {
-  const filters = input.filters.detailplanProject;
-  return sql.fragment`
-    SELECT
-      project_detailplan.id,
-      project_detailplan.detailplan_id AS "detailplanId",
-      'detailplanProject' AS "projectType"
-    FROM app.project_detailplan
-    WHERE ${
-      Object.keys(input.filters).length !== 0 && !filters
-        ? sql.fragment`false`
-        : sql.fragment`
-          ${
-            filters?.preparers && filters.preparers.length > 0
-              ? sql.fragment`project_detailplan.preparer = ANY(${sql.array(
-                  filters.preparers,
-                  'text',
-                )})`
-              : sql.fragment`true`
-          }
-          AND ${
-            filters?.planningZones && filters.planningZones.length > 0
-              ? sql.fragment`(project_detailplan.planning_zone).id = ANY(${sql.array(
-                  filters.planningZones,
-                  'text',
-                )})`
-              : sql.fragment`true`
-          }
-          AND ${
-            filters?.subtypes && filters.subtypes.length > 0
-              ? sql.fragment`(project_detailplan.subtype).id = ANY(${sql.array(
-                  filters.subtypes,
-                  'text',
-                )})`
-              : sql.fragment`true`
-          }
-        `
-    }
-  `;
-}
-
 export async function projectSearch(
   input: ProjectSearch,
   tx?: DatabaseTransactionConnection | null,
@@ -240,11 +198,10 @@ export async function projectSearch(
         project.id,
         project.project_name,
         ts_rank(
-          COALESCE(project.tsv, '') || COALESCE(project_detailplan.tsv, ''),
+          COALESCE(project.tsv, ''),
           to_tsquery('simple', ${textToTsSearchTerms(input.text)})
         ) AS tsrank
       FROM app.project
-      LEFT JOIN app.project_detailplan ON project.id = project_detailplan.id
       WHERE
         deleted = false AND ${getFilterFragment(input) ?? ''}
     ), all_projects AS (
@@ -260,8 +217,6 @@ export async function projectSearch(
       ${investmentProjectFragment(input)}
     ), maintenance_projects AS (
       ${maintenanceProjectFragment(input)}
-    ), detailplan_projects AS (
-      ${detailplanProjectFragment(input)}
     ), projects AS (
       SELECT
         filtered_projects.id,
@@ -272,15 +227,12 @@ export async function projectSearch(
         app.project.covers_entire_municipality AS "coversMunicipality",
         "tsrank",
         "name_similarity",
-        "detailplanId",
         geom,
         geohash
       FROM (
-        SELECT id, "projectType", NULL::int AS "detailplanId" from investment_projects
+        SELECT id, "projectType" from investment_projects
           UNION ALL
-        SELECT id, "projectType", NULL::int AS "detailplanId" from maintenance_projects
-          UNION ALL
-        SELECT id, "projectType", "detailplanId" from detailplan_projects
+        SELECT id, "projectType" from maintenance_projects
       ) AS filtered_projects
       INNER JOIN all_projects ON all_projects.id = filtered_projects.id
       INNER JOIN app.project ON app.project.id = filtered_projects.id
@@ -294,7 +246,6 @@ export async function projectSearch(
         "endDate",
         "projectName",
         "projectType",
-        "detailplanId",
         ${isClusterSearch ? sql.fragment`NULL` : sql.fragment`(geometries.geom)`} AS geom,
         "coversMunicipality"
       FROM projects
@@ -327,11 +278,6 @@ export async function listProjects(input: ProjectListParams) {
          ? sql.fragment`INNER JOIN app.project_maintenance ON project_maintenance.id = app.project.id`
          : sql.fragment``
      }
-    ${
-      input.projectType === 'detailplanProject'
-        ? sql.fragment`INNER JOIN app.project_detailplan ON project_detailplan.id = app.project.id`
-        : sql.fragment``
-    }
     WHERE deleted = false
     ORDER BY project_name ASC
   `);

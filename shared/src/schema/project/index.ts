@@ -53,13 +53,6 @@ export const projectSearchSchema = z.object({
         committees: z.array(z.string()).optional(),
       })
       .optional(),
-    detailplanProject: z
-      .object({
-        preparers: z.array(z.string()).optional(),
-        planningZones: z.array(z.string()).optional(),
-        subtypes: z.array(codeId).optional(),
-      })
-      .optional(),
   }),
   withProjectObjects: z.boolean().optional(),
   onlyCoversMunicipality: z.boolean(),
@@ -80,9 +73,7 @@ const projectObjectSearchParentProject = dbProjectSchema
 
 export const projectSearchResultSchema = z.object({
   projects: z.array(
-    projectObjectSearchParentProject.merge(
-      dbProjectSchema.pick({ detailplanId: true, coversMunicipality: true }),
-    ),
+    projectObjectSearchParentProject.merge(dbProjectSchema.pick({ coversMunicipality: true })),
   ),
   clusters: z.array(
     z.object({
