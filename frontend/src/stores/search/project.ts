@@ -55,10 +55,6 @@ export const investmentProjectFiltersAtom = focusAtom(filtersAtom, (o) =>
   o.prop('investmentProject'),
 );
 
-export const detailplanProjectFiltersAtom = focusAtom(filtersAtom, (o) =>
-  o.prop('detailplanProject'),
-);
-
 export const mapAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('map'));
 
 export const onlyCoversMunicipalityAtom = focusAtom(projectSearchParamAtom, (o) =>

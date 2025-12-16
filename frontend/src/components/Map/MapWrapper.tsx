@@ -46,7 +46,7 @@ export interface ProjectData {
   projectName: string;
   endDate: string;
   startDate: string;
-  projectType: 'investmentProject' | 'detailplanProject' | 'maintenanceProject';
+  projectType: 'investmentProject' | 'maintenanceProject';
   coversMunicipality: boolean;
 }
 

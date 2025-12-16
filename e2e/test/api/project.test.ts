@@ -85,7 +85,6 @@ test.describe('Project endpoints', () => {
           'investmentFinancials.write',
           'maintenanceProject.write',
           'maintenanceFinancials.write',
-          'detailplanProject.write',
         ],
       },
     ]);
@@ -494,25 +493,18 @@ test.describe('Project endpoints', () => {
   test('add project relation', async () => {
     const user = await devSession.client.user.self.query();
     const investmentProjectInput = validProject(user.id);
-    const detailplanProjectInput = {
-      ...validProject(user.id, 'Detailplan project'),
-      diaryId: 'diary',
-      preparer: user.id,
-      district: 'district',
-      blockName: 'blockName',
-      addressText: 'addressText',
-    };
+    const anotherProjectInput = validProject(user.id, 'Another project');
 
     const investmentProject = await devSession.client.investmentProject.upsert.mutate({
       project: investmentProjectInput,
     });
-    const detailplanProject = await devSession.client.detailplanProject.upsert.mutate({
-      project: detailplanProjectInput,
+    const anotherProject = await devSession.client.investmentProject.upsert.mutate({
+      project: anotherProjectInput,
     });
 
     await devSession.client.project.updateRelations.mutate({
       subjectProjectId: investmentProject.projectId,
-      objectProjectId: detailplanProject.projectId,
+      objectProjectId: anotherProject.projectId,
       relation: 'related',
     });
 
@@ -521,28 +513,21 @@ test.describe('Project endpoints', () => {
     });
     const relatedProject = relations.related[0];
 
-    expect(relatedProject.projectId).toBe(detailplanProject.projectId);
-    expect(relatedProject.projectName).toBe(detailplanProject.projectName);
-    expect(relatedProject.projectType).toBe('detailplanProject');
+    expect(relatedProject.projectId).toBe(anotherProject.projectId);
+    expect(relatedProject.projectName).toBe(anotherProject.projectName);
+    expect(relatedProject.projectType).toBe('investmentProject');
   });
 
   test('remove project relation', async () => {
     const user = await devSession.client.user.self.query();
     const investmentProjectInput = validProject(user.id);
-    const detailplanProjectInput = {
-      ...validProject(user.id, 'Detailplan project'),
-      diaryId: 'diary',
-      preparer: user.id,
-      district: 'district',
-      blockName: 'blockName',
-      addressText: 'addressText',
-    };
+    const anotherProjectInput = validProject(user.id, 'Another project');
 
     const investmentProject = await devSession.client.investmentProject.upsert.mutate({
       project: investmentProjectInput,
     });
-    const detailplanProject = await devSession.client.detailplanProject.upsert.mutate({
-      project: detailplanProjectInput,
+    const detailplanProject = await devSession.client.investmentProject.upsert.mutate({
+      project: anotherProjectInput,
     });
 
     await devSession.client.project.updateRelations.mutate({
@@ -621,11 +606,6 @@ test.describe('Project endpoints', () => {
 
     await expect(
       devSession.client.investmentProject.upsert.mutate({
-        project: projectInput,
-      }),
-    ).rejects.toThrowError();
-    await expect(
-      devSession.client.detailplanProject.upsert.mutate({
         project: projectInput,
       }),
     ).rejects.toThrowError();

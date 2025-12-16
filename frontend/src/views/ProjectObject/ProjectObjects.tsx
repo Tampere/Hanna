@@ -35,7 +35,6 @@ const projectObjectCardStyle = (highlighted: boolean) => css`
 `;
 
 const projectTypeRootUrl = {
-  detailplanProject: '/asemakaavahanke',
   investmentProject: '/investointihanke',
   maintenanceProject: '/kunnossapitohanke',
 };

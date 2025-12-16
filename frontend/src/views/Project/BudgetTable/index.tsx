@@ -212,7 +212,7 @@ interface Props {
   enableTooltips?: boolean;
   customTooltips?: Partial<Record<BudgetField, string>>;
   projectObjects?: BudgetTableProjectObject[];
-  projectType?: Omit<ProjectType, 'detailplanProject'>;
+  projectType?: ProjectType;
 }
 
 export type BudgetFormValues =

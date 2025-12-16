@@ -7,7 +7,7 @@ import { blockerStatusAtom } from '@frontend/stores/navigationBlocker';
 
 import { ConfirmDialog } from './dialogs/ConfirmDialog';
 
-const splitViewForms = ['investmentForm', 'maintenanceForm', 'detailplanForm', 'projectObjectForm'];
+const splitViewForms = ['investmentForm', 'maintenanceForm', 'projectObjectForm'];
 
 export function NavigationBlocker() {
   const tr = useTranslations();

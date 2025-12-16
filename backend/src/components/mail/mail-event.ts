@@ -1,9 +1,21 @@
+import { z } from 'zod';
+
 import { getPool, sql } from '@backend/db.js';
 
-import { detailplanNotificationMailEventSchema } from '@shared/schema/project/detailplan.js';
+const mailEventRowSchema = z.object({
+  id: z.string(),
+  sentAt: z.date(),
+  sentBy: z.string().nullable(),
+  templateName: z.string().nullable(),
+  to: z.array(z.string()),
+  cc: z.array(z.string()),
+  bcc: z.array(z.string()),
+  subject: z.string().nullable(),
+  html: z.string().nullable(),
+});
 
 export async function getMailEvents(projectId: string) {
-  return await getPool().any(sql.type(detailplanNotificationMailEventSchema)`
+  return await getPool().any(sql.type(mailEventRowSchema)`
     SELECT
       event.id,
       event.sent_at AS "sentAt",

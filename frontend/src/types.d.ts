@@ -5,4 +5,4 @@ declare module '@emotion/react' {
   export interface Theme extends MuiTheme {}
 }
 
-export type ProjectTypePath = 'investointihanke' | 'asemakaavahanke' | 'kunnossapitohanke';
+export type ProjectTypePath = 'investointihanke' | 'kunnossapitohanke';

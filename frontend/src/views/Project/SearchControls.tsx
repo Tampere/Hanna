@@ -49,7 +49,6 @@ import {
 import { isoDateFormat } from '@shared/date';
 
 import { SavedSearchFilters } from '../SavedSearchFilters';
-import { DetailplanProjectSearch } from './DetailplanProjectSearch';
 import { InvestmentProjectSearch } from './InvestmentProjectSearch';
 
 const searchControlContainerStyle = css`
@@ -120,17 +119,17 @@ export function SearchControls() {
   );
 
   function getExpandedHeight(baselineHeight: number) {
-    if (filters.investmentProject && filters.detailplanProject) {
+    if (filters.investmentProject) {
       return baselineHeight + 135;
     }
     return baselineHeight;
   }
 
   useEffect(() => {
-    if (expanded && !filters.detailplanProject && !filters.investmentProject) {
+    if (expanded && !filters.investmentProject) {
       setExpanded(false);
     }
-  }, [filters.detailplanProject, filters.investmentProject]);
+  }, [filters.investmentProject]);
 
   useEffect(() => {
     return () => {
@@ -162,7 +161,7 @@ export function SearchControls() {
     }
   }
 
-  const expandButtonVisible = isVisible && (filters.investmentProject || filters.detailplanProject);
+  const expandButtonVisible = isVisible && filters.investmentProject;
 
   return (
     <Box
@@ -336,12 +335,7 @@ export function SearchControls() {
                 labelPlacement="end"
               />
             </div>
-            {expanded && (
-              <>
-                {filters['investmentProject'] && <InvestmentProjectSearch />}
-                {filters['detailplanProject'] && <DetailplanProjectSearch />}
-              </>
-            )}
+            {expanded && <>{filters['investmentProject'] && <InvestmentProjectSearch />}</>}
           </Box>
         )}
       </Box>

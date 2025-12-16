@@ -10,8 +10,6 @@ import Style, { StyleFunction, StyleLike } from 'ol/style/Style';
 import Text from 'ol/style/Text';
 
 import { theme } from '@frontend/Layout';
-import detailplanClusterPointHover from '@frontend/assets/map/detailPlanClusterPointHover.png';
-import detailplanClusterPoint from '@frontend/assets/map/detailplanClusterPoint.png';
 import investmentClusterPoint from '@frontend/assets/map/investmentClusterPoint.png';
 import investmentClusterPointHover from '@frontend/assets/map/investmentClusterPointHover.png';
 import maintenanceClusterPoint from '@frontend/assets/map/maintenanceClusterPoint.png';
@@ -35,8 +33,6 @@ const _INVESTMENT_STROKE = 'rgba(40, 87, 20, 1)';
 const _INVESTMENT_FILL = 'rgba(40, 87, 20, 0.3)';
 const _MAINTENANCE_STROKE = 'rgba(38, 162, 145, 1)';
 const _MAINTENANCE_FILL = 'rgba(38, 162, 145, 0.3)';
-const _DETAILPLAN_STROKE = 'rgba(154, 154, 0, 1)';
-const _DETAILPLAN_FILL = 'rgba(154, 154, 0, 0.3)';
 
 export const VECTOR_LAYER_DEFAULT_Z_INDEX = 1;
 export const PROJECT_LAYER_Z_INDEX = 1;
@@ -50,19 +46,16 @@ export const SELECTION_LAYER_Z_INDEX = 7;
 export interface ProjectColorCodes {
   investmentProject: { stroke: string; fill: string };
   maintenanceProject: { stroke: string; fill: string };
-  detailplanProject: { stroke: string; fill: string };
 }
 
 export const projectColorCodes: ProjectColorCodes = {
   investmentProject: { stroke: _INVESTMENT_STROKE, fill: _INVESTMENT_FILL },
   maintenanceProject: { stroke: _MAINTENANCE_STROKE, fill: _MAINTENANCE_FILL },
-  detailplanProject: { stroke: _DETAILPLAN_STROKE, fill: _DETAILPLAN_FILL },
 };
 
 const projectAreaIndicators = {
   investmentProject: 'I',
   maintenanceProject: 'KP',
-  detailplanProject: 'A',
   project: 'H',
   projectObject: 'K',
 };
@@ -113,7 +106,6 @@ const CLUSTER_FILL = {
   projectObject: theme.palette.primary.main,
   investmentProject: _INVESTMENT_STROKE,
   maintenanceProject: _MAINTENANCE_STROKE,
-  detailplanProject: _DETAILPLAN_STROKE,
 };
 const CLUSTER_FONT = 'bold 18px sans-serif';
 const HOVERED_CLUSTER_FILL = {
@@ -121,7 +113,6 @@ const HOVERED_CLUSTER_FILL = {
   projectObject: '#A9B5C9',
   investmentProject: '#A9BCA1',
   maintenanceProject: '#A8DAD3',
-  detailplanProject: '#D7D799',
 };
 
 const iconSources = {
@@ -131,7 +122,6 @@ const iconSources = {
   selectedProjectObject: projectObjectClusterPointSelected,
   investmentProject: investmentClusterPoint,
   maintenanceProject: maintenanceClusterPoint,
-  detailplanProject: detailplanClusterPoint,
 };
 
 const hoveredIconSources = {
@@ -141,7 +131,6 @@ const hoveredIconSources = {
   selectedProjectObject: projectObjectClusterPointSelected,
   investmentProject: investmentClusterPointHover,
   maintenanceProject: maintenanceClusterPointHover,
-  detailplanProject: detailplanClusterPointHover,
 };
 
 const clusterIconStylesCache: Record<keyof typeof iconSources, Style[]> = {} as Record<

@@ -119,8 +119,6 @@ export function SelectionInfoBox<
       return '/kartta/kohteet';
     } else if (item.projectType === 'investmentProject') {
       return `/investointihanke/${item?.projectId}`;
-    } else if (item.projectType === 'detailplanProject') {
-      return `/asemakaavahanke/${item?.projectId}`;
     } else if (item.projectType === 'maintenanceProject') {
       return `/kunnossapitohanke/${item?.projectId}`;
     } else {

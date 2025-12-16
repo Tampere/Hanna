@@ -85,11 +85,7 @@ export function ProjectShiftView(props: Props) {
           padding-bottom: 0;
         `}
       >
-        <DialogContentText>
-          {props.projectType === 'asemakaavahanke'
-            ? tr('projectView.projectShiftDialogTextDetailplan')
-            : tr('projectView.projectShiftDialogText')}
-        </DialogContentText>
+        <DialogContentText>tr('projectView.projectShiftDialogText')</DialogContentText>
       </DialogContent>
       <DialogActions
         css={css`

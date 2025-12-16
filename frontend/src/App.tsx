@@ -17,7 +17,6 @@ import { Layout } from '@frontend/Layout';
 import { trpc } from '@frontend/client';
 import { asyncUserAtom, sessionExpiredAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
-import { DetailplanProject } from '@frontend/views/DetailplanProject/DetailplanProject';
 import { MaintenanceProject } from '@frontend/views/MaintenanceProject/MaintenanceProject';
 import { Management } from '@frontend/views/Management';
 import { Manual } from '@frontend/views/Manual/Manual';
@@ -71,8 +70,6 @@ const router = createBrowserRouter(
           path="kunnossapitohanke/:projectId/kohde/:projectObjectId"
           element={<ProjectObject projectType="kunnossapitohanke" />}
         />
-        <Route path="asemakaavahanke/luo" element={<DetailplanProject />} />
-        <Route path="asemakaavahanke/:projectId" element={<DetailplanProject />} />
 
         {import.meta.env.VITE_FEATURE_SAP_REPORTS === 'true' && (
           <Route path="sap-raportit/:tabView" element={<SapReports />} />

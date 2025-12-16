@@ -445,7 +445,7 @@ export function ProjectObject(props: Props) {
                       projectType:
                         props.projectType === 'investointihanke'
                           ? 'investmentProject'
-                          : 'maintenaceProject',
+                          : 'maintenanceProject',
                     }}
                   />
                 )}

@@ -52,12 +52,7 @@ export type VectorLayerKey =
   | 'urakka-alueet'
   | 'kaavatyot';
 
-export type BaseLayerKey =
-  | 'virastokartta'
-  | 'opaskartta'
-  | 'kantakartta'
-  | 'ilmakuva'
-  | 'asemakaava';
+export type BaseLayerKey = 'virastokartta' | 'opaskartta' | 'kantakartta' | 'ilmakuva';
 
 export const ALL_VECTOR_ITEM_LAYERS = [
   'projects',
@@ -104,10 +99,6 @@ const baseMapLayerErrorState = [
   },
   {
     id: 'ilmakuva' as const,
-    hasError: false,
-  },
-  {
-    id: 'asemakaava' as const,
     hasError: false,
   },
 ];

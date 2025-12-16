@@ -70,8 +70,7 @@ export function ModifyButton({
     (!isOwner && !canWrite) ||
     isSubmitting ||
     dirtyAndValidViews.finances.isDirtyAndValid ||
-    dirtyAndValidViews.permissions.isDirtyAndValid ||
-    projectType === 'asemakaavahanke';
+    dirtyAndValidViews.permissions.isDirtyAndValid;
 
   if (forProjectObject) {
     return (

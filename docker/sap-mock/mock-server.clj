@@ -24,7 +24,7 @@
   (nth seq (.nextInt *random* (count seq))))
 
 (defn generate-project-description [area]
-  (str area ", " (rand-nth ["yleiskaava" "kehitys" "asemakaava" "investointihanke" "ylläpito"])))
+  (str area ", " (rand-nth ["yleiskaava" "kehitys" "investointihanke" "ylläpito"])))
 
 (defn generate-random-name []
   {:last-name (rand-nth ["Mäkinen" "Nieminen"])

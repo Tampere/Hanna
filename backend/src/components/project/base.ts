@@ -133,12 +133,10 @@ export async function getProject(id: string) {
       covers_entire_municipality AS "coversMunicipality",
       CASE
         WHEN project_investment.id IS NOT NULL THEN 'investmentProject'
-        WHEN project_detailplan.id IS NOT NULL THEN 'detailplanProject'
         WHEN project_maintenance.id IS NOT NULL THEN 'maintenanceProject'
       END AS "projectType"
     FROM app.project
     LEFT JOIN app.project_investment ON project_investment.id = app.project.id
-    LEFT JOIN app.project_detailplan ON project_detailplan.id = app.project.id
     LEFT JOIN app.project_maintenance ON project_maintenance.id = app.project.id
     LEFT JOIN dump ON dump.id = app.project.id
     WHERE app.project.id = ${id}
