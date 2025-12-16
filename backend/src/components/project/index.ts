@@ -117,10 +117,15 @@ export async function getRelatedProjects(id: string) {
       relation,
       project.id AS "projectId",
       project_name AS "projectName",
-      CASE WHEN (pi.id IS NULL) THEN 'detailplanProject' ELSE 'investmentProject' END as "projectType"
+      CASE
+        WHEN (pi.id IS NOT NULL) THEN 'investmentProject'
+        WHEN (pm.id IS NOT NULL) THEN 'maintenanceProject'
+        ELSE 'investmentProject'
+      END as "projectType"
     FROM relations
     LEFT JOIN app.project ON "projectId" = project.id
     LEFT JOIN app.project_investment pi ON "projectId" = pi.id
+    LEFT JOIN app.project_maintenance pm ON "projectId" = pm.id
     WHERE deleted = false
   )
 

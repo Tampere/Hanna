@@ -7,30 +7,20 @@ import { fileURLToPath } from 'url';
 import { getPool, sql } from '@backend/db.js';
 import { env } from '@backend/env.js';
 
-import { DbDetailplanProject } from '@shared/schema/project/detailplan.js';
 import { User } from '@shared/schema/user.js';
 import { coerceArray } from '@shared/utils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-interface Template<Name extends string, Parameters extends Record<string, any>> {
-  template: {
-    name: Name;
-    parameters: Parameters;
-  };
-}
-
 export type Mail = {
   to: string | string[];
   cc?: string | string[];
   bcc?: string | string[];
-} & Template<
-  'new-detailplan-project' | 'update-detailplan-project',
-  DbDetailplanProject & {
-    projectPageUrl: string;
-    signatureFrom: string;
-  }
->;
+  template: {
+    name: string;
+    parameters: Record<string, any>;
+  };
+};
 
 const transport = createTransport({
   host: env.email.host,
