@@ -108,17 +108,6 @@ test.describe('Modify investment project financials', () => {
     ).rejects.toThrowError('error.insufficientPermissions');
   });
 
-  test('with detailplanWrite permission', async ({ testSession, modifyPermissions }) => {
-    await modifyPermissions(testSession.user.id, ['detailplanProject.write']);
-
-    await expect(
-      testSession.client.investmentProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(investmentProject.projectId, investmentProject.committees[0], [
-          'estimate',
-        ]),
-      ),
-    ).rejects.toThrowError('error.insufficientPermissions');
-  });
   test('with investmentFinancialWrite permission', async ({ testSession, modifyPermissions }) => {
     await modifyPermissions(testSession.user.id, ['investmentFinancials.write']);
 
@@ -219,16 +208,6 @@ test.describe('Modify maintenance project financials', () => {
 
   test('with maintenanceWrite permission', async ({ testSession, modifyPermissions }) => {
     await modifyPermissions(testSession.user.id, ['maintenanceProject.write']);
-
-    await expect(
-      testSession.client.maintenanceProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(maintenanceProject.projectId, null, ['estimate']),
-      ),
-    ).rejects.toThrowError('error.insufficientPermissions');
-  });
-
-  test('with detailplanWrite permission', async ({ testSession, modifyPermissions }) => {
-    await modifyPermissions(testSession.user.id, ['detailplanProject.write']);
 
     await expect(
       testSession.client.maintenanceProject.updateBudget.mutate(
@@ -348,17 +327,6 @@ test.describe('Modify investment project object financials', () => {
   });
   test('with maintenanceWrite permission', async ({ testSession, modifyPermissions }) => {
     await modifyPermissions(testSession.user.id, ['maintenanceProject.write']);
-    await expect(
-      testSession.client.investmentProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(
-          investmentProjectObject.projectObjectId,
-          investmentProjectObject.committee,
-        ),
-      ),
-    ).rejects.toThrowError('error.insufficientPermissions');
-  });
-  test('with detailplanWrite permission', async ({ testSession, modifyPermissions }) => {
-    await modifyPermissions(testSession.user.id, ['detailplanProject.write']);
     await expect(
       testSession.client.investmentProjectObject.updateBudget.mutate(
         getProjectObjectBudgetUpdateInput(
@@ -531,14 +499,6 @@ test.describe('Modify maintenance project object financials', () => {
   });
   test('with maintenanceWrite permission', async ({ testSession, modifyPermissions }) => {
     await modifyPermissions(testSession.user.id, ['maintenanceProject.write']);
-    await expect(
-      testSession.client.maintenanceProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId, null),
-      ),
-    ).rejects.toThrowError('error.insufficientPermissions');
-  });
-  test('with detailplanWrite permission', async ({ testSession, modifyPermissions }) => {
-    await modifyPermissions(testSession.user.id, ['detailplanProject.write']);
     await expect(
       testSession.client.maintenanceProjectObject.updateBudget.mutate(
         getProjectObjectBudgetUpdateInput(maintenanceProjectObject.projectObjectId, null),

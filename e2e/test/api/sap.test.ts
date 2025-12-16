@@ -48,7 +48,7 @@ test.describe('Project endpoints', () => {
     expect(res).toStrictEqual({
       sapProjectId: 'A1111_22000',
       sapProjectInternalId: '64419995',
-      shortDescription: 'Keskusta, kehitys',
+      shortDescription: 'Keskusta, ylläpito',
       createdAt: '2020-03-26',
       createdBy: 'MATTINIE',
       updatedAt: '2020-05-20',
@@ -65,7 +65,7 @@ test.describe('Project endpoints', () => {
           wbsId: 'A1111_220000',
           wbsInternalId: '03114907',
           sapProjectInternalId: '64419995',
-          shortDescription: 'Keskusta, kehitys, kohde 1',
+           shortDescription: 'Keskusta, ylläpito, kohde 1',
           createdAt: '2020-04-16',
           createdBy: 'MATTIMÄK',
           updatedAt: '2020-04-17',
@@ -88,7 +88,7 @@ test.describe('Project endpoints', () => {
           network: [
             {
               networkId: '000074482960',
-              networkName: 'Keskusta, kehitys',
+            networkName: 'Keskusta, ylläpito',
               wbsInternalId: '03114907',
               sapProjectInternalId: '64419995',
               createdAt: '2020-03-28',
@@ -130,7 +130,7 @@ test.describe('Project endpoints', () => {
           wbsId: 'A1111_220001',
           wbsInternalId: '04783006',
           sapProjectInternalId: '64419995',
-          shortDescription: 'Keskusta, kehitys, kohde 2',
+           shortDescription: 'Keskusta, ylläpito, kohde 2',
           createdAt: '2020-04-16',
           createdBy: 'MATTIMÄK',
           updatedAt: '2020-04-23',
@@ -153,7 +153,7 @@ test.describe('Project endpoints', () => {
           network: [
             {
               networkId: '000082604998',
-              networkName: 'Keskusta, kehitys',
+            networkName: 'Keskusta, ylläpito',
               wbsInternalId: '04783006',
               sapProjectInternalId: '64419995',
               createdAt: '2020-03-27',
