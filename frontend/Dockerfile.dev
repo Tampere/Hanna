@@ -28,9 +28,9 @@ EXPOSE 8080
 WORKDIR /app/frontend
 
 # CI: Pre-build the bundle
-RUN if [[ -n "$CI" ]]; then npm run build; fi
+RUN if [ -n "$CI" ]; then npm run build; fi
 
 USER node
 
 # CI: Run via preview, otherwise run via dev (with HMR)
-CMD if [[ -n "$CI" ]]; then npm run preview; else npm run dev; fi
+CMD if [ -n "$CI" ]; then npm run preview; else npm run dev; fi
