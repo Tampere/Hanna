@@ -1,6 +1,13 @@
 import { Configuration, default as Provider } from 'oidc-provider';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createMockAccount, findAccount } from './accounts';
-import users from './users.json' assert { type: 'json' };
+
+// Node.js v24 moved away from `import ... assert { type: 'json' }`.
+// Use filesystem loading to keep this container compatible across Node versions.
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const users = JSON.parse(readFileSync(join(__dirname, 'users.json'), 'utf8')) as any[];
 
 const config: Configuration = {
   clients: [
