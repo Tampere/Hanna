@@ -731,6 +731,7 @@ export const fi = {
     'Suodatinvalintaa on muutettu. Päivitä suodatin tallentaaksesi uuden valinnan.',
   'savedSearchFilter.nameReserved': 'Suodattimen nimi on jo käytössä',
   'email.subject': 'Aihe',
+  'userSelect.deletedUser': 'Käyttäjä poistettu',
   sapActualsOnHover: 'SAP-toteuma',
   move: 'Siirrä',
   send: 'Lähetä',
