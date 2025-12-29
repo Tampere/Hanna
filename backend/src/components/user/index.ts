@@ -28,7 +28,7 @@ export async function getAllNonExtUsers() {
     ${userSelectFragment}
     ${
       env?.displayExtUsers
-        ? sql.fragment``
+        ? sql.fragment`WHERE deleted = false`
         : sql.fragment`WHERE email NOT LIKE '%ext%' AND deleted = false`
     }
     ORDER BY name ASC
