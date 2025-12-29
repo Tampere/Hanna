@@ -317,6 +317,7 @@ export async function getProjectUserPermissions(projectId: string, withAdmins: b
       ? sql.fragment``
       : sql.fragment`WHERE p.owner = u.id OR (u.role IS NULL OR u.role <> 'Hanna.Admin')`
   }
+  WHERE u.deleted = false
   ORDER BY CASE
             WHEN u.id = p.owner THEN 1
             WHEN COALESCE(pp.can_write, false) = true THEN 2

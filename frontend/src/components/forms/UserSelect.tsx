@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 
 import { trpc } from '@frontend/client';
+import { useTranslations } from '@frontend/stores/lang';
 
 import type { User } from '@shared/schema/user';
 
@@ -26,11 +27,12 @@ type Props = {
 );
 
 export function UserSelect(props: Props) {
+  const tr = useTranslations();
   const { id, readOnly, onBlur, multiple, value, onChange, maxTags } = props;
   const users = trpc.user.getAllNonExt.useQuery();
 
   function getUser(userId: string) {
-    return users.data?.find((user) => user.id === userId);
+    return users.data?.find((user) => user.id === userId) || tr('userSelect.deletedUser');
   }
 
   const selection = useMemo(() => {

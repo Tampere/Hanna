@@ -26,7 +26,11 @@ export async function getAllUsers() {
 export async function getAllNonExtUsers() {
   const users = await getPool().many(sql.type(userSchema)`
     ${userSelectFragment}
-    ${env?.displayExtUsers ? sql.fragment`` : sql.fragment`WHERE email NOT LIKE '%ext%'`}
+    ${
+      env?.displayExtUsers
+        ? sql.fragment``
+        : sql.fragment`WHERE email NOT LIKE '%ext%' AND deleted = false`
+    }
     ORDER BY name ASC
   `);
   return users;
@@ -49,7 +53,7 @@ export async function searchUsers(userName: string) {
     COALESCE(("role" = 'Hanna.Admin'), false) AS "isAdmin",
     permissions
   FROM app.user
-  WHERE name ILIKE ${'%' + userName + '%'}`);
+  WHERE name ILIKE ${'%' + userName + '%'} AND DELETED = false`);
 }
 
 export async function getSavedSearchFilters(userId: string, filterType: FilterType) {
