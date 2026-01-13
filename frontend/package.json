@@ -4,7 +4,7 @@
   "description": "Tampere Hanna Frontend",
   "main": "dist/main.js",
   "engines": {
-    "node": "18.20.4"
+    "node": "20.19.6"
   },
   "type": "module",
   "scripts": {

@@ -5,7 +5,7 @@
 ###
 # Base image declaration
 ###
-FROM node:18.20.4-alpine AS base
+FROM node:20.19.6-alpine AS base
 
 ENV APPDIR /app
 
