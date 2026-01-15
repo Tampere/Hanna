@@ -27,10 +27,6 @@
   - [Aluerajauksen piirto](#aluerajauksen-piirto)
   - [Hankkeiden liittyminen toisiinsa](#hankkeiden-liittyminen-toisiinsa)
 - [Hanketyypit](#hanketyypit)
-  - [Asemakaavahanke](#asemakaavahanke)
-    - [Yleistä asemakaavahankkeesta](#yleistä-asemakaavahankkeesta)
-    - [Asemakaavahankkeen tietosisältö](#asemakaavahankkeen-tietosisältö)
-    - [Tiedottaminen](#tiedottaminen)
   - [Investointihanke](#investointihanke)
     - [Yleistä investointihankkeesta](#yleistä-investointihankkeesta)
     - [Investointihankkeen tietosisältö](#investointihankkeen-tietosisältö)
@@ -46,7 +42,8 @@
       - [Kunnossapitokohteen tietosisältö](#kunnossapitokohteen-tietosisältö)
       - [Kunnossapitokohteen toimijat](#kunnossapitokohteen-toimijat)
     - [Taloussuunnittelu ja -seuranta kunnossapitohankkeella](#taloussuunnittelu-ja--seuranta-kunnossapitohankkeella)
-- [Investointiohjelmointinäkymä](#investointiohjelmointinäkymä)
+- [Investointiohjelmointi-näkymä](#investointiohjelmointi-näkymä)
+- [Investointien taloussuunnittelu-näkymä](#investointien-taloussuunnittelu-näkymä)
 - [SAP-raportit näkymä](#sap-raportit-näkymä)
   - [Yleistä SAP-raporteista](#yleistä-sap-raporteista)
   - [Ympäristökoodit](#ympäristökoodit)
@@ -74,12 +71,7 @@ Tässä kappaleessa on listattu kaupungin muut tietojärjestelmät, joiden kanss
 ## SAP
 Hanna lukee SAP:sta projektien tietoja sekä niiden tositteita. Toistaiseksi tietojen luku tapahtuu yksisuuntaisesti, eli SAP ei vastavuoroisesti hae tietoa Hannasta tai ota kantaa Hannan hankkeisiin. Hannasta käsin ei myöskään toistaiseksi ole mahdollista päivittää tietoja suoraan SAP:iin. Hanna hakee kaikki SAP:n projektit ja niiden tositteet kerran vuorokaudessa yöaikaan ja tallentaa ne omaan tietokantaansa, josta ne esitetään käyttöliittymässä. SAP:iin toteutetut muutokset ilmenevät näin ollen Hannassa yleensä päivän viiveellä.
 
-Projektien ja tositteiden haku SAP:sta on rajattu seuraaviin yrityksiin.
 
-- 1110 (KAPA)
-- 1350 (KITIA)
-- 1540 (ELOSA)
-- TODO: ONKO KAIKKI?
 
 ## Geoserver
 Paikkatietojen osalta Hanna hyödyntää kaupungin olemassaolevia aineistoja ja rajapintoja. Geoserveriltä haetaan erilaisia taustakartta-aineistoja (opaskartta, asemakaava, virastokartta...), rekisterikohteita (kiinteistöt, kadut...) sekä aluerajauksia (tilastoalueet). Saatavilla olevia aineistoja on mahdollista lisätä tarpeen mukaan.
@@ -96,7 +88,7 @@ Kartta on Hannan laskeutumissivu. Siellä käyttäjä voi tarkastella hankkeita,
 2. Käyttäjä voi luoda itselleen joukon pikasuodattimia vaihdellakseen nopeasti eri hanke-kohde-joukkojen välillä. Hanke- ja kohdevälilehdillä on omat pikasuodattimensa.
 3. Eri haut mahdollistavat suodattimet sijaitsevat tässä. Niiden joukko vaihtuu sen mukaan, onko valittuna hanke- vai kohdekartta.
 4. Hakutulokset näkyvät tässä. Klikkaamalla hakutulosta siirryt hanke- tai kohdesivulle. Kohdekartan puolella haun palauttamat kohteet on ryhmitelty hankkeittain ja niiden omaisuusluokat sekä laji (suunnittelu/rakentaminen) on tuotu ilmi ikonein.
-5. Hankkeet tai kohteet voi viedä Excel-taulukkotiedostoon painikkeesta "lataa raportti". Tiedostoon tulevat viedyksi vain aktiivisen haun mukaiset hankkeet/kohteet. Jos hanketyyppejä on valittuna useita, viedään ne tiedostossa omille välilehdilleen. Asemakaavahankkeista viedään taulukkotiedostoon vain osa tietokentistä perustuen mallina käytettyyn asemakaavaluetteloon.
+5. Hankkeet tai kohteet voi viedä Excel-taulukkotiedostoon painikkeesta "lataa raportti". Tiedostoon tulevat viedyksi vain aktiivisen haun mukaiset hankkeet/kohteet. Jos hanketyyppejä on valittuna useita, viedään ne tiedostossa omille välilehdilleen.
 6. Hankkeiden visualisointityyliä voi vaihtaa karttaikkunan vasemmasta yläkulmasta löytyvästä alasvetovalikosta.
 7. Karttaikkuna, jolla näytetään joko hankkeita tai kohteita riippuen valinnasta kohdassa yksi. Piirtotapa on riippuvainen siitä, kuinka etäältä karttaa katsotaan. Kuvassa hankkeiden sijainnit ovat esitetty kootusti kuvanmukaisilla numeroiduilla pallosymboleilla, jotka tarkentuvat lähentäessä karttaan. Myös karttaikkuna toimii hakusuodattimena.
 8. Perusta uusi hanke (tai kohde, jos kohdekartta valittuna).
@@ -118,7 +110,7 @@ Uusia kohteita voi perustaa karttasivun kohteet-välilehdeltä, hankesivuilta ja
 ## Hakujen tekeminen
 Hankkeita voi hakea seuraavilla ehdoilla.
 
-- Vapaa tekstihaku, joka kohdistuu nimeen, kuvaukseen sekä kaavanumeroon (jos kyseessä on asemakaavahanke)
+- Vapaa tekstihaku, joka kohdistuu nimeen, kuvaukseen
 - Hakuaikaväli (tarkistaa, leikkaako asetettu aikaväli hankkeen alku- ja loppupäivämäärän väliä)
 - Elinkaaren tila
 - Hanketyyppi
@@ -162,7 +154,6 @@ Pääkäyttäjä ei voi poistaa toisen pääkäyttäjän oikeuksia, vaan ne luet
 
 ![Pääkäyttäjän luvitusnäkymä](/images/paakayttajan_luvitusnakyma.png)<br/>
 _Pääkäyttäjän luvitusnäkymä näyttää tältä. Peruskäyttäjiltä kyseinen sivu puuttuu kokonaan. Muut pääkäyttäjät ilmenevät harmaina, eikä heidän oikeuksiaan pääse muokkaamaan._
-TODO: PÄIVITÄ KUVA!
 
 ## Lukuoikeus
 Jokaisella Hannaan pääsevällä käyttäjällä on oikeus lukea koko hankejoukkoa, joka Hannaan on avattu. Tämä koskee myös SAP:n rajapinnan yli haettuja talous- ja projektitietoja (huomioi erityisesti [SAP-raportit -näkymä](#sap-raportit-näkymä)). Toistaiseksi Hanna-sovelluksen käyttöön on kuitenkin luvitettu vain Tampereen kaupunkiorganisaatioon kuuluvia henkilöitä.
@@ -242,7 +233,7 @@ _Kuvassa hankkeelle on osoitettu yksi alahanke._
 
 # Hanketyypit
 
-Hannan hankkeet jakautuvat kolmeen eri tyyppiin, jotka ovat investointihanke, asemakaavahanke ja kunnossapitohanke. Niiden tarkempi tietosisältö ja piirteet on kuvattu alla.
+Hannan hankkeet jakautuvat kahteen eri tyyppiin, jotka ovat investointihanke ja kunnossapitohanke. Niiden tarkempi tietosisältö ja piirteet on kuvattu alla.
 
 ## Investointihanke
 
@@ -324,7 +315,7 @@ Vaihe on kohteeseen kohdistuva työvaihe, josta syntyy jokin konkreettinen tulos
 ### Taloussuunnittelu ja -seuranta investointihankkeella
 Hankkeen ja sen kohteiden Talous-välilehdillä on mahdollista tarkastella ja kirjata niille vuosikohtainen kustannusarvio, talousarvio, sopimushinta, ennuste ja käyttösuunnitelman muutos. Lisäksi samaan näkymään luetaan SAP:sta toteuma, jos sellainen on tarjolla. Toteuman esittämisen ehtona on, että hankkeelle on asetettu SAP-projektin ID sekä kohteelle SAP-rakenneosa. Hankkeen Talous-välilehdelle esitetään ensisijaisena tietona kohteilta summattu toteuma ja toisisijaisena SAP-projektin toteuma, joka avautuu kun käyttäjä vie hiiren Toteuma-sarakkeessa näkyvän sinisen "palkin" päälle. Talous-välilehdelle näkyvien vuosikohtaisten rivien lukumäärä johdetaan automaattisesti kohteelle annetusta toteutusvälistä (alku- ja loppuajankohta). Luvut esittävät aina euroja, ja ne esitetään kahden desimaalin tarkkuudella. **Kaikki talousluvut kirjataan kohdetasolla, joista käsin ne koostetaan tiedoksi hankkeelle.**
 
-![monilautakuntaisen_investointihankkeen_talousvälilehti](/images/monilautakuntainen_talousvalilehti.png) TODO: PÄIVITÄ
+![monilautakuntaisen_investointihankkeen_talousvälilehti](/images/monilautakuntainen_talousvalilehti.png)
 
 _Yllä olevassa kuvassa on esitetty talousvälilehti investointihankkeelle, jolle on yksilöity kaksi lautakuntaa: yhdyskuntalautakunta ja asunto- ja kiinteistölautakunta. Vuosikohtaiset talousrivit on eritelty niin, että jokaiselle lautakunnalle on omansa. Luvut on summattu alhaalla. Hankkeella ainoastaan kustannusarviokenttä on muokattavissa._
 
@@ -403,7 +394,7 @@ Kunnossapitohankkeen ja sen kohteiden taloussuunnittelu vastaa investointihankke
 # Investointiohjelmointi-näkymä
 
 ![Investointiohjelmointi](/images/investointiohjelmointi.png)
-TODO: PÄIVITÄ KUVA
+
 
 Investointiohjelmointi-näkymä on tarkoitettu vuosikohtaisen investointiohjelman rakentamiseen, sen seuraamiseen ja hallinnointiin. Kyseinen näkymä muodostuu taulukosta, joka listaa **investointihankkeiden kohteita**. Näkymään voi siirtyä päänavigointipalkista käsin. Näkymä helpottaa suuren kohdejoukon hallinnoimista kerralla ja kokonaiskuvan muodostumista.
 
@@ -440,15 +431,17 @@ Alla on kuvattu näkymään liittyvät toiminnallisuudet yllä olevan kuvan nume
 
 # Investointien taloussuunnittelu-näkymä
 
+![Investointien taloussuunnittelu](/images/investointien_taloussuunnittelu_nakyma.png)
+
 Investointien taloussuunnittelu-näkymä on tarkoitettu pidemmän aikavälin investointien suunnitteluun sekä investointien seuraamiseen ja hallinnointiin. Näkymä muodostuu taulukosta, joka listaa **investointihankkeiden kohteita**.  Näkymä mahdollistaa eri vuosien kustannuskertymien seurannan sekä talousarvion lukujen muokkaamisen usealle vuodelle samassa näkymässä. Näkymä on luotu erityisesti PALM:n ja kehitysohjelmien pitkän aikavälin suunnittelua varten.
 
 Taulukko rakentuu seuraavalla tavalla:
 
 - Investointihankkeiden nimet vihreällä värillä. Investointihankkeille kuuluvat kohteet mustalla värillä.
-- Taulukko sisältää sekä toteuma-, että talouarvio-sarakkeita vuosittain jaoteltuna. Toteuma on saatavilla vain kuluvalle vuodelle sekä menneille vuosille.
+- Taulukko sisältää sekä toteuma-, että talouarvio-sarakkeita vuosittain jaoteltuna. Toteuma on saatavilla vain kuluvalle vuodelle sekä menneille vuosille. Hankeriveillä esitetyt luvat on summattu kohteilta, eikä niitä tästä syystä voi muokata.
 - Taulukossa voi muokata talousarvion lukuja, mikäli käyttäjällä on tarvittavat oikeudet siihen eikä talousarvion lukuja ole lukittu pääkäyttäjän toimesta. Muokattavissa olevat talousarvio-solut ovat väriltään valkoisia ja lukitut solut on harmaita.
 
-Taulukkoon liittyvät toiminnallisuudet toimivat vastaavalla tavalla kuin Investointiohjelmointi-sivulla.
+Taulukkoon liittyvät toiminnallisuudet, kuten rivien suodatus, toimivat vastaavalla tavalla kuin Investointiohjelmointi-sivulla (ks. yllä oleva ohje).
 
 # SAP-raportit näkymä
 
