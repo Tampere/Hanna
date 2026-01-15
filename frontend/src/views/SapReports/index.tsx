@@ -91,11 +91,6 @@ export function SapReports() {
           </Typography>
         )}
       </Tabs>
-      <Alert severity="warning">
-        Taloustiimin käyttämät SAP-raportit on julkaistu. Teknisistä syistä johtuen raportit on
-        julkaistu, vaikka niiden testaaminen on vielä kesken. Mikäli raporteista on kysyttävää, ole
-        yhteydessä Jaana Turuseen.
-      </Alert>
       {tabView === 'ymparistokoodit' && <EnvironmentalCodeReport />}
       {tabView === 'puitesopimukset' && <BlanketContractReport />}
     </Box>

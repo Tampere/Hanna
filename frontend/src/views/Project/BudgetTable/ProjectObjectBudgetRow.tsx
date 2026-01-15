@@ -76,25 +76,39 @@ export function ProjectObjectBudgetRow({
             }
           `}
         >
-          {projectObject.objectName ?? '–'}
-          {projectObject.objectCommittee && (
-            <MutedCommitteeChip
-              label={getCommitteeAbbreviation(projectObject.objectCommittee ?? '')}
-              chipColor={committeeColor}
-            />
-          )}
           <Box
             css={css`
-              padding-top: 4px;
-              vertical-align: middle;
-              display: inline-block;
+              display: inline-flex;
+              flex-wrap: wrap;
+              align-items: center;
+              column-gap: 8px; /* space between name and the chip+icon group */
+              row-gap: 2px;
             `}
           >
-            {projectObject.objectStage && (
-              <ObjectStageIcon
-                title={getObjectStageTextById(projectObject.objectStage)}
-                id={projectObject.objectStage}
-              />
+            <span>{projectObject.objectName ?? '–'}</span>
+
+            {(projectObject.objectCommittee || projectObject.objectStage) && (
+              <Box
+                css={css`
+                  display: inline-flex;
+                  align-items: center;
+                  column-gap: 6px;
+                  flex-shrink: 0;
+                `}
+              >
+                {projectObject.objectCommittee && (
+                  <MutedCommitteeChip
+                    label={getCommitteeAbbreviation(projectObject.objectCommittee ?? '')}
+                    chipColor={committeeColor}
+                  />
+                )}
+                {projectObject.objectStage && (
+                  <ObjectStageIcon
+                    title={getObjectStageTextById(projectObject.objectStage)}
+                    id={projectObject.objectStage}
+                  />
+                )}
+              </Box>
             )}
           </Box>
         </TableCell>
