@@ -12,7 +12,7 @@ on:
     types: [released]
 
 env:
-  NODE_VERSION: 18.20.4
+  NODE_VERSION: 20.19.6
   IMAGE_NAME: ${{ secrets.REGISTRY_ADDRESS }}/hanna
   APP_VERSION: ${{ github.event_name == 'release' && github.event.release.name || format('build {0}', github.sha) }}
   VITE_FEATURE_SAP_REPORTS: 'true'
@@ -83,7 +83,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: ./e2e/package-lock.json
       - run: npm i
