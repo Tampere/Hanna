@@ -1,11 +1,13 @@
 import { createTRPCProxyClient } from '@trpc/client';
 import { httpLink } from '@trpc/client/links/httpLink';
 import { Agent } from 'https';
-import nodeFetch, { RequestInit } from 'node-fetch';
+import nodeFetch from 'node-fetch';
 import { setDefaultResultOrder } from 'node:dns';
-import { Cookie, Page } from 'playwright';
 import superjson from 'superjson';
 
+import type { RequestInit } from 'node-fetch';
+
+import type { Cookie, Page } from 'playwright';
 import type { AppRouter } from '../../backend/src/router/index.js';
 
 // In Node version >= 17 localhost is resolved with IPv6 rather than IPv4 - revert this back to normal to make Caddy work properly

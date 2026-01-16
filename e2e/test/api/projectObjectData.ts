@@ -1,4 +1,4 @@
-import { User } from '@shared/schema/user.js';
+import type { User } from '@shared/schema/user.js';
 
 type ObjectType = 'investment' | 'maintenance';
 

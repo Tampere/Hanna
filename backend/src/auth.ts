@@ -127,36 +127,46 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
   });
 
   // Logout route
-  fastify.get('/logout', (req, res) => {
-    req.session.destroy((error) => {
-      if (error) logger.error(error);
+  fastify.get('/logout', async (req, res) => {
+    return new Promise<void>((resolve) => {
+      req.session.destroy((error) => {
+        if (error) logger.error(error);
 
-      if (req.session) {
-        req
-          .logOut()
-          .then(() => res.redirect(env.auth.logoutUrl))
-          .catch((error) => {
-            logger.info(`Error logging out, ${error}`);
-          });
-      }
-      res.redirect(env.auth.logoutUrl);
+        if (req.session) {
+          req
+            .logOut()
+            .then(() => {
+              res.redirect(env.auth.logoutUrl);
+              resolve();
+            })
+            .catch((error) => {
+              logger.info(`Error logging out, ${error}`);
+              res.redirect(env.auth.logoutUrl);
+              resolve();
+            });
+        } else {
+          res.redirect(env.auth.logoutUrl);
+          resolve();
+        }
+      });
     });
   });
 
   fastify.get(
     opts.oidcOpts.loginPath,
-    function (req: FastifyRequest<{ Querystring: { redirect?: string } }>, res) {
+    async function (req: FastifyRequest<{ Querystring: { redirect?: string } }>, res) {
       // Store the redirect URL in session data
       if (req.query.redirect) {
         req.session.set('redirectUrl', req.query.redirect);
       }
 
-      return fastifyPassport.authenticate('oidc').call(fastify, req, res);
+      await fastifyPassport.authenticate('oidc').call(this, req, res);
+      return res;
     },
   );
 
-  fastify.get(opts.oidcOpts.callbackPath, (req, res) => {
-    fastifyPassport
+  fastify.get(opts.oidcOpts.callbackPath, async function (req, res) {
+    await fastifyPassport
       .authenticate('oidc', async (req, res, error, user) => {
         // Get redirect url here because the session is cleared after login
         const redirectPath = req.session.get('redirectUrl') ?? '/';
@@ -173,6 +183,7 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
         // Redirect to the original URL if one was found from session, otherwise to the home page
         return res.redirect(redirectPath);
       })
-      .call(fastify, req, res);
+      .call(this, req, res);
+    return res;
   });
 }

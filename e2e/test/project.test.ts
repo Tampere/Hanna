@@ -1,10 +1,12 @@
-import { Page, expect } from '@playwright/test';
+import type { Page } from 'playwright';
+import { expect } from '@playwright/test';
 import { fillDatePickerValue, getDatePickerValue } from '@utils/date-picker.js';
 import { clearData } from '@utils/db.js';
-import { DEV_USER, UserSessionObject } from '@utils/users.js';
+import { DEV_USER } from '@utils/users.js';
 import { test } from 'utils/fixtures.js';
 
 import type { InvestmentProject } from '@shared/schema/project/investment.js';
+import type { UserSessionObject } from '@utils/users.js';
 
 const keskustoriGeom = {
   type: 'Polygon',

@@ -2,9 +2,10 @@ import { expect } from '@playwright/test';
 import { clearData } from '@utils/db.js';
 import { test } from '@utils/fixtures.js';
 import { getNewSession, login } from '@utils/page.js';
-import { DEV_USER, TEST_USER, TEST_USER_2, UserSessionObject } from '@utils/users.js';
+import { DEV_USER, TEST_USER, TEST_USER_2 } from '@utils/users.js';
 
-import { User } from '@shared/schema/user.js';
+import type { User } from '@shared/schema/user.js';
+import type { UserSessionObject } from '@utils/users.js';
 
 function makePoint(lon: number, lat: number, srid: string) {
   return [

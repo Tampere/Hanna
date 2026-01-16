@@ -126,7 +126,7 @@ export const fi = {
   'maintenanceProject.poNumberTooltip': 'Syötä ostotilausnumero.',
   'maintenanceProject.ongoing': 'Käynnissä toistaiseksi',
   'newProject.projectNameTooltip':
-    'Hankkeen nimi on yksilöllinen ja kuvaa alueellista kokonaisuutta. Kaava-aluetta kuvaavassa nimessä mainitaan kaavan numero. Uutta hanketta luotaessa on varmistettava, ettei hanketta ole jo perustettu.',
+    'Hankkeen nimi on yksilöllinen ja kuvaa alueellista kokonaisuutta. Uutta hanketta luotaessa on varmistettava, ettei hanketta ole jo perustettu.',
   'newProject.projectNameErrorTooltip': 'Syötä hankkeen nimi',
   'newProject.descriptionTooltip':
     'Hankkeen kuvaukseen kirjataan lyhyesti hankkeen sisältö ja mahdolliset perustelut sekä alueelliset tavoitteet.',
