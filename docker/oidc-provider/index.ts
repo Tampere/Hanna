@@ -1,6 +1,6 @@
 import { Configuration, default as Provider } from 'oidc-provider';
 import { createMockAccount, findAccount } from './accounts';
-import users from './users.json' assert { type: 'json' };
+import users from './users.json' with { type: 'json' };
 
 const config: Configuration = {
   clients: [

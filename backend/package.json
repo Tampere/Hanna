@@ -4,7 +4,7 @@
   "description": "Tampere Hanna Backend",
   "main": "src/app.ts",
   "engines": {
-    "node": "18.20.4"
+    "node": "24.12.0"
   },
   "type": "module",
   "scripts": {
@@ -50,14 +50,14 @@
     "vitest": "^2.1.9"
   },
   "dependencies": {
-    "@fastify/compress": "^7.0.3",
-    "@fastify/cookie": "^9.4.0",
-    "@fastify/formbody": "^7.4.0",
-    "@fastify/http-proxy": "^9.5.0",
-    "@fastify/passport": "^2.5.0",
-    "@fastify/sensible": "^5.6.0",
-    "@fastify/session": "^10.9.0",
-    "@fastify/static": "^7.0.4",
+    "@fastify/compress": "^8.3.1",
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/formbody": "^8.0.2",
+    "@fastify/http-proxy": "^11.4.1",
+    "@fastify/passport": "^3.0.2",
+    "@fastify/sensible": "^6.0.4",
+    "@fastify/session": "^11.1.1",
+    "@fastify/static": "^9.0.0",
     "@trpc/client": "^10.45.2",
     "@trpc/server": "^10.45.2",
     "axios": "^1.8.4",
@@ -67,7 +67,7 @@
     "email-templates": "^12.0.2",
     "excel4node": "^1.8.2",
     "fast-json-stable-stringify": "^2.1.0",
-    "fastify": "^4.29.0",
+    "fastify": "^5.7.1",
     "nodemailer": "^6.10.0",
     "openid-client": "^5.7.1",
     "pg-boss": "^9.0.3",

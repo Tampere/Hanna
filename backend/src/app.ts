@@ -67,7 +67,7 @@ async function run() {
   ]);
   // https://github.com/fastify/fastify/issues/4960
   const server = fastify({
-    logger: logger as FastifyBaseLogger,
+    loggerInstance: logger as FastifyBaseLogger,
     trustProxy: 1,
     bodyLimit: 1024 * 1024 * 7.5, // 7,5 MiB, roughly 5MiB with base64 overhead
   });
