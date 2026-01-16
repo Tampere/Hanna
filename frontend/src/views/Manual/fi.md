@@ -453,14 +453,7 @@ SAP-raportit sisältää kaksi taulukkoa, joista toinen tarjoaa tietoa ympärist
 
 SAP:a mukaillen on menot esitetty positiivisina lukuina ja tulot negatiivisina. Toteuma on näiden summa. Taulukon yläpuolella on summarivi, johon johdetut luvut muodostuvat taulukossa näkyvistä riveistä.
 
-Muista, että SAP:sta haettavat tiedot on rajattu yrityksiin:
-
-- 1110 (KAPA)
-- 1350 (KITIA)
-- 1540 (ELOSA)
-TODO: ONKO KATTAVA?
-
-Haettavista tositteista taas on rajattu pois seuraavat:
+Haettavista tositteista on rajattu pois seuraavat:
 
 - Käyttöomaisuuskirjaukset (laji: AA)
 - Lajiltaan tyhjät tositteet
