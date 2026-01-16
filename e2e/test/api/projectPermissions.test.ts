@@ -4,7 +4,7 @@ import { clearData } from '@utils/db.js';
 import { test } from '@utils/fixtures.js';
 import { ADMIN_USER, DEV_USER, TEST_USER } from '@utils/users.js';
 
-import { User } from '@shared/schema/userPermissions.js';
+import type { User } from '@shared/schema/userPermissions.js';
 
 const validProject = (userId: string) => ({
   projectName: 'Test project',

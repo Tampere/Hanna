@@ -1,5 +1,5 @@
-import { Browser, Page } from 'playwright';
-import { expect } from 'playwright/test';
+import { expect } from '@playwright/test';
+import type { Browser, Page } from 'playwright';
 
 import { createTRPCClient } from './trpc.js';
 

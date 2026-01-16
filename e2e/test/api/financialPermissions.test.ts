@@ -1,11 +1,11 @@
 import { clearProjectPermissions } from '@utils/db.js';
-import { expect } from 'playwright/test';
-import { test } from 'utils/fixtures.js';
+import { expect } from '@playwright/test';
+import { test } from '@utils/fixtures.js';
 
-import { ProjectYearBudget } from '@shared/schema/project/index.js';
-import { BudgetUpdate as ProjectBudgetUpdate } from '@shared/schema/project/index.js';
-import { YearBudget as ObjectYearBudget } from '@shared/schema/projectObject/base.js';
-import { BudgetUpdate as ProjectObjectBudgetUpdate } from '@shared/schema/projectObject/base.js';
+import type { ProjectYearBudget } from '@shared/schema/project/index.js';
+import type { BudgetUpdate as ProjectBudgetUpdate } from '@shared/schema/project/index.js';
+import type { YearBudget as ObjectYearBudget } from '@shared/schema/projectObject/base.js';
+import type { BudgetUpdate as ProjectObjectBudgetUpdate } from '@shared/schema/projectObject/base.js';
 
 import {
   testInvestmentProject,

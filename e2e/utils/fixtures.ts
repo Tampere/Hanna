@@ -1,9 +1,10 @@
-import { Browser, Page, test as base } from '@playwright/test';
+import type { Browser, Page } from 'playwright';
+import { test as base } from '@playwright/test';
 import { getNewSession, login } from '@utils/page.js';
 import { ADMIN_USER, DEV_USER, TEST_USER, clearUserPermissions } from '@utils/users.js';
 
-import { User } from '@shared/schema/user.js';
-import { User as AuthUser } from '@shared/schema/userPermissions.js';
+import type { User } from '@shared/schema/user.js';
+import type { User as AuthUser } from '@shared/schema/userPermissions.js';
 
 interface SessionFixtures {
   devSession: Session;

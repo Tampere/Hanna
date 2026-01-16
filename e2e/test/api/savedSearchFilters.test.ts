@@ -1,9 +1,9 @@
 import { clearUserSavedSearchFilters } from '@utils/db.js';
 import { test } from '@utils/fixtures.js';
 import { TEST_USER } from '@utils/users.js';
-import { expect } from 'playwright/test';
+import { expect } from '@playwright/test';
 
-import { UserSavedSearchFilter } from '@shared/schema/userSavedSearchFilters.js';
+import type { UserSavedSearchFilter } from '@shared/schema/userSavedSearchFilters.js';
 
 const projectSearchFilter: Omit<UserSavedSearchFilter, 'projectObjectSearch' | 'worktableSearch'> =
   {
