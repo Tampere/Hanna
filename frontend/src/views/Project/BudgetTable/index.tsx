@@ -1324,13 +1324,13 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                   // active filters (committees, stages, year range). Otherwise,
                   // fall back to the aggregated project-level actuals.
                   actuals={
-                    props.projectObjects && yearlyActualsFromObjects
-                      ? yearlyActualsFromObjects
+                    props.projectObjects
+                      ? yearlyActualsFromObjects ?? []
                       : props.actuals && 'byCommittee' in props.actuals
-                        ? props.actuals?.byCommittee?.filter((value) =>
-                            selectedCommittees.includes(value.committeeId),
-                          )
-                        : null
+                          ? props.actuals?.byCommittee?.filter((value) =>
+                              selectedCommittees.includes(value.committeeId),
+                            )
+                          : null
                   }
                   actualsLoading={
                     props.projectObjects
