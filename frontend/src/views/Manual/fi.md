@@ -51,14 +51,14 @@
 - [Yrityksien ja heidän yhteyshenkilöiden hallinta](#yrityksien-ja-heidän-yhteyshenkilöiden-hallinta)
 
 # Yleistä
-Hanna on Tampereen kaupungin maankäytön suunnittelun ja toteuttamisen hanketietojärjestelmä. Se tarjoaa mahdollisuuden perustaa, investointien ja kunnossapidon hankkeita, suunnitella niiden taloutta ja seurata niiden taloustoteumaa. Hannan rooli korostuu erityisesti hankesuunnittelussa: Millaisia hankkeita ja millaisella budjetilla toteutetaan vuoden, kolmen tai esimerkiksi viidentoista vuoden päästä.
+Hanna on Tampereen kaupungin maankäytön suunnittelun ja toteuttamisen hanketietojärjestelmä. Se tarjoaa mahdollisuuden perustaa investointien ja kunnossapidon hankkeita, suunnitella niiden taloutta ja seurata niiden taloustoteumaa. Hannan rooli korostuu erityisesti hankesuunnittelussa: Millaisia hankkeita ja millaisella budjetilla toteutetaan vuoden, kolmen tai esimerkiksi viidentoista vuoden päästä.
 
 Hannan käyttöä laajennetaan käyttäjäryhmä kerrallaan. Kehitys on aloitettu vuonna 2022. Kehittäjänä ja ylläpitäjänä toimii Ubigu Oy.
 
 # Järjestelmän tuki
 Lähitukea tarjoaa Patrick Hanska ([patrick.hanska@tampere.fi](mailto:patrick.hanska@tampere.fi)). Patrick vastaa myös käyttäjien luvittamisesta sovelluksen käyttöön. Hannalla on myös oma Teams -ryhmä, jossa järjestelmän käytöstä ja kehityksestä voi keskustella muiden käyttäjien ja kehittäjien kesken.
 
-Virhetilanteista ja bugeista viestiä voi lähettää myös suoraan kehittäjille osoitteeseen [tuki@ubigu.fi](mailto:tuki@ubigu.fi).
+Virhetilanteista ja bugeista viestitään Patrick Hanskalle, joka on yhteydessä Hannan kehittäjään bugien korjaamiseksi.
 
 # Testi- ja tuotantojärjestelmä
 Hannasta on olemassa kaksi eri järjestelmää. Testijärjestelmä toimii osoitteessa [tre-hanna-test.azurewebsites.net](https://tre-hanna-test.azurewebsites.net/). Siellä käyttäjät voivat kokeilla Hannan toiminnallisuuksia ilman huolta järjestelmän rikkoutumisesta tai tuotantokäytön häiriintymisestä. Varsinainen käyttö tapahtuu tuotantojärjestelmässä osoitteessa [hanna.tampere.fi](https://hanna.tampere.fi).
@@ -70,8 +70,6 @@ Tässä kappaleessa on listattu kaupungin muut tietojärjestelmät, joiden kanss
 
 ## SAP
 Hanna lukee SAP:sta projektien tietoja sekä niiden tositteita. Toistaiseksi tietojen luku tapahtuu yksisuuntaisesti, eli SAP ei vastavuoroisesti hae tietoa Hannasta tai ota kantaa Hannan hankkeisiin. Hannasta käsin ei myöskään toistaiseksi ole mahdollista päivittää tietoja suoraan SAP:iin. Hanna hakee kaikki SAP:n projektit ja niiden tositteet kerran vuorokaudessa yöaikaan ja tallentaa ne omaan tietokantaansa, josta ne esitetään käyttöliittymässä. SAP:iin toteutetut muutokset ilmenevät näin ollen Hannassa yleensä päivän viiveellä.
-
-
 
 ## Geoserver
 Paikkatietojen osalta Hanna hyödyntää kaupungin olemassaolevia aineistoja ja rajapintoja. Geoserveriltä haetaan erilaisia taustakartta-aineistoja (opaskartta, asemakaava, virastokartta...), rekisterikohteita (kiinteistöt, kadut...) sekä aluerajauksia (tilastoalueet). Saatavilla olevia aineistoja on mahdollista lisätä tarpeen mukaan.
@@ -128,9 +126,9 @@ Kohteita voi hakea seuraavilla ehdoilla.
 - Rakennuttaja
 - Suunnitteluttaja
 
-Jos hakuehtoja on useampia, niiden kaikkien pitää toteutua, jotta hanke tai kohde ilmestyy hakutuloksiin. Hankkeita hakiessa, jos käyttäjä yksittäisen hanketyypin, ilmestyy hakusuodattimien yhteyteen valinta _näytä lisää hakuehtoja_. Sen takaa avautuvasta osiosta käyttäjä voi vielä tarkentaa hakua hanketyypille ominaisilla tiedoilla.
+Jos hakuehtoja on useampia, niiden kaikkien pitää toteutua, jotta hanke tai kohde ilmestyy hakutuloksiin. Hankkeita hakiessa, jos käyttäjä yksittäisen hanketyypin, ilmestyy hakusuodattimien yhteyteen valinta _Näytä hanketyyppikohtaiset suodattimet_. Sen takaa avautuvasta osiosta käyttäjä voi vielä tarkentaa hakua hanketyypille ominaisilla tiedoilla.
 
-Myös itse karttaikkuna toimii suodattimena. Hakutuloksiin ilmestyvät oletuksena myös hankkeet tai kohteet, joilta puuttuu aluerajaus. Käyttäjä voi painaa riippuen valitusta välilehdestä painiketta _vain sijaintitiedon sisältävät hankkeet_ tai painiketta _vain sijaintitiedon sisältävät kohteet_ jättääkseen hakutuloksista pois geometriattomat hankkeet tai kohteet. Lisäksi tarjolla on painike, jolla hakutuloksiin saa nopeasti tuotua vain koko kunnan aluetta koskevat hankkeet. Kohteiden puolelta löytyy vielä painike, jolla saat valituksi vain omat kohteet. Oma kohde tarkoittaa kohdetta, jossa käyttäjälle on osoitettu kohteella jokin toimijarooli (esim. rakennuttaja, suunnitteluttaja tai valvoja).
+Myös itse karttaikkuna toimii suodattimena. Hakutuloksiin ilmestyvät oletuksena myös hankkeet tai kohteet, joilta puuttuu aluerajaus. Käyttäjä voi painaa, riippuen valitusta välilehdestä, painiketta _vain sijaintitiedon sisältävät hankkeet_ tai painiketta _vain sijaintitiedon sisältävät kohteet_ jättääkseen hakutuloksista pois geometriattomat hankkeet tai kohteet. Lisäksi tarjolla on painike, jolla hakutuloksiin saa nopeasti tuotua vain koko kunnan aluetta koskevat hankkeet. Kohteiden puolelta löytyy vielä painike, jolla saat valituksi vain omat kohteet. Oma kohde tarkoittaa kohdetta, jossa käyttäjälle on osoitettu kohteella jokin toimijarooli (esim. rakennuttaja, suunnitteluttaja tai valvoja).
 
 Käyttäjillä on myös mahdollisuus luoda omia pikasuodattimia. Pikasuodattimien lukumäärää ei ole rajattu. Ne sallivat käyttäjän vaihdella nopeasti eri hakujen välillä. Toisistaan erilliset pikasuodattimet löytyvät hankekartalta, kohdekartalta sekä investointiohjelmoinnin näkymästä. Jokaiselle pikasuodattimelle tulee antaa nimi, eikä kaksi pikasuodatinta saa omata samaa nimeä samalla sivulla.
 
@@ -177,19 +175,19 @@ Muokatakseen investointi- ja/tai kunnossapitohankkeiden talousarvioita tai käyt
 Hankesivu on hankkeen koko tietosisällön yhteenkokoava paikka.
 
 ## Hankkeen tietojen syöttö ja muokkaaminen
-Perustaakseen uuden hankkeen käyttäjän on täytettävä sen tietoihin vähintään pakolliset kentät. Pakolliset tietokentät on merkitty käyttöliittymässä tähtikuviolla ("\*"). Investointihankkeen tarkempi tietosisältö ja sen merkitys on kuvattu [täällä](#investointihankkeen-tietosisältö) ja kunnossapitohankkeen [täällä](#kunnossapitohanke).
+Perustaakseen uuden hankkeen käyttäjän on täytettävä sen tietoihin vähintään pakolliset kentät. Pakolliset tietokentät on merkitty käyttöliittymässä tähtikuviolla ("\*"). Investointihankkeen tarkempi tietosisältö ja sen merkitys on kuvattu [täällä](#Investointihankkeen-tietosisältö) ja kunnossapitohankkeen [täällä](#kunnossapitohanke).
 
 Hankkeen perustamisen jälkeen sen tietoja voi edelleen muokata valitsemalla muokkaa-painikkeen sivun oikeassa yläkulmassa. Muokattujenkin tietojen tulee sisältää aina vähintään pakolliset tietosisällöt, jotta muokkausten tallentaminen on mahdollista. Jokainen muokkaus luo Hannan tietokantaan uuden version hankkeesta. Sen osana tallentuu tieto siitä, kuka muokkauksen on tehnyt, milloin se on toteutunut ja mitä tarkalleen on muokattu. Käyttäjät eivät toistaiseksi pysty palauttamaan käyttöliittymästä käsin hankkeen aiempia versioita, mutta Hannan kehittäjät pystyvät siihen tarvittaessa. Toistaiseksi hankkeen historia- ja versiotietoja ei esitetä käyttöliittymässä. Muokkauksen ajaksi välilehdet menevät piiloon. Halutessasi muokata esimerkiksi hankkeen taloutta mene suoraan kyseiselle välilehdelle ja valitse haluttu kenttä.
 
 Käyttäjän perustettua hankkeen se saa uniikin tunnisteen. Tämä tunniste on nähtävissä internetselaimen osoitekentässä käyttäjän avatessa hankkeen sivun. Hankkeen jakaminen toiselle Hannaan luvitellu käyttäjälle on mahdollista kopioimalla selaimen osoitekentän sisältö ja jakamalla se esimerkiksi sähköpostitse.
 
-Hankesivulta löytyy lisäksi joitakin hanketyyppikohtaisia toimintoja. Investointi- ja kunnossapitohankkeilla tämä käsittää seuraavat:
+Hankesivulta löytyy lisäksi joitakin toimintoja, jotka eroavat hanketyyppikohtaisesti. Investointi- ja kunnossapitohankkeilla tämä käsittää seuraavat:
 
-- Kohteiden perustaminen (lue lisää kohteista [täällä](#kohteet))
-- Talouden hallinta ([lue lisää](#talous))
+- Kohteiden perustaminen (lue lisää investostointihankkeen kohteista [täällä](#Investointikohteet) ja kunnossapitohankkeen kohteista [täällä](#Kunnossapitokohteet))
+- Talouden hallinta (Lue lisää investointihankkeiden osalta [täältä](#Taloussuunnittelu-ja--seuranta-investointihankkeella) ja kunnossapitohankkeiden osalta [täältä](#Taloussuunnittelu-ja--seuranta-kunnossapitohankkeella))
 - Sidoshankkeiden osoittaminen ([lue lisää](#hankkeiden-liittyminen-toisiinsa))
 
-Lisäksi investointihankkeelle löytyy toiminnallisuus, jolla sen voi aloitusvuotta voi aikaistaa tai myöhentää. Toiminnallisuus on toteutettu erityisesti sellaisia hankkeita, joilla on jo joukko kohteita ja talouslukuja, silmällä pitäen. Toiminnallisuus löytyy muokkaa-painikkeen yhteydessä sijaisevasta alasvetovalikosta.
+Lisäksi investointihankkeelle löytyy toiminnallisuus, jolla sen aloitusvuotta voi aikaistaa tai myöhentää. Toiminnallisuus on toteutettu silmällä pitäen sellaisia hankkeita, joilla on jo joukko kohteita ja talouslukuja. Toiminnallisuus löytyy muokkaa-painikkeen yhteydessä sijaisevasta alasvetovalikosta.
 
 ## Hankkeen poistaminen
 
@@ -197,7 +195,7 @@ Hankkeen poistaminen on mahdollista vain sen omistajan ja pääkäyttäjän toim
 
 Perustetun hankkeen voi poistaa hankesivulta käsin valitsemalla Poista hanke tietolomakkeen alaosasta. Ennen poistamista Hanna vielä kysyy varmistuksen käyttäjältä. Poistamisen jälkeen hanketta ei enää pysty palauttamaan käyttöliittymästä käsin. Hankkeen tiedot kuitenkin tosiasiallisesti arkistoituvat Hannan tietokantaan, josta käsin Hannan kehittäjät voivat tarpeen mukaan palauttaa hankkeen.
 
-Investointihankkeiden poistamisen osalta on tärkeää huomioida se, että samalla poistuvat hankkeelle mahdollisesti kirjatut kohteet ja tehtävät.
+Hankkeiden poistamisen osalta on tärkeää huomioida se, että samalla poistuvat hankkeelle mahdollisesti kirjatut kohteet ja tehtävät.
 
 ## Aluerajauksen piirto
 
@@ -206,14 +204,14 @@ Investoinnin ja kunnossapidon hankkeille ja kohteille voi halutessaan piirtää 
 1. **Luo alue:** Jokainen hiiren vasemman painallus luo aluerajaukseen yhden solmupisteen. Käyttäjän tulee luoda vähintään kolme solmupistettä. Voit viimeistellä piirtämäsi alueen luomalla viimeisen solmupisteen kaksoispainalluksella, jolloin alue ilmestyy kartalle. Muista tallentaa muutoksesi lopuksi. Kohteille voi osoittaa myös pistemuotoisen geometrian.
 2. **Valitse alue tai piste:** Painikkeen avulla voit valita yhden tai useamman piirtämäsi alueen, pisteen tai rajapinnalta haetun Tampereen paikkatietokohteen. Valinta korostetaan keltaisella. Pitämällä vaihtopainiketta (shift) pohjassa, voit valita samalla useamman alueen tai pisteen.
 3. **Käytä kohdealueena:** Voit valita aiemmin luoduista hanke-, kohde- tai kaupungin rajapinnan geometrioista haluamasi ja kopioida niiden geometrian hankkeelle tai kohteelle.
-4. **Jäljitä valittuja alueita:** Jos käyttäjällä on aktiivinen valinta päällä, voi hän tämän toiminnon valitsemalla piirtää pitkin valitsemansa kohteen ulkorajaa. Toiminnon tarkoitus on helpottaa aluerajauksen piirtoa tilanteessa, jossa hankkeen tai kohteen aluerajaus vastaa kokonaan tai osittain esimerkiksi kiinteistöä. Valittuasi toiminnon vie hiiren kursori valitun kohteen ulkoreunan lähelle, jolloin se kiinnittyy siihen. Painamalla ensimmäisen kerran tulee luoduksi ensimmäinen solmupiste, jonka jälkeen voit seurata hiirellä kohteen ulkoreunaa, kunnes pääset haluttuun kohtaan tai kierrettyä koko kohteen. Lopeta jäljitys painamalla uusi solmupiste, jonka jälkeen voit joko tallentaa alueen tai jatkaa piirto jäljitetyn alueen ulkopuolella.
-5. **Tyhjennä valinta:** Tyhjentää käyttäjän valintatyökalulla valitsemat alueet.
-6. **Muokkaa valittuja alueita:** Tällä painikkeella käyttäjä voi muokata valitun alueen solmupisteitä. Tarttumalla hiirellä halutusta kohtaa valitun alueen ulkoreunaa ja päästämällä irti halutussa kohtaa alueen muotoa voi muokata. Toistaiseksi ei ole mahdollista poistaa jo olemassaolevia solmupisteitä, vaan ainoastaan luoda uusia.
+4. **Jäljitä valittuja alueita:** Jos käyttäjällä on aktiivinen valinta päällä, voi hän tämän toiminnon valitsemalla piirtää pitkin valitsemansa kohteen ulkorajaa. Toiminnon tarkoitus on helpottaa aluerajauksen piirtoa tilanteessa, jossa hankkeen tai kohteen aluerajaus vastaa kokonaan tai osittain esimerkiksi kiinteistöä. Valittuasi toiminnon vie hiiren kursori valitun kohteen ulkoreunan lähelle, jolloin se kiinnittyy siihen. Painamalla ensimmäisen kerran tulee luoduksi ensimmäinen solmupiste, jonka jälkeen voit seurata hiirellä kohteen ulkoreunaa, kunnes pääset haluttuun kohtaan tai kierrettyä koko kohteen. Lopeta jäljitys painamalla uusi solmupiste, jonka jälkeen voit joko tallentaa alueen tai jatkaa piirtoa jäljitetyn alueen ulkopuolella.
+5. **Muokkaa valittuja alueita:** Tällä painikkeella käyttäjä voi muokata valitun alueen solmupisteitä. Tarttumalla hiirellä halutusta kohtaa valitun alueen ulkoreunaa ja päästämällä irti halutussa kohtaa alueen muotoa voi muokata. Toistaiseksi ei ole mahdollista poistaa jo olemassaolevia solmupisteitä, vaan ainoastaan luoda uusia.
+6. **Tyhjennä valinta:** Tyhjentää käyttäjän valintatyökalulla valitsemat alueet.
 7. **Poista valitut alueet:** Painamalla tätä painiketta käyttäjän valitsema alue poistetaan. Muista tallentaa lopuksi muutokset toisesta painikkeesta.
 8. **Poista kaikki alueet:** Painamalla tätä painiketta kaikki käyttäjän luomat alueet poistetaan. Muista tallentaa lopuksi muutokset toisesta painikkeesta.
 9. **Hanke koskee koko kunnan aluetta:** Tarkemman hankealueen piirtämisen sijasta voit valita hankealueeksi suoraan koko kunnan alueen.
 10. **Karttatasovalikko:** Piirtämisen tukena voi hyödyntää karttatasovalikosta valittavissa olevia kaupungin rajapinta-aineistoja.
-11. **Tallenna- ja peruutapainike:** Jos käyttäjällä on tallentamattomia muutoksia, ilmestyy tallennus- ja peruutapainikkeet oikeaan alakulmaan.
+11. **Tallenna- ja Hylkää-painike:** Jos käyttäjällä on tallentamattomia muutoksia, ilmestyy tallennus- ja hylkäyspainikkeet oikeaan alakulmaan.
 
 ![Hankkeen karttanäkymä ja sieltä löytyvät piirtotoiminnot](/images/kartan_piirtotoiminnot.png)<br/>
 _Hankesivulta löytyvä karttanäkymä. Vasemmassa laidassa näkyvissä yllä kuvatut toiminnot. Huomioi, että kohteen karttatoiminnot saattava erota pienesti._
@@ -284,8 +282,8 @@ Kohteelle on lisäksi toteutettu toiminnallisuus, jossa sen voi siirtää toisel
 | Alkuajankohta                  | Ajankohta jolloin kohteen toteutus alkaa.                                                                                                                                                                                                                                                                             | Kyllä            |
 | Loppuajankohta                 | Ajankohta jolloin kohteen toteutus päättyy.                                                                                                                                                                                                                                                                           | Kyllä            |
 | Lautakunta                     | Kohteelle valitaan lautakunta niistä lautakunnista, jotka on valittu sen hankkeelle. Jos kohteen hankkeelle on osoitettu vain yksi lautakunta, saa kohde saman lautakunnan. Lautakuntavalinta pitää tällöinkin kuitenkin tehdä käsin.                                                                                 | Kyllä            |
-| Elinkaaritila                  | Arvon voi valita seuraavista: Ehdotettu, Aloittamatta, Käynnissä tai Valmis. Kohde saa perustamisen hetkellä elinkaaritilakseen automaattisesti 'Aloittamatta'. Hankkeen ja sen kohteiden elinkaaritilojen hallinta perustuu toistaiseksi manuaaliseen kirjaamiseen, eikä niiden keskinäistä logiikka ole rajoitettu. | Kyllä            |
-| Kohteen tyyppi                 | Kohteen tyyppi kertoo, onko kyse uudesta rakentamisesta vai olemassaolevan kohteen muokkaamisesta. Kohteelle valitaan yksi tyyppi arvojoukosta: Uudisrakentaminen, Peruskorjaaminen, Toimivuuden parantaminen.                                                                                                        | Kyllä            |
+| Elinkaaritila                  | Arvon voi valita seuraavista: Ehdotettu, Aloittamatta, Käynnissä, Valmis tai Tunnistettu tarve. Kohde saa perustamisen hetkellä elinkaaritilakseen automaattisesti 'Aloittamatta'. Hankkeen ja sen kohteiden elinkaaritilojen hallinta perustuu toistaiseksi manuaaliseen kirjaamiseen, eikä niiden keskinäistä logiikka ole rajoitettu. | Kyllä            |
+| Kohteen tyyppi                 | Kohteen tyyppi kertoo, onko kyse uudesta rakentamisesta vai olemassaolevan kohteen muokkaamisesta. Kohteelle valitaan yksi tyyppi arvojoukosta: Uudisrakentaminen, Peruskorjaaminen, Toimivuuden parantaminen tai Maaomaisuuden kehittäminen.                                                                                                        | Kyllä            |
 | Omaisuusluokka                 | Omaisuusluokka määrittelee poistoajan, jonka mukaan käytetty investointi poistuu taseesta. Arvo valitaan alasvetovalikosta valmiista koodistosta.                                                                                                                                                                     | Kyllä            |
 | Toiminnallinen käyttötarkoitus | Toiminnallinen käyttötarkoitus viittaa kohteen käyttötarkoitukseen valmistuessaan. Arvo valitaan alasvetovalikosta valmiista koodistosta.                                                                                                                                                                             | Kyllä            |
 | SAP-rakenneosa                 | Jos kohteelle löytyy sitä vastaava rakenneosa SAP:n projektista, voi käyttäjä osoittaa sen valitsemalla valikosta sopivan arvon. Tämän ehtona on se, että hankkeelle on osoitettu SAP-projektin ID. Tämä mahdollistaa kohteen taloustoteuman seurannan.                                                               | Ei               |
@@ -378,18 +376,18 @@ Kunnossapitokohteet ovat pitkälti samanlaisia kuin investointihankkeen vastaava
 | Toiminnallinen käyttötarkoitus | Toiminnallinen käyttötarkoitus viittaa kohteen käyttötarkoitukseen valmistuessaan. Arvo valitaan alasvetovalikosta valmiista koodistosta.                                                                                                                                                                             | Kyllä            |
 | Alkupäivämäärä                 | Ajankohta jolloin kohteen toteutus alkaa.                                                                                                                                                                                                                                                                             | Kyllä            |
 | Loppupäivämäärä                | Ajankohta jolloin kohteen toteutus päättyy.                                                                                                                                                                                                                                                                           | Kyllä            |
-| Sopimus                        | Hankkeeseen kohdistuva sopimus. Toistaiseksi kenttä on tekstimuotoinen ja täytetään käsin.                                                                                                                                                                                                                            | Ei               |
-| Toteutustapa                   | Hankkeeseen kohdistuva päätös. Toistaiseksi kenttä on tekstimuotoinen ja täytetään käsin.                                                                                                                                                                                                                             | Ei               |
-| Ostotilausnumero               | Kohteen toteutustapa valitaan alasvetovalikosta arvoista: 'Puitesopimus','Kilpailutus' ja 'Suorahankinta'.                                                                                                                                                                                                            | Ei               |
+| Sopimus                        | Kohteeseen kohdistuva sopimus. Toistaiseksi kenttä on tekstimuotoinen ja täytetään käsin.                                                                                                                                                                                                                            | Ei               |
+| Ostotilausnumero                   | Kohteeseen kohdistuva ostotilausnumero. Toistaiseksi kenttä on tekstimuotoinen ja täytetään käsin.                                                                                                                                                                                                                             | Ei               |
+| Toteutustapa               | Kohteen toteutustapa valitaan alasvetovalikosta arvoista: 'Puitesopimus','Kilpailutus' ja 'Suorahankinta'.                                                                                                                                                                                                            | Ei               |
 | SAP-rakenneosa                 | Jos kohteelle löytyy sitä vastaava rakenneosa SAP:n projektista, voi käyttäjä osoittaa sen valitsemalla valikosta sopivan arvon. Tämän ehtona on se, että hankkeelle on osoitettu SAP-projektin ID. Tämä mahdollistaa kohteen taloustoteuman seurannan.                                                               | Ei               |
 
 #### Kunnossapitokohteen toimijat
 
-Toimijoita voi osoittaa kunnossapitokohteelle vastaavalla tavalla kuin [investointikohteella](#kohteen-toimijat).
+Toimijoita voi osoittaa kunnossapitokohteelle vastaavalla tavalla kuin [investointikohteella](#Investointikohteen-toimijat).
 
 ### Taloussuunnittelu ja -seuranta kunnossapitohankkeella
 
-Kunnossapitohankkeen ja sen kohteiden taloussuunnittelu vastaa investointihankkeen ja kohteen sisältöä. Ainoa poikkeus on se, että kirjatut summat katsotaan käyttötaloudeksi investointien sijasta.
+Kunnossapitohankkeen taloussuunnittelun toiminnallisuudet ovat vastaavia kuin investointihankkeella. Huomaa kuitenkin, että kunnossapitohankkeelle kirjatut summat katsotaan käyttötaloudeksi investointien sijasta ja, että tietosisällöissä on eroja (esim. kunnossapitokohteella ei ole Kohteen laji-tietoa).
 
 # Investointiohjelmointi-näkymä
 
@@ -408,6 +406,7 @@ Taulukossa jokaiselle kohteelle on kerrottu seuraavat tiedot.
 - Tyyppi
 - Omaisuusluokka
 - Käyttötarkoitus
+- Lautakunta
 - Rakennuttaja ja suunnitteluttaja
 - Talousarvio
 - Toteuma
@@ -417,7 +416,7 @@ Taulukossa jokaiselle kohteelle on kerrottu seuraavat tiedot.
 Alla on kuvattu näkymään liittyvät toiminnallisuudet yllä olevan kuvan numeroinnin mukaan.
 
 1. Ohjelmointi päänavigointipalkissa.
-2. Taulukko kohdistuu ensisijaisesti yhteen kalenterivuoteen. Sivun yläosassa on vuosivalinta, josta käsin käyttäjä pystyy valitsemaan häntä kiinnostavan vuoden. Vuosivalinta vaikuttaa siihen, miltä vuodelta kohderiveille haetaan talousluvut. Valinta voi kohdistua kerrallaan vain yhteen vuoteen. Huomioi, että kohde katsotaan mukaan aina, kun se _leikkaa_ valittua vuotta. Näin ollen kohde, jonka toteutusväli on 31.12.2023-31.12.2026, valikoituisi mukaan vuosivalinnan ollessa `2026`, ja sille näytettävät talousluvut johdettaisiin yksinään päivältä 31.12.2026. Käyttäjä voi valita vuosivalitsimesta myös valinnan `Koko aikaväli`, jolloin talousluvut johdetaan kohderiveille niiden koko elinkaaren ajalta. Tällöin talouslukuja ei pysty kuitenkaan muokkaamaan taulukossa.
+2. Taulukko kohdistuu ensisijaisesti yhteen kalenterivuoteen. Sivun yläosassa on vuosivalinta, josta käsin käyttäjä pystyy valitsemaan häntä kiinnostavan vuoden. Vuosivalinta vaikuttaa siihen, miltä vuodelta kohderiveille haetaan talousluvut. Valinta voi kohdistua kerrallaan vain yhteen vuoteen. Huomioi, että kohde katsotaan mukaan aina, kun se _leikkaa_ valittua vuotta. Näin ollen kohde, jonka toteutusväli on 31.12.2023-31.12.2026, valikoituisi mukaan vuosivalinnan ollessa `2023`, ja sille näytettävät talousluvut johdettaisiin yksinään päivältä 31.12.2023. Käyttäjä voi valita vuosivalitsimesta myös valinnan `Koko aikaväli`, jolloin talousluvut johdetaan kohderiveille niiden koko elinkaaren ajalta. Tällöin talouslukuja ei pysty kuitenkaan muokkaamaan taulukossa.
 3. Painikkeesta _näytä vain omat kohteet_ taulukkoon tuodaan vain kohteet, joissa kirjautunut käyttäjä on merkitty niissä yhteen tai useampaan rooliin (esim. rakennuttaja tai valvoja).
 4. Käyttäjän itselleen tallentamat pikasuodattimet.
 5. Taulukon aktiivisen suodatuksen mukaiset kohderivit on mahdollista viedä Excel-taulukkoon valitsemalla painikkeen _lataa raportti_. Tarjolla on viisi eri raporttipohjaa: tulosteraportti, perusraportti, kustannusraportti, toimijaraportti ja investointiraportti.
@@ -433,21 +432,19 @@ Alla on kuvattu näkymään liittyvät toiminnallisuudet yllä olevan kuvan nume
 
 ![Investointien taloussuunnittelu](/images/investointien_taloussuunnittelu_nakyma.png)
 
-Investointien taloussuunnittelu-näkymä on tarkoitettu pidemmän aikavälin investointien suunnitteluun sekä investointien seuraamiseen ja hallinnointiin. Näkymä muodostuu taulukosta, joka listaa **investointihankkeet sekä -kohteet**.  Näkymä mahdollistaa eri vuosien kustannuskertymien seurannan sekä talousarvion lukujen muokkaamisen usealle vuodelle samassa näkymässä. Näkymä on luotu erityisesti PALM:n ja kehitysohjelmien pitkän aikavälin suunnittelua varten.
+Investointien taloussuunnittelu-näkymä on tarkoitettu pidemmän aikavälin investointien suunnitteluun sekä investointien seuraamiseen ja hallinnointiin. Näkymä muodostuu taulukosta, joka listaa **investointihankkeet sekä -kohteet**.  Näkymä mahdollistaa eri vuosien kustannuskertymien seurannan sekä talousarvion lukujen muokkaamisen usealle vuodelle samassa näkymässä. Näkymä on luotu erityisesti PALM:n ja kehitysohjelmien pitkän aikavälin suunnittelua varten. Oletusnäkymässä näytetään 15 vuoden aikajakso kuluvasta vuoden alkaen.
 
 Taulukko rakentuu seuraavalla tavalla:
 
 - Investointihankkeiden nimet vihreällä värillä. Investointihankkeille kuuluvat kohteet mustalla värillä.
-- Taulukko sisältää sekä toteuma-, että talouarvio-sarakkeita vuosittain jaoteltuna. Toteuma on saatavilla vain kuluvalle vuodelle sekä menneille vuosille. Hankeriveillä esitetyt luvat on summattu kohteilta, eikä niitä tästä syystä voi muokata.
-- Taulukossa voi muokata talousarvion lukuja, mikäli käyttäjällä on tarvittavat oikeudet siihen eikä talousarvion lukuja ole lukittu pääkäyttäjän toimesta. Muokattavissa olevat talousarvio-solut ovat väriltään valkoisia ja lukitut solut on harmaita.
+- Taulukko sisältää sekä toteuma-, että talousarvio-sarakkeita vuosittain jaoteltuna. Toteuma on saatavilla vain kuluvalle vuodelle sekä menneille vuosille. Hankeriveillä esitetyt luvat on summattu kohteilta, eikä niitä tästä syystä voi muokata.
+- Taulukossa voi muokata talousarvion lukuja, mikäli käyttäjällä on tarvittavat oikeudet siihen eikä talousarvion lukuja ole lukittu pääkäyttäjän toimesta. Muokattavissa olevat talousarvio-solut ovat väriltään valkoisia ja lukitut solut ovat harmaita.
 
 Taulukkoon liittyvät toiminnallisuudet, kuten rivien suodatus, toimivat vastaavalla tavalla kuin Investointiohjelmointi-sivulla (ks. yllä oleva ohje).
 
 # SAP-raportit näkymä
 
 ## Yleistä SAP-raporteista
-
-SAP-raportit sisältää kaksi taulukkoa, joista toinen tarjoaa tietoa ympäristökoodeista (ympäristöinvestoinnit) ja toinen puitesopimuksista. Näkymään voi navigoida valitsemalla sen päänavigointipalkista. Tiedot haetaan suoraan SAP:sta, mutta Hanna kyselee ne kaikki kerralla yöaikaan. Näin ollen tiedoissa voi olla maksimissaan päivän viive. Kulunut aika edellisestä hausta on kerrottu sivun oikeassa ylälaidassa. Taulukkoon valikoituvia rivejä voi rajata valitsemalla yhdestä tai useammasta tarjolla olevasta suodattimesta arvon. Jos arvoja useampi suodatin on valittu, pitää rivin täyttää kaikki ehdot. Taulukossa näkyvät tiedot on mahdollista viedä excel-tiedostoon valitsemalla painike _lataa raportti_.
 
 SAP-raportit sisältää kaksi taulukkoa, joista toinen tarjoaa tietoa ympäristökoodeista (ympäristöinvestoinnit) ja toinen puitesopimuksista. Näkymään voi navigoida valitsemalla sen päänavigointipalkista. Tiedot haetaan suoraan SAP:sta, mutta Hanna kyselee ne kaikki kerralla yöaikaan. Näin ollen tiedoissa on maksimissaan päivän viive. Kulunut aika edellisestä hausta on kerrottu sivun oikeassa ylälaidassa. Taulukkoon valikoituvia rivejä voi rajata valitsemalla yhdestä tai useammasta tarjolla olevasta suodattimesta arvon. Jos arvoja useampi suodatin on valittu, pitää rivin täyttää kaikki ehdot. Taulukossa näkyvät tiedot on mahdollista viedä excel-tiedostoon valitsemalla painike _lataa raportti_.
 
@@ -463,7 +460,7 @@ _SAP-raportit sivu. Sivun löytää Hannan päänavigointipalkista. Sivulta käs
 
 ## Ympäristökoodit
 
-Tässä taulukossa käyttäjä voi koostaa haluamansa tiedot kaupungin ympäristöinvestoinneista tarkentaen halutessaan yksittäiseen investointikohteeseen, toisin sanoen ympäristökoodiin (esim. ilmastonmuutoksen hillintä tai vesiensuojelu). Ota kuitenkin huomioon, että taulukkoon tulee luetuksi _kaikki_ SAP:n rakenneosat, eikä ennakoivaa rajoittamista vain ympäristökoodin yksilöiviin rakenneosiin ole tehty. Näin ollen käyttäjän on tärkeää huomioida mukaan ainakin ympäristökoodin valinta. Toisaalta on olemassa rakenneosia, joita epätarkoituksenmukaisesti puuttuu ympäristökoodi, ja siksi on hyvä pystyä hakemaan myös rakenneosia ilman koodia.
+Tässä taulukossa käyttäjä voi koostaa haluamansa tiedot kaupungin ympäristöinvestoinneista tarkentaen halutessaan yksittäiseen investointikohteeseen, toisin sanoen ympäristökoodiin (esim. ilmastonmuutoksen hillintä tai vesiensuojelu). Ota kuitenkin huomioon, että taulukkoon tulee luetuksi _kaikki_ SAP:n rakenneosat, eikä ennakoivaa rajoittamista vain ympäristökoodin yksilöiviin rakenneosiin ole tehty. Näin ollen käyttäjän on tärkeää huomioida mukaan ainakin ympäristökoodin valinta. Toisaalta on olemassa rakenneosia, joilta epätarkoituksenmukaisesti puuttuu ympäristökoodi, ja siksi on hyvä pystyä hakemaan myös rakenneosia ilman koodia.
 
 Ympäristöinvestointien osalta taulukkoon listataan SAP:n rakenneosia, joille kerrotaan seuraavat tiedot:
 
