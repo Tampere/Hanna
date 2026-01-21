@@ -482,7 +482,7 @@ Rakenneosien joukkoa voi suodattaa seuraavilla tiedoilla:
 
 Jos käyttäjä ei valitse vuotta, muodostetaan talousluvut (menot, tulot, toteuma) koko rakenneosan elinkaarelta. Jos käyttäjä valitsee yhden vuoden, kohdistuvat luvut kyseiseen vuoteen. Jos käyttäjä valitsee useamman vuoden, ovat luvut kyseisten vuosien summa.
 
-Rakenneosan tietoja on myös tarkennettu kumppaneilla. Jokaisen rivin voi avata hakasesta `kumppanit` -sarakkeessa, jossa on esitetty kumppanien lukumäärä. Avaamisen jälkeen talousluvut esitetään kumppaneittain. Kumppani luetaan tositteelta. Kaikki tositteet, joilta ei löydy kumppanitietoa, on summattu yhteen `Ei määriteltyä kumppanikoodia` -arvoon.
+Rakenneosan tietoja on myös tarkennettu kumppaneilla. Jokaisen rivin voi avata hakasesta `kumppanit` -sarakkeessa, jossa on esitetty kumppanien lukumäärä. Avaamisen jälkeen talousluvut esitetään kumppaneittain. Kumppani luetaan tositteelta. Kaikki tositteet, joilta ei löydy kumppanitietoa, on summattu yhteen Ei määriteltyä kumppanikoodia-arvoon.
 
 Käyttäjän viedessä tiedot Excel-tiedostoon, eritellään taulukossa olleet riville ensimmäiselle välilehdelle rakenneosittain ja toiselle välilehdelle kumppaneittain.
 
