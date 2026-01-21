@@ -175,7 +175,7 @@ Muokatakseen investointi- ja/tai kunnossapitohankkeiden talousarvioita tai käyt
 Hankesivu on hankkeen koko tietosisällön yhteenkokoava paikka.
 
 ## Hankkeen tietojen syöttö ja muokkaaminen
-Perustaakseen uuden hankkeen käyttäjän on täytettävä sen tietoihin vähintään pakolliset kentät. Pakolliset tietokentät on merkitty käyttöliittymässä tähtikuviolla ("\*"). Investointihankkeen tarkempi tietosisältö ja sen merkitys on kuvattu [täällä](#Investointihankkeen-tietosisältö) ja kunnossapitohankkeen [täällä](#kunnossapitohanke).
+Perustaakseen uuden hankkeen käyttäjän on täytettävä sen tietoihin vähintään pakolliset kentät. Pakolliset tietokentät on merkitty käyttöliittymässä tähtikuviolla ("\*"). Investointihankkeen tarkempi tietosisältö ja sen merkitys on kuvattu [täällä](#investointihankkeen-tietosisältö) ja kunnossapitohankkeen [täällä](#kunnossapitohanke).
 
 Hankkeen perustamisen jälkeen sen tietoja voi edelleen muokata valitsemalla muokkaa-painikkeen sivun oikeassa yläkulmassa. Muokattujenkin tietojen tulee sisältää aina vähintään pakolliset tietosisällöt, jotta muokkausten tallentaminen on mahdollista. Jokainen muokkaus luo Hannan tietokantaan uuden version hankkeesta. Sen osana tallentuu tieto siitä, kuka muokkauksen on tehnyt, milloin se on toteutunut ja mitä tarkalleen on muokattu. Käyttäjät eivät toistaiseksi pysty palauttamaan käyttöliittymästä käsin hankkeen aiempia versioita, mutta Hannan kehittäjät pystyvät siihen tarvittaessa. Toistaiseksi hankkeen historia- ja versiotietoja ei esitetä käyttöliittymässä. Muokkauksen ajaksi välilehdet menevät piiloon. Halutessasi muokata esimerkiksi hankkeen taloutta mene suoraan kyseiselle välilehdelle ja valitse haluttu kenttä.
 
@@ -183,8 +183,8 @@ Käyttäjän perustettua hankkeen se saa uniikin tunnisteen. Tämä tunniste on 
 
 Hankesivulta löytyy lisäksi joitakin toimintoja, jotka eroavat hanketyyppikohtaisesti. Investointi- ja kunnossapitohankkeilla tämä käsittää seuraavat:
 
-- Kohteiden perustaminen (lue lisää investostointihankkeen kohteista [täällä](#Investointikohteet) ja kunnossapitohankkeen kohteista [täällä](#Kunnossapitokohteet))
-- Talouden hallinta (Lue lisää investointihankkeiden osalta [täältä](#Taloussuunnittelu-ja--seuranta-investointihankkeella) ja kunnossapitohankkeiden osalta [täältä](#Taloussuunnittelu-ja--seuranta-kunnossapitohankkeella))
+- Kohteiden perustaminen (lue lisää investointihankkeen kohteista [täällä](#investointikohteet) ja kunnossapitohankkeen kohteista [täällä](#kunnossapitokohteet))
+- Talouden hallinta (Lue lisää investointihankkeiden osalta [täältä](#taloussuunnittelu-ja--seuranta-investointihankkeella) ja kunnossapitohankkeiden osalta [täältä](#taloussuunnittelu-ja--seuranta-kunnossapitohankkeella))
 - Sidoshankkeiden osoittaminen ([lue lisää](#hankkeiden-liittyminen-toisiinsa))
 
 Lisäksi investointihankkeelle löytyy toiminnallisuus, jolla sen aloitusvuotta voi aikaistaa tai myöhentää. Toiminnallisuus on toteutettu silmällä pitäen sellaisia hankkeita, joilla on jo joukko kohteita ja talouslukuja. Toiminnallisuus löytyy muokkaa-painikkeen yhteydessä sijaisevasta alasvetovalikosta.
@@ -383,7 +383,7 @@ Kunnossapitokohteet ovat pitkälti samanlaisia kuin investointihankkeen vastaava
 
 #### Kunnossapitokohteen toimijat
 
-Toimijoita voi osoittaa kunnossapitokohteelle vastaavalla tavalla kuin [investointikohteella](#Investointikohteen-toimijat).
+Toimijoita voi osoittaa kunnossapitokohteelle vastaavalla tavalla kuin [investointikohteella](#investointikohteen-toimijat).
 
 ### Taloussuunnittelu ja -seuranta kunnossapitohankkeella
 
