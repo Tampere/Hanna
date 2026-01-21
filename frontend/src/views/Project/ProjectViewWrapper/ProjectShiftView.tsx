@@ -56,7 +56,7 @@ export function ProjectShiftView(props: Props) {
     resolver: zodResolver(
       z.object({
         newStartYear: z.number().min(MIN_SHIFT_YEAR).max(MAX_SHIFT_YEAR),
-      }),
+      })
     ),
   });
 
@@ -85,7 +85,7 @@ export function ProjectShiftView(props: Props) {
           padding-bottom: 0;
         `}
       >
-        <DialogContentText>tr('projectView.projectShiftDialogText')</DialogContentText>
+        <DialogContentText>{tr('projectView.projectShiftDialogText')}</DialogContentText>
       </DialogContent>
       <DialogActions
         css={css`
@@ -116,7 +116,7 @@ export function ProjectShiftView(props: Props) {
               errorTooltip={tr(
                 'projectView.projectShiftFormErrorTooltip',
                 MIN_SHIFT_YEAR,
-                MAX_SHIFT_YEAR,
+                MAX_SHIFT_YEAR
               )}
               component={(field) => (
                 <TextField
