@@ -617,9 +617,34 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     ref,
     () => ({
       onSave: form.handleSubmit(async (data) => await onSubmit(data)),
-      onCancel: form.reset,
+      onCancel: () => {
+        if (!budget) {
+          form.reset({} as BudgetFormValues);
+          return;
+        }
+
+        const baseValues = budgetToFormValues([...budget], years, props.committees);
+        const projectObjectValues = projectObjectsToFormValues(
+          props.projectObjects,
+          projectObjectBudgets
+        );
+
+        form.reset({
+          ...(baseValues as BudgetFormValues),
+          projectObjects: projectObjectValues,
+        } as BudgetFormValues);
+      },
     }),
-    [dirtyFields, onSubmit],
+    [
+      budget,
+      years,
+      props.committees,
+      props.projectObjects,
+      projectObjectBudgets,
+      form,
+      dirtyFields,
+      onSubmit,
+    ]
   );
 
   function getDirtyValues(data: BudgetFormValues): BudgetFormValues {
@@ -1344,10 +1369,13 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                   }
                   sapActuals={
                     props.actuals && 'yearlyActuals' in props.actuals
-                      ? props.actuals?.yearlyActuals?.reduce(
-                          (total, sapYearlyActual) => sapYearlyActual.total + total,
-                          0,
-                        )
+                      ? props.actuals?.yearlyActuals
+                          ?.filter(
+                            (yearlyActual) =>
+                              yearRange.start <= yearlyActual.year &&
+                              yearlyActual.year <= yearRange.end
+                          )
+                          .reduce((total, sapYearlyActual) => sapYearlyActual.total + total, 0)
                       : null
                   }
                   formValues={watch}
