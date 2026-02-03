@@ -134,11 +134,7 @@ export function YearTotalRow({
       )}
       {fields?.includes('forecast') && (
         <TableCell>
-          <CurrencyInput
-            allowNegative
-            getColor={getValueTextColor}
-            value={effectiveGetFieldValue('forecast')}
-          />
+          <CurrencyInput allowNegative value={effectiveGetFieldValue('forecast')} />
         </TableCell>
       )}
       {fields?.includes('kayttosuunnitelmanMuutos') && (
