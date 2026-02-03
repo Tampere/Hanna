@@ -817,12 +817,8 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     if (hasSeededProjectObjectsRef.current) return;
     if (!props.projectObjects || props.projectObjects.length === 0) return;
 
-    const anyBudgetUpdate = props.projectObjects.some(
-      (po) => po.budgetUpdate && po.budgetUpdate.budgetItems.length > 0
-    );
-
-    // Wait until project object budgets are loaded or we have budgetUpdate data
-    if (!projectObjectBudgetsLoaded && !anyBudgetUpdate) {
+    // Wait until all project object budgets have been loaded before seeding
+    if (!projectObjectBudgetsLoaded) {
       return;
     }
 
