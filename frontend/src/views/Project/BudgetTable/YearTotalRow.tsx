@@ -30,7 +30,7 @@ interface Props {
   getFieldValue?: (
     fieldName: keyof ProjectYearBudget['budgetItems'],
     formValues: BudgetFormValues,
-    year: number,
+    year: number
   ) => number;
   rowRef?: Ref<HTMLTableRowElement>;
 }
@@ -134,11 +134,7 @@ export function YearTotalRow({
       )}
       {fields?.includes('forecast') && (
         <TableCell>
-          <CurrencyInput
-            allowNegative
-            getColor={getValueTextColor}
-            value={effectiveGetFieldValue('forecast')}
-          />
+          <CurrencyInput allowNegative value={effectiveGetFieldValue('forecast')} />
         </TableCell>
       )}
       {fields?.includes('kayttosuunnitelmanMuutos') && (
