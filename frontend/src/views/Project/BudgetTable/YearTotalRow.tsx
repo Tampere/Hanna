@@ -30,7 +30,7 @@ interface Props {
   getFieldValue?: (
     fieldName: keyof ProjectYearBudget['budgetItems'],
     formValues: BudgetFormValues,
-    year: number
+    year: number,
   ) => number;
   rowRef?: Ref<HTMLTableRowElement>;
 }
