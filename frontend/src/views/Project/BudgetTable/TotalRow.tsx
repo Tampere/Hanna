@@ -1,7 +1,5 @@
 import { Skeleton, TableCell, TableRow, Typography, css } from '@mui/material';
 
-
-
 import { CurrencyInput, valueTextColor } from '@frontend/components/forms/CurrencyInput';
 import { SapActualsIcon } from '@frontend/components/icons/SapActuals';
 import { useTranslations } from '@frontend/stores/lang';
@@ -20,7 +18,7 @@ interface Props {
   committeeColumnVisible: boolean;
   getFieldValue: (
     fieldName: keyof ProjectYearBudget['budgetItems'],
-    formValues?: BudgetFormValues,
+    formValues?: BudgetFormValues
   ) => number | null;
   sapActuals?: number | null;
 }
@@ -103,7 +101,7 @@ export function TotalRow({
                   }, 0) ?? null
                 }
               />
-              {sapActuals && <SapActualsIcon sapActual={sapActuals ?? null}></SapActualsIcon>}
+              {<SapActualsIcon sapActual={sapActuals ?? 0}></SapActualsIcon>}
             </span>
           ) : (
             <Skeleton variant="rectangular" animation="wave">
@@ -124,7 +122,6 @@ export function TotalRow({
           <CurrencyInput
             allowNegative
             className={TABLE_CELL_CONTENT_CLASS}
-            getColor={fields.includes('committee') ? getValueTextColor : valueTextColor}
             value={getFieldValue('forecast', formValues)}
           />
         </TableCell>

@@ -133,7 +133,7 @@ function ObjectStageFilter({ availableStages, selectedStages, onChange }: Object
     onChange(
       selectedStages.includes(stageId)
         ? selectedStages.filter((id) => id !== stageId)
-        : [...selectedStages, stageId],
+        : [...selectedStages, stageId]
     );
   }
 
@@ -224,10 +224,22 @@ export type BudgetFormValues =
 function getFieldTotalValueByYear(
   fieldName: keyof ProjectYearBudget['budgetItems'],
   formValues?: BudgetFormValues,
+  visibleYears?: number[]
 ) {
   if (!formValues) return null;
 
-  const entries = Object.entries(formValues).filter(([key]) => key !== 'projectObjects');
+  const allowedYears =
+    visibleYears && visibleYears.length > 0
+      ? new Set(visibleYears.map((year) => String(year)))
+      : undefined;
+
+  const entries = Object.entries(formValues).filter(([key]) => {
+    if (key === 'projectObjects') return false;
+    if (allowedYears) {
+      return allowedYears.has(key);
+    }
+    return true;
+  });
 
   return entries.reduce<number>((total, [, budgetItem]) => {
     const yearTotals = (budgetItem as any)['total'] as ProjectYearBudget['budgetItems'] | undefined;
@@ -239,12 +251,26 @@ function getFieldTotalValueByCommittee(
   fieldName: keyof ProjectYearBudget['budgetItems'],
   selectedCommittees: string[],
   formValues?: BudgetFormValues,
+  visibleYears?: number[]
 ) {
   if (!formValues) return null;
 
-  return Object.values(formValues).reduce<number>((total, budgetItem) => {
+  const allowedYears =
+    visibleYears && visibleYears.length > 0
+      ? new Set(visibleYears.map((year) => String(year)))
+      : undefined;
+
+  return Object.entries(formValues).reduce<number>((total, [yearKey, budgetItem]) => {
+    if (yearKey === 'projectObjects') {
+      return total;
+    }
+
+    if (allowedYears && !allowedYears.has(yearKey)) {
+      return total;
+    }
+
     const committeeSum = Object.entries(
-      budgetItem as Record<string, ProjectYearBudget['budgetItems']>,
+      budgetItem as Record<string, ProjectYearBudget['budgetItems']>
     )
       .filter(([committee]) => selectedCommittees.includes(committee))
       .reduce<number>((committeeTotal, [, committeeItem]) => {
@@ -264,7 +290,7 @@ function budgetToFormValues<
     year: number;
     budgetItems: ProjectYearBudget['budgetItems'];
     committee: ProjectYearBudget['committee'];
-  } = ProjectYearBudget,
+  } = ProjectYearBudget
 >(budget: TBudget[], projectYears: number[], committees?: string[]) {
   const values: BudgetFormValues = {};
 
@@ -303,7 +329,7 @@ function budgetToFormValues<
           forecast: null,
           contractPrice: null,
           kayttosuunnitelmanMuutos: null,
-        }, // These initial values need to be set to allow form to infer dirty fields correctly
+        } // These initial values need to be set to allow form to infer dirty fields correctly
       );
     }
   }
@@ -330,7 +356,7 @@ function formValuesToBudget(values: BudgetFormValues, projectYears: number[]): P
 
 function projectObjectsToFormValues(
   projectObjects?: CommonDbProjectObject[],
-  projectObjectBudgets?: Map<string, YearBudget[]>,
+  projectObjectBudgets?: Map<string, YearBudget[]>
 ): Record<string, Record<string, ProjectYearBudget['budgetItems']>> {
   const result: Record<string, Record<string, ProjectYearBudget['budgetItems']>> = {};
 
@@ -445,16 +471,16 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
         new Set(
           (props.projectObjects ?? [])
             .map((po) => po.objectStage)
-            .filter((stage): stage is string => Boolean(stage)),
-        ),
+            .filter((stage): stage is string => Boolean(stage))
+        )
       ),
-    [props.projectObjects],
+    [props.projectObjects]
   );
 
   // Fetch project object budgets via projectObject.getBudget
   const projectObjectIds = useMemo(
     () => (props.projectObjects ?? []).map((po) => po.projectObjectId),
-    [props.projectObjects],
+    [props.projectObjects]
   );
 
   const utils = trpc.useUtils();
@@ -485,7 +511,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     () =>
       projectObjectIds.length === 0 ||
       projectObjectBudgetQueries.every((q) => Boolean(q.data) || q.isError),
-    [projectObjectBudgetQueries.map((q) => q.dataUpdatedAt).join(','), projectObjectIds.length],
+    [projectObjectBudgetQueries.map((q) => q.dataUpdatedAt).join(','), projectObjectIds.length]
   );
 
   // --- Project object actuals (SAP) ---
@@ -549,7 +575,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
         .filter(
           (po) =>
             selectedObjectStages.length === 0 ||
-            (po.objectStage && selectedObjectStages.includes(po.objectStage)),
+            (po.objectStage && selectedObjectStages.includes(po.objectStage))
         );
 
       if (filteredProjectObjects.length === 0) {
@@ -575,7 +601,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
             (po) =>
               `${po.projectObjectId}-${po.objectCommittee ?? ''}-${po.objectStage ?? ''}-${
                 po.startDate
-              }-${po.endDate}`,
+              }-${po.endDate}`
           )
           .join('|')
       : '',
@@ -595,6 +621,62 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     });
     return map;
   }, [projectObjectActualsQueries.map((q) => q.fetchStatus).join(','), projectObjectIds.join(',')]);
+
+  // Compute grand totals for budget fields from project objects so that the
+  // bottom sum line respects the same filters (year range, committees,
+  // and object stages) as the table itself.
+  const getFieldTotalValueFromProjectObjects = (
+    fieldName: keyof ProjectYearBudget['budgetItems'],
+    formValues?: BudgetFormValues
+  ) => {
+    if (!formValues || !props.projectObjects || props.projectObjects.length === 0) {
+      return null;
+    }
+
+    const poMap = (formValues as any).projectObjects as
+      | Record<string, Record<string, ProjectYearBudget['budgetItems']>>
+      | undefined;
+
+    if (!poMap) return null;
+
+    let sum = 0;
+
+    for (const year of visibleYears) {
+      const yearKey = String(year);
+
+      const filteredProjectObjects = (props.projectObjects ?? [])
+        .filter((po) => projectObjectIsActiveInYear(po, year))
+        .filter((po) => {
+          // If no committees are used (maintenance projects), show all objects
+          if (!props.committees || props.committees.length === 0) {
+            return true;
+          }
+          // Otherwise filter by committee
+          return po.objectCommittee && selectedCommittees.includes(po.objectCommittee);
+        })
+        .filter(
+          (po) =>
+            selectedObjectStages.length === 0 ||
+            (po.objectStage && selectedObjectStages.includes(po.objectStage))
+        );
+
+      if (filteredProjectObjects.length === 0) {
+        continue;
+      }
+
+      for (const po of filteredProjectObjects) {
+        const byYear = poMap[po.projectObjectId];
+        const items = byYear?.[yearKey];
+        if (!items) continue;
+        const val = items[fieldName];
+        if (typeof val === 'number') {
+          sum += val;
+        }
+      }
+    }
+
+    return sum;
+  };
 
   // Track refs to the per-year total rows so we can scroll to the current year
   // once data has been loaded.
@@ -684,7 +766,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
           [year]: Object.fromEntries(newDataEntries),
         };
       },
-      {},
+      {}
     );
   }
 
@@ -700,7 +782,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
         id: committee,
         text: committeeCodes.get(committee)?.[lang].replace(/lautakunta/g, ' ') ?? '',
       })),
-    [selectedCommittees, committeeCodes],
+    [selectedCommittees, committeeCodes]
   );
 
   /**
@@ -735,12 +817,8 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     if (hasSeededProjectObjectsRef.current) return;
     if (!props.projectObjects || props.projectObjects.length === 0) return;
 
-    const anyBudgetUpdate = props.projectObjects.some(
-      (po) => po.budgetUpdate && po.budgetUpdate.budgetItems.length > 0,
-    );
-
-    // Wait until project object budgets are loaded or we have budgetUpdate data
-    if (!projectObjectBudgetsLoaded && !anyBudgetUpdate) {
+    // Wait until all project object budgets have been loaded before seeding
+    if (!projectObjectBudgetsLoaded) {
       return;
     }
 
@@ -761,12 +839,12 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                   shouldDirty: false,
                   shouldTouch: false,
                   shouldValidate: false,
-                },
+                }
               );
             }
           });
         });
-      },
+      }
     );
 
     hasSeededProjectObjectsRef.current = true;
@@ -873,7 +951,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
 
   function projectObjectHasNonZeroValuesForYear(
     projectObject: CommonDbProjectObject,
-    year: number,
+    year: number
   ): boolean {
     if (!projectObjectBudgetsLoaded) {
       // Do not hide rows while project object budgets are still loading
@@ -1196,13 +1274,13 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                               .filter(
                                 (po) =>
                                   selectedObjectStages.length === 0 ||
-                                  (po.objectStage && selectedObjectStages.includes(po.objectStage)),
+                                  (po.objectStage && selectedObjectStages.includes(po.objectStage))
                               );
 
                             const getFieldValueFromObjects = (
                               fieldName: keyof ProjectYearBudget['budgetItems'],
                               formValues: BudgetFormValues,
-                              targetYear: number,
+                              targetYear: number
                             ) => {
                               const poMap = (formValues as any).projectObjects as
                                 | Record<string, Record<string, ProjectYearBudget['budgetItems']>>
@@ -1228,7 +1306,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                 ?.total ?? null;
 
                             const actualsLoadingFromObjects = filteredProjectObjects.some((po) =>
-                              projectObjectActualsLoadingById.get(po.projectObjectId),
+                              projectObjectActualsLoadingById.get(po.projectObjectId)
                             );
 
                             return (
@@ -1243,7 +1321,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                         ?.filter((sapYearlyActual) => sapYearlyActual.year === year)
                                         .reduce(
                                           (total, sapYearlyActual) => sapYearlyActual.total + total,
-                                          0,
+                                          0
                                         )
                                     : null
                                 }
@@ -1261,7 +1339,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                         setHiddenYears((prev) =>
                                           prev.includes(year)
                                             ? prev.filter((y) => y !== year)
-                                            : [...prev, year],
+                                            : [...prev, year]
                                         )
                                     : undefined
                                 }
@@ -1287,11 +1365,11 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                   (po) =>
                                     selectedObjectStages.length === 0 ||
                                     (po.objectStage &&
-                                      selectedObjectStages.includes(po.objectStage)),
+                                      selectedObjectStages.includes(po.objectStage))
                                 )
                                 .filter(
                                   (po) =>
-                                    !hideZeroRows || projectObjectHasNonZeroValuesForYear(po, year),
+                                    !hideZeroRows || projectObjectHasNonZeroValuesForYear(po, year)
                                 )
                                 .filter((po) => !hiddenYears.includes(year))
                                 .map((projectObject, index) => {
@@ -1309,7 +1387,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                     null;
                                   const objectActualsLoading =
                                     projectObjectActualsLoadingById.get(
-                                      projectObject.projectObjectId,
+                                      projectObject.projectObjectId
                                     ) ?? false;
 
                                   return (
@@ -1352,10 +1430,10 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                     props.projectObjects
                       ? yearlyActualsFromObjects ?? []
                       : props.actuals && 'byCommittee' in props.actuals
-                          ? props.actuals?.byCommittee?.filter((value) =>
-                              selectedCommittees.includes(value.committeeId),
-                            )
-                          : null
+                      ? props.actuals?.byCommittee?.filter((value) =>
+                          selectedCommittees.includes(value.committeeId)
+                        )
+                      : null
                   }
                   actualsLoading={
                     props.projectObjects
@@ -1380,10 +1458,19 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                   }
                   formValues={watch}
                   getFieldValue={
-                    fields.includes('committee')
+                    props.projectObjects && props.projectObjects.length > 0
                       ? (fieldName, formValues) =>
-                          getFieldTotalValueByCommittee(fieldName, selectedCommittees, formValues)
-                      : getFieldTotalValueByYear
+                          getFieldTotalValueFromProjectObjects(fieldName, formValues)
+                      : fields.includes('committee')
+                      ? (fieldName, formValues) =>
+                          getFieldTotalValueByCommittee(
+                            fieldName,
+                            selectedCommittees,
+                            formValues,
+                            visibleYears
+                          )
+                      : (fieldName, formValues) =>
+                          getFieldTotalValueByYear(fieldName, formValues, visibleYears)
                   }
                 />
               </TableBody>
