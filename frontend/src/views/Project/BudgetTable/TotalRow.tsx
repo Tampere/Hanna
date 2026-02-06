@@ -122,6 +122,7 @@ export function TotalRow({
           <CurrencyInput
             allowNegative
             className={TABLE_CELL_CONTENT_CLASS}
+            getColor={valueTextColor}
             value={getFieldValue('forecast', formValues)}
           />
         </TableCell>
@@ -131,7 +132,7 @@ export function TotalRow({
           <span className={TABLE_CELL_CONTENT_CLASS}>
             <CurrencyInput
               style={{ minWidth: 220 }}
-              getColor={fields.includes('committee') ? getValueTextColor : valueTextColor}
+              getColor={valueTextColor}
               value={getFieldValue('kayttosuunnitelmanMuutos', formValues)}
             />
           </span>

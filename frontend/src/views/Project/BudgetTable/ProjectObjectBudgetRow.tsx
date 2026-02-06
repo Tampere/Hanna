@@ -211,6 +211,7 @@ export function ProjectObjectBudgetRow({
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, onChange, ...field }) => (
               <CurrencyInput
+                getColor={valueTextColor}
                 css={css`
                   background-color: rgba(255, 255, 255, 0) !important;
                 `}
@@ -232,6 +233,7 @@ export function ProjectObjectBudgetRow({
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, onChange, ...field }) => (
               <CurrencyInput
+                getColor={valueTextColor}
                 css={css`
                   background-color: rgba(255, 255, 255, 0) !important;
                 `}
