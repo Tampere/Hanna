@@ -10,7 +10,7 @@ import { ProjectYearBudget } from '@shared/schema/project';
 import { BudgetField, BudgetFormValues, TABLE_CELL_CONTENT_CLASS } from '.';
 
 export function getValueTextColor(value: number | null) {
-  return value && value < 0 ? 'red' : 'inherit';
+  return value && value < 0 ? 'red' : 'blue';
 }
 
 interface Props {
@@ -134,7 +134,11 @@ export function YearTotalRow({
       )}
       {fields?.includes('forecast') && (
         <TableCell>
-          <CurrencyInput allowNegative value={effectiveGetFieldValue('forecast')} />
+          <CurrencyInput
+            getColor={getValueTextColor}
+            allowNegative
+            value={effectiveGetFieldValue('forecast')}
+          />
         </TableCell>
       )}
       {fields?.includes('kayttosuunnitelmanMuutos') && (
