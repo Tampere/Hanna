@@ -26,6 +26,7 @@ export type Props<T> = {
   optionLabelElement?: (id: string | null) => ReactElement;
   optionIconElement?: (id: string | null) => ReactElement;
   getOptionId?: (item: T) => string;
+  endAdornment?: ReactElement;
   /**
    * Overrides MUI AutoComplete's default renderOption function.
    */
@@ -66,6 +67,7 @@ export function MultiSelect<T>({
   optionIconElement,
   maxTags,
   disableClearable,
+  endAdornment,
 }: Props<T>) {
   const tr = useTranslations();
 
@@ -255,6 +257,7 @@ export function MultiSelect<T>({
             endAdornment: (
               <>
                 {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                {endAdornment}
                 {params.InputProps.endAdornment}
               </>
             ),

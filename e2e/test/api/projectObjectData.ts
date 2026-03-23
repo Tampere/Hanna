@@ -51,6 +51,7 @@ export const testProjectObject = (
   startDate: '2021-01-01',
   endDate: '2022-01-01',
   sapWBSId: null,
+  environmentalInvestmentReason: '412',
   objectUserRoles: [],
   palmGrouping: '00',
 });
@@ -73,6 +74,7 @@ export const testProjectObject2 = (
   startDate: '2021-02-01',
   endDate: '2022-01-01',
   sapWBSId: null,
+  environmentalInvestmentReason: '412',
   objectUserRoles: [],
   ...(type === 'investment'
     ? {
@@ -101,6 +103,7 @@ export const testProjectObject3 = (
   startDate: '2021-03-01',
   endDate: '2022-01-01',
   sapWBSId: null,
+  environmentalInvestmentReason: '412',
   objectUserRoles: [],
   palmGrouping: '00',
   ...(type === 'investment'
@@ -129,6 +132,7 @@ export const invalidDateProjectObject = (
   startDate: '2022-01-01',
   endDate: '2021-01-01',
   sapWBSId: null,
+  environmentalInvestmentReason: '412',
   objectUserRoles: [],
   ...(type === 'investment'
     ? {

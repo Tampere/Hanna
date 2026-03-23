@@ -16,6 +16,7 @@ import {
   getFormValidator,
 } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
+import { EnvironmentalCodeSelect } from '@frontend/components/forms/EnvironmentalCodeSelect';
 import { FormCheckBox } from '@frontend/components/forms/FormCheckBox';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
@@ -218,6 +219,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
 
   const formProjectId = watch('projectId');
   const endDateWatch = watch('endDate');
+  const formSapWBSId = watch('sapWBSId');
 
   const projectObjectUpsert = trpc.maintenanceProjectObject.upsert.useMutation({
     onSuccess: (data) => {
@@ -473,6 +475,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
           <FormField
             formField="procurementMethod"
             label={tr('maintenanceProjectObject.procurementMethod')}
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, ...field }) => (
               <CodeSelect
                 {...field}
@@ -489,6 +492,14 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
             errorTooltip={tr('projectObject.sapWBSIdTooltip')}
             component={(field) => (
               <SapWBSSelect projectId={formProjectId} readonlyProps={readonlyProps} field={field} />
+            )}
+          />
+          <FormField
+            formField="environmentalInvestmentReason"
+            label={tr('projectObject.reasonForEnvironmentalInvestmentLabel')}
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            component={({ ref, ...field }) => (
+              <EnvironmentalCodeSelect {...field} readOnly={!editing} sapWbsId={formSapWBSId} />
             )}
           />
           <FormField

@@ -116,6 +116,7 @@ export const newProjectObjectSchema = z.object({
   startDate: isoDateString,
   endDate: isoDateString,
   sapWBSId: nonEmptyString.optional().nullable(),
+  environmentalInvestmentReason: codeId.optional().nullable(),
   landownership: codeId.optional().nullable(),
   locationOnProperty: codeId.optional().nullable(),
   height: z.coerce.number().optional().nullable(),

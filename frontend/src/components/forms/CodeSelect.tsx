@@ -1,5 +1,5 @@
 import { useAtomValue } from 'jotai';
-import { useMemo } from 'react';
+import { ReactElement, useMemo } from 'react';
 
 import { trpc } from '@frontend/client';
 import { langAtom } from '@frontend/stores/lang';
@@ -19,6 +19,7 @@ type Props = {
   showIdInLabel?: boolean;
   allowEmptySelection?: boolean;
   disableClearable?: boolean;
+  endAdornment?: ReactElement;
 } & (
   | {
       multiple: true;
@@ -46,6 +47,7 @@ export function CodeSelect({
   maxTags,
   allowEmptySelection,
   disableClearable,
+  endAdornment,
 }: Props) {
   const codes = trpc.code.get.useQuery(
     { codeListId, allowEmptySelection },
@@ -102,6 +104,7 @@ export function CodeSelect({
       }}
       multiple
       maxTags={maxTags}
+      endAdornment={endAdornment}
     />
   ) : (
     <MultiSelect
@@ -119,6 +122,7 @@ export function CodeSelect({
         onChange(option?.id.id ?? null);
       }}
       multiple={false}
+      endAdornment={endAdornment}
     />
   );
 }
