@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Alert, Autocomplete, Box, Button, Stack, TextField } from '@mui/material';
+import { Alert, Autocomplete, Button, Stack, TextField } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue, useSetAtom } from 'jotai';
@@ -17,6 +17,7 @@ import {
 } from '@frontend/components/forms';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { CommitteeSelect } from '@frontend/components/forms/CommitteeSelect';
+import { EnvironmentalCodeSelect } from '@frontend/components/forms/EnvironmentalCodeSelect';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
@@ -237,6 +238,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
   }, [newProjectObjectIds, isBlocking]);
 
   const formProjectId = watch('projectId');
+  const formSapWBSId = watch('sapWBSId');
 
   const projectObjectUpsert = trpc.investmentProjectObject.upsert.useMutation({
     onSuccess: (data) => {
@@ -561,18 +563,20 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
             )}
           />
           <FormField
+            formField="environmentalInvestmentReason"
+            label={tr('projectObject.reasonForEnvironmentalInvestmentLabel')}
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            component={({ ref, ...field }) => (
+              <EnvironmentalCodeSelect {...field} readOnly={!editing} sapWbsId={formSapWBSId} />
+            )}
+          />
+          <FormField
             formField="objectUserRoles"
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, ...field }) => (
               <ProjectObjectFormUserRoles {...field} readOnly={!editing} forInvestment />
             )}
           />
-          <Box
-            css={css`
-              display: flex;
-              flex-direction: column;
-            `}
-          ></Box>
         </form>
       </FormProvider>
 

@@ -10,7 +10,6 @@ import {
   getSapProject,
   sapProjectExists,
 } from '@backend/components/sap/dataImport.js';
-import { yearRange } from '@backend/components/sap/utils.js';
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
 
@@ -226,18 +225,15 @@ export const createSapRouter = (t: TRPC) =>
         `);
 
         return (
-          dbResult?.result?.reduce(
-            (valuesByYear, val) => {
-              if (!valuesByYear[val.year]) {
-                valuesByYear[val.year] = [];
-              }
+          dbResult?.result?.reduce((valuesByYear, val) => {
+            if (!valuesByYear[val.year]) {
+              valuesByYear[val.year] = [];
+            }
 
-              valuesByYear[val.year].push({ month: val.month, total: val.total });
+            valuesByYear[val.year].push({ month: val.month, total: val.total });
 
-              return valuesByYear;
-            },
-            {} as Record<string, Record<string, number>[]>,
-          ) ?? {}
+            return valuesByYear;
+          }, {} as Record<string, Record<string, number>[]>) ?? {}
         );
       }),
 
@@ -286,18 +282,15 @@ export const createSapRouter = (t: TRPC) =>
           `);
 
         return (
-          dbResult?.result?.reduce(
-            (valuesByYear, val) => {
-              if (!valuesByYear[val.year]) {
-                valuesByYear[val.year] = [];
-              }
+          dbResult?.result?.reduce((valuesByYear, val) => {
+            if (!valuesByYear[val.year]) {
+              valuesByYear[val.year] = [];
+            }
 
-              valuesByYear[val.year].push({ month: val.month, total: val.total });
+            valuesByYear[val.year].push({ month: val.month, total: val.total });
 
-              return valuesByYear;
-            },
-            {} as Record<string, Record<string, number>[]>,
-          ) ?? {}
+            return valuesByYear;
+          }, {} as Record<string, Record<string, number>[]>) ?? {}
         );
       }),
 
@@ -349,5 +342,17 @@ export const createSapRouter = (t: TRPC) =>
       .input(z.object({ projectId: z.string() }))
       .query(async ({ input }) => {
         return await sapProjectExists(input.projectId);
+      }),
+
+    getEnvironmentalCodeForWbs: t.procedure
+      .input(z.object({ wbsId: z.string() }))
+      .query(async ({ input }) => {
+        return getPool().maybeOne(
+          sql.type(z.object({ reasonForEnvironmentalInvestment: z.string().nullable() }))`
+            SELECT reason_for_environmental_investment AS "reasonForEnvironmentalInvestment"
+            FROM app.sap_wbs
+            WHERE wbs_id = ${input.wbsId}
+          `,
+        );
       }),
   });

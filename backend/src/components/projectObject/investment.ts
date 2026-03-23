@@ -49,6 +49,7 @@ const getProjectObjectFragment = (ids: string | string[]) => sql.fragment`
      start_date AS "startDate",
      end_date AS "endDate",
      sap_wbs_id AS "sapWBSId",
+     (reason_for_environmental_investment).id AS "environmentalInvestmentReason",
      dump.geom,
      dump.geometry_dump AS "geometryDump",
      (SELECT json_agg((object_type).id)->0
@@ -151,6 +152,10 @@ function getUpdateData(
     end_date: projectObject.endDate,
     sap_wbs_id: projectObject.sapWBSId,
     height: projectObject.height,
+    reason_for_environmental_investment: codeIdFragment(
+      'YmpäristönsuojelunSyy',
+      projectObject.environmentalInvestmentReason,
+    ),
     updated_by: userId,
   };
   const investmentData = {
