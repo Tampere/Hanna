@@ -16,7 +16,6 @@ type Props = {
   showIdInLabel?: boolean;
   allowEmptySelection?: boolean;
   disableClearable?: boolean;
-  validate: (value: string | null) => Promise<boolean>;
   messages: Record<Exclude<Status, 'empty'>, string>;
   onStatusChange?: (status: Status) => void;
 } & (
@@ -25,12 +24,14 @@ type Props = {
       value?: CodeId['id'][];
       onChange: (newValue: CodeId['id'][]) => void;
       maxTags?: number;
+      validate: (value: string[]) => Promise<boolean>;
     }
   | {
       multiple?: false;
       value?: CodeId['id'];
       onChange: (newValue: CodeId['id'] | null) => void;
       maxTags?: never;
+      validate: (value: string | null) => Promise<boolean>;
     }
 );
 
@@ -57,8 +58,9 @@ export function CodeSelectWithStatus({
       }
       setStatus('loading');
       try {
-        const singleValue = Array.isArray(value) ? value[0] : value;
-        const isValid = await validate(singleValue ?? null);
+        const isValid = Array.isArray(value)
+          ? await (validate as (v: string[]) => Promise<boolean>)(value)
+          : await (validate as (v: string | null) => Promise<boolean>)(value);
         setStatus(isValid ? 'valid' : 'invalid');
       } catch {
         setStatus('error');
