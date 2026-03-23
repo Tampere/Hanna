@@ -53,6 +53,7 @@ async function upsertBaseProject(
   const data = {
     project_name: project.projectName,
     description: project.description,
+    public_description: project.publicDescription,
     start_date: project.startDate,
     end_date: project.endDate,
     lifecycle_state: codeIdFragment('HankkeenElinkaarentila', project.lifecycleState),
@@ -112,6 +113,7 @@ export async function getProject(id: string) {
     z.object({
       projectId: z.string(),
       description: z.string(),
+      publicDescription: z.string(),
       projectName: z.string(),
       geom: z.string(),
       startDate: z.string(),
@@ -126,6 +128,7 @@ export async function getProject(id: string) {
     SELECT
       app.project.id AS "projectId",
       description,
+      public_description AS "publicDescription",
       project_name AS "projectName",
       dump.geom,
       start_date AS "startDate",
