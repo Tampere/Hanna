@@ -5,7 +5,7 @@ type ObjectType = 'investment' | 'maintenance';
 export const testInvestmentProject = (user: User) => ({
   projectName: 'Test project',
   description: 'Test description',
-  publicDescription: '',
+  publicDescription: 'Test public description',
   owner: user.id,
   startDate: '2021-01-01',
   endDate: '2022-01-01',
@@ -20,7 +20,7 @@ export const testInvestmentProject = (user: User) => ({
 export const testMaintenanceProject = (user: User) => ({
   projectName: 'Test project',
   description: 'Test description',
-  publicDescription: '',
+  publicDescription: 'Test public description',
   owner: user.id,
   startDate: '2021-01-01',
   endDate: '2022-01-01',
@@ -41,7 +41,7 @@ export const testProjectObject = (
 ) => ({
   projectId,
   description: 'Test description',
-  publicDescription: '',
+  publicDescription: 'Test public description',
   objectName: 'Test project object',
   objectStage: '01',
   lifecycleState: '01',
@@ -67,7 +67,7 @@ export const testProjectObject2 = (
 ) => ({
   projectId,
   description: 'Test description 2',
-  publicDescription: '',
+  publicDescription: 'Test public description',
   objectName: 'Test project object 2',
   committee: projectCommittees[0],
   lifecycleState: '01',
@@ -97,7 +97,7 @@ export const testProjectObject3 = (
 ) => ({
   projectId,
   description: 'Test description 3',
-  publicDescription: '',
+  publicDescription: 'Test public description',
   objectName: 'Test project object 3',
   committee: projectCommittees[0],
   lifecycleState: '01',
@@ -127,7 +127,7 @@ export const invalidDateProjectObject = (
 ) => ({
   projectId: projectId,
   description: 'Test description',
-  publicDescription: '',
+  publicDescription: 'Test public description',
   objectName: 'Test project object',
   committee: projectCommittees[0],
   lifecycleState: '01',

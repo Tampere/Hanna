@@ -23,7 +23,7 @@ function makePoint(lon: number, lat: number, srid: string) {
 const invalidDateProject = {
   projectName: 'Test project',
   description: 'Test description',
-  publicDescription: '',
+  publicDescription: 'Test public description',
   owner: '1',
   startDate: '2023-01-01',
   endDate: '2022-01-01',
@@ -37,7 +37,7 @@ const invalidDateProject = {
 const testProjectObject = (projectId: string, committees: string[], user: User) => ({
   projectId,
   description: 'Test description',
-  publicDescription: '',
+  publicDescription: 'Test public description',
   objectName: 'Test project object',
   objectStage: '01',
   lifecycleState: '01',
@@ -55,7 +55,7 @@ const testProjectObject = (projectId: string, committees: string[], user: User) 
 const validProject = (userId: string, projectName = 'Test project') => ({
   projectName,
   description: 'Test description',
-  publicDescription: '',
+  publicDescription: 'Test public description',
   owner: userId,
   startDate: '2021-01-01',
   endDate: '2022-01-01',
@@ -348,7 +348,7 @@ test.describe('Project endpoints', () => {
     const testMaintenanceProjectObject = (projectId: string, user: User) => ({
       projectId,
       description: 'Test description',
-      publicDescription: '',
+      publicDescription: 'Test public description',
       objectName: 'Test maintenance project object',
       objectStage: '01',
       lifecycleState: '01',
