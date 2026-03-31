@@ -30,6 +30,7 @@ WITH dump AS (${getProjectGeometryDumpFragment()})
     project.id AS "parentId",
     project_name AS "projectName",
     description,
+    public_description AS "publicDescription",
     owner,
     project.start_date AS "startDate",
     project.end_date AS "endDate",

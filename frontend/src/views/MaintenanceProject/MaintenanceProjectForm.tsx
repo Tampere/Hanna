@@ -108,6 +108,7 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
       owner: currentUser?.id,
       projectName: '',
       description: '',
+      publicDescription: '',
       startDate: '',
       endDate: '',
       contract: '',
@@ -313,6 +314,14 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
             label={tr('project.descriptionLabel')}
             errorTooltip={tr('newProject.descriptionErrorTooltip')}
             helpTooltip={tr('newProject.descriptionTooltip')}
+            component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
+          />
+
+          <FormField
+            formField="publicDescription"
+            label={tr('project.publicDescriptionLabel')}
+            errorTooltip={tr('newProject.publicDescriptionErrorTooltip')}
+            helpTooltip={tr('newProject.publicDescriptionTooltip')}
             component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
           />
 

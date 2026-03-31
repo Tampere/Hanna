@@ -13,6 +13,7 @@ export const upsertProjectSchema = z.object({
   owner: nonEmptyString,
   projectName: nonEmptyString,
   description: nonEmptyString,
+  publicDescription: z.string(),
   startDate: isoDateString,
   endDate: isoDateString,
   lifecycleState: codeId,

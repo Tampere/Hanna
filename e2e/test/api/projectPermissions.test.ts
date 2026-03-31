@@ -9,6 +9,7 @@ import type { User } from '@shared/schema/userPermissions.js';
 const validProject = (userId: string) => ({
   projectName: 'Test project',
   description: 'Test description',
+  publicDescription: 'Test public description',
   owner: userId,
   startDate: '2021-01-01',
   endDate: '2022-01-01',
@@ -102,6 +103,7 @@ test.describe('permission testing', () => {
       projectId: testProjectId,
       objectName: 'Test project object',
       description: 'Test project object description',
+      publicDescription: 'Test public description',
       committee: project.committees[0],
       lifecycleState: '01',
       objectType: '01',
@@ -141,6 +143,7 @@ test.describe('permission testing', () => {
       projectId: testProjectId,
       objectName: 'Test project object 2',
       description: 'Test project object description 2',
+      publicDescription: 'Test public description',
       committee: project.committees[0],
       lifecycleState: '01',
       objectStage: '01',

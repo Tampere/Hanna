@@ -111,6 +111,7 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
       owner: currentUser?.id,
       projectName: '',
       description: '',
+      publicDescription: '',
       startDate: '',
       endDate: '',
       lifecycleState: '01',
@@ -344,6 +345,14 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
             label={tr('project.descriptionLabel')}
             errorTooltip={tr('newProject.descriptionErrorTooltip')}
             helpTooltip={tr('newProject.descriptionTooltip')}
+            component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
+          />
+
+          <FormField
+            formField="publicDescription"
+            label={tr('project.publicDescriptionLabel')}
+            errorTooltip={tr('newProject.publicDescriptionErrorTooltip')}
+            helpTooltip={tr('newProject.publicDescriptionTooltip')}
             component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
           />
 

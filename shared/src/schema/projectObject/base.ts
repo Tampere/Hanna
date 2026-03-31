@@ -110,6 +110,7 @@ export const newProjectObjectSchema = z.object({
   projectId: z.string(),
   objectName: nonEmptyString,
   description: nonEmptyString,
+  publicDescription: nonEmptyString,
   lifecycleState: codeId,
   objectCategory: z.array(codeId).superRefine((value) => value.length > 0),
   objectUsage: z.array(codeId).superRefine((value) => value.length > 0),

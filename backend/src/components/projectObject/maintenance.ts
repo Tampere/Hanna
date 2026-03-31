@@ -42,6 +42,7 @@ const getProjectObjectFragment = (id: string) => sql.fragment`
      project_object.id AS "projectObjectId",
      object_name AS "objectName",
      description AS "description",
+     public_description AS "publicDescription",
      (lifecycle_state).id AS "lifecycleState",
      start_date AS "startDate",
      end_date AS "endDate",
@@ -104,6 +105,7 @@ function getUpdateData(
     project_id: projectObject.projectId,
     object_name: projectObject.objectName,
     description: projectObject.description,
+    public_description: projectObject.publicDescription,
     lifecycle_state:
       projectObject.lifecycleState &&
       codeIdFragment('KohteenElinkaarentila', projectObject.lifecycleState),
