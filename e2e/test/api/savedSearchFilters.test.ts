@@ -16,6 +16,7 @@ const projectSearchFilter: Omit<UserSavedSearchFilter, 'projectObjectSearch' | '
       onlyCoversMunicipality: false,
       text: 'project',
       lifecycleStates: ['01'],
+      environmentalInvestmentReasons: ['412'],
     },
   };
 
@@ -35,6 +36,7 @@ const projectObjectSearchFilter: Omit<UserSavedSearchFilter, 'projectSearch' | '
       suunnitteluttajaUsers: [TEST_USER],
       dateRange: { startDate: '2021-01-01', endDate: '2021-12-31' },
       lifecycleStates: ['01'],
+      environmentalInvestmentReasons: ['412'],
     },
   };
 
@@ -57,6 +59,7 @@ const worktableSearchFilter: Omit<UserSavedSearchFilter, 'projectObjectSearch' |
       projectTarget: ['01'],
       rakennuttajaUsers: [TEST_USER],
       suunnitteluttajaUsers: [TEST_USER],
+      environmentalInvestmentReason: ['412'],
     },
   };
 
