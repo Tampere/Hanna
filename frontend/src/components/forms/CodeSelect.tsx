@@ -119,7 +119,7 @@ export function CodeSelect({
       {...getOptionIconElementProp(codeListId)}
       value={selection as Code}
       onChange={(option) => {
-        onChange(option?.id.id ?? null);
+        onChange(option?.id?.id ?? null);
       }}
       multiple={false}
       endAdornment={endAdornment}
