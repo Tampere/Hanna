@@ -74,6 +74,7 @@ export const workTableSearchSchema = z.object({
   projectTarget: z.array(nonEmptyString).optional(),
   projectPalmGrouping: z.array(nonEmptyString).optional(),
   objectPalmGrouping: z.array(nonEmptyString).optional(),
+  environmentalInvestmentReason: z.array(nonEmptyString).optional(),
 });
 
 export type WorkTableSearch = z.infer<typeof workTableSearchSchema>;

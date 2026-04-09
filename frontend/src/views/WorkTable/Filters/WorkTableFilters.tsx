@@ -88,11 +88,11 @@ export function WorkTableFilters(props: Props) {
         }
         padding: ${theme.spacing(1)} 0;
         transition: 0.3s ease-out;
-        ${props.expanded ? `height: 230px; opacity: 1;` : `height: 0px; opacity: 0;`}
+        ${props.expanded ? `height: 295px; opacity: 1;` : `height: 0px; opacity: 0;`}
         ${props.expanded
           ? `display: grid;
         grid-template-columns: repeat(12, 1fr);
-        grid-template-rows: 1fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr 1fr 1fr;
         gap: ${theme.spacing(2)} ${theme.spacing(2)};`
           : `display: flex;`}
       `}
@@ -286,6 +286,23 @@ export function WorkTableFilters(props: Props) {
               maxTags={1}
             />
           </GridSpan>
+          <GridSpan row={4} span={3}>
+            <CustomFormLabel
+              htmlFor="environmentalInvestmentReason"
+              label={tr('projectObject.reasonForEnvironmentalInvestmentLabel')}
+            />
+            <CodeSelect
+              multiple
+              showIdInLabel
+              codeListId="YmpäristönsuojelunSyy"
+              value={searchParams.environmentalInvestmentReason ?? []}
+              onChange={(state) =>
+                setSearchParams({ ...searchParams, environmentalInvestmentReason: state })
+              }
+              maxTags={1}
+            />
+          </GridSpan>
+
           {palmGroupingVisible && (
             <>
               <GridSpan row={3} span={2} wideScreenSpan={2}>

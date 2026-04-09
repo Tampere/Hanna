@@ -131,6 +131,7 @@ export async function workTableSearch(input: WorkTableSearch) {
     company = [],
     committee = [],
     projectTarget = [],
+    environmentalInvestmentReason = [],
   } = input;
 
   const query = sql.type(workTableRowSchema)`
@@ -207,6 +208,13 @@ export async function workTableSearch(input: WorkTableSearch) {
       AND (
         ${sql.array(projectTarget, 'text')} = '{}'::TEXT[] OR
         (pi.target).id = ANY(${sql.array(projectTarget, 'text')})
+      )
+      AND (
+        ${sql.array(environmentalInvestmentReason, 'text')} = '{}'::TEXT[] OR
+        (project_object.reason_for_environmental_investment).id = ANY(${sql.array(
+          environmentalInvestmentReason,
+          'text',
+        )})
       )
     GROUP BY project_object.id, poi.project_object_id, project.id
     ${
