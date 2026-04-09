@@ -1,9 +1,6 @@
-import { z } from 'zod';
-
 import { textToTsSearchTerms } from '@backend/components/project/search.js';
 import { getProjectObjectBudget } from '@backend/components/projectObject/index.js';
 import { upsertProjectObject } from '@backend/components/projectObject/investment.js';
-import { refreshProjectObjectSapActuals } from '@backend/components/sap/actuals.js';
 import { startPlanningTableReportJob } from '@backend/components/taskQueue/planningTableReportQueue.js';
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
@@ -14,7 +11,6 @@ import {
   PlanningTableSearch,
   ProjectObjectRow,
   planningTableRowResult,
-  planningTableRowSchema,
   planningTableSearchSchema,
   planningUpdateSchema,
 } from '@shared/schema/planningTable.js';
@@ -40,6 +36,7 @@ export async function planningTableSearch(input: PlanningTableSearch) {
     projectTarget = [],
     projectPalmGrouping = [],
     objectPalmGrouping = [],
+    environmentalInvestmentReason = [],
   } = input;
 
   const objectNameSearch = textToTsSearchTerms(input.projectObjectName, { minTermLength: 3 });
@@ -180,6 +177,14 @@ export async function planningTableSearch(input: PlanningTableSearch) {
           ${sql.array(objectPalmGrouping, 'text')}::TEXT[] = '{}'::TEXT[] OR
           (poi.palm_grouping).id = ANY(${sql.array(objectPalmGrouping, 'text')}::TEXT[])
         )
+        -- Ympäristönsuojelun syy
+        AND (
+          ${sql.array(environmentalInvestmentReason, 'text')}::TEXT[] = '{}'::TEXT[] OR
+          (po.reason_for_environmental_investment).id = ANY(${sql.array(
+            environmentalInvestmentReason,
+            'text',
+          )}::TEXT[])
+        )
       GROUP BY po.id, po.object_name, po.project_id, p.project_name
         ${
           objectParticipantUser
@@ -238,9 +243,6 @@ export async function planningTableSearch(input: PlanningTableSearch) {
     try {
       // Fetch budget data
       const budgetData = await getProjectObjectBudget(row.id);
-
-      // Fetch actual values from SAP
-      const currentYear = new Date().getFullYear();
 
       // Transform budget data to match schema expectations and include actual values
       const transformedBudget = budgetData.map((item) => ({
