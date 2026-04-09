@@ -41,6 +41,7 @@ export const workTableRowSchema = z.object({
   estimate: z.number().nullable(),
   contractPrice: z.number().nullable(),
   kayttosuunnitelmanMuutos: z.number().nullable(),
+  environmentalInvestmentReason: nonEmptyString.nullable(),
   permissionCtx: z.object({
     writeUsers: z.array(nonEmptyString),
     owner: nonEmptyString,
@@ -134,6 +135,7 @@ export const templateColumns: Record<ReportTemplate, WorkTableColumn[]> = {
     'actual',
     'forecast',
     'kayttosuunnitelmanMuutos',
+    'environmentalInvestmentReason',
     'sapProjectId',
     'sapWbsId',
   ],

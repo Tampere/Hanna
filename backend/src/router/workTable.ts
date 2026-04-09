@@ -67,6 +67,7 @@ function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'prin
     amount: sql.fragment`po_budget.amount AS "amount"`,
     forecast: sql.fragment`po_budget.forecast AS "forecast"`,
     kayttosuunnitelmanMuutos: sql.fragment`po_budget.kayttosuunnitelman_muutos AS "kayttosuunnitelmanMuutos"`,
+    environmentalInvestmentReason: sql.fragment`(reason_for_environmental_investment).id AS "environmentalInvestmentReason"`,
     estimate: sql.fragment`po_budget.estimate AS "estimate"`,
     contractPrice: sql.fragment`po_budget.contract_price AS "contractPrice"`,
     sapProjectId: sql.fragment`search_results.sap_project_id AS "sapProjectId"`,
