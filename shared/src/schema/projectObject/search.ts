@@ -21,6 +21,7 @@ export const projectObjectSearchSchema = z.object({
   includeWithoutGeom: z.boolean().optional(),
   rakennuttajaUsers: z.array(nonEmptyString).optional(),
   suunnitteluttajaUsers: z.array(nonEmptyString).optional(),
+  environmentalInvestmentReasons: z.array(nonEmptyString).optional(),
 });
 
 export const objectsByProjectSearchSchema = z.object({

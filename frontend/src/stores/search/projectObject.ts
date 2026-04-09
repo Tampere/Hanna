@@ -26,6 +26,7 @@ const projectObjectSearchDefaultValues = {
   objectParticipantUser: null,
   rakennuttajaUsers: [],
   suunnitteluttajaUsers: [],
+  environmentalInvestmentReasons: [],
 };
 
 export const projectObjectSearchParamAtom = atomWithReset<ProjectObjectSearchParams>(
@@ -84,6 +85,10 @@ export const suunnitteluttajaUsersAtom = focusAtom(projectObjectSearchParamAtom,
 
 export const objectParticipantUserAtom = focusAtom(projectObjectSearchParamAtom, (o) =>
   o.prop('objectParticipantUser'),
+);
+
+export const environmentalInvestmentReasonsAtom = focusAtom(projectObjectSearchParamAtom, (o) =>
+  o.prop('environmentalInvestmentReasons'),
 );
 
 export const mapAtom = focusAtom(projectObjectSearchParamAtom, (o) => o.prop('map'));

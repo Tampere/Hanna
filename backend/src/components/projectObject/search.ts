@@ -192,6 +192,7 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
     objectParticipantUser = null,
     rakennuttajaUsers = [],
     suunnitteluttajaUsers = [],
+    environmentalInvestmentReasons = [],
   } = input;
 
   const withGeometries = Boolean(map?.zoom && map.zoom > CLUSTER_ZOOM_BELOW);
@@ -241,6 +242,10 @@ export async function projectObjectSearch(input: ProjectObjectSearch) {
         rakennuttajaUsers,
         suunnitteluttajaUsers,
       )}
+      AND (
+        ${sql.array(environmentalInvestmentReasons, 'text')} = '{}'::TEXT[] OR
+        (po.reason_for_environmental_investment).id = ANY(${sql.array(environmentalInvestmentReasons, 'text')})
+      )
     GROUP BY po.id, poi.project_object_id, project.id, poi.object_stage ${
       withGeometries ? sql.fragment`, project_dump.geom, object_dump.geom` : sql.fragment``
     }

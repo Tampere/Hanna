@@ -20,6 +20,7 @@ const projectSearchDefaultValues = {
   includeWithoutGeom: true,
   filters: {} as const,
   onlyCoversMunicipality: false,
+  environmentalInvestmentReasons: [],
 };
 
 export const selectedSavedSearchFilterAtom = atom<{ id: string | null; isEditing: boolean }>({
@@ -59,6 +60,10 @@ export const mapAtom = focusAtom(projectSearchParamAtom, (o) => o.prop('map'));
 
 export const onlyCoversMunicipalityAtom = focusAtom(projectSearchParamAtom, (o) =>
   o.prop('onlyCoversMunicipality'),
+);
+
+export const environmentalInvestmentReasonsAtom = focusAtom(projectSearchParamAtom, (o) =>
+  o.prop('environmentalInvestmentReasons'),
 );
 
 export function calculateUsedSearchParamsCount(searchParams: ProjectSearchParams): number {

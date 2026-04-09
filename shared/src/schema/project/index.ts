@@ -54,6 +54,7 @@ export const projectSearchSchema = z.object({
       })
       .optional(),
   }),
+  environmentalInvestmentReasons: z.array(z.string()).optional(),
   withProjectObjects: z.boolean().optional(),
   onlyCoversMunicipality: z.boolean(),
 });
