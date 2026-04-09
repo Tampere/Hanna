@@ -25,6 +25,7 @@ import { freezeMapHeightAtom } from '@frontend/stores/map';
 import {
   calculateUsedSearchParamsCount,
   dateRangeAtom,
+  environmentalInvestmentReasonsAtom,
   includeWithoutGeomAtom,
   lifecycleStatesAtom,
   mapAtom,
@@ -103,6 +104,9 @@ export function SearchControls() {
   const [objectParticipantUser, setObjectParticipantUser] = useAtom(objectParticipantUserAtom);
   const [suunnitteluttajaUsers, setSuunnitteluttajaUsers] = useAtom(suunnitteluttajaUsersAtom);
   const [rakennuttajaUsers, setRakennuttajaUsers] = useAtom(rakennuttajaUsersAtom);
+  const [environmentalInvestmentReasons, setEnvironmentalInvestmentReasons] = useAtom(
+    environmentalInvestmentReasonsAtom,
+  );
   const setFreezeMapHeight = useSetAtom(freezeMapHeightAtom);
   const [allSearchParams, setAllSearchParams] = useAtom(projectObjectSearchParamAtom);
   const searchParamsWithoutMap = useAtomValue(projectObjectSearchParamsAtomWithoutMap);
@@ -301,6 +305,20 @@ export function SearchControls() {
                 value={suunnitteluttajaUsers}
                 onChange={setSuunnitteluttajaUsers}
                 maxTags={1}
+              />
+            </FormControl>
+            <FormControl>
+              <FormLabel htmlFor="environmentalInvestmentReason">
+                {tr('projectObject.reasonForEnvironmentalInvestmentLabel')}
+              </FormLabel>
+              <CodeSelect
+                id="environmentalInvestmentReason"
+                multiple
+                maxTags={1}
+                showIdInLabel
+                codeListId="YmpäristönsuojelunSyy"
+                value={environmentalInvestmentReasons}
+                onChange={setEnvironmentalInvestmentReasons}
               />
             </FormControl>
             <FormControlLabel

@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import { Launch } from '@mui/icons-material';
-import { Box, Tooltip } from '@mui/material';
+import { Box } from '@mui/material';
 import {
   GridColDef,
   GridRenderCellParams,
@@ -27,7 +27,6 @@ import {
   ProjectObjectUsers,
 } from '@frontend/views/WorkTable/ProjectObjectUsers';
 
-import { PlanningTableRow } from '@shared/schema/planningTable';
 import { WorkTableRow, workTableColumnCodes } from '@shared/schema/workTable';
 
 import { CodeSpan } from './CodeSpan';
@@ -261,7 +260,7 @@ const fieldObjectStage = {
   field: 'objectStage',
   headerName: 'Laji',
   flex: 1,
-  minWidth: 40,
+  minWidth: 50,
   renderCell: (params: GridRenderCellParams) => <ObjectStageIcon id={params.value} />,
   renderEditCell(params: GridRenderEditCellParams) {
     const { id, field, value } = params;
@@ -423,6 +422,17 @@ export const financesField = (
   };
 };
 
+const fieldEnvironmentalInvestmentReason = {
+  field: 'environmentalInvestmentReason',
+  headerName: 'Ympäristökoodi',
+  flex: 1,
+  minWidth: 175,
+  editable: false,
+  renderCell: (params: GridRenderCellParams) => (
+    <CodeSpan showCodeListId codeListId="YmpäristönsuojelunSyy" value={params.value} />
+  ),
+};
+
 export function getColumns({
   modifiedFields,
   allYearsSelected,
@@ -459,6 +469,7 @@ export function getColumns({
         valueTextColor,
       },
     ),
+    fieldEnvironmentalInvestmentReason,
   ];
 
   // Set common fields and wrap cell render to MaybeModifiedCell to avoid repetition

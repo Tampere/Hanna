@@ -198,7 +198,7 @@ export function MultiSelect<T>({
                   };
                   `}
                   &.MuiAutocomplete-tag {
-                    max-width: 90%;
+                    max-width: ${index === 0 ? '75%' : '90%'};
                   }
                 `}
                 {...props}

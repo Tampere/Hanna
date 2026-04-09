@@ -41,6 +41,7 @@ export const workTableRowSchema = z.object({
   estimate: z.number().nullable(),
   contractPrice: z.number().nullable(),
   kayttosuunnitelmanMuutos: z.number().nullable(),
+  environmentalInvestmentReason: nonEmptyString.nullable(),
   permissionCtx: z.object({
     writeUsers: z.array(nonEmptyString),
     owner: nonEmptyString,
@@ -74,6 +75,7 @@ export const workTableSearchSchema = z.object({
   projectTarget: z.array(nonEmptyString).optional(),
   projectPalmGrouping: z.array(nonEmptyString).optional(),
   objectPalmGrouping: z.array(nonEmptyString).optional(),
+  environmentalInvestmentReason: z.array(nonEmptyString).optional(),
 });
 
 export type WorkTableSearch = z.infer<typeof workTableSearchSchema>;
@@ -133,6 +135,7 @@ export const templateColumns: Record<ReportTemplate, WorkTableColumn[]> = {
     'actual',
     'forecast',
     'kayttosuunnitelmanMuutos',
+    'environmentalInvestmentReason',
     'sapProjectId',
     'sapWbsId',
   ],

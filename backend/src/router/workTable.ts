@@ -67,6 +67,7 @@ function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'prin
     amount: sql.fragment`po_budget.amount AS "amount"`,
     forecast: sql.fragment`po_budget.forecast AS "forecast"`,
     kayttosuunnitelmanMuutos: sql.fragment`po_budget.kayttosuunnitelman_muutos AS "kayttosuunnitelmanMuutos"`,
+    environmentalInvestmentReason: sql.fragment`(reason_for_environmental_investment).id AS "environmentalInvestmentReason"`,
     estimate: sql.fragment`po_budget.estimate AS "estimate"`,
     contractPrice: sql.fragment`po_budget.contract_price AS "contractPrice"`,
     sapProjectId: sql.fragment`search_results.sap_project_id AS "sapProjectId"`,
@@ -131,6 +132,7 @@ export async function workTableSearch(input: WorkTableSearch) {
     company = [],
     committee = [],
     projectTarget = [],
+    environmentalInvestmentReason = [],
   } = input;
 
   const query = sql.type(workTableRowSchema)`
@@ -207,6 +209,13 @@ export async function workTableSearch(input: WorkTableSearch) {
       AND (
         ${sql.array(projectTarget, 'text')} = '{}'::TEXT[] OR
         (pi.target).id = ANY(${sql.array(projectTarget, 'text')})
+      )
+      AND (
+        ${sql.array(environmentalInvestmentReason, 'text')} = '{}'::TEXT[] OR
+        (project_object.reason_for_environmental_investment).id = ANY(${sql.array(
+          environmentalInvestmentReason,
+          'text',
+        )})
       )
     GROUP BY project_object.id, poi.project_object_id, project.id
     ${

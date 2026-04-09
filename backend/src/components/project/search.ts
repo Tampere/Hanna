@@ -87,6 +87,10 @@ export function getFilterFragment(input: ProjectSearch) {
             )})`
           : sql.fragment`true`
       }
+      AND ${environmentalInvestmentReasonsFragment(
+        sql.identifier(['project', 'id']),
+        input.environmentalInvestmentReasons ?? [],
+      )}
   `;
 }
 
@@ -122,6 +126,19 @@ function clusterResultsFragment(zoom: number | undefined) {
         GROUP BY "clusterGeohash"
     ) clusters)
   `;
+}
+
+function environmentalInvestmentReasonsFragment(
+  projectId: ReturnType<typeof sql.identifier>,
+  reasons: string[],
+) {
+  if (reasons.length === 0) return sql.fragment`true`;
+  return sql.fragment`EXISTS (
+    SELECT 1 FROM app.project_object po
+    WHERE po.project_id = ${projectId}
+      AND po.deleted = false
+      AND (po.reason_for_environmental_investment).id = ANY(${sql.array(reasons, 'text')})
+  )`;
 }
 
 export function investmentProjectFragment(input: ProjectSearch) {

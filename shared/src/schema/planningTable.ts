@@ -28,6 +28,7 @@ export const planningTableSearchSchema = z
     projectTarget: z.array(nonEmptyString).optional(),
     projectPalmGrouping: z.array(nonEmptyString).optional(),
     objectPalmGrouping: z.array(nonEmptyString).optional(),
+    environmentalInvestmentReason: z.array(nonEmptyString).optional(),
     yearRange: yearRange.optional(),
   })
   .default({});

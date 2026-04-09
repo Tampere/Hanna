@@ -31,7 +31,7 @@ import { fiFI } from '@mui/x-data-grid/locales';
 import { useQueries } from '@tanstack/react-query';
 import { useAtom, useAtomValue } from 'jotai';
 import { atomWithDefault } from 'jotai/utils';
-import { type SetStateAction, useEffect, useMemo, useRef, useState } from 'react';
+import { type SetStateAction, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { trpc } from '@frontend/client';
@@ -1060,16 +1060,12 @@ interface GetColumnsParams {
 
 function getColumns({
   yearRange,
-  pinnedColumns,
-  planningData,
   canEditYear,
-  modifiedFields,
   actualsByPo,
   actualsLoadingByPo,
   estimateSumsByProjectName,
   actualSumsByProjectName,
   sapActualsByProject,
-  totalSumRow,
   collapsedProjects,
   toggleProjectCollapse,
   tr,

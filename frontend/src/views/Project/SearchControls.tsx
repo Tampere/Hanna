@@ -34,6 +34,7 @@ import { freezeMapHeightAtom } from '@frontend/stores/map';
 import {
   calculateUsedSearchParamsCount,
   dateRangeAtom,
+  environmentalInvestmentReasonsAtom,
   filtersAtom,
   includeWithoutGeomAtom,
   lifecycleStatesAtom,
@@ -111,6 +112,9 @@ export function SearchControls() {
   const searchParamsWithoutMap = useAtomValue(searchParamsAtomWithoutMap);
   const setFreezeMapHeight = useSetAtom(freezeMapHeightAtom);
   const [savedFilterState, setSavedFilterState] = useAtom(selectedSavedSearchFilterAtom);
+  const [environmentalInvestmentReasons, setEnvironmentalInvestmentReasons] = useAtom(
+    environmentalInvestmentReasonsAtom,
+  );
   const setMap = useSetAtom(mapAtom);
 
   const searchParamsCount = useMemo(
@@ -299,6 +303,20 @@ export function SearchControls() {
               <FormControl>
                 <FormLabel htmlFor="owner">{tr('project.ownerLabel')}</FormLabel>
                 <UserSelect id="owner" multiple value={owners} onChange={setOwners} maxTags={1} />
+              </FormControl>
+              <FormControl>
+                <FormLabel htmlFor="environmental-investment-reason">
+                  {tr('projectObject.reasonForEnvironmentalInvestmentLabel')}
+                </FormLabel>
+                <CodeSelect
+                  id="environmental-investment-reason"
+                  codeListId="YmpäristönsuojelunSyy"
+                  multiple
+                  showIdInLabel
+                  value={environmentalInvestmentReasons}
+                  onChange={setEnvironmentalInvestmentReasons}
+                  maxTags={1}
+                />
               </FormControl>
               <FormControlLabel
                 css={css`
