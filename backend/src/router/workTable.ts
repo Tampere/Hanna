@@ -70,6 +70,10 @@ function getWorkTableSearchSelectFragment(reportTemplate: ReportTemplate = 'prin
     environmentalInvestmentReason: sql.fragment`(reason_for_environmental_investment).id AS "environmentalInvestmentReason"`,
     estimate: sql.fragment`po_budget.estimate AS "estimate"`,
     contractPrice: sql.fragment`po_budget.contract_price AS "contractPrice"`,
+    projectDescription: sql.fragment`search_results.project_description AS "projectDescription"`,
+    projectPublicDescription: sql.fragment`search_results.project_public_description AS "projectPublicDescription"`,
+    objectDescription: sql.fragment`search_results.description AS "objectDescription"`,
+    objectPublicDescription: sql.fragment`search_results.public_description AS "objectPublicDescription"`,
     sapProjectId: sql.fragment`search_results.sap_project_id AS "sapProjectId"`,
     committee: sql.fragment`(SELECT jsonb_agg((committee_type).id)->>0 FROM app.project_object_committee WHERE project_object_id = search_results.id) AS "committee"`,
     budgetYear: sql.fragment``,
@@ -145,7 +149,9 @@ export async function workTableSearch(input: WorkTableSearch) {
       dense_rank() OVER (ORDER BY project.project_name)::int4 AS "projectIndex",
       project.sap_project_id,
       project.start_date AS project_start_date,
-      project.end_date AS project_end_date
+      project.end_date AS project_end_date,
+      project.description AS project_description,
+      project.public_description AS project_public_description
     FROM app.project_object
     LEFT JOIN app.project_object_investment poi ON project_object.id = poi.project_object_id
     INNER JOIN app.project ON project.id = project_object.project_id

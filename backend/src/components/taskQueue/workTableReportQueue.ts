@@ -148,7 +148,11 @@ export async function setupWorkTableReportQueue() {
         (row: Omit<WorkTableRow, 'id' | 'permissionCtx'>) => string | number | undefined | null
       > = {
         projectName: (row) => row.projectLink.projectName,
+        projectDescription: (row) => row.projectDescription,
+        projectPublicDescription: (row) => row.projectPublicDescription,
         objectName: (row) => row.objectName,
+        objectDescription: (row) => row.objectDescription,
+        objectPublicDescription: (row) => row.objectPublicDescription,
         lifecycleState: (row) =>
           codes.lifecycleState.find((code) => code.id.id === row.lifecycleState)?.text['fi'],
         projectStartDate: (row) => dayjs(row.projectDateRange.startDate).format(reportDateFormat),
