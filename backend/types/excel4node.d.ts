@@ -21,6 +21,7 @@ declare module 'excel4node' {
     numberFormat?: string;
     alignment?: {
       indent?: number;
+      wrapText?: boolean;
     };
     border?: Partial<Record<'top' | 'bottom', { style: string; color: string }>>;
   }

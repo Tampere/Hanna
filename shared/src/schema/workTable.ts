@@ -143,7 +143,7 @@ export const templateColumns: Record<ReportTemplate, WorkTableColumn[]> = {
     'sapProjectId',
     'sapWbsId',
   ],
-  investmentTypeListing: ['projectLink', 'objectName', 'objectType', 'amount'],
+  investmentTypeListing: ['projectLink', 'objectName', 'objectType', 'amount', 'objectDescription'],
   basic: [
     'projectLink',
     'projectDescription',
