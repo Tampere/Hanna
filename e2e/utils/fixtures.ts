@@ -12,7 +12,7 @@ interface SessionFixtures {
 }
 
 interface WorkerFixtures {
-  refreshCachedSession: (session: Session) => Promise<void>;
+  refreshCachedSession: (session: Session | null) => Promise<void>;
   refreshAllSessions: () => Promise<void>;
   adminSession: Session;
   workerDevSession: Session;
@@ -72,12 +72,12 @@ class Session {
   }
 }
 
-const sessionCache: Record<string, Session> = {
+const sessionCache: Record<string, Session | null> = {
   [DEV_USER]: null,
   [TEST_USER]: null,
 };
 
-const workerSessionCache: Record<string, Session> = {
+const workerSessionCache: Record<string, Session | null> = {
   [ADMIN_USER]: null,
   [DEV_USER]: null,
   [TEST_USER]: null,

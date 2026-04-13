@@ -36,19 +36,19 @@ function getProjectBudgetUpdateInput<T extends string | null>(
   return {
     projectId: id,
     budgetItems: [
-      budgetFields.reduce((budgetItems, field) => ({ ...budgetItems, [field]: 10000 }), {
-        year: 2024,
-        committee: committee,
-      } as Record<BudgetFields[number], number> & { year: number; committee: T }),
+      budgetFields.reduce(
+        (budgetItems, field) => ({ ...budgetItems, [field]: 10000 }),
+        { year: 2024, committee } as any,
+      ),
     ],
-  };
+  } as any;
 }
 
 function getProjectObjectBudgetUpdateInput<T extends string | null>(
   id: string,
   committee: T,
   budgetFields: BudgetFields = allBudgetFields,
-): ProjectObjectBudgetUpdate & {
+): { projectObjectId: string } & {
   budgetItems: (ProjectObjectBudgetUpdate['budgetItems'][number] & { committee: T })[];
 } {
   return {
@@ -56,9 +56,9 @@ function getProjectObjectBudgetUpdateInput<T extends string | null>(
     budgetItems: [
       {
         year: 2024,
-        committee: committee,
+        committee,
         ...budgetFields.reduce((budgetItems, field) => ({ ...budgetItems, [field]: 10000 }), {}),
-      },
+      } as any,
     ],
   };
 }
@@ -172,7 +172,7 @@ test.describe('Modify investment project financials', () => {
     });
     await expect(
       testSession.client.investmentProject.updateBudget.mutate(
-        getProjectBudgetUpdateInput(testProject.projectId, null, ['estimate']),
+        getProjectBudgetUpdateInput(testProject.projectId, null, ['estimate']) as any,
       ),
     ).rejects.toThrow(/invalid_type/);
   });
@@ -395,7 +395,7 @@ test.describe('Modify investment project object financials', () => {
     await expect(
       testSession.client.investmentProjectObject.updateBudget.mutate(
         getProjectObjectBudgetUpdateInput(
-          testInvestmentProjectObject.projectObjectId,
+          testInvestmentProjectObject.projectObjectId!,
           testProject.committees[0],
         ),
       ),
@@ -404,7 +404,7 @@ test.describe('Modify investment project object financials', () => {
     expect(
       await testSession.client.investmentProjectObject.updateBudget.mutate(
         getProjectObjectBudgetUpdateInput(
-          testInvestmentProjectObject.projectObjectId,
+          testInvestmentProjectObject.projectObjectId!,
           testProject.committees[0],
           ['estimate', 'contractPrice', 'forecast'],
         ),
@@ -450,11 +450,11 @@ test.describe('Modify investment project object financials', () => {
 
     await expect(
       testSession.client.investmentProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(testInvestmentProjectObject.projectObjectId, null, [
+        getProjectObjectBudgetUpdateInput(testInvestmentProjectObject.projectObjectId!, null, [
           'estimate',
           'contractPrice',
           'forecast',
-        ]),
+        ]) as any,
       ),
     ).rejects.toThrow(/invalid_type/);
   });
@@ -559,13 +559,13 @@ test.describe('Modify maintenance project object financials', () => {
 
     await expect(
       testSession.client.maintenanceProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(maintenanceTestProjectObject.projectObjectId, null),
+        getProjectObjectBudgetUpdateInput(maintenanceTestProjectObject.projectObjectId!, null),
       ),
     ).rejects.toThrowError('error.insufficientPermissions');
 
     expect(
       await testSession.client.maintenanceProjectObject.updateBudget.mutate(
-        getProjectObjectBudgetUpdateInput(maintenanceTestProjectObject.projectObjectId, null, [
+        getProjectObjectBudgetUpdateInput(maintenanceTestProjectObject.projectObjectId!, null, [
           'estimate',
           'contractPrice',
           'forecast',

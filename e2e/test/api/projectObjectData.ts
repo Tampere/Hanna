@@ -33,9 +33,9 @@ export const testMaintenanceProject = (user: User) => ({
   coversMunicipality: false,
 });
 
-export const testProjectObject = (
+export const testProjectObject = <T extends string | null>(
   projectId: string,
-  projectCommittees: string[],
+  projectCommittees: T[],
   user: User,
   type: ObjectType = 'investment',
 ) => ({
@@ -48,7 +48,7 @@ export const testProjectObject = (
   objectType: '01',
   objectCategory: ['01'],
   objectUsage: ['01'],
-  committee: projectCommittees[0],
+  committee: projectCommittees[0] as T,
   suunnitteluttajaUser: user.id,
   rakennuttajaUser: user.id,
   startDate: '2021-01-01',
@@ -59,9 +59,9 @@ export const testProjectObject = (
   palmGrouping: '00',
 });
 
-export const testProjectObject2 = (
+export const testProjectObject2 = <T extends string | null>(
   projectId: string,
-  projectCommittees: string[],
+  projectCommittees: T[],
   user: User,
   type: ObjectType = 'investment',
 ) => ({
@@ -69,7 +69,7 @@ export const testProjectObject2 = (
   description: 'Test description 2',
   publicDescription: 'Test public description',
   objectName: 'Test project object 2',
-  committee: projectCommittees[0],
+  committee: projectCommittees[0] as T,
   lifecycleState: '01',
   objectCategory: ['01'],
   objectUsage: ['01'],
@@ -89,9 +89,9 @@ export const testProjectObject2 = (
     : { contract: 'contract n.1', procurementMethod: '01', poNumber: '123456' }),
 });
 
-export const testProjectObject3 = (
+export const testProjectObject3 = <T extends string | null>(
   projectId: string,
-  projectCommittees: string[],
+  projectCommittees: T[],
   user: User,
   type: ObjectType = 'investment',
 ) => ({
@@ -99,7 +99,7 @@ export const testProjectObject3 = (
   description: 'Test description 3',
   publicDescription: 'Test public description',
   objectName: 'Test project object 3',
-  committee: projectCommittees[0],
+  committee: projectCommittees[0] as T,
   lifecycleState: '01',
   objectCategory: ['01'],
   objectUsage: ['01'],
@@ -119,9 +119,9 @@ export const testProjectObject3 = (
     : { contract: 'contract n.1', procurementMethod: '01', poNumber: '123456' }),
 });
 
-export const invalidDateProjectObject = (
+export const invalidDateProjectObject = <T extends string | null>(
   projectId: string,
-  projectCommittees: string[],
+  projectCommittees: T[],
   user: User,
   type: ObjectType = 'investment',
 ) => ({
@@ -129,7 +129,7 @@ export const invalidDateProjectObject = (
   description: 'Test description',
   publicDescription: 'Test public description',
   objectName: 'Test project object',
-  committee: projectCommittees[0],
+  committee: projectCommittees[0] as T,
   lifecycleState: '01',
   objectCategory: ['01'],
   objectUsage: ['01'],

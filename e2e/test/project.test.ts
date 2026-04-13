@@ -3,10 +3,18 @@ import { expect } from '@playwright/test';
 import { fillDatePickerValue, getDatePickerValue } from '@utils/date-picker.js';
 import { clearData } from '@utils/db.js';
 import { DEV_USER } from '@utils/users.js';
-import { test } from 'utils/fixtures.js';
+import { test } from '@utils/fixtures.js';
 
-import type { InvestmentProject } from '@shared/schema/project/investment.js';
 import type { UserSessionObject } from '@utils/users.js';
+
+type ProjectInput = {
+  projectName: string;
+  description: string;
+  publicDescription: string;
+  startDate: string;
+  endDate: string;
+  lifecycleState?: string;
+};
 
 const keskustoriGeom = {
   type: 'Polygon',
@@ -47,7 +55,7 @@ const lifecycleStateToText = {
 
 async function createProject(
   page: Page,
-  project: InvestmentProject,
+  project: ProjectInput,
   client: UserSessionObject['client'],
 ) {
   // Go to the new project page
@@ -58,11 +66,12 @@ async function createProject(
   // Fill in the project data and save the project
   await page.locator('input[name="projectName"]').fill(project.projectName);
   await page.locator('textarea[name="description"]').fill(project.description);
+  await page.locator('textarea[name="publicDescription"]').fill(project.publicDescription);
 
   await fillDatePickerValue(page.locator('input[name="startDate"]'), project.startDate);
   await fillDatePickerValue(page.locator('input[name="endDate"]'), project.endDate);
 
-  const lifecycleText = lifecycleStateToText[project.lifecycleState];
+  const lifecycleText = lifecycleStateToText[project.lifecycleState as keyof typeof lifecycleStateToText];
   if (lifecycleText) {
     await page.getByLabel('Elinkaaren tila *', { exact: true }).click();
     await page.getByRole('option', { name: lifecycleText }).click();
@@ -75,7 +84,7 @@ async function createProject(
 
   // URL should include the newly created project ID, parse it from the URL
   await expect(page).toHaveURL(/https:\/\/localhost:1443\/investointihanke\/[0-9a-f-]+/);
-  const projectId = page.url().split('/').at(-1);
+  const projectId = page.url().split('/').at(-1) as string;
 
   await client.project.updateGeometry.mutate(geometryPayload(projectId, keskustoriGeom));
 
@@ -84,10 +93,7 @@ async function createProject(
   await expect(page).toHaveURL('https://localhost:1443/kartta/hankkeet');
 
   // Return the created project with ID
-  return {
-    ...project,
-    projectId: projectId,
-  } as InvestmentProject;
+  return { ...project, projectId };
 }
 
 async function deleteProject(page: Page, projectId: string) {
@@ -117,16 +123,17 @@ test.describe('Projects', () => {
   });
 
   test('Create a project', async ({ workerDevSession }) => {
-    let project: InvestmentProject = {
+    const projectInput: ProjectInput = {
       projectName: `Testihanke ${Date.now()}`,
       description: 'Testikuvaus',
+      publicDescription: 'Julkinen testikuvaus',
       startDate: '1.12.2022',
       endDate: '28.2.2023',
     };
 
-    project = {
-      ...project,
-      ...(await createProject(workerDevSession.page, project, workerDevSession.client)),
+    const project = {
+      ...projectInput,
+      ...(await createProject(workerDevSession.page, projectInput, workerDevSession.client)),
     };
 
     // Click on the new project button to go back to the project page
@@ -141,6 +148,9 @@ test.describe('Projects', () => {
     );
     await expect(workerDevSession.page.locator('textarea[name="description"]')).toHaveValue(
       project.description,
+    );
+    await expect(workerDevSession.page.locator('textarea[name="publicDescription"]')).toHaveValue(
+      project.publicDescription,
     );
 
     expect(await getDatePickerValue(workerDevSession.page.locator('input[name="startDate"]'))).toBe(
@@ -159,6 +169,7 @@ test.describe('Projects', () => {
       {
         projectName: 'Tuhottava hanke',
         description: 'Testikuvaus',
+        publicDescription: 'Julkinen testikuvaus',
         startDate: '1.12.2022',
         // TODO 31st days don't work via keyboard input: https://github.com/mui/mui-x/issues/8485
         endDate: '30.12.2022',
@@ -175,6 +186,7 @@ test.describe('Projects', () => {
       {
         projectName: `Hakutesti ${Date.now()}`,
         description: 'Myös kuvauksen teksti otetaan haussa huomioon',
+        publicDescription: 'Julkinen kuvaus A',
         startDate: '1.12.2022',
         endDate: '28.2.2023',
         lifecycleState: '01',
@@ -187,6 +199,7 @@ test.describe('Projects', () => {
       {
         projectName: `Toinen hakutesti ${Date.now()}`,
         description: 'Tässä on toisen testihankkeen kuvaus',
+        publicDescription: 'Julkinen kuvaus B',
         startDate: '1.1.2002',
         endDate: '31.12.2099',
         lifecycleState: '01',
@@ -199,6 +212,7 @@ test.describe('Projects', () => {
       {
         projectName: `Kolmas hakutesti ${Date.now()}`,
         description: 'Tässä on kolmannen testihankkeen kuvaus',
+        publicDescription: 'Julkinen kuvaus C',
         startDate: '1.1.2001',
         endDate: '31.12.2099',
         lifecycleState: '02',

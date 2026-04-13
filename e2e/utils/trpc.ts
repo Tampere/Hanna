@@ -31,7 +31,7 @@ export async function createTRPCClient(page: Page) {
             ...options,
             agent,
             headers: {
-              ...options.headers,
+              ...(options?.headers),
               cookie: getCookieHeaderValue(cookies),
             },
           } as RequestInit);

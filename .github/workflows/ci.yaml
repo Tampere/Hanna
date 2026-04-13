@@ -36,9 +36,16 @@ jobs:
       - name: Install backend dependencies
         working-directory: backend
         run: npm i
+      # Build shared and backend .d.ts files so frontend project reference resolves
+      - name: Build shared
+        working-directory: shared
+        run: npm run build
+      - name: Build backend types
+        working-directory: backend
+        run: npx tsc --build tsconfig.trpc.json
       - name: Build & test
         working-directory: frontend
-        run: npm i && npm test && npm run build
+        run: npm i && npx tsc --noEmit && npm test && npm run build
 
   test-backend:
     name: Test backend
@@ -56,7 +63,7 @@ jobs:
         run: npm i
       - name: Build & test
         working-directory: backend
-        run: npm i && npm test && npm run build
+        run: npm i && npx tsc --noEmit && npm test && npm run build
 
   test-shared:
     runs-on: ubuntu-latest
@@ -71,11 +78,12 @@ jobs:
           cache-dependency-path: ./shared/package-lock.json
       - name: Build & test
         working-directory: shared
-        run: npm i && npm test && npm run build
+        run: npm i && npx tsc --noEmit && npm test && npm run build
 
   test-e2e:
     name: Test E2E
     runs-on: ubuntu-latest
+    needs: [test-frontend, test-backend, test-shared]
     defaults:
       run:
         working-directory: e2e
