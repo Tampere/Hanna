@@ -1,14 +1,14 @@
 {
   "strict": true,
   "compilerOptions": {
+    "noEmit": true,
     "skipLibCheck": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
-    "baseUrl": ".",
     "types": ["node"],
     "paths": {
-      "@utils/*": ["utils/*"],
+      "@utils/*": ["./utils/*"],
       "@shared/*": ["../shared/src/*"]
     }
   },

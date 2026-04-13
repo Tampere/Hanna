@@ -48,7 +48,7 @@ test.describe('permission testing', () => {
     await expect(
       testSession.client.userPermissions.setPermissions.mutate([
         {
-          userId: findUserByEmail(users, ADMIN_USER).userId,
+          userId: findUserByEmail(users, ADMIN_USER)!.userId,
           permissions: ['investmentProject.write'],
         },
       ]),

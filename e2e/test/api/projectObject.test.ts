@@ -427,7 +427,7 @@ test.describe('Common Project Object endpoints', () => {
 
     const investmentProjectObject =
       await workerDevSession.client.investmentProjectObject.upsert.mutate(
-        investmentProjectObjectData,
+        investmentProjectObjectData as any,
       );
     const maintenanceProjectObject =
       await workerDevSession.client.maintenanceProjectObject.upsert.mutate(
@@ -521,7 +521,7 @@ test.describe('Common Project Object endpoints', () => {
         investmentProject.projectId,
         investmentProject.committees,
         workerDevSession.user,
-      ),
+      ) as any,
     );
     await workerDevSession.client.maintenanceProjectObject.upsert.mutate(
       testProjectObject2(
@@ -529,7 +529,7 @@ test.describe('Common Project Object endpoints', () => {
         investmentProject.committees,
         workerDevSession.user,
         'maintenance',
-      ),
+      ) as any,
     );
 
     await workerDevSession.client.investmentProjectObject.upsert.mutate(
@@ -537,7 +537,7 @@ test.describe('Common Project Object endpoints', () => {
         investmentProject.projectId,
         investmentProject.committees,
         workerDevSession.user,
-      ),
+      ) as any,
     );
     await workerDevSession.client.maintenanceProjectObject.upsert.mutate(
       testProjectObject3(
@@ -545,7 +545,7 @@ test.describe('Common Project Object endpoints', () => {
         [null],
         workerDevSession.user,
         'maintenance',
-      ),
+      ) as any,
     );
 
     const searchResult = await workerDevSession.client.projectObject.search.query({

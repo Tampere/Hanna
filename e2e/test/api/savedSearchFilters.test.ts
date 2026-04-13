@@ -5,7 +5,7 @@ import { expect } from '@playwright/test';
 
 import type { UserSavedSearchFilter } from '@shared/schema/userSavedSearchFilters.js';
 
-const projectSearchFilter: Omit<UserSavedSearchFilter, 'projectObjectSearch' | 'worktableSearch'> =
+const projectSearchFilter: Omit<UserSavedSearchFilter, 'projectObjectSearch' | 'worktableSearch' | 'filterId'> =
   {
     filterName: 'Project Search',
     projectSearch: {
@@ -20,7 +20,7 @@ const projectSearchFilter: Omit<UserSavedSearchFilter, 'projectObjectSearch' | '
     },
   };
 
-const projectObjectSearchFilter: Omit<UserSavedSearchFilter, 'projectSearch' | 'worktableSearch'> =
+const projectObjectSearchFilter: Omit<UserSavedSearchFilter, 'projectSearch' | 'worktableSearch' | 'filterId'> =
   {
     filterName: 'Project Object Search',
     projectObjectSearch: {
@@ -40,7 +40,7 @@ const projectObjectSearchFilter: Omit<UserSavedSearchFilter, 'projectSearch' | '
     },
   };
 
-const worktableSearchFilter: Omit<UserSavedSearchFilter, 'projectObjectSearch' | 'projectSearch'> =
+const worktableSearchFilter: Omit<UserSavedSearchFilter, 'projectObjectSearch' | 'projectSearch' | 'filterId'> =
   {
     filterName: 'Worktable Search',
     worktableSearch: {
@@ -107,7 +107,7 @@ test.describe('Saved search filters', () => {
       ...projectSearchFilter,
       filterId: projectFilterId,
       projectSearch: {
-        ...projectSearchFilter.projectSearch,
+        ...projectSearchFilter.projectSearch!,
         text: 'new project',
       },
     });
@@ -116,7 +116,7 @@ test.describe('Saved search filters', () => {
       ...projectObjectSearchFilter,
       filterId: projectObjectFilterId,
       projectObjectSearch: {
-        ...projectObjectSearchFilter.projectObjectSearch,
+        ...projectObjectSearchFilter.projectObjectSearch!,
         projectName: 'new project',
       },
     });

@@ -516,7 +516,7 @@ test.describe('Project endpoints', () => {
     const { relations } = await devSession.client.project.getRelations.query({
       projectId: investmentProject.projectId,
     });
-    const relatedProject = relations.related[0];
+    const relatedProject = relations.related![0];
 
     expect(relatedProject.projectId).toBe(anotherProject.projectId);
     expect(relatedProject.projectName).toBe(anotherProject.projectName);
