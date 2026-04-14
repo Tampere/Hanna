@@ -693,6 +693,7 @@ export const fi = {
   'workTable.export.contractPrice': 'Sopimushinta',
   'workTable.export.sapWbsId': 'Kohteen SAP-rakenneosa',
   'workTable.export.sapProjectId': 'Hankkeen SAP-projekti',
+  'workTable.export.environmentalInvestmentReason': 'Ympäristökoodi',
   'workTable.export.companyContacts': 'Yritysten yhteyshenkilöt',
   'workTable.export.objectRoles': 'Toimijat',
   'workTable.export.total': 'Kaikki yhteensä',

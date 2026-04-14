@@ -92,6 +92,7 @@ export const workTableColumnCodesSchema = z.object({
   objectUsage: codeListIdSchema.extract(['KohteenToiminnallinenKayttoTarkoitus']),
   objectRoles: codeListIdSchema.extract(['KohdeKayttajaRooli']),
   objectStage: codeListIdSchema.extract(['KohteenLaji']),
+  environmentalInvestmentReason: codeListIdSchema.extract(['YmpäristönsuojelunSyy']),
 });
 
 export const workTableColumnCodes = workTableColumnCodesSchema.parse({
@@ -102,6 +103,7 @@ export const workTableColumnCodes = workTableColumnCodesSchema.parse({
   objectUsage: 'KohteenToiminnallinenKayttoTarkoitus',
   objectRoles: 'KohdeKayttajaRooli',
   objectStage: 'KohteenLaji',
+  environmentalInvestmentReason: 'YmpäristönsuojelunSyy',
 });
 
 export const workTableColumnCodeKeys = workTableColumnCodesSchema.keyof();

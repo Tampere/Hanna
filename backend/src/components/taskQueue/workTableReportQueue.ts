@@ -179,6 +179,12 @@ export async function setupWorkTableReportQueue() {
         contractPrice: (row) => (row.contractPrice == null ? null : row.contractPrice / 100),
         sapWbsId: (row) => row.sapWbsId,
         sapProjectId: (row) => row.sapProjectId,
+        environmentalInvestmentReason: (row) => {
+          const code = codes.environmentalInvestmentReason.find(
+            (code) => code.id.id === row.environmentalInvestmentReason,
+          );
+          return code ? `${code.id.id} ${code.text['fi']}` : null;
+        },
         companyContacts: (row) => formatRolesToUsersAndContacts(row.companyContacts),
         objectRoles: (row) => formatRolesToText(row.objectRoles),
       };
@@ -246,7 +252,6 @@ export async function setupWorkTableReportQueue() {
         roles: translations['fi']['workTable.rolesReport'],
         investmentTypeListing: translations['fi']['workTable.investmentTypeListingReport'],
       };
-
       await saveReportFile(id, `${workbookNames[data.reportTemplate ?? 'print']}.xlsx`, workbook);
     },
   );
