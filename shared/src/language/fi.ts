@@ -343,7 +343,7 @@ export const fi = {
   'budgetTable.yearHelpOngoingObject':
     'Toistaiseksi jatkuvan kohteen talouslukuja on mahdollista raportoida viideksi vuodeksi eteenpäin.',
   'budgetTable.committee': 'Lautakunta',
-  'budgetTable.estimate': 'Kustannusarvio',
+  'budgetTable.estimate': 'Talousarvioennuste',
   'budgetTable.projectEstimateHelp':
     'Hankkeen suunniteltu kustannus, joka on ehdolla talousarvioon. Summa kohteiden talousarvioista.',
   'budgetTable.projectObjectEstimateHelp':
@@ -689,7 +689,7 @@ export const fi = {
   'workTable.export.actual': 'Toteuma',
   'workTable.export.forecast': 'Ennuste',
   'workTable.export.kayttosuunnitelmanMuutos': 'Käyttösuunnitelman muutos',
-  'workTable.export.estimate': 'Kustannusarvio',
+  'workTable.export.estimate': 'Talousarvioennuste',
   'workTable.export.contractPrice': 'Sopimushinta',
   'workTable.export.sapWbsId': 'Kohteen SAP-rakenneosa',
   'workTable.export.sapProjectId': 'Hankkeen SAP-projekti',
