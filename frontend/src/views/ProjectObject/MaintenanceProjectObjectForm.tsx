@@ -182,13 +182,12 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
             objectCategory: copySource.objectCategory ?? [],
             objectUsage: copySource.objectUsage ?? [],
             environmentalInvestmentReason: copySource.environmentalInvestmentReason ?? null,
-            height: copySource.height ?? null,
             objectUserRoles: copySource.objectUserRoles ?? [],
             geom: copySource.geom ?? null,
             contract: copySource.contract ?? '',
             poNumber: copySource.poNumber ?? '',
             procurementMethod: copySource.procurementMethod ?? undefined,
-            // Not copied: projectObjectId, sapWBSId, startDate, endDate, budgetUpdate
+            // Not copied: projectObjectId, sapWBSId, height, startDate, endDate, budgetUpdate
             startDate: '',
             endDate: '',
           }
@@ -243,7 +242,6 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
         objectCategory: copySource.objectCategory ?? [],
         objectUsage: copySource.objectUsage ?? [],
         environmentalInvestmentReason: copySource.environmentalInvestmentReason ?? null,
-        height: copySource.height ?? null,
         objectUserRoles: copySource.objectUserRoles ?? [],
         geom: copySource.geom ?? null,
         contract: copySource.contract ?? '',
@@ -326,7 +324,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
   }, [props.projectObject, isValid, isDirty]);
 
   const onSubmit = (data: UpsertMaintenanceProjectObject, geom?: string) => {
-    return projectObjectUpsert.mutateAsync({ ...data, geom: geom ?? null });
+    return projectObjectUpsert.mutateAsync({ ...data, geom: geom ?? data.geom ?? null });
   };
 
   function getProjectDateAlertText() {

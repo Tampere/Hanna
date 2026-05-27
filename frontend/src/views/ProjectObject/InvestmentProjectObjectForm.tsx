@@ -207,14 +207,13 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
             committee: copySource.committee ?? '',
             palmGrouping: copySource.palmGrouping ?? '00',
             environmentalInvestmentReason: copySource.environmentalInvestmentReason ?? null,
-            height: copySource.height ?? null,
-            objectUserRoles: copySource.objectUserRoles ?? [],
-            geom: copySource.geom ?? null,
-            // Not copied: projectObjectId, sapWBSId, startDate, endDate, budgetUpdate
-            startDate: '',
-            endDate: '',
-          }
-        : {
+          objectUserRoles: copySource.objectUserRoles ?? [],
+          geom: copySource.geom ?? null,
+          // Not copied: projectObjectId, sapWBSId, height, startDate, endDate, budgetUpdate
+          startDate: '',
+          endDate: '',
+        }
+      : {
             projectId: props.projectId,
             objectName: '',
             description: '',
@@ -264,7 +263,6 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
         committee: copySource.committee ?? '',
         palmGrouping: copySource.palmGrouping ?? '00',
         environmentalInvestmentReason: copySource.environmentalInvestmentReason ?? null,
-        height: copySource.height ?? null,
         objectUserRoles: copySource.objectUserRoles ?? [],
         geom: copySource.geom ?? null,
         startDate: '',
@@ -354,12 +352,12 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
         geom: geom ?? null,
       });
     }
-    return projectObjectUpsert.mutateAsync({ ...data, geom: geom ?? null });
+    return projectObjectUpsert.mutateAsync({ ...data, geom: geom ?? data.geom ?? null });
   };
 
   function saveAndReturn(data: UpsertInvestmentProjectObject, navigateTo: string, geom?: string) {
     projectObjectUpsert.mutate(
-      { ...data, geom: geom ?? null },
+      { ...data, geom: geom ?? data.geom ?? null },
       {
         onSuccess: (data) => {
           navigate(`${navigateTo}?highlight=${data.projectObjectId}`);
