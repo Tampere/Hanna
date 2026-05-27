@@ -189,7 +189,26 @@ export function ProjectObjectFormUserRoles({
         padding: 0.75rem;
       `}
     >
-      <SectionTitle title={tr('projectObjectForm.roles')} />
+      <Box
+        css={css`
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        `}
+      >
+        <SectionTitle title={tr('projectObjectForm.roles')} />
+        {!readOnly && value?.length > 0 && (
+          <Button
+            css={css`
+              text-transform: uppercase;
+            `}
+            endIcon={<DeleteOutline />}
+            onClick={() => onChange([])}
+          >
+            {tr('projectObjectForm.deleteAllRoles')}
+          </Button>
+        )}
+      </Box>
       <Box
         css={css`
           padding-top: 0.25rem;

@@ -61,7 +61,7 @@ export const fi = {
   'projectSearch.generateReport': 'Lataa raportti',
   'projectSearch.reportFailed': 'Raportin luonti epäonnistui.',
   'projectObjectView.modify': 'Muokkaa kohdetta',
-  'projectObjectView.moveToProjectButton': 'Siirrä kohde toiselle hankkeelle',
+  'projectObjectView.moveToProjectButton': 'Siirrä toiselle hankkeelle...',
   'projectObjectView.moveToProject': 'Siirretään kohde toiselle hankkeelle',
   'projectObjectView.moveToProject.label': 'Kohteen uusi hanke',
   'projectObjectView.moveToProject.contentText':
@@ -73,6 +73,7 @@ export const fi = {
   'projectObjectView.moveToProject.success': 'Kohde siirretty onnistuneesti.',
   'projectObjectView.moveToProject.failed': 'Kohteen siirto epäonnistui.',
   'projectObjectView.move': 'Siirrä',
+  'projectObjectView.copyButton': 'Kopioi kohde...',
   'projectObjectSearch.projectObjectSearchLabel': 'Kohteiden rajaus',
   'projectObjectSearch.rakennuttajaUser': 'Rakennuttaja',
   'projectObjectSearch.suunnitteluttajaUser': 'Suunnitteluttaja',
@@ -448,6 +449,7 @@ export const fi = {
   'projectObjectForm.saveBtnLabel': 'Tallenna',
   'projectObjectForm.roles': 'Toimijat',
   'projectObjectForm.newRole': 'Uusi toimija',
+  'projectObjectForm.deleteAllRoles': 'Tyhjennä',
   'projectObjectForm.noRoles': 'Ei valittuja toimijoita',
   'sessionExpiredWarning.infoText':
     'Istuntosi on vanhentunut. Jatkaaksesi keskeneräisiä töitäsi, uusi istunto.',
