@@ -4,9 +4,9 @@ import { Alert, Autocomplete, Button, Stack, TextField } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router';
 
 import { trpc } from '@frontend/client';
 import {
@@ -87,7 +87,10 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
   const notify = useNotifications();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const location = useLocation();
   const { projectId } = useParams() as { projectId: string };
+  // When copying, location.state.copyFrom holds the source object; only applies to new objects
+  const copySource = !props.projectObject ? location.state?.copyFrom ?? null : null;
   const setDirtyAndValidViews = useSetAtom(dirtyAndValidFieldsAtom);
   const [newProjectObjectIds, setNewProjectObjectIds] = useState<{
     projectObjectId: string;
@@ -187,17 +190,41 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
       requiredFields: getRequiredFields(newInvestmentProjectObjectSchema),
       getErrors: () => form.formState.errors,
     },
-    defaultValues: props.projectObject ?? {
-      projectId: props.projectId,
-      objectName: '',
-      description: '',
-      publicDescription: '',
-      committee: '',
-      startDate: '',
-      endDate: '',
-      objectUserRoles: [],
-      palmGrouping: '00',
-    },
+    // Copy from source or create new.
+    defaultValues:
+      props.projectObject ??
+      (copySource
+        ? {
+            projectId: props.projectId ?? projectId,
+            objectName: `${copySource.objectName} - kopio`,
+            description: copySource.description ?? '',
+            publicDescription: copySource.publicDescription ?? '',
+            lifecycleState: copySource.lifecycleState,
+            objectStage: copySource.objectStage,
+            objectType: copySource.objectType,
+            objectCategory: copySource.objectCategory ?? [],
+            objectUsage: copySource.objectUsage ?? [],
+            committee: copySource.committee ?? '',
+            palmGrouping: copySource.palmGrouping ?? '00',
+            environmentalInvestmentReason: copySource.environmentalInvestmentReason ?? null,
+            height: copySource.height ?? null,
+            objectUserRoles: copySource.objectUserRoles ?? [],
+            geom: copySource.geom ?? null,
+            // Not copied: projectObjectId, sapWBSId, startDate, endDate, budgetUpdate
+            startDate: '',
+            endDate: '',
+          }
+        : {
+            projectId: props.projectId,
+            objectName: '',
+            description: '',
+            publicDescription: '',
+            committee: '',
+            startDate: '',
+            endDate: '',
+            objectUserRoles: [],
+            palmGrouping: '00',
+          }),
   });
 
   const {
@@ -210,11 +237,39 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
     getValues,
   } = form;
 
+  const nameFieldRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) {
+      nameFieldRef.current?.focus();
+    }
+  }, [editing]);
+
   const { isBlocking } = useNavigationBlocker(isDirty, 'projectObjectForm');
 
   useEffect(() => {
     if (props.projectObject) {
       reset(props.projectObject);
+    } else if (copySource) {
+      reset({
+        projectId: props.projectId ?? projectId,
+        objectName: `${copySource.objectName} - kopio`,
+        description: copySource.description ?? '',
+        publicDescription: copySource.publicDescription ?? '',
+        lifecycleState: copySource.lifecycleState,
+        objectStage: copySource.objectStage,
+        objectType: copySource.objectType,
+        objectCategory: copySource.objectCategory ?? [],
+        objectUsage: copySource.objectUsage ?? [],
+        committee: copySource.committee ?? '',
+        palmGrouping: copySource.palmGrouping ?? '00',
+        environmentalInvestmentReason: copySource.environmentalInvestmentReason ?? null,
+        height: copySource.height ?? null,
+        objectUserRoles: copySource.objectUserRoles ?? [],
+        geom: copySource.geom ?? null,
+        startDate: '',
+        endDate: '',
+      });
     }
   }, [props.projectObject]);
 
@@ -373,12 +428,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
             errorTooltip={tr('projectObject.nameErrorTooltip')}
             helpTooltip={tr('projectObject.nameTooltip')}
             component={(field) => (
-              <TextField
-                {...readonlyProps}
-                {...field}
-                size="small"
-                autoFocus={!props.projectObject && editing}
-              />
+              <TextField {...readonlyProps} {...field} inputRef={nameFieldRef} size="small" />
             )}
           />
 

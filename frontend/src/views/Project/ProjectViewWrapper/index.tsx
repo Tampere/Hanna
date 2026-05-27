@@ -217,7 +217,7 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
   useEffect(() => {
     setEditing(isNewItem);
     return () => setEditing(false);
-  }, [projectId]);
+  }, [projectId, projectObjectId]);
 
   const isOwner = props.permissionCtx ? ownsProject(user, props.permissionCtx) : false;
   const canWrite = props.permissionCtx ? hasWritePermission(user, props.permissionCtx) : false;

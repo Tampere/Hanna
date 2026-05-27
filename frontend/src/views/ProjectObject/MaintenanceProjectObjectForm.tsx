@@ -4,9 +4,9 @@ import { Alert, Box, Button, TextField } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 
 import { trpc } from '@frontend/client';
 import {
@@ -58,6 +58,9 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
   const notify = useNotifications();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const location = useLocation();
+  // When copying, location.state.copyFrom holds the source object; only applies to new objects
+  const copySource = !props.projectObject ? (location.state?.copyFrom ?? null) : null;
   const setDirtyAndValidViews = useSetAtom(dirtyAndValidFieldsAtom);
   const editing = useAtomValue(projectEditingAtom);
   const [newProjectObjectIds, setNewProjectObjectIds] = useState<{
@@ -169,18 +172,38 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
           poNumber: props.projectObject?.poNumber ?? '',
           procurementMethod: props.projectObject?.procurementMethod,
         }
-      : {
-          projectId: props.projectId,
-          objectName: '',
-          description: '',
-          publicDescription: '',
-          startDate: '',
-          endDate: '',
-          contract: '',
-          poNumber: '',
-          procurementMethod: undefined,
-          objectUserRoles: [],
-        },
+      : copySource
+        ? {
+            projectId: props.projectId,
+            objectName: `${copySource.objectName} - kopio`,
+            description: copySource.description ?? '',
+            publicDescription: copySource.publicDescription ?? '',
+            lifecycleState: copySource.lifecycleState,
+            objectCategory: copySource.objectCategory ?? [],
+            objectUsage: copySource.objectUsage ?? [],
+            environmentalInvestmentReason: copySource.environmentalInvestmentReason ?? null,
+            height: copySource.height ?? null,
+            objectUserRoles: copySource.objectUserRoles ?? [],
+            geom: copySource.geom ?? null,
+            contract: copySource.contract ?? '',
+            poNumber: copySource.poNumber ?? '',
+            procurementMethod: copySource.procurementMethod ?? undefined,
+            // Not copied: projectObjectId, sapWBSId, startDate, endDate, budgetUpdate
+            startDate: '',
+            endDate: '',
+          }
+        : {
+            projectId: props.projectId,
+            objectName: '',
+            description: '',
+            publicDescription: '',
+            startDate: '',
+            endDate: '',
+            contract: '',
+            poNumber: '',
+            procurementMethod: undefined,
+            objectUserRoles: [],
+          },
   });
 
   const {
@@ -192,6 +215,14 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
     getValues,
   } = form;
 
+  const nameFieldRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) {
+      nameFieldRef.current?.focus();
+    }
+  }, [editing]);
+
   const { isBlocking } = useNavigationBlocker(isDirty, 'projectObjectForm');
 
   useEffect(() => {
@@ -201,6 +232,25 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
         contract: props.projectObject?.contract ?? '',
         poNumber: props.projectObject?.poNumber ?? '',
         procurementMethod: props.projectObject?.procurementMethod,
+      });
+    } else if (copySource) {
+      reset({
+        projectId: props.projectId,
+        objectName: `${copySource.objectName} - kopio`,
+        description: copySource.description ?? '',
+        publicDescription: copySource.publicDescription ?? '',
+        lifecycleState: copySource.lifecycleState,
+        objectCategory: copySource.objectCategory ?? [],
+        objectUsage: copySource.objectUsage ?? [],
+        environmentalInvestmentReason: copySource.environmentalInvestmentReason ?? null,
+        height: copySource.height ?? null,
+        objectUserRoles: copySource.objectUserRoles ?? [],
+        geom: copySource.geom ?? null,
+        contract: copySource.contract ?? '',
+        poNumber: copySource.poNumber ?? '',
+        procurementMethod: copySource.procurementMethod ?? undefined,
+        startDate: '',
+        endDate: '',
       });
     }
   }, [props.projectObject]);
@@ -308,8 +358,8 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
               <TextField
                 {...readonlyProps}
                 {...field}
+                inputRef={nameFieldRef}
                 size="small"
-                autoFocus={!props.projectObject && editing}
               />
             )}
           />

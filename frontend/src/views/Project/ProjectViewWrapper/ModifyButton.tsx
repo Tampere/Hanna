@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useSearchParams } from 'react-router-dom';
 
+import { trpc } from '@frontend/client';
 import { SplitButton } from '@frontend/components/SplitButton';
 import { useTranslations } from '@frontend/stores/lang';
 import { dirtyAndValidFieldsAtom, projectEditingAtom } from '@frontend/stores/projectView';
@@ -46,6 +47,7 @@ export function ModifyButton({
 
   const dirtyAndValidViews = useAtomValue(dirtyAndValidFieldsAtom);
   const [editing, setEditing] = useAtom(projectEditingAtom);
+  const utils = trpc.useUtils();
 
   if (isNewItem) {
     return (
@@ -72,6 +74,27 @@ export function ModifyButton({
     dirtyAndValidViews.finances.isDirtyAndValid ||
     dirtyAndValidViews.permissions.isDirtyAndValid;
 
+  async function handleCopy() {
+    if (!projectId || !projectObjectId || !projectType) return;
+    let copyData;
+    if (projectType === 'investointihanke') {
+      copyData = await utils.investmentProjectObject.get.fetch({
+        projectId,
+        projectObjectId,
+      });
+    } else if (projectType === 'kunnossapitohanke') {
+      copyData = await utils.maintenanceProjectObject.get.fetch({
+        projectId,
+        projectObjectId,
+      });
+    } else {
+      return;
+    }
+    navigate(`/${projectType}/${projectId}/uusi-kohde`, {
+      state: { copyFrom: copyData },
+    });
+  }
+
   if (forProjectObject) {
     return (
       <>
@@ -83,8 +106,12 @@ export function ModifyButton({
             margin-left: auto;
           `}
           variant={editing ? 'outlined' : 'contained'}
-          options={[tr('projectObjectView.modify'), tr('projectObjectView.moveToProjectButton')]}
-          directOptionFunctions={[null, () => setPopupOpen(true)]}
+          options={[
+            tr('projectObjectView.modify'),
+            tr('projectObjectView.moveToProjectButton'),
+            tr('projectObjectView.copyButton'),
+          ]}
+          directOptionFunctions={[null, () => setPopupOpen(true), () => handleCopy()]}
           renderButton={(label, idx) => (
             <Button
               css={css`
