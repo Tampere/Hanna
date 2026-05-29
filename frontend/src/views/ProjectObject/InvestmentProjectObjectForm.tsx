@@ -79,6 +79,11 @@ function ProjectAutoComplete(props: Readonly<ProjectAutoCompleteProps>) {
   );
 }
 
+function copyGeomToFeatures(geometryDump?: string[] | null): string | null {
+  if (!geometryDump?.length) return null;
+  return JSON.stringify(geometryDump.map((g) => ({ type: 'Feature', geometry: JSON.parse(g) })));
+}
+
 export const InvestmentProjectObjectForm = forwardRef(function InvestmentProjectObjectForm(
   props: Readonly<Props>,
   ref,
@@ -207,13 +212,13 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
             committee: copySource.committee ?? '',
             palmGrouping: copySource.palmGrouping ?? '00',
             environmentalInvestmentReason: copySource.environmentalInvestmentReason ?? null,
-          objectUserRoles: copySource.objectUserRoles ?? [],
-          geom: copySource.geom ?? null,
-          // Not copied: projectObjectId, sapWBSId, height, startDate, endDate, budgetUpdate
-          startDate: '',
-          endDate: '',
-        }
-      : {
+            objectUserRoles: copySource.objectUserRoles ?? [],
+            geom: copyGeomToFeatures(copySource.geometryDump),
+            // Not copied: projectObjectId, sapWBSId, height, startDate, endDate, budgetUpdate
+            startDate: '',
+            endDate: '',
+          }
+        : {
             projectId: props.projectId,
             objectName: '',
             description: '',
@@ -264,7 +269,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
         palmGrouping: copySource.palmGrouping ?? '00',
         environmentalInvestmentReason: copySource.environmentalInvestmentReason ?? null,
         objectUserRoles: copySource.objectUserRoles ?? [],
-        geom: copySource.geom ?? null,
+        geom: copyGeomToFeatures(copySource.geometryDump),
         startDate: '',
         endDate: '',
       });
