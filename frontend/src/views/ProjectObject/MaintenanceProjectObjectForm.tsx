@@ -50,6 +50,11 @@ interface Props {
   userCanWrite?: boolean;
 }
 
+function copyGeomToFeatures(geometryDump?: string[] | null): string | null {
+  if (!geometryDump?.length) return null;
+  return JSON.stringify(geometryDump.map((g) => ({ type: 'Feature', geometry: JSON.parse(g) })));
+}
+
 export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProjectObjectForm(
   props: Readonly<Props>,
   ref,
@@ -183,7 +188,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
             objectUsage: copySource.objectUsage ?? [],
             environmentalInvestmentReason: copySource.environmentalInvestmentReason ?? null,
             objectUserRoles: copySource.objectUserRoles ?? [],
-            geom: copySource.geom ?? null,
+            geom: copyGeomToFeatures(copySource.geometryDump),
             contract: copySource.contract ?? '',
             poNumber: copySource.poNumber ?? '',
             procurementMethod: copySource.procurementMethod ?? undefined,
@@ -243,7 +248,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
         objectUsage: copySource.objectUsage ?? [],
         environmentalInvestmentReason: copySource.environmentalInvestmentReason ?? null,
         objectUserRoles: copySource.objectUserRoles ?? [],
-        geom: copySource.geom ?? null,
+        geom: copyGeomToFeatures(copySource.geometryDump),
         contract: copySource.contract ?? '',
         poNumber: copySource.poNumber ?? '',
         procurementMethod: copySource.procurementMethod ?? undefined,

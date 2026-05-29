@@ -164,7 +164,12 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Readonly<Prop
   const viewSaveActions = {
     form: async () => {
       if (!dirtyAndValidViews.map.isDirtyAndValid) {
-        await tabRefs.form.current?.onSave();
+        // Get geometry from the map's draw source if features are present (e.g. copy flow
+        // where geometry is pre-loaded but the map is not flagged as dirty)
+        const mapGeomStr = tabRefs.map.current?.getGeometry();
+        const geom =
+          mapGeomStr && JSON.parse(mapGeomStr).length > 0 ? mapGeomStr : undefined;
+        await tabRefs.form.current?.onSave(geom);
       }
     },
     map: async () => {
