@@ -244,6 +244,8 @@ export function ProjectObject(props: Props) {
     <ProjectViewWrapper
       projectType={props.projectType}
       type="projectObject"
+      isCopy={Boolean(copySource)}
+      copyHasGeometry={Boolean(copySource?.geometryDump)}
       permissionCtx={projectObject.data ? projectObject.data.acl : null}
       handleFormCancel={(formRef) => handleFormCancel(formRef)}
       renderHeaderContent={() => (
@@ -277,7 +279,10 @@ export function ProjectObject(props: Props) {
             {projectObject.data ? (
               <Chip label={projectObject.data?.objectName} />
             ) : (
-              <Chip variant="outlined" label={tr('newProjectObject.title')} />
+              <Chip
+                variant="outlined"
+                label={tr(copySource ? 'newProjectObject.copyTitle' : 'newProjectObject.title')}
+              />
             )}
           </Breadcrumbs>
         </Box>

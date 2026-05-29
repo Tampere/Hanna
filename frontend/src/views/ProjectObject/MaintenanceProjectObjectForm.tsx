@@ -60,7 +60,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
   const navigate = useNavigate();
   const location = useLocation();
   // When copying, location.state.copyFrom holds the source object; only applies to new objects
-  const copySource = !props.projectObject ? (location.state?.copyFrom ?? null) : null;
+  const copySource = !props.projectObject ? location.state?.copyFrom ?? null : null;
   const setDirtyAndValidViews = useSetAtom(dirtyAndValidFieldsAtom);
   const editing = useAtomValue(projectEditingAtom);
   const [newProjectObjectIds, setNewProjectObjectIds] = useState<{
@@ -342,238 +342,235 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
   }
 
   return (
-    <>
-      <FormProvider {...form}>
-        {!props.projectObject && <SectionTitle title={tr('newProjectObject.title')} />}
-        {props.projectObject && <SectionTitle title={tr('projectObject.formTitle')} />}
-        <form id="projectObjectForm" css={newProjectFormStyle} autoComplete="off">
-          <FormField
-            formField="objectName"
-            label={tr('projectObject.nameLabel')}
-            helpTooltip={tr('projectObject.nameTooltip')}
-            errorTooltip={tr('projectObject.nameErrorTooltip')}
-            component={(field) => (
-              <TextField
-                {...readonlyProps}
-                {...field}
-                inputRef={nameFieldRef}
-                size="small"
-              />
-            )}
-          />
-
-          <FormField
-            formField="description"
-            label={tr('projectObject.descriptionLabel')}
-            helpTooltip={tr('projectObject.descriptionTooltip')}
-            errorTooltip={tr('projectObject.descriptionErrorTooltip')}
-            component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
-          />
-
-          <FormField
-            formField="publicDescription"
-            label={tr('projectObject.publicDescriptionLabel')}
-            helpTooltip={tr('projectObject.publicDescriptionTooltip')}
-            errorTooltip={tr('projectObject.publicDescriptionErrorTooltip')}
-            component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
-          />
-
-          <FormField
-            formField="lifecycleState"
-            label={tr('projectObject.lifecycleStateLabel')}
-            errorTooltip={tr('projectObject.lifecycleStateTooltip')}
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            component={({ ref, ...field }) => (
-              <CodeSelect {...field} codeListId="KohteenElinkaarentila" readOnly={!editing} />
-            )}
-          />
-
-          <FormField
-            formField="objectCategory"
-            label={tr('projectObject.objectCategoryLabel')}
-            errorTooltip={tr('projectObject.objectCategoryTooltip')}
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            component={({ ref, ...field }) => (
-              <CodeSelect
-                {...field}
-                multiple
-                codeListId="KohteenOmaisuusLuokka"
-                readOnly={!editing}
-              />
-            )}
-          />
-
-          <FormField
-            formField="objectUsage"
-            label={tr('projectObject.objectUsageLabel')}
-            errorTooltip={tr('projectObject.objectUsageTooltip')}
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            component={({ ref, ...field }) => (
-              <CodeSelect
-                {...field}
-                multiple
-                codeListId="KohteenToiminnallinenKayttoTarkoitus"
-                readOnly={!editing}
-              />
-            )}
-          />
-
-          <FormField
-            formField="startDate"
-            label={tr('projectObject.startDateLabel')}
-            errorTooltip={getDateFieldErrorMessage(
-              errors.startDate?.message ?? null,
-              tr('projectObject.startDateTooltip'),
-            )}
-            component={(field) => (
-              <FormDatePicker
-                {...(getValues('endDate') !== 'Infinity' && {
-                  maxDate: dayjs(getValues('endDate')).subtract(1, 'day'),
-                })}
-                readOnly={!editing}
-                field={field}
-              />
-            )}
-          />
-
-          <FormField
-            formField="endDate"
-            label={tr('projectObject.endDateLabel')}
-            errorTooltip={getDateFieldErrorMessage(
-              errors.endDate?.message ?? null,
-              tr('projectObject.endDateTooltip'),
-              [dayjs().add(5, 'year').year().toString()],
-            )}
-            component={(field) => (
-              <Box
-                css={css`
-                  display: flex;
-                  justify-content: space-between;
-                  align-items: center;
-                  gap: 1rem;
-                  & .MuiFormControl-root {
-                    flex: 1 1 185px;
-                  }
-                `}
-              >
-                <FormDatePicker
-                  minDate={dayjs(getValues('startDate')).add(1, 'day')}
-                  readOnly={!editing || endDateWatch === 'infinity'}
-                  field={{
-                    ...field,
-                    onChange: (value) => {
-                      field.onChange(value);
-                      // Trigger also start date validation to check if already provided start date is outside of project date range
-                      form.trigger('startDate');
-                    },
-                  }}
-                />
-                <FormCheckBox
-                  cssProp={css`
-                    flex: 1;
-                    margin-right: 0;
-                    justify-content: flex-end;
-                  `}
-                  disabled={!editing}
-                  onChange={() => {
-                    if (endDateWatch === 'infinity') {
-                      setValue('endDate', '');
-                    } else {
-                      field.onChange('infinity');
-                    }
-                  }}
-                  checked={endDateWatch === 'infinity'}
-                  label={tr('maintenanceProject.ongoing')}
-                />
-              </Box>
-            )}
-          />
-          {(errors?.endDate?.message === 'projectObject.error.projectNotIncluded' ||
-            errors?.startDate?.message === 'projectObject.error.projectNotIncluded') && (
-            <Alert
-              css={css`
-                align-items: center;
-              `}
-              severity="warning"
-              action={
-                <Button
-                  color="inherit"
-                  size="small"
-                  onClick={async () => {
-                    const { startDate, endDate, projectId } = getValues();
-                    const formErrors = errors;
-                    if (projectId) {
-                      await handleProjectDateUpsert(
-                        projectId,
-                        formErrors?.startDate ? startDate : null,
-                        formErrors?.endDate ? endDate : null,
-                      );
-                    }
-                  }}
-                >
-                  {tr('projectObjectForm.updateProjectDateRangeLabel')}
-                </Button>
-              }
-            >
-              {getProjectDateAlertText()}
-            </Alert>
+    <FormProvider {...form}>
+      {!props.projectObject && (
+        <SectionTitle
+          title={tr(copySource ? 'newProjectObject.copyFormTitle' : 'newProjectObject.title')}
+        />
+      )}
+      {props.projectObject && <SectionTitle title={tr('projectObject.formTitle')} />}
+      <form id="projectObjectForm" css={newProjectFormStyle} autoComplete="off">
+        <FormField
+          formField="objectName"
+          label={tr('projectObject.nameLabel')}
+          helpTooltip={tr('projectObject.nameTooltip')}
+          errorTooltip={tr('projectObject.nameErrorTooltip')}
+          component={(field) => (
+            <TextField {...readonlyProps} {...field} inputRef={nameFieldRef} size="small" />
           )}
-          <FormField
-            formField="contract"
-            label={tr('maintenanceProjectObject.contract')}
-            component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
-          />
-          <FormField
-            formField="poNumber"
-            label={tr('maintenanceProjectObject.poNumber')}
-            errorTooltip="ostotilausnumero"
-            component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
-          />
-          <FormField
-            formField="procurementMethod"
-            label={tr('maintenanceProjectObject.procurementMethod')}
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            component={({ ref, ...field }) => (
-              <CodeSelect
-                {...field}
-                multiple={false}
-                codeListId="KohteenToteutustapa"
-                readOnly={!editing}
-              />
-            )}
-          />
+        />
 
-          <FormField
-            formField="sapWBSId"
-            label={tr('projectObject.sapWBSIdLabel')}
-            errorTooltip={tr('projectObject.sapWBSIdTooltip')}
-            component={(field) => (
-              <SapWBSSelect projectId={formProjectId} readonlyProps={readonlyProps} field={field} />
-            )}
-          />
-          <FormField
-            formField="environmentalInvestmentReason"
-            label={tr('projectObject.reasonForEnvironmentalInvestmentLabel')}
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            component={({ ref, ...field }) => (
-              <EnvironmentalCodeSelect {...field} readOnly={!editing} sapWbsId={formSapWBSId} />
-            )}
-          />
-          <FormField
-            formField="objectUserRoles"
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            component={({ ref, ...field }) => (
-              <ProjectObjectFormUserRoles {...field} readOnly={!editing} />
-            )}
-          />
-          <Box
+        <FormField
+          formField="description"
+          label={tr('projectObject.descriptionLabel')}
+          helpTooltip={tr('projectObject.descriptionTooltip')}
+          errorTooltip={tr('projectObject.descriptionErrorTooltip')}
+          component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
+        />
+
+        <FormField
+          formField="publicDescription"
+          label={tr('projectObject.publicDescriptionLabel')}
+          helpTooltip={tr('projectObject.publicDescriptionTooltip')}
+          errorTooltip={tr('projectObject.publicDescriptionErrorTooltip')}
+          component={(field) => <TextField {...readonlyProps} {...field} minRows={2} multiline />}
+        />
+
+        <FormField
+          formField="lifecycleState"
+          label={tr('projectObject.lifecycleStateLabel')}
+          errorTooltip={tr('projectObject.lifecycleStateTooltip')}
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          component={({ ref, ...field }) => (
+            <CodeSelect {...field} codeListId="KohteenElinkaarentila" readOnly={!editing} />
+          )}
+        />
+
+        <FormField
+          formField="objectCategory"
+          label={tr('projectObject.objectCategoryLabel')}
+          errorTooltip={tr('projectObject.objectCategoryTooltip')}
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          component={({ ref, ...field }) => (
+            <CodeSelect
+              {...field}
+              multiple
+              codeListId="KohteenOmaisuusLuokka"
+              readOnly={!editing}
+            />
+          )}
+        />
+
+        <FormField
+          formField="objectUsage"
+          label={tr('projectObject.objectUsageLabel')}
+          errorTooltip={tr('projectObject.objectUsageTooltip')}
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          component={({ ref, ...field }) => (
+            <CodeSelect
+              {...field}
+              multiple
+              codeListId="KohteenToiminnallinenKayttoTarkoitus"
+              readOnly={!editing}
+            />
+          )}
+        />
+
+        <FormField
+          formField="startDate"
+          label={tr('projectObject.startDateLabel')}
+          errorTooltip={getDateFieldErrorMessage(
+            errors.startDate?.message ?? null,
+            tr('projectObject.startDateTooltip'),
+          )}
+          component={(field) => (
+            <FormDatePicker
+              {...(getValues('endDate') !== 'Infinity' && {
+                maxDate: dayjs(getValues('endDate')).subtract(1, 'day'),
+              })}
+              readOnly={!editing}
+              field={field}
+            />
+          )}
+        />
+
+        <FormField
+          formField="endDate"
+          label={tr('projectObject.endDateLabel')}
+          errorTooltip={getDateFieldErrorMessage(
+            errors.endDate?.message ?? null,
+            tr('projectObject.endDateTooltip'),
+            [dayjs().add(5, 'year').year().toString()],
+          )}
+          component={(field) => (
+            <Box
+              css={css`
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 1rem;
+                & .MuiFormControl-root {
+                  flex: 1 1 185px;
+                }
+              `}
+            >
+              <FormDatePicker
+                minDate={dayjs(getValues('startDate')).add(1, 'day')}
+                readOnly={!editing || endDateWatch === 'infinity'}
+                field={{
+                  ...field,
+                  onChange: (value) => {
+                    field.onChange(value);
+                    // Trigger also start date validation to check if already provided start date is outside of project date range
+                    form.trigger('startDate');
+                  },
+                }}
+              />
+              <FormCheckBox
+                cssProp={css`
+                  flex: 1;
+                  margin-right: 0;
+                  justify-content: flex-end;
+                `}
+                disabled={!editing}
+                onChange={() => {
+                  if (endDateWatch === 'infinity') {
+                    setValue('endDate', '');
+                  } else {
+                    field.onChange('infinity');
+                  }
+                }}
+                checked={endDateWatch === 'infinity'}
+                label={tr('maintenanceProject.ongoing')}
+              />
+            </Box>
+          )}
+        />
+        {(errors?.endDate?.message === 'projectObject.error.projectNotIncluded' ||
+          errors?.startDate?.message === 'projectObject.error.projectNotIncluded') && (
+          <Alert
             css={css`
-              display: flex;
-              flex-direction: column;
+              align-items: center;
             `}
-          ></Box>
-        </form>
-      </FormProvider>
-    </>
+            severity="warning"
+            action={
+              <Button
+                color="inherit"
+                size="small"
+                onClick={async () => {
+                  const { startDate, endDate, projectId } = getValues();
+                  const formErrors = errors;
+                  if (projectId) {
+                    await handleProjectDateUpsert(
+                      projectId,
+                      formErrors?.startDate ? startDate : null,
+                      formErrors?.endDate ? endDate : null,
+                    );
+                  }
+                }}
+              >
+                {tr('projectObjectForm.updateProjectDateRangeLabel')}
+              </Button>
+            }
+          >
+            {getProjectDateAlertText()}
+          </Alert>
+        )}
+        <FormField
+          formField="contract"
+          label={tr('maintenanceProjectObject.contract')}
+          component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
+        />
+        <FormField
+          formField="poNumber"
+          label={tr('maintenanceProjectObject.poNumber')}
+          errorTooltip="ostotilausnumero"
+          component={(field) => <TextField {...readonlyProps} {...field} size="small" />}
+        />
+        <FormField
+          formField="procurementMethod"
+          label={tr('maintenanceProjectObject.procurementMethod')}
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          component={({ ref, ...field }) => (
+            <CodeSelect
+              {...field}
+              multiple={false}
+              codeListId="KohteenToteutustapa"
+              readOnly={!editing}
+            />
+          )}
+        />
+
+        <FormField
+          formField="sapWBSId"
+          label={tr('projectObject.sapWBSIdLabel')}
+          errorTooltip={tr('projectObject.sapWBSIdTooltip')}
+          component={(field) => (
+            <SapWBSSelect projectId={formProjectId} readonlyProps={readonlyProps} field={field} />
+          )}
+        />
+        <FormField
+          formField="environmentalInvestmentReason"
+          label={tr('projectObject.reasonForEnvironmentalInvestmentLabel')}
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          component={({ ref, ...field }) => (
+            <EnvironmentalCodeSelect {...field} readOnly={!editing} sapWbsId={formSapWBSId} />
+          )}
+        />
+        <FormField
+          formField="objectUserRoles"
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          component={({ ref, ...field }) => (
+            <ProjectObjectFormUserRoles {...field} readOnly={!editing} />
+          )}
+        />
+        <Box
+          css={css`
+            display: flex;
+            flex-direction: column;
+          `}
+        ></Box>
+      </form>
+    </FormProvider>
   );
 });

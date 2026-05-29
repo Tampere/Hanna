@@ -417,7 +417,11 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
   return (
     <>
       <FormProvider {...form}>
-        {!props.projectObject && <SectionTitle title={tr('newProjectObject.title')} />}
+        {!props.projectObject && (
+          <SectionTitle
+            title={tr(copySource ? 'newProjectObject.copyFormTitle' : 'newProjectObject.title')}
+          />
+        )}
         {props.projectObject && <SectionTitle title={tr('projectObject.formTitle')} />}
         <form id="projectObjectForm" css={newProjectFormStyle} autoComplete="off">
           <FormField
