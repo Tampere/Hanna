@@ -373,6 +373,10 @@ export const fi = {
   'budgetTable.committeeChip.all': 'Kaikki',
   'projectObject.error.endDateBeforeStartDate': 'Loppuajankohdan oltava alkuajankohdan jälkeen',
   'newProjectObject.title': 'Uusi kohde',
+  'newProjectObject.copyTitle': 'Kopioitu kohde',
+  'newProjectObject.copyFormTitle': 'Kopion perustiedot',
+  'newProjectObject.rejectCopy': 'Hylkää kopio',
+  'newProjectObject.saveCopy': 'Tallenna kopio',
   'newProjectObject.notifyUpsert': 'Kohteen tiedot tallennettu.',
   'newProjectObject.notifyUpsertFailed': 'Kohteen tallennus epäonnistui.',
   'projectObject.nameTooltip':

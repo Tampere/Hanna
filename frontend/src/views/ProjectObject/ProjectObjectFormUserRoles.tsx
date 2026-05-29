@@ -197,8 +197,9 @@ export function ProjectObjectFormUserRoles({
         `}
       >
         <SectionTitle title={tr('projectObjectForm.roles')} />
-        {!readOnly && value?.length > 0 && (
+        {!readOnly && (
           <Button
+            disabled={value?.length === 0}
             css={css`
               text-transform: uppercase;
             `}

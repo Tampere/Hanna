@@ -31,6 +31,7 @@ interface EditingFooterProps extends PropsWithChildren {
   saveAndReturn?: (navigateTo: string) => void;
   isSubmitting?: boolean;
   isNewItem: boolean;
+  isCopy?: boolean;
 }
 
 export function EditingFooter({
@@ -40,16 +41,18 @@ export function EditingFooter({
   isSubmitting,
   children,
   isNewItem,
-}: EditingFooterProps) {
+  isCopy,
+}: Readonly<EditingFooterProps>) {
   const { form, map, finances, permissions } = useAtomValue(dirtyAndValidFieldsAtom);
   const location = useLocation();
   const navigateTo = new URLSearchParams(location.search).get('from');
 
   const isReadyToSubmit = isNewItem
     ? form.isValid
-    : form.isDirty
-      ? form.isValid
-      : map.isDirtyAndValid || finances.isDirtyAndValid || permissions.isDirtyAndValid;
+    : (form.isDirty ? form.isValid : null) ||
+      map.isDirtyAndValid ||
+      finances.isDirtyAndValid ||
+      permissions.isDirtyAndValid;
 
   const tr = useTranslations();
   return (
@@ -73,7 +76,7 @@ export function EditingFooter({
         onClick={onCancel}
         endIcon={<Close />}
       >
-        {tr('reject')}
+        {tr(isCopy ? 'newProjectObject.rejectCopy' : 'reject')}
       </Button>
       {navigateTo && saveAndReturn ? (
         <SaveOptionsButton
@@ -81,7 +84,7 @@ export function EditingFooter({
           saveAndReturn={() => saveAndReturn(navigateTo)}
         >
           <Button disabled={!isReadyToSubmit} size="small" variant="outlined" onClick={onSave}>
-            {tr('save')}
+            {tr(isCopy ? 'newProjectObject.saveCopy' : 'save')}
           </Button>
         </SaveOptionsButton>
       ) : (
@@ -93,7 +96,7 @@ export function EditingFooter({
           onClick={onSave}
           endIcon={isSubmitting ? <CircularProgress size="1rem" /> : <Save />}
         >
-          {tr('save')}
+          {tr(isCopy ? 'newProjectObject.saveCopy' : 'save')}
         </Button>
       )}
     </Box>
@@ -125,9 +128,11 @@ interface Props {
   permissionCtx: ProjectPermissionContext | null;
   type?: 'project' | 'projectObject';
   projectType?: ProjectTypePath;
+  isCopy?: boolean;
+  copyHasGeometry?: boolean;
 }
 
-export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
+export function ProjectViewWrapper({ type = 'project', ...props }: Readonly<Props>) {
   const { projectId, projectObjectId } = useParams() as {
     projectId: string;
     projectObjectId?: string;
@@ -274,6 +279,7 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
         {footerVisible && (
           <EditingFooter
             isNewItem={isNewItem}
+            isCopy={props.isCopy}
             isSubmitting={isSubmitting}
             onSave={onSave}
             saveAndReturn={(navigateTo) => {
@@ -310,7 +316,7 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Props) {
                   />
                 )
               ))}
-            {isNewItem && !dirtyAndValidViews.map.isDirtyAndValid && (
+            {isNewItem && !dirtyAndValidViews.map.isDirtyAndValid && !props.copyHasGeometry && (
               <Alert
                 css={css`
                   padding: 0px 16px;
