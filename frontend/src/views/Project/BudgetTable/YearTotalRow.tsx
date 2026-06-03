@@ -62,6 +62,8 @@ export function YearTotalRow({
   const effectiveGetFieldValue = (fieldName: keyof ProjectYearBudget['budgetItems']) =>
     getFieldValue ? getFieldValue(fieldName, formValues, year) : defaultGetFieldValue(fieldName);
 
+  const currentYear = new Date().getFullYear();
+
   return (
     <TableRow
       ref={rowRef}
@@ -132,24 +134,30 @@ export function YearTotalRow({
           )}
         </TableCell>
       )}
-      {fields?.includes('forecast') && (
-        <TableCell>
-          <CurrencyInput
-            getColor={getValueTextColor}
-            allowNegative
-            value={effectiveGetFieldValue('forecast')}
-          />
-        </TableCell>
-      )}
-      {fields?.includes('kayttosuunnitelmanMuutos') && (
-        <TableCell style={{ textAlign: 'right' }}>
-          <CurrencyInput
-            style={{ minWidth: 220 }}
-            getColor={getValueTextColor}
-            value={effectiveGetFieldValue('kayttosuunnitelmanMuutos')}
-          />
-        </TableCell>
-      )}
+      {fields?.includes('forecast') &&
+        (year > currentYear ? (
+          <TableCell />
+        ) : (
+          <TableCell>
+            <CurrencyInput
+              getColor={getValueTextColor}
+              allowNegative
+              value={effectiveGetFieldValue('forecast')}
+            />
+          </TableCell>
+        ))}
+      {fields?.includes('kayttosuunnitelmanMuutos') &&
+        (year > currentYear ? (
+          <TableCell />
+        ) : (
+          <TableCell style={{ textAlign: 'right' }}>
+            <CurrencyInput
+              style={{ minWidth: 220 }}
+              getColor={getValueTextColor}
+              value={effectiveGetFieldValue('kayttosuunnitelmanMuutos')}
+            />
+          </TableCell>
+        ))}
       <TableCell />
     </TableRow>
   );
