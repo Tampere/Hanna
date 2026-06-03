@@ -413,7 +413,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                   }
                 `}
               >
-                {years?.map((year, yearIdx) => {
+                {years?.map((year) => {
                   return (
                     <Fragment key={year}>
                       {

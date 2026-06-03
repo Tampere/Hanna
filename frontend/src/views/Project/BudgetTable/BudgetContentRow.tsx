@@ -35,6 +35,7 @@ export function BudgetContentRow({
   sapYearTotal,
   name,
 }: BudgetContentRowCellProps) {
+  const currentYear = new Date().getFullYear();
   const committeeColor =
     committeeColors[(committee?.id as keyof typeof committeeColors) ?? 'default'];
 
@@ -171,7 +172,7 @@ export function BudgetContentRow({
                     return 'inherit';
                   }}
                   directlyHandleValueChange
-                  value={(true ? actuals?.find((data) => data.year === year)?.total : null) ?? null}
+                  value={actuals?.find((data) => data.year === year)?.total ?? null}
                   placeholder={'–'}
                 />
 
@@ -194,67 +195,79 @@ export function BudgetContentRow({
       ) : (
         <TableCell />
       )}
-      {fields?.includes('forecast') && (
-        <TableCell>
-          <FormField
-            className={TABLE_CELL_CONTENT_CLASS}
-            formField={getFormFieldIdentifier(year, 'forecast', committee?.id)}
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            component={({ ref, onChange, ...field }) => (
-              <CurrencyInput
-                placeholder="–"
-                directlyHandleValueChange
-                {...field}
-                allowNegative
-                style={{ color: includeYearColumn ? 'inherit' : committeeColor }}
-                getColor={(val) => {
-                  if (
-                    !includeYearColumn &&
-                    fields.includes('committee') &&
-                    (field.value >= 0 || !field.value)
-                  ) {
-                    return committeeColor;
-                  }
+      {fields?.includes('forecast') &&
+        (year > currentYear ? (
+          <TableCell />
+        ) : (
+          <TableCell>
+            <FormField
+              className={TABLE_CELL_CONTENT_CLASS}
+              formField={getFormFieldIdentifier(year, 'forecast', committee?.id)}
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              component={({ ref, onChange, ...field }) => (
+                <CurrencyInput
+                  placeholder="–"
+                  directlyHandleValueChange
+                  {...field}
+                  allowNegative
+                  style={{ color: includeYearColumn ? 'inherit' : committeeColor }}
+                  getColor={(val) => {
+                    if (
+                      !includeYearColumn &&
+                      fields.includes('committee') &&
+                      (field.value >= 0 || !field.value)
+                    ) {
+                      return committeeColor;
+                    }
 
-                  return valueTextColor(val);
-                }}
-                onChange={writableFields?.includes('forecast') ? onChange : undefined}
-              />
-            )}
-          />
-        </TableCell>
-      )}
-      {fields?.includes('kayttosuunnitelmanMuutos') && (
-        <TableCell style={{ textAlign: 'right' }}>
-          <FormField
-            className={TABLE_CELL_CONTENT_CLASS}
-            formField={getFormFieldIdentifier(year, 'kayttosuunnitelmanMuutos', committee?.id)}
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            component={({ ref, onChange, ...field }) => (
-              <CurrencyInput
-                placeholder="–"
-                directlyHandleValueChange
-                allowNegative
-                style={{
-                  width: '100%',
-                  minWidth: 220,
-                  color: includeYearColumn ? 'inherit' : committeeColor,
-                }}
-                getColor={(val) => {
-                  if (!includeYearColumn && fields.includes('committee')) {
-                    return committeeColor;
+                    return valueTextColor(val);
+                  }}
+                  onChange={
+                    year === currentYear && writableFields?.includes('forecast')
+                      ? onChange
+                      : undefined
                   }
-                  return valueTextColor(val);
-                }}
-                {...field}
-                onChange={
-                  writableFields?.includes('kayttosuunnitelmanMuutos') ? onChange : undefined
-                }
-              />
-            )}
-          />
-        </TableCell>
-      )}
+                />
+              )}
+            />
+          </TableCell>
+        ))}
+      {fields?.includes('kayttosuunnitelmanMuutos') &&
+        (year > currentYear ? (
+          <TableCell />
+        ) : (
+          <TableCell style={{ textAlign: 'right' }}>
+            <FormField
+              className={TABLE_CELL_CONTENT_CLASS}
+              formField={getFormFieldIdentifier(year, 'kayttosuunnitelmanMuutos', committee?.id)}
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              component={({ ref, onChange, ...field }) => (
+                <CurrencyInput
+                  placeholder="–"
+                  directlyHandleValueChange
+                  allowNegative
+                  style={{
+                    width: '100%',
+                    minWidth: 220,
+                    color: includeYearColumn ? 'inherit' : committeeColor,
+                  }}
+                  getColor={(val) => {
+                    if (!includeYearColumn && fields.includes('committee')) {
+                      return committeeColor;
+                    }
+                    return valueTextColor(val);
+                  }}
+                  {...field}
+                  onChange={
+                    year === currentYear && writableFields?.includes('kayttosuunnitelmanMuutos')
+                      ? onChange
+                      : undefined
+                  }
+                />
+              )}
+            />
+          </TableCell>
+        ))}
     </TableRow>
   );
 }
