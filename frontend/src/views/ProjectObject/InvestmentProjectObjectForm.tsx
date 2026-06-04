@@ -55,24 +55,27 @@ interface Props {
 }
 
 interface ProjectAutoCompleteProps {
-  value: ProjectListItem;
+  value?: string | null;
   onChange: (value?: string) => void;
 }
 
 function ProjectAutoComplete(props: Readonly<ProjectAutoCompleteProps>) {
   const tr = useTranslations();
   const projects = trpc.investmentProject.getParticipatedProjects.useQuery();
+  const options = projects?.data ?? [];
+  const selectedOption = options.find((o) => o.projectId === props.value) ?? null;
 
   return (
-    <Autocomplete<ProjectListItem>
+    <Autocomplete<ProjectListItem | null>
       {...props}
-      options={projects?.data ?? []}
+      value={selectedOption}
+      options={options}
       noOptionsText={tr('itemSearch.noResults')}
       size="small"
       onChange={(_e, value) => {
         props.onChange(value?.projectId);
       }}
-      getOptionLabel={(option) => option.projectName}
+      getOptionLabel={(option) => option?.projectName ?? ''}
       renderInput={(params) => <TextField {...params} />}
       loading={projects.isLoading}
     />
@@ -93,7 +96,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
-  const { projectId } = useParams() as { projectId: string };
+  const { projectId: projectIdParam } = useParams() as { projectId: string };
   // When copying, location.state.copyFrom holds the source object; only applies to new objects
   const copySource = !props.projectObject ? location.state?.copyFrom ?? null : null;
   const setDirtyAndValidViews = useSetAtom(dirtyAndValidFieldsAtom);
@@ -200,7 +203,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
       props.projectObject ??
       (copySource
         ? {
-            projectId: props.projectId ?? projectId,
+            projectId: props.projectId ?? projectIdParam,
             objectName: `${copySource.objectName} - kopio`,
             description: copySource.description ?? '',
             publicDescription: copySource.publicDescription ?? '',
@@ -219,7 +222,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
             endDate: '',
           }
         : {
-            projectId: props.projectId,
+            projectId: props.projectId ?? '',
             objectName: '',
             description: '',
             publicDescription: '',
@@ -256,7 +259,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
       reset(props.projectObject);
     } else if (copySource) {
       reset({
-        projectId: props.projectId ?? projectId,
+        projectId: props.projectId ?? projectIdParam,
         objectName: `${copySource.objectName} - kopio`,
         description: copySource.description ?? '',
         publicDescription: copySource.publicDescription ?? '',
@@ -470,6 +473,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
                       props.setProjectId?.(value ?? '');
                       field.onChange(value);
                       setValue('sapWBSId', null);
+                      setValue('committee', '');
                     }}
                   />
                 );
@@ -545,7 +549,7 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
               <CommitteeSelect
                 {...field}
                 readOnly={!editing}
-                projectId={projectId}
+                projectId={projectIdParam || formProjectId}
                 itemType="projectObject"
               />
             )}
