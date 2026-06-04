@@ -189,6 +189,9 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   & .MuiDataGrid-virtualScroller {
     min-height: 125px;
   }
+  & .MuiDataGrid-scrollbar--horizontal {
+    z-index: 102;
+  }
 
   & .year-column {
     text-align: center;

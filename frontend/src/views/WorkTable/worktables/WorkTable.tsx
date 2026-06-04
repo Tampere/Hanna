@@ -142,6 +142,9 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   & .MuiDataGrid-virtualScroller {
     min-height: 125px;
   }
+  & .MuiDataGrid-scrollbar--horizontal {
+    z-index: 102;
+  }
 
   & .kayttosuunnitelmanMuutos-header {
     // TODO: figure out why column headerAlign doesn't work
