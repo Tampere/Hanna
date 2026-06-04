@@ -43,13 +43,12 @@ export function CommitteeSelect({
   const lang = useAtomValue(langAtom);
   const projectCommittees = trpc.project.getCommittees.useQuery(
     { projectId: projectId ?? '' },
-    { enabled: itemType === 'projectObject' },
+    { enabled: Boolean(itemType === 'projectObject' && projectId) },
   );
   const committeeCodes = trpc.code.get.useQuery(
     { codeListId: 'Lautakunta' },
     { enabled: itemType === 'project' },
   );
-
   const assignedCommittees = trpc.project.getCommitteesAssignedToProjectObjects.useQuery(
     {
       projectId: projectId ?? '',
@@ -80,7 +79,7 @@ export function CommitteeSelect({
           ) ?? []
         }
         disabledTooltip={tr('projectForm.committeeDisabledLabel')}
-        loading={committeeCodes.isLoading}
+        loading={committeeCodes.isInitialLoading}
         getOptionLabel={getLabel}
         getOptionId={(committee) => committee.id.id}
         value={(value?.map(getCode).filter(Boolean) ?? []) as Code[]}
@@ -97,7 +96,7 @@ export function CommitteeSelect({
       readOnly={readOnly || !projectId}
       onBlur={onBlur}
       options={projectCommittees.data ?? []}
-      loading={projectCommittees.isLoading}
+      loading={projectCommittees.isInitialLoading}
       getOptionLabel={getLabel}
       getOptionId={(committee) => committee.id.id}
       value={projectCommittees.data?.find((committee) => committee.id.id === value) ?? null}

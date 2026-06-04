@@ -96,7 +96,7 @@ export function ProjectObject(props: Props) {
   const location = useLocation();
   const { pathname } = location;
   // Pre-fill data passed when copying an existing project object
-  const copySource = !projectObjectId ? (location.state?.copyFrom ?? null) : null;
+  const copySource = !projectObjectId ? location.state?.copyFrom ?? null : null;
 
   const tabView = searchParams.get('tab') || 'default';
   const tabs = projectObjectTabs(routeParams.projectId, props.projectType, projectObjectId);
@@ -409,9 +409,9 @@ export function ProjectObject(props: Props) {
                   drawGeom: {
                     isLoading: Boolean(projectObjectId) && projectObject.isLoading,
                     isFetching: projectObject.isFetching,
-                  geoJson:
+                    geoJson:
                       (editing
-                        ? (projectObject.data?.geometryDump ?? copySource?.geometryDump)
+                        ? projectObject.data?.geometryDump ?? copySource?.geometryDump
                         : projectObject.data?.geom) ?? null,
                   },
                   drawStyle: PROJ_OBJ_DRAW_STYLE,
