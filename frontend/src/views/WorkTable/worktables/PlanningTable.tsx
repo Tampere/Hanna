@@ -303,8 +303,6 @@ export default function PlanningTable() {
     message: string;
   } | null>(null);
 
-  const gridApiRef = useGridApiRef();
-
   function toggleProjectCollapse(projectId: string) {
     setCollapsedProjects((prev) => {
       const newSet = new Set(prev);
@@ -721,9 +719,9 @@ export default function PlanningTable() {
     if (!last) return;
     setEditEvents((prev) => prev.slice(0, -1));
     setRedoEvents((prev) => [...prev, last]);
-    gridApiRef.current.updateRows([
-      { id: last.rowId, [last.field]: last.oldValue } as Partial<PlanningRowWithYears>,
-    ]);
+    setRows((prev) =>
+      prev.map((row) => (row.id === last.rowId ? { ...row, [last.field]: last.oldValue } : row)),
+    );
   }
 
   async function undoAll() {
@@ -737,9 +735,9 @@ export default function PlanningTable() {
     if (!last) return;
     setRedoEvents((prev) => prev.slice(0, -1));
     setEditEvents((prev) => [...prev, last]);
-    gridApiRef.current.updateRows([
-      { id: last.rowId, [last.field]: last.newValue } as Partial<PlanningRowWithYears>,
-    ]);
+    setRows((prev) =>
+      prev.map((row) => (row.id === last.rowId ? { ...row, [last.field]: last.newValue } : row)),
+    );
   }
 
   const planningUtils = trpc.useUtils();
@@ -930,7 +928,6 @@ export default function PlanningTable() {
         disableVirtualization
         loading={planningData.isLoading}
         localeText={fiFI.components.MuiDataGrid.defaultProps.localeText}
-        apiRef={gridApiRef}
         processRowUpdate={(newRow, oldRow) => {
           // detect changed year field
           const changedField = Object.keys(newRow as PlanningRowWithYears).find(
@@ -949,6 +946,11 @@ export default function PlanningTable() {
             };
             setEditEvents((prev) => [...prev, evt]);
             setRedoEvents([]);
+            setRows((prev) =>
+              prev.map((r) =>
+                r.id === (newRow as PlanningRowWithYears).id ? (newRow as PlanningRowWithYears) : r,
+              ),
+            );
           }
           return newRow as PlanningRowWithYears;
         }}
