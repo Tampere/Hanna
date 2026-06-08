@@ -38,6 +38,8 @@ interface GetColumnsParams {
   modifiedFields: ModifiedFields<WorkTableRow>;
   allYearsSelected: boolean;
   pinnedColumns: string[];
+  isOngoingYear: boolean;
+  isFutureYear: boolean;
 }
 
 interface MaybeModifiedCellProps<T extends GridValidRowModel> {
@@ -375,6 +377,7 @@ export const financesField = (
     allowNegative?: boolean;
     valueTextColor?: (value: number | null) => string;
   },
+  hideValue?: boolean,
 ): GridColDef<WorkTableRow> & { __isWrapped?: boolean } => {
   return {
     field: targetField,
@@ -384,6 +387,9 @@ export const financesField = (
     flex: 1,
     minWidth: 128,
     renderCell: ({ value }: GridRenderCellParams) => {
+      if (hideValue) {
+        return null;
+      }
       return (
         <div
           css={css`
@@ -437,6 +443,8 @@ export function getColumns({
   modifiedFields,
   allYearsSelected,
   pinnedColumns,
+  isOngoingYear,
+  isFutureYear,
 }: GetColumnsParams): (GridColDef<WorkTableRow> & { __isWrapped?: boolean })[] {
   const columns: (GridColDef<WorkTableRow> & { __isWrapped?: boolean })[] = [
     fieldProjectLink,
@@ -453,8 +461,9 @@ export function getColumns({
     financesField('actual', { headerName: 'Toteuma', editable: false }),
     financesField(
       'forecast',
-      { headerName: 'Ennuste', editable: !allYearsSelected },
+      { headerName: 'Ennuste', editable: isOngoingYear },
       { allowNegative: true, valueTextColor },
+      isFutureYear,
     ),
     financesField(
       'kayttosuunnitelmanMuutos',
@@ -462,12 +471,13 @@ export function getColumns({
         headerName: 'Käyttösuunnitelman muutos',
         flex: 1,
         minWidth: 172,
-        editable: !allYearsSelected,
+        editable: isOngoingYear,
       },
       {
         allowNegative: true,
         valueTextColor,
       },
+      isFutureYear,
     ),
     fieldEnvironmentalInvestmentReason,
   ];

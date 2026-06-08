@@ -263,13 +263,19 @@ export default function WorkTable() {
   const allYearsSelected =
     dayjs(searchParams.objectStartDate).year() !== dayjs(searchParams.objectEndDate).year();
 
+  const selectedYear = dayjs(searchParams.objectStartDate).year();
+  const isOngoingYear = !allYearsSelected && selectedYear === new Date().getFullYear();
+  const isFutureYear = !allYearsSelected && selectedYear > new Date().getFullYear();
+
   const columns = useMemo(() => {
     return getColumns({
       modifiedFields,
       allYearsSelected,
       pinnedColumns: pinnedColumns.map((column) => column.name),
+      isOngoingYear,
+      isFutureYear,
     });
-  }, [modifiedFields, allYearsSelected]);
+  }, [modifiedFields, allYearsSelected, isOngoingYear, isFutureYear]);
 
   useEffect(() => {
     setEditEvents([]);
@@ -404,6 +410,11 @@ export default function WorkTable() {
       writableFields = ['amount', 'kayttosuunnitelmanMuutos'];
     } else if (hasWritePermission(auth, permissionCtx) || ownsProject(auth, permissionCtx)) {
       writableFields = ['forecast'];
+    }
+    if (!isOngoingYear) {
+      writableFields = writableFields.filter(
+        (field) => field !== 'forecast' && field !== 'kayttosuunnitelmanMuutos',
+      );
     }
     return !yearIsLocked ? writableFields : writableFields.filter((field) => field !== 'amount');
   }

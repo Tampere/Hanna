@@ -51,12 +51,23 @@ interface Props {
 
 export type BudgetFormValues = Record<string, Record<string, ProjectYearBudget['budgetItems']>>;
 
+function isExcludedFutureValue(
+  fieldName: keyof ProjectYearBudget['budgetItems'],
+  year: number | string,
+) {
+  return (
+    (fieldName === 'forecast' || fieldName === 'kayttosuunnitelmanMuutos') &&
+    Number(year) > new Date().getFullYear()
+  );
+}
+
 function getFieldTotalValueByYear(
   fieldName: keyof ProjectYearBudget['budgetItems'],
   formValues?: BudgetFormValues,
 ) {
   if (!formValues) return null;
-  return Object.values(formValues).reduce((total, budgetItem) => {
+  return Object.entries(formValues).reduce((total, [year, budgetItem]) => {
+    if (isExcludedFutureValue(fieldName, year)) return total || 0;
     return (total || 0) + ((budgetItem['total'] && budgetItem['total'][fieldName]) ?? 0);
   }, 0);
 }
