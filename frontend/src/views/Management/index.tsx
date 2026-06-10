@@ -2,7 +2,7 @@ import {
   BusinessCenterTwoTone,
   Campaign,
   KeyTwoTone,
-  LockTwoTone,
+  GavelTwoTone,
   PersonTwoTone,
 } from '@mui/icons-material';
 import { Box, Tab, Tabs, css } from '@mui/material';
@@ -50,7 +50,7 @@ const tabs = [
   {
     tabView: 'lukitus',
     label: 'management.tabs.locking',
-    icon: <LockTwoTone />,
+    icon: <GavelTwoTone />,
     to: '/hallinta/lukitus',
     requiredRole: 'Hanna.Admin',
   },
