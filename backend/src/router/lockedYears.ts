@@ -9,6 +9,7 @@ import { TRPC } from '@backend/router/index.js';
 import { lockedYearDetailSchema, lockedYearSchema } from '@shared/schema/lockedYears.js';
 import { isAdmin } from '@shared/schema/userPermissions.js';
 
+const LOCKED_YEARS_OPEN_HOURS = env.lockedYearsOpenHours || 24;
 export const createAccessMiddleware = (t: TRPC) => () =>
   t.middleware(async (opts) => {
     const { ctx, next } = opts;
@@ -36,7 +37,7 @@ export const createLockedYearsRouter = (t: TRPC) => {
         SELECT year
         FROM app.locked_years
         WHERE opened_at IS NULL
-           OR opened_at < NOW() - ${`${env.lockedYearsOpenHours} hours`}::interval
+           OR opened_at < NOW() - ${`${LOCKED_YEARS_OPEN_HOURS} hours`}::interval
         ORDER BY year
       `);
       return result.map((row) => row.year);
@@ -48,7 +49,7 @@ export const createLockedYearsRouter = (t: TRPC) => {
         SELECT year
         FROM app.locked_years
         WHERE opened_at IS NOT NULL
-          AND opened_at >= NOW() - ${`${env.lockedYearsOpenHours} hours`}::interval
+          AND opened_at >= NOW() - ${`${LOCKED_YEARS_OPEN_HOURS} hours`}::interval
         ORDER BY year
       `);
       return result.map((row) => row.year);
