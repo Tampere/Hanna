@@ -48,7 +48,12 @@ interface MaybeModifiedCellProps<T extends GridValidRowModel> {
   modifiedFields?: ModifiedFields<T>;
 }
 
-export type WorkTableFinanceField = 'amount' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos';
+export type WorkTableFinanceField =
+  | 'estimate'
+  | 'amount'
+  | 'actual'
+  | 'forecast'
+  | 'kayttosuunnitelmanMuutos';
 
 function MaybeModifiedCell({
   params,
@@ -371,7 +376,7 @@ const fieldOperatives = {
 };
 
 export const financesField = (
-  targetField: 'amount' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos',
+  targetField: 'estimate' | 'amount' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos',
   opts?: Partial<GridColDef<WorkTableRow>>,
   CurrencyInputProps?: {
     allowNegative?: boolean;
@@ -457,6 +462,7 @@ export function getColumns({
     fieldObjectUsage,
     fieldObjectCommittee,
     fieldOperatives,
+    financesField('estimate', { headerName: 'Talousarvioennuste', editable: !allYearsSelected }),
     financesField('amount', { headerName: 'Talousarvio', editable: !allYearsSelected }),
     financesField('actual', { headerName: 'Toteuma', editable: false }),
     financesField(

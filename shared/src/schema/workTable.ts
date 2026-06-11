@@ -137,6 +137,7 @@ export const templateColumns: Record<ReportTemplate, WorkTableColumn[]> = {
     'objectCategory',
     'objectUsage',
     'operatives',
+    'estimate',
     'amount',
     'actual',
     'forecast',

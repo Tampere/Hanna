@@ -66,6 +66,8 @@ const projectObjectRow = baseRowSchema.extend({
     z
       .object({
         amount: z.number().nullable(),
+        forecast: z.number().nullable(),
+        estimate: z.number().nullable(),
         actual: z.number().nullable(),
         year: z.number(),
       })
@@ -95,10 +97,12 @@ export type ProjectObjectRow = z.infer<typeof projectObjectRow>;
 export type ProjectRow = z.infer<typeof projectRow>;
 export type PlanningTableRow = z.infer<typeof planningTableRowSchema>;
 
-// Update schema for planning table (only amount per year for project objects)
+// Update schema for planning table (one editable budget field per year for project objects)
+export const planningUpdateFieldSchema = z.enum(['amount', 'forecast', 'estimate']);
 export const planningUpdateItemSchema = z.object({
   year: z.number().int(),
-  amount: z.number().nullable(),
+  field: planningUpdateFieldSchema,
+  value: z.number().nullable(),
 });
 export const planningUpdateSchema = z.record(z.array(planningUpdateItemSchema));
 export type PlanningUpdate = z.infer<typeof planningUpdateSchema>;

@@ -736,6 +736,8 @@ export const fi = {
   'workTable.investmentTypeListingReport': 'Investointiraportti',
   'workTable.reportDisabled': 'Ei hakutuloksia raportin lataamiseksi.',
   'planningTable.amount': 'Talousarvio',
+  'planningTable.forecast': 'Ennuste',
+  'planningTable.estimate': 'TA-ennuste',
   'planningTable.actual': 'Toteuma',
   'planningTable.nameHeader': 'Hankkeen/kohteen nimi',
   'planningTable.export.label': 'Suunnittelutaulukko',
