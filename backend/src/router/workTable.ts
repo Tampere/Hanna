@@ -281,6 +281,7 @@ async function workTableUpdate(input: WorkTableUpdate, user: User) {
   const updates = Object.entries(input).map(([projectObjectId, projectObject]) => {
     const {
       budgetYear,
+      estimate,
       amount,
       forecast,
       kayttosuunnitelmanMuutos,
@@ -323,6 +324,7 @@ async function workTableUpdate(input: WorkTableUpdate, user: User) {
           budgetItems: [
             {
               year: budgetYear,
+              estimate,
               amount: amount,
               forecast,
               kayttosuunnitelmanMuutos,

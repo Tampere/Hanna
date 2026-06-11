@@ -90,16 +90,17 @@ function buildExportRows(
 
     for (let year = startYear; year <= endYear; year++) {
       const budgetForYear = row.budget?.find((b) => b?.year === year) ?? null;
-      const amountInSubunit = budgetForYear?.amount ?? null;
+      const planningField =
+        year > currentYear ? 'estimate' : year === currentYear ? 'forecast' : 'amount';
+      const plannedValueInSubunit = budgetForYear?.[planningField] ?? null;
       const actualInSubunit = poActuals[year] ?? null;
 
       // actuals (toteuma) only for current and past years
       if (year <= currentYear) {
         exportRow[`year${year}_actual`] = actualInSubunit == null ? null : actualInSubunit / 100;
       }
-
-      // amount (arvio) for the year
-      exportRow[`year${year}`] = amountInSubunit == null ? null : amountInSubunit / 100;
+      exportRow[`year${year}`] =
+        plannedValueInSubunit == null ? null : plannedValueInSubunit / 100;
     }
 
     return exportRow;
@@ -144,6 +145,7 @@ export async function setupPlanningTableReportQueue() {
       });
 
       const headers = Object.keys(exportRows[0]).reduce<Record<string, string>>((acc, key) => {
+        const currentYear = new Date().getFullYear();
         if (key === 'projectName') {
           acc[key] = translations['fi']['workTable.export.projectName'];
         } else if (key === 'projectObjectName') {
@@ -152,8 +154,14 @@ export async function setupPlanningTableReportQueue() {
           const year = key.replace('year', '').replace('_actual', '');
           acc[key] = `${year} ${translations['fi']['planningTable.actual']}`;
         } else if (key.startsWith('year')) {
-          const year = key.replace('year', '');
-          acc[key] = `${year} ${translations['fi']['planningTable.amount']}`;
+          const year = Number(key.replace('year', ''));
+          const planningFieldLabel =
+            year > currentYear
+              ? translations['fi']['planningTable.estimate']
+              : year === currentYear
+                ? translations['fi']['planningTable.forecast']
+                : translations['fi']['planningTable.amount'];
+          acc[key] = `${year} ${planningFieldLabel}`;
         } else {
           acc[key] = key;
         }

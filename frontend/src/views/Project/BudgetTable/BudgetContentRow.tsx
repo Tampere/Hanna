@@ -92,24 +92,27 @@ export function BudgetContentRow({
           </Typography>
         </TableCell>
       )}
-      {fields?.includes('estimate') && (
-        <TableCell>
-          <FormField
-            className={TABLE_CELL_CONTENT_CLASS}
-            formField={getFormFieldIdentifier(year, 'estimate', committee?.id)}
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            component={({ ref, onChange, ...field }) => (
-              <CurrencyInput
-                placeholder="–"
-                directlyHandleValueChange
-                {...field}
-                onChange={writableFields?.includes('estimate') ? onChange : undefined}
-                style={{ color: includeYearColumn ? 'inherit' : committeeColor }}
-              />
-            )}
-          />
-        </TableCell>
-      )}
+      {fields?.includes('estimate') &&
+        (year <= currentYear ? (
+          <TableCell />
+        ) : (
+          <TableCell>
+            <FormField
+              className={TABLE_CELL_CONTENT_CLASS}
+              formField={getFormFieldIdentifier(year, 'estimate', committee?.id)}
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              component={({ ref, onChange, ...field }) => (
+                <CurrencyInput
+                  placeholder="–"
+                  directlyHandleValueChange
+                  {...field}
+                  onChange={writableFields?.includes('estimate') ? onChange : undefined}
+                  style={{ color: includeYearColumn ? 'inherit' : committeeColor }}
+                />
+              )}
+            />
+          </TableCell>
+        ))}
       {fields?.includes('amount') && (
         <TableCell>
           <FormField

@@ -113,26 +113,29 @@ export function ProjectObjectBudgetRow({
         </TableCell>
       }
 
-      {fields?.includes('estimate') && (
-        <TableCell>
-          <FormField
-            className={TABLE_CELL_CONTENT_CLASS}
-            formField={getFormFieldIdentifier(year, 'estimate')}
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            component={({ ref, onChange, ...field }) => (
-              <CurrencyInput
-                css={css`
-                  background-color: rgba(255, 255, 255, 0) !important;
-                `}
-                placeholder="–"
-                directlyHandleValueChange
-                {...field}
-                onChange={writableFields?.includes('estimate') ? onChange : undefined}
-              />
-            )}
-          />
-        </TableCell>
-      )}
+      {fields?.includes('estimate') &&
+        (year <= currentYear ? (
+          <TableCell />
+        ) : (
+          <TableCell>
+            <FormField
+              className={TABLE_CELL_CONTENT_CLASS}
+              formField={getFormFieldIdentifier(year, 'estimate')}
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              component={({ ref, onChange, ...field }) => (
+                <CurrencyInput
+                  css={css`
+                    background-color: rgba(255, 255, 255, 0) !important;
+                  `}
+                  placeholder="–"
+                  directlyHandleValueChange
+                  {...field}
+                  onChange={writableFields?.includes('estimate') ? onChange : undefined}
+                />
+              )}
+            />
+          </TableCell>
+        ))}
       {fields?.includes('amount') && (
         <TableCell>
           <FormField

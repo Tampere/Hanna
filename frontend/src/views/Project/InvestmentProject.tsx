@@ -131,20 +131,14 @@ export function InvestmentProject() {
     const userIsAdmin = isAdmin(user.role);
     const isOwner = ownsProject(user, project.data);
     const canWrite = hasWritePermission(user, project.data);
-    const isFinanceEditor = hasPermission(user, 'investmentFinancials.write');
 
-    if (userIsAdmin) {
-      return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
-    } else if (isOwner || canWrite) {
-      if (isFinanceEditor) {
-        return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
-      }
-      return ['estimate', 'contractPrice', 'forecast'];
-    } else if (isFinanceEditor) {
-      return ['amount', 'kayttosuunnitelmanMuutos'];
-    } else {
-      return [];
+    // At the project level, only 'estimate' is stored directly.
+    // Other financial fields (amount, forecast, kayttosuunnitelmanMuutos, contractPrice)
+    // are aggregated from project objects and must not be editable here.
+    if (userIsAdmin || isOwner || canWrite) {
+      return ['estimate'];
     }
+    return [];
   }
 
   const tabs = getTabs(routeParams.projectId).filter(

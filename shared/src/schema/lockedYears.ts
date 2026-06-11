@@ -8,6 +8,17 @@ export const lockedYearSchema = z
 
 export const lockedYearsSchema = z.array(lockedYearSchema);
 
+export const lockedYearDetailSchema = z.object({
+  year: lockedYearSchema,
+  lockedBy: z.string(),
+  lockedAt: z.coerce.date(),
+  openedAt: z.coerce.date().nullable(),
+});
+
+export type LockedYearDetail = z.infer<typeof lockedYearDetailSchema>;
+
+export const lockedYearDetailsSchema = z.array(lockedYearDetailSchema);
+
 export function filterAndValidateYears(years: unknown[]): number[] {
   const uniqueYears = Array.from(
     new Set(

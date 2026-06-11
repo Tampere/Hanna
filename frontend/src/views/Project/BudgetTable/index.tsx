@@ -795,6 +795,15 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     }
   }, [availableObjectStages, selectedObjectStages.length]);
 
+  const committees = useMemo(
+    () =>
+      selectedCommittees?.map((committee) => ({
+        id: committee,
+        text: committeeCodes.get(committee)?.[lang].replace(/lautakunta/g, ' ') ?? '',
+      })),
+    [selectedCommittees, committeeCodes],
+  );
+
   /**
    * Seed main project budget (year/committee) into the form.
    * Project object budgets are handled in a separate effect.
@@ -1001,274 +1010,360 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
   }
 
   return !budget ? null : (
-    <>
-      <FormProvider {...form}>
+    <FormProvider {...form}>
+      <Box
+        css={css`
+          position: sticky;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 2;
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 1rem;
+          margin-bottom: 0.5rem;
+          background-color: white;
+          padding-top: 0.5rem;
+          padding-bottom: 0.5rem;
+        `}
+      >
+        {props.committees && props.committees.length > 1 && (
+          <>
+            <CommitteeSelection
+              availableCommittees={(
+                props.projectObjects?.map((po) => po.objectCommittee ?? '') ?? []
+              ).filter((v, i, a) => v && a.indexOf(v) === i)}
+              selectedCommittees={selectedCommittees}
+              setSelectedCommittees={setSelectedCommittees}
+            />
+            <Box
+              css={css`
+                position: sticky;
+                width: 2px;
+                background-color: #d0d0d0;
+                align-self: stretch;
+              `}
+            />
+          </>
+        )}
+
+        {props.projectObjects && availableObjectStages.length > 1 && (
+          <>
+            <ObjectStageFilter
+              availableStages={availableObjectStages}
+              selectedStages={selectedObjectStages}
+              onChange={setSelectedObjectStages}
+            />
+            <Box
+              css={css`
+                width: 2px;
+                background-color: #d0d0d0;
+                align-self: stretch;
+              `}
+            />
+          </>
+        )}
+
+        <YearFilter
+          years={years}
+          startYear={yearRange.start}
+          endYear={yearRange.end}
+          onChange={setYearRange}
+        />
         <Box
           css={css`
-            position: sticky;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 2;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 0.5rem;
-            background-color: white;
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
+            width: 2px;
+            background-color: #d0d0d0;
+            align-self: stretch;
           `}
-        >
-          {props.committees && props.committees.length > 1 && (
-            <>
-              <CommitteeSelection
-                availableCommittees={(
-                  props.projectObjects?.map((po) => po.objectCommittee ?? '') ?? []
-                ).filter((v, i, a) => v && a.indexOf(v) === i)}
-                selectedCommittees={selectedCommittees}
-                setSelectedCommittees={setSelectedCommittees}
-              />
-              <Box
-                css={css`
-                  position: sticky;
-                  width: 2px;
-                  background-color: #d0d0d0;
-                  align-self: stretch;
-                `}
-              />
-            </>
-          )}
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={hideZeroRows}
+              onChange={(event) => setHideZeroRows(event.target.checked)}
+            />
+          }
+          label="Piilota nollarivit"
+        />
+      </Box>
 
-          {props.projectObjects && availableObjectStages.length > 1 && (
-            <>
-              <ObjectStageFilter
-                availableStages={availableObjectStages}
-                selectedStages={selectedObjectStages}
-                onChange={setSelectedObjectStages}
-              />
-              <Box
-                css={css`
-                  width: 2px;
-                  background-color: #d0d0d0;
-                  align-self: stretch;
-                `}
-              />
-            </>
-          )}
-
-          <YearFilter
-            years={years}
-            startYear={yearRange.start}
-            endYear={yearRange.end}
-            onChange={setYearRange}
-          />
-          <Box
-            css={css`
-              width: 2px;
-              background-color: #d0d0d0;
-              align-self: stretch;
-            `}
-          />
-          <FormControlLabel
-            control={
-              <Switch
-                checked={hideZeroRows}
-                onChange={(event) => setHideZeroRows(event.target.checked)}
-              />
-            }
-            label="Piilota nollarivit"
-          />
-        </Box>
-
-        <form
-          css={css`
-            tr:nth-last-of-type(2) {
-              td {
-                ${(selectedCommittees.length === 1 || selectedCommittees.length === 0) &&
-                'padding-bottom: 13px;'}
-              }
-            }
-
+      <form
+        css={css`
+          tr:nth-last-of-type(2) {
             td {
-              text-align: right;
               ${(selectedCommittees.length === 1 || selectedCommittees.length === 0) &&
-              'padding-top: 10px;padding-bottom: 10px;'}
+              'padding-bottom: 13px;'}
             }
+          }
 
-            & .MuiFormControl-root {
-              margin: 0;
-            }
-            & .${TABLE_CELL_CONTENT_CLASS} {
-              display: flex;
-              justify-content: flex-end;
-            }
-            input::placeholder {
-              color: black;
-            }
+          td {
+            text-align: right;
+            ${(selectedCommittees.length === 1 || selectedCommittees.length === 0) &&
+            'padding-top: 10px;padding-bottom: 10px;'}
+          }
+
+          & .MuiFormControl-root {
+            margin: 0;
+          }
+          & .${TABLE_CELL_CONTENT_CLASS} {
+            display: flex;
+            justify-content: flex-end;
+          }
+          input::placeholder {
+            color: black;
+          }
+        `}
+        onSubmit={form.handleSubmit(onSubmit)}
+        autoComplete="off"
+      >
+        <TableContainer
+          css={css`
+            overflow-x: visible; // To change nearest scrolling ancestor and to enable sticky header
           `}
-          onSubmit={form.handleSubmit(onSubmit)}
-          autoComplete="off"
         >
-          <TableContainer
-            css={css`
-              overflow-x: visible; // To change nearest scrolling ancestor and to enable sticky header
-            `}
-          >
-            <Table size="small">
-              <TableHead
-                css={css`
-                  position: sticky;
-                  top: 64px;
-                  background-color: white;
-                  box-shadow: 0 1px 0 0 rgba(224, 224, 224, 1);
-                  z-index: 1;
-                  & .column-header {
-                    display: flex;
-                    justify-content: flex-end;
-                    align-items: center;
-                  }
-                  th {
-                    padding-right: 8px;
-                  }
-                  & .MuiButtonBase-root {
-                    padding-right: 0;
-                  }
-                `}
-              >
-                <TableRow>
-                  <TableCell
-                    css={css`
-                      min-width: 320px;
-                      padding-left: 16px;
-                    `}
-                    align="left"
-                  >
-                    <Box>
-                      <Typography variant="overline">{tr('budgetTable.year')}</Typography>
+          <Table size="small">
+            <TableHead
+              css={css`
+                position: sticky;
+                top: 64px;
+                background-color: white;
+                box-shadow: 0 1px 0 0 rgba(224, 224, 224, 1);
+                z-index: 1;
+                & .column-header {
+                  display: flex;
+                  justify-content: flex-end;
+                  align-items: center;
+                }
+                th {
+                  padding-right: 8px;
+                }
+                & .MuiButtonBase-root {
+                  padding-right: 0;
+                }
+              `}
+            >
+              <TableRow>
+                <TableCell
+                  css={css`
+                    min-width: 320px;
+                    padding-left: 16px;
+                  `}
+                  align="left"
+                >
+                  <Box>
+                    <Typography variant="overline">{tr('budgetTable.year')}</Typography>
+                    {enableTooltips && (
+                      <HelpTooltip
+                        title={props.customTooltips?.year ?? tr('budgetTable.yearHelp')}
+                      />
+                    )}
+                  </Box>
+                </TableCell>
+
+                {fields?.includes('estimate') && (
+                  <TableCell css={cellStyle}>
+                    <Box className="column-header">
+                      <Typography variant="overline">{tr('budgetTable.estimate')}</Typography>
                       {enableTooltips && (
                         <HelpTooltip
-                          title={props.customTooltips?.year ?? tr('budgetTable.yearHelp')}
+                          title={
+                            props.customTooltips?.estimate ?? tr('budgetTable.projectEstimateHelp')
+                          }
+                        />
+                      )}
+                    </Box>{' '}
+                  </TableCell>
+                )}
+
+                {fields?.includes('amount') && (
+                  <TableCell css={cellStyle}>
+                    <Box className="column-header">
+                      <Typography variant="overline"> {tr('budgetTable.amount')}</Typography>
+                      {enableTooltips && (
+                        <HelpTooltip
+                          title={props.customTooltips?.amount ?? tr('budgetTable.amountHelp')}
                         />
                       )}
                     </Box>
                   </TableCell>
+                )}
+                {fields?.includes('contractPrice') && (
+                  <TableCell css={cellStyle}>
+                    <Box className="column-header">
+                      <Typography variant="overline">{tr('budgetTable.contractPrice')}</Typography>
+                      {enableTooltips && (
+                        <HelpTooltip
+                          title={
+                            props.customTooltips?.contractPrice ??
+                            tr('budgetTable.contractPriceHelp')
+                          }
+                        />
+                      )}
+                    </Box>{' '}
+                  </TableCell>
+                )}
+                {fields?.includes('actual') && (
+                  <TableCell css={cellStyle}>
+                    <Box className="column-header">
+                      {props.actualsLoading && <CircularProgress size={10} sx={{ mr: 1 }} />}
+                      <Typography variant="overline">{tr('budgetTable.actual')}</Typography>
+                      {enableTooltips && (
+                        <HelpTooltip
+                          title={
+                            props.customTooltips?.actual ?? tr('budgetTable.ProjectActualHelp')
+                          }
+                        />
+                      )}
+                    </Box>
+                  </TableCell>
+                )}
+                {fields?.includes('forecast') && (
+                  <TableCell css={cellStyle}>
+                    <Box className="column-header">
+                      <Typography variant="overline">{tr('budgetTable.forecast')}</Typography>
+                      {enableTooltips && (
+                        <HelpTooltip
+                          title={props.customTooltips?.forecast ?? tr('budgetTable.forecastHelp')}
+                        />
+                      )}
+                    </Box>
+                  </TableCell>
+                )}
+                {fields?.includes('kayttosuunnitelmanMuutos') && (
+                  <TableCell
+                    css={css`
+                      min-width: 265px;
+                      text-align: right;
+                    `}
+                  >
+                    <Box className="column-header">
+                      <Typography variant="overline">
+                        {tr('budgetTable.kayttosuunnitelmanMuutos')}
+                      </Typography>
+                      {enableTooltips && (
+                        <HelpTooltip
+                          title={
+                            props.customTooltips?.kayttosuunnitelmanMuutos ??
+                            tr('budgetTable.kayttosuunnitelmanMuutosHelp')
+                          }
+                        />
+                      )}
+                    </Box>
+                  </TableCell>
+                )}
+                <TableCell sx={{ width: '100%' }} />
+              </TableRow>
+            </TableHead>
+            <TableBody
+              css={css`
+                input {
+                  background-color: white;
+                  border: solid 1px lightgray;
+                  font-size: 13px;
+                }
+              `}
+            >
+              {visibleYears?.map((year, yearIdx) => {
+                return (
+                  <Fragment key={year}>
+                    {true && (
+                      <Fragment>
+                        {(() => {
+                          // Compute yearly totals from the projectObjects subtree so filtering by
+                          // objectStage and committee is reflected in the total line.
+                          const filteredProjectObjects = (props.projectObjects ?? [])
+                            .filter((po) => projectObjectIsActiveInYear(po, year))
+                            .filter((po) => {
+                              // If no committees are used (maintenance projects), show all objects
+                              if (!props.committees || props.committees.length === 0) {
+                                return true;
+                              }
+                              // Otherwise filter by committee
+                              return (
+                                po.objectCommittee &&
+                                selectedCommittees.includes(po.objectCommittee)
+                              );
+                            })
+                            .filter(
+                              (po) =>
+                                selectedObjectStages.length === 0 ||
+                                (po.objectStage && selectedObjectStages.includes(po.objectStage)),
+                            );
 
-                  {fields?.includes('estimate') && (
-                    <TableCell css={cellStyle}>
-                      <Box className="column-header">
-                        <Typography variant="overline">{tr('budgetTable.estimate')}</Typography>
-                        {enableTooltips && (
-                          <HelpTooltip
-                            title={
-                              props.customTooltips?.estimate ??
-                              tr('budgetTable.projectEstimateHelp')
-                            }
-                          />
-                        )}
-                      </Box>{' '}
-                    </TableCell>
-                  )}
+                          const getFieldValueFromObjects = (
+                            fieldName: keyof ProjectYearBudget['budgetItems'],
+                            formValues: BudgetFormValues,
+                            targetYear: number,
+                          ) => {
+                            const poMap = (formValues as any).projectObjects as
+                              | Record<string, Record<string, ProjectYearBudget['budgetItems']>>
+                              | undefined;
+                            if (!poMap || filteredProjectObjects.length === 0) return 0;
 
-                  {fields?.includes('amount') && (
-                    <TableCell css={cellStyle}>
-                      <Box className="column-header">
-                        <Typography variant="overline"> {tr('budgetTable.amount')}</Typography>
-                        {enableTooltips && (
-                          <HelpTooltip
-                            title={props.customTooltips?.amount ?? tr('budgetTable.amountHelp')}
-                          />
-                        )}
-                      </Box>
-                    </TableCell>
-                  )}
-                  {fields?.includes('contractPrice') && (
-                    <TableCell css={cellStyle}>
-                      <Box className="column-header">
-                        <Typography variant="overline">
-                          {tr('budgetTable.contractPrice')}
-                        </Typography>
-                        {enableTooltips && (
-                          <HelpTooltip
-                            title={
-                              props.customTooltips?.contractPrice ??
-                              tr('budgetTable.contractPriceHelp')
+                            const yearKey = String(targetYear);
+                            let sum = 0;
+                            for (const po of filteredProjectObjects) {
+                              const byYear = poMap[po.projectObjectId];
+                              const items = byYear?.[yearKey];
+                              if (!items) continue;
+                              const val = items[fieldName];
+                              if (typeof val === 'number') {
+                                sum += val;
+                              }
                             }
-                          />
-                        )}
-                      </Box>{' '}
-                    </TableCell>
-                  )}
-                  {fields?.includes('actual') && (
-                    <TableCell css={cellStyle}>
-                      <Box className="column-header">
-                        {props.actualsLoading && <CircularProgress size={10} sx={{ mr: 1 }} />}
-                        <Typography variant="overline">{tr('budgetTable.actual')}</Typography>
-                        {enableTooltips && (
-                          <HelpTooltip
-                            title={
-                              props.customTooltips?.actual ?? tr('budgetTable.ProjectActualHelp')
-                            }
-                          />
-                        )}
-                      </Box>
-                    </TableCell>
-                  )}
-                  {fields?.includes('forecast') && (
-                    <TableCell css={cellStyle}>
-                      <Box className="column-header">
-                        <Typography variant="overline">{tr('budgetTable.forecast')}</Typography>
-                        {enableTooltips && (
-                          <HelpTooltip
-                            title={props.customTooltips?.forecast ?? tr('budgetTable.forecastHelp')}
-                          />
-                        )}
-                      </Box>
-                    </TableCell>
-                  )}
-                  {fields?.includes('kayttosuunnitelmanMuutos') && (
-                    <TableCell
-                      css={css`
-                        min-width: 265px;
-                        text-align: right;
-                      `}
-                    >
-                      <Box className="column-header">
-                        <Typography variant="overline">
-                          {tr('budgetTable.kayttosuunnitelmanMuutos')}
-                        </Typography>
-                        {enableTooltips && (
-                          <HelpTooltip
-                            title={
-                              props.customTooltips?.kayttosuunnitelmanMuutos ??
-                              tr('budgetTable.kayttosuunnitelmanMuutosHelp')
-                            }
-                          />
-                        )}
-                      </Box>
-                    </TableCell>
-                  )}
-                  <TableCell sx={{ width: '100%' }} />
-                </TableRow>
-              </TableHead>
-              <TableBody
-                css={css`
-                  input {
-                    background-color: white;
-                    border: solid 1px lightgray;
-                    font-size: 13px;
-                  }
-                `}
-              >
-                {visibleYears?.map((year, yearIdx) => {
-                  return (
-                    <Fragment key={year}>
-                      {true && (
-                        <Fragment>
-                          {(() => {
-                            // Compute yearly totals from the projectObjects subtree so filtering by
-                            // objectStage and committee is reflected in the total line.
-                            const filteredProjectObjects = (props.projectObjects ?? [])
+                            return sum;
+                          };
+
+                          const actualFromObjects =
+                            yearlyActualsFromObjects?.find((entry) => entry.year === year)?.total ??
+                            null;
+
+                          const actualsLoadingFromObjects = filteredProjectObjects.some((po) =>
+                            projectObjectActualsLoadingById.get(po.projectObjectId),
+                          );
+
+                          return (
+                            <YearTotalRow
+                              rowRef={(el) => {
+                                yearRowRefs.current[year] = el;
+                              }}
+                              actual={actualFromObjects}
+                              sapActual={
+                                props.actuals && 'yearlyActuals' in props.actuals
+                                  ? props.actuals?.yearlyActuals
+                                      ?.filter((sapYearlyActual) => sapYearlyActual.year === year)
+                                      .reduce(
+                                        (total, sapYearlyActual) => sapYearlyActual.total + total,
+                                        0,
+                                      )
+                                  : null
+                              }
+                              actualsLoading={
+                                actualsLoadingFromObjects || Boolean(props.actualsLoading)
+                              }
+                              fields={fields}
+                              selectedCommittees={selectedCommittees}
+                              formValues={watch}
+                              year={year}
+                              getFieldValue={getFieldValueFromObjects}
+                              onHideYear={
+                                props.projectObjects
+                                  ? () =>
+                                      setHiddenYears((prev) =>
+                                        prev.includes(year)
+                                          ? prev.filter((y) => y !== year)
+                                          : [...prev, year],
+                                      )
+                                  : undefined
+                              }
+                              isHidden={hiddenYears.includes(year)}
+                            />
+                          );
+                        })()}
+                        {props.projectObjects
+                          ? props.projectObjects
                               .filter((po) => projectObjectIsActiveInYear(po, year))
                               .filter((po) => {
                                 // If no committees are used (maintenance projects), show all objects
@@ -1285,209 +1380,121 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                 (po) =>
                                   selectedObjectStages.length === 0 ||
                                   (po.objectStage && selectedObjectStages.includes(po.objectStage)),
-                              );
+                              )
+                              .filter(
+                                (po) =>
+                                  !hideZeroRows || projectObjectHasNonZeroValuesForYear(po, year),
+                              )
+                              .filter((po) => !hiddenYears.includes(year))
+                              .map((projectObject, index) => {
+                                // Use writableFields from props (set at project level)
+                                const writableForYear = lockedYears.includes(year)
+                                  ? (writableFields || []).filter((field) => field !== 'amount')
+                                  : writableFields || [];
 
-                            const getFieldValueFromObjects = (
-                              fieldName: keyof ProjectYearBudget['budgetItems'],
-                              formValues: BudgetFormValues,
-                              targetYear: number,
-                            ) => {
-                              const poMap = (formValues as any).projectObjects as
-                                | Record<string, Record<string, ProjectYearBudget['budgetItems']>>
-                                | undefined;
-                              if (!poMap || filteredProjectObjects.length === 0) return 0;
+                                const currentYear = new Date().getFullYear();
+                                const estimateFilteredWritable =
+                                  year <= currentYear
+                                    ? writableForYear.filter((f) => f !== 'estimate')
+                                    : writableForYear;
 
-                              const yearKey = String(targetYear);
-                              let sum = 0;
-                              for (const po of filteredProjectObjects) {
-                                const byYear = poMap[po.projectObjectId];
-                                const items = byYear?.[yearKey];
-                                if (!items) continue;
-                                const val = items[fieldName];
-                                if (typeof val === 'number') {
-                                  sum += val;
-                                }
-                              }
-                              return sum;
-                            };
+                                const finalWritableFields = projectObjectBudgetsLoaded
+                                  ? estimateFilteredWritable
+                                  : [];
 
-                            const actualFromObjects =
-                              yearlyActualsFromObjects?.find((entry) => entry.year === year)
-                                ?.total ?? null;
+                                const objectActuals =
+                                  projectObjectActualsById.get(projectObject.projectObjectId) ??
+                                  null;
+                                const objectActualsLoading =
+                                  projectObjectActualsLoadingById.get(
+                                    projectObject.projectObjectId,
+                                  ) ?? false;
 
-                            const actualsLoadingFromObjects = filteredProjectObjects.some((po) =>
-                              projectObjectActualsLoadingById.get(po.projectObjectId),
-                            );
+                                return (
+                                  <ProjectObjectBudgetRow
+                                    key={`${year}-${projectObject.projectObjectId}`}
+                                    projectObject={projectObject}
+                                    year={year}
+                                    fields={fields}
+                                    writableFields={finalWritableFields}
+                                    actualsLoading={objectActualsLoading}
+                                    actuals={objectActuals}
+                                    rowIndex={index}
+                                  />
+                                );
+                              })
+                          : null}
+                        {
+                          <TableRow
+                            css={css`
+                              height: 1rem;
+                              border-bottom: ${yearIdx !== visibleYears.length - 1
+                                ? '1px solid rgba(224, 224, 224, 1)'
+                                : 'none'};
+                            `}
+                          />
+                        }
+                      </Fragment>
+                    )}
+                  </Fragment>
+                );
+              })}
 
-                            return (
-                              <YearTotalRow
-                                rowRef={(el) => {
-                                  yearRowRefs.current[year] = el;
-                                }}
-                                actual={actualFromObjects}
-                                sapActual={
-                                  props.actuals && 'yearlyActuals' in props.actuals
-                                    ? props.actuals?.yearlyActuals
-                                        ?.filter((sapYearlyActual) => sapYearlyActual.year === year)
-                                        .reduce(
-                                          (total, sapYearlyActual) => sapYearlyActual.total + total,
-                                          0,
-                                        )
-                                    : null
-                                }
-                                actualsLoading={
-                                  actualsLoadingFromObjects || Boolean(props.actualsLoading)
-                                }
-                                fields={fields}
-                                selectedCommittees={selectedCommittees}
-                                formValues={watch}
-                                year={year}
-                                getFieldValue={getFieldValueFromObjects}
-                                onHideYear={
-                                  props.projectObjects
-                                    ? () =>
-                                        setHiddenYears((prev) =>
-                                          prev.includes(year)
-                                            ? prev.filter((y) => y !== year)
-                                            : [...prev, year],
-                                        )
-                                    : undefined
-                                }
-                                isHidden={hiddenYears.includes(year)}
-                              />
-                            );
-                          })()}
-                          {props.projectObjects
-                            ? props.projectObjects
-                                .filter((po) => projectObjectIsActiveInYear(po, year))
-                                .filter((po) => {
-                                  // If no committees are used (maintenance projects), show all objects
-                                  if (!props.committees || props.committees.length === 0) {
-                                    return true;
-                                  }
-                                  // Otherwise filter by committee
-                                  return (
-                                    po.objectCommittee &&
-                                    selectedCommittees.includes(po.objectCommittee)
-                                  );
-                                })
-                                .filter(
-                                  (po) =>
-                                    selectedObjectStages.length === 0 ||
-                                    (po.objectStage &&
-                                      selectedObjectStages.includes(po.objectStage)),
-                                )
-                                .filter(
-                                  (po) =>
-                                    !hideZeroRows || projectObjectHasNonZeroValuesForYear(po, year),
-                                )
-                                .filter((po) => !hiddenYears.includes(year))
-                                .map((projectObject, index) => {
-                                  // Use writableFields from props (set at project level)
-                                  const writableForYear = lockedYears.includes(year)
-                                    ? (writableFields || []).filter((field) => field !== 'amount')
-                                    : writableFields || [];
-
-                                  const finalWritableFields = projectObjectBudgetsLoaded
-                                    ? writableForYear
-                                    : [];
-
-                                  const objectActuals =
-                                    projectObjectActualsById.get(projectObject.projectObjectId) ??
-                                    null;
-                                  const objectActualsLoading =
-                                    projectObjectActualsLoadingById.get(
-                                      projectObject.projectObjectId,
-                                    ) ?? false;
-
-                                  return (
-                                    <ProjectObjectBudgetRow
-                                      key={`${year}-${projectObject.projectObjectId}`}
-                                      projectObject={projectObject}
-                                      year={year}
-                                      fields={fields}
-                                      writableFields={finalWritableFields}
-                                      actualsLoading={objectActualsLoading}
-                                      actuals={objectActuals}
-                                      rowIndex={index}
-                                    />
-                                  );
-                                })
-                            : null}
-                          {
-                            <TableRow
-                              css={css`
-                                height: 1rem;
-                                border-bottom: ${yearIdx !== visibleYears.length - 1
-                                  ? '1px solid rgba(224, 224, 224, 1)'
-                                  : 'none'};
-                              `}
-                            />
-                          }
-                        </Fragment>
-                      )}
-                    </Fragment>
-                  );
-                })}
-
-                <TotalRow
-                  committeeColumnVisible={false /* disables padding */}
-                  // When project objects are present, derive the "Actual" total from
-                  // the per-object actuals that are currently visible under the
-                  // active filters (committees, stages, year range). Otherwise,
-                  // fall back to the aggregated project-level actuals.
-                  actuals={
-                    props.projectObjects
-                      ? yearlyActualsFromObjects ?? []
-                      : props.actuals && 'byCommittee' in props.actuals
-                        ? props.actuals?.byCommittee?.filter((value) =>
-                            selectedCommittees.includes(value.committeeId),
-                          )
-                        : null
-                  }
-                  actualsLoading={
-                    props.projectObjects
-                      ? projectObjectActualsQueries.some((q) => q.isLoading || q.isFetching)
-                      : Boolean(props.actualsLoading)
-                  }
-                  fields={
-                    selectedCommittees.length === 1
-                      ? fields.filter((f) => f !== 'committee')
-                      : fields
-                  }
-                  sapActuals={
-                    props.actuals && 'yearlyActuals' in props.actuals
-                      ? props.actuals?.yearlyActuals
-                          ?.filter(
-                            (yearlyActual) =>
-                              yearRange.start <= yearlyActual.year &&
-                              yearlyActual.year <= yearRange.end,
-                          )
-                          .reduce((total, sapYearlyActual) => sapYearlyActual.total + total, 0)
+              <TotalRow
+                committeeColumnVisible={false /* disables padding */}
+                // When project objects are present, derive the "Actual" total from
+                // the per-object actuals that are currently visible under the
+                // active filters (committees, stages, year range). Otherwise,
+                // fall back to the aggregated project-level actuals.
+                actuals={
+                  props.projectObjects
+                    ? yearlyActualsFromObjects ?? []
+                    : props.actuals && 'byCommittee' in props.actuals
+                      ? props.actuals?.byCommittee?.filter((value) =>
+                          selectedCommittees.includes(value.committeeId),
+                        )
                       : null
-                  }
-                  formValues={watch}
-                  getFieldValue={
-                    props.projectObjects && props.projectObjects.length > 0
+                }
+                actualsLoading={
+                  props.projectObjects
+                    ? projectObjectActualsQueries.some((q) => q.isLoading || q.isFetching)
+                    : Boolean(props.actualsLoading)
+                }
+                fields={
+                  selectedCommittees.length === 1 ? fields.filter((f) => f !== 'committee') : fields
+                }
+                sapActuals={
+                  props.actuals && 'yearlyActuals' in props.actuals
+                    ? props.actuals?.yearlyActuals
+                        ?.filter(
+                          (yearlyActual) =>
+                            yearRange.start <= yearlyActual.year &&
+                            yearlyActual.year <= yearRange.end,
+                        )
+                        .reduce((total, sapYearlyActual) => sapYearlyActual.total + total, 0)
+                    : null
+                }
+                formValues={watch}
+                getFieldValue={
+                  props.projectObjects && props.projectObjects.length > 0
+                    ? (fieldName, formValues) =>
+                        getFieldTotalValueFromProjectObjects(fieldName, formValues)
+                    : fields.includes('committee')
                       ? (fieldName, formValues) =>
-                          getFieldTotalValueFromProjectObjects(fieldName, formValues)
-                      : fields.includes('committee')
-                        ? (fieldName, formValues) =>
-                            getFieldTotalValueByCommittee(
-                              fieldName,
-                              selectedCommittees,
-                              formValues,
-                              visibleYears,
-                            )
-                        : (fieldName, formValues) =>
-                            getFieldTotalValueByYear(fieldName, formValues, visibleYears)
-                  }
-                />
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </form>
-      </FormProvider>
-    </>
+                          getFieldTotalValueByCommittee(
+                            fieldName,
+                            selectedCommittees,
+                            formValues,
+                            visibleYears,
+                          )
+                      : (fieldName, formValues) =>
+                          getFieldTotalValueByYear(fieldName, formValues, visibleYears)
+                }
+              />
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </form>
+    </FormProvider>
   );
 });

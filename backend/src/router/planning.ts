@@ -248,6 +248,8 @@ export async function planningTableSearch(input: PlanningTableSearch) {
       const transformedBudget = budgetData.map((item) => ({
         year: item.year,
         amount: item.budgetItems.amount,
+        forecast: item.budgetItems.forecast,
+        estimate: item.budgetItems.estimate,
         actual: null,
       }));
 
@@ -308,8 +310,8 @@ export const createPlanningRouter = (t: TRPC) =>
                 budgetUpdate: {
                   budgetItems: items.map((i) => ({
                     year: i.year,
-                    amount: i.amount,
                     committee: null,
+                    [i.field]: i.value,
                   })),
                 },
               },

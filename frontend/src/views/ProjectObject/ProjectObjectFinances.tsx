@@ -114,6 +114,8 @@ export const ProjectObjectFinances = forwardRef(function ProjectObjectFinances<
   }
 
   function getWritableFields(): BudgetField[] {
+    // Estimate is included here for future years; the BudgetTable
+    // filters it out per-row for current and past years.
     if (props.userIsAdmin) {
       return ['estimate', 'contractPrice', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
     } else if (props.userIsEditor) {

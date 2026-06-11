@@ -25,7 +25,6 @@ import {
   GridColDef,
   GridRenderCellParams,
   GridRenderEditCellParams,
-  useGridApiRef,
 } from '@mui/x-data-grid';
 import { fiFI } from '@mui/x-data-grid/locales';
 import { useQueries } from '@tanstack/react-query';
@@ -54,6 +53,37 @@ import { WorkTableFilters } from '../Filters/WorkTableFilters';
 import { YearPicker } from '../Filters/YearPicker';
 
 type PlanningRowWithYears = PlanningTableRow & Record<string, number | null>;
+type PlanningBudgetField = 'amount' | 'forecast' | 'estimate';
+
+function getPlanningBudgetFieldForYear(year: number, currentYear: number): PlanningBudgetField {
+  if (year > currentYear) return 'estimate';
+  if (year === currentYear) return 'forecast';
+  return 'amount';
+}
+
+function getPlanningValueForYear(
+  row: PlanningTableRow,
+  year: number,
+  currentYear: number,
+): number | null {
+  if (row.type !== 'projectObject') return null;
+  const budgetForYear = row.budget?.find((b) => b?.year === year);
+  if (!budgetForYear) return null;
+  return budgetForYear[getPlanningBudgetFieldForYear(year, currentYear)] ?? null;
+}
+
+function getPlanningAmountForYear(
+  row: PlanningRowWithYears,
+  year: number,
+  currentYear: number,
+): number | null {
+  if (row.type !== 'projectObject') return null;
+  if (year < currentYear) {
+    return (row[`year${year}`] as number | null | undefined) ?? null;
+  }
+  const budgetForYear = row.budget?.find((b) => b?.year === year);
+  return budgetForYear?.amount ?? null;
+}
 
 const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   min-height: 160px;
@@ -82,6 +112,7 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
 
   /* Project rows: no special background tint */
   & .project-row .estimate-value,
+  & .project-row .amount-value,
   & .project-row .actual-value {
     font-weight: 600 !important;
   }
@@ -109,10 +140,12 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
     color: inherit !important;
   }
   & .sum-row .cell-readonly .estimate-value,
+  & .sum-row .cell-readonly .amount-value,
   & .sum-row .cell-readonly .actual-value {
     color: inherit !important;
   }
   & .sum-row .estimate-value,
+  & .sum-row .amount-value,
   & .sum-row .actual-value {
     font-weight: 700 !important;
   }
@@ -153,6 +186,7 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
     background-color: #efefef;
   }
   & .cell-readonly .estimate-value,
+  & .cell-readonly .amount-value,
   & .cell-readonly .actual-value {
     color: #7b7b7b !important;
   }
@@ -181,6 +215,16 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
     white-space: normal !important;
     word-wrap: break-word;
     font-weight: 600;
+  }
+  & .MuiDataGrid-columnHeader.year-column .MuiDataGrid-columnHeaderTitleContainer {
+    width: 100%;
+    flex: 1;
+    padding: 0;
+  }
+  & .MuiDataGrid-columnHeader.year-column .MuiDataGrid-columnHeaderTitleContainerContent {
+    width: 100%;
+    flex: 1;
+    overflow: visible;
   }
   & .cell-wrap-text {
     white-space: normal !important;
@@ -339,15 +383,11 @@ export default function PlanningTable() {
     return planningData.data.map((row) => {
       const r: PlanningRowWithYears = { ...(row as any) };
       for (let y = yearRange.start; y <= yearRange.end; y++) {
-        const budgetAmount =
-          row.type === 'projectObject'
-            ? row.budget?.find((b) => b?.year === y)?.amount ?? null
-            : null;
-        r[`year${y}`] = budgetAmount;
+        r[`year${y}`] = getPlanningValueForYear(row, y, currentYear);
       }
       return r;
     });
-  }, [planningData.data, yearRange.start, yearRange.end]);
+  }, [planningData.data, yearRange.start, yearRange.end, currentYear]);
 
   const [rows, setRows] = useState<PlanningRowWithYears[]>(originalRows);
 
@@ -397,11 +437,13 @@ export default function PlanningTable() {
     () => calculateUsedSearchParamsCount(searchParams),
     [searchParams],
   );
+  const canWritePlanningFinancials = Boolean(
+    auth && (isAdmin(auth.role) || hasPermission(auth, 'investmentFinancials.write')),
+  );
 
   function canEditYear(field: string, row: PlanningRowWithYears): boolean {
     if (!isYearField(field)) return false;
     if (row.type !== 'projectObject') return false;
-    if (!auth) return false;
     const year = Number(field.replace('year', ''));
     const yearIsLocked = lockedYears?.includes(year);
     if (yearIsLocked) return false;
@@ -409,7 +451,7 @@ export default function PlanningTable() {
     const endYear = dayjs(row.objectDateRange?.endDate).year();
     const inRange = year >= startYear && year <= endYear;
     if (!inRange) return false;
-    return isAdmin(auth.role) || hasPermission(auth, 'investmentFinancials.write');
+    return canWritePlanningFinancials;
   }
 
   function getYearDisabledReason(field: string, row: PlanningRowWithYears): string | null {
@@ -434,7 +476,7 @@ export default function PlanningTable() {
       return tr('planningTable.yearOutOfRange');
     }
 
-    if (!isAdmin(auth.role) && !hasPermission(auth, 'investmentFinancials.write')) {
+    if (!canWritePlanningFinancials) {
       return tr('planningTable.noPermissions');
     }
 
@@ -556,8 +598,8 @@ export default function PlanningTable() {
     return map;
   }, [projectActualsQueries.map((q) => q.dataUpdatedAt).join(','), projectIds.join(',')]);
 
-  const estimateSumsByProjectName = useMemo(() => {
-    // Build per-project sums and track if any non-null values exist per year
+  const plannedSumsByProjectName = useMemo(() => {
+    // Build per-project sums for the editable planning value (amount/forecast/estimate by year)
     const sumMap = new Map<string, Record<number, number>>();
     const seenMap = new Map<string, Record<number, boolean>>();
 
@@ -592,6 +634,43 @@ export default function PlanningTable() {
 
     return out;
   }, [rows, yearRange.start, yearRange.end]);
+
+  const amountSumsByProjectName = useMemo(() => {
+    // Build per-project sums for original amount values, which stay visible for current/future years
+    const sumMap = new Map<string, Record<number, number>>();
+    const seenMap = new Map<string, Record<number, boolean>>();
+
+    rows
+      .filter((r) => r.type === 'projectObject')
+      .forEach((r) => {
+        const projectName = r.projectName as string;
+        const sums = sumMap.get(projectName) ?? {};
+        const seen = seenMap.get(projectName) ?? {};
+        for (let y = yearRange.start; y <= yearRange.end; y++) {
+          const v = getPlanningAmountForYear(r, y, currentYear);
+          if (v !== null && v !== undefined) {
+            sums[y] = (sums[y] ?? 0) + v;
+            seen[y] = true;
+          } else if (seen[y] === undefined) {
+            seen[y] = false;
+          }
+        }
+        sumMap.set(projectName, sums);
+        seenMap.set(projectName, seen);
+      });
+
+    const out = new Map<string, Record<number, number | null>>();
+    sumMap.forEach((sums, projectName) => {
+      const seen = seenMap.get(projectName) ?? {};
+      const rec: Record<number, number | null> = {} as Record<number, number | null>;
+      for (let y = yearRange.start; y <= yearRange.end; y++) {
+        rec[y] = seen[y] ? sums[y] ?? 0 : null;
+      }
+      out.set(projectName, rec);
+    });
+
+    return out;
+  }, [rows, yearRange.start, yearRange.end, currentYear]);
 
   const actualSumsByProjectName = useMemo(() => {
     const map = new Map<string, Record<number, number | null>>();
@@ -639,18 +718,28 @@ export default function PlanningTable() {
       objectDateRange: null,
     };
 
-    // Sum up estimates and actuals for each year from project rows only
+    // Sum up planned values, amount values, and actuals for each year
     for (let y = yearRange.start; y <= yearRange.end; y++) {
-      let estimateSum = 0;
+      let plannedSum = 0;
+      let amountSum = 0;
       let actualSum = 0;
-      let hasEstimate = false;
+      let hasPlanned = false;
+      let hasAmount = false;
       let hasActual = false;
 
-      estimateSumsByProjectName.forEach((yearData) => {
+      plannedSumsByProjectName.forEach((yearData) => {
         const val = yearData[y];
         if (val !== null && val !== undefined) {
-          estimateSum += val;
-          hasEstimate = true;
+          plannedSum += val;
+          hasPlanned = true;
+        }
+      });
+
+      amountSumsByProjectName.forEach((yearData) => {
+        const val = yearData[y];
+        if (val !== null && val !== undefined) {
+          amountSum += val;
+          hasAmount = true;
         }
       });
 
@@ -662,12 +751,20 @@ export default function PlanningTable() {
         }
       });
 
-      sumRow[`year${y}`] = hasEstimate ? estimateSum : null;
+      sumRow[`year${y}`] = hasPlanned ? plannedSum : null;
+      sumRow[`year${y}_amount`] = hasAmount ? amountSum : null;
       sumRow[`year${y}_actual`] = hasActual ? actualSum : null;
     }
 
     return sumRow;
-  }, [estimateSumsByProjectName, actualSumsByProjectName, yearRange.start, yearRange.end, tr]);
+  }, [
+    plannedSumsByProjectName,
+    amountSumsByProjectName,
+    actualSumsByProjectName,
+    yearRange.start,
+    yearRange.end,
+    tr,
+  ]);
 
   // Filter out project objects whose parent project is collapsed
   const visibleRows = useMemo(() => {
@@ -693,7 +790,8 @@ export default function PlanningTable() {
       modifiedFields,
       actualsByPo,
       actualsLoadingByPo,
-      estimateSumsByProjectName,
+      plannedSumsByProjectName,
+      amountSumsByProjectName,
       actualSumsByProjectName,
       sapActualsByProject,
       totalSumRow,
@@ -709,7 +807,8 @@ export default function PlanningTable() {
     auth,
     actualsByPo,
     actualsLoadingByPo,
-    estimateSumsByProjectName,
+    plannedSumsByProjectName,
+    amountSumsByProjectName,
     actualSumsByProjectName,
     sapActualsByProject,
     totalSumRow,
@@ -751,10 +850,17 @@ export default function PlanningTable() {
   });
 
   async function save() {
-    const payload: Record<string, { year: number; amount: number | null }[]> = {};
+    const payload: Record<
+      string,
+      { year: number; field: PlanningBudgetField; value: number | null }[]
+    > = {};
     editEvents.forEach((e) => {
       payload[e.rowId] = payload[e.rowId] ?? [];
-      payload[e.rowId].push({ year: e.year, amount: e.newValue });
+      payload[e.rowId].push({
+        year: e.year,
+        field: getPlanningBudgetFieldForYear(e.year, currentYear),
+        value: e.newValue,
+      });
     });
     await updatePlanning.mutateAsync(payload);
     setEditEvents([]);
@@ -1054,7 +1160,8 @@ interface GetColumnsParams {
   modifiedFields: Record<string, Record<string, boolean>>;
   actualsByPo: Map<string, Record<number, number>>;
   actualsLoadingByPo: Map<string, boolean>;
-  estimateSumsByProjectName: Map<string, Record<number, number | null>>;
+  plannedSumsByProjectName: Map<string, Record<number, number | null>>;
+  amountSumsByProjectName: Map<string, Record<number, number | null>>;
   actualSumsByProjectName: Map<string, Record<number, number | null>>;
   sapActualsByProject: Map<string, Record<number, number>>;
   totalSumRow: PlanningRowWithYears;
@@ -1068,7 +1175,8 @@ function getColumns({
   canEditYear,
   actualsByPo,
   actualsLoadingByPo,
-  estimateSumsByProjectName,
+  plannedSumsByProjectName,
+  amountSumsByProjectName,
   actualSumsByProjectName,
   sapActualsByProject,
   collapsedProjects,
@@ -1181,12 +1289,23 @@ function getColumns({
   for (let year = yearRange.start; year <= yearRange.end; year++) {
     const yearKey = `year${year}`;
     const currentYear = new Date().getFullYear();
-    const isPastOrCurrent = year <= currentYear;
+    const isPastYear = year < currentYear;
+    const isCurrentYear = year === currentYear;
+    const isFutureYear = year > currentYear;
+    const hasActualColumn = year <= currentYear;
+    const planningBudgetField = getPlanningBudgetFieldForYear(year, currentYear);
+    const plannedColumnLabel =
+      planningBudgetField === 'forecast'
+        ? tr('planningTable.forecast')
+        : planningBudgetField === 'estimate'
+          ? tr('planningTable.estimate')
+          : tr('planningTable.amount');
+    const columnWidth = isCurrentYear ? 330 : isFutureYear ? 280 : 330;
 
     columns.push({
       field: yearKey,
       headerName: `${year}`,
-      width: isPastOrCurrent ? 240 : 130,
+      width: columnWidth,
       headerAlign: 'center',
       headerClassName: 'year-column',
       renderHeader: () => (
@@ -1208,29 +1327,95 @@ function getColumns({
           >
             {year}
           </Box>
-          {isPastOrCurrent ? (
+          {isPastYear ? (
             <Box
               css={css`
                 display: flex;
-                width: 190px;
-                justify-content: space-between;
+                width: 100%;
                 font-size: 14px;
                 font-weight: 300;
                 opacity: 0.9;
               `}
             >
-              <Typography>{tr('planningTable.actual')}</Typography>
-              <Typography>{tr('planningTable.amount')}</Typography>
+              <Typography
+                css={css`
+                  flex: 1;
+                  text-align: center;
+                `}
+              >
+                {tr('planningTable.actual')}
+              </Typography>
+              <Typography
+                css={css`
+                  flex: 1;
+                  text-align: center;
+                `}
+              >
+                {tr('planningTable.amount')}
+              </Typography>
             </Box>
-          ) : (
+          ) : isCurrentYear ? (
             <Box
               css={css`
-                font-size: 10px;
+                display: flex;
+                width: 100%;
+                font-size: 14px;
                 font-weight: 300;
                 opacity: 0.9;
               `}
             >
-              <Typography>{tr('planningTable.amount')}</Typography>
+              <Typography
+                css={css`
+                  flex: 1;
+                  text-align: center;
+                `}
+              >
+                {tr('planningTable.actual')}
+              </Typography>
+              <Typography
+                css={css`
+                  flex: 1;
+                  text-align: center;
+
+                `}
+              >
+                {tr('planningTable.amount')}
+              </Typography>
+              <Typography
+                css={css`
+                  flex: 1;
+                  text-align: center;
+                `}
+              >
+                {plannedColumnLabel}
+              </Typography>
+            </Box>
+          ) : (
+            <Box
+              css={css`
+                display: flex;
+                width: 100%;
+                font-size: 14px;
+                font-weight: 300;
+                opacity: 0.9;
+              `}
+            >
+              <Typography
+                css={css`
+                  flex: 1;
+                  text-align: center;
+                `}
+              >
+                {tr('planningTable.amount')}
+              </Typography>
+              <Typography
+                css={css`
+                  flex: 1;
+                  text-align: center;
+                `}
+              >
+                {plannedColumnLabel}
+              </Typography>
             </Box>
           )}
         </Box>
@@ -1241,12 +1426,19 @@ function getColumns({
         const isProject = params.row.type === 'project';
 
         // For sum row, get the pre-calculated totals
-        const amount = isSumRow
+        const plannedValue = isSumRow
           ? (params.row[`year${year}`] as number | null) ?? null
           : isProjectObject
             ? (params.row[`year${year}`] as number | null) ?? null
             : isProject
-              ? estimateSumsByProjectName.get(params.row.projectName)?.[year] ?? null
+              ? plannedSumsByProjectName.get(params.row.projectName)?.[year] ?? null
+              : null;
+        const amountValue = isSumRow
+          ? (params.row[`year${year}_amount`] as number | null) ?? null
+          : isProjectObject
+            ? getPlanningAmountForYear(params.row, year, currentYear)
+            : isProject
+              ? amountSumsByProjectName.get(params.row.projectName)?.[year] ?? null
               : null;
 
         const actual = isSumRow
@@ -1263,7 +1455,7 @@ function getColumns({
             : null;
 
         const isLoadingActuals =
-          isProjectObject && isPastOrCurrent
+          isProjectObject && hasActualColumn
             ? actualsLoadingByPo.get(params.row.id) ?? false
             : false;
 
@@ -1279,7 +1471,7 @@ function getColumns({
               line-height: 1.2;
             `}
           >
-            {isPastOrCurrent ? (
+            {isPastYear ? (
               <>
                 <Box
                   className="actual-value"
@@ -1316,6 +1508,73 @@ function getColumns({
                   `}
                 />
                 <Box
+                  className="amount-value"
+                  css={css`
+                    flex: 1;
+                    text-align: right;
+                    font-weight: ${isProject ? '600' : 'inherit'};
+                    padding-left: 8px;
+                  `}
+                >
+                  {formatCurrency(plannedValue) ?? '-'}
+                </Box>
+              </>
+            ) : isCurrentYear ? (
+              <>
+                <Box
+                  className="actual-value"
+                  css={css`
+                    flex: 1;
+                    text-align: left;
+                    font-weight: ${isProject ? '600' : 'inherit'};
+                    padding-right: 8px;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                  `}
+                >
+                  {isLoadingActuals ? (
+                    <Skeleton variant="text" width="80%" height={14} />
+                  ) : (
+                    formatCurrency(actual)
+                  )}
+                  {isProject && sapActual != null && (
+                    <Box
+                      css={css`
+                        margin-left: auto;
+                      `}
+                    >
+                      <SapActualsIcon sapActual={sapActual} />
+                    </Box>
+                  )}
+                </Box>
+                <Box
+                  css={css`
+                    width: 1px;
+                    background-color: #d0d0d0;
+                    align-self: stretch;
+                  `}
+                />
+                <Box
+                  className="amount-value"
+                  css={css`
+                    flex: 1;
+                    text-align: right;
+                    font-weight: ${isProject ? '600' : 'inherit'};
+                    padding-left: 8px;
+                  `}
+                >
+                  {formatCurrency(amountValue) ?? '-'}
+                </Box>
+                <Box
+                  css={css`
+                    width: 1px;
+                    background-color: #d0d0d0;
+                    align-self: stretch;
+                    margin-left: 8px;
+                  `}
+                />
+                <Box
                   className="estimate-value"
                   css={css`
                     flex: 1;
@@ -1324,20 +1583,41 @@ function getColumns({
                     padding-left: 8px;
                   `}
                 >
-                  {formatCurrency(amount) ?? '-'}
+                  {formatCurrency(plannedValue) ?? '-'}
                 </Box>
               </>
             ) : (
-              <Box
-                className="estimate-value"
-                css={css`
-                  width: 100%;
-                  text-align: right;
-                  font-weight: ${isProject ? '600' : 'inherit'};
-                `}
-              >
-                {formatCurrency(amount) ?? '-'}
-              </Box>
+              <>
+                <Box
+                  className="amount-value"
+                  css={css`
+                    flex: 1;
+                    text-align: right;
+                    font-weight: ${isProject ? '600' : 'inherit'};
+                    padding-right: 8px;
+                  `}
+                >
+                  {formatCurrency(amountValue) ?? '-'}
+                </Box>
+                <Box
+                  css={css`
+                    width: 1px;
+                    background-color: #d0d0d0;
+                    align-self: stretch;
+                  `}
+                />
+                <Box
+                  className="estimate-value"
+                  css={css`
+                    flex: 1;
+                    text-align: right;
+                    font-weight: ${isProject ? '600' : 'inherit'};
+                    padding-left: 8px;
+                  `}
+                >
+                  {formatCurrency(plannedValue) ?? '-'}
+                </Box>
+              </>
             )}
           </Box>
         );

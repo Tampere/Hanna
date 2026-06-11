@@ -403,13 +403,13 @@ export default function WorkTable() {
     const yearIsLocked = lockedYears?.includes(dayjs(searchParams.objectStartDate).year());
 
     if (isAdmin(auth.role)) {
-      writableFields = ['amount', 'forecast', 'kayttosuunnitelmanMuutos'];
+      writableFields = ['estimate', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
     } else if (hasPermission(auth, 'investmentFinancials.write')) {
       if (hasWritePermission(auth, permissionCtx) || ownsProject(auth, permissionCtx))
-        writableFields = ['forecast', 'amount', 'kayttosuunnitelmanMuutos'];
+        writableFields = ['estimate', 'forecast', 'amount', 'kayttosuunnitelmanMuutos'];
       writableFields = ['amount', 'kayttosuunnitelmanMuutos'];
     } else if (hasWritePermission(auth, permissionCtx) || ownsProject(auth, permissionCtx)) {
-      writableFields = ['forecast'];
+      writableFields = ['estimate', 'forecast'];
     }
     if (!isOngoingYear) {
       writableFields = writableFields.filter(
@@ -655,7 +655,7 @@ export default function WorkTable() {
         slots={{ noRowsOverlay: NoRowsOverlay }}
         onResize={handleSummaryRowResize}
         isCellEditable={({ row, field }: { row: WorkTableRow; field: string }) => {
-          if (['amount', 'forecast', 'kayttosuunnitelmanMuutos'].includes(field)) {
+          if (['estimate', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'].includes(field)) {
             return getWritableBudgetFields(row.permissionCtx).includes(
               field as WorkTableFinanceField,
             );

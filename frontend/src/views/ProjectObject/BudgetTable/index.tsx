@@ -244,220 +244,220 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     form.reset(data);
   }
   return !budget ? null : (
-    <>
-      <FormProvider {...form}>
-        <form
-          css={css`
-            tr:nth-last-of-type(2) {
-              td {
-                ${'padding-bottom: 13px;'}
-              }
-            }
-
+    <FormProvider {...form}>
+      <form
+        css={css`
+          tr:nth-last-of-type(2) {
             td {
-              text-align: right;
-              ${'padding-top: 10px;padding-bottom: 10px;'}
+              ${'padding-bottom: 13px;'}
             }
+          }
 
-            & .MuiFormControl-root {
-              margin: 0;
-            }
-            & .${TABLE_CELL_CONTENT_CLASS} {
-              display: flex;
-              justify-content: flex-end;
-            }
-            input::placeholder {
-              color: black;
-            }
+          td {
+            text-align: right;
+            ${'padding-top: 10px;padding-bottom: 10px;'}
+          }
+
+          & .MuiFormControl-root {
+            margin: 0;
+          }
+          & .${TABLE_CELL_CONTENT_CLASS} {
+            display: flex;
+            justify-content: flex-end;
+          }
+          input::placeholder {
+            color: black;
+          }
+        `}
+        onSubmit={form.handleSubmit(onSubmit)}
+        autoComplete="off"
+      >
+        <TableContainer
+          css={css`
+            overflow-x: visible; // To change nearest scrolling ancestor and to enable sticky header
           `}
-          onSubmit={form.handleSubmit(onSubmit)}
-          autoComplete="off"
         >
-          <TableContainer
-            css={css`
-              overflow-x: visible; // To change nearest scrolling ancestor and to enable sticky header
-            `}
-          >
-            <Table size="small">
-              <TableHead
-                css={css`
-                  position: sticky;
+          <Table size="small">
+            <TableHead
+              css={css`
+                position: sticky;
 
-                  background-color: white;
-                  box-shadow: 0 1px 0 0 rgba(224, 224, 224, 1);
-                  z-index: 1;
-                  & .column-header {
-                    display: flex;
-                    justify-content: flex-end;
-                    align-items: center;
-                  }
-                  th {
-                    padding-right: 8px;
-                  }
-                  & .MuiButtonBase-root {
-                    padding-right: 0;
-                  }
-                `}
-              >
-                <TableRow>
-                  <TableCell
-                    css={css`
-                      min-width: 120px;
-                      padding-left: 16px;
-                    `}
-                    align="left"
-                  >
-                    <Box>
-                      <Typography variant="overline">{tr('budgetTable.year')}</Typography>
+                background-color: white;
+                box-shadow: 0 1px 0 0 rgba(224, 224, 224, 1);
+                z-index: 1;
+                & .column-header {
+                  display: flex;
+                  justify-content: flex-end;
+                  align-items: center;
+                }
+                th {
+                  padding-right: 8px;
+                }
+                & .MuiButtonBase-root {
+                  padding-right: 0;
+                }
+              `}
+            >
+              <TableRow>
+                <TableCell
+                  css={css`
+                    min-width: 120px;
+                    padding-left: 16px;
+                  `}
+                  align="left"
+                >
+                  <Box>
+                    <Typography variant="overline">{tr('budgetTable.year')}</Typography>
+                    {enableTooltips && (
+                      <HelpTooltip
+                        title={props.customTooltips?.year ?? tr('budgetTable.yearHelp')}
+                      />
+                    )}
+                  </Box>
+                </TableCell>
+
+                {fields?.includes('estimate') && (
+                  <TableCell>
+                    <Box className="column-header">
+                      <Typography variant="overline">{tr('budgetTable.estimate')}</Typography>
                       {enableTooltips && (
                         <HelpTooltip
-                          title={props.customTooltips?.year ?? tr('budgetTable.yearHelp')}
+                          title={
+                            props.customTooltips?.estimate ?? tr('budgetTable.projectEstimateHelp')
+                          }
+                        />
+                      )}
+                    </Box>{' '}
+                  </TableCell>
+                )}
+
+                {fields?.includes('amount') && (
+                  <TableCell css={cellStyle}>
+                    <Box className="column-header">
+                      <Typography variant="overline"> {tr('budgetTable.amount')}</Typography>
+                      {enableTooltips && (
+                        <HelpTooltip
+                          title={props.customTooltips?.amount ?? tr('budgetTable.amountHelp')}
                         />
                       )}
                     </Box>
                   </TableCell>
-
-                  {fields?.includes('estimate') && (
-                    <TableCell>
-                      <Box className="column-header">
-                        <Typography variant="overline">{tr('budgetTable.estimate')}</Typography>
-                        {enableTooltips && (
-                          <HelpTooltip
-                            title={
-                              props.customTooltips?.estimate ??
-                              tr('budgetTable.projectEstimateHelp')
-                            }
-                          />
-                        )}
-                      </Box>{' '}
-                    </TableCell>
-                  )}
-
-                  {fields?.includes('amount') && (
-                    <TableCell css={cellStyle}>
-                      <Box className="column-header">
-                        <Typography variant="overline"> {tr('budgetTable.amount')}</Typography>
-                        {enableTooltips && (
-                          <HelpTooltip
-                            title={props.customTooltips?.amount ?? tr('budgetTable.amountHelp')}
-                          />
-                        )}
-                      </Box>
-                    </TableCell>
-                  )}
-                  {fields?.includes('contractPrice') && (
-                    <TableCell>
-                      <Box className="column-header">
-                        <Typography variant="overline">
-                          {tr('budgetTable.contractPrice')}
-                        </Typography>
-                        {enableTooltips && (
-                          <HelpTooltip
-                            title={
-                              props.customTooltips?.contractPrice ??
-                              tr('budgetTable.contractPriceHelp')
-                            }
-                          />
-                        )}
-                      </Box>{' '}
-                    </TableCell>
-                  )}
-                  {fields?.includes('actual') && (
-                    <TableCell css={cellStyle}>
-                      <Box className="column-header">
-                        {props.actualsLoading && <CircularProgress size={10} sx={{ mr: 1 }} />}
-                        <Typography variant="overline">{tr('budgetTable.actual')}</Typography>
-                        {enableTooltips && (
-                          <HelpTooltip
-                            title={
-                              props.customTooltips?.actual ??
-                              tr('budgetTable.ProjectObjectActualHelp')
-                            }
-                          />
-                        )}
-                      </Box>
-                    </TableCell>
-                  )}
-                  {fields?.includes('forecast') && (
-                    <TableCell css={cellStyle}>
-                      <Box className="column-header">
-                        <Typography variant="overline">{tr('budgetTable.forecast')}</Typography>
-                        {enableTooltips && (
-                          <HelpTooltip
-                            title={props.customTooltips?.forecast ?? tr('budgetTable.forecastHelp')}
-                          />
-                        )}
-                      </Box>
-                    </TableCell>
-                  )}
-                  {fields?.includes('kayttosuunnitelmanMuutos') && (
-                    <TableCell
-                      css={css`
-                        min-width: 280px;
-                        text-align: right;
-                      `}
-                    >
-                      <Box className="column-header">
-                        <Typography variant="overline">
-                          {tr('budgetTable.kayttosuunnitelmanMuutos')}
-                        </Typography>
-                        {enableTooltips && (
-                          <HelpTooltip
-                            title={
-                              props.customTooltips?.kayttosuunnitelmanMuutos ??
-                              tr('budgetTable.kayttosuunnitelmanMuutosHelp')
-                            }
-                          />
-                        )}
-                      </Box>
-                    </TableCell>
-                  )}
-                  <TableCell sx={{ width: '100%' }} />
-                </TableRow>
-              </TableHead>
-              <TableBody
-                css={css`
-                  input {
-                    background-color: white;
-                    border: solid 1px lightgray;
-                    font-size: 13px;
-                  }
-                `}
-              >
-                {years?.map((year) => {
-                  return (
-                    <Fragment key={year}>
-                      {
-                        <BudgetContentRow
-                          year={year}
-                          includeYearColumn
-                          writableFields={
-                            lockedYears?.includes(year)
-                              ? writableFields?.filter((field) => field !== 'amount')
-                              : writableFields
+                )}
+                {fields?.includes('contractPrice') && (
+                  <TableCell>
+                    <Box className="column-header">
+                      <Typography variant="overline">{tr('budgetTable.contractPrice')}</Typography>
+                      {enableTooltips && (
+                        <HelpTooltip
+                          title={
+                            props.customTooltips?.contractPrice ??
+                            tr('budgetTable.contractPriceHelp')
                           }
-                          fields={fields}
-                          actualsLoading={props.actualsLoading}
-                          actuals={props.actuals}
                         />
-                      }
-                    </Fragment>
-                  );
-                })}
+                      )}
+                    </Box>{' '}
+                  </TableCell>
+                )}
+                {fields?.includes('actual') && (
+                  <TableCell css={cellStyle}>
+                    <Box className="column-header">
+                      {props.actualsLoading && <CircularProgress size={10} sx={{ mr: 1 }} />}
+                      <Typography variant="overline">{tr('budgetTable.actual')}</Typography>
+                      {enableTooltips && (
+                        <HelpTooltip
+                          title={
+                            props.customTooltips?.actual ??
+                            tr('budgetTable.ProjectObjectActualHelp')
+                          }
+                        />
+                      )}
+                    </Box>
+                  </TableCell>
+                )}
+                {fields?.includes('forecast') && (
+                  <TableCell css={cellStyle}>
+                    <Box className="column-header">
+                      <Typography variant="overline">{tr('budgetTable.forecast')}</Typography>
+                      {enableTooltips && (
+                        <HelpTooltip
+                          title={props.customTooltips?.forecast ?? tr('budgetTable.forecastHelp')}
+                        />
+                      )}
+                    </Box>
+                  </TableCell>
+                )}
+                {fields?.includes('kayttosuunnitelmanMuutos') && (
+                  <TableCell
+                    css={css`
+                      min-width: 280px;
+                      text-align: right;
+                    `}
+                  >
+                    <Box className="column-header">
+                      <Typography variant="overline">
+                        {tr('budgetTable.kayttosuunnitelmanMuutos')}
+                      </Typography>
+                      {enableTooltips && (
+                        <HelpTooltip
+                          title={
+                            props.customTooltips?.kayttosuunnitelmanMuutos ??
+                            tr('budgetTable.kayttosuunnitelmanMuutosHelp')
+                          }
+                        />
+                      )}
+                    </Box>
+                  </TableCell>
+                )}
+                <TableCell sx={{ width: '100%' }} />
+              </TableRow>
+            </TableHead>
+            <TableBody
+              css={css`
+                input {
+                  background-color: white;
+                  border: solid 1px lightgray;
+                  font-size: 13px;
+                }
+              `}
+            >
+              {years?.map((year) => {
+                const currentYear = new Date().getFullYear();
+                const yearWritableFields =
+                  year <= currentYear
+                    ? writableFields?.filter((field) => field !== 'estimate')
+                    : writableFields;
+                return (
+                  <Fragment key={year}>
+                    {
+                      <BudgetContentRow
+                        year={year}
+                        includeYearColumn
+                        writableFields={
+                          lockedYears?.includes(year)
+                            ? yearWritableFields?.filter((field) => field !== 'amount')
+                            : yearWritableFields
+                        }
+                        fields={fields}
+                        actualsLoading={props.actualsLoading}
+                        actuals={props.actuals}
+                      />
+                    }
+                  </Fragment>
+                );
+              })}
 
-                <TotalRow
-                  committeeColumnVisible={false}
-                  actuals={props.actuals}
-                  actualsLoading={Boolean(props.actualsLoading)}
-                  fields={fields}
-                  formValues={watch}
-                  getFieldValue={getFieldTotalValueByYear}
-                />
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </form>
-      </FormProvider>
-    </>
+              <TotalRow
+                committeeColumnVisible={false}
+                actuals={props.actuals}
+                actualsLoading={Boolean(props.actualsLoading)}
+                fields={fields}
+                formValues={watch}
+                getFieldValue={getFieldTotalValueByYear}
+              />
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </form>
+    </FormProvider>
   );
 });
