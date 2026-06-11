@@ -221,6 +221,16 @@ export type BudgetFormValues =
       projectObjects?: Record<string, Record<string, ProjectYearBudget['budgetItems']>>;
     });
 
+function isExcludedFutureValue(
+  fieldName: keyof ProjectYearBudget['budgetItems'],
+  year: number | string,
+) {
+  return (
+    (fieldName === 'forecast' || fieldName === 'kayttosuunnitelmanMuutos') &&
+    Number(year) > new Date().getFullYear()
+  );
+}
+
 function getFieldTotalValueByYear(
   fieldName: keyof ProjectYearBudget['budgetItems'],
   formValues?: BudgetFormValues,
@@ -235,6 +245,7 @@ function getFieldTotalValueByYear(
 
   const entries = Object.entries(formValues).filter(([key]) => {
     if (key === 'projectObjects') return false;
+    if (isExcludedFutureValue(fieldName, key)) return false;
     if (allowedYears) {
       return allowedYears.has(key);
     }
@@ -266,6 +277,10 @@ function getFieldTotalValueByCommittee(
     }
 
     if (allowedYears && !allowedYears.has(yearKey)) {
+      return total;
+    }
+
+    if (isExcludedFutureValue(fieldName, yearKey)) {
       return total;
     }
 
@@ -642,6 +657,10 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
     let sum = 0;
 
     for (const year of visibleYears) {
+      if (isExcludedFutureValue(fieldName, year)) {
+        continue;
+      }
+
       const yearKey = String(year);
 
       const filteredProjectObjects = (props.projectObjects ?? [])
