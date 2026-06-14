@@ -737,7 +737,7 @@ export const fi = {
   'workTable.reportDisabled': 'Ei hakutuloksia raportin lataamiseksi.',
   'planningTable.amount': 'Talousarvio',
   'planningTable.forecast': 'Ennuste',
-  'planningTable.estimate': 'TA-ennuste',
+  'planningTable.estimate': 'Talousarvioennuste',
   'planningTable.actual': 'Toteuma',
   'planningTable.nameHeader': 'Hankkeen/kohteen nimi',
   'planningTable.export.label': 'Suunnittelutaulukko',
