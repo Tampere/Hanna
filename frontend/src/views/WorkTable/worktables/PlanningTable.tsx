@@ -23,6 +23,7 @@ import {
 import {
   DataGrid,
   GridColDef,
+  GridColumnGroupingModel,
   GridRenderCellParams,
   GridRenderEditCellParams,
 } from '@mui/x-data-grid';
@@ -85,6 +86,20 @@ function getPlanningAmountForYear(
   return budgetForYear?.amount ?? null;
 }
 
+// A year is split into multiple grid columns. Each editable column maps to exactly one budget
+// field, so we can rely on standard cell editing instead of multiplexing values through one cell.
+function parseYearField(
+  field: string,
+): { year: number; kind: 'actual' | 'amount' | 'planned' } | null {
+  let m = /^year(\d{4})__amount$/.exec(field);
+  if (m) return { year: Number(m[1]), kind: 'amount' };
+  m = /^year(\d{4})__actual$/.exec(field);
+  if (m) return { year: Number(m[1]), kind: 'actual' };
+  m = /^year(\d{4})$/.exec(field);
+  if (m) return { year: Number(m[1]), kind: 'planned' };
+  return null;
+}
+
 const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   min-height: 160px;
   font-size: 12px;
@@ -100,6 +115,18 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   }
   & .MuiDataGrid-cell:hover {
     background-color: #e7eef9 !important;
+  }
+  & .MuiDataGrid-cell.year-column:hover {
+    background-color: transparent !important;
+  }
+  & .MuiDataGrid-cell.year-column [data-planning-edit-target='editable']:hover {
+    background-color: #e7eef9;
+  }
+  & .MuiDataGrid-cell.year-column [data-planning-edit-target='editable'] {
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
   }
 
   /* Project row styling - bold text for all cells */
@@ -190,18 +217,15 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   & .cell-readonly .actual-value {
     color: #7b7b7b !important;
   }
-  & .cell-writable {
-    cursor: pointer;
-  }
 
-  & .MuiDataGrid-columnHeader {
-    background: ${theme.palette.primary.main};
-    color: white;
-    height: 55px !important;
-    min-height: 0 !important;
+  & .MuiDataGrid-columnHeaders {
     position: sticky;
     top: calc(${summaryRowHeight}px - 1rem);
     z-index: 100;
+  }
+  & .MuiDataGrid-columnHeader {
+    background: ${theme.palette.primary.main};
+    color: white;
     ${pinnedColumns.map(
       (column) => `&.pinned-${column.name} {
         position: sticky;
@@ -336,8 +360,8 @@ export default function PlanningTable() {
 
   type EditEvent = {
     rowId: string;
-    field: string; // yearYYYY
     year: number;
+    budgetField: PlanningBudgetField;
     oldValue: number | null;
     newValue: number | null;
   };
@@ -384,6 +408,9 @@ export default function PlanningTable() {
       const r: PlanningRowWithYears = { ...(row as any) };
       for (let y = yearRange.start; y <= yearRange.end; y++) {
         r[`year${y}`] = getPlanningValueForYear(row, y, currentYear);
+        if (y >= currentYear) {
+          r[`year${y}__amount`] = getPlanningAmountForYear(r, y, currentYear);
+        }
       }
       return r;
     });
@@ -400,14 +427,18 @@ export default function PlanningTable() {
   const modifiedFields = useMemo(() => {
     const map: Record<string, Record<string, boolean>> = {};
     editEvents.forEach((e) => {
+      const gridField =
+        e.budgetField === 'amount' && e.year >= currentYear
+          ? `year${e.year}__amount`
+          : `year${e.year}`;
       map[e.rowId] = map[e.rowId] ?? {};
-      map[e.rowId][e.field] = true;
+      map[e.rowId][gridField] = true;
     });
     return map;
-  }, [editEvents]);
+  }, [editEvents, currentYear]);
 
   function isYearField(field: string): boolean {
-    return /^year\d{4}$/.test(field);
+    return parseYearField(field) !== null;
   }
 
   function calculateUsedSearchParamsCount(searchParams: WorkTableSearch): number {
@@ -442,9 +473,11 @@ export default function PlanningTable() {
   );
 
   function canEditYear(field: string, row: PlanningRowWithYears): boolean {
-    if (!isYearField(field)) return false;
+    const parsed = parseYearField(field);
+    if (!parsed) return false;
+    if (parsed.kind === 'actual') return false;
     if (row.type !== 'projectObject') return false;
-    const year = Number(field.replace('year', ''));
+    const year = parsed.year;
     const yearIsLocked = lockedYears?.includes(year);
     if (yearIsLocked) return false;
     const startYear = dayjs(row.objectDateRange?.startDate).year();
@@ -454,11 +487,60 @@ export default function PlanningTable() {
     return canWritePlanningFinancials;
   }
 
+  function setBudgetFieldForYear(
+    row: PlanningRowWithYears,
+    year: number,
+    budgetField: PlanningBudgetField,
+    value: number | null,
+  ): PlanningRowWithYears {
+    if (row.type !== 'projectObject') return row;
+    const budget = [...(row.budget ?? [])];
+    const idx = budget.findIndex((b) => b?.year === year);
+    const existing = idx >= 0 ? budget[idx] : null;
+    const updatedEntry = {
+      year,
+      amount: existing?.amount ?? null,
+      forecast: existing?.forecast ?? null,
+      estimate: existing?.estimate ?? null,
+      actual: existing?.actual ?? null,
+      [budgetField]: value,
+    };
+
+    if (idx >= 0) {
+      budget[idx] = updatedEntry;
+    } else {
+      budget.push(updatedEntry);
+    }
+
+    return { ...row, budget } as PlanningRowWithYears;
+  }
+
+  function applyEditValueToRow(
+    row: PlanningRowWithYears,
+    year: number,
+    budgetField: PlanningBudgetField,
+    value: number | null,
+  ): PlanningRowWithYears {
+    // The grid field that holds this budget value: current/future amount lives in its own
+    // `year${y}__amount` column, everything else (planned forecast/estimate and past amount)
+    // lives in `year${y}`.
+    const targetKey =
+      budgetField === 'amount' && year >= currentYear ? `year${year}__amount` : `year${year}`;
+    let next = { ...row, [targetKey]: value } as PlanningRowWithYears;
+    if (year >= currentYear) {
+      // Keep the budget array in sync so project/sum totals recompute correctly.
+      next = setBudgetFieldForYear(next, year, budgetField, value);
+    }
+    return next;
+  }
+
   function getYearDisabledReason(field: string, row: PlanningRowWithYears): string | null {
-    if (!isYearField(field)) return null;
+    const parsed = parseYearField(field);
+    if (!parsed) return null;
+    if (parsed.kind === 'actual') return null;
     if (row.type !== 'projectObject') return null;
 
-    const year = Number(field.replace('year', ''));
+    const year = parsed.year;
 
     if (lockedYears?.includes(year)) {
       return tr('planningTable.yearsDisable');
@@ -781,13 +863,11 @@ export default function PlanningTable() {
     return [...visibleRows, totalSumRow];
   }, [visibleRows, totalSumRow]);
 
-  const columns = useMemo(() => {
+  const { columns, columnGroupingModel } = useMemo(() => {
     return getColumns({
       yearRange,
       pinnedColumns: pinnedColumns.map((column) => column.name),
       planningData: rows,
-      canEditYear,
-      modifiedFields,
       actualsByPo,
       actualsLoadingByPo,
       plannedSumsByProjectName,
@@ -797,6 +877,7 @@ export default function PlanningTable() {
       totalSumRow,
       collapsedProjects,
       toggleProjectCollapse,
+      currentYear,
       tr: tr as (key: string, ...args: any[]) => string,
     });
   }, [
@@ -813,6 +894,7 @@ export default function PlanningTable() {
     sapActualsByProject,
     totalSumRow,
     collapsedProjects,
+    currentYear,
     tr,
   ]);
 
@@ -822,7 +904,11 @@ export default function PlanningTable() {
     setEditEvents((prev) => prev.slice(0, -1));
     setRedoEvents((prev) => [...prev, last]);
     setRows((prev) =>
-      prev.map((row) => (row.id === last.rowId ? { ...row, [last.field]: last.oldValue } : row)),
+      prev.map((row) =>
+        row.id === last.rowId
+          ? applyEditValueToRow(row, last.year, last.budgetField, last.oldValue)
+          : row,
+      ),
     );
   }
 
@@ -838,7 +924,11 @@ export default function PlanningTable() {
     setRedoEvents((prev) => prev.slice(0, -1));
     setEditEvents((prev) => [...prev, last]);
     setRows((prev) =>
-      prev.map((row) => (row.id === last.rowId ? { ...row, [last.field]: last.newValue } : row)),
+      prev.map((row) =>
+        row.id === last.rowId
+          ? applyEditValueToRow(row, last.year, last.budgetField, last.newValue)
+          : row,
+      ),
     );
   }
 
@@ -858,7 +948,7 @@ export default function PlanningTable() {
       payload[e.rowId] = payload[e.rowId] ?? [];
       payload[e.rowId].push({
         year: e.year,
-        field: getPlanningBudgetFieldForYear(e.year, currentYear),
+        field: e.budgetField,
         value: e.newValue,
       });
     });
@@ -984,13 +1074,19 @@ export default function PlanningTable() {
         slots={{ noRowsOverlay: () => <NoRowsOverlay label={tr('workTable.noData')} /> }}
         showCellVerticalBorder
         showColumnVerticalBorder
+        columnGroupingModel={columnGroupingModel}
+        columnHeaderHeight={32}
         isCellEditable={({ row, field }) => canEditYear(field, row as PlanningRowWithYears)}
         onCellClick={(params, event) => {
           const row = params.row as PlanningRowWithYears;
           const field = params.field as string;
 
           if (!isYearField(field)) return;
-          if (canEditYear(field, row)) return;
+          if (canEditYear(field, row)) {
+            // Single click starts editing the clicked segment column.
+            params.api.startCellEditMode({ id: params.id, field });
+            return;
+          }
 
           const reason = getYearDisabledReason(field, row);
           if (!reason) return;
@@ -1007,20 +1103,19 @@ export default function PlanningTable() {
           if (pinnedColumns.map((column) => column.name).includes(field)) {
             classNames.push(`pinned-${field}`);
           }
-          if (String(field).startsWith('year')) {
+          const parsed = parseYearField(String(field));
+          if (parsed) {
             classNames.push('year-column');
             const mod = modifiedFields?.[id as string]?.[field];
             if (mod) {
               classNames.push('modified-cell');
-            } else if (canEditYear(field, typedRow)) {
-              classNames.push('cell-writable');
-            } else {
+            } else if (!canEditYear(field, typedRow)) {
               classNames.push('cell-readonly');
             }
 
             // Add class for project year cells within project date range
             if (typedRow.type === 'project' && typedRow.projectDateRange) {
-              const year = Number(field.replace('year', ''));
+              const year = parsed.year;
               const startYear = dayjs(typedRow.projectDateRange.startDate).year();
               const endYear = dayjs(typedRow.projectDateRange.endDate).year();
               if (year >= startYear && year <= endYear) {
@@ -1038,30 +1133,34 @@ export default function PlanningTable() {
         loading={planningData.isLoading}
         localeText={fiFI.components.MuiDataGrid.defaultProps.localeText}
         processRowUpdate={(newRow, oldRow) => {
-          // detect changed year field
-          const changedField = Object.keys(newRow as PlanningRowWithYears).find(
-            (k) =>
-              isYearField(k) &&
-              (newRow as PlanningRowWithYears)[k] !== (oldRow as PlanningRowWithYears)[k],
-          );
-          if (changedField) {
-            const year = Number(changedField.replace('year', ''));
-            const evt: EditEvent = {
-              rowId: (newRow as PlanningRowWithYears).id,
-              field: changedField,
-              year,
-              oldValue: (oldRow as PlanningRowWithYears)[changedField] ?? null,
-              newValue: (newRow as PlanningRowWithYears)[changedField] ?? null,
-            };
-            setEditEvents((prev) => [...prev, evt]);
-            setRedoEvents([]);
-            setRows((prev) =>
-              prev.map((r) =>
-                r.id === (newRow as PlanningRowWithYears).id ? (newRow as PlanningRowWithYears) : r,
-              ),
-            );
+          const nextRow = newRow as PlanningRowWithYears;
+          const prevRow = oldRow as PlanningRowWithYears;
+          // Each editable column maps to exactly one budget field, so the changed value can be found
+          // reliably by diffing the candidate keys across the row's year range.
+          for (let y = yearRange.start; y <= yearRange.end; y++) {
+            for (const key of [`year${y}`, `year${y}__amount`]) {
+              const oldValue = (prevRow[key] as number | null | undefined) ?? null;
+              const newValue = (nextRow[key] as number | null | undefined) ?? null;
+              if (oldValue === newValue) continue;
+              const parsed = parseYearField(key);
+              if (!parsed) continue;
+              const budgetField =
+                parsed.kind === 'amount' ? 'amount' : getPlanningBudgetFieldForYear(y, currentYear);
+              const appliedRow = applyEditValueToRow(prevRow, y, budgetField, newValue);
+              const evt: EditEvent = {
+                rowId: nextRow.id as string,
+                year: y,
+                budgetField,
+                oldValue,
+                newValue,
+              };
+              setEditEvents((prev) => [...prev, evt]);
+              setRedoEvents([]);
+              setRows((prev) => prev.map((r) => (r.id === nextRow.id ? appliedRow : r)));
+              return appliedRow;
+            }
           }
-          return newRow as PlanningRowWithYears;
+          return nextRow;
         }}
         css={(theme) => dataGridStyle(theme, 15)}
         density={'standard'}
@@ -1156,8 +1255,7 @@ interface GetColumnsParams {
   yearRange: { start: number; end: number };
   pinnedColumns: string[];
   planningData?: PlanningRowWithYears[];
-  canEditYear: (field: string, row: PlanningRowWithYears) => boolean;
-  modifiedFields: Record<string, Record<string, boolean>>;
+  currentYear: number;
   actualsByPo: Map<string, Record<number, number>>;
   actualsLoadingByPo: Map<string, boolean>;
   plannedSumsByProjectName: Map<string, Record<number, number | null>>;
@@ -1172,7 +1270,7 @@ interface GetColumnsParams {
 
 function getColumns({
   yearRange,
-  canEditYear,
+  currentYear,
   actualsByPo,
   actualsLoadingByPo,
   plannedSumsByProjectName,
@@ -1182,7 +1280,10 @@ function getColumns({
   collapsedProjects,
   toggleProjectCollapse,
   tr,
-}: GetColumnsParams): GridColDef<PlanningRowWithYears>[] {
+}: GetColumnsParams): {
+  columns: GridColDef<PlanningRowWithYears>[];
+  columnGroupingModel: GridColumnGroupingModel;
+} {
   const columns: GridColDef<PlanningRowWithYears>[] = [];
 
   // Name column (pinned)
@@ -1191,7 +1292,7 @@ function getColumns({
     headerName: `${tr('planningTable.nameHeader')}`,
     width: 400,
     maxWidth: 400,
-    minWidth: 300,
+    minWidth: 320,
     headerClassName: 'pinned-displayName',
     renderCell: (params: GridRenderCellParams<PlanningRowWithYears>) => {
       const isSumRow = params.row.id === 'TOTAL_SUM_ROW';
@@ -1285,13 +1386,28 @@ function getColumns({
     cellClassName: 'cell-wrap-text',
   });
 
-  // Generate year columns dynamically
+  // Each year is rendered as a group of real columns (actual / amount / planned), so every
+  // editable value is its own cell mapped to a single budget field.
+  const columnGroupingModel: GridColumnGroupingModel = [];
+
+  const renderCurrencyEditCell = (params: GridRenderEditCellParams) => {
+    const { id, field, value, api } = params;
+    return (
+      <CurrencyInput
+        autoFocus
+        editing
+        value={(value as number | null) ?? null}
+        allowNegative={false}
+        onChange={(val) => {
+          api.setEditCellValue({ id, field, value: val });
+        }}
+        style={{ width: '100%', height: '100%', border: 'none', outline: 'none' }}
+      />
+    );
+  };
+
   for (let year = yearRange.start; year <= yearRange.end; year++) {
-    const yearKey = `year${year}`;
-    const currentYear = new Date().getFullYear();
     const isPastYear = year < currentYear;
-    const isCurrentYear = year === currentYear;
-    const isFutureYear = year > currentYear;
     const hasActualColumn = year <= currentYear;
     const planningBudgetField = getPlanningBudgetFieldForYear(year, currentYear);
     const plannedColumnLabel =
@@ -1300,358 +1416,157 @@ function getColumns({
         : planningBudgetField === 'estimate'
           ? tr('planningTable.estimate')
           : tr('planningTable.amount');
-    const columnWidth = isCurrentYear ? 330 : isFutureYear ? 280 : 330;
 
+    // Past years store the (editable) amount in `year${y}`; current/future years keep amount in a
+    // dedicated `year${y}__amount` column and the planned forecast/estimate in `year${y}`.
+    const amountColumnField = isPastYear ? `year${year}` : `year${year}__amount`;
+    const groupChildren: { field: string }[] = [];
+
+    if (hasActualColumn) {
+      const actualField = `year${year}__actual`;
+      groupChildren.push({ field: actualField });
+      columns.push({
+        field: actualField,
+        headerName: tr('planningTable.actual'),
+        width: 130,
+        headerAlign: 'center',
+        headerClassName: 'year-column',
+        editable: false,
+        cellClassName: 'cell-wrap-text financial-cell',
+        renderCell: (params: GridRenderCellParams<PlanningRowWithYears>) => {
+          const isSumRow = params.row.id === 'TOTAL_SUM_ROW';
+          const isProjectObject = params.row.type === 'projectObject';
+          const isProject = params.row.type === 'project';
+          const actual = isSumRow
+            ? (params.row[`year${year}_actual`] as number | null) ?? null
+            : isProjectObject
+              ? actualsByPo.get(params.row.id)?.[year] ?? null
+              : isProject
+                ? actualSumsByProjectName.get(params.row.projectName)?.[year] ?? null
+                : null;
+          const sapActual =
+            isProject && sapActualsByProject.get(params.row.projectId)
+              ? sapActualsByProject.get(params.row.projectId)?.[year] ?? null
+              : null;
+          const isLoadingActuals = isProjectObject
+            ? actualsLoadingByPo.get(params.row.id) ?? false
+            : false;
+          return (
+            <Box
+              className="actual-value"
+              css={css`
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                width: 100%;
+                font-weight: ${isProject ? '600' : 'inherit'};
+              `}
+            >
+              {isLoadingActuals ? (
+                <Skeleton variant="text" width="80%" height={14} />
+              ) : (
+                formatCurrency(actual)
+              )}
+              {isProject && sapActual != null && (
+                <Box
+                  css={css`
+                    margin-left: auto;
+                  `}
+                >
+                  <SapActualsIcon sapActual={sapActual} />
+                </Box>
+              )}
+            </Box>
+          );
+        },
+      });
+    }
+
+    groupChildren.push({ field: amountColumnField });
     columns.push({
-      field: yearKey,
-      headerName: `${year}`,
-      width: columnWidth,
+      field: amountColumnField,
+      headerName: tr('planningTable.amount'),
+      width: 135,
       headerAlign: 'center',
       headerClassName: 'year-column',
-      renderHeader: () => (
-        <Box
-          css={css`
-            display: flex;
-            flex-direction: column;
-            align-items: normal;
-            width: 100%;
-            gap: 2px;
-          `}
-        >
-          <Box
-            css={css`
-              width: 100%;
-              font-weight: 600;
-              font-size: 14px;
-            `}
-          >
-            {year}
-          </Box>
-          {isPastYear ? (
-            <Box
-              css={css`
-                display: flex;
-                width: 100%;
-                font-size: 14px;
-                font-weight: 300;
-                opacity: 0.9;
-              `}
-            >
-              <Typography
-                css={css`
-                  flex: 1;
-                  text-align: center;
-                `}
-              >
-                {tr('planningTable.actual')}
-              </Typography>
-              <Typography
-                css={css`
-                  flex: 1;
-                  text-align: center;
-                `}
-              >
-                {tr('planningTable.amount')}
-              </Typography>
-            </Box>
-          ) : isCurrentYear ? (
-            <Box
-              css={css`
-                display: flex;
-                width: 100%;
-                font-size: 14px;
-                font-weight: 300;
-                opacity: 0.9;
-              `}
-            >
-              <Typography
-                css={css`
-                  flex: 1;
-                  text-align: center;
-                `}
-              >
-                {tr('planningTable.actual')}
-              </Typography>
-              <Typography
-                css={css`
-                  flex: 1;
-                  text-align: center;
-
-                `}
-              >
-                {tr('planningTable.amount')}
-              </Typography>
-              <Typography
-                css={css`
-                  flex: 1;
-                  text-align: center;
-                `}
-              >
-                {plannedColumnLabel}
-              </Typography>
-            </Box>
-          ) : (
-            <Box
-              css={css`
-                display: flex;
-                width: 100%;
-                font-size: 14px;
-                font-weight: 300;
-                opacity: 0.9;
-              `}
-            >
-              <Typography
-                css={css`
-                  flex: 1;
-                  text-align: center;
-                `}
-              >
-                {tr('planningTable.amount')}
-              </Typography>
-              <Typography
-                css={css`
-                  flex: 1;
-                  text-align: center;
-                `}
-              >
-                {plannedColumnLabel}
-              </Typography>
-            </Box>
-          )}
-        </Box>
-      ),
+      editable: true,
+      cellClassName: 'cell-wrap-text financial-cell',
       renderCell: (params: GridRenderCellParams<PlanningRowWithYears>) => {
         const isSumRow = params.row.id === 'TOTAL_SUM_ROW';
-        const isProjectObject = params.row.type === 'projectObject';
         const isProject = params.row.type === 'project';
+        const value = isSumRow
+          ? (params.row[`year${year}_amount`] as number | null) ?? null
+          : isProject
+            ? amountSumsByProjectName.get(params.row.projectName)?.[year] ?? null
+            : (params.value as number | null | undefined) ?? null;
+        return (
+          <Box
+            className="amount-value"
+            css={css`
+              width: 100%;
+              text-align: right;
+              font-weight: ${isProject ? '600' : 'inherit'};
+            `}
+          >
+            {formatCurrency(value) ?? '-'}
+          </Box>
+        );
+      },
+      renderEditCell: renderCurrencyEditCell,
+    });
 
-        // For sum row, get the pre-calculated totals
-        const plannedValue = isSumRow
-          ? (params.row[`year${year}`] as number | null) ?? null
-          : isProjectObject
+    if (!isPastYear) {
+      groupChildren.push({ field: `year${year}` });
+      columns.push({
+        field: `year${year}`,
+        headerName: plannedColumnLabel,
+        width: 135,
+        headerAlign: 'center',
+        headerClassName: 'year-column',
+        editable: true,
+        cellClassName: 'cell-wrap-text financial-cell',
+        renderCell: (params: GridRenderCellParams<PlanningRowWithYears>) => {
+          const isSumRow = params.row.id === 'TOTAL_SUM_ROW';
+          const isProject = params.row.type === 'project';
+          const value = isSumRow
             ? (params.row[`year${year}`] as number | null) ?? null
             : isProject
               ? plannedSumsByProjectName.get(params.row.projectName)?.[year] ?? null
-              : null;
-        const amountValue = isSumRow
-          ? (params.row[`year${year}_amount`] as number | null) ?? null
-          : isProjectObject
-            ? getPlanningAmountForYear(params.row, year, currentYear)
-            : isProject
-              ? amountSumsByProjectName.get(params.row.projectName)?.[year] ?? null
-              : null;
+              : (params.value as number | null | undefined) ?? null;
+          return (
+            <Box
+              className="estimate-value"
+              css={css`
+                width: 100%;
+                text-align: right;
+                font-weight: ${isProject ? '600' : 'inherit'};
+              `}
+            >
+              {formatCurrency(value) ?? '-'}
+            </Box>
+          );
+        },
+        renderEditCell: renderCurrencyEditCell,
+      });
+    }
 
-        const actual = isSumRow
-          ? (params.row[`year${year}_actual`] as number | null) ?? null
-          : isProjectObject
-            ? actualsByPo.get(params.row.id)?.[year] ?? null
-            : isProject
-              ? actualSumsByProjectName.get(params.row.projectName)?.[year] ?? null
-              : null;
-
-        const sapActual =
-          isProject && sapActualsByProject.get(params.row.projectId)
-            ? sapActualsByProject.get(params.row.projectId)?.[year] ?? null
-            : null;
-
-        const isLoadingActuals =
-          isProjectObject && hasActualColumn
-            ? actualsLoadingByPo.get(params.row.id) ?? false
-            : false;
-
-        return (
-          <Box
-            css={css`
-              display: flex;
-              flex-direction: row;
-              width: 100%;
-              justify-content: space-between;
-              align-items: center;
-              font-size: 11px;
-              line-height: 1.2;
-            `}
-          >
-            {isPastYear ? (
-              <>
-                <Box
-                  className="actual-value"
-                  css={css`
-                    flex: 1;
-                    text-align: left;
-                    font-weight: ${isProject ? '600' : 'inherit'};
-                    padding-right: 8px;
-                    display: flex;
-                    align-items: center;
-                    gap: 4px;
-                  `}
-                >
-                  {isLoadingActuals ? (
-                    <Skeleton variant="text" width="80%" height={14} />
-                  ) : (
-                    formatCurrency(actual)
-                  )}
-                  {isProject && sapActual != null && (
-                    <Box
-                      css={css`
-                        margin-left: auto;
-                      `}
-                    >
-                      <SapActualsIcon sapActual={sapActual} />
-                    </Box>
-                  )}
-                </Box>
-                <Box
-                  css={css`
-                    width: 1px;
-                    background-color: #d0d0d0;
-                    align-self: stretch;
-                  `}
-                />
-                <Box
-                  className="amount-value"
-                  css={css`
-                    flex: 1;
-                    text-align: right;
-                    font-weight: ${isProject ? '600' : 'inherit'};
-                    padding-left: 8px;
-                  `}
-                >
-                  {formatCurrency(plannedValue) ?? '-'}
-                </Box>
-              </>
-            ) : isCurrentYear ? (
-              <>
-                <Box
-                  className="actual-value"
-                  css={css`
-                    flex: 1;
-                    text-align: left;
-                    font-weight: ${isProject ? '600' : 'inherit'};
-                    padding-right: 8px;
-                    display: flex;
-                    align-items: center;
-                    gap: 4px;
-                  `}
-                >
-                  {isLoadingActuals ? (
-                    <Skeleton variant="text" width="80%" height={14} />
-                  ) : (
-                    formatCurrency(actual)
-                  )}
-                  {isProject && sapActual != null && (
-                    <Box
-                      css={css`
-                        margin-left: auto;
-                      `}
-                    >
-                      <SapActualsIcon sapActual={sapActual} />
-                    </Box>
-                  )}
-                </Box>
-                <Box
-                  css={css`
-                    width: 1px;
-                    background-color: #d0d0d0;
-                    align-self: stretch;
-                  `}
-                />
-                <Box
-                  className="amount-value"
-                  css={css`
-                    flex: 1;
-                    text-align: right;
-                    font-weight: ${isProject ? '600' : 'inherit'};
-                    padding-left: 8px;
-                  `}
-                >
-                  {formatCurrency(amountValue) ?? '-'}
-                </Box>
-                <Box
-                  css={css`
-                    width: 1px;
-                    background-color: #d0d0d0;
-                    align-self: stretch;
-                    margin-left: 8px;
-                  `}
-                />
-                <Box
-                  className="estimate-value"
-                  css={css`
-                    flex: 1;
-                    text-align: right;
-                    font-weight: ${isProject ? '600' : 'inherit'};
-                    padding-left: 8px;
-                  `}
-                >
-                  {formatCurrency(plannedValue) ?? '-'}
-                </Box>
-              </>
-            ) : (
-              <>
-                <Box
-                  className="amount-value"
-                  css={css`
-                    flex: 1;
-                    text-align: right;
-                    font-weight: ${isProject ? '600' : 'inherit'};
-                    padding-right: 8px;
-                  `}
-                >
-                  {formatCurrency(amountValue) ?? '-'}
-                </Box>
-                <Box
-                  css={css`
-                    width: 1px;
-                    background-color: #d0d0d0;
-                    align-self: stretch;
-                  `}
-                />
-                <Box
-                  className="estimate-value"
-                  css={css`
-                    flex: 1;
-                    text-align: right;
-                    font-weight: ${isProject ? '600' : 'inherit'};
-                    padding-left: 8px;
-                  `}
-                >
-                  {formatCurrency(plannedValue) ?? '-'}
-                </Box>
-              </>
-            )}
-          </Box>
-        );
-      },
-      renderEditCell: (params: GridRenderEditCellParams) => {
-        const { id, field, value, api } = params;
-        const row = params.row as PlanningRowWithYears;
-        const editable = canEditYear(String(field), row);
-        if (!editable) {
-          return <Box />;
-        }
-        return (
-          <CurrencyInput
-            autoFocus
-            editing
-            value={(value as number | null) ?? null}
-            allowNegative={false}
-            onChange={(val) => {
-              api.setEditCellValue({ id, field, value: val });
-            }}
-            style={{ width: '100%', height: '100%', border: 'none', outline: 'none' }}
-          />
-        );
-      },
-      editable: true,
-      cellClassName: 'cell-wrap-text financial-cell',
+    columnGroupingModel.push({
+      groupId: `yeargroup${year}`,
+      headerName: `${year}`,
+      headerAlign: 'center',
+      headerClassName: 'year-column',
+      children: groupChildren,
     });
   }
 
   // Apply common properties to all columns
-  return columns.map((column) => ({
-    ...column,
-    filterable: false,
-    sortable: false,
-    resizable: false,
-  }));
+  return {
+    columns: columns.map((column) => ({
+      ...column,
+      filterable: false,
+      sortable: false,
+      resizable: false,
+    })),
+    columnGroupingModel,
+  };
 }
