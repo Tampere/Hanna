@@ -101,6 +101,18 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   & .MuiDataGrid-cell:hover {
     background-color: #e7eef9 !important;
   }
+  & .MuiDataGrid-cell.year-column:hover {
+    background-color: transparent !important;
+  }
+  & .MuiDataGrid-cell.year-column [data-planning-edit-target='editable']:hover {
+    background-color: #e7eef9;
+  }
+  & .MuiDataGrid-cell.year-column [data-planning-edit-target='editable'] {
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
 
   /* Project row styling - bold text for all cells */
   & .project-row {
@@ -189,9 +201,6 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
   & .cell-readonly .amount-value,
   & .cell-readonly .actual-value {
     color: #7b7b7b !important;
-  }
-  & .cell-writable {
-    cursor: pointer;
   }
 
   & .MuiDataGrid-columnHeader {
@@ -338,12 +347,16 @@ export default function PlanningTable() {
     rowId: string;
     field: string; // yearYYYY
     year: number;
+    budgetField: PlanningBudgetField;
     oldValue: number | null;
     newValue: number | null;
   };
 
   const [editEvents, setEditEvents] = useState<EditEvent[]>([]);
   const [redoEvents, setRedoEvents] = useState<EditEvent[]>([]);
+  const [yearCellBudgetFieldByKey, setYearCellBudgetFieldByKey] = useState<
+    Record<string, PlanningBudgetField>
+  >({});
   const [collapsedProjects, setCollapsedProjects] = useState<Set<string>>(new Set());
   const [disabledInfo, setDisabledInfo] = useState<{
     anchorEl: HTMLElement | null;
@@ -395,6 +408,7 @@ export default function PlanningTable() {
     setRows(originalRows);
     setEditEvents([]);
     setRedoEvents([]);
+    setYearCellBudgetFieldByKey({});
   }, [originalRows]);
 
   const modifiedFields = useMemo(() => {
@@ -452,6 +466,109 @@ export default function PlanningTable() {
     const inRange = year >= startYear && year <= endYear;
     if (!inRange) return false;
     return canWritePlanningFinancials;
+  }
+
+  function getYearCellKey(rowId: string, field: string): string {
+    return `${rowId}:${field}`;
+  }
+
+  function getYearCellBudgetField(
+    rowId: string,
+    field: string,
+    year: number,
+  ): PlanningBudgetField {
+    return yearCellBudgetFieldByKey[getYearCellKey(rowId, field)] ??
+      getPlanningBudgetFieldForYear(year, currentYear);
+  }
+
+  function setBudgetFieldForYear(
+    row: PlanningRowWithYears,
+    year: number,
+    budgetField: PlanningBudgetField,
+    value: number | null,
+  ): PlanningRowWithYears {
+    if (row.type !== 'projectObject') return row;
+    const budget = [...(row.budget ?? [])];
+    const idx = budget.findIndex((b) => b?.year === year);
+    const existing = idx >= 0 ? budget[idx] : null;
+    const updatedEntry = {
+      year,
+      amount: existing?.amount ?? null,
+      forecast: existing?.forecast ?? null,
+      estimate: existing?.estimate ?? null,
+      actual: existing?.actual ?? null,
+      [budgetField]: value,
+    };
+
+    if (idx >= 0) {
+      budget[idx] = updatedEntry;
+    } else {
+      budget.push(updatedEntry);
+    }
+
+    return { ...row, budget } as PlanningRowWithYears;
+  }
+
+  function applyEditValueToRow(
+    row: PlanningRowWithYears,
+    field: string,
+    year: number,
+    budgetField: PlanningBudgetField,
+    value: number | null,
+  ): PlanningRowWithYears {
+    if (budgetField === 'amount' && year >= currentYear) {
+      const withAmount = setBudgetFieldForYear(row, year, budgetField, value);
+      return {
+        ...withAmount,
+        [field]: (row[field] as number | null | undefined) ?? null,
+      } as PlanningRowWithYears;
+    }
+
+    let next = { ...row, [field]: value } as PlanningRowWithYears;
+    if (year >= currentYear) {
+      next = setBudgetFieldForYear(next, year, budgetField, value);
+    }
+    return next;
+  }
+
+  function getYearCellEditValue(
+    row: PlanningRowWithYears,
+    rowId: string,
+    field: string,
+  ): number | null {
+    if (!isYearField(field)) return null;
+    const year = Number(field.replace('year', ''));
+    const budgetField = getYearCellBudgetField(rowId, field, year);
+    if (budgetField === 'amount' && year >= currentYear) {
+      return getPlanningAmountForYear(row, year, currentYear);
+    }
+    return (row[field] as number | null | undefined) ?? null;
+  }
+
+  function startYearCellEdit(
+    params: GridRenderCellParams<PlanningRowWithYears>,
+    budgetField: PlanningBudgetField,
+    event: { stopPropagation: () => void },
+  ) {
+    event.stopPropagation();
+    const rowId = params.id as string;
+    const field = params.field as string;
+    if (!isYearField(field)) return;
+    setYearCellBudgetFieldByKey((prev) => ({
+      ...prev,
+      [getYearCellKey(rowId, field)]: budgetField,
+    }));
+    params.api.startCellEditMode({ id: params.id, field: params.field });
+  }
+
+  function clearYearCellBudgetField(rowId: string, field: string) {
+    const key = getYearCellKey(rowId, field);
+    setYearCellBudgetFieldByKey((prev) => {
+      if (!(key in prev)) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   }
 
   function getYearDisabledReason(field: string, row: PlanningRowWithYears): string | null {
@@ -797,6 +914,8 @@ export default function PlanningTable() {
       totalSumRow,
       collapsedProjects,
       toggleProjectCollapse,
+      startYearCellEdit,
+      getYearCellEditValue,
       tr: tr as (key: string, ...args: any[]) => string,
     });
   }, [
@@ -813,6 +932,7 @@ export default function PlanningTable() {
     sapActualsByProject,
     totalSumRow,
     collapsedProjects,
+    yearCellBudgetFieldByKey,
     tr,
   ]);
 
@@ -822,7 +942,11 @@ export default function PlanningTable() {
     setEditEvents((prev) => prev.slice(0, -1));
     setRedoEvents((prev) => [...prev, last]);
     setRows((prev) =>
-      prev.map((row) => (row.id === last.rowId ? { ...row, [last.field]: last.oldValue } : row)),
+      prev.map((row) =>
+        row.id === last.rowId
+          ? applyEditValueToRow(row, last.field, last.year, last.budgetField, last.oldValue)
+          : row,
+      ),
     );
   }
 
@@ -830,6 +954,7 @@ export default function PlanningTable() {
     setRows(originalRows);
     setEditEvents([]);
     setRedoEvents([]);
+    setYearCellBudgetFieldByKey({});
   }
 
   function redo() {
@@ -838,7 +963,11 @@ export default function PlanningTable() {
     setRedoEvents((prev) => prev.slice(0, -1));
     setEditEvents((prev) => [...prev, last]);
     setRows((prev) =>
-      prev.map((row) => (row.id === last.rowId ? { ...row, [last.field]: last.newValue } : row)),
+      prev.map((row) =>
+        row.id === last.rowId
+          ? applyEditValueToRow(row, last.field, last.year, last.budgetField, last.newValue)
+          : row,
+      ),
     );
   }
 
@@ -858,13 +987,14 @@ export default function PlanningTable() {
       payload[e.rowId] = payload[e.rowId] ?? [];
       payload[e.rowId].push({
         year: e.year,
-        field: getPlanningBudgetFieldForYear(e.year, currentYear),
+        field: e.budgetField,
         value: e.newValue,
       });
     });
     await updatePlanning.mutateAsync(payload);
     setEditEvents([]);
     setRedoEvents([]);
+    setYearCellBudgetFieldByKey({});
   }
 
   const handleCloseDisabledInfo = () => {
@@ -990,7 +1120,10 @@ export default function PlanningTable() {
           const field = params.field as string;
 
           if (!isYearField(field)) return;
-          if (canEditYear(field, row)) return;
+          if (canEditYear(field, row)) {
+            event.defaultMuiPrevented = true;
+            return;
+          }
 
           const reason = getYearDisabledReason(field, row);
           if (!reason) return;
@@ -1012,9 +1145,7 @@ export default function PlanningTable() {
             const mod = modifiedFields?.[id as string]?.[field];
             if (mod) {
               classNames.push('modified-cell');
-            } else if (canEditYear(field, typedRow)) {
-              classNames.push('cell-writable');
-            } else {
+            } else if (!canEditYear(field, typedRow)) {
               classNames.push('cell-readonly');
             }
 
@@ -1046,20 +1177,35 @@ export default function PlanningTable() {
           );
           if (changedField) {
             const year = Number(changedField.replace('year', ''));
+            const rowId = (newRow as PlanningRowWithYears).id;
+            const budgetField = getYearCellBudgetField(rowId, changedField, year);
+            const oldValue =
+              budgetField === 'amount' && year >= currentYear
+                ? getPlanningAmountForYear(oldRow as PlanningRowWithYears, year, currentYear)
+                : ((oldRow as PlanningRowWithYears)[changedField] ?? null);
+            const newValue = (newRow as PlanningRowWithYears)[changedField] ?? null;
+            const appliedRow = applyEditValueToRow(
+              oldRow as PlanningRowWithYears,
+              changedField,
+              year,
+              budgetField,
+              newValue,
+            );
             const evt: EditEvent = {
-              rowId: (newRow as PlanningRowWithYears).id,
+              rowId,
               field: changedField,
               year,
-              oldValue: (oldRow as PlanningRowWithYears)[changedField] ?? null,
-              newValue: (newRow as PlanningRowWithYears)[changedField] ?? null,
+              budgetField,
+              oldValue,
+              newValue,
             };
             setEditEvents((prev) => [...prev, evt]);
             setRedoEvents([]);
             setRows((prev) =>
-              prev.map((r) =>
-                r.id === (newRow as PlanningRowWithYears).id ? (newRow as PlanningRowWithYears) : r,
-              ),
+              prev.map((r) => (r.id === rowId ? appliedRow : r)),
             );
+            clearYearCellBudgetField(rowId, changedField);
+            return appliedRow;
           }
           return newRow as PlanningRowWithYears;
         }}
@@ -1070,6 +1216,21 @@ export default function PlanningTable() {
         rowSelection={false}
         initialState={{ pagination: { paginationModel: { page: 0, pageSize: 1000 } } }}
         pageSizeOptions={[100, 500, 1000]}
+        onCellEditStop={(params) => {
+          const field = params.field as string;
+          if (!isYearField(field)) return;
+          setTimeout(() => {
+            clearYearCellBudgetField(params.id as string, field);
+          }, 0);
+        }}
+        onCellDoubleClick={(params, event) => {
+          const row = params.row as PlanningRowWithYears;
+          const field = params.field as string;
+          if (!isYearField(field)) return;
+          if (canEditYear(field, row)) {
+            event.defaultMuiPrevented = true;
+          }
+        }}
         onCellKeyDown={(_params, event) => {
           if (!['Enter', 'NumpadEnter', 'Backspace', 'Delete'].includes(event.key)) {
             event.stopPropagation();
@@ -1157,6 +1318,12 @@ interface GetColumnsParams {
   pinnedColumns: string[];
   planningData?: PlanningRowWithYears[];
   canEditYear: (field: string, row: PlanningRowWithYears) => boolean;
+  startYearCellEdit: (
+    params: GridRenderCellParams<PlanningRowWithYears>,
+    budgetField: PlanningBudgetField,
+    event: { stopPropagation: () => void },
+  ) => void;
+  getYearCellEditValue: (row: PlanningRowWithYears, rowId: string, field: string) => number | null;
   modifiedFields: Record<string, Record<string, boolean>>;
   actualsByPo: Map<string, Record<number, number>>;
   actualsLoadingByPo: Map<string, boolean>;
@@ -1173,6 +1340,8 @@ interface GetColumnsParams {
 function getColumns({
   yearRange,
   canEditYear,
+  startYearCellEdit,
+  getYearCellEditValue,
   actualsByPo,
   actualsLoadingByPo,
   plannedSumsByProjectName,
@@ -1376,7 +1545,6 @@ function getColumns({
                 css={css`
                   flex: 1;
                   text-align: center;
-
                 `}
               >
                 {tr('planningTable.amount')}
@@ -1458,6 +1626,7 @@ function getColumns({
           isProjectObject && hasActualColumn
             ? actualsLoadingByPo.get(params.row.id) ?? false
             : false;
+        const canEditPlannedValue = canEditYear(yearKey, params.row);
 
         return (
           <Box
@@ -1465,6 +1634,7 @@ function getColumns({
               display: flex;
               flex-direction: row;
               width: 100%;
+              height: 100%;
               justify-content: space-between;
               align-items: center;
               font-size: 11px;
@@ -1509,11 +1679,20 @@ function getColumns({
                 />
                 <Box
                   className="amount-value"
+                  data-planning-edit-target={canEditPlannedValue ? 'editable' : undefined}
+                  onClick={
+                    canEditPlannedValue
+                      ? (event) => {
+                          startYearCellEdit(params, 'amount', event);
+                        }
+                      : undefined
+                  }
                   css={css`
                     flex: 1;
                     text-align: right;
                     font-weight: ${isProject ? '600' : 'inherit'};
                     padding-left: 8px;
+                    cursor: ${canEditPlannedValue ? 'pointer' : 'inherit'};
                   `}
                 >
                   {formatCurrency(plannedValue) ?? '-'}
@@ -1557,11 +1736,20 @@ function getColumns({
                 />
                 <Box
                   className="amount-value"
+                  data-planning-edit-target={canEditPlannedValue ? 'editable' : undefined}
+                  onClick={
+                    canEditPlannedValue
+                      ? (event) => {
+                          startYearCellEdit(params, 'amount', event);
+                        }
+                      : undefined
+                  }
                   css={css`
                     flex: 1;
                     text-align: right;
                     font-weight: ${isProject ? '600' : 'inherit'};
                     padding-left: 8px;
+                    cursor: ${canEditPlannedValue ? 'pointer' : 'inherit'};
                   `}
                 >
                   {formatCurrency(amountValue) ?? '-'}
@@ -1576,11 +1764,20 @@ function getColumns({
                 />
                 <Box
                   className="estimate-value"
+                  data-planning-edit-target={canEditPlannedValue ? 'editable' : undefined}
+                  onClick={
+                    canEditPlannedValue
+                      ? (event) => {
+                          startYearCellEdit(params, planningBudgetField, event);
+                        }
+                      : undefined
+                  }
                   css={css`
                     flex: 1;
                     text-align: right;
                     font-weight: ${isProject ? '600' : 'inherit'};
                     padding-left: 8px;
+                    cursor: ${canEditPlannedValue ? 'pointer' : 'inherit'};
                   `}
                 >
                   {formatCurrency(plannedValue) ?? '-'}
@@ -1590,11 +1787,20 @@ function getColumns({
               <>
                 <Box
                   className="amount-value"
+                  data-planning-edit-target={canEditPlannedValue ? 'editable' : undefined}
+                  onClick={
+                    canEditPlannedValue
+                      ? (event) => {
+                          startYearCellEdit(params, 'amount', event);
+                        }
+                      : undefined
+                  }
                   css={css`
                     flex: 1;
                     text-align: right;
                     font-weight: ${isProject ? '600' : 'inherit'};
                     padding-right: 8px;
+                    cursor: ${canEditPlannedValue ? 'pointer' : 'inherit'};
                   `}
                 >
                   {formatCurrency(amountValue) ?? '-'}
@@ -1608,11 +1814,20 @@ function getColumns({
                 />
                 <Box
                   className="estimate-value"
+                  data-planning-edit-target={canEditPlannedValue ? 'editable' : undefined}
+                  onClick={
+                    canEditPlannedValue
+                      ? (event) => {
+                          startYearCellEdit(params, planningBudgetField, event);
+                        }
+                      : undefined
+                  }
                   css={css`
                     flex: 1;
                     text-align: right;
                     font-weight: ${isProject ? '600' : 'inherit'};
                     padding-left: 8px;
+                    cursor: ${canEditPlannedValue ? 'pointer' : 'inherit'};
                   `}
                 >
                   {formatCurrency(plannedValue) ?? '-'}
@@ -1623,7 +1838,7 @@ function getColumns({
         );
       },
       renderEditCell: (params: GridRenderEditCellParams) => {
-        const { id, field, value, api } = params;
+        const { id, field, api } = params;
         const row = params.row as PlanningRowWithYears;
         const editable = canEditYear(String(field), row);
         if (!editable) {
@@ -1633,7 +1848,7 @@ function getColumns({
           <CurrencyInput
             autoFocus
             editing
-            value={(value as number | null) ?? null}
+            value={getYearCellEditValue(row, String(id), String(field))}
             allowNegative={false}
             onChange={(val) => {
               api.setEditCellValue({ id, field, value: val });
