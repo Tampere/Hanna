@@ -266,6 +266,7 @@ export default function WorkTable() {
   const selectedYear = dayjs(searchParams.objectStartDate).year();
   const isOngoingYear = !allYearsSelected && selectedYear === new Date().getFullYear();
   const isFutureYear = !allYearsSelected && selectedYear > new Date().getFullYear();
+  const selectedYearIsLocked = !allYearsSelected && lockedYears?.includes(selectedYear);
 
   const columns = useMemo(() => {
     return getColumns({
@@ -274,8 +275,9 @@ export default function WorkTable() {
       pinnedColumns: pinnedColumns.map((column) => column.name),
       isOngoingYear,
       isFutureYear,
+      hideEstimate: selectedYearIsLocked,
     });
-  }, [modifiedFields, allYearsSelected, isOngoingYear, isFutureYear]);
+  }, [modifiedFields, allYearsSelected, isOngoingYear, isFutureYear, selectedYearIsLocked]);
 
   useEffect(() => {
     setEditEvents([]);
@@ -400,7 +402,7 @@ export default function WorkTable() {
     let writableFields: WorkTableFinanceField[] = [];
     if (!auth) return writableFields;
 
-    const yearIsLocked = lockedYears?.includes(dayjs(searchParams.objectStartDate).year());
+    const yearIsLocked = !allYearsSelected && lockedYears?.includes(selectedYear);
 
     if (isAdmin(auth.role)) {
       writableFields = ['estimate', 'amount', 'forecast', 'kayttosuunnitelmanMuutos'];
@@ -416,7 +418,9 @@ export default function WorkTable() {
         (field) => field !== 'forecast' && field !== 'kayttosuunnitelmanMuutos',
       );
     }
-    return !yearIsLocked ? writableFields : writableFields.filter((field) => field !== 'amount');
+    return !yearIsLocked
+      ? writableFields
+      : writableFields.filter((field) => field !== 'amount' && field !== 'estimate');
   }
 
   function participantFilterChange() {

@@ -1392,14 +1392,8 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                   ? (writableFields || []).filter((field) => field !== 'amount')
                                   : writableFields || [];
 
-                                const currentYear = new Date().getFullYear();
-                                const estimateFilteredWritable =
-                                  year <= currentYear
-                                    ? writableForYear.filter((f) => f !== 'estimate')
-                                    : writableForYear;
-
                                 const finalWritableFields = projectObjectBudgetsLoaded
-                                  ? estimateFilteredWritable
+                                  ? writableForYear
                                   : [];
 
                                 const objectActuals =
@@ -1416,6 +1410,7 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
                                     projectObject={projectObject}
                                     year={year}
                                     fields={fields}
+                                    hideEstimate={lockedYears.includes(year)}
                                     writableFields={finalWritableFields}
                                     actualsLoading={objectActualsLoading}
                                     actuals={objectActuals}

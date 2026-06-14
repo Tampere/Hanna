@@ -40,6 +40,7 @@ interface GetColumnsParams {
   pinnedColumns: string[];
   isOngoingYear: boolean;
   isFutureYear: boolean;
+  hideEstimate: boolean;
 }
 
 interface MaybeModifiedCellProps<T extends GridValidRowModel> {
@@ -450,6 +451,7 @@ export function getColumns({
   pinnedColumns,
   isOngoingYear,
   isFutureYear,
+  hideEstimate,
 }: GetColumnsParams): (GridColDef<WorkTableRow> & { __isWrapped?: boolean })[] {
   const columns: (GridColDef<WorkTableRow> & { __isWrapped?: boolean })[] = [
     fieldProjectLink,
@@ -462,7 +464,12 @@ export function getColumns({
     fieldObjectUsage,
     fieldObjectCommittee,
     fieldOperatives,
-    financesField('estimate', { headerName: 'Talousarvioennuste', editable: !allYearsSelected }),
+    financesField(
+      'estimate',
+      { headerName: 'Talousarvioennuste', editable: !allYearsSelected && !hideEstimate },
+      undefined,
+      hideEstimate,
+    ),
     financesField('amount', { headerName: 'Talousarvio', editable: !allYearsSelected }),
     financesField('actual', { headerName: 'Toteuma', editable: false }),
     financesField(

@@ -421,17 +421,14 @@ export const BudgetTable = forwardRef(function BudgetTable(props: Props, ref) {
               `}
             >
               {years?.map((year) => {
-                const currentYear = new Date().getFullYear();
-                const yearWritableFields =
-                  year <= currentYear
-                    ? writableFields?.filter((field) => field !== 'estimate')
-                    : writableFields;
+                const yearWritableFields = writableFields;
                 return (
                   <Fragment key={year}>
                     {
                       <BudgetContentRow
                         year={year}
                         includeYearColumn
+                        hideEstimate={lockedYears?.includes(year)}
                         writableFields={
                           lockedYears?.includes(year)
                             ? yearWritableFields?.filter((field) => field !== 'amount')

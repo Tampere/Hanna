@@ -24,6 +24,7 @@ interface BudgetContentRowCellProps {
   fields?: BudgetField[];
   year: number;
   writableFields?: BudgetField[];
+  hideEstimate?: boolean;
   actualsLoading?: boolean;
   actuals?: YearlyActuals | null;
   rowIndex: number;
@@ -34,10 +35,11 @@ export function ProjectObjectBudgetRow({
   fields,
   year,
   writableFields,
+  hideEstimate,
   actualsLoading,
   actuals,
   rowIndex,
-}: BudgetContentRowCellProps) {
+}: Readonly<BudgetContentRowCellProps>) {
   const committeeColor =
     committeeColors[(projectObject.objectCommittee as keyof typeof committeeColors) ?? 'default'];
 
@@ -114,7 +116,7 @@ export function ProjectObjectBudgetRow({
       }
 
       {fields?.includes('estimate') &&
-        (year <= currentYear ? (
+        (hideEstimate ? (
           <TableCell />
         ) : (
           <TableCell>

@@ -14,6 +14,7 @@ interface BudgetContentRowCellProps {
   year: number;
   writableFields?: BudgetField[];
   fields?: BudgetField[];
+  hideEstimate?: boolean;
   actualsLoading?: boolean;
   actuals?: YearlyActuals | null;
   committee?: { id: Code['id']['id']; text: string };
@@ -27,6 +28,7 @@ export function BudgetContentRow({
   year,
   writableFields,
   fields,
+  hideEstimate,
   actualsLoading,
   actuals,
   includeYearColumn,
@@ -34,7 +36,7 @@ export function BudgetContentRow({
   disableBorder,
   sapYearTotal,
   name,
-}: BudgetContentRowCellProps) {
+}: Readonly<BudgetContentRowCellProps>) {
   const currentYear = new Date().getFullYear();
   const committeeColor =
     committeeColors[(committee?.id as keyof typeof committeeColors) ?? 'default'];
@@ -93,7 +95,7 @@ export function BudgetContentRow({
         </TableCell>
       )}
       {fields?.includes('estimate') &&
-        (year <= currentYear ? (
+        (hideEstimate ? (
           <TableCell />
         ) : (
           <TableCell>
@@ -166,26 +168,24 @@ export function BudgetContentRow({
         <TableCell>
           {!actualsLoading ? (
             <span className={TABLE_CELL_CONTENT_CLASS}>
-              <>
-                <CurrencyInput
-                  getColor={() => {
-                    if (!includeYearColumn && fields.includes('committee')) {
-                      return committeeColor;
-                    }
-                    return 'inherit';
-                  }}
-                  directlyHandleValueChange
-                  value={actuals?.find((data) => data.year === year)?.total ?? null}
-                  placeholder={'–'}
-                />
+              <CurrencyInput
+                getColor={() => {
+                  if (!includeYearColumn && fields.includes('committee')) {
+                    return committeeColor;
+                  }
+                  return 'inherit';
+                }}
+                directlyHandleValueChange
+                value={actuals?.find((data) => data.year === year)?.total ?? null}
+                placeholder={'–'}
+              />
 
-                {
-                  !disableBorder &&
-                    sapYearTotal != null && ( // Borders are disabled when there are multiple committees
-                      <SapActualsIcon sapActual={sapYearTotal ?? 0}></SapActualsIcon>
-                    ) // Sap actuals icon is shown only when there is only one committee
-                }
-              </>
+              {
+                !disableBorder &&
+                  sapYearTotal != null && ( // Borders are disabled when there are multiple committees
+                    <SapActualsIcon sapActual={sapYearTotal ?? 0}></SapActualsIcon>
+                  ) // Sap actuals icon is shown only when there is only one committee
+              }
             </span>
           ) : (
             <Skeleton variant="rectangular" animation="wave">
