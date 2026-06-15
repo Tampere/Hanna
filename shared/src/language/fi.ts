@@ -699,6 +699,7 @@ export const fi = {
   'workTable.export.projectName': 'Hanke',
   'workTable.export.projectDescription': 'Hankkeen sisäinen kuvaus',
   'workTable.export.projectPublicDescription': 'Hankkeen julkinen kuvaus',
+  'workTable.export.name': 'Nimi',
   'workTable.export.objectName': 'Kohde',
   'workTable.export.objectDescription': 'Kohteen sisäinen kuvaus',
   'workTable.export.objectPublicDescription': 'Kohteen julkinen kuvaus',
