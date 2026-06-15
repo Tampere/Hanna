@@ -175,11 +175,13 @@ export function buildInvestmentTypeListingReportSheet({
   workbook,
   sheetTitle,
   sumRowTitle,
+  headers,
   rows,
 }: {
   workbook: Workbook;
   sheetTitle: string;
   sumRowTitle: string;
+  headers: { name: string; estimate: string; amount: string; description: string };
   rows: readonly { [field in ReportColumnKey]?: ReportFieldValue }[];
 }) {
   if (!rows.length) {
@@ -243,6 +245,16 @@ export function buildInvestmentTypeListingReportSheet({
 
   // Initialize column widths
   const columnWidths = [200, 200, 200, 200];
+
+  // Write the header row
+  sheet.cell(1, COL_NAME).string(headers.name).style(boldStyle);
+  sheet.cell(1, COL_ESTIMATE).string(headers.estimate).style(boldStyle);
+  sheet.cell(1, COL_AMOUNT).string(headers.amount).style(boldStyle);
+  sheet.cell(1, COL_DESCRIPTION).string(headers.description).style(boldStyle);
+  updateColumnWidths(columnWidths, COL_NAME - 1, headers.name, false);
+  updateColumnWidths(columnWidths, COL_ESTIMATE - 1, headers.estimate, false);
+  updateColumnWidths(columnWidths, COL_AMOUNT - 1, headers.amount, false);
+  updateColumnWidths(columnWidths, COL_DESCRIPTION - 1, headers.description, false);
 
   function sumAmounts(objectRows: { [field in ReportColumnKey]?: ReportFieldValue }[]) {
     return objectRows.reduce((sum, row) => {

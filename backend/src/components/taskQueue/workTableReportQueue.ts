@@ -33,7 +33,7 @@ type JobData = WorkTableSearch;
 
 export type ReportColumnKey = Exclude<
   Partial<Suffix<TranslationKey, 'workTable.export.'>>,
-  'label' | 'total'
+  'label' | 'total' | 'name'
 >;
 
 export async function setupWorkTableReportQueue() {
@@ -219,6 +219,12 @@ export async function setupWorkTableReportQueue() {
           workbook,
           sheetTitle: translations['fi']['workTable.export.label'],
           sumRowTitle: translations['fi']['workTable.export.total'],
+          headers: {
+            name: translations['fi']['workTable.export.name'],
+            estimate: translations['fi']['workTable.export.estimate'],
+            amount: translations['fi']['workTable.export.amount'],
+            description: translations['fi']['workTable.export.objectDescription'],
+          },
           rows: getRows(),
         });
       } else {
