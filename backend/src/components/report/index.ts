@@ -233,15 +233,16 @@ export function buildInvestmentTypeListingReportSheet({
   });
 
   const COL_NAME = 1;
-  const COL_AMOUNT = 2;
-  const COL_DESCRIPTION = 3;
+  const COL_ESTIMATE = 2;
+  const COL_AMOUNT = 3;
+  const COL_DESCRIPTION = 4;
 
   const sheet = workbook.addWorksheet(sheetTitle, {
     sheetView: { showGridLines: false },
   });
 
   // Initialize column widths
-  const columnWidths = [200, 200, 200];
+  const columnWidths = [200, 200, 200, 200];
 
   function sumAmounts(objectRows: { [field in ReportColumnKey]?: ReportFieldValue }[]) {
     return objectRows.reduce((sum, row) => {
@@ -249,8 +250,25 @@ export function buildInvestmentTypeListingReportSheet({
     }, 0);
   }
 
-  function addTypeRow(rowIndex: number, objectType: string, typeAmount: number) {
+  function sumEstimates(objectRows: { [field in ReportColumnKey]?: ReportFieldValue }[]) {
+    return objectRows.reduce((sum, row) => {
+      return typeof row.estimate === 'number' ? sum + row.estimate : sum;
+    }, 0);
+  }
+
+  function addTypeRow(
+    rowIndex: number,
+    objectType: string,
+    typeEstimate: number,
+    typeAmount: number,
+  ) {
     sheet.cell(rowIndex, COL_NAME).string(objectType).style(boldStyle).style(typeRowStyle);
+    sheet
+      .cell(rowIndex, COL_ESTIMATE)
+      .number(typeEstimate)
+      .style(currencyStyle)
+      .style(boldStyle)
+      .style(typeRowStyle);
     sheet
       .cell(rowIndex, COL_AMOUNT)
       .number(typeAmount)
@@ -259,13 +277,21 @@ export function buildInvestmentTypeListingReportSheet({
       .style(typeRowStyle);
     sheet.cell(rowIndex, COL_DESCRIPTION).string('').style(typeRowStyle);
     updateColumnWidths(columnWidths, COL_NAME - 1, objectType, false, 1200);
+    updateColumnWidths(columnWidths, COL_ESTIMATE - 1, typeEstimate, true);
     updateColumnWidths(columnWidths, COL_AMOUNT - 1, typeAmount, true);
   }
 
-  function addProjectRow(rowIndex: number, projectName: string, projectAmount: number) {
+  function addProjectRow(
+    rowIndex: number,
+    projectName: string,
+    projectEstimate: number,
+    projectAmount: number,
+  ) {
     sheet.cell(rowIndex, COL_NAME).string(projectName).style(boldStyle).style(projectIndentStyle);
+    sheet.cell(rowIndex, COL_ESTIMATE).number(projectEstimate).style(currencyStyle).style(boldStyle);
     sheet.cell(rowIndex, COL_AMOUNT).number(projectAmount).style(currencyStyle).style(boldStyle);
     updateColumnWidths(columnWidths, COL_NAME - 1, projectName, false, 1200);
+    updateColumnWidths(columnWidths, COL_ESTIMATE - 1, projectEstimate, true);
     updateColumnWidths(columnWidths, COL_AMOUNT - 1, projectAmount, true);
   }
 
@@ -280,6 +306,10 @@ export function buildInvestmentTypeListingReportSheet({
     if (typeof objectRow.amount === 'number') {
       sheet.cell(rowIndex, COL_AMOUNT).number(objectRow.amount).style(currencyStyle);
       updateColumnWidths(columnWidths, COL_AMOUNT - 1, objectRow.amount, true);
+    }
+    if (typeof objectRow.estimate === 'number') {
+      sheet.cell(rowIndex, COL_ESTIMATE).number(objectRow.estimate).style(currencyStyle);
+      updateColumnWidths(columnWidths, COL_ESTIMATE - 1, objectRow.estimate, true);
     }
     sheet.cell(rowIndex, COL_DESCRIPTION).string(description).style(noWrapStyle);
 
@@ -307,17 +337,28 @@ export function buildInvestmentTypeListingReportSheet({
 
   let latestRowIndex = 1;
   let totalAmount = 0;
+  let totalEstimate = 0;
 
   Object.entries(sheetData).forEach(([objectType, projectMap]) => {
     const typeAmount = Object.values(projectMap).reduce(
       (sum, projectRows) => sum + sumAmounts(projectRows),
       0,
     );
+    const typeEstimate = Object.values(projectMap).reduce(
+      (sum, projectRows) => sum + sumEstimates(projectRows),
+      0,
+    );
     totalAmount += typeAmount;
-    addTypeRow(++latestRowIndex, objectType, typeAmount);
+    totalEstimate += typeEstimate;
+    addTypeRow(++latestRowIndex, objectType, typeEstimate, typeAmount);
 
     Object.entries(projectMap).forEach(([projectName, projectRows]) => {
-      addProjectRow(++latestRowIndex, projectName, sumAmounts(projectRows));
+      addProjectRow(
+        ++latestRowIndex,
+        projectName,
+        sumEstimates(projectRows),
+        sumAmounts(projectRows),
+      );
       projectRows.forEach((objectRow) => addObjectRow(++latestRowIndex, objectRow));
     });
   });
@@ -326,6 +367,10 @@ export function buildInvestmentTypeListingReportSheet({
   sheet
     .cell(latestRowIndex + 1, COL_NAME)
     .string(sumRowTitle)
+    .style(amountSumStyle);
+  sheet
+    .cell(latestRowIndex + 1, COL_ESTIMATE)
+    .number(totalEstimate)
     .style(amountSumStyle);
   sheet
     .cell(latestRowIndex + 1, COL_AMOUNT)
@@ -337,6 +382,7 @@ export function buildInvestmentTypeListingReportSheet({
     .style(amountSumStyle);
 
   sheet.column(COL_NAME).setWidth(columnWidths[COL_NAME - 1] * excelWidthFactor);
+  sheet.column(COL_ESTIMATE).setWidth(columnWidths[COL_ESTIMATE - 1] * excelWidthFactor);
   sheet.column(COL_AMOUNT).setWidth(columnWidths[COL_AMOUNT - 1] * excelWidthFactor);
   sheet.column(COL_DESCRIPTION).setWidth(columnWidths[COL_DESCRIPTION - 1] * excelWidthFactor);
 
