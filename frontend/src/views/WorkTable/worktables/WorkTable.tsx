@@ -409,7 +409,7 @@ export default function WorkTable() {
     } else if (hasPermission(auth, 'investmentFinancials.write')) {
       if (hasWritePermission(auth, permissionCtx) || ownsProject(auth, permissionCtx))
         writableFields = ['estimate', 'forecast', 'amount', 'kayttosuunnitelmanMuutos'];
-      writableFields = ['amount', 'kayttosuunnitelmanMuutos'];
+      else writableFields = ['amount', 'kayttosuunnitelmanMuutos'];
     } else if (hasWritePermission(auth, permissionCtx) || ownsProject(auth, permissionCtx)) {
       writableFields = ['estimate', 'forecast'];
     }
