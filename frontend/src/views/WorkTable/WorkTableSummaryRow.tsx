@@ -11,24 +11,55 @@ import { CellEditEvent } from './worktables/WorkTable';
 interface Props {
   workTableData: UseTRPCQueryResult<Readonly<WorkTableRow[]>, object>;
   editEvents: CellEditEvent[];
+  selectedYear: number | 'allYears';
+  lockedYears: number[];
+}
+
+function calculateRowSum(values: number[]) {
+  return values.reduce((sum, value) => sum + value, 0) / 100;
 }
 
 export const WorkTableSummaryRow = forwardRef(function WorkTableSummaryRow(
-  { workTableData, editEvents }: Props,
+  { workTableData, editEvents, selectedYear, lockedYears }: Props,
   ref,
 ) {
+  const isFutureYear = selectedYear !== 'allYears' && selectedYear > new Date().getFullYear();
+  const isLockedYear = selectedYear !== 'allYears' && lockedYears.includes(selectedYear);
   const tr = useTranslations();
 
-  function calculateRowSum(values: number[]) {
-    return values.reduce((sum, value) => sum + value, 0) / 100;
+  function getSummaryStyle(
+    fieldName: 'amount' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos' | 'estimate',
+  ) {
+    if (
+      (isFutureYear &&
+        (fieldName === 'forecast' ||
+          fieldName === 'kayttosuunnitelmanMuutos' ||
+          fieldName === 'actual')) ||
+      (isLockedYear && fieldName === 'estimate')
+    ) {
+      return `disabled`;
+    }
+    return '';
   }
 
   function getSummaryData(
-    fieldName: 'amount' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos',
+    fieldName: 'amount' | 'actual' | 'forecast' | 'kayttosuunnitelmanMuutos' | 'estimate',
   ) {
+    // Return a dash for future years for listed fields
+    // and for locked years for the estimate field
+    if (
+      (isFutureYear &&
+        (fieldName === 'forecast' ||
+          fieldName === 'kayttosuunnitelmanMuutos' ||
+          fieldName === 'actual')) ||
+      (isLockedYear && fieldName === 'estimate')
+    ) {
+      return '–';
+    }
     const eurFormat = new Intl.NumberFormat('fi-FI', {
       style: 'currency',
       currency: 'EUR',
+      maximumFractionDigits: 0,
     });
 
     if (!workTableData?.data) {
@@ -73,25 +104,51 @@ export const WorkTableSummaryRow = forwardRef(function WorkTableSummaryRow(
           white-space: nowrap;
           color: ${theme.palette.primary.main};
         }
+        .disabled {
+          color: ${theme.palette.text.disabled};
+        }
       `}
     >
+      <Box className="summaryContainer">
+        <Typography className={`summaryLabel ${getSummaryStyle('estimate')}`}>
+          {tr('workTable.summary.estimate')}:
+        </Typography>
+        <Typography className={getSummaryStyle('estimate')}>
+          {getSummaryData('estimate')}
+        </Typography>
+      </Box>
+
       <Box className="summaryContainer">
         <Typography className="summaryLabel">{tr('workTable.summary.amount')}:</Typography>
         <Typography>{getSummaryData('amount')}</Typography>
       </Box>
+
       <Box className="summaryContainer">
-        <Typography className="summaryLabel">{tr('workTable.summary.actual')}:</Typography>
-        <Typography>{getSummaryData('actual')}</Typography>
+        <Typography className={`summaryLabel ${getSummaryStyle('actual')}`}>
+          {tr('workTable.summary.actual')}:
+        </Typography>
+        <Typography className={getSummaryStyle('actual')}>{getSummaryData('actual')}</Typography>
       </Box>
+
       <Box className="summaryContainer">
-        <Typography className="summaryLabel">{tr('workTable.summary.forecast')}:</Typography>
-        <Typography>{getSummaryData('forecast')}</Typography>
+        <Typography className={`summaryLabel ${getSummaryStyle('forecast')}`}>
+          {tr('workTable.summary.forecast')}:
+        </Typography>
+        <Typography className={getSummaryStyle('forecast')}>
+          {getSummaryData('forecast')}
+        </Typography>
       </Box>
+
       <Box className="summaryContainer">
-        <Typography className="summaryLabel" style={{ whiteSpace: 'normal' }}>
+        <Typography
+          className={`summaryLabel ${getSummaryStyle('kayttosuunnitelmanMuutos')}`}
+          style={{ whiteSpace: 'normal' }}
+        >
           {tr('workTable.summary.kayttosuunnitelmanMuutos')}:
         </Typography>
-        <Typography>{getSummaryData('kayttosuunnitelmanMuutos')}</Typography>
+        <Typography className={getSummaryStyle('kayttosuunnitelmanMuutos')}>
+          {getSummaryData('kayttosuunnitelmanMuutos')}
+        </Typography>
       </Box>
     </Box>
   );

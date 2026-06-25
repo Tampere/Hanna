@@ -691,6 +691,7 @@ export const fi = {
   'workTable.noActual': 'Ei toteumaa',
   'workTable.total': 'Yhteensä',
   'workTable.summary.amount': 'Talousarvio yhteensä',
+  'workTable.summary.estimate': 'Talousarvioennuste yhteensä',
   'workTable.summary.actual': 'Toteuma yhteensä',
   'workTable.summary.forecast': 'Ennuste yhteensä',
   'workTable.summary.kayttosuunnitelmanMuutos': 'Käyttösuunnitelman muutos yhteensä',
