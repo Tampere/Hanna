@@ -664,6 +664,41 @@ test.describe('Investment Project Object endpoints', () => {
 
     expect(movedObject.projectId).toBe(project1.projectId);
   });
+
+  test('Move investment project object to maintenance project is blocked', async ({
+    workerDevSession,
+    adminSession,
+  }) => {
+    const investmentProject = await workerDevSession.client.investmentProject.upsert.mutate({
+      project: testInvestmentProject(workerDevSession.user),
+    });
+
+    const maintenanceProject = await adminSession.client.maintenanceProject.upsert.mutate({
+      project: testMaintenanceProject(adminSession.user),
+    });
+
+    const projectObject = testProjectObject(
+      investmentProject.projectId,
+      investmentProject.committees,
+      workerDevSession.user,
+    );
+    const upsertResult =
+      await workerDevSession.client.investmentProjectObject.upsert.mutate(projectObject);
+
+    await expect(
+      adminSession.client.investmentProjectObject.moveProjectObjectToProject.mutate({
+        projectObjectId: upsertResult.projectObjectId,
+        newProjectId: maintenanceProject.projectId,
+      }),
+    ).rejects.toThrowError();
+
+    const stillInOriginalProject = await workerDevSession.client.investmentProjectObject.get.query({
+      projectObjectId: upsertResult.projectObjectId,
+      projectId: investmentProject.projectId,
+    });
+
+    expect(stillInOriginalProject.projectId).toBe(investmentProject.projectId);
+  });
 });
 
 test.describe('Maintenance Project Object endpoints', () => {
