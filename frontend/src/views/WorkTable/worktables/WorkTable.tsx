@@ -653,6 +653,8 @@ export default function WorkTable() {
         editEvents={editEvents}
         workTableData={workTableData}
         ref={summaryRowRef}
+        selectedYear={allYearsSelected ? 'allYears' : dayjs(searchParams.objectStartDate).year()}
+        lockedYears={lockedYears}
       />
 
       <DataGrid
