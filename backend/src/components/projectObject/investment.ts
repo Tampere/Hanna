@@ -1,3 +1,4 @@
+import { TRPCError } from '@trpc/server';
 import { DatabaseTransactionConnection, ValueExpression } from 'slonik';
 import { z } from 'zod';
 
@@ -318,6 +319,7 @@ export async function getProjectObjectNewProjectCandidates(
   return tx.any(sql.type(z.object({ projectId: z.string(), projectName: z.string() }))`
     SELECT p.id AS "projectId", p.project_name AS "projectName"
     FROM app.project p
+    INNER JOIN app.project_investment pi ON p.id = pi.id
     WHERE
       p.id <> ${projectObject.projectId} AND
       p.start_date <= ${projectObject.startDate} AND
@@ -350,6 +352,18 @@ export async function moveProjectObjectToProject(
   newProjectId: string,
   userId: string,
 ) {
+  // Make sure target project exists and is valid type
+  const newProject = await tx.maybeOne(sql.type(z.object({ projectId: z.string() }))`
+    SELECT p.id AS "projectId"
+    FROM app.project p
+    INNER JOIN app.project_investment pi ON p.id = pi.id
+    WHERE p.id = ${newProjectId}
+      AND p.deleted = false
+  `);
+
+  if (!newProject) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'error.invalidInput' });
+  }
   await addAuditEvent(tx, {
     eventType: 'projectObject.moveProjectObjectToProject',
     eventData: { projectObjectId, oldProjectId, newProjectId },
