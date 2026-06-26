@@ -352,6 +352,7 @@ export async function moveProjectObjectToProject(
   newProjectId: string,
   userId: string,
 ) {
+  // Make sure target project exists and is valid type
   const newProject = await tx.maybeOne(sql.type(z.object({ projectId: z.string() }))`
     SELECT p.id AS "projectId"
     FROM app.project p
