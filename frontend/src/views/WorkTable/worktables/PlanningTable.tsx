@@ -148,18 +148,23 @@ const dataGridStyle = (theme: Theme, summaryRowHeight: number) => css`
     font-weight: 600;
   }
 
-  /* Sum row styling - pinned to bottom with distinct appearance */
+  /* Sum row styling - sticky at bottom with distinct appearance */
   & .sum-row {
+    position: sticky;
+    bottom: var(--DataGrid-scrollbarSize);
+    z-index: 103;
     background-color: #fff !important;
     font-weight: 700;
     border-top: 2px solid ${theme.palette.primary.main};
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.08);
   }
   & .sum-row .MuiDataGrid-cell {
     background-color: #fff !important;
     font-weight: 700;
   }
-  & .sum-row .pinned-displayName {
+  & .sum-row .MuiDataGrid-cell.pinned-displayName {
     background-color: #fff !important;
+    z-index: 104;
   }
   /* Sum row should not look disabled */
   & .sum-row .cell-readonly {
