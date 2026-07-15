@@ -6,6 +6,7 @@ import {
   getProjectObjectGeometryDumpFragment,
   timePeriodFragment,
 } from '@backend/components/projectObject/index.js';
+import { participantRoleCodeIds } from '@backend/components/projectObject/participantRole.js';
 import { getPool } from '@backend/db.js';
 
 import {
@@ -116,10 +117,10 @@ function getObjectRoleFilterFragment(
   suunnitteluttajaUsers: string[],
 ) {
   function objectParticipantFragment(objectParticipantUser: string | null) {
-    // Object participants includes all roles except suunnitteluttaja and rakennuttaja
+    // Object participants only includes rakennuttaja and suunnitteluttaja roles
     if (objectParticipantUser) {
       return sql.fragment`
-      ((pour_participant.role).code_list_id = 'KohdeKayttajaRooli' AND pour_participant.user_id = ${objectParticipantUser})`;
+      (pour_participant.role IN ${participantRoleCodeIds} AND pour_participant.user_id = ${objectParticipantUser})`;
     }
   }
 
