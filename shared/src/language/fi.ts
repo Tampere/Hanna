@@ -696,6 +696,8 @@ export const fi = {
   'workTable.summary.forecast': 'Ennuste yhteensä',
   'workTable.summary.kayttosuunnitelmanMuutos': 'Käyttösuunnitelman muutos yhteensä',
   'workTable.participantFilterLabel': 'Näytä vain omat kohteet',
+  'workTable.participantFilterTooltip':
+    'Oma kohde tarkoittaa kohdetta, jossa käyttäjälle on osoitettu rakennuttajan tai suunnitteluttajan rooli.',
   'workTable.export.label': 'Investoinnit',
   'workTable.export.projectName': 'Hanke',
   'workTable.export.projectDescription': 'Hankkeen sisäinen kuvaus',

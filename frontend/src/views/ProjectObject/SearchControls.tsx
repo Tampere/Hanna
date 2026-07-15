@@ -46,6 +46,7 @@ import { isoDateFormat } from '@shared/date';
 import { UserSavedSearchFilter } from '@shared/schema/userSavedSearchFilters';
 
 import { SavedSearchFilters } from '../SavedSearchFilters';
+import { HelpTooltip } from '@frontend/components/HelpTooltip';
 
 const searchControlContainerStyle = css`
   display: grid;
@@ -338,7 +339,6 @@ export function SearchControls() {
               label={tr('projectObjectSearch.showOnlyItemsWithGeom')}
               labelPlacement="end"
             />
-
             <FormControlLabel
               css={css`
                 align-self: end;
@@ -356,7 +356,12 @@ export function SearchControls() {
                   color="primary"
                 />
               }
-              label={tr('workTable.participantFilterLabel')}
+              label={
+                <Box display="flex" alignItems={'center'} gap="sm">
+                  {tr('workTable.participantFilterLabel')}
+                  <HelpTooltip title={tr('workTable.participantFilterTooltip')} />
+                </Box>
+              }
               labelPlacement="end"
             />
           </div>

@@ -1,6 +1,6 @@
 import { SerializedStyles } from '@emotion/react';
 import { HelpOutline } from '@mui/icons-material';
-import { IconButton, Tooltip, TooltipProps, tooltipClasses } from '@mui/material';
+import { IconButton, Tooltip, TooltipProps } from '@mui/material';
 
 interface Props {
   title: string | JSX.Element;

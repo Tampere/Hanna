@@ -1,6 +1,7 @@
 import { textToTsSearchTerms } from '@backend/components/project/search.js';
 import { getProjectObjectBudget } from '@backend/components/projectObject/index.js';
 import { upsertProjectObject } from '@backend/components/projectObject/investment.js';
+import { participantRoleCodeIds } from '@backend/components/projectObject/participantRole.js';
 import { startPlanningTableReportJob } from '@backend/components/taskQueue/planningTableReportQueue.js';
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
@@ -188,7 +189,7 @@ export async function planningTableSearch(input: PlanningTableSearch) {
       GROUP BY po.id, po.object_name, po.project_id, p.project_name
         ${
           objectParticipantUser
-            ? sql.fragment`HAVING ${objectParticipantUser} = ANY(array_agg(pour.user_id))`
+            ? sql.fragment`HAVING ${objectParticipantUser} = ANY(array_agg(pour.user_id) FILTER (WHERE pour.role IN ${participantRoleCodeIds}))`
             : sql.fragment``
         }
     ),

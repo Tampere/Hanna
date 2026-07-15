@@ -6,6 +6,7 @@ import {
   getProjectObjects,
   upsertProjectObject,
 } from '@backend/components/projectObject/investment.js';
+import { participantRoleCodeIds } from '@backend/components/projectObject/participantRole.js';
 import { startWorkTableReportJob } from '@backend/components/taskQueue/workTableReportQueue.js';
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
@@ -226,7 +227,7 @@ export async function workTableSearch(input: WorkTableSearch) {
     GROUP BY project_object.id, poi.project_object_id, project.id
     ${
       objectParticipantUser
-        ? sql.fragment`HAVING ${objectParticipantUser} = ANY(array_agg(pour.user_id))`
+        ? sql.fragment`HAVING ${objectParticipantUser} = ANY(array_agg(pour.user_id) FILTER (WHERE pour.role IN ${participantRoleCodeIds}))`
         : sql.fragment``
     }
   ), po_budget AS (
