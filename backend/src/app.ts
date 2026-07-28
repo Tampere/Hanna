@@ -121,8 +121,7 @@ async function run() {
     prefix: '/',
   });
 
-  server.get('/api/v1/ping', async (req) => {
-    logger.info(`Ping request received, headers: ${JSON.stringify(req.headers)}, ips: ${req.ips}`);
+  server.get('/api/v1/ping', async () => {
     return { ping: 'pong', now: new Date() };
   });
 
