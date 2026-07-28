@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'crypto';
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 
 import { env } from './env.js';
@@ -13,12 +14,20 @@ interface Options {
   apis: FastifyRouteHandler[];
 }
 
+function safeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  return bufA.length === bufB.length && timingSafeEqual(bufA, bufB);
+}
+
 export function registerApiKeyRoutes(server: FastifyInstance, opts: Options) {
   server.register(
     (server, _opts, done) => {
       server.addHook('preValidation', async (req, reply) => {
+        const apiKey = req.headers['x-api-key'];
+
         // Deny access when no API key has been defined or the given api key doesn't match
-        if (!env.adminApiKey || req.headers['x-api-key'] !== env.adminApiKey) {
+        if (!env.adminApiKey || typeof apiKey !== 'string' || !safeCompare(apiKey, env.adminApiKey)) {
           reply.code(401);
           throw new Error('Unauthorized');
         }
