@@ -33,6 +33,13 @@ interface AuthPluginOpts extends FastifyPluginOptions {
   publicRouterPaths: Set<string>;
 }
 
+function safeRedirect(target?: string): string {
+  if (!target || !target.startsWith('/') || target.startsWith('//') || target.startsWith('/\\')) {
+    return '/';
+  }
+  return target;
+}
+
 function getUserRole(roles: string[]): UserRole {
   if (roles.includes(env.adminGroup as string)) {
     return 'Hanna.Admin';
@@ -169,7 +176,7 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
     await fastifyPassport
       .authenticate('oidc', async (req, res, error, user) => {
         // Get redirect url here because the session is cleared after login
-        const redirectPath = req.session.get('redirectUrl') ?? '/';
+        const redirectPath = safeRedirect(req.session.get('redirectUrl'));
         // If there are errors in login (e.g. already used or expired code), redirect to the front page
         if (error || !user) {
           return res.redirect('/');
