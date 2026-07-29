@@ -202,7 +202,7 @@ export async function upsertProjectObject(
   userId: string,
 ) {
   if (hasErrors(await validateUpsertProjectObject(tx, projectObject))) {
-    logger.error('Invalid project data', { input: projectObject });
+    logger.error({ input: projectObject }, 'Invalid project data');
     throw new Error('Invalid project data');
   }
 

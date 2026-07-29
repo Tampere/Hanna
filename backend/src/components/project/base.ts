@@ -263,7 +263,7 @@ export async function baseProjectUpsert(
   keepOwnerRights: boolean = false,
 ) {
   if (hasErrors(await validateUpsertProject(tx, project))) {
-    logger.error('Invalid project data', { input: project });
+    logger.error({ input: project }, 'Invalid project data');
     throw new Error('Invalid project data');
   }
 

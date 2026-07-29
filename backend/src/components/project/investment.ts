@@ -78,7 +78,7 @@ export async function projectUpsert(
   return getPool().transaction(async (tx) => {
     const validationResult = await validateUpsertProject(project, tx);
     if (hasErrors(validationResult)) {
-      logger.error('Invalid project', { project });
+      logger.error({ project }, 'Invalid project');
       throw new TRPCError({
         code: 'BAD_REQUEST',
         message: `Invalid project: ${stringifyFieldErrors(validationResult)}`,

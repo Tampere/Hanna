@@ -256,7 +256,7 @@ export async function planningTableSearch(input: PlanningTableSearch) {
 
       return { rowId: row.id, budget: transformedBudget };
     } catch (error) {
-      logger.error(`Failed to fetch budget/actuals for project object ${row.id}:`, error);
+      logger.error(error, `Failed to fetch budget/actuals for project object ${row.id}:`);
       return { rowId: row.id, budget: [] };
     }
   });
