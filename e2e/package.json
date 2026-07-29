@@ -14,19 +14,19 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "^1.51.1",
-    "@types/node": "^22.13.13",
+    "@playwright/test": "^1.62.0",
+    "@types/node": "^22.20.1",
     "@types/pg": "^8.20.0",
-    "nodemon": "^3.1.9",
-    "playwright": "^1.51.1",
-    "typescript": "^6.0.2"
+    "nodemon": "^3.1.14",
+    "playwright": "^1.62.0",
+    "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@trpc/client": "^10.45.2",
-    "@trpc/server": "^10.45.2",
-    "dayjs": "^1.11.13",
+    "@trpc/client": "^10.45.4",
+    "@trpc/server": "^10.45.4",
+    "dayjs": "^1.11.21",
     "node-fetch": "^3.3.2",
-    "pg": "^8.14.1",
-    "superjson": "^2.2.2"
+    "pg": "^8.22.0",
+    "superjson": "^2.2.6"
   }
 }
