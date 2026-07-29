@@ -22,6 +22,14 @@ export async function createTRPCClient(page: Page) {
     rejectUnauthorized: false,
   });
   const cookies = await page.context().cookies();
+  const cookieHeader = getCookieHeaderValue(cookies);
+
+  const userResponse = await nodeFetch('https://localhost:1443/api/v1/auth/user', {
+    agent,
+    headers: { cookie: cookieHeader },
+  } as RequestInit);
+  const { csrfToken } = (await userResponse.json()) as { csrfToken: string };
+
   return createTRPCProxyClient<AppRouter>({
     links: [
       httpLink({
@@ -32,7 +40,8 @@ export async function createTRPCClient(page: Page) {
             agent,
             headers: {
               ...(options?.headers),
-              cookie: getCookieHeaderValue(cookies),
+              cookie: cookieHeader,
+              'csrf-token': csrfToken,
             },
           } as RequestInit);
         },

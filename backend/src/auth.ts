@@ -1,4 +1,5 @@
 import fastifyCookie from '@fastify/cookie';
+import fastifyCsrfProtection from '@fastify/csrf-protection';
 import formBody from '@fastify/formbody';
 import { Authenticator } from '@fastify/passport';
 import fastifySession from '@fastify/session';
@@ -70,6 +71,8 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
     },
   });
 
+  fastify.register(fastifyCsrfProtection, { sessionPlugin: '@fastify/session' });
+
   const fastifyPassport = new Authenticator();
   fastify.register(fastifyPassport.initialize());
   fastify.register(fastifyPassport.secureSession());
@@ -127,9 +130,18 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
     }
   });
 
-  fastify.get('/api/v1/auth/user', async (req) => {
+  fastify.addHook('preValidation', (req, reply, done) => {
+    if (req.method === 'POST' && req.url.startsWith('/trpc')) {
+      fastify.csrfProtection(req, reply, done);
+    } else {
+      done();
+    }
+  });
+
+  fastify.get('/api/v1/auth/user', async (req, reply) => {
     if (req.user) {
-      return req.user;
+      const user = JSON.parse(req.user as any);
+      return { ...user, csrfToken: reply.generateCsrf() };
     }
   });
 
