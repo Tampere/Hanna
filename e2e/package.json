@@ -15,15 +15,15 @@
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.62.0",
-    "@types/node": "^22.20.1",
+    "@types/node": "^26.1.2",
     "@types/pg": "^8.20.0",
     "nodemon": "^3.1.14",
     "playwright": "^1.62.0",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
-    "@trpc/client": "^10.45.4",
-    "@trpc/server": "^10.45.4",
+    "@trpc/client": "^11.18.0",
+    "@trpc/server": "^11.18.0",
     "dayjs": "^1.11.21",
     "node-fetch": "^3.3.2",
     "pg": "^8.22.0",
