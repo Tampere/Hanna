@@ -28,7 +28,10 @@ export async function createTRPCClient(page: Page) {
     agent,
     headers: { cookie: cookieHeader },
   } as RequestInit);
-  const { csrfToken } = (await userResponse.json()) as { csrfToken: string };
+  const { csrfToken } = (await userResponse.json()) as { csrfToken?: string };
+  if (!csrfToken) {
+    throw new Error('Failed to fetch CSRF token - session was not established after login');
+  }
 
   return createTRPCProxyClient<AppRouter>({
     links: [
