@@ -21,6 +21,9 @@ export async function login(browser: Browser, username: string) {
   await page.getByPlaceholder('and password').fill('foobar');
   await page.getByRole('button', { name: 'Sign-in' }).click();
   await page.getByRole('button', { name: 'Continue' }).click();
+  // Wait for the OIDC redirect chain to land back on the app before reading the session cookie,
+  // otherwise the tRPC client below can be built with a not-yet-authenticated session.
+  await page.waitForURL('https://localhost:1443/**');
 
   const client = await createTRPCClient(page);
   return { client, page };

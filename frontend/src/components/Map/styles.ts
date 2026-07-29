@@ -181,7 +181,7 @@ class DonutStyle extends RegularShape {
 
   private initializeDraw(
     renderOptions: Record<string, any>,
-    context: CanvasRenderingContext2D,
+    context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
     pixelRatio: number,
   ) {
     context.scale(pixelRatio, pixelRatio);
@@ -205,7 +205,7 @@ class DonutStyle extends RegularShape {
   }
 
   private drawSlice(
-    ctx: CanvasRenderingContext2D,
+    ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
     centerX: number,
     centerY: number,
     radius: number,
@@ -226,7 +226,7 @@ class DonutStyle extends RegularShape {
   }
 
   private drawCircle(
-    ctx: CanvasRenderingContext2D,
+    ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
     centerX: number,
     centerY: number,
     radius: number,
@@ -240,7 +240,10 @@ class DonutStyle extends RegularShape {
     ctx.closePath();
   }
 
-  private drawDonut(ctx: CanvasRenderingContext2D, options: DonutOptions[]) {
+  private drawDonut(
+    ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+    options: DonutOptions[],
+  ) {
     const c = 0;
 
     let previousEndAngle = -0.5 * Math.PI;
