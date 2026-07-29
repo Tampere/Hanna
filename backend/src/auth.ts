@@ -1,4 +1,5 @@
 import fastifyCookie from '@fastify/cookie';
+import fastifyCsrfProtection from '@fastify/csrf-protection';
 import formBody from '@fastify/formbody';
 import { Authenticator } from '@fastify/passport';
 import fastifySession from '@fastify/session';
@@ -33,6 +34,13 @@ interface AuthPluginOpts extends FastifyPluginOptions {
   publicRouterPaths: Set<string>;
 }
 
+function safeRedirect(target?: string): string {
+  if (!target || !target.startsWith('/') || target.startsWith('//') || target.startsWith('/\\')) {
+    return '/';
+  }
+  return target;
+}
+
 function getUserRole(roles: string[]): UserRole {
   if (roles.includes(env.adminGroup as string)) {
     return 'Hanna.Admin';
@@ -62,6 +70,8 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
       sameSite: 'none',
     },
   });
+
+  fastify.register(fastifyCsrfProtection, { sessionPlugin: '@fastify/session' });
 
   const fastifyPassport = new Authenticator();
   fastify.register(fastifyPassport.initialize());
@@ -120,9 +130,18 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
     }
   });
 
-  fastify.get('/api/v1/auth/user', async (req) => {
+  fastify.addHook('preValidation', (req, reply, done) => {
+    if (req.method === 'POST' && req.url.startsWith('/trpc')) {
+      fastify.csrfProtection(req, reply, done);
+    } else {
+      done();
+    }
+  });
+
+  fastify.get('/api/v1/auth/user', async (req, reply) => {
     if (req.user) {
-      return req.user;
+      const user = JSON.parse(req.user as any);
+      return { ...user, csrfToken: reply.generateCsrf() };
     }
   });
 
@@ -169,7 +188,7 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
     await fastifyPassport
       .authenticate('oidc', async (req, res, error, user) => {
         // Get redirect url here because the session is cleared after login
-        const redirectPath = req.session.get('redirectUrl') ?? '/';
+        const redirectPath = safeRedirect(req.session.get('redirectUrl'));
         // If there are errors in login (e.g. already used or expired code), redirect to the front page
         if (error || !user) {
           return res.redirect('/');

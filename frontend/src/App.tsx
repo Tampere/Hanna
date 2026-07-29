@@ -15,7 +15,8 @@ import SuperJSON from 'superjson';
 
 import { Layout } from '@frontend/Layout';
 import { trpc } from '@frontend/client';
-import { asyncUserAtom, sessionExpiredAtom } from '@frontend/stores/auth';
+import { csrfAwareFetch } from '@frontend/csrfFetch';
+import { asyncUserAtom, getCsrfToken, refreshCsrfToken, sessionExpiredAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { MaintenanceProject } from '@frontend/views/MaintenanceProject/MaintenanceProject';
 import { Management } from '@frontend/views/Management';
@@ -105,7 +106,8 @@ export function App() {
           url: '/trpc',
           // Override fetch function to intercept all TRPC response status codes for detecting expired sessions
           async fetch(url, options) {
-            const result = await fetch(url, { ...options });
+            const result = await csrfAwareFetch(url, options, { getCsrfToken, refreshCsrfToken });
+
             if (result.status === 401) {
               // Any 401 error in TRPC responses -> session has been expired
               if (!sessionExpired) {
