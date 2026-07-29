@@ -4,6 +4,18 @@ import { BasicAuthSecurity, Client, createClientAsync } from 'soap';
 
 import { logger } from '@backend/logging.js';
 
+/**
+ * `BasicAuthSecurity#toXML` returns an empty string, so since `soap` v1.10 the client
+ * skips emitting a `<soap:Header>` element altogether when it's the only configured
+ * security mechanism. SAP's endpoint (and the local mock) require the Header element
+ * to be present even if empty, so force its emission via a no-op `postProcess`.
+ */
+class BasicAuthSecurityWithHeader extends BasicAuthSecurity {
+  postProcess(xml: string) {
+    return xml;
+  }
+}
+
 interface WebServiceConfig {
   endpoint: string;
   basicAuthUser: string;
@@ -40,7 +52,9 @@ class WebService {
       request: axiosClient as any, // Some type discrepancies between axios imported as a module and axios used by soap here,
     });
 
-    this.client.setSecurity(new BasicAuthSecurity(config.basicAuthUser, config.basicAuthPass));
+    this.client.setSecurity(
+      new BasicAuthSecurityWithHeader(config.basicAuthUser, config.basicAuthPass),
+    );
     this.client.setEndpoint(config.endpoint);
     logger.info('SAP Web Service client initialized');
   }
