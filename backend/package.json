@@ -37,8 +37,8 @@
     "@types/connect-pg-simple": "^7.0.3",
     "@types/email-templates": "^10.0.4",
     "@types/node": "^22.20.1",
-    "@types/nodemailer": "^6.4.24",
-    "concurrently": "^8.2.2",
+    "@types/nodemailer": "^8.0.1",
+    "concurrently": "^10.0.4",
     "eslint": "^9.39.5",
     "node-dev": "^8.0.0",
     "pino-pretty": "^11.3.0",
@@ -46,8 +46,8 @@
     "tsx": "^4.23.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.65.0",
-    "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^2.1.9"
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "@fastify/compress": "^8.3.1",
@@ -58,18 +58,18 @@
     "@fastify/passport": "^3.0.2",
     "@fastify/sensible": "^6.0.4",
     "@fastify/session": "^11.1.2",
-    "@fastify/static": "^9.3.0",
+    "@fastify/static": "^10.1.2",
     "@trpc/client": "^10.45.4",
     "@trpc/server": "^10.45.4",
     "axios": "^1.18.1",
     "connect-pg-simple": "^9.0.1",
     "dayjs": "^1.11.21",
     "dotenv": "^16.6.1",
-    "email-templates": "^12.0.3",
+    "email-templates": "^13.0.1",
     "excel4node": "^1.8.2",
     "fast-json-stable-stringify": "^2.1.0",
     "fastify": "^5.10.0",
-    "nodemailer": "^6.10.1",
+    "nodemailer": "^9.0.3",
     "openid-client": "^5.7.1",
     "pg-boss": "^9.0.3",
     "pino": "^9.14.0",
@@ -81,5 +81,19 @@
     "superjson": "^2.2.6",
     "tre-hanna-shared": "file:../shared",
     "zod": "^3.25.76"
+  },
+  "overrides": {
+    "tsc-alias": {
+      "picomatch": "^2.3.2",
+      "micromatch": "^4.0.8"
+    },
+    "nodemailer": "^9.0.3",
+    "mailparser": "^3.9.14",
+    "uuid": "^11.1.1",
+    "lodash": "^4.18.0",
+    "underscore": "^1.13.8",
+    "email-templates": {
+      "preview-email": "^3.3.0"
+    }
   }
 }

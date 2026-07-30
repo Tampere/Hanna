@@ -18,10 +18,7 @@ RUN cd /app/shared && npm install && npm run build
 
 RUN cd /app/backend && npm install
 
-RUN cd /app/frontend && \
-  # Create the node_modules directory in advance to avoid runtime permission problems
-  npm install && \
-  chown -R node .
+RUN cd /app/frontend && npm install
 
 EXPOSE 8080
 
@@ -29,6 +26,8 @@ WORKDIR /app/frontend
 
 # CI: Pre-build the bundle
 RUN if [[ -n "$CI" ]]; then npm run build; fi
+
+RUN chown -R node /app/frontend
 
 USER node
 
