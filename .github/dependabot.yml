@@ -9,6 +9,8 @@ updates:
     directory: '/frontend'
     schedule:
       interval: 'weekly'
+    allow:
+      - dependency-type: 'production'
     groups:
       npm:
         patterns:
@@ -17,6 +19,8 @@ updates:
     directory: '/backend'
     schedule:
       interval: 'weekly'
+    allow:
+      - dependency-type: 'production'
     groups:
       npm:
         patterns:
@@ -25,6 +29,8 @@ updates:
     directory: '/shared'
     schedule:
       interval: 'weekly'
+    allow:
+      - dependency-type: 'production'
     groups:
       npm:
         patterns:
@@ -33,6 +39,8 @@ updates:
     directory: '/e2e'
     schedule:
       interval: 'weekly'
+    allow:
+      - dependency-type: 'production'
     groups:
       npm:
         patterns:
@@ -41,6 +49,8 @@ updates:
     directory: '/docker/oidc-provider'
     schedule:
       interval: 'weekly'
+    allow:
+      - dependency-type: 'production'
     groups:
       npm:
         patterns:
