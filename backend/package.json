@@ -58,7 +58,7 @@
     "@fastify/passport": "^3.0.2",
     "@fastify/sensible": "^6.0.4",
     "@fastify/session": "^11.1.2",
-    "@fastify/static": "^9.3.0",
+    "@fastify/static": "^10.1.2",
     "@trpc/client": "^10.45.4",
     "@trpc/server": "^10.45.4",
     "axios": "^1.18.1",
