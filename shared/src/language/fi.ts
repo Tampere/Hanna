@@ -73,7 +73,7 @@ export const fi = {
   'projectObjectView.moveToProject.success': 'Kohde siirretty onnistuneesti.',
   'projectObjectView.moveToProject.failed': 'Kohteen siirto epäonnistui.',
   'projectObjectView.move': 'Siirrä',
-  'projectObjectView.copyButton': 'Kopioi kohde...',
+  'projectObjectView.copyButton': 'Monista kohde...',
   'projectObjectSearch.projectObjectSearchLabel': 'Kohteiden rajaus',
   'projectObjectSearch.rakennuttajaUser': 'Rakennuttaja',
   'projectObjectSearch.suunnitteluttajaUser': 'Suunnitteluttaja',
