@@ -22,8 +22,8 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@trpc/client": "^10.45.4",
-    "@trpc/server": "^10.45.4",
+    "@trpc/client": "^11.18.0",
+    "@trpc/server": "^11.18.0",
     "dayjs": "^1.11.21",
     "node-fetch": "^3.3.2",
     "pg": "^8.22.0",
