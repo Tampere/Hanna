@@ -61,7 +61,7 @@
     "@fastify/static": "^10.1.2",
     "@trpc/client": "^10.45.4",
     "@trpc/server": "^10.45.4",
-    "axios": "^1.18.1",
+    "axios": "^1.20.0",
     "connect-pg-simple": "^9.0.1",
     "dayjs": "^1.11.21",
     "dotenv": "^16.6.1",
