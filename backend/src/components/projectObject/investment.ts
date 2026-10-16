@@ -15,6 +15,7 @@ import {
 } from '@shared/schema/projectObject/investment.js';
 
 import { codeIdFragment } from '../code/index.js';
+import { assertFrameworkAgreementSelectable } from '../frameworkAgreement/index.js';
 import {
   getProjectObjectGeometryDumpFragment,
   updateObjectCategories,
@@ -47,6 +48,7 @@ const getProjectObjectFragment = (ids: string | string[]) => sql.fragment`
      (lifecycle_state).id AS "lifecycleState",
      (poi.object_stage).id AS "objectStage",
      (poi.palm_grouping).id AS "palmGrouping",
+     poi.framework_agreement_id AS "frameworkAgreementId",
      (SELECT (committee_type).id FROM app.project_object_committee poc WHERE project_object.id = poc.project_object_id) AS committee,
      start_date AS "startDate",
      end_date AS "endDate",
@@ -166,6 +168,7 @@ function getUpdateData(
       projectObject.objectStage && codeIdFragment('KohteenLaji', projectObject.objectStage),
     palm_grouping:
       projectObject.palmGrouping && codeIdFragment('PalmKoritus', projectObject.palmGrouping),
+    framework_agreement_id: projectObject.frameworkAgreementId,
   };
   // filter undefined values
   return {
@@ -204,6 +207,14 @@ export async function upsertProjectObject(
   if (hasErrors(await validateUpsertProjectObject(tx, projectObject))) {
     logger.error({ input: projectObject }, 'Invalid project data');
     throw new Error('Invalid project data');
+  }
+
+  if (projectObject.frameworkAgreementId) {
+    await assertFrameworkAgreementSelectable(
+      tx,
+      projectObject.frameworkAgreementId,
+      projectObject.projectObjectId,
+    );
   }
 
   const { commonData, investmentData } = getUpdateData(projectObject, userId);

@@ -5,6 +5,7 @@ import superjson from 'superjson';
 import { logger } from '@backend/logging.js';
 import { createCodeRouter } from '@backend/router/code.js';
 import { createCompanyRouter } from '@backend/router/company.js';
+import { createFrameworkAgreementRouter } from '@backend/router/frameworkAgreement.js';
 import { createGeneralNotificationRouter } from '@backend/router/generalNotification.js';
 import { createJobRouter } from '@backend/router/job.js';
 import { createLockedYearsRouter } from '@backend/router/lockedYears.js';
@@ -56,6 +57,7 @@ export const appRouter = t.router({
   user: createUserRouter(t),
   userPermissions: createUserPermissionsRouter(t),
   company: createCompanyRouter(t),
+  frameworkAgreement: createFrameworkAgreementRouter(t),
   job: createJobRouter(t),
   workTable: createWorkTableRouter(t),
   generalNotification: createGeneralNotificationRouter(t),

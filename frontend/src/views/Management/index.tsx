@@ -3,6 +3,7 @@ import {
   Campaign,
   KeyTwoTone,
   GavelTwoTone,
+  HandshakeTwoTone,
   PersonTwoTone,
 } from '@mui/icons-material';
 import { Box, Tab, Tabs, css } from '@mui/material';
@@ -13,6 +14,7 @@ import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { CompanyPage } from '@frontend/views/Management/Company';
 import { CompanyContactPage } from '@frontend/views/Management/CompanyContact';
+import { FrameworkAgreementPage } from '@frontend/views/Management/FrameworkAgreement';
 import { UserPermissionsPage } from '@frontend/views/Management/UserPermissions';
 
 import { EstimateLocking } from './EstimateLocking';
@@ -32,6 +34,13 @@ const tabs = [
     icon: <PersonTwoTone />,
     to: '/hallinta/yritysten-yhteyshenkilot',
     requiredRole: null,
+  },
+  {
+    tabView: 'puitesopimukset',
+    label: 'management.tabs.frameworkAgreements',
+    icon: <HandshakeTwoTone />,
+    to: '/hallinta/puitesopimukset',
+    requiredRole: 'Hanna.Admin',
   },
   {
     tabView: 'kayttajien-luvitus',
@@ -100,6 +109,7 @@ export function Management() {
       </Tabs>
       {routeParams.tabView === 'yritysten-yhteyshenkilot' && <CompanyContactPage {...viewParams} />}
       {routeParams.tabView === 'yritykset' && <CompanyPage {...viewParams} />}
+      {routeParams.tabView === 'puitesopimukset' && <FrameworkAgreementPage {...viewParams} />}
       {routeParams.tabView === 'kayttajien-luvitus' && <UserPermissionsPage {...viewParams} />}
       {routeParams.tabView === 'tiedotteet' && <ManageGeneralNotifications />}
       {routeParams.tabView === 'lukitus' && <EstimateLocking />}
