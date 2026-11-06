@@ -18,6 +18,7 @@ import {
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { CommitteeSelect } from '@frontend/components/forms/CommitteeSelect';
 import { EnvironmentalCodeSelect } from '@frontend/components/forms/EnvironmentalCodeSelect';
+import { FrameworkAgreementSelect } from '@frontend/components/forms/FrameworkAgreementSelect';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
@@ -217,7 +218,8 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
             environmentalInvestmentReason: copySource.environmentalInvestmentReason ?? null,
             objectUserRoles: copySource.objectUserRoles ?? [],
             geom: copyGeomToFeatures(copySource.geometryDump),
-            // Not copied: projectObjectId, sapWBSId, height, startDate, endDate, budgetUpdate
+            // Not copied: projectObjectId, sapWBSId, height, startDate, endDate, budgetUpdate,
+            // frameworkAgreementId (the source's agreement may no longer be valid for a new object)
             startDate: '',
             endDate: '',
           }
@@ -638,6 +640,19 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             component={({ ref, ...field }) => (
               <EnvironmentalCodeSelect {...field} readOnly={!editing} sapWbsId={formSapWBSId} />
+            )}
+          />
+          <FormField
+            formField="frameworkAgreementId"
+            label={tr('frameworkAgreement.label')}
+            helpTooltip={tr('frameworkAgreement.tooltip')}
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            component={({ ref, ...field }) => (
+              <FrameworkAgreementSelect
+                {...field}
+                readOnly={!editing}
+                savedValue={props.projectObject?.frameworkAgreementId}
+              />
             )}
           />
           <FormField
