@@ -15,7 +15,6 @@ import { isAdmin } from '@shared/schema/userPermissions.js';
 const selectFrameworkAgreementFragment = sql.fragment`
   SELECT
     id,
-    record_number AS "recordNumber",
     name,
     record_id AS "recordId",
     valid_until AS "validUntil",
@@ -52,7 +51,7 @@ export const createFrameworkAgreementRouter = (t: TRPC) => {
           WHERE deleted IS FALSE ${
             input?.includeId ? sql.fragment`OR id = ${input.includeId}` : sql.fragment``
           }
-          ORDER BY record_number, name
+          ORDER BY name
         `);
       }),
 
@@ -68,60 +67,42 @@ export const createFrameworkAgreementRouter = (t: TRPC) => {
       .input(upsertFrameworkAgreementSchema)
       .mutation(async ({ ctx, input }) => {
         await getPool().transaction(async (tx) => {
-          await addAuditEvent(tx, {
-            eventType: 'frameworkAgreement.upsert',
-            eventData: input,
-            eventUser: ctx.user.id,
-          });
-          if (input.id) {
+          let id = input.id;
+          if (id) {
             await tx.query(sql.untyped`
               UPDATE app.framework_agreement
               SET
-                record_number = ${input.recordNumber},
                 name = ${input.name},
                 record_id = ${input.recordId},
                 valid_until = ${input.validUntil ?? null},
                 modified_by = ${ctx.user.id},
                 modified_at = NOW()
-              WHERE id = ${input.id}
+              WHERE id = ${id}
                 AND deleted IS FALSE
             `);
           } else {
-            await tx.query(sql.untyped`
+            const inserted = await tx.one(sql.type(z.object({ id: z.string() }))`
               INSERT INTO app.framework_agreement (
-                record_number,
                 name,
                 record_id,
                 valid_until,
                 modified_by
               )
               VALUES (
-                ${input.recordNumber},
                 ${input.name},
                 ${input.recordId},
                 ${input.validUntil ?? null},
                 ${ctx.user.id}
               )
+              RETURNING id
             `);
+            id = inserted.id;
           }
-        });
-      }),
-
-    delete: t.procedure
-      .use(withAccess())
-      .input(frameworkAgreementIdSchema)
-      .mutation(async ({ ctx, input }) => {
-        await getPool().transaction(async (tx) => {
           await addAuditEvent(tx, {
-            eventType: 'frameworkAgreement.delete',
-            eventData: input,
+            eventType: 'frameworkAgreement.upsert',
+            eventData: { ...input, id },
             eventUser: ctx.user.id,
           });
-          await tx.query(sql.untyped`
-            UPDATE app.framework_agreement
-            SET deleted = TRUE, modified_by = ${ctx.user.id}, modified_at = NOW()
-            WHERE id = ${input.id}
-          `);
         });
       }),
   });

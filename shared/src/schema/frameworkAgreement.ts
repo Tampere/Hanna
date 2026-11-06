@@ -4,7 +4,6 @@ import { isoDateString, nonEmptyString } from './common.js';
 
 export const upsertFrameworkAgreementSchema = z.object({
   id: z.string().optional().nullable(),
-  recordNumber: nonEmptyString,
   name: nonEmptyString,
   recordId: nonEmptyString,
   validUntil: isoDateString.optional().nullable(),

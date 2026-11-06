@@ -44,8 +44,7 @@ export function FrameworkAgreementSelect({
   );
 
   function getLabel(option: FrameworkAgreement) {
-    const label = `${option.recordNumber} ${option.name}`;
-    return option.isValid ? label : `${label} (${tr('frameworkAgreement.notValid')})`;
+    return option.isValid ? option.name : `${option.name} (${tr('frameworkAgreement.notValid')})`;
   }
 
   return (

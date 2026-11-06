@@ -39,7 +39,6 @@ export function FrameworkAgreementForm(props: Props) {
       requiredFields: getRequiredFields(upsertFrameworkAgreementSchema),
     },
     defaultValues: {
-      recordNumber: '',
       name: '',
       recordId: '',
       validUntil: null,
@@ -48,8 +47,8 @@ export function FrameworkAgreementForm(props: Props) {
 
   useEffect(() => {
     if (props.id && frameworkAgreement.data) {
-      const { id, recordNumber, name, recordId, validUntil } = frameworkAgreement.data;
-      form.reset({ id, recordNumber, name, recordId, validUntil });
+      const { id, name, recordId, validUntil } = frameworkAgreement.data;
+      form.reset({ id, name, recordId, validUntil });
     }
   }, [frameworkAgreement.data, props.id]);
 
@@ -109,14 +108,9 @@ export function FrameworkAgreementForm(props: Props) {
         autoComplete="off"
       >
         <FormField
-          formField="recordNumber"
-          label={tr('frameworkAgreement.recordNumber')}
-          component={(field) => <TextField {...field} size="small" autoFocus={true} />}
-        />
-        <FormField
           formField="name"
           label={tr('frameworkAgreement.name')}
-          component={(field) => <TextField {...field} size="small" />}
+          component={(field) => <TextField {...field} size="small" autoFocus={true} />}
         />
         <FormField
           formField="recordId"

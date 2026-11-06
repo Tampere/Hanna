@@ -39,7 +39,7 @@ export function FrameworkAgreementPage(props: Props) {
     const searchTerm = query.trim().toLowerCase();
     if (!searchTerm) return frameworkAgreements.data ?? [];
     return (frameworkAgreements.data ?? []).filter((agreement) =>
-      [agreement.recordNumber, agreement.name, agreement.recordId].some((value) =>
+      [agreement.name, agreement.recordId].some((value) =>
         value.toLowerCase().includes(searchTerm),
       ),
     );
@@ -51,6 +51,10 @@ export function FrameworkAgreementPage(props: Props) {
     <Box
       css={css`
         padding: 16px;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        box-sizing: border-box;
         display: flex;
         flex-direction: column;
         gap: 2rem;
@@ -108,10 +112,7 @@ export function FrameworkAgreementPage(props: Props) {
         {frameworkAgreements.isLoading && <CircularProgress />}
         {noResults && <div>{tr('frameworkAgreement.noResults')}</div>}
         {!noResults && frameworkAgreements.data && (
-          <FrameworkAgreementTable
-            frameworkAgreements={filtered}
-            onDeleted={() => frameworkAgreements.refetch()}
-          />
+          <FrameworkAgreementTable frameworkAgreements={filtered} />
         )}
       </Box>
 
