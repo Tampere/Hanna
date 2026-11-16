@@ -14,6 +14,8 @@ import { DrawMap } from '@frontend/components/Map/DrawMap';
 import { getProjectObjectGeoJSON } from '@frontend/components/Map/mapFunctions';
 import { featuresFromGeoJSON } from '@frontend/components/Map/mapInteractions';
 import { PROJ_OBJ_DRAW_STYLE } from '@frontend/components/Map/styles';
+import { PurchaseRequestList } from '@frontend/components/PurchaseRequest/PurchaseRequestList';
+import { SapKuluseurantaStatus } from '@frontend/components/SapIdentifier/SapKuluseurantaStatus';
 import { TooltipLinkTab } from '@frontend/components/TooltipLinkTab';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
@@ -343,34 +345,10 @@ export function ProjectObject(props: Props) {
               TabIndicatorProps={{ sx: { height: '5px' } }}
             >
               {tabs.map((tab) => {
-                const projectObjectInFuture =
-                  dayjs(projectObject.data?.startDate).year() > dayjs().year();
                 if (tab.tabView === 'vaiheet' && !projectObject.data?.sapWBSId) {
                   return (
                     <TooltipLinkTab
                       title={tr('projectObject.tabLabelDisabledNoWbs')}
-                      disabled={true}
-                      key={tab.tabView}
-                      to={tab.url}
-                      component={Link}
-                      icon={tab.icon}
-                      iconPosition="end"
-                      label={tr(tab.label)}
-                    />
-                  );
-                }
-
-                if (
-                  tab.tabView === 'kuluseuranta' &&
-                  (!projectObject.data?.sapWBSId || projectObjectInFuture)
-                ) {
-                  return (
-                    <TooltipLinkTab
-                      title={
-                        projectObjectInFuture
-                          ? tr('projectObject.tabLabelNotStarted')
-                          : tr('projectObject.tabLabelDisabledNoWbs')
-                      }
                       disabled={true}
                       key={tab.tabView}
                       to={tab.url}
@@ -459,16 +437,29 @@ export function ProjectObject(props: Props) {
                   />
                 )}
                 {searchParams.get('tab') === 'kuluseuranta' && (
-                  <ProjectObjectFinancesCharts
-                    projectObjectId={projectObjectId}
-                    startYear={dayjs(projectObject.data?.startDate).year()}
-                    endYear={
-                      props.projectType === 'kunnossapitohanke' &&
-                      projectObject.data?.endDate === 'infinity'
-                        ? dayjs().year() + 5
-                        : dayjs(projectObject.data?.endDate).year()
+                  <SapKuluseurantaStatus
+                    target={{ projectId: routeParams.projectId, projectObjectId }}
+                    startDate={projectObject.data?.startDate}
+                    afterContent={
+                      <PurchaseRequestList
+                        projectObjectId={projectObjectId}
+                        sapWbsId={projectObject.data?.sapWBSId}
+                        isMaintenance={props.projectType === 'kunnossapitohanke'}
+                        canEdit={isOwner || canWrite}
+                      />
                     }
-                  />
+                  >
+                    <ProjectObjectFinancesCharts
+                      projectObjectId={projectObjectId}
+                      startYear={dayjs(projectObject.data?.startDate).year()}
+                      endYear={
+                        props.projectType === 'kunnossapitohanke' &&
+                        projectObject.data?.endDate === 'infinity'
+                          ? dayjs().year() + 5
+                          : dayjs(projectObject.data?.endDate).year()
+                      }
+                    />
+                  </SapKuluseurantaStatus>
                 )}
                 {searchParams.get('tab') === 'vaiheet' && (
                   <TaskList projectObjectId={projectObjectId} />

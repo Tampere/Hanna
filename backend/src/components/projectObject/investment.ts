@@ -3,6 +3,7 @@ import { DatabaseTransactionConnection, ValueExpression } from 'slonik';
 import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit.js';
+import { completeFulfilledSapIdentifierRequests } from '@backend/components/sapIdentifier/complete.js';
 import { sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
 
@@ -248,6 +249,8 @@ export async function upsertProjectObject(
             VALUES (${sql.join(commonValues, sql.fragment`,`)})
             RETURNING id AS "projectObjectId", project_id as "projectId"
         `);
+
+  await completeFulfilledSapIdentifierRequests(tx, upsertResult.projectId, userId);
 
   if (isUpdate(projectObject) && investmentIdents.length > 0) {
     await tx.query(sql.untyped`

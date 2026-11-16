@@ -25,10 +25,12 @@ import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { dirtyAndValidFieldsAtom, projectEditingAtom } from '@frontend/stores/projectView';
+import { pendingSapIdentifierRequestAtom } from '@frontend/stores/sapIdentifier';
 import { ProjectTypePath } from '@frontend/types';
 import { getRange } from '@frontend/utils/array';
 import { getRequiredFields } from '@frontend/utils/form';
 import { SapWBSSelect } from '@frontend/views/ProjectObject/SapWBSSelect';
+import { SapIdentifierFormCheckbox } from '@frontend/components/SapIdentifier/SapIdentifierFormCheckbox';
 
 import { isTranslationKey } from '@shared/language';
 import { ProjectListItem } from '@shared/schema/project';
@@ -304,8 +306,16 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
   const formProjectId = watch('projectId');
   const formSapWBSId = watch('sapWBSId');
 
+  // "Ilmoita samalla talousjärjestelmään": open the request dialog after a successful save
+  const [requestSapIdentifier, setRequestSapIdentifier] = useState(false);
+  const setPendingSapRequest = useSetAtom(pendingSapIdentifierRequestAtom);
+
   const projectObjectUpsert = trpc.investmentProjectObject.upsert.useMutation({
     onSuccess: (data) => {
+      if (requestSapIdentifier && !formSapWBSId && data.projectObjectId) {
+        setPendingSapRequest({ projectId: data.projectId, projectObjectId: data.projectObjectId });
+      }
+      setRequestSapIdentifier(false);
       if (!props.projectObject && data.projectObjectId) {
         setNewProjectObjectIds({
           projectId: data.projectId,
@@ -633,6 +643,15 @@ export const InvestmentProjectObjectForm = forwardRef(function InvestmentProject
             component={(field) => (
               <SapWBSSelect projectId={formProjectId} readonlyProps={readonlyProps} field={field} />
             )}
+          />
+          <SapIdentifierFormCheckbox
+            projectId={formProjectId}
+            projectObjectId={props.projectObject?.projectObjectId ?? null}
+            isProjectObject
+            formIdentifier={formSapWBSId}
+            editing={editing}
+            checked={requestSapIdentifier}
+            onChange={setRequestSapIdentifier}
           />
           <FormField
             formField="environmentalInvestmentReason"

@@ -31,6 +31,7 @@ export const ALL_PERMISSIONS = [
   'investmentFinancials.write',
   'maintenanceFinancials.write',
   'palmGrouping.write',
+  'financeOffice.write',
 ] as const;
 
 export const permissionSchema = z.enum(ALL_PERMISSIONS);
@@ -101,6 +102,11 @@ export function hasWritePermission(
   permissionCtx?: ProjectPermissionContext,
 ): boolean {
   return user.role === ADMIN_ROLE || (permissionCtx?.writeUsers?.includes(user.id) ?? false);
+}
+
+/** Finance office users may set SAP identifiers and purchase order numbers on any project. */
+export function canSetFinanceIdentifiers(user: CtxUser): boolean {
+  return hasPermission(user, 'financeOffice.write');
 }
 
 export function hasPermission(user: CtxUser | User, permission: Permission): boolean {

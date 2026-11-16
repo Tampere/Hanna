@@ -4,6 +4,7 @@ import SMTPPool from 'nodemailer/lib/smtp-pool/index.js';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
+import { MailTemplates } from '@backend/components/mail/templates.js';
 import { getPool, sql } from '@backend/db.js';
 import { env } from '@backend/env.js';
 
@@ -12,14 +13,16 @@ import { coerceArray } from '@shared/utils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+type MailTemplate = {
+  [Name in keyof MailTemplates]: { name: Name; parameters: MailTemplates[Name] };
+}[keyof MailTemplates];
+
 export type Mail = {
   to: string | string[];
   cc?: string | string[];
   bcc?: string | string[];
-  template: {
-    name: string;
-    parameters: Record<string, any>;
-  };
+  replyTo?: string;
+  template: MailTemplate;
 };
 
 const transport = createTransport({
@@ -28,9 +31,6 @@ const transport = createTransport({
   secure: env.email.secure,
   pool: true,
   maxConnections: env.email.maxConnections,
-  tls: {
-    ciphers: 'SSLv3',
-  },
   auth:
     env.email.auth.method === 'oauth'
       ? {
@@ -43,8 +43,8 @@ const transport = createTransport({
         }
       : env.email.auth.method === 'login'
         ? {
-            username: env.email.auth.username,
-            password: env.email.auth.password,
+            user: env.email.auth.username,
+            pass: env.email.auth.password,
           }
         : {},
 } as SMTPPool.Options);
@@ -72,6 +72,7 @@ export async function sendMail(mail: Mail, metadata?: { userId: User['id']; proj
       to: mail.to,
       cc: mail.cc,
       bcc: mail.bcc,
+      replyTo: mail.replyTo,
     },
     locals: getTemplateLocals(mail),
   })) as {

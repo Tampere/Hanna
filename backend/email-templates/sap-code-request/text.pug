@@ -1,0 +1,10 @@
+| #{requestedBy.name} pyytää SAP-#{isProjectObject ? 'WBS-tunnusta kohteelle' : 'projektitunnusta hankkeelle'} #{title}.
+|
+each field in fields
+  | #{field.label}: #{field.value || '-'}
+  |
+|
+| Pyytäjä: #{requestedBy.name}, #{requestedBy.email || '-'}, puh. #{requestedBy.phone || '-'}
+|
+| Kirjaa tunniste Hannaan: #{financeUrl}
+| #{isProjectObject ? 'Kohde' : 'Hanke'} Hannassa: #{hannaUrl}

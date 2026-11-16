@@ -60,3 +60,27 @@ export async function clearProjectPermissions() {
   return connection.query(`
     DELETE FROM app.project_permission;`);
 }
+
+export async function getAuditEvents(eventType: string) {
+  return (await connection.query(`
+    SELECT event_type AS "eventType", event_data AS "eventData", event_user AS "eventUser"
+    FROM app.audit_event
+    WHERE event_type = '${eventType.replace(/'/g, "''")}'
+    ORDER BY event_timestamp`)) as {
+    eventType: string;
+    eventData: Record<string, unknown>;
+    eventUser: string;
+  }[];
+}
+
+export async function getMailEvents(projectId: string) {
+  return (await connection.query(`
+    SELECT template_name AS "templateName", "to", subject, html
+    FROM app.mail_event
+    WHERE project_id = '${projectId.replace(/'/g, "''")}'`)) as {
+    templateName: string;
+    to: string[];
+    subject: string;
+    html: string;
+  }[];
+}

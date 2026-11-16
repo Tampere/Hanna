@@ -1,0 +1,6 @@
+//- Renders the field list defined in each request (see src/components/mail/templates.ts)
+table.fields
+  each field in fields
+    tr
+      th= field.label
+      td= field.value || '-'

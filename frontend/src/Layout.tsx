@@ -43,6 +43,7 @@ import { SessionExpiredWarning } from './SessionExpiredWarning';
 import { trpc } from './client';
 import { NavigationBlocker } from './components/NavigationBlocker';
 import { TooltipLinkTab } from './components/TooltipLinkTab';
+import { SapIdentifierRequestHost } from './components/SapIdentifier/SapIdentifierRequestHost';
 import NotificationList from './services/notification';
 import { asyncUserAtom, sessionExpiredAtom } from './stores/auth';
 import { selectedSearchViewAtom } from './stores/search/searchView';
@@ -407,6 +408,7 @@ export function Layout() {
             <NavigationBlocker />
           </Box>
           <SessionExpiredWarning />
+          <SapIdentifierRequestHost />
         </ThemeProvider>
       </Box>
     </>
