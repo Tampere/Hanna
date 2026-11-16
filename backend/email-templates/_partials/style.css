@@ -1,0 +1,27 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  color: #222;
+}
+
+.test-notice {
+  color: #b00020;
+  font-weight: bold;
+}
+
+table.fields {
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+
+table.fields th,
+table.fields td {
+  text-align: left;
+  vertical-align: top;
+  padding: 4px 16px 4px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+table.fields th {
+  white-space: nowrap;
+}

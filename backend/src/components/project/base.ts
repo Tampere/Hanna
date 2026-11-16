@@ -3,6 +3,7 @@ import { DatabaseTransactionConnection } from 'slonik';
 import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit.js';
+import { completeFulfilledSapIdentifierRequests } from '@backend/components/sapIdentifier/complete.js';
 import { getPool, sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
 
@@ -285,6 +286,7 @@ export async function baseProjectUpsert(
   }
 
   const result = await upsertBaseProject(tx, project, user.id);
+  await completeFulfilledSapIdentifierRequests(tx, result.projectId, user.id);
   return result.projectId;
 }
 

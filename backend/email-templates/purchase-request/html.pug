@@ -1,0 +1,28 @@
+doctype html
+html
+  head
+    style
+      include ../_partials/style.css
+  body
+    if !production
+      p.test-notice Hannasta lähetetty testiviesti, älä huomioi
+    p Hei,
+    p
+      if isUpdate
+        | #{requestedBy.name} on päivittänyt ostotilauspyynnön kohteelle
+      else
+        | #{requestedBy.name} pyytää ostotilausta kohteelle
+      |
+      strong= title
+      | .
+    if purchaseOrderNumber
+      p Ostotilausnumero: #[strong= purchaseOrderNumber]
+    include ../_partials/fields.pug
+    include ../_partials/requestedBy.pug
+    if financeUrl
+      p
+        | Kun ostotilaus on tehty, kirjaa ostotilausnumero Hannaan:
+        br
+        a(href=financeUrl target='_blank')= financeUrl
+    p
+      a(href=hannaUrl target='_blank') Avaa kohde Hannassa

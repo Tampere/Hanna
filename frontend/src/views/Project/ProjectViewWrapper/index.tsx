@@ -4,6 +4,7 @@ import { useAtom, useAtomValue } from 'jotai';
 import { PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router';
 
+import { SapIdentifierHeaderStatus } from '@frontend/components/SapIdentifier/SapIdentifierHeaderStatus';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import {
@@ -167,8 +168,7 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Readonly<Prop
         // Get geometry from the map's draw source if features are present (e.g. copy flow
         // where geometry is pre-loaded but the map is not flagged as dirty)
         const mapGeomStr = tabRefs.map.current?.getGeometry();
-        const geom =
-          mapGeomStr && JSON.parse(mapGeomStr).length > 0 ? mapGeomStr : undefined;
+        const geom = mapGeomStr && JSON.parse(mapGeomStr).length > 0 ? mapGeomStr : undefined;
         await tabRefs.form.current?.onSave(geom);
       }
     },
@@ -253,15 +253,33 @@ export function ProjectViewWrapper({ type = 'project', ...props }: Readonly<Prop
         `}
       >
         {props.renderHeaderContent?.()}
-        <ModifyButton
-          projectType={props.projectType}
-          isNewItem={isNewItem}
-          isSubmitting={isSubmitting}
-          isOwner={isOwner}
-          canWrite={canWrite}
-          forProjectObject={type === 'projectObject'}
-          onCancel={onCancel}
-        />
+        <Box
+          css={css`
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+          `}
+        >
+          {!isNewItem && !editing && !props.isCopy && props.permissionCtx && (
+            <SapIdentifierHeaderStatus
+              target={{
+                projectId,
+                projectObjectId: type === 'projectObject' ? projectObjectId : null,
+              }}
+              canRequest={isOwner || canWrite}
+            />
+          )}
+          <ModifyButton
+            projectType={props.projectType}
+            isNewItem={isNewItem}
+            isSubmitting={isSubmitting}
+            isOwner={isOwner}
+            canWrite={canWrite}
+            forProjectObject={type === 'projectObject'}
+            onCancel={onCancel}
+          />
+        </Box>
       </Box>
       {props.renderMainContent?.(tabRefs)}
       <Box

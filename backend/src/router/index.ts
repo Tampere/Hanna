@@ -17,6 +17,8 @@ import { createProjectObjectRouter } from '@backend/router/projectObject/base.js
 import { createInvestmentProjectObjectRouter } from '@backend/router/projectObject/investment.js';
 import { createMaintenanceProjectObjectRouter } from '@backend/router/projectObject/maintenance.js';
 import { createSapRouter } from '@backend/router/sap.js';
+import { createPurchaseRequestRouter } from '@backend/router/purchaseRequest.js';
+import { createSapIdentifierRouter } from '@backend/router/sapIdentifier.js';
 import { createSapReportRouter } from '@backend/router/sapReport.js';
 import { createSessionRouter } from '@backend/router/session.js';
 import { createUserRouter } from '@backend/router/user.js';
@@ -53,6 +55,8 @@ export const appRouter = t.router({
   code: createCodeRouter(t),
   sap: createSapRouter(t),
   sapReport: createSapReportRouter(t),
+  sapIdentifier: createSapIdentifierRouter(t),
+  purchaseRequest: createPurchaseRequestRouter(t),
   session: createSessionRouter(t),
   user: createUserRouter(t),
   userPermissions: createUserPermissionsRouter(t),

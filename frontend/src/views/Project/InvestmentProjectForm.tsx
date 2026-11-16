@@ -19,6 +19,7 @@ import {
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
 import { CommitteeChangeAlert } from '@frontend/components/forms/CommitteeChangeAlert';
 import { CommitteeSelect } from '@frontend/components/forms/CommitteeSelect';
+import { SapIdentifierFormCheckbox } from '@frontend/components/SapIdentifier/SapIdentifierFormCheckbox';
 import { SapProjectIdField } from '@frontend/components/forms/SapProjectIdField';
 import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
@@ -26,6 +27,7 @@ import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
 import { dirtyAndValidFieldsAtom, projectEditingAtom } from '@frontend/stores/projectView';
+import { pendingSapIdentifierRequestAtom } from '@frontend/stores/sapIdentifier';
 import { getRequiredFields } from '@frontend/utils/form';
 
 import {
@@ -92,6 +94,10 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
   const [displayInvalidSAPIdDialog, setDisplayInvalidSAPIdDialog] = useState(false);
   const [editing, setEditing] = useAtom(projectEditingAtom);
   const [newProjectId, setNewProjectId] = useState<string | null>(null);
+
+  // "Ilmoita samalla talousjärjestelmään": open the request dialog after a successful save
+  const [requestSapIdentifier, setRequestSapIdentifier] = useState(false);
+  const setPendingSapRequest = useSetAtom(pendingSapIdentifierRequestAtom);
 
   const { user, sap } = trpc.useUtils();
 
@@ -207,6 +213,10 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
 
   const projectUpsert = trpc.investmentProject.upsert.useMutation({
     onSuccess: async (data) => {
+      if (requestSapIdentifier && !data.sapProjectId && data.projectId) {
+        setPendingSapRequest({ projectId: data.projectId, projectObjectId: null });
+      }
+      setRequestSapIdentifier(false);
       // Navigate to new url if we are creating a new project
       if (!props.project && data.projectId) {
         setNewProjectId(data.projectId);
@@ -501,6 +511,14 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
                 size="small"
               />
             )}
+          />
+          <SapIdentifierFormCheckbox
+            projectId={props.project?.projectId}
+            isProjectObject={false}
+            formIdentifier={watch('sapProjectId')}
+            editing={editing}
+            checked={requestSapIdentifier}
+            onChange={setRequestSapIdentifier}
           />
         </form>
       </FormProvider>

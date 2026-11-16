@@ -40,6 +40,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      mailhog:
+        condition: service_started
     healthcheck:
       test: curl --fail http://localhost:3003/api/v1/health || exit 1
       interval: 5s
@@ -69,6 +71,10 @@ services:
       - '127.0.0.1:19043:13000'
     environment:
       - SAP_MOCK_PORT=13000
+
+  # SMTP sink: mail_event rows are only written after a successful send
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
 
   db:
     image: postgis/postgis:12-3.3-alpine

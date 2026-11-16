@@ -1,6 +1,7 @@
 import { DatabaseTransactionConnection, ValueExpression } from 'slonik';
 import { z } from 'zod';
 
+import { completeFulfilledSapIdentifierRequests } from '@backend/components/sapIdentifier/complete.js';
 import { sql } from '@backend/db.js';
 import { logger } from '@backend/logging.js';
 import { parseOptionalString } from '@backend/utils.js';
@@ -182,6 +183,8 @@ export async function upsertProjectObject(
             VALUES (${sql.join(commonValues, sql.fragment`,`)})
             RETURNING id AS "projectObjectId", project_id as "projectId"
         `);
+
+  await completeFulfilledSapIdentifierRequests(tx, upsertResult.projectId, userId);
 
   if (isUpdate(projectObject) && maintenanceIdents.length > 0) {
     await tx.query(sql.untyped`

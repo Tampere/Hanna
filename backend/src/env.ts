@@ -53,6 +53,7 @@ const schema = z.object({
     senderAddress: z.string(),
     senderName: z.string(),
     queueConcurrency: z.number(),
+    financeRecipients: z.array(z.string()),
     auth: z.discriminatedUnion('method', [
       z.object({
         method: z.literal('oauth'),
@@ -142,6 +143,10 @@ function getEnv() {
       queueConcurrency: Number(process.env.EMAIL_QUEUE_CONCURRENCY),
       senderAddress: process.env.EMAIL_SENDER_ADDRESS,
       senderName: process.env.EMAIL_SENDER_NAME,
+      financeRecipients: (process.env.EMAIL_FINANCE_RECIPIENTS ?? '')
+        .split(',')
+        .map((address) => address.trim())
+        .filter(Boolean),
       auth:
         process.env.EMAIL_AUTH_METHOD === 'oauth'
           ? {

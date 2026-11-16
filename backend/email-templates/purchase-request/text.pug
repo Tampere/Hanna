@@ -1,0 +1,15 @@
+| #{requestedBy.name} #{isUpdate ? 'on päivittänyt ostotilauspyynnön' : 'pyytää ostotilausta'} kohteelle #{title}.
+|
+if purchaseOrderNumber
+  | Ostotilausnumero: #{purchaseOrderNumber}
+  |
+each field in fields
+  | #{field.label}: #{field.value || '-'}
+  |
+|
+| Pyytäjä: #{requestedBy.name}, #{requestedBy.email || '-'}, puh. #{requestedBy.phone || '-'}
+|
+if financeUrl
+  | Kirjaa ostotilausnumero Hannaan: #{financeUrl}
+  |
+| Kohde Hannassa: #{hannaUrl}

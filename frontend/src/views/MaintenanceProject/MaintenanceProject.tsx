@@ -20,7 +20,7 @@ import {
 } from '@frontend/components/Map/mapInteractions';
 import { mapOptions, treMunicipalityGeometry } from '@frontend/components/Map/mapOptions';
 import { projectAreaStyle } from '@frontend/components/Map/styles';
-import { TooltipLinkTab } from '@frontend/components/TooltipLinkTab';
+import { SapKuluseurantaStatus } from '@frontend/components/SapIdentifier/SapKuluseurantaStatus';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
@@ -193,10 +193,7 @@ export function MaintenanceProject() {
       }
     });
     return map;
-  }, [
-    poIds.join(','),
-    projectObjectBudgetQueries.map((q) => q.dataUpdatedAt).join(','),
-  ]);
+  }, [poIds.join(','), projectObjectBudgetQueries.map((q) => q.dataUpdatedAt).join(',')]);
 
   const projectObjectSource = useMemo(() => {
     const source = new VectorSource();
@@ -353,28 +350,6 @@ export function MaintenanceProject() {
                   TabIndicatorProps={{ sx: { height: '5px' } }}
                 >
                   {tabs.map((tab) => {
-                    const projectInFuture = dayjs(project.data?.startDate).year() > dayjs().year();
-                    if (
-                      tab.tabView === 'kuluseuranta' &&
-                      (!project.data?.sapProjectId || projectInFuture)
-                    ) {
-                      return (
-                        <TooltipLinkTab
-                          title={
-                            projectInFuture
-                              ? tr('project.chartTabLabelNotStarted')
-                              : tr('project.chartTabLabelDisabled')
-                          }
-                          disabled={true}
-                          key={tab.tabView}
-                          to={tab.url}
-                          component={Link}
-                          icon={tab.icon}
-                          iconPosition="end"
-                          label={tr(tab.label)}
-                        />
-                      );
-                    }
                     return (
                       <Tab
                         disabled={!project.data}
@@ -475,15 +450,17 @@ export function MaintenanceProject() {
                   />
                 )}
                 {tabView === 'kuluseuranta' && (
-                  <ProjectFinancesCharts
-                    projectId={projectId}
-                    startYear={dayjs(project.data?.startDate).year()}
-                    endYear={
-                      project.data?.endDate === 'infinity'
-                        ? dayjs().year() + 5
-                        : dayjs(project.data?.endDate).year()
-                    }
-                  />
+                  <SapKuluseurantaStatus target={{ projectId }} startDate={project.data?.startDate}>
+                    <ProjectFinancesCharts
+                      projectId={projectId}
+                      startYear={dayjs(project.data?.startDate).year()}
+                      endYear={
+                        project.data?.endDate === 'infinity'
+                          ? dayjs().year() + 5
+                          : dayjs(project.data?.endDate).year()
+                      }
+                    />
+                  </SapKuluseurantaStatus>
                 )}
                 {tabView === 'kohteet' && (
                   <ProjectObjectList

@@ -16,7 +16,12 @@ import SuperJSON from 'superjson';
 import { Layout } from '@frontend/Layout';
 import { trpc } from '@frontend/client';
 import { csrfAwareFetch } from '@frontend/csrfFetch';
-import { asyncUserAtom, getCsrfToken, refreshCsrfToken, sessionExpiredAtom } from '@frontend/stores/auth';
+import {
+  asyncUserAtom,
+  getCsrfToken,
+  refreshCsrfToken,
+  sessionExpiredAtom,
+} from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 import { MaintenanceProject } from '@frontend/views/MaintenanceProject/MaintenanceProject';
 import { Management } from '@frontend/views/Management';
@@ -28,6 +33,8 @@ import { SapDebugView } from '@frontend/views/SapDebug';
 import { SapReports } from '@frontend/views/SapReports';
 import { SearchPage } from '@frontend/views/Search';
 import { SessionRenewed } from '@frontend/views/SessionRenewed';
+import { PurchaseOrderNumberEntry } from '@frontend/views/Finance/PurchaseOrderNumberEntry';
+import { SapIdentifierEntry } from '@frontend/views/Finance/SapIdentifierEntry';
 
 import { selectedSearchViewAtom } from './stores/search/searchView';
 import { GeneralNotifications } from './views/GeneralNotifications';
@@ -80,6 +87,12 @@ const router = createBrowserRouter(
         <Route path="hallinta/:tabView/:contentId" element={<Management />} />
         <Route path="hallinta/:tabView/luo" element={<Management />} />
         <Route path="tiedotteet" element={<GeneralNotifications />} />
+        <Route path="talous/sap-tunnus/:projectId" element={<SapIdentifierEntry />} />
+        <Route path="talous/ostotilaus/:purchaseRequestId" element={<PurchaseOrderNumberEntry />} />
+        <Route
+          path="talous/sap-tunnus/:projectId/kohde/:projectObjectId"
+          element={<SapIdentifierEntry />}
+        />
         <Route path="saptest/:sapProjectId" element={<SapDebugView />} />
         <Route path="session-renewed" element={<SessionRenewed />} />
         <Route path="*" element={<NotFound />} />
