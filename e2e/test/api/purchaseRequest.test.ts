@@ -196,7 +196,10 @@ test.describe('Purchase requests', () => {
     devSession,
   }) => {
     const company = await createCompany(adminSession);
-    const { projectObjectId } = await createProjectObject(adminSession, devSession.user);
+    const { projectId, projectObjectId } = await createProjectObject(
+      adminSession,
+      devSession.user,
+    );
 
     const defaults = await devSession.client.purchaseRequest.getDefaults.query({
       projectObjectId,
@@ -216,6 +219,7 @@ test.describe('Purchase requests', () => {
       startDate: '2021-03-01',
     });
     const projectObject = await devSession.client.investmentProjectObject.get.query({
+      projectId,
       projectObjectId,
     });
     expect(projectObject.startDate).toBe('2021-03-01');
