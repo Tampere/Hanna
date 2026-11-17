@@ -91,6 +91,10 @@ export function registerAuth(fastify: FastifyInstance, opts: AuthPluginOpts) {
         userinfo: UserinfoResponse & { roles?: RoleClaim[] },
         authDone: (err: Error | null, user?: PassportUser) => void,
       ) {
+        // TEMPORARY: inspect available claims (e.g. phone number). Remove after testing.
+        logger.info({ userinfo }, 'OIDC userinfo');
+        logger.info({ idTokenClaims: tokenset.claims() }, 'OIDC ID token claims');
+
         const id = userinfo.sub;
         const role = getUserRole(userinfo?.roles ?? []);
         if (id) {
