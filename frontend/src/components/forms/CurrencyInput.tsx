@@ -146,3 +146,20 @@ export function CurrencyInput(props: Readonly<Props>) {
     />
   );
 }
+
+/** Outlined look for the app's CurrencyInput, matching the other dialog fields. */
+export const outlinedCurrencyField = (error?: boolean) => css`
+  & input {
+    box-sizing: border-box;
+    height: 40px;
+    padding: 8.5px 14px;
+    font: inherit;
+    border: 1px solid ${error ? '#d32f2f' : 'rgba(0, 0, 0, 0.23)'};
+    border-radius: 4px;
+  }
+  & input:focus {
+    outline: none;
+    border: 2px solid #1976d2;
+    padding: 7.5px 13px;
+  }
+`;

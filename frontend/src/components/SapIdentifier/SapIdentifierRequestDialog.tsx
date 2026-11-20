@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react';
 
 import { trpc } from '@frontend/client';
 import { CodeSelect } from '@frontend/components/forms/CodeSelect';
+import { CurrencyInput, outlinedCurrencyField } from '@frontend/components/forms/CurrencyInput';
 import { DatePicker } from '@frontend/components/forms/DatePicker';
 import { MultiSelect } from '@frontend/components/forms/MultiSelect';
 import { UserSelect } from '@frontend/components/forms/UserSelect';
@@ -35,6 +36,8 @@ export interface SapIdentifierRequestValues {
   /** Kohde: Hankeluokka codes, prefilled from the kohde type. */
   projectObjectClass: string | null;
   serviceClasses: string[];
+  /** Hanke: Kustannusarvio in cents, sent in the email only. */
+  costEstimate: number | null;
   costCenterId: string | null;
   environmentalInvestmentReason: string | null;
 }
@@ -109,6 +112,7 @@ export function SapIdentifierRequestDialog({
         environmentalInvestmentReason: defaults.data.environmentalInvestmentReason,
         projectObjectClass: defaults.data.projectObjectClass,
         serviceClasses: [],
+        costEstimate: null,
         costCenterId: null,
         ...initialValues,
       });
@@ -164,7 +168,9 @@ export function SapIdentifierRequestDialog({
   const isValid = Boolean(
     values?.responsiblePerson &&
       datesValid &&
-      (!isProjectObject || (values.costCenterId && values.projectObjectClass)),
+      (isProjectObject
+        ? values.costCenterId && values.projectObjectClass
+        : values.costEstimate != null),
   );
 
   function send() {
@@ -187,6 +193,7 @@ export function SapIdentifierRequestDialog({
         startDate: values.startDate,
         endDate: values.endDate,
         serviceClasses: values.serviceClasses,
+        costEstimate: values.costEstimate as number,
       });
     }
   }
@@ -274,6 +281,17 @@ export function SapIdentifierRequestDialog({
                     value={values.responsiblePerson}
                     onChange={(id) => update('responsiblePerson', id ?? '')}
                   />
+                </Field>
+                <Field label={`${tr('sapIdentifier.field.costEstimate')} *`}>
+                  <Box css={outlinedCurrencyField()}>
+                    <CurrencyInput
+                      directlyHandleValueChange
+                      style={{ width: '100%' }}
+                      placeholder="–"
+                      value={values.costEstimate}
+                      onChange={(cents) => update('costEstimate', cents)}
+                    />
+                  </Box>
                 </Field>
               </Box>
             )}

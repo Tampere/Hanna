@@ -1,7 +1,7 @@
 import { CommonQueryMethods } from 'slonik';
 import { z } from 'zod';
 
-import { MailField } from '@backend/components/mail/templates.js';
+import { MailField, formatEuros as euros } from '@backend/components/mail/templates.js';
 import { formatUserContact, getUserContact } from '@backend/components/mail/userContact.js';
 import { sql } from '@backend/db.js';
 
@@ -20,10 +20,6 @@ const contextSchema = z.object({
   contact: z.string().nullable(),
   vatRate: z.string().nullable(),
 });
-
-const euroFormat = new Intl.NumberFormat('fi-FI', { style: 'currency', currency: 'EUR' });
-/** Amounts are stored in cents. */
-const euros = (cents: number) => euroFormat.format(cents / 100);
 
 const finnishDate = (isoDate: string) => {
   const [year, month, day] = isoDate.split('-');

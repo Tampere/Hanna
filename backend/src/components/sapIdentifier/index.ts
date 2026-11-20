@@ -240,6 +240,7 @@ export async function requestProjectSapIdentifier(input: ProjectSapIdentifierReq
     const requestData: SapIdentifierRequestData = {
       responsiblePerson: input.responsiblePerson,
       serviceClasses: input.serviceClasses,
+      costEstimate: input.costEstimate,
     };
     const request = await insertRequest(tx, target, requestData, user.id);
     await sendRequestMail(tx, target, view, requestData, user);

@@ -9,6 +9,11 @@ export interface MailField {
   value: string | null;
 }
 
+const euroFormat = new Intl.NumberFormat('fi-FI', { style: 'currency', currency: 'EUR' });
+
+/** Formats an amount in cents as euros for request emails. */
+export const formatEuros = (cents: number) => euroFormat.format(cents / 100);
+
 /** Contact details of a user mentioned in a request email. */
 export interface MailUserContact {
   name: string;

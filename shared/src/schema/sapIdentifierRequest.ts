@@ -25,6 +25,8 @@ export const projectSapIdentifierRequestSchema = z.object({
   // request_data only
   responsiblePerson: nonEmptyString,
   serviceClasses: z.array(codeId),
+  /** Kustannusarvio in cents. Sent in the email only, not written to the project. */
+  costEstimate: z.number().int().nonnegative(),
 });
 
 /**
@@ -52,6 +54,7 @@ export type ProjectObjectSapIdentifierRequest = z.infer<
 /** Shape of the `request_data` column. */
 export const sapIdentifierRequestDataSchema = z.object({
   serviceClasses: z.array(codeId).optional(),
+  costEstimate: z.number().optional(),
   responsiblePerson: z.string().optional(),
   costCenterId: z.string().optional(),
   projectObjectClass: codeId.optional(),

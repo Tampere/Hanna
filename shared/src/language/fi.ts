@@ -590,6 +590,7 @@ export const fi = {
   'sapIdentifier.field.startDate': 'Alkupäivämäärä',
   'sapIdentifier.field.endDate': 'Loppupäivämäärä',
   'sapIdentifier.field.serviceClasses': 'Palveluluokat',
+  'sapIdentifier.field.costEstimate': 'Kustannusarvio',
   'sapIdentifier.field.costCenter': 'Kustannuspaikka',
   'sapIdentifier.field.environmentalCode': 'Ympäristökoodi',
   'sapIdentifier.dialog.cancel': 'Peruuta',
