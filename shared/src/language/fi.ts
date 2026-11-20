@@ -626,6 +626,7 @@ export const fi = {
   'sapIdentifier.finance.placeholder.project': 'KNNN-NNNNNN',
   'sapIdentifier.finance.placeholder.projectObject': 'KNNN-NNNNNN-NN',
   'sapIdentifier.finance.save': 'Tallenna',
+  'sapIdentifier.finance.fix': 'Korjaa',
   'sapIdentifier.finance.success.project': 'Projektitunniste {0} on kirjattu onnistuneesti.',
   'sapIdentifier.finance.success.projectObject': 'WBS-tunniste {0} on kirjattu onnistuneesti.',
   'sapIdentifier.finance.successClose': 'Voit nyt sulkea tämän sivun.',

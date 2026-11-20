@@ -53,6 +53,7 @@ export function SapIdentifierEntry() {
   const isProjectObject = Boolean(projectObjectId);
   const hasPermission = canSetFinanceIdentifiers(user);
 
+  const utils = trpc.useUtils();
   const view = trpc.sapIdentifier.getFinanceView.useQuery(target, { enabled: hasPermission });
   const [identifier, setIdentifier] = useState('');
   const [result, setResult] = useState<SetSapIdentifierResult | null>(null);
@@ -60,6 +61,14 @@ export function SapIdentifierEntry() {
   const setMutation = trpc.sapIdentifier.setIdentifier.useMutation({
     onSuccess: (data) => setResult(data),
   });
+
+  /** Back to the entry form, prefilled with the saved identifier, to correct it. */
+  function fixIdentifier(saved: string) {
+    setIdentifier(saved);
+    setResult(null);
+    setMutation.reset();
+    utils.sapIdentifier.getFinanceView.invalidate(target);
+  }
 
   const variant = isProjectObject ? 'projectObject' : 'project';
   const hannaUrl = view.data
@@ -118,7 +127,18 @@ export function SapIdentifierEntry() {
             </Typography>
           </Box>
           {result.warning && (
-            <Alert severity="warning">
+            <Alert
+              severity="warning"
+              action={
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={() => fixIdentifier(result.identifier)}
+                >
+                  {tr('sapIdentifier.finance.fix')}
+                </Button>
+              }
+            >
               {tr(`sapIdentifier.warning.${result.warning}` as const)}
             </Alert>
           )}
