@@ -21,7 +21,10 @@ import { FormCheckBox } from '@frontend/components/forms/FormCheckBox';
 import { SectionTitle } from '@frontend/components/forms/SectionTitle';
 import { useNotifications } from '@frontend/services/notification';
 import { useTranslations } from '@frontend/stores/lang';
-import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
+import {
+  SKIP_NAVIGATION_BLOCKER_STATE,
+  useNavigationBlocker,
+} from '@frontend/stores/navigationBlocker';
 import { dirtyAndValidFieldsAtom, projectEditingAtom } from '@frontend/stores/projectView';
 import { pendingSapIdentifierRequestAtom } from '@frontend/stores/sapIdentifier';
 import { ProjectTypePath } from '@frontend/types';
@@ -229,7 +232,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
     }
   }, [editing]);
 
-  const { isBlocking } = useNavigationBlocker(isDirty, 'projectObjectForm');
+  useNavigationBlocker(isDirty, 'projectObjectForm');
 
   useEffect(() => {
     if (props.projectObject) {
@@ -261,9 +264,12 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
   }, [props.projectObject]);
 
   useEffect(() => {
-    if (newProjectObjectIds && !isBlocking) {
+    if (newProjectObjectIds) {
+      // Geometry was saved together with the form; don't leave the map flagged as dirty
+      setDirtyAndValidViews((prev) => ({ ...prev, map: { isDirtyAndValid: false } }));
       navigate(
-        `/${props.projectType}/${newProjectObjectIds?.projectId}/kohde/${newProjectObjectIds?.projectObjectId}`,
+        `/${props.projectType}/${newProjectObjectIds.projectId}/kohde/${newProjectObjectIds.projectObjectId}`,
+        { state: SKIP_NAVIGATION_BLOCKER_STATE },
       );
       notify({
         severity: 'success',
@@ -271,7 +277,7 @@ export const MaintenanceProjectObjectForm = forwardRef(function MaintenanceProje
         duration: 5000,
       });
     }
-  }, [newProjectObjectIds, isBlocking]);
+  }, [newProjectObjectIds]);
 
   const formProjectId = watch('projectId');
   const endDateWatch = watch('endDate');

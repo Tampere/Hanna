@@ -24,7 +24,10 @@ import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
-import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
+import {
+  SKIP_NAVIGATION_BLOCKER_STATE,
+  useNavigationBlocker,
+} from '@frontend/stores/navigationBlocker';
 import { dirtyAndValidFieldsAtom, projectEditingAtom } from '@frontend/stores/projectView';
 import { pendingSapIdentifierRequestAtom } from '@frontend/stores/sapIdentifier';
 import { getRequiredFields } from '@frontend/utils/form';
@@ -176,7 +179,7 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
     resetOptions: { keepDefaultValues: true },
   });
 
-  const { isBlocking } = useNavigationBlocker(isDirty || externalIsDirty, 'maintenanceForm');
+  useNavigationBlocker(isDirty || externalIsDirty, 'maintenanceForm');
   const ownerWatch = watch('owner');
   const endDateWatch = watch('endDate');
 
@@ -205,15 +208,15 @@ export const MaintenanceProjectForm = forwardRef(function MaintenanceProjectForm
   }, [props.project]);
 
   useEffect(() => {
-    if (newProjectId && !isBlocking) {
-      navigate(`/kunnossapitohanke/${newProjectId}`);
+    if (newProjectId) {
+      navigate(`/kunnossapitohanke/${newProjectId}`, { state: SKIP_NAVIGATION_BLOCKER_STATE });
       notify({
         severity: 'success',
         title: tr('newProject.notifyUpsert'),
         duration: 5000,
       });
     }
-  }, [newProjectId, isBlocking]);
+  }, [newProjectId]);
 
   const projectUpsert = trpc.maintenanceProject.upsert.useMutation({
     onSuccess: async (data) => {

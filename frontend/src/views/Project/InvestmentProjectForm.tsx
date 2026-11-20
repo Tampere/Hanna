@@ -25,7 +25,10 @@ import { UserSelect } from '@frontend/components/forms/UserSelect';
 import { useNotifications } from '@frontend/services/notification';
 import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
-import { useNavigationBlocker } from '@frontend/stores/navigationBlocker';
+import {
+  SKIP_NAVIGATION_BLOCKER_STATE,
+  useNavigationBlocker,
+} from '@frontend/stores/navigationBlocker';
 import { dirtyAndValidFieldsAtom, projectEditingAtom } from '@frontend/stores/projectView';
 import { pendingSapIdentifierRequestAtom } from '@frontend/stores/sapIdentifier';
 import { getRequiredFields } from '@frontend/utils/form';
@@ -171,7 +174,7 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
     resetOptions: { keepDefaultValues: true },
   });
 
-  const { isBlocking } = useNavigationBlocker(isDirty || externalIsDirty, 'investmentForm');
+  useNavigationBlocker(isDirty || externalIsDirty, 'investmentForm');
   const ownerWatch = watch('owner');
   const committeeWatch = watch('committees');
 
@@ -201,15 +204,15 @@ export const InvestmentProjectForm = forwardRef(function InvestmentProjectForm(
   }, [props.project]);
 
   useEffect(() => {
-    if (newProjectId && !isBlocking) {
-      navigate(`/investointihanke/${newProjectId}`);
+    if (newProjectId) {
+      navigate(`/investointihanke/${newProjectId}`, { state: SKIP_NAVIGATION_BLOCKER_STATE });
       notify({
         severity: 'success',
         title: tr('newProject.notifyUpsert'),
         duration: 5000,
       });
     }
-  }, [newProjectId, isBlocking]);
+  }, [newProjectId]);
 
   const projectUpsert = trpc.investmentProject.upsert.useMutation({
     onSuccess: async (data) => {
