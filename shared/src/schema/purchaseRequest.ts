@@ -35,6 +35,8 @@ export const upsertPurchaseRequestSchema = z
     isContractPrice: z.boolean(),
     contractPrice: z.number().int().nonnegative().nullable(),
     phasePrices: z.array(phasePriceSchema),
+    /** Lisätietoja: free text for finance, stored on the request only. */
+    additionalInfo: z.string().nullable(),
   })
   .superRefine((value, ctx) => {
     if (value.isContractPrice && value.contractPrice == null) {
@@ -72,10 +74,13 @@ export const purchaseRequestSchema = z.object({
   costCenterName: z.string(),
   frameworkAgreementId: z.string().nullable(),
   frameworkAgreementName: z.string().nullable(),
+  /** Sopimustunniste of the framework agreement. */
+  frameworkAgreementRecordId: z.string().nullable(),
   vatRate: codeId,
   isContractPrice: z.boolean(),
   contractPrice: z.number().nullable(),
   phasePrices: z.array(phasePriceSchema),
+  additionalInfo: z.string().nullable(),
   purchaseOrderNumber: z.string().nullable(),
   responsiblePersonName: z.string(),
   ordererName: z.string(),

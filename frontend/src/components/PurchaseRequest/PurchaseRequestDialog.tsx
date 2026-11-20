@@ -13,6 +13,7 @@ import {
   Divider,
   FormControlLabel,
   FormLabel,
+  TextField,
   Typography,
 } from '@mui/material';
 import { useAtomValue } from 'jotai';
@@ -60,6 +61,8 @@ interface Values {
   contractPrice: number | null;
   /** Phase prices by phase code, in cents. */
   phaseAmounts: Record<string, number | null>;
+  /** Lisätietoja, stored on the request only. */
+  additionalInfo: string;
 }
 
 interface Props {
@@ -124,6 +127,7 @@ function valuesFromRequest(request: PurchaseRequest): Values {
     phaseAmounts: Object.fromEntries(
       request.phasePrices.map((phase) => [phase.phaseCode, phase.amount]),
     ),
+    additionalInfo: request.additionalInfo ?? '',
   };
 }
 
@@ -185,6 +189,7 @@ export function PurchaseRequestDialog({
         isContractPrice: false,
         contractPrice: defaults.data.contractPrice,
         phaseAmounts: {},
+        additionalInfo: '',
       });
     }
   }, [open, existing.data, defaults.data]);
@@ -299,6 +304,7 @@ export function PurchaseRequestDialog({
       isContractPrice: values.isContractPrice,
       contractPrice: values.isContractPrice ? values.contractPrice : null,
       phasePrices,
+      additionalInfo: values.additionalInfo.trim() || null,
     });
   }
 
@@ -345,244 +351,265 @@ export function PurchaseRequestDialog({
         {!values ? (
           <CircularProgress size="2rem" />
         ) : (
-          <Box css={columns}>
-            {/* Perustiedot */}
-            <Box
-              css={css`
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-              `}
-            >
-              <Typography css={sectionTitle}>{tr('purchaseRequest.dialog.basicInfo')}</Typography>
-              <Box css={twoColumns}>
-                <Field label={tr('purchaseRequest.field.responsiblePerson')}>
-                  <UserSelect
-                    value={values.responsiblePerson}
-                    readOnly={readOnly}
-                    onChange={(id) => update('responsiblePerson', id ?? '')}
-                  />
-                </Field>
-                <Field label={tr('purchaseRequest.field.orderer')}>
-                  <UserSelect
-                    value={values.orderer}
-                    readOnly={readOnly}
-                    onChange={(id) => update('orderer', id ?? '')}
-                  />
-                </Field>
-              </Box>
-              <Field label={tr('purchaseRequest.field.company')}>
-                <MultiSelect
-                  options={companies.data ?? []}
-                  loading={companies.isLoading}
-                  readOnly={readOnly}
-                  getOptionId={(company) => company.id as string}
-                  getOptionLabel={(company) => `${company.companyName} (${company.businessId})`}
-                  value={selectedCompany}
-                  onChange={(company) =>
-                    setValues((prev) =>
-                      prev
-                        ? { ...prev, companyId: company?.id ?? null, companyContactId: null }
-                        : prev,
-                    )
-                  }
-                  multiple={false}
-                />
-              </Field>
-              <Field label={tr('purchaseRequest.field.companyContact')}>
-                <MultiSelect
-                  options={contactsOfCompany}
-                  loading={contacts.isLoading}
-                  readOnly={readOnly}
-                  disabled={!values.companyId}
-                  getOptionId={(contact) => contact.id}
-                  getOptionLabel={(contact) =>
-                    `${contact.contactName} (${contact.emailAddress}, ${contact.phoneNumber})`
-                  }
-                  value={selectedContact}
-                  onChange={(contact) => update('companyContactId', contact?.id ?? null)}
-                  multiple={false}
-                />
-              </Field>
-              <Box css={twoColumns}>
-                <Field label={tr('purchaseRequest.field.startDate')}>
-                  <DatePicker
-                    value={values.startDate}
-                    readOnly={readOnly}
-                    onChange={(date) => update('startDate', date)}
-                  />
-                </Field>
-                <Field label={tr('purchaseRequest.field.endDate')}>
-                  <DatePicker
-                    value={isOngoing ? null : values.endDate}
-                    readOnly={readOnly || isOngoing}
-                    onChange={(date) => update('endDate', date)}
-                  />
-                  {isMaintenance && (
-                    <FormControlLabel
-                      label={tr('maintenanceProject.ongoing')}
-                      control={
-                        <Checkbox
-                          size="small"
-                          disabled={readOnly}
-                          checked={isOngoing}
-                          onChange={(_, checked) => update('endDate', checked ? 'infinity' : null)}
-                        />
-                      }
-                    />
-                  )}
-                </Field>
-              </Box>
-              <Field label={tr('purchaseRequest.field.costCenter')}>
-                <MultiSelect<CostCenter>
-                  options={costCenters.data ?? []}
-                  loading={costCenters.isLoading}
-                  readOnly={readOnly}
-                  getOptionId={(costCenter) => costCenter.id}
-                  getOptionLabel={(costCenter) => `(${costCenter.id}) ${costCenter.name}`}
-                  value={selectedCostCenter}
-                  onChange={(costCenter) => update('costCenterId', costCenter?.id ?? null)}
-                  multiple={false}
-                />
-              </Field>
-              <Field label={tr('purchaseRequest.field.frameworkAgreement')}>
-                <FrameworkAgreementSelect
-                  value={values.frameworkAgreementId}
-                  readOnly={readOnly}
-                  savedValue={defaults.data?.frameworkAgreementId}
-                  onChange={(id) => update('frameworkAgreementId', id)}
-                />
-              </Field>
-              <Box css={twoColumns}>
-                <Field label={tr('purchaseRequest.field.vatRate')}>
-                  <CodeSelect
-                    codeListId="AlvKanta"
-                    readOnly={readOnly}
-                    value={values.vatRate ?? undefined}
-                    onChange={(code) => update('vatRate', code)}
-                  />
-                </Field>
-                <FormControlLabel
-                  css={css`
-                    align-self: end;
-                  `}
-                  label={tr('purchaseRequest.field.isContractPrice')}
-                  control={
-                    <Checkbox
-                      disabled={readOnly}
-                      checked={values.isContractPrice}
-                      onChange={(_, checked) => update('isContractPrice', checked)}
-                    />
-                  }
-                />
-              </Box>
-              {values.isContractPrice && (
-                <Field label={`${tr('purchaseRequest.field.contractPrice')} *`}>
-                  <Box css={currencyField(values.contractPrice == null)}>
-                    <CurrencyInput
-                      directlyHandleValueChange
-                      style={{ width: '100%' }}
-                      placeholder="–"
-                      value={values.contractPrice}
-                      onChange={readOnly ? undefined : (cents) => update('contractPrice', cents)}
-                    />
-                  </Box>
-                  {editing && values.startDate && values.endDate && datesValid && (
-                    <Typography variant="caption">
-                      {tr(
-                        'purchaseRequest.dialog.contractPriceYear',
-                        contractPriceYear(values.startDate, values.endDate),
-                      )}
-                    </Typography>
-                  )}
-                </Field>
-              )}
-            </Box>
-
-            {/* Vaihekohtaiset hinnat */}
-            <Box
-              css={css`
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-              `}
-            >
+          <>
+            <Box css={columns}>
+              {/* Perustiedot */}
               <Box
                 css={css`
                   display: flex;
-                  justify-content: space-between;
-                  align-items: baseline;
+                  flex-direction: column;
+                  gap: 12px;
                 `}
               >
-                <Typography css={sectionTitle}>
-                  {tr('purchaseRequest.dialog.phasePrices')}
-                </Typography>
-                {phases.length > 0 && (
-                  <Typography variant="h6">
-                    {tr('purchaseRequest.dialog.total', formatCurrency(phaseTotal))}
-                  </Typography>
+                <Typography css={sectionTitle}>{tr('purchaseRequest.dialog.basicInfo')}</Typography>
+                <Box css={twoColumns}>
+                  <Field label={tr('purchaseRequest.field.responsiblePerson')}>
+                    <UserSelect
+                      value={values.responsiblePerson}
+                      readOnly={readOnly}
+                      onChange={(id) => update('responsiblePerson', id ?? '')}
+                    />
+                  </Field>
+                  <Field label={tr('purchaseRequest.field.orderer')}>
+                    <UserSelect
+                      value={values.orderer}
+                      readOnly={readOnly}
+                      onChange={(id) => update('orderer', id ?? '')}
+                    />
+                  </Field>
+                </Box>
+                <Field label={tr('purchaseRequest.field.company')}>
+                  <MultiSelect
+                    options={companies.data ?? []}
+                    loading={companies.isLoading}
+                    readOnly={readOnly}
+                    getOptionId={(company) => company.id as string}
+                    getOptionLabel={(company) => `${company.companyName} (${company.businessId})`}
+                    value={selectedCompany}
+                    onChange={(company) =>
+                      setValues((prev) =>
+                        prev
+                          ? { ...prev, companyId: company?.id ?? null, companyContactId: null }
+                          : prev,
+                      )
+                    }
+                    multiple={false}
+                  />
+                </Field>
+                <Field label={tr('purchaseRequest.field.companyContact')}>
+                  <MultiSelect
+                    options={contactsOfCompany}
+                    loading={contacts.isLoading}
+                    readOnly={readOnly}
+                    disabled={!values.companyId}
+                    getOptionId={(contact) => contact.id}
+                    getOptionLabel={(contact) =>
+                      `${contact.contactName} (${contact.emailAddress}, ${contact.phoneNumber})`
+                    }
+                    value={selectedContact}
+                    onChange={(contact) => update('companyContactId', contact?.id ?? null)}
+                    multiple={false}
+                  />
+                </Field>
+                <Box css={twoColumns}>
+                  <Field label={tr('purchaseRequest.field.startDate')}>
+                    <DatePicker
+                      value={values.startDate}
+                      readOnly={readOnly}
+                      onChange={(date) => update('startDate', date)}
+                    />
+                  </Field>
+                  <Field label={tr('purchaseRequest.field.endDate')}>
+                    <DatePicker
+                      value={isOngoing ? null : values.endDate}
+                      readOnly={readOnly || isOngoing}
+                      onChange={(date) => update('endDate', date)}
+                    />
+                    {isMaintenance && (
+                      <FormControlLabel
+                        label={tr('maintenanceProject.ongoing')}
+                        control={
+                          <Checkbox
+                            size="small"
+                            disabled={readOnly}
+                            checked={isOngoing}
+                            onChange={(_, checked) =>
+                              update('endDate', checked ? 'infinity' : null)
+                            }
+                          />
+                        }
+                      />
+                    )}
+                  </Field>
+                </Box>
+                <Field label={tr('purchaseRequest.field.costCenter')}>
+                  <MultiSelect<CostCenter>
+                    options={costCenters.data ?? []}
+                    loading={costCenters.isLoading}
+                    readOnly={readOnly}
+                    getOptionId={(costCenter) => costCenter.id}
+                    getOptionLabel={(costCenter) => `(${costCenter.id}) ${costCenter.name}`}
+                    value={selectedCostCenter}
+                    onChange={(costCenter) => update('costCenterId', costCenter?.id ?? null)}
+                    multiple={false}
+                  />
+                </Field>
+                <Field label={tr('purchaseRequest.field.frameworkAgreement')}>
+                  <FrameworkAgreementSelect
+                    value={values.frameworkAgreementId}
+                    readOnly={readOnly}
+                    savedValue={defaults.data?.frameworkAgreementId}
+                    onChange={(id) => update('frameworkAgreementId', id)}
+                  />
+                </Field>
+                <Box css={twoColumns}>
+                  <Field label={tr('purchaseRequest.field.vatRate')}>
+                    <CodeSelect
+                      codeListId="AlvKanta"
+                      readOnly={readOnly}
+                      value={values.vatRate ?? undefined}
+                      onChange={(code) => update('vatRate', code)}
+                    />
+                  </Field>
+                  <FormControlLabel
+                    css={css`
+                      align-self: end;
+                    `}
+                    label={tr('purchaseRequest.field.isContractPrice')}
+                    control={
+                      <Checkbox
+                        disabled={readOnly}
+                        checked={values.isContractPrice}
+                        onChange={(_, checked) => update('isContractPrice', checked)}
+                      />
+                    }
+                  />
+                </Box>
+                {values.isContractPrice && (
+                  <Field label={`${tr('purchaseRequest.field.contractPrice')} *`}>
+                    <Box css={currencyField(values.contractPrice == null)}>
+                      <CurrencyInput
+                        directlyHandleValueChange
+                        style={{ width: '100%' }}
+                        placeholder="–"
+                        value={values.contractPrice}
+                        onChange={readOnly ? undefined : (cents) => update('contractPrice', cents)}
+                      />
+                    </Box>
+                    {editing && values.startDate && values.endDate && datesValid && (
+                      <Typography variant="caption">
+                        {tr(
+                          'purchaseRequest.dialog.contractPriceYear',
+                          contractPriceYear(values.startDate, values.endDate),
+                        )}
+                      </Typography>
+                    )}
+                  </Field>
                 )}
               </Box>
-              {phases.length > 0 &&
-                contractPriceDifference != null &&
-                contractPriceDifference !== 0 && (
-                  <Typography
-                    variant="body2"
-                    css={css`
-                      text-align: right;
-                    `}
-                  >
-                    {tr(
-                      contractPriceDifference > 0
-                        ? 'purchaseRequest.dialog.contractPriceMissing'
-                        : 'purchaseRequest.dialog.contractPriceExceeded',
-                      formatCurrency(Math.abs(contractPriceDifference)),
-                    )}
-                  </Typography>
-                )}
-              {!values.costCenterId && (
-                <Typography variant="body2">
-                  {tr('purchaseRequest.dialog.selectCostCenter')}
-                </Typography>
-              )}
-              {values.costCenterId && phases.length === 0 && (
-                <Alert severity="info">{tr('purchaseRequest.dialog.noPhases')}</Alert>
-              )}
-              {phases.map((phase) => (
+
+              {/* Vaihekohtaiset hinnat */}
+              <Box
+                css={css`
+                  display: flex;
+                  flex-direction: column;
+                  gap: 8px;
+                `}
+              >
                 <Box
-                  key={phase.phaseCode}
                   css={css`
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    align-items: center;
-                    gap: 8px;
-                    padding-left: 8px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: baseline;
                   `}
                 >
-                  <Typography variant="body2">
-                    ({phase.phaseCode}) {phase.name}
+                  <Typography css={sectionTitle}>
+                    {tr('purchaseRequest.dialog.phasePrices')}
                   </Typography>
-                  <Box css={currencyField()}>
-                    <CurrencyInput
-                      directlyHandleValueChange
-                      style={{ width: '100%' }}
-                      placeholder="–"
-                      value={values.phaseAmounts[phase.phaseCode] ?? null}
-                      onChange={
-                        readOnly
-                          ? undefined
-                          : (cents) =>
-                              update('phaseAmounts', {
-                                ...values.phaseAmounts,
-                                [phase.phaseCode]: cents,
-                              })
-                      }
-                    />
-                  </Box>
+                  {phases.length > 0 && (
+                    <Typography variant="h6">
+                      {tr('purchaseRequest.dialog.total', formatCurrency(phaseTotal))}
+                    </Typography>
+                  )}
                 </Box>
-              ))}
+                {phases.length > 0 &&
+                  contractPriceDifference != null &&
+                  contractPriceDifference !== 0 && (
+                    <Typography
+                      variant="body2"
+                      css={css`
+                        text-align: right;
+                      `}
+                    >
+                      {tr(
+                        contractPriceDifference > 0
+                          ? 'purchaseRequest.dialog.contractPriceMissing'
+                          : 'purchaseRequest.dialog.contractPriceExceeded',
+                        formatCurrency(Math.abs(contractPriceDifference)),
+                      )}
+                    </Typography>
+                  )}
+                {!values.costCenterId && (
+                  <Typography variant="body2">
+                    {tr('purchaseRequest.dialog.selectCostCenter')}
+                  </Typography>
+                )}
+                {values.costCenterId && phases.length === 0 && (
+                  <Alert severity="info">{tr('purchaseRequest.dialog.noPhases')}</Alert>
+                )}
+                {phases.map((phase) => (
+                  <Box
+                    key={phase.phaseCode}
+                    css={css`
+                      display: grid;
+                      grid-template-columns: 1fr 1fr;
+                      align-items: center;
+                      gap: 8px;
+                      padding-left: 8px;
+                    `}
+                  >
+                    <Typography variant="body2">
+                      ({phase.phaseCode}) {phase.name}
+                    </Typography>
+                    <Box css={currencyField()}>
+                      <CurrencyInput
+                        directlyHandleValueChange
+                        style={{ width: '100%' }}
+                        placeholder="–"
+                        value={values.phaseAmounts[phase.phaseCode] ?? null}
+                        onChange={
+                          readOnly
+                            ? undefined
+                            : (cents) =>
+                                update('phaseAmounts', {
+                                  ...values.phaseAmounts,
+                                  [phase.phaseCode]: cents,
+                                })
+                        }
+                      />
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
             </Box>
-          </Box>
+            <Box
+              css={css`
+                margin-top: 16px;
+              `}
+            >
+              <Field label={tr('purchaseRequest.field.additionalInfo')}>
+                <TextField
+                  size="small"
+                  multiline
+                  minRows={3}
+                  fullWidth
+                  value={values.additionalInfo}
+                  InputProps={{ readOnly }}
+                  onChange={(event) => update('additionalInfo', event.target.value)}
+                />
+              </Field>
+            </Box>
+          </>
         )}
       </DialogContent>
       <Divider

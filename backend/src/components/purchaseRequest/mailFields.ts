@@ -72,7 +72,13 @@ export async function getPurchaseRequestFields(
       value: `${finnishDate(request.startDate)} - ${finnishDate(request.endDate)}`,
     },
     { label: 'Kustannuspaikka', value: `${request.costCenterName} (${request.costCenterId})` },
-    { label: 'Puitesopimus', value: request.frameworkAgreementName },
+    {
+      label: 'Puitesopimus',
+      value:
+        request.frameworkAgreementName && request.frameworkAgreementRecordId
+          ? `${request.frameworkAgreementName} (${request.frameworkAgreementRecordId})`
+          : request.frameworkAgreementName,
+    },
     { label: 'ALV-kanta', value: context.vatRate },
     {
       label: 'Sovittu kokonaishinta (netto)',
@@ -85,5 +91,6 @@ export async function getPurchaseRequestFields(
     ...(phaseFields.length > 0
       ? [{ label: 'Vaiheet yhteensä', value: euros(sumPhasePrices(request.phasePrices)) }]
       : []),
+    { label: 'Lisätietoja', value: request.additionalInfo },
   ];
 }

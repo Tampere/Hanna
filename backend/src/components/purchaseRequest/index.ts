@@ -70,10 +70,12 @@ const selectPurchaseRequest = sql.fragment`
     cost_center.name AS "costCenterName",
     pr.framework_agreement_id AS "frameworkAgreementId",
     framework_agreement.name AS "frameworkAgreementName",
+    framework_agreement.record_id AS "frameworkAgreementRecordId",
     (pr.vat_rate).id AS "vatRate",
     pr.is_contract_price AS "isContractPrice",
     pr.contract_price AS "contractPrice",
     pr.phase_prices AS "phasePrices",
+    pr.additional_info AS "additionalInfo",
     pr.purchase_order_number AS "purchaseOrderNumber",
     pr.created_by AS "createdBy",
     pr.created_at AS "createdAt",
@@ -477,6 +479,7 @@ export async function upsertPurchaseRequest(input: UpsertPurchaseRequest, user: 
       framework_agreement_id: input.frameworkAgreementId,
       is_contract_price: input.isContractPrice,
       contract_price: input.isContractPrice ? input.contractPrice : null,
+      additional_info: input.additionalInfo?.trim() || null,
       updated_by: user.id,
     };
     const vatRate = sql.fragment`('AlvKanta', ${input.vatRate})::app.code_id`;

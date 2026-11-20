@@ -82,6 +82,7 @@ test.describe('Purchase requests', () => {
       { phaseCode: '3110', phaseName: 'Rakennuttamispalvelut', amount: 1_000_000 },
       { phaseCode: '3210', phaseName: 'Ajorata', amount: 2_500_000 },
     ],
+    additionalInfo: 'Urakka alkaa viikolla 12',
   });
 
   test('requires write access and a WBS', async ({ adminSession, devSession, testSession }) => {
@@ -274,6 +275,8 @@ test.describe('Purchase requests', () => {
       .toContain('purchase-request');
     const [firstMail] = await getMailEvents(projectId);
     expect(firstMail.html).toContain(`/talous/ostotilaus/${created.id}`);
+    expect(created.additionalInfo).toBe('Urakka alkaa viikolla 12');
+    expect(firstMail.html).toContain('Urakka alkaa viikolla 12');
 
     // Only finance can set the order number
     await expect(

@@ -683,6 +683,7 @@ export const fi = {
   'purchaseRequest.field.vatRate': 'ALV-kanta',
   'purchaseRequest.field.isContractPrice': 'Sopimushinta',
   'purchaseRequest.field.contractPrice': 'Sovittu kokonaishinta',
+  'purchaseRequest.field.additionalInfo': 'Lisätietoja',
   'purchaseRequest.notify.sent': 'Ostotilauspyyntö lähetetty',
   'purchaseRequest.notify.failed': 'Ostotilauspyynnön lähetys epäonnistui',
   'purchaseRequest.notify.deleted': 'Ostotilaus poistettu',
