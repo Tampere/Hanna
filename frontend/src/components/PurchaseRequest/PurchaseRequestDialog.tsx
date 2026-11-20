@@ -549,6 +549,19 @@ export function PurchaseRequestDialog({
                       )}
                     </Typography>
                   )}
+                {editing &&
+                  !values.isContractPrice &&
+                  phasePrices.length > 0 &&
+                  values.startDate &&
+                  values.endDate &&
+                  datesValid && (
+                    <Typography variant="caption">
+                      {tr(
+                        'purchaseRequest.dialog.forecastYear',
+                        contractPriceYear(values.startDate, values.endDate),
+                      )}
+                    </Typography>
+                  )}
                 {!values.costCenterId && (
                   <Typography variant="body2">
                     {tr('purchaseRequest.dialog.selectCostCenter')}

@@ -9,11 +9,7 @@ import {
   updateProjectObjectBudget,
   validateUpsertProjectObject,
 } from '@backend/components/projectObject/index.js';
-import {
-  assertValid,
-  dateText,
-  getHannaUrl,
-} from '@backend/components/sapIdentifier/index.js';
+import { assertValid, dateText, getHannaUrl } from '@backend/components/sapIdentifier/index.js';
 import { startSendMailJob } from '@backend/components/taskQueue/mailQueue.js';
 import { getPool, sql } from '@backend/db.js';
 import { env } from '@backend/env.js';
@@ -21,14 +17,17 @@ import { logger } from '@backend/logging.js';
 
 import { BudgetUpdate } from '@shared/schema/projectObject/base.js';
 import {
+  PhasePrice,
   PurchaseRequest,
   SetPurchaseOrderNumber,
   UpsertPurchaseRequest,
   contractPriceYear,
   costCenterSchema,
-  forecastFromContractPrice,
+  forecastFromCommitted,
+  phasePriceSchema,
   purchaseRequestDefaultsSchema,
   purchaseRequestSchema,
+  sumPhasePrices,
 } from '@shared/schema/purchaseRequest.js';
 import { User } from '@shared/schema/user.js';
 
@@ -125,12 +124,16 @@ async function getBudgetForYear(
     z.object({
       contractPrice: z.number().nullable(),
       amount: z.number().nullable(),
+      estimate: z.number().nullable(),
+      forecast: z.number().nullable(),
       committee: z.string().nullable(),
     }),
   )`
     SELECT
       budget.contract_price AS "contractPrice",
       budget.amount,
+      budget.estimate,
+      budget.forecast,
       -- Keep the committee of an existing budget row, new rows get the object's committee.
       -- Maintenance kohteet have no committee.
       CASE
@@ -287,11 +290,7 @@ async function validateInput(tx: DatabaseTransactionConnection, input: UpsertPur
   }));
 
   if (input.frameworkAgreementId) {
-    await assertFrameworkAgreementSelectable(
-      tx,
-      input.frameworkAgreementId,
-      input.projectObjectId,
-    );
+    await assertFrameworkAgreementSelectable(tx, input.frameworkAgreementId, input.projectObjectId);
   }
 
   return { ...object, datesChanged, phasePrices };
@@ -303,12 +302,17 @@ async function validateInput(tx: DatabaseTransactionConnection, input: UpsertPur
  * - supplier contact: added as Urakoitsijan edustaja if not one already. Existing contacts
  *   are kept, as a kohde can have several suppliers with their own purchase requests.
  * - framework agreement (investment kohteet only, maintenance kohteet have no column)
- * - contract price + forecast, only when "Sopimushinta" is selected
+ * - budget of the contract price year, see writeBackBudget
  */
 async function writeBackToProjectObject(
   tx: DatabaseTransactionConnection,
   input: UpsertPurchaseRequest,
-  { isInvestment, datesChanged }: { isInvestment: boolean; datesChanged: boolean },
+  {
+    isInvestment,
+    datesChanged,
+    phasePrices,
+  }: { isInvestment: boolean; datesChanged: boolean; phasePrices: PhasePrice[] },
+  previous: PreviousRequest | null,
   userId: User['id'],
 ) {
   if (datesChanged) {
@@ -339,7 +343,10 @@ async function writeBackToProjectObject(
   if (!isContractor) {
     await addAuditEvent(tx, {
       eventType: 'purchaseRequest.addContractorContact',
-      eventData: { projectObjectId: input.projectObjectId, companyContactId: input.companyContactId },
+      eventData: {
+        projectObjectId: input.projectObjectId,
+        companyContactId: input.companyContactId,
+      },
       eventUser: userId,
     });
     await tx.query(sql.untyped`
@@ -374,27 +381,133 @@ async function writeBackToProjectObject(
     }
   }
 
-  if (input.isContractPrice && input.contractPrice !== null) {
-    const year = contractPriceYear(input.startDate, input.endDate);
-    const budget = await getBudgetForYear(tx, input.projectObjectId, year);
-    if (budget.contractPrice !== input.contractPrice) {
-      // Same rule as the budget table: forecast = contract price - amount.
-      // Audit event is added by updateProjectObjectBudget.
-      await updateProjectObjectBudget(
-        tx,
-        input.projectObjectId,
-        [
-          {
-            year,
-            contractPrice: input.contractPrice,
-            forecast: forecastFromContractPrice(input.contractPrice, budget.amount),
-            committee: budget.committee,
-          },
-        ] as BudgetUpdate['budgetItems'],
-        userId,
-      );
-    }
+  await writeBackBudget(tx, input, phasePrices, previous, userId);
+}
+
+/** Values of an already sent request, needed to replace its budget contribution. */
+interface PreviousRequest {
+  isContractPrice: boolean;
+  contractPrice: number | null;
+  startDate: string;
+  endDate: string;
+}
+
+/** Adds `delta` to the contract price (Sopimushinta) of the year. */
+async function applyContractPriceDelta(
+  tx: DatabaseTransactionConnection,
+  projectObjectId: string,
+  year: number,
+  delta: number,
+  userId: User['id'],
+) {
+  if (delta === 0) return;
+  const budget = await getBudgetForYear(tx, projectObjectId, year);
+  await updateProjectObjectBudget(
+    tx,
+    projectObjectId,
+    [
+      { year, contractPrice: (budget.contractPrice ?? 0) + delta, committee: budget.committee },
+    ] as BudgetUpdate['budgetItems'],
+    userId,
+  );
+}
+
+/**
+ * Phase price total of the kohde's other active purchase requests without "Sopimushinta"
+ * whose contract price year is `year`.
+ */
+async function sumOtherRequestPhasePrices(
+  tx: DatabaseTransactionConnection,
+  projectObjectId: string,
+  year: number,
+  excludeId: string | null,
+) {
+  const rows = await tx.any(sql.type(
+    z.object({
+      startDate: z.string(),
+      endDate: z.string(),
+      phasePrices: z.array(phasePriceSchema),
+    }),
+  )`
+    SELECT
+      start_date::text AS "startDate",
+      ${dateText(sql.fragment`end_date`)} AS "endDate",
+      phase_prices AS "phasePrices"
+    FROM app.purchase_request
+    WHERE project_object_id = ${projectObjectId}
+      AND deleted = false
+      AND is_contract_price = false
+      AND id IS DISTINCT FROM ${excludeId}
+  `);
+  return rows
+    .filter((row) => contractPriceYear(row.startDate, row.endDate) === year)
+    .reduce((sum, row) => sum + sumPhasePrices(row.phasePrices), 0);
+}
+
+/**
+ * Ennuste = (Sopimushinta + phase prices of the kohde's requests without "Sopimushinta")
+ * - Talousarvio. Recalculated from the saved values on every send, so a resend never counts
+ * the same request twice. `ownPhasePrices` are the sent request's (not yet saved) prices when
+ * it has no "Sopimushinta" and belongs to this year, otherwise [].
+ * Audit event is added by updateProjectObjectBudget.
+ */
+async function recalculateForecast(
+  tx: DatabaseTransactionConnection,
+  projectObjectId: string,
+  year: number,
+  ownPhasePrices: PhasePrice[],
+  requestId: string | null,
+  userId: User['id'],
+) {
+  const phaseTotal =
+    sumPhasePrices(ownPhasePrices) +
+    (await sumOtherRequestPhasePrices(tx, projectObjectId, year, requestId));
+  const budget = await getBudgetForYear(tx, projectObjectId, year);
+  const forecast = forecastFromCommitted(budget.contractPrice, phaseTotal, budget.amount);
+  if (budget.forecast !== forecast) {
+    await updateProjectObjectBudget(
+      tx,
+      projectObjectId,
+      [{ year, forecast, committee: budget.committee }] as BudgetUpdate['budgetItems'],
+      userId,
+    );
   }
+}
+
+/**
+ * Budget of the contract price year (see contractPriceYear):
+ * - "Sopimushinta" selected: the contract price is added to the year's Sopimushinta.
+ *   Several purchase requests of a kohde add up. When a request is sent again, only the
+ *   difference to its previous contract price is applied, so it is never counted twice.
+ * - Ennuste is then recalculated with one rule for both kinds of requests, see
+ *   recalculateForecast.
+ * If the year changed with the dates, the request's previous values leave the old year,
+ * and the old year's Ennuste is recalculated too.
+ */
+async function writeBackBudget(
+  tx: DatabaseTransactionConnection,
+  input: UpsertPurchaseRequest,
+  phasePrices: PhasePrice[],
+  previous: PreviousRequest | null,
+  userId: User['id'],
+) {
+  const { projectObjectId } = input;
+  const requestId = input.id ?? null;
+  const year = contractPriceYear(input.startDate, input.endDate);
+  const newAmount = input.isContractPrice ? input.contractPrice ?? 0 : 0;
+  const previousAmount = previous?.isContractPrice ? previous.contractPrice ?? 0 : 0;
+  const previousYear = previous ? contractPriceYear(previous.startDate, previous.endDate) : year;
+
+  if (previousYear === year) {
+    await applyContractPriceDelta(tx, projectObjectId, year, newAmount - previousAmount, userId);
+  } else {
+    await applyContractPriceDelta(tx, projectObjectId, previousYear, -previousAmount, userId);
+    await applyContractPriceDelta(tx, projectObjectId, year, newAmount, userId);
+    await recalculateForecast(tx, projectObjectId, previousYear, [], requestId, userId);
+  }
+
+  const ownPhasePrices = input.isContractPrice ? [] : phasePrices;
+  await recalculateForecast(tx, projectObjectId, year, ownPhasePrices, requestId, userId);
 }
 
 async function sendPurchaseRequestMail(
@@ -426,9 +539,7 @@ async function sendPurchaseRequestMail(
           isUpdate,
           purchaseOrderNumber: request.purchaseOrderNumber,
           // Finance only needs the link while the order number is missing
-          financeUrl: request.purchaseOrderNumber
-            ? null
-            : getPurchaseRequestFinanceUrl(request.id),
+          financeUrl: request.purchaseOrderNumber ? null : getPurchaseRequestFinanceUrl(request.id),
         },
       },
     },
@@ -445,10 +556,23 @@ export async function upsertPurchaseRequest(input: UpsertPurchaseRequest, user: 
   return getPool().transaction(async (tx) => {
     const validated = await validateInput(tx, input);
 
-    let existing: { sentAt: Date | null } | null = null;
+    let existing: (PreviousRequest & { sentAt: Date | null }) | null = null;
     if (input.id) {
-      existing = await tx.maybeOne(sql.type(z.object({ sentAt: z.date().nullable() }))`
-        SELECT sent_at AS "sentAt"
+      existing = await tx.maybeOne(sql.type(
+        z.object({
+          sentAt: z.date().nullable(),
+          isContractPrice: z.boolean(),
+          contractPrice: z.number().nullable(),
+          startDate: z.string(),
+          endDate: z.string(),
+        }),
+      )`
+        SELECT
+          sent_at AS "sentAt",
+          is_contract_price AS "isContractPrice",
+          contract_price AS "contractPrice",
+          start_date::text AS "startDate",
+          ${dateText(sql.fragment`end_date`)} AS "endDate"
         FROM app.purchase_request
         WHERE id = ${input.id}
           AND project_object_id = ${input.projectObjectId}
@@ -466,7 +590,7 @@ export async function upsertPurchaseRequest(input: UpsertPurchaseRequest, user: 
       eventUser: user.id,
     });
 
-    await writeBackToProjectObject(tx, input, validated, user.id);
+    await writeBackToProjectObject(tx, input, validated, existing, user.id);
 
     const values = {
       responsible_person: input.responsiblePerson,

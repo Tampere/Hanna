@@ -136,7 +136,7 @@ export const purchaseRequestDefaultsSchema = z.object({
 
 export type PurchaseRequestDefaults = z.infer<typeof purchaseRequestDefaultsSchema>;
 
-/** Forecast is kept as contract price - budget amount, as in the budget table. */
+/** Budget year a purchase request is written to: the current year, clamped to the kohde years. */
 export function contractPriceYear(startDate: string, endDate: string, today = new Date()) {
   const startYear = Number(startDate.slice(0, 4));
   const currentYear = today.getFullYear();
@@ -144,6 +144,15 @@ export function contractPriceYear(startDate: string, endDate: string, today = ne
   return Math.min(Math.max(currentYear, startYear), Math.max(endYear, startYear));
 }
 
-export function forecastFromContractPrice(contractPrice: number, amount: number | null) {
-  return contractPrice - (amount ?? 0);
+/**
+ * Ennuste of a purchase request year, same sign as the budget table (positive = overrun):
+ * committed costs (Sopimushinta + phase prices of requests without Sopimushinta) - Talousarvio.
+ * Empty values count as 0.
+ */
+export function forecastFromCommitted(
+  contractPrice: number | null,
+  phaseTotal: number,
+  amount: number | null,
+) {
+  return (contractPrice ?? 0) + phaseTotal - (amount ?? 0);
 }

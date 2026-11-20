@@ -656,7 +656,7 @@ export const fi = {
   'purchaseRequest.dialog.titleView': 'Ostotilauspyyntö',
   'purchaseRequest.dialog.titleEdit': 'Muokkaa ostotilauspyyntöä',
   'purchaseRequest.dialog.info':
-    'Ostotilauspyyntö lähetetään taloushallintoon. Muuttamasi kohteen päivämäärät, urakoitsijan edustaja, puitesopimus ja sopimushinta päivittyvät myös kohteelle.',
+    'Ostotilauspyyntö lähetetään taloushallintoon. Muuttamasi kohteen päivämäärät, urakoitsijan edustaja ja puitesopimus päivittyvät myös kohteelle. Sopimushinta lisätään kohteen sopimushintaan, ja ennuste lasketaan sopimushinnasta ja kohteen ostotilausten vaihekohtaisista hinnoista.',
   'purchaseRequest.dialog.basicInfo': 'Perustiedot',
   'purchaseRequest.dialog.phasePrices': 'Vaihekohtaiset hinnat',
   'purchaseRequest.dialog.total': 'yhteensä: {0}',
@@ -666,7 +666,9 @@ export const fi = {
     'Kustannuspaikan vaiheita ei ole vielä määritelty. Vaihekohtaiset hinnat lisätään myöhemmin.',
   'purchaseRequest.dialog.selectCostCenter': 'Valitse kustannuspaikka nähdäksesi sen vaiheet.',
   'purchaseRequest.dialog.contractPriceYear':
-    'Sopimushinta päivittyy kohteen vuoden {0} talouteen.',
+    'Sopimushinta lisätään kohteen vuoden {0} sopimushintaan.',
+  'purchaseRequest.dialog.forecastYear':
+    'Kohteen vuoden {0} ennusteeksi päivittyy sopimushinta + kohteen ostotilausten (ilman sopimushintaa) vaihekohtaiset hinnat − talousarvio.',
   'purchaseRequest.dialog.orderNumber': 'Ostotilausnumero: {0}',
   'purchaseRequest.dialog.cancel': 'Peruuta',
   'purchaseRequest.dialog.close': 'Sulje',

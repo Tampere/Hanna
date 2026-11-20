@@ -42,7 +42,7 @@ test.describe('Purchase requests', () => {
         identifier: SAP_WBS_ID,
       });
     }
-    return { projectId: project.projectId, projectObjectId };
+    return { projectId: project.projectId, projectObjectId, committee: project.committees[0] };
   }
 
   async function createCompany(adminSession: Pick<UserSessionObject, 'client'>) {
@@ -160,36 +160,127 @@ test.describe('Purchase requests', () => {
       ...request(projectObjectId, devSession.user, company),
       phasePrices: [{ phaseCode: '3210', phaseName: 'Väärä nimi', amount: 100 }],
     });
-    expect(created.phasePrices).toEqual([
-      { phaseCode: '3210', phaseName: 'Ajorata', amount: 100 },
-    ]);
+    expect(created.phasePrices).toEqual([{ phaseCode: '3210', phaseName: 'Ajorata', amount: 100 }]);
   });
 
-  test('contract price is written to the current year budget only when selected', async ({
+  async function getYearBudget(
+    session: Pick<UserSessionObject, 'client'>,
+    projectObjectId: string,
+  ) {
+    const budget = await session.client.projectObject.getBudget.query({ projectObjectId });
+    return budget.find((b) => b.year === CONTRACT_PRICE_YEAR)?.budgetItems;
+  }
+
+  test('contract price is added to the year budget, a resend applies only the difference', async ({
     adminSession,
     devSession,
   }) => {
     const company = await createCompany(adminSession);
-    const { projectObjectId } = await createProjectObject(adminSession, devSession.user);
+    const { projectObjectId, committee } = await createProjectObject(adminSession, devSession.user);
+    // amount (Talousarvio) can be set by admins/finance only
+    await adminSession.client.investmentProjectObject.updateBudget.mutate({
+      projectObjectId,
+      budgetItems: [
+        { year: CONTRACT_PRICE_YEAR, contractPrice: 1_000_000, amount: 200_000, committee },
+      ],
+    });
 
-    await devSession.client.purchaseRequest.upsert.mutate(
-      request(projectObjectId, devSession.user, company),
-    );
-    let budget = await devSession.client.projectObject.getBudget.query({ projectObjectId });
-    expect(
-      budget.find((b) => b.year === CONTRACT_PRICE_YEAR)?.budgetItems.contractPrice ?? null,
-    ).toBe(null);
-
-    await devSession.client.purchaseRequest.upsert.mutate({
+    const first = await devSession.client.purchaseRequest.upsert.mutate({
       ...request(projectObjectId, devSession.user, company),
       isContractPrice: true,
       contractPrice: 3_500_000,
     });
-    budget = await devSession.client.projectObject.getBudget.query({ projectObjectId });
-    const currentYear = budget.find((b) => b.year === CONTRACT_PRICE_YEAR);
-    expect(currentYear?.budgetItems.contractPrice).toBe(3_500_000);
-    // forecast = contract price - amount (no amount set)
-    expect(currentYear?.budgetItems.forecast).toBe(3_500_000);
+    let year = await getYearBudget(devSession, projectObjectId);
+    expect(year?.contractPrice).toBe(4_500_000);
+    // forecast = contract price - amount
+    expect(year?.forecast).toBe(4_300_000);
+
+    // Resending the same request with a new price adds only the difference
+    await devSession.client.purchaseRequest.upsert.mutate({
+      ...request(projectObjectId, devSession.user, company),
+      id: first.id,
+      isContractPrice: true,
+      contractPrice: 4_000_000,
+    });
+    year = await getYearBudget(devSession, projectObjectId);
+    expect(year?.contractPrice).toBe(5_000_000);
+    expect(year?.forecast).toBe(4_800_000);
+
+    // Another request of the same kohde adds up
+    await devSession.client.purchaseRequest.upsert.mutate({
+      ...request(projectObjectId, devSession.user, company),
+      isContractPrice: true,
+      contractPrice: 500_000,
+    });
+    year = await getYearBudget(devSession, projectObjectId);
+    expect(year?.contractPrice).toBe(5_500_000);
+    expect(year?.forecast).toBe(5_300_000);
+
+    // Resending the first request without contract price removes its contract price,
+    // and its phases count instead: 15 000 € + 35 000 € - 2 000 €
+    await devSession.client.purchaseRequest.upsert.mutate({
+      ...request(projectObjectId, devSession.user, company),
+      id: first.id,
+    });
+    year = await getYearBudget(devSession, projectObjectId);
+    expect(year?.contractPrice).toBe(1_500_000);
+    expect(year?.forecast).toBe(4_800_000);
+  });
+
+  test('forecast = contract price + phase prices of requests without contract price - amount', async ({
+    adminSession,
+    devSession,
+  }) => {
+    const company = await createCompany(adminSession);
+    const { projectObjectId, committee } = await createProjectObject(adminSession, devSession.user);
+
+    // Empty values count as 0. Phases 10 000 € + 25 000 € = 35 000 €
+    const first = await devSession.client.purchaseRequest.upsert.mutate(
+      request(projectObjectId, devSession.user, company),
+    );
+    let year = await getYearBudget(devSession, projectObjectId);
+    expect(year?.forecast).toBe(3_500_000);
+    expect(year?.contractPrice ?? null).toBe(null);
+
+    // amount (Talousarvio) can be set by admins/finance only
+    await adminSession.client.investmentProjectObject.updateBudget.mutate({
+      projectObjectId,
+      budgetItems: [{ year: CONTRACT_PRICE_YEAR, amount: 10_000_000, committee }],
+    });
+    // Resending the same request does not count it twice: 35 000 € - 100 000 €
+    await devSession.client.purchaseRequest.upsert.mutate({
+      ...request(projectObjectId, devSession.user, company),
+      id: first.id,
+    });
+    year = await getYearBudget(devSession, projectObjectId);
+    expect(year?.forecast).toBe(-6_500_000);
+
+    // Another request without contract price adds up: 2 * 35 000 € - 100 000 €
+    await devSession.client.purchaseRequest.upsert.mutate(
+      request(projectObjectId, devSession.user, company),
+    );
+    year = await getYearBudget(devSession, projectObjectId);
+    expect(year?.forecast).toBe(-3_000_000);
+
+    // Switching the first request to contract price: its phases no longer count,
+    // its contract price does: 35 000 € + 35 000 € - 100 000 €
+    await devSession.client.purchaseRequest.upsert.mutate({
+      ...request(projectObjectId, devSession.user, company),
+      id: first.id,
+      isContractPrice: true,
+      contractPrice: 3_500_000,
+    });
+    year = await getYearBudget(devSession, projectObjectId);
+    expect(year?.contractPrice).toBe(3_500_000);
+    expect(year?.forecast).toBe(-3_000_000);
+
+    // Both kinds add up: 35 000 € + 35 000 € + 5 000 € - 100 000 €
+    await devSession.client.purchaseRequest.upsert.mutate({
+      ...request(projectObjectId, devSession.user, company),
+      phasePrices: [{ phaseCode: '3110', phaseName: 'Rakennuttamispalvelut', amount: 500_000 }],
+    });
+    year = await getYearBudget(devSession, projectObjectId);
+    expect(year?.forecast).toBe(-2_500_000);
   });
 
   test('dates are the kohde dates and follow the normal kohde validation', async ({
@@ -197,10 +288,7 @@ test.describe('Purchase requests', () => {
     devSession,
   }) => {
     const company = await createCompany(adminSession);
-    const { projectId, projectObjectId } = await createProjectObject(
-      adminSession,
-      devSession.user,
-    );
+    const { projectId, projectObjectId } = await createProjectObject(adminSession, devSession.user);
 
     const defaults = await devSession.client.purchaseRequest.getDefaults.query({
       projectObjectId,
@@ -247,9 +335,9 @@ test.describe('Purchase requests', () => {
     const after = await devSession.client.purchaseRequest.getDefaults.query({ projectObjectId });
     expect(after).toMatchObject(company);
     const auditEvents = await getAuditEvents('purchaseRequest.addContractorContact');
-    expect(
-      auditEvents.filter((e) => e.eventData.projectObjectId === projectObjectId),
-    ).toHaveLength(1);
+    expect(auditEvents.filter((e) => e.eventData.projectObjectId === projectObjectId)).toHaveLength(
+      1,
+    );
   });
 
   test('finance sets the order number; resend replaces the request without a finance link', async ({
@@ -259,10 +347,7 @@ test.describe('Purchase requests', () => {
     modifyPermissions,
   }) => {
     const company = await createCompany(adminSession);
-    const { projectId, projectObjectId } = await createProjectObject(
-      adminSession,
-      devSession.user,
-    );
+    const { projectId, projectObjectId } = await createProjectObject(adminSession, devSession.user);
 
     const created = await devSession.client.purchaseRequest.upsert.mutate(
       request(projectObjectId, devSession.user, company),
