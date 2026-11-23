@@ -19,6 +19,7 @@ const projectRequest = (projectId: string) => ({
   startDate: '2021-01-01',
   endDate: '2022-06-30',
   serviceClasses: ['4601', '4701'],
+  costEstimate: 12_345_00,
 });
 
 const projectObjectRequest = (projectId: string, projectObjectId: string) => ({
@@ -96,6 +97,9 @@ test.describe('SAP identifier requests', () => {
       .toContain('sap-code-request');
     const [mail] = await getMailEvents(project.projectId);
     expect(mail.html).toContain(`/talous/sap-tunnus/${project.projectId}`);
+    // Kustannusarvio is in the email only, Kuvaus is no longer sent
+    expect(mail.html).toContain('Kustannusarvio');
+    expect(mail.html).not.toContain('Kuvaus');
   });
 
   test('request runs the normal date validation', async ({ adminSession, devSession }) => {

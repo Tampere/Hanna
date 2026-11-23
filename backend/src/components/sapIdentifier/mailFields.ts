@@ -1,7 +1,7 @@
 import { CommonQueryMethods } from 'slonik';
 import { z } from 'zod';
 
-import { MailField } from '@backend/components/mail/templates.js';
+import { MailField, formatEuros } from '@backend/components/mail/templates.js';
 import { formatUserContact, getUserContact } from '@backend/components/mail/userContact.js';
 import { sql } from '@backend/db.js';
 
@@ -30,7 +30,6 @@ const projectRowSchema = z.object({
   ownerId: z.string(),
   startDate: z.string().nullable(),
   endDate: z.string().nullable(),
-  description: z.string().nullable(),
   serviceClasses: z.array(z.string()),
 });
 
@@ -40,7 +39,6 @@ const projectObjectRowSchema = z.object({
   projectSapId: z.string().nullable(),
   startDate: z.string().nullable(),
   endDate: z.string().nullable(),
-  description: z.string().nullable(),
   environmentalCode: z.string().nullable(),
   costCenter: z.string().nullable(),
   projectObjectClass: z.string().nullable(),
@@ -63,7 +61,6 @@ export async function getSapIdentifierRequestFields(
         project.owner AS "ownerId",
         ${formatDate('project.start_date')} AS "startDate",
         ${formatDate('project.end_date')} AS "endDate",
-        project.description,
         coalesce((
           SELECT array_agg((code.id).id || ' ' || code.text_fi ORDER BY (code.id).id)
           FROM app.code
@@ -84,8 +81,11 @@ export async function getSapIdentifierRequestFields(
       { label: 'Vastuuhenkilö', value: responsible },
       { label: 'Hankkeen omistaja', value: owner.name },
       { label: 'Aikataulu', value: schedule(row.startDate, row.endDate) },
+      {
+        label: 'Kustannusarvio',
+        value: requestData.costEstimate != null ? formatEuros(requestData.costEstimate) : null,
+      },
       { label: 'Palveluluokat', value: row.serviceClasses.join(', ') || null },
-      { label: 'Kuvaus', value: row.description },
     ];
   }
 
@@ -96,7 +96,6 @@ export async function getSapIdentifierRequestFields(
       project.sap_project_id AS "projectSapId",
       ${formatDate('project_object.start_date')} AS "startDate",
       ${formatDate('project_object.end_date')} AS "endDate",
-      project_object.description,
       (
         SELECT (code.id).id || ' ' || code.text_fi
         FROM app.code
@@ -134,6 +133,5 @@ export async function getSapIdentifierRequestFields(
     },
     { label: 'Ympäristökoodi', value: row.environmentalCode },
     { label: 'Aikataulu', value: schedule(row.startDate, row.endDate) },
-    { label: 'Kuvaus', value: row.description },
   ];
 }

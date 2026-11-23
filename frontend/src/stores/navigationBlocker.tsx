@@ -13,6 +13,12 @@ export interface BlockerStatus {
   updating: boolean;
 }
 
+/**
+ * Pass as `navigate(url, { state: SKIP_NAVIGATION_BLOCKER_STATE })` when the navigation must not be
+ * blocked, e.g. redirecting to a newly created item right after a successful save.
+ */
+export const SKIP_NAVIGATION_BLOCKER_STATE = { skipNavigationBlocker: true } as const;
+
 export const blockerStatusAtom = atom<BlockerStatus>(defaultStatus);
 
 export function useNavigationBlocker(

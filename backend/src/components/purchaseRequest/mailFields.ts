@@ -1,7 +1,7 @@
 import { CommonQueryMethods } from 'slonik';
 import { z } from 'zod';
 
-import { MailField } from '@backend/components/mail/templates.js';
+import { MailField, formatEuros as euros } from '@backend/components/mail/templates.js';
 import { formatUserContact, getUserContact } from '@backend/components/mail/userContact.js';
 import { sql } from '@backend/db.js';
 
@@ -20,10 +20,6 @@ const contextSchema = z.object({
   contact: z.string().nullable(),
   vatRate: z.string().nullable(),
 });
-
-const euroFormat = new Intl.NumberFormat('fi-FI', { style: 'currency', currency: 'EUR' });
-/** Amounts are stored in cents. */
-const euros = (cents: number) => euroFormat.format(cents / 100);
 
 const finnishDate = (isoDate: string) => {
   const [year, month, day] = isoDate.split('-');
@@ -76,7 +72,13 @@ export async function getPurchaseRequestFields(
       value: `${finnishDate(request.startDate)} - ${finnishDate(request.endDate)}`,
     },
     { label: 'Kustannuspaikka', value: `${request.costCenterName} (${request.costCenterId})` },
-    { label: 'Puitesopimus', value: request.frameworkAgreementName },
+    {
+      label: 'Puitesopimus',
+      value:
+        request.frameworkAgreementName && request.frameworkAgreementRecordId
+          ? `${request.frameworkAgreementName} (${request.frameworkAgreementRecordId})`
+          : request.frameworkAgreementName,
+    },
     { label: 'ALV-kanta', value: context.vatRate },
     {
       label: 'Sovittu kokonaishinta (netto)',
@@ -89,5 +91,6 @@ export async function getPurchaseRequestFields(
     ...(phaseFields.length > 0
       ? [{ label: 'Vaiheet yhteensä', value: euros(sumPhasePrices(request.phasePrices)) }]
       : []),
+    { label: 'Lisätietoja', value: request.additionalInfo },
   ];
 }

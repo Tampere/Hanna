@@ -8,10 +8,7 @@ html
       p.test-notice Hannasta lähetetty testiviesti, älä huomioi
     p Hei,
     p
-      if isUpdate
-        | #{requestedBy.name} on päivittänyt ostotilauspyynnön kohteelle
-      else
-        | #{requestedBy.name} pyytää ostotilausta kohteelle
+      | #{requestedBy.name} #{isUpdate ? 'on päivittänyt ostotilauspyynnön' : 'pyytää ostotilausta'} kohteelle
       |
       strong= title
       | .

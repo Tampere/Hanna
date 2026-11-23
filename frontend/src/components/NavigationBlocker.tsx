@@ -35,6 +35,8 @@ export function NavigationBlocker() {
 
   // Note: useBlocker is a singleton so use of multiple NavigationBlockers in the same view is not possible (https://github.com/remix-run/react-router/discussions/9978)
   const blocker = useBlocker(({ currentLocation, nextLocation }) => {
+    // Explicitly allowed navigation, e.g. redirect to a newly created item after saving
+    if (nextLocation.state?.skipNavigationBlocker) return false;
     if (
       // User is in split view and has modified left side form and wants to navigate between tabs
       currentLocation.pathname === nextLocation.pathname &&
