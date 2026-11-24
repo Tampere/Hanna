@@ -6,7 +6,12 @@ import { addAuditEvent } from '@backend/components/audit.js';
 import { codeIdFragment } from '@backend/components/code/index.js';
 import { getUserContact } from '@backend/components/mail/userContact.js';
 import { validateUpsertProject } from '@backend/components/project/base.js';
-import { validateUpsertProjectObject } from '@backend/components/projectObject/index.js';
+import { getLockedYears } from '@backend/components/lockedYears.js';
+import {
+  getBudgetForYear,
+  updateProjectObjectBudget,
+  validateUpsertProjectObject,
+} from '@backend/components/projectObject/index.js';
 import { getSapProject, sapProjectExists } from '@backend/components/sap/dataImport.js';
 import { startSendMailJob } from '@backend/components/taskQueue/mailQueue.js';
 import { getPool, sql } from '@backend/db.js';
@@ -15,6 +20,7 @@ import { logger } from '@backend/logging.js';
 
 import { FormErrors, hasErrors } from '@shared/formerror.js';
 import { UpsertProject } from '@shared/schema/project/base.js';
+import { BudgetUpdate } from '@shared/schema/projectObject/base.js';
 import {
   ProjectObjectSapIdentifierRequest,
   ProjectSapIdentifierRequest,
@@ -23,7 +29,9 @@ import {
   SapIdentifierStatus,
   SapIdentifierTarget,
   SetSapIdentifierResult,
+  YearEstimate,
   costCenterOptionSchema,
+  estimateYears,
   sapIdentifierFinanceViewSchema,
   sapIdentifierRequestDefaultsSchema,
 } from '@shared/schema/sapIdentifierRequest.js';
@@ -249,6 +257,39 @@ export async function requestProjectSapIdentifier(input: ProjectSapIdentifierReq
   });
 }
 
+/**
+ * Writes the changed Talousarvioennusteet of the request to the kohde budget. Only the
+ * estimateYears of the (already updated) kohde dates are accepted. Returns them sorted by year.
+ */
+async function writeEstimates(
+  tx: DatabaseTransactionConnection,
+  input: ProjectObjectSapIdentifierRequest,
+  userId: User['id'],
+): Promise<YearEstimate[]> {
+  const allowedYears = estimateYears(input.startDate, input.endDate, await getLockedYears(tx));
+  const years = input.estimates.map(({ year }) => year);
+  if (new Set(years).size !== years.length || years.some((year) => !allowedYears.includes(year))) {
+    badRequest('sapIdentifier.error.invalidEstimateYear');
+  }
+
+  const changed: { year: number; estimate: number | null; committee: string | null }[] = [];
+  for (const { year, estimate } of input.estimates) {
+    const budget = await getBudgetForYear(tx, input.projectObjectId, year);
+    if (budget.estimate !== estimate) {
+      changed.push({ year, estimate, committee: budget.committee });
+    }
+  }
+  if (changed.length > 0) {
+    await updateProjectObjectBudget(
+      tx,
+      input.projectObjectId,
+      changed as BudgetUpdate['budgetItems'],
+      userId,
+    );
+  }
+  return [...input.estimates].sort((a, b) => a.year - b.year);
+}
+
 export async function requestProjectObjectSapIdentifier(
   input: ProjectObjectSapIdentifierRequest,
   user: User,
@@ -293,10 +334,13 @@ export async function requestProjectObjectSapIdentifier(
       WHERE id = ${input.projectObjectId}
     `);
 
+    const estimates = await writeEstimates(tx, input, user.id);
+
     const requestData: SapIdentifierRequestData = {
       responsiblePerson: input.responsiblePerson,
       costCenterId: input.costCenterId,
       projectObjectClass: input.projectObjectClass,
+      estimates,
     };
     const request = await insertRequest(tx, target, requestData, user.id);
     await sendRequestMail(tx, target, view, requestData, user);
@@ -461,7 +505,19 @@ export async function getRequestDefaults(target: SapIdentifierTarget) {
                   AND (project_object_type.object_type).id = '02'
               ) THEN '30' ELSE '10' END`
           : sql.fragment`NULL`
-      } AS "projectObjectClass"
+      } AS "projectObjectClass",
+      ${
+        projectObjectId
+          ? sql.fragment`COALESCE((
+              SELECT jsonb_agg(
+                jsonb_build_object('year', budget.year, 'estimate', budget.estimate)
+                ORDER BY budget.year
+              )
+              FROM app.budget
+              WHERE budget.project_object_id = project_object.id
+            ), '[]'::jsonb)`
+          : sql.fragment`'[]'::jsonb`
+      } AS estimates
     FROM app.project
     ${
       projectObjectId

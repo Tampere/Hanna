@@ -29,6 +29,36 @@ export const projectSapIdentifierRequestSchema = z.object({
   costEstimate: z.number().int().nonnegative(),
 });
 
+/** Talousarvioennuste of one year, in cents. Null = empty. */
+export const yearEstimateSchema = z.object({
+  year: z.number().int(),
+  estimate: z.number().int().nullable(),
+});
+
+export type YearEstimate = z.infer<typeof yearEstimateSchema>;
+
+/**
+ * Years whose Talousarvioennuste is asked in the kohde request: every kohde year, ongoing
+ * (end date 'infinity') kohteet up to next year. Locked years are left out, as in the budget table.
+ */
+export function estimateYears(
+  startDate: string,
+  endDate: string,
+  lockedYears: readonly number[],
+  today = new Date(),
+) {
+  const startYear = Number(startDate.slice(0, 4));
+  const endYear =
+    endDate === 'infinity'
+      ? Math.max(today.getFullYear() + 5, startYear)
+      : Number(endDate.slice(0, 4));
+  const years: number[] = [];
+  for (let year = startYear; year <= endYear; year++) {
+    if (!lockedYears.includes(year)) years.push(year);
+  }
+  return years;
+}
+
 /**
  * Kohde request (Figma 6287-535). startDate, endDate and environmentalInvestmentReason are
  * written to the project object.
@@ -44,6 +74,11 @@ export const projectObjectSapIdentifierRequestSchema = z.object({
   costCenterId: nonEmptyString,
   /** Kohteen luokka: Hankeluokka codes, prefilled from the kohde type. */
   projectObjectClass: codeId,
+  /**
+   * Talousarvioennusteet of the estimateYears, prefilled from the kohde budget. Changed values
+   * are written to the kohde budget.
+   */
+  estimates: z.array(yearEstimateSchema),
 });
 
 export type ProjectSapIdentifierRequest = z.infer<typeof projectSapIdentifierRequestSchema>;
@@ -58,6 +93,7 @@ export const sapIdentifierRequestDataSchema = z.object({
   responsiblePerson: z.string().optional(),
   costCenterId: z.string().optional(),
   projectObjectClass: codeId.optional(),
+  estimates: z.array(yearEstimateSchema).optional(),
 });
 
 export type SapIdentifierRequestData = z.infer<typeof sapIdentifierRequestDataSchema>;
@@ -118,6 +154,8 @@ export const sapIdentifierRequestDefaultsSchema = z.object({
   environmentalInvestmentReason: z.string().nullable(),
   /** Kohde only: 30 Laajennus for Uudisrakentaminen, otherwise 10 Korvaus. */
   projectObjectClass: z.string().nullable(),
+  /** Kohde only: current Talousarvioennusteet of the kohde budget years. */
+  estimates: z.array(yearEstimateSchema),
 });
 
 export type SapIdentifierRequestDefaults = z.infer<typeof sapIdentifierRequestDefaultsSchema>;

@@ -591,6 +591,7 @@ export const fi = {
   'sapIdentifier.field.endDate': 'Loppupäivämäärä',
   'sapIdentifier.field.serviceClasses': 'Palveluluokat',
   'sapIdentifier.field.costEstimate': 'Kustannusarvio',
+  'sapIdentifier.field.estimates': 'Talousarvioennusteet',
   'sapIdentifier.field.costCenter': 'Kustannuspaikka',
   'sapIdentifier.field.environmentalCode': 'Ympäristökoodi',
   'sapIdentifier.dialog.cancel': 'Peruuta',
@@ -646,6 +647,8 @@ export const fi = {
   'sapIdentifier.error.requestAlreadyOpen': 'Ilmoitus on jo käsiteltävänä.',
   'sapIdentifier.error.parentProjectSapIdMissing': 'Hankkeelta puuttuu SAP-projektitunniste.',
   'sapIdentifier.error.invalidCostCenter': 'Virheellinen kustannuspaikka.',
+  'sapIdentifier.error.invalidEstimateYear':
+    'Talousarvioennuste annettu vuodelle, joka ei ole kohteen aikataulussa tai on lukittu.',
   'purchaseRequest.list.title': 'Ostotilaukset',
   'purchaseRequest.list.empty': 'Kohteelle ei ole vielä tehty ostotilauspyyntöjä.',
   'purchaseRequest.list.item': 'Ostotilaus {0}',

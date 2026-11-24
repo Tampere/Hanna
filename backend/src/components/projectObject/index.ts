@@ -312,6 +312,43 @@ export async function updateProjectObjectBudget(
   );
 }
 
+/**
+ * Budget row of the kohde for the given year, used by the purchase request and SAP identifier
+ * request write-backs. Values are null when the year has no budget row.
+ */
+export async function getBudgetForYear(
+  conn: Pick<DatabaseTransactionConnection, 'one'>,
+  projectObjectId: string,
+  year: number,
+) {
+  const row = await conn.one(sql.type(
+    z.object({
+      contractPrice: z.number().nullable(),
+      amount: z.number().nullable(),
+      estimate: z.number().nullable(),
+      forecast: z.number().nullable(),
+      committee: z.string().nullable(),
+    }),
+  )`
+    SELECT
+      budget.contract_price AS "contractPrice",
+      budget.amount,
+      budget.estimate,
+      budget.forecast,
+      -- Keep the committee of an existing budget row, new rows get the object's committee.
+      -- Maintenance kohteet have no committee.
+      CASE
+        WHEN budget.year IS NOT NULL THEN (budget.committee).id
+        ELSE (SELECT (committee_type).id FROM app.project_object_committee poc
+              WHERE poc.project_object_id = object.id LIMIT 1)
+      END AS committee
+    FROM app.project_object object
+    LEFT JOIN app.budget ON budget.project_object_id = object.id AND budget.year = ${year}
+    WHERE object.id = ${projectObjectId}
+  `);
+  return { year, ...row };
+}
+
 /** Retrieves a valid date range for a project object,
  * constrained by the existing project object budget
  * and by the parent project date range */

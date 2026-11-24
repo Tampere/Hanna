@@ -26,7 +26,11 @@ import { asyncUserAtom } from '@frontend/stores/auth';
 import { useTranslations } from '@frontend/stores/lang';
 
 import { isTranslationKey } from '@shared/language';
-import type { CostCenterOption, SapIdentifierTarget } from '@shared/schema/sapIdentifierRequest';
+import {
+  type CostCenterOption,
+  type SapIdentifierTarget,
+  estimateYears,
+} from '@shared/schema/sapIdentifierRequest';
 
 export interface SapIdentifierRequestValues {
   /** User pick field: defaults to the current user, stored only on the request. */
@@ -40,6 +44,8 @@ export interface SapIdentifierRequestValues {
   costEstimate: number | null;
   costCenterId: string | null;
   environmentalInvestmentReason: string | null;
+  /** Kohde: Talousarvioennuste by year in cents, prefilled from the kohde budget. */
+  estimates: Record<number, number | null>;
 }
 
 interface Props {
@@ -95,6 +101,9 @@ export function SapIdentifierRequestDialog({
     { codeListId: 'Palveluluokka' },
     { enabled: open && !isProjectObject, staleTime: 60 * 60 * 1000 },
   );
+  const lockedYears = trpc.lockedYears.get.useQuery(undefined, {
+    enabled: open && isProjectObject,
+  });
 
   const [values, setValues] = useState<SapIdentifierRequestValues | null>(null);
 
@@ -114,6 +123,9 @@ export function SapIdentifierRequestDialog({
         serviceClasses: [],
         costEstimate: null,
         costCenterId: null,
+        estimates: Object.fromEntries(
+          defaults.data.estimates.map(({ year, estimate }) => [year, estimate]),
+        ),
         ...initialValues,
       });
     }
@@ -126,6 +138,9 @@ export function SapIdentifierRequestDialog({
     utils.maintenanceProject.get.invalidate();
     utils.investmentProjectObject.get.invalidate();
     utils.maintenanceProjectObject.get.invalidate();
+    // Talousarvioennusteet may have changed
+    utils.projectObject.getBudget.invalidate();
+    utils.project.getBudget.invalidate();
   }
 
   const mutationOptions = {
@@ -165,11 +180,16 @@ export function SapIdentifierRequestDialog({
   );
   const isMaintenance = defaults.data?.projectType === 'maintenanceProject';
   const isOngoing = values?.endDate === 'infinity';
+  // Talousarvioennuste years follow the dates in the form
+  const yearsForEstimates =
+    isProjectObject && datesValid && values?.startDate && values.endDate && lockedYears.data
+      ? estimateYears(values.startDate, values.endDate, lockedYears.data)
+      : [];
   const isValid = Boolean(
     values?.responsiblePerson &&
       datesValid &&
       (isProjectObject
-        ? values.costCenterId && values.projectObjectClass
+        ? values.costCenterId && values.projectObjectClass && lockedYears.data
         : values.costEstimate != null),
   );
 
@@ -185,6 +205,10 @@ export function SapIdentifierRequestDialog({
         responsiblePerson: values.responsiblePerson,
         costCenterId: values.costCenterId as string,
         projectObjectClass: values.projectObjectClass as string,
+        estimates: yearsForEstimates.map((year) => ({
+          year,
+          estimate: values.estimates[year] ?? null,
+        })),
       });
     } else {
       projectRequest.mutate({
@@ -332,6 +356,36 @@ export function SapIdentifierRequestDialog({
                 )}
               </Field>
             </Box>
+
+            {yearsForEstimates.length > 0 && (
+              <Box css={fieldStyle}>
+                <Typography
+                  variant="subtitle2"
+                  css={css`
+                    font-weight: 600;
+                  `}
+                >
+                  {tr('sapIdentifier.field.estimates')}
+                </Typography>
+                <Box css={twoColumns}>
+                  {yearsForEstimates.map((year) => (
+                    <Field key={year} label={String(year)}>
+                      <Box css={outlinedCurrencyField()}>
+                        <CurrencyInput
+                          directlyHandleValueChange
+                          style={{ width: '100%' }}
+                          placeholder="–"
+                          value={values.estimates[year] ?? null}
+                          onChange={(cents) =>
+                            update('estimates', { ...values.estimates, [year]: cents })
+                          }
+                        />
+                      </Box>
+                    </Field>
+                  ))}
+                </Box>
+              </Box>
+            )}
 
             {!isProjectObject && (
               <Field label={tr('sapIdentifier.field.serviceClasses')}>

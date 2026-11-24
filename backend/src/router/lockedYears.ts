@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
 import { addAuditEvent } from '@backend/components/audit.js';
+import { getLockedYears } from '@backend/components/lockedYears.js';
 import { getPool, sql } from '@backend/db.js';
 import { env } from '@backend/env.js';
 import { TRPC } from '@backend/router/index.js';
@@ -32,16 +33,7 @@ export const createLockedYearsRouter = (t: TRPC) => {
      * A year is locked if opened_at is NULL or older than the configured
      * auto-close window (LOCKED_YEARS_OPEN_HOURS, default 24h).
      */
-    get: t.procedure.query(async () => {
-      const result = await getPool().any(sql.type(z.object({ year: lockedYearSchema }))`
-        SELECT year
-        FROM app.locked_years
-        WHERE opened_at IS NULL
-           OR opened_at < NOW() - ${`${LOCKED_YEARS_OPEN_HOURS} hours`}::interval
-        ORDER BY year
-      `);
-      return result.map((row) => row.year);
-    }),
+    get: t.procedure.query(async () => getLockedYears()),
 
     /** Returns years that are currently temporarily opened. */
     getOpenYears: t.procedure.query(async () => {

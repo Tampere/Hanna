@@ -133,5 +133,9 @@ export async function getSapIdentifierRequestFields(
     },
     { label: 'Ympäristökoodi', value: row.environmentalCode },
     { label: 'Aikataulu', value: schedule(row.startDate, row.endDate) },
+    ...(requestData.estimates ?? []).map(({ year, estimate }) => ({
+      label: `Talousarvioennuste ${year}`,
+      value: estimate != null ? formatEuros(estimate) : null,
+    })),
   ];
 }
