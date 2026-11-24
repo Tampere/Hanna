@@ -31,6 +31,7 @@ const projectObjectRequest = (projectId: string, projectObjectId: string) => ({
   responsiblePerson: DEV_USER,
   costCenterId: '111850',
   projectObjectClass: '10',
+  estimates: [] as { year: number; estimate: number | null }[],
 });
 
 test.describe('SAP identifier requests', () => {
@@ -143,6 +144,50 @@ test.describe('SAP identifier requests', () => {
     });
     expect(status.parentProjectSapId).toBe(SAP_PROJECT_ID);
     expect(status.openRequest).not.toBeNull();
+  });
+
+  test('project object request writes changed estimates and sends them', async ({
+    adminSession,
+    devSession,
+  }) => {
+    const { project, projectObjectId } = await createProjectWithObject(
+      adminSession,
+      devSession.user,
+    );
+    await adminSession.client.sapIdentifier.setIdentifier.mutate({
+      projectId: project.projectId,
+      identifier: SAP_PROJECT_ID,
+    });
+
+    // Request dates are 2021-02-01 - 2021-12-31, so only 2021 is accepted
+    await expect(
+      devSession.client.sapIdentifier.requestForProjectObject.mutate({
+        ...projectObjectRequest(project.projectId, projectObjectId),
+        estimates: [{ year: 2023, estimate: 100 }],
+      }),
+    ).rejects.toThrowError('sapIdentifier.error.invalidEstimateYear');
+
+    await devSession.client.sapIdentifier.requestForProjectObject.mutate({
+      ...projectObjectRequest(project.projectId, projectObjectId),
+      estimates: [{ year: 2021, estimate: 5_000_000 }],
+    });
+
+    const budget = await devSession.client.projectObject.getBudget.query({ projectObjectId });
+    expect(budget.find((b) => b.year === 2021)?.budgetItems.estimate).toBe(5_000_000);
+
+    const defaults = await devSession.client.sapIdentifier.getRequestDefaults.query({
+      projectId: project.projectId,
+      projectObjectId,
+    });
+    expect(defaults.estimates).toContainEqual({ year: 2021, estimate: 5_000_000 });
+
+    await expect
+      .poll(async () => (await getMailEvents(project.projectId)).map((m) => m.templateName), {
+        timeout: 15000,
+      })
+      .toContain('sap-code-request');
+    const [mail] = await getMailEvents(project.projectId);
+    expect(mail.html).toContain('Talousarvioennuste 2021');
   });
 
   test('only finance office can set identifiers', async ({
