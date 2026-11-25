@@ -1,22 +1,17 @@
-doctype html
-html
-  head
-    style
-      include ../_partials/style.css
-  body
-    if !production
-      p.test-notice Hannasta lähetetty testiviesti, älä huomioi
-    p Hei,
-    p
-      | #{requestedBy.name} pyytää SAP-#{isProjectObject ? 'WBS-tunnusta kohteelle' : 'projektitunnusta hankkeelle'}
-      |
-      strong= title
-      | .
-    include ../_partials/fields.pug
-    include ../_partials/requestedBy.pug
-    p
-      | Kun #{isProjectObject ? 'kohde' : 'hanke'} on perustettu talousjärjestelmään, kirjaa tunniste Hannaan:
-      br
-      a(href=financeUrl target='_blank')= financeUrl
-    p
-      a(href=hannaUrl target='_blank') Avaa #{isProjectObject ? 'kohde' : 'hanke'} Hannassa
+extends ../_partials/layout.pug
+
+block content
+  p Hei,
+  p
+    | #{requestedBy.name} pyytää SAP-#{isProjectObject ? 'WBS-tunnusta kohteelle' : 'projektitunnusta hankkeelle'}
+    |
+    strong= title
+    | .
+  include ../_partials/fields.pug
+  include ../_partials/requestedBy.pug
+  p
+    | Kun #{isProjectObject ? 'kohde' : 'hanke'} on perustettu talousjärjestelmään, kirjaa tunniste Hannaan:
+    br
+    a(href=financeUrl target='_blank')= financeUrl
+  p
+    a(href=hannaUrl target='_blank') Avaa #{isProjectObject ? 'kohde' : 'hanke'} Hannassa

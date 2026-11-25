@@ -1,5 +1,5 @@
 import { css } from '@emotion/react';
-import { Delete } from '@mui/icons-material';
+import { Delete, Edit } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -669,7 +669,7 @@ export function PurchaseRequestDialog({
           </Button>
         ) : (
           canEdit && (
-            <Button variant="contained" onClick={() => setEditing(true)}>
+            <Button variant="contained" endIcon={<Edit />} onClick={() => setEditing(true)}>
               {tr('purchaseRequest.dialog.editAndResend')}
             </Button>
           )
