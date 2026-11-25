@@ -359,14 +359,7 @@ export function SapIdentifierRequestDialog({
 
             {yearsForEstimates.length > 0 && (
               <Box css={fieldStyle}>
-                <Typography
-                  variant="subtitle2"
-                  css={css`
-                    font-weight: 600;
-                  `}
-                >
-                  {tr('sapIdentifier.field.estimates')}
-                </Typography>
+                <Typography variant="subtitle1">{tr('sapIdentifier.field.estimates')}</Typography>
                 <Box css={twoColumns}>
                   {yearsForEstimates.map((year) => (
                     <Field key={year} label={String(year)}>
