@@ -10,11 +10,11 @@ block content
   if purchaseOrderNumber
     p Ostotilausnumero: #[strong= purchaseOrderNumber]
   include ../_partials/fields.pug
-  include ../_partials/requestedBy.pug
   if financeUrl
     p
       | Kun ostotilaus on tehty, kirjaa ostotilausnumero Hannaan:
       br
-      a(href=financeUrl target='_blank')= financeUrl
+      a(href=financeUrl target='_blank') Syötä ostotilausnumero
+  include ../_partials/requestedBy.pug
   p
     a(href=hannaUrl target='_blank') Avaa kohde Hannassa

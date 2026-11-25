@@ -8,10 +8,10 @@ block content
     strong= title
     | .
   include ../_partials/fields.pug
-  include ../_partials/requestedBy.pug
   p
     | Kun #{isProjectObject ? 'kohde' : 'hanke'} on perustettu talousjärjestelmään, kirjaa tunniste Hannaan:
     br
-    a(href=financeUrl target='_blank')= financeUrl
+    a(href=financeUrl target='_blank') Syötä SAP-id
+  include ../_partials/requestedBy.pug
   p
     a(href=hannaUrl target='_blank') Avaa #{isProjectObject ? 'kohde' : 'hanke'} Hannassa
