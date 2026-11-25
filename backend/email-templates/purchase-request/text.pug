@@ -7,9 +7,12 @@ each field in fields
   | #{field.label}: #{field.value || '-'}
   |
 |
+if financeUrl
+  = '\n'
+  | Syötä ostotilausnumero Hannaan: #{financeUrl}
+  = '\n\n'
+else
+  = '\n'
 | Pyytäjä: #{requestedBy.name}, #{requestedBy.email || '-'}, puh. #{requestedBy.phone || '-'}
 |
-if financeUrl
-  | Kirjaa ostotilausnumero Hannaan: #{financeUrl}
-  |
 | Kohde Hannassa: #{hannaUrl}

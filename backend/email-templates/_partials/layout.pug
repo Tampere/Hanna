@@ -1,0 +1,15 @@
+//- Shared email layout. Content is limited to 640px so that long free-text fields wrap
+//- instead of stretching the message. Outlook desktop ignores max-width, hence the
+//- conditional fixed-width table around the content.
+doctype html
+html
+  head
+    style
+      include style.css
+  body
+    | <!--[if mso]><table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+    div.container
+      if !production
+        p.test-notice Hannasta lähetetty testiviesti, älä huomioi
+      block content
+    | <!--[if mso]></td></tr></table><![endif]-->

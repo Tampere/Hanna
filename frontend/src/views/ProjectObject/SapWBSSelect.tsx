@@ -1,3 +1,4 @@
+import { Error } from '@mui/icons-material';
 import { Autocomplete, CircularProgress, TextField, Tooltip } from '@mui/material';
 import { ControllerRenderProps, FieldValues } from 'react-hook-form';
 
@@ -27,6 +28,8 @@ export function SapWBSSelect(props: Props) {
 
   const isLoading = isEnabled && wbsProjects.isLoading;
   const options = wbsProjects.data?.map((wbs) => wbs.wbsId);
+  const selectedWbs = wbsProjects.data?.find((wbs) => wbs.wbsId === props.field.value);
+  const isUnknownWbs = !isLoading && Boolean(options) && Boolean(props.field.value) && !selectedWbs;
 
   return (
     <>
@@ -34,8 +37,9 @@ export function SapWBSSelect(props: Props) {
         arrow
         title={
           props.field.value
-            ? `${wbsProjects.data?.find((wbs) => wbs.wbsId === props.field.value)
-                ?.shortDescription} (${props.field.value})`
+            ? selectedWbs
+              ? `${selectedWbs.shortDescription} (${props.field.value})`
+              : props.field.value
             : null
         }
       >
@@ -60,8 +64,10 @@ export function SapWBSSelect(props: Props) {
               <>
                 <TextField
                   {...restParams}
+                  {...props.readonlyProps}
                   InputProps={{
                     ...InputProps,
+                    ...props.readonlyProps?.InputProps,
                     endAdornment: isLoading ? (
                       <CircularProgress color="inherit" size={20} />
                     ) : (
@@ -69,11 +75,15 @@ export function SapWBSSelect(props: Props) {
                         {!isLoading && !options && (
                           <HelpTooltip title={tr('projectObject.sapWBSIdNoSAPProjectIdTooltip')} />
                         )}
-                        {InputProps.endAdornment}
+                        {isUnknownWbs && (
+                          <Tooltip placement="top" title={tr('sapWBSSelect.unknownWbs')}>
+                            <Error style={{ color: 'orange' }} />
+                          </Tooltip>
+                        )}
+                        {!props.readonlyProps?.InputProps?.readOnly && InputProps.endAdornment}
                       </>
                     ),
                   }}
-                  {...props.readonlyProps}
                 />
               </>
             );

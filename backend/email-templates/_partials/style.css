@@ -25,3 +25,14 @@ table.fields td {
 table.fields th {
   white-space: nowrap;
 }
+
+.container {
+  max-width: 640px;
+}
+
+table.fields td {
+  /* Keep line breaks of free-text fields and break overly long words/URLs */
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
