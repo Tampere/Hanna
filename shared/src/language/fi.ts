@@ -676,7 +676,7 @@ export const fi = {
   'purchaseRequest.dialog.cancel': 'Peruuta',
   'purchaseRequest.dialog.close': 'Sulje',
   'purchaseRequest.dialog.send': 'Lähetä',
-  'purchaseRequest.dialog.editAndResend': 'Muokkaa...',
+  'purchaseRequest.dialog.editAndResend': 'Muokkaa',
   'purchaseRequest.field.responsiblePerson': 'Vastuuhenkilö',
   'purchaseRequest.field.orderer': 'Tilaaja',
   'purchaseRequest.field.company': 'Toimittaja',
