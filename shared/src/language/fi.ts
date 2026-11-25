@@ -462,6 +462,8 @@ export const fi = {
   'sessionRenewed.text':
     'Voit nyt sulkea tämän välilehden tai siirtyä haluamallesi sivulle valikosta.',
   'sapWBSSelect.noOptions': 'SAP-rakenneosia ei löytynyt',
+  'sapWBSSelect.unknownWbs':
+    'Annetulla tunnisteella ei löytynyt SAP-rakenneosaa hankkeen SAP-projektista.',
   'task.tasks': 'Vaiheet',
   'task.additionalInfo':
     'Vaiheet haetaan suoraan SAP:sta silloin, kun kohteelle on ilmoitettu rakenneosan tunniste. Vaiheiden toteuma haetaan koko rakennusosan elinkaarelta, joka voi poiketa Hannaan ilmoitetun kohteen toteutusvälistä. Huomioi myös, että SAP:ssa tositteet voi merkitä vaiheen lisäksi myös suoraan rakenneosalle, jolloin Hannassa vaiheiden toteuman summa voi poiketa niiden kohteen toteuman summasta.',
